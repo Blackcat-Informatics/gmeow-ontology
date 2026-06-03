@@ -1,0 +1,306 @@
+"""Single source of truth for GMEOW IRIs, paths, prefixes, and link policy.
+
+Every other module imports from here so that namespace strings, filesystem
+locations, and the license-aware link policy are defined exactly once. All
+filesystem locations are :class:`pathlib.Path` objects (never bare strings).
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from enum import StrEnum
+from pathlib import Path
+
+# --------------------------------------------------------------------------- #
+# Version
+# --------------------------------------------------------------------------- #
+
+#: Semantic version of the ontology release. Drives ``owl:versionIRI`` and the
+#: CITATION/DOI metadata. Bump on every release (releases are immutable).
+VERSION = "0.1.0"
+
+#: Release date (ISO-8601). Used for the DOI deposit publication date.
+RELEASE_DATE = "2026-06-03"
+
+#: Human-readable title (shared by metadata, citation, and DOI deposit).
+TITLE = "GMEOW — Global Metadata and Entity Ontology for the Web"
+
+# --------------------------------------------------------------------------- #
+# IRIs (slash namespace, schema.org style — see plan)
+# --------------------------------------------------------------------------- #
+
+#: Ontology IRI (the document IRI, no trailing slash).
+ONTOLOGY_IRI = "https://blackcatinformatics.ca/gmeow"
+
+#: Vocabulary namespace (term IRIs are NAMESPACE + local name).
+NAMESPACE = ONTOLOGY_IRI + "/"
+
+#: VoID dataset node IRI (subject of linkset descriptions).
+VOID_DATASET_IRI = ONTOLOGY_IRI + "/.well-known/void.ttl#dataset"
+
+
+def version_iri(version: str = VERSION) -> str:
+    """Return the ``owl:versionIRI`` for a given semantic version.
+
+    Args:
+        version: Semantic version string (defaults to :data:`VERSION`).
+
+    Returns:
+        The immutable, version-specific IRI for the release artifact.
+    """
+    return f"{NAMESPACE}{version}"
+
+
+# --------------------------------------------------------------------------- #
+# Filesystem layout
+# --------------------------------------------------------------------------- #
+
+#: Repository root (this file lives at ``<root>/src/gmeow_tools/config.py``).
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+ONTOLOGY_DIR = PROJECT_ROOT / "ontology"
+MODULES_DIR = ONTOLOGY_DIR / "modules"
+ONTOLOGY_FILE = ONTOLOGY_DIR / "gmeow.ttl"
+
+IMPORTS_DIR = PROJECT_ROOT / "imports"
+MAPPINGS_DIR = PROJECT_ROOT / "mappings"
+SHAPES_DIR = PROJECT_ROOT / "shapes"
+SHAPES_FILE = SHAPES_DIR / "gmeow-shapes.ttl"
+QUERIES_DIR = PROJECT_ROOT / "queries"
+COMPETENCY_DIR = QUERIES_DIR / "competency"
+QC_DIR = QUERIES_DIR / "qc"
+METADATA_DIR = PROJECT_ROOT / "metadata"
+VOID_FILE = METADATA_DIR / "void.ttl"
+DCAT_FILE = METADATA_DIR / "dcat.ttl"
+
+APACHE_DIR = PROJECT_ROOT / "apache"
+APACHE_CONF = APACHE_DIR / "gmeow.conf"
+
+CATALOG_FILE = PROJECT_ROOT / "catalog-v001.xml"
+
+#: Generated outputs (git-ignored, published on release).
+DIST_DIR = PROJECT_ROOT / "dist"
+DOCS_DIR = PROJECT_ROOT / "docs" / "_generated"
+
+# --------------------------------------------------------------------------- #
+# Pinned Docker images (the Java toolchain — see plan)
+# --------------------------------------------------------------------------- #
+
+ROBOT_IMAGE = "obolibrary/robot:v1.9.7"
+WIDOCO_IMAGE = "ghcr.io/dgarijo/widoco:v1.4.25"
+JENA_IMAGE = "stain/jena:5.4.0"  # riot + sparql; RDF 1.2 / triple-term support
+
+# --------------------------------------------------------------------------- #
+# CrossRef DOI deposit
+#
+# Blackcat Informatics mints GMEOW's DOI as a CrossRef member (its own prefix),
+# rather than via Zenodo. The values below are the registrant-specific deposit
+# parameters; the prefix is a placeholder until membership is finalized.
+# --------------------------------------------------------------------------- #
+
+#: CrossRef DOI prefix assigned to the registrant. PLACEHOLDER — replace with the
+#: real prefix (e.g. "10.71234") once CrossRef membership is finalized.
+CROSSREF_DOI_PREFIX = "10.XXXXX"
+#: DOI suffix for the ontology (DOI = ``{prefix}/{suffix}``).
+CROSSREF_DOI_SUFFIX = "gmeow"
+#: Depositor / registrant identity for the deposit batch.
+CROSSREF_DEPOSITOR_NAME = "Blackcat Informatics Inc."
+#: Depositor email registered with CrossRef. PLACEHOLDER — set to the real one.
+CROSSREF_DEPOSITOR_EMAIL = "doi@blackcatinformatics.ca"
+CROSSREF_REGISTRANT = "Blackcat Informatics Inc."
+
+
+def full_doi() -> str:
+    """Return the full GMEOW DOI (``{prefix}/{suffix}``)."""
+    return f"{CROSSREF_DOI_PREFIX}/{CROSSREF_DOI_SUFFIX}"
+
+
+# --------------------------------------------------------------------------- #
+# Namespace prefixes (single registry — drives serialization + JSON-LD context)
+# --------------------------------------------------------------------------- #
+
+PREFIXES: dict[str, str] = {
+    # GMEOW + RDF core
+    "gmeow": NAMESPACE,
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    # Metadata / documentation
+    "dcterms": "http://purl.org/dc/terms/",
+    "dc": "http://purl.org/dc/elements/1.1/",
+    "vann": "http://purl.org/vocab/vann/",
+    "void": "http://rdfs.org/ns/void#",
+    "dcat": "http://www.w3.org/ns/dcat#",
+    "sssom": "https://w3id.org/sssom/",
+    "semapv": "https://w3id.org/semapv/vocab/",
+    # Upper-ontology spine
+    "gufo": "http://purl.org/nemo/gufo#",
+    "umbel": "http://umbel.org/umbel#",
+    "umbelrc": "http://umbel.org/umbel/rc/",
+    "dul": "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#",
+    "bfo": "http://purl.obolibrary.org/obo/",
+    # Peer schemas GMEOW supersets / aligns to
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "rel": "http://purl.org/vocab/relationship/",
+    "doap": "http://usefulinc.com/ns/doap#",
+    "prov": "http://www.w3.org/ns/prov#",
+    "org": "http://www.w3.org/ns/org#",
+    "time": "http://www.w3.org/2006/time#",
+    "schema": "https://schema.org/",
+    "gedcom": "http://www.w3.org/2000/10/swap/pim/gedcom#",
+    # Wikidata
+    "wd": "http://www.wikidata.org/entity/",
+    "wdt": "http://www.wikidata.org/prop/direct/",
+    "wikibase": "http://wikiba.se/ontology#",
+    "p": "http://www.wikidata.org/prop/",
+    "ps": "http://www.wikidata.org/prop/statement/",
+    "wds": "http://www.wikidata.org/entity/statement/",
+}
+
+# --------------------------------------------------------------------------- #
+# License-aware link policy
+# --------------------------------------------------------------------------- #
+
+
+class LinkPolicy(StrEnum):
+    """Whether an external vocabulary's axioms may be copied into GMEOW.
+
+    GMEOW is published under CC BY 4.0. Importing or extracting an external
+    ontology *copies its axioms/labels* into GMEOW, which is only permissible
+    for compatibly-licensed sources. Restrictive sources may still be *linked*
+    by IRI (which copies nothing).
+    """
+
+    IMPORT_OK = "import-ok"
+    REFERENCE_ONLY = "reference-only"
+
+
+#: License-id tokens (uppercased) that block axiom copying into a CC-BY work.
+#: Non-commercial, no-derivatives, conflicting share-alike, and copyleft
+#: software licenses are reference-only.
+_REFERENCE_ONLY_MARKERS: tuple[str, ...] = (
+    "NC",  # non-commercial (CC-BY-NC, CC-BY-NC-SA, CC-BY-NC-ND)
+    "ND",  # no-derivatives
+    "SA",  # share-alike (CC-BY-SA conflicts with CC-BY republication)
+    "GPL",  # GPL / LGPL / AGPL copyleft software licenses
+    "EUPL",  # European Union Public License (copyleft)
+    "PROPRIETARY",
+    "INTERNAL",
+    "ACADEMIC",
+)
+
+#: License-id tokens (uppercased) explicitly cleared for axiom copying.
+_IMPORT_OK_LICENSES: frozenset[str] = frozenset(
+    {
+        "CC0",
+        "CC0-1.0",
+        "CC-BY",
+        "CC-BY-1.0",
+        "CC-BY-3.0",
+        "CC-BY-4.0",
+        "MIT",
+        "APACHE-2.0",
+        "BSD-2-CLAUSE",
+        "BSD-3-CLAUSE",
+        "PDDL-1.0",
+        "PDDL",
+        "ODC-BY-1.0",
+        "ODC-BY",
+        "PUBLIC-DOMAIN",
+        "PUBLIC DOMAIN",
+        "W3C",
+        "W3C-DOCUMENT",
+        "OGC",
+        "NIST-PUBLIC-DOMAIN",
+        "NIST PUBLIC DOMAIN",
+        "UNLICENSE",
+    }
+)
+
+
+def policy_for_license(license_id: str) -> LinkPolicy:
+    """Classify a license string into a link policy.
+
+    The classifier is conservative: a restrictive marker (NC/ND/SA/GPL/…)
+    anywhere in the token forces ``REFERENCE_ONLY``, even if a permissive
+    substring is also present (e.g. ``CC-BY-NC-SA`` contains ``CC-BY`` but is
+    still reference-only). Unknown licenses default to ``REFERENCE_ONLY`` so a
+    mistake fails safe (links allowed, copying refused).
+
+    Args:
+        license_id: A license identifier such as ``"CC-BY-4.0"`` or
+            ``"CC-BY-NC-ND 4.0"``.
+
+    Returns:
+        The :class:`LinkPolicy` for the license.
+    """
+    token = license_id.strip().upper()
+    # Restrictive markers win, regardless of any permissive substring.
+    for marker in _REFERENCE_ONLY_MARKERS:
+        # Match the marker as a hyphen/space/edge-delimited segment so that,
+        # e.g. "ND" does not spuriously match inside "PUBLIC DOMAIN".
+        if _has_marker_segment(token, marker):
+            return LinkPolicy.REFERENCE_ONLY
+    if token in _IMPORT_OK_LICENSES:
+        return LinkPolicy.IMPORT_OK
+    # Bare "CC-BY" with a version suffix not already listed.
+    if token.startswith("CC-BY-") and "SA" not in token and "NC" not in token:
+        return LinkPolicy.IMPORT_OK
+    return LinkPolicy.REFERENCE_ONLY
+
+
+def _has_marker_segment(token: str, marker: str) -> bool:
+    """Return whether ``marker`` appears as a delimited segment of ``token``."""
+    segments = token.replace("_", "-").replace(" ", "-").split("-")
+    if marker in segments:
+        return True
+    # GPL family also appears as a prefix (e.g. "GPL-2.0", "LGPL", "AGPL-3.0").
+    return marker == "GPL" and any(seg.endswith("GPL") for seg in segments)
+
+
+@dataclass(frozen=True, slots=True)
+class AlignmentTarget:
+    """A curated external vocabulary GMEOW aligns to.
+
+    Informed by — never parsed from — the local source registry. ``kind`` marks
+    whether the target is a foundational *upper* ontology, a peer *schema*
+    GMEOW supersets/aligns to, or a *concept_scheme* (value vocabulary).
+    """
+
+    name: str
+    namespace: str
+    license: str
+    kind: str  # "upper" | "schema" | "concept_scheme"
+
+    @property
+    def policy(self) -> LinkPolicy:
+        """Return the link policy implied by this target's license."""
+        return policy_for_license(self.license)
+
+
+#: Curated alignment targets. The spec authors extend this as alignment grows;
+#: the policy is derived from each target's license automatically.
+ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
+    "gufo": AlignmentTarget("gUFO", PREFIXES["gufo"], "MIT", "upper"),
+    "umbel": AlignmentTarget("UMBEL", PREFIXES["umbel"], "CC-BY-3.0", "upper"),
+    "dolce": AlignmentTarget("DOLCE/DUL", PREFIXES["dul"], "LGPL", "upper"),
+    "bfo": AlignmentTarget(
+        "BFO", "http://purl.obolibrary.org/obo/bfo.owl", "CC-BY-4.0", "upper"
+    ),
+    "foaf": AlignmentTarget("FOAF", PREFIXES["foaf"], "CC-BY-1.0", "schema"),
+    "rel": AlignmentTarget(
+        "REL (Relationship)", PREFIXES["rel"], "CC-BY-1.0", "schema"
+    ),
+    "doap": AlignmentTarget("DOAP", PREFIXES["doap"], "Public-Domain", "schema"),
+    "prov": AlignmentTarget("PROV-O", PREFIXES["prov"], "W3C-Document", "schema"),
+    "org": AlignmentTarget("ORG", PREFIXES["org"], "PDDL-1.0", "schema"),
+    "time": AlignmentTarget("OWL-Time", PREFIXES["time"], "CC-BY-4.0", "schema"),
+    "schema": AlignmentTarget(
+        "Schema.org", PREFIXES["schema"], "CC-BY-SA-3.0", "schema"
+    ),
+    "wikidata": AlignmentTarget(
+        "Wikidata", PREFIXES["wd"], "CC0-1.0", "concept_scheme"
+    ),
+}

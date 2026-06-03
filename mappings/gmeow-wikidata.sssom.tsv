@@ -1,0 +1,6 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/wikidata
+# license: https://creativecommons.org/licenses/by/4.0/
+# comment: GMEOW term to Wikidata Q/P item alignments. QIDs are validated.
+subject_id	predicate_id	object_id	mapping_justification	confidence	subject_label	object_label
+gmeow:Person	skos:exactMatch	wd:Q5	semapv:ManualMappingCuration	0.98	Person	human
+gmeow:Organization	skos:exactMatch	wd:Q43229	semapv:ManualMappingCuration	0.9	Organization	organization

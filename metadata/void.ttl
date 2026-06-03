@@ -1,0 +1,103 @@
+@prefix bfo: <http://purl.obolibrary.org/obo/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix doap: <http://usefulinc.com/ns/doap#> .
+@prefix dul: <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix org: <http://www.w3.org/ns/org#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rel: <http://purl.org/vocab/relationship/> .
+@prefix schema: <https://schema.org/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix umbel: <http://umbel.org/umbel#> .
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix wd: <http://www.wikidata.org/entity/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-0.1-owl_equivalentClass> a void:Linkset ;
+    rdfs:label "GMEOW owl:equivalentClass links to http://xmlns.com/foaf/0.1/ (1)" ;
+    void:linkPredicate owl:equivalentClass ;
+    void:objectsTarget foaf: ;
+    void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
+    void:triples 1 .
+
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-entity-skos_exactMatch> a void:Linkset ;
+    rdfs:label "GMEOW skos:exactMatch links to http://www.wikidata.org/entity/ (2)" ;
+    void:linkPredicate skos:exactMatch ;
+    void:objectsTarget wd: ;
+    void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
+    void:triples 2 .
+
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-org-owl_equivalentClass> a void:Linkset ;
+    rdfs:label "GMEOW owl:equivalentClass links to http://www.w3.org/ns/org# (1)" ;
+    void:linkPredicate owl:equivalentClass ;
+    void:objectsTarget org: ;
+    void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
+    void:triples 1 .
+
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-prov-owl_equivalentClass> a void:Linkset ;
+    rdfs:label "GMEOW owl:equivalentClass links to http://www.w3.org/ns/prov# (1)" ;
+    void:linkPredicate owl:equivalentClass ;
+    void:objectsTarget prov: ;
+    void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
+    void:triples 1 .
+
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-relationship-owl_equivalentProperty> a void:Linkset ;
+    rdfs:label "GMEOW owl:equivalentProperty links to http://purl.org/vocab/relationship/ (1)" ;
+    void:linkPredicate owl:equivalentProperty ;
+    void:objectsTarget rel: ;
+    void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
+    void:triples 1 .
+
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-schema.org-skos_closeMatch> a void:Linkset ;
+    rdfs:label "GMEOW skos:closeMatch links to https://schema.org/ (1)" ;
+    void:linkPredicate skos:closeMatch ;
+    void:objectsTarget schema: ;
+    void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
+    void:triples 1 .
+
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> a void:Dataset ;
+    dcterms:creator <https://blackcatinformatics.ca/#bii> ;
+    dcterms:description "A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary for entity, document, agreement and person-centric data."@en ;
+    dcterms:hasVersion "0.1.0" ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    dcterms:publisher <https://blackcatinformatics.ca/#bii> ;
+    dcterms:title "GMEOW — Global Metadata and Entity Ontology for the Web"@en ;
+    void:dataDump <https://blackcatinformatics.ca/gmeow.jsonld>,
+        <https://blackcatinformatics.ca/gmeow.nt>,
+        <https://blackcatinformatics.ca/gmeow.rdf>,
+        <https://blackcatinformatics.ca/gmeow.ttl> ;
+    void:exampleResource gmeow:Person ;
+    void:feature <http://www.w3.org/ns/formats/JSON-LD>,
+        <http://www.w3.org/ns/formats/N-Triples>,
+        <http://www.w3.org/ns/formats/RDF_XML>,
+        <http://www.w3.org/ns/formats/Turtle> ;
+    void:subset <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-0.1-owl_equivalentClass>,
+        <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-entity-skos_exactMatch>,
+        <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-org-owl_equivalentClass>,
+        <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-prov-owl_equivalentClass>,
+        <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-relationship-owl_equivalentProperty>,
+        <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-schema.org-skos_closeMatch> ;
+    void:uriSpace "https://blackcatinformatics.ca/gmeow/" ;
+    void:vocabulary bfo:bfo.owl,
+        dcterms:,
+        gufo:,
+        rel:,
+        umbel:,
+        doap:,
+        dul:,
+        rdfs:,
+        owl:,
+        skos:,
+        time:,
+        org:,
+        prov:,
+        wd:,
+        foaf:,
+        schema: ;
+    foaf:homepage <https://blackcatinformatics.ca/gmeow> .
+

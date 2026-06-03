@@ -1,0 +1,67 @@
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
+# SHACL shapes for the GMEOW vocabulary. The SPARQL target restricts each shape
+# to GMEOW-namespaced terms so imported gUFO/peer-schema terms are not flagged.
+
+gmeow:GmeowClassShape
+    a sh:NodeShape ;
+    rdfs:label "GMEOW class completeness shape" ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            SELECT ?this WHERE {
+                ?this a <http://www.w3.org/2002/07/owl#Class> .
+                FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
+            }
+        """ ;
+    ] ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every GMEOW class must carry at least one rdfs:label." ;
+    ] ;
+    sh:property [
+        sh:path skos:definition ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every GMEOW class must carry a skos:definition." ;
+    ] ;
+    sh:property [
+        sh:path rdfs:isDefinedBy ;
+        sh:minCount 1 ;
+        sh:severity sh:Warning ;
+        sh:message "Every GMEOW class should declare rdfs:isDefinedBy the ontology." ;
+    ] .
+
+gmeow:GmeowPropertyShape
+    a sh:NodeShape ;
+    rdfs:label "GMEOW property completeness shape" ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            SELECT ?this WHERE {
+                ?this a ?t .
+                FILTER(?t IN (
+                    <http://www.w3.org/2002/07/owl#ObjectProperty>,
+                    <http://www.w3.org/2002/07/owl#DatatypeProperty>
+                ))
+                FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
+            }
+        """ ;
+    ] ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every GMEOW property must carry at least one rdfs:label." ;
+    ] ;
+    sh:property [
+        sh:path skos:definition ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every GMEOW property must carry a skos:definition." ;
+    ] .

@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Sync environment
+        run: uv sync --frozen
+
+      - name: Lint (ruff) and type-check (mypy)
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+          uv run mypy
+
+      - name: Validate (syntax, lint, SHACL)
+        run: uv run gmeow validate
+
+      - name: Mappings → axioms + linksets, QID syntax
+        run: uv run gmeow mappings
+
+      - name: Wikidata QID/PID syntax gate
+        run: uv run gmeow wikidata
+
+      - name: Unit tests
+        run: uv run pytest -q
+
+      - name: Pull pinned ROBOT image
+        run: |
+          ROBOT_IMAGE=$(uv run python -c "from gmeow_tools.config import ROBOT_IMAGE; print(ROBOT_IMAGE)")
+          docker pull "$ROBOT_IMAGE"
+
+      - name: Reason (ELK) + OWL 2 DL profile
+        run: uv run gmeow reason --reasoner ELK

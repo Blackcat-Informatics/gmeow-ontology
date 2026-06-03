@@ -1,0 +1,46 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann:    <http://purl.org/vocab/vann/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/core>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Core Module"@en ;
+    rdfs:comment "Foundational GMEOW categories grounded in gUFO, plus the annotation properties used across all modules."@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Annotation properties (declared so the ontology stays OWL 2 DL).
+# --------------------------------------------------------------------------- #
+
+skos:definition     a owl:AnnotationProperty .
+skos:scopeNote      a owl:AnnotationProperty .
+skos:example        a owl:AnnotationProperty .
+vann:preferredNamespacePrefix a owl:AnnotationProperty .
+vann:preferredNamespaceUri    a owl:AnnotationProperty .
+dcterms:isPartOf    a owl:AnnotationProperty .
+dcterms:created     a owl:AnnotationProperty .
+dcterms:modified    a owl:AnnotationProperty .
+
+# --------------------------------------------------------------------------- #
+# Core categories. Every GMEOW class subclasses a gUFO foundational category.
+# These are skeleton stubs; the specification fills in the full axiomatisation.
+# --------------------------------------------------------------------------- #
+
+gmeow:Entity
+    a owl:Class ;
+    rdfs:subClassOf gufo:Endurant ;
+    rdfs:label "Entity"@en ;
+    skos:definition "Anything in the GMEOW universe of discourse that persists in time and can bear properties: an agent, a document, a contact point, and so on."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Agent
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Entity, gufo:FunctionalComplex ;
+    rdfs:label "Agent"@en ;
+    skos:definition "An entity that can act, bear responsibility, and enter into agreements: a person, an organization, or a software agent."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

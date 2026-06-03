@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- OASIS XML catalog: maps ontology IRIs to local files so the import
+     closure (gUFO spine + GMEOW modules + extracted subsets) resolves
+     offline for ROBOT, Protégé, and the reasoning pipeline. Paths are
+     relative to this file (the repository root). -->
+<catalog prefer="public" xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+    <!-- Upper-ontology spine -->
+    <uri name="http://purl.org/nemo/gufo#" uri="imports/gufo.ttl"/>
+
+    <!-- GMEOW modules -->
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/core" uri="ontology/modules/core.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/entities" uri="ontology/modules/entities.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/documents" uri="ontology/modules/documents.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/genealogy" uri="ontology/modules/genealogy.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/agreements" uri="ontology/modules/agreements.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/contacts" uri="ontology/modules/contacts.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/provenance" uri="ontology/modules/provenance.ttl"/>
+</catalog>

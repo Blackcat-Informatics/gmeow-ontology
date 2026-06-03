@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Generated build artifacts (published on release, not committed)
+/dist/
+/docs/_generated/
+
+# Editor/OS noise
+.DS_Store
+*.swp

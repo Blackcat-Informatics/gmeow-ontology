@@ -1,0 +1,90 @@
+[project]
+name = "gmeow-ontology"
+version = "0.1.0"
+description = "Tooling to refine, validate, reason over, document, and publish the GMEOW ontology (Global Metadata and Entity Ontology for the Web)."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [{ name = "Blackcat Informatics Inc." }]
+keywords = ["ontology", "owl", "rdf", "linked-data", "gmeow", "fair"]
+dependencies = [
+    "rdflib>=7.6",
+    "pyshacl>=0.31",
+    "pylode>=3.4",
+    "sssom>=0.4.16",
+    "httpx>=0.28",
+    "typer>=0.15",
+    "rich>=13.9",
+]
+
+[project.scripts]
+gmeow = "gmeow_tools.cli:app"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.9",
+    "mypy>=1.14",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gmeow_tools"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "PTH", # flake8-use-pathlib (enforce Path over os.path strings)
+    "RUF", # ruff-specific
+    "D",   # pydocstyle (Google docstrings)
+]
+ignore = [
+    "D203", # one-blank-line-before-class (conflicts with D211)
+    "D213", # multi-line-summary-second-line (conflicts with D212)
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D"] # docstrings not required in tests
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_any_generics = true
+files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+# Third-party libraries without complete type information.
+module = ["pylode.*", "sssom.*", "pyshacl.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "network: tests that require network access (Wikidata/OOPS!/FOOPS!)",
+    "docker: tests that require Docker (ROBOT/WIDOCO/Jena)",
+]

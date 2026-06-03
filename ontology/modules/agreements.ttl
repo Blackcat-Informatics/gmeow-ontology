@@ -1,0 +1,34 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/agreements>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Agreements Module"@en ;
+    rdfs:comment "Legal agreements and contracts, modeled as relators binding their parties."@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Agreement
+    a owl:Class ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Agreement"@en ;
+    skos:definition "A mutual understanding between two or more agents that creates obligations or rights, reified as a relator connecting its parties."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Contract
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Agreement ;
+    rdfs:label "Contract"@en ;
+    skos:definition "A legally enforceable agreement."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasParty
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agreement ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "has party"@en ;
+    skos:definition "Relates an agreement to an agent that is bound by it."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
