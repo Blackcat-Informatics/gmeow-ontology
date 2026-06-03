@@ -1,0 +1,34 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/contacts>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Contacts Module"@en ;
+    rdfs:comment "Contact points and channels: email, telephone, postal addresses."@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:ContactPoint
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Contact Point"@en ;
+    skos:definition "A means of reaching an agent: an email address, telephone number, or postal address."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:EmailAddress
+    a owl:Class ;
+    rdfs:subClassOf gmeow:ContactPoint ;
+    rdfs:label "Email Address"@en ;
+    skos:definition "A contact point reachable via the Simple Mail Transfer Protocol (SMTP)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasContactPoint
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:ContactPoint ;
+    rdfs:label "has contact point"@en ;
+    skos:definition "Relates an agent to a means of contacting it."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

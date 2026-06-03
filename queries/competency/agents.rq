@@ -1,0 +1,10 @@
+# Competency question: "What kinds of agent does GMEOW model?"
+# Expected (skeleton): gmeow:Agent and its subclasses Person and Organization.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?agentKind WHERE {
+    ?agentKind rdfs:subClassOf* gmeow:Agent .
+}
+ORDER BY ?agentKind

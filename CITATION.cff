@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use the GMEOW ontology, please cite it as below."
+title: "GMEOW — Global Metadata and Entity Ontology for the Web"
+abstract: >-
+  A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that
+  unifies document metadata, entity descriptions, legal agreements, contacts and
+  person-centric data. Grounded in gUFO and aligned to FOAF, REL, DOAP, PROV-O,
+  schema.org and Wikidata.
+type: dataset
+authors:
+  - name: "Blackcat Informatics Inc."
+    website: "https://blackcatinformatics.ca/"
+version: "0.1.0"
+date-released: "2026-06-03"
+license: CC-BY-4.0
+url: "https://blackcatinformatics.ca/gmeow"
+keywords:
+  - ontology
+  - OWL
+  - linked-data
+  - FAIR
+  - entity
+  - metadata

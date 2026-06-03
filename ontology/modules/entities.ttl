@@ -1,0 +1,33 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/entities>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Entities Module"@en ;
+    rdfs:comment "Person, organization and group descriptions (the FOAF-superset layer)."@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Person
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Agent ;
+    rdfs:label "Person"@en ;
+    skos:definition "An individual human being, living or deceased."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Organization
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Agent ;
+    rdfs:label "Organization"@en ;
+    skos:definition "A structured group of agents — a company, institution, association, or governmental body — able to act as a single agent."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Group
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Entity, gufo:Collection ;
+    rdfs:label "Group"@en ;
+    skos:definition "A collection of agents treated as a unit without the formal structure of an organization."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

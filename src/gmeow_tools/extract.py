@@ -1,0 +1,97 @@
+"""ROBOT-based module extraction with license-policy enforcement.
+
+Extraction *copies* axioms/labels from a source ontology into GMEOW (a CC BY 4.0
+work). That is only permissible for compatibly-licensed sources, so every
+extraction is guarded by the link policy from ``config``: a ``REFERENCE_ONLY``
+target (NC/ND/share-alike/copyleft/proprietary) is refused, loudly. Such targets
+may still be *linked* by IRI via the mappings layer.
+
+This is the concrete teeth behind the plan's "refuses reference-only imports".
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from gmeow_tools.config import (
+    ALIGNMENT_TARGETS,
+    DIST_DIR,
+    PROJECT_ROOT,
+    ROBOT_IMAGE,
+    LinkPolicy,
+)
+from gmeow_tools.runner import run_container
+
+
+class LicensePolicyError(RuntimeError):
+    """Raised when extraction is attempted from a reference-only source."""
+
+
+def guard_importable(target_name: str) -> None:
+    """Raise if a target may not have its axioms copied into GMEOW.
+
+    Args:
+        target_name: Key into :data:`config.ALIGNMENT_TARGETS`.
+
+    Raises:
+        LicensePolicyError: If the target is unknown or ``REFERENCE_ONLY``.
+    """
+    target = ALIGNMENT_TARGETS.get(target_name)
+    if target is None:
+        raise LicensePolicyError(
+            f"unknown alignment target {target_name!r}; refusing to extract"
+        )
+    if target.policy is not LinkPolicy.IMPORT_OK:
+        raise LicensePolicyError(
+            f"refusing to extract {target.name} ({target.license}): "
+            f"{target.policy.value}. Link it by IRI instead — do not copy its "
+            f"axioms into CC BY 4.0 GMEOW."
+        )
+
+
+def extract_terms(
+    target_name: str,
+    *,
+    source: Path,
+    terms: list[str],
+    output: Path,
+    method: str = "STAR",
+) -> Path:
+    """Extract a term subset (SLME) from a source ontology, if license permits.
+
+    Args:
+        target_name: Key into :data:`config.ALIGNMENT_TARGETS` (license-checked).
+        source: Source ontology file under the repo (e.g. a vendored import).
+        terms: Seed term IRIs to extract the module around.
+        output: Destination Turtle file.
+        method: ROBOT extract method (``STAR`` SLME by default).
+
+    Returns:
+        The path to the extracted module.
+
+    Raises:
+        LicensePolicyError: If the target is reference-only/unknown.
+        FileNotFoundError: If the source ontology is missing.
+    """
+    guard_importable(target_name)
+    if not source.exists():
+        raise FileNotFoundError(f"extract source not found: {source}")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    args = [
+        "robot",
+        "extract",
+        "--method",
+        method,
+        "--input",
+        str(source.relative_to(PROJECT_ROOT)),
+    ]
+    for term in terms:
+        args += ["--term", term]
+    args += ["--output", str(output.relative_to(PROJECT_ROOT))]
+    run_container(ROBOT_IMAGE, args)
+    return output
+
+
+def umbel_extract_path() -> Path:
+    """Return the conventional path for the extracted UMBEL connectivity layer."""
+    return DIST_DIR / "umbel-extract.ttl"

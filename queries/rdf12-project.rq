@@ -1,0 +1,28 @@
+# Project OWL 2 axiom annotations into RDF 1.2 reifying triples (PREVIEW).
+#
+# The canonical source of truth is the OWL axiom-annotation reification
+# (owl:Axiom + owl:annotatedSource/Property/Target). This CONSTRUCT re-expresses
+# each annotated axiom as the asserted triple plus an RDF 1.2 reifier that
+# carries the annotations, for RDF 1.2 / rdf-star consumers.
+#
+# Requires a SPARQL 1.2 engine (Apache Jena >= 5.4). The triple-term syntax is
+# a W3C Working Draft and may change.
+
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+CONSTRUCT {
+    ?s ?p ?o .
+    ?axiom rdf:reifies <<( ?s ?p ?o )>> .
+    ?axiom ?annProp ?annVal .
+}
+WHERE {
+    ?axiom a owl:Axiom ;
+           owl:annotatedSource ?s ;
+           owl:annotatedProperty ?p ;
+           owl:annotatedTarget ?o ;
+           ?annProp ?annVal .
+    FILTER(?annProp NOT IN (
+        rdf:type, owl:annotatedSource, owl:annotatedProperty, owl:annotatedTarget
+    ))
+}
