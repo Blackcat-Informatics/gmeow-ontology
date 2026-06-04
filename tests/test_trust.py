@@ -76,6 +76,7 @@ def test_reification_endpoints_are_functional() -> None:
         "certifiedIdentity",
         "trustor",
         "trustee",
+        "signingKey",
     ):
         assert (
             URIRef(GMEOW + prop),

@@ -163,7 +163,7 @@ gmeow:signedBy
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:signingKey
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:range gmeow:CryptographicKey ;
     rdfs:label "signing key"@en ;
