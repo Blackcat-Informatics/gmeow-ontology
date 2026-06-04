@@ -1,0 +1,10 @@
+# Competency question: "What life events does GMEOW's genealogy model cover?"
+# Expected: LifeEvent and its subclasses (Birth, Death, Marriage, Burial, Census, …).
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?event WHERE {
+    ?event rdfs:subClassOf* gmeow:LifeEvent .
+}
+ORDER BY ?event

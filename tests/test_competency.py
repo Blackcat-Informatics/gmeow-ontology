@@ -42,6 +42,14 @@ def test_competency_kinship_query() -> None:
         assert NAMESPACE + term in terms
 
 
+def test_competency_life_events_query() -> None:
+    terms = _query_terms("life-events.rq")
+    # A comprehensive genealogy slice models many life-event types.
+    for term in ("Birth", "Death", "Marriage", "Burial", "Census", "Adoption"):
+        assert NAMESPACE + term in terms
+    assert len(terms) >= 25
+
+
 def test_qc_missing_definitions_is_empty() -> None:
     # The skeleton is fully annotated, so the QC check returns no offenders.
     graph = load_merged_graph(include_imports=False)

@@ -159,6 +159,11 @@ PREFIXES: dict[str, str] = {
     "sioc": "http://rdfs.org/sioc/ns#",
     "mads": "http://www.loc.gov/mads/rdf/v1#",
     "esco": "http://data.europa.eu/esco/model#",
+    # Genealogy
+    "bio": "http://purl.org/vocab/bio/0.1/",
+    "gx": "http://gedcomx.org/",
+    "gxv": "http://gedcomx.org/v1/",
+    "gn": "http://www.geonames.org/ontology#",
     # Wikidata
     "wd": "http://www.wikidata.org/entity/",
     "wdt": "http://www.wikidata.org/prop/direct/",
@@ -318,6 +323,11 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "bibframe": AlignmentTarget("BIBFRAME", PREFIXES["bibframe"], "CC0-1.0", "schema"),
     "sioc": AlignmentTarget("SIOC", PREFIXES["sioc"], "W3C-Document", "schema"),
     "skos": AlignmentTarget("SKOS", PREFIXES["skos"], "W3C-Document", "concept_scheme"),
+    "bio": AlignmentTarget("BIO vocabulary", PREFIXES["bio"], "CC-BY-3.0", "schema"),
+    "gedcomx": AlignmentTarget("GEDCOM X", PREFIXES["gx"], "Apache-2.0", "schema"),
+    "geonames": AlignmentTarget(
+        "GeoNames", PREFIXES["gn"], "CC-BY-4.0", "concept_scheme"
+    ),
     "wikidata": AlignmentTarget(
         "Wikidata", PREFIXES["wd"], "CC0-1.0", "concept_scheme"
     ),
