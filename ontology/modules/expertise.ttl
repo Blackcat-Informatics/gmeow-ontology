@@ -1,0 +1,48 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/expertise>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Expertise Module"@en ;
+    rdfs:comment "Skills, occupations and credentials (the schema.org / ESCO superset layer). SKOS concepts are reused as recommended value vocabularies rather than re-grounded."@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Skill
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Skill"@en ;
+    skos:definition "A competency or ability an agent possesses."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Occupation
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Occupation"@en ;
+    skos:definition "A kind of work or profession, such as those classified by ESCO or SOC."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Credential
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Credential"@en ;
+    skos:definition "An educational or occupational credential held by an agent — a degree, certification, or license."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasSkill
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Skill ;
+    rdfs:label "has skill"@en ;
+    skos:definition "Relates an agent to a skill it possesses."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasOccupation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range gmeow:Occupation ;
+    rdfs:label "has occupation"@en ;
+    skos:definition "Relates a person to an occupation they hold or have held."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

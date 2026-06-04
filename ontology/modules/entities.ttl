@@ -8,7 +8,7 @@
 <https://blackcatinformatics.ca/gmeow/modules/entities>
     a owl:Ontology ;
     rdfs:label "GMEOW Entities Module"@en ;
-    rdfs:comment "Person, organization and group descriptions (the FOAF-superset layer)."@en ;
+    rdfs:comment "Person, organization, group and software-agent descriptions, plus naming (the FOAF / schema.org superset layer)."@en ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Person
@@ -30,4 +30,37 @@ gmeow:Group
     rdfs:subClassOf gmeow:Entity, gufo:Collection ;
     rdfs:label "Group"@en ;
     skos:definition "A collection of agents treated as a unit without the formal structure of an organization."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:SoftwareAgent
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Agent ;
+    rdfs:label "Software Agent"@en ;
+    skos:definition "A software process or autonomous program that acts on behalf of a person or organization."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Naming (datatype properties).
+
+gmeow:name
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "name"@en ;
+    skos:definition "The name by which an entity is known."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:givenName
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "given name"@en ;
+    skos:definition "A person's given (first) name."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:familyName
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "family name"@en ;
+    skos:definition "A person's family (last) name."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

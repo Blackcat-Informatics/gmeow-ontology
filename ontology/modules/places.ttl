@@ -1,0 +1,59 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/places>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Places Module"@en ;
+    rdfs:comment "Geographic places and coordinates (the schema.org / GeoSPARQL superset layer)."@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Place
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Place"@en ;
+    skos:definition "A geographic location: a country, city, building, or point of interest."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:GeoCoordinates
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Geo Coordinates"@en ;
+    skos:definition "A geographic point expressed as latitude and longitude."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:containedInPlace
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:domain gmeow:Place ;
+    rdfs:range gmeow:Place ;
+    rdfs:label "contained in place"@en ;
+    skos:definition "Relates a place to a larger place that geographically contains it; transitive."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasCoordinates
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Place ;
+    rdfs:range gmeow:GeoCoordinates ;
+    rdfs:label "has coordinates"@en ;
+    skos:definition "Relates a place to its geographic coordinates."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:latitude
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GeoCoordinates ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "latitude"@en ;
+    skos:definition "The latitude of a geographic point in decimal degrees."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:longitude
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:GeoCoordinates ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "longitude"@en ;
+    skos:definition "The longitude of a geographic point in decimal degrees."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

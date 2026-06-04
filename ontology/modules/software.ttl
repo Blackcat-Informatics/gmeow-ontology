@@ -1,0 +1,50 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/software>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Software Module"@en ;
+    rdfs:comment "Software projects and code repositories (the DOAP / schema.org SoftwareSourceCode superset layer)."@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:SoftwareProject
+    a owl:Class ;
+    rdfs:subClassOf gmeow:CreativeWork ;
+    rdfs:label "Software Project"@en ;
+    skos:definition "A software project: a body of source code developed and released as a unit, with repositories, releases, and contributors."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Repository
+    a owl:Class ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Repository"@en ;
+    skos:definition "A version-control repository holding the source code of a software project."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasRepository
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:SoftwareProject ;
+    rdfs:range gmeow:Repository ;
+    rdfs:label "has repository"@en ;
+    skos:definition "Relates a software project to a source-code repository."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:developer
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:SoftwareProject ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "developer"@en ;
+    skos:definition "Relates a software project to an agent that develops it."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:programmingLanguage
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:SoftwareProject ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "programming language"@en ;
+    skos:definition "A programming language a software project is written in."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
