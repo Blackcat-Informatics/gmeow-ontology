@@ -160,6 +160,7 @@ PREFIXES: dict[str, str] = {
     "mads": "http://www.loc.gov/mads/rdf/v1#",
     "esco": "http://data.europa.eu/esco/model#",
     "nmo": "http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#",
+    "wot": "http://xmlns.com/wot/0.1/",
     # Genealogy
     "bio": "http://purl.org/vocab/bio/0.1/",
     "gx": "http://gedcomx.org/",
@@ -327,6 +328,7 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "nmo": AlignmentTarget(
         "Nepomuk Message Ontology", PREFIXES["nmo"], "Unknown", "schema"
     ),
+    "wot": AlignmentTarget("WOT Schema", PREFIXES["wot"], "Unknown", "schema"),
     "bio": AlignmentTarget("BIO vocabulary", PREFIXES["bio"], "CC-BY-3.0", "schema"),
     "gedcomx": AlignmentTarget("GEDCOM X", PREFIXES["gx"], "Apache-2.0", "schema"),
     "geonames": AlignmentTarget(

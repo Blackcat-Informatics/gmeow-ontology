@@ -1,0 +1,19 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/trust
+# license: https://creativecommons.org/licenses/by/4.0/
+# comment: Trust + contact-relationship alignments for the contacts revisit. Cryptographic keys / certifications / owner-trust use skos:closeMatch to the WOT schema (the PGP Web-of-Trust RDF vocabulary); the interpersonal-relationship convenience properties align to the REL (Relationship) vocabulary and FOAF. Perspectival owner-trust (TrustAssertion/trustor/trustLevel) and endorses are canonical — no maintained external RDF vocabulary models subjective, perspectival trust. W3C Verifiable Credentials / DID alignment is forward-looking (see commented rows below); the vc/did prefixes are deferred until those rows are added.
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:CryptographicKey	skos:closeMatch	wot:PubKey	semapv:ManualMappingCuration	0.9
+gmeow:fingerprint	skos:closeMatch	wot:fingerprint	semapv:ManualMappingCuration	0.95
+gmeow:keyId	skos:closeMatch	wot:hex_id	semapv:ManualMappingCuration	0.9
+gmeow:holdsKey	skos:closeMatch	wot:hasKey	semapv:ManualMappingCuration	0.9
+gmeow:Certification	skos:closeMatch	wot:Endorsement	semapv:ManualMappingCuration	0.8
+gmeow:certifier	skos:closeMatch	wot:signer	semapv:ManualMappingCuration	0.8
+gmeow:certificationLevel	skos:closeMatch	wot:assurance	semapv:ManualMappingCuration	0.7
+gmeow:hasMet	skos:closeMatch	rel:hasMet	semapv:ManualMappingCuration	0.95
+gmeow:hasMet	skos:closeMatch	foaf:knows	semapv:ManualMappingCuration	0.6
+gmeow:hasWorkedWith	skos:closeMatch	rel:collaboratesWith	semapv:ManualMappingCuration	0.85
+gmeow:hasWorkedWith	skos:closeMatch	rel:worksWith	semapv:ManualMappingCuration	0.85
+gmeow:InterpersonalRelationship	skos:closeMatch	foaf:knows	semapv:ManualMappingCuration	0.5	the reified tie loosely corresponds to a foaf:knows edge
+# Forward-looking (W3C Verifiable Credentials / DID) — uncomment after adding vc/did prefixes to config.py:
+# gmeow:Certification	skos:relatedMatch	vc:VerifiableCredential	semapv:ManualMappingCuration	0.5	a certification is a credential-like signed claim by an issuer about a subject
+# gmeow:certifier	skos:relatedMatch	vc:issuer	semapv:ManualMappingCuration	0.5

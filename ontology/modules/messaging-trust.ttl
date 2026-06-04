@@ -162,6 +162,14 @@ gmeow:signedBy
     skos:definition "The agent (or signing identity) that produced a signature."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:signingKey
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CryptographicSignature ;
+    rdfs:range gmeow:CryptographicKey ;
+    rdfs:label "signing key"@en ;
+    skos:definition "The cryptographic key that produced a signature (the trust module's CryptographicKey). Complements gmeow:signedBy: signedBy gives the identity, signingKey gives the key — the pair a gmeow:Certification attests."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:signingDomain
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:CryptographicSignature ;

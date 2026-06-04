@@ -68,6 +68,34 @@ def test_competency_message_trust_query() -> None:
         assert NAMESPACE + term in terms
 
 
+def test_competency_interpersonal_relationships_query() -> None:
+    terms = _query_terms("interpersonal-relationships.rq")
+    for term in (
+        "InterpersonalRelationship",
+        "ProfessionalRelationship",
+        "AcquaintanceRelationship",
+    ):
+        assert NAMESPACE + term in terms
+
+
+def test_competency_key_schemes_query() -> None:
+    terms = _query_terms("key-schemes.rq")
+    for term in ("keySchemePGP", "keySchemeX509", "keySchemeSSH", "keySchemeNostr"):
+        assert NAMESPACE + term in terms
+
+
+def test_competency_key_certifications_query() -> None:
+    terms = _query_terms("key-certifications.rq")
+    for term in ("certifier", "certifiedKey", "certifiedIdentity"):
+        assert NAMESPACE + term in terms
+
+
+def test_competency_trust_assertions_query() -> None:
+    terms = _query_terms("trust-assertions.rq")
+    for term in ("trustor", "trustee", "trustLevel", "introducerDepth"):
+        assert NAMESPACE + term in terms
+
+
 def test_qc_missing_definitions_is_empty() -> None:
     # The skeleton is fully annotated, so the QC check returns no offenders.
     graph = load_merged_graph(include_imports=False)

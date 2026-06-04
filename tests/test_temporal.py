@@ -41,6 +41,17 @@ def test_reified_residence_and_tenure_are_time_scoped() -> None:
         ) in graph
 
 
+def test_interpersonal_relationship_is_a_gufo_relator() -> None:
+    # A standing interpersonal tie is a relator (mediates + depends on its
+    # players), NOT a Situation — the Relator-vs-Situation decision is load-bearing.
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "InterpersonalRelationship"),
+        RDFS.subClassOf,
+        URIRef(GUFO + "Relator"),
+    ) in graph
+
+
 def test_validity_predicates_are_annotation_properties() -> None:
     graph = _graph()
     for term in ("validFrom", "validUntil"):

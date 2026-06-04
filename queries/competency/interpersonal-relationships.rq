@@ -1,0 +1,11 @@
+# Competency question: "What kinds of interpersonal relationship does GMEOW model
+# as first-class (reified) ties?" Expected: InterpersonalRelationship and its
+# subclasses (professional, acquaintance).
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?relationship WHERE {
+    ?relationship rdfs:subClassOf* gmeow:InterpersonalRelationship .
+}
+ORDER BY ?relationship
