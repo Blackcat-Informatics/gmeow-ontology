@@ -6,7 +6,7 @@ PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT ?role WHERE {
-    ?role rdfs:domain gmeow:Message ;
+    ?role rdfs:domain gmeow:EmailMessage ;
           rdfs:range gmeow:EmailAddress .
 }
 ORDER BY ?role

@@ -93,7 +93,7 @@ gmeow:MailboxResidence
 
 gmeow:from
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:Message ;
+    rdfs:domain gmeow:EmailMessage ;
     rdfs:range gmeow:EmailAddress ;
     rdfs:label "from"@en ;
     skos:definition "The author address of a message (RFC 5322 From)."@en ;
@@ -101,7 +101,7 @@ gmeow:from
 
 gmeow:sender
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:Message ;
+    rdfs:domain gmeow:EmailMessage ;
     rdfs:range gmeow:EmailAddress ;
     rdfs:label "sender"@en ;
     skos:definition "The transmitting address of a message, where different from the author (RFC 5322 Sender)."@en ;
@@ -109,7 +109,7 @@ gmeow:sender
 
 gmeow:replyTo
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:Message ;
+    rdfs:domain gmeow:EmailMessage ;
     rdfs:range gmeow:EmailAddress ;
     rdfs:label "reply to"@en ;
     skos:definition "An address to which replies should be sent (RFC 5322 Reply-To)."@en ;
@@ -117,7 +117,7 @@ gmeow:replyTo
 
 gmeow:to
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:Message ;
+    rdfs:domain gmeow:EmailMessage ;
     rdfs:range gmeow:EmailAddress ;
     rdfs:label "to"@en ;
     skos:definition "A primary recipient address of a message (RFC 5322 To)."@en ;
@@ -125,7 +125,7 @@ gmeow:to
 
 gmeow:cc
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:Message ;
+    rdfs:domain gmeow:EmailMessage ;
     rdfs:range gmeow:EmailAddress ;
     rdfs:label "cc"@en ;
     skos:definition "A carbon-copy recipient address of a message (RFC 5322 Cc)."@en ;
@@ -133,7 +133,7 @@ gmeow:cc
 
 gmeow:bcc
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:Message ;
+    rdfs:domain gmeow:EmailMessage ;
     rdfs:range gmeow:EmailAddress ;
     rdfs:label "bcc"@en ;
     skos:definition "A blind-carbon-copy recipient address of a message (RFC 5322 Bcc)."@en ;
@@ -245,7 +245,7 @@ gmeow:residenceMailbox
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:mailboxOfAccount
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Mailbox ;
     rdfs:range gmeow:OnlineAccount ;
     rdfs:label "mailbox of account"@en ;
@@ -301,7 +301,7 @@ gmeow:listId
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:headerName
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:MessageHeader ;
     rdfs:range rdfs:Literal ;
     rdfs:label "header name"@en ;
@@ -309,7 +309,7 @@ gmeow:headerName
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:headerValue
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:MessageHeader ;
     rdfs:range rdfs:Literal ;
     rdfs:label "header value"@en ;
@@ -317,7 +317,7 @@ gmeow:headerValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:mediaType
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:BodyPart ;
     rdfs:range rdfs:Literal ;
     rdfs:label "media type"@en ;
@@ -325,7 +325,7 @@ gmeow:mediaType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:filename
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Attachment ;
     rdfs:range rdfs:Literal ;
     rdfs:label "filename"@en ;
@@ -333,7 +333,7 @@ gmeow:filename
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:mailboxRole
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Mailbox ;
     rdfs:range rdfs:Literal ;
     rdfs:label "mailbox role"@en ;

@@ -32,7 +32,7 @@ gmeow:hasRelayHop
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:relayFrom
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:range rdfs:Literal ;
     rdfs:label "relay from"@en ;
@@ -40,7 +40,7 @@ gmeow:relayFrom
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:relayBy
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:range rdfs:Literal ;
     rdfs:label "relay by"@en ;
@@ -48,7 +48,7 @@ gmeow:relayBy
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:relayAt
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:range xsd:dateTime ;
     rdfs:label "relay at"@en ;
@@ -56,7 +56,7 @@ gmeow:relayAt
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:relayProtocol
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:range rdfs:Literal ;
     rdfs:label "relay protocol"@en ;
@@ -64,7 +64,7 @@ gmeow:relayProtocol
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hopOrdinal
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:range xsd:integer ;
     rdfs:label "hop ordinal"@en ;
@@ -91,7 +91,7 @@ gmeow:hasAuthenticationResult
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:authMethod
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:AuthenticationResult ;
     rdfs:range rdfs:Literal ;
     rdfs:label "authentication method"@en ;
@@ -99,7 +99,7 @@ gmeow:authMethod
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:authResult
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:AuthenticationResult ;
     rdfs:range rdfs:Literal ;
     rdfs:label "authentication result"@en ;
@@ -107,7 +107,7 @@ gmeow:authResult
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:authServer
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:AuthenticationResult ;
     rdfs:range rdfs:Literal ;
     rdfs:label "authentication server"@en ;
@@ -163,7 +163,7 @@ gmeow:signedBy
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:signingDomain
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:range rdfs:Literal ;
     rdfs:label "signing domain"@en ;
@@ -171,7 +171,7 @@ gmeow:signingDomain
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:signatureAlgorithm
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:range rdfs:Literal ;
     rdfs:label "signature algorithm"@en ;
@@ -179,7 +179,7 @@ gmeow:signatureAlgorithm
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:verificationStatus
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:range rdfs:Literal ;
     rdfs:label "verification status"@en ;
