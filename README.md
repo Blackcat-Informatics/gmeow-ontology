@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Blackcat-Informatics/gmeow-ontology/main/docs/gmeow-logo.svg" alt="GMEOW logo — a black cat holding a linked knowledge graph" width="160" height="160">
+</p>
+
 # GMEOW — Global Metadata and Entity Ontology for the Web
 
 GMEOW is a **reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary**
