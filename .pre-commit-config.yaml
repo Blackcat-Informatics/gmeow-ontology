@@ -1,0 +1,73 @@
+# Pre-commit linter suite — the single source of truth for repo hygiene, run
+# locally (`pre-commit install`) and in CI (`pre-commit run --all-files`).
+# Python lint/type-check (ruff strict + mypy) stay in the Makefile/CI quality
+# gate; this file covers everything else: formatting, spelling, YAML, Markdown,
+# shell, GitHub Actions (lint + security), secrets, and license compliance.
+default_language_version:
+  python: python3.13
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      # Whitespace fixers skip vendored (gUFO, public fixtures), generated
+      # (metadata), license texts, and tab-delimited data (TSV) so they stay
+      # byte-faithful — stripping a trailing space inside a vendored string
+      # literal or a TSV column tab would corrupt content.
+      - id: trailing-whitespace
+        exclude: &keep-verbatim '^(imports/.*|metadata/.*|LICENSE.*|tests/fixtures/coverage/(bii|paudley)\.ttl|.*\.(tsv|svg))$'
+      - id: end-of-file-fixer
+        exclude: *keep-verbatim
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+        exclude: *keep-verbatim
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.10
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        additional_dependencies: ["tomli"]
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+      - id: actionlint
+
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.17.2
+    hooks:
+      - id: markdownlint-cli2
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.5.2
+    hooks:
+      - id: zizmor
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.0
+    hooks:
+      - id: gitleaks

@@ -1,0 +1,13 @@
+# markdownlint (via markdownlint-cli2) rules. Defaults on, with the rules that
+# fight ordinary prose / license docs / HTML-in-Markdown turned off.
+default: true
+# Line length: prose wraps freely; code/tables/links shouldn't be reflowed.
+MD013: false
+# Inline HTML is used in docs (SPDX comments, badges, details blocks).
+MD033: false
+# First line need not be a top-level heading (SPDX/HTML comments lead some files).
+MD041: false
+# Allow duplicate headings (e.g. repeated "Why:" / changelog-style sections).
+MD024: false
+# Bare URLs are acceptable in this repo's docs.
+MD034: false
