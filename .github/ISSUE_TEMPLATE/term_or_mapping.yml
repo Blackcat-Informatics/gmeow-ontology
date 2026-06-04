@@ -1,0 +1,85 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcat.ca>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Term or mapping proposal
+description: Propose a new GMEOW class/property, a refined definition, or an alignment to an external vocabulary or Wikidata.
+title: "[term] "
+labels:
+  - ontology
+body:
+  - type: markdown
+    attributes:
+      value: |-
+        Use this template to propose changes to the **ontology itself**. Vocabulary
+        changes are reviewed for OWL 2 DL conformance, gUFO grounding, and — for
+        alignments — license compatibility (axioms are never copied from
+        reference-only sources; links by IRI are always fine).
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-flight
+      options:
+        - label: I searched existing issues and the current vocabulary first.
+          required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Proposal type
+      options:
+        - New class
+        - New property
+        - Refined definition or axiom
+        - External alignment / mapping
+        - Wikidata alignment
+        - Deprecation
+    validations:
+      required: true
+
+  - type: input
+    id: term
+    attributes:
+      label: GMEOW term
+      description: The proposed or affected term (local name or full IRI).
+      placeholder: "gmeow:Account  or  https://blackcatinformatics.ca/gmeow/Account"
+    validations:
+      required: true
+
+  - type: textarea
+    id: definition
+    attributes:
+      label: Definition
+      description: The natural-language definition (becomes skos:definition). Required for new or refined terms.
+
+  - type: input
+    id: grounding
+    attributes:
+      label: gUFO grounding / parent
+      description: Which gUFO category or GMEOW superclass should this sit under?
+      placeholder: "gufo:FunctionalComplex  /  gmeow:Agent"
+
+  - type: textarea
+    id: alignment
+    attributes:
+      label: Alignment details (for mappings only)
+      description: |
+        For an external alignment, give the target and predicate, e.g.
+          target:    foaf:Person  (or wd:Q5)
+          predicate: owl:equivalentClass | skos:exactMatch | skos:closeMatch | rdfs:subClassOf
+          source license: e.g. CC-BY-4.0, CC0, MIT  (used for the import/reference policy)
+          justification / confidence
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Rationale
+      description: Why does GMEOW need this? What use case or gap does it address?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Related terms, prior art, modelling concerns, or risks.

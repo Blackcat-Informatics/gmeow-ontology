@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcat.ca>
+# SPDX-License-Identifier: Apache-2.0
+
+name: Feature request
+description: Propose an enhancement to the GMEOW toolchain or infrastructure.
+title: "[feature] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |-
+        Thanks for suggesting an improvement. Focus on the concrete user or
+        maintainer problem you want to solve. (For changes to the ontology
+        itself, use the "Term or mapping proposal" template instead.)
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-flight
+      options:
+        - label: I searched existing issues first.
+          required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What workflow or limitation are you trying to address?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the behavior you want.
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples or prior art
+      description: Links, mock output, CLI examples, or comparable tools.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds or other solutions you evaluated.
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any implementation constraints, risks, or repo-specific considerations.
