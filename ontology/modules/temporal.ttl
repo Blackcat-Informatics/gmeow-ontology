@@ -1,0 +1,73 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/temporal>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Temporal Module"@en ;
+    rdfs:comment "Cross-cutting temporal facility (the OWL-Time superset layer): time intervals and reified time-scoped relations, reused by every slice for facts that hold over a period (mailbox residence, address/role tenure, etc.). Lighter cases use the validFrom/validUntil RDF-star annotation properties."@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:TimeInterval
+    a owl:Class ;
+    rdfs:label "Time Interval"@en ;
+    skos:definition "A bounded stretch of time, optionally open-ended, delimited by a start and/or end instant."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:TimeScopedRelation
+    a owl:Class ;
+    rdfs:subClassOf gufo:Situation ;
+    rdfs:label "Time-Scoped Relation"@en ;
+    skos:definition "A reified relationship that holds only over a particular time interval — the base for residence, tenure, and membership-over-time situations."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:duringInterval
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:TimeScopedRelation ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "during interval"@en ;
+    skos:definition "Relates a time-scoped relation to the interval over which it holds."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:startedAtTime
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "started at time"@en ;
+    skos:definition "The instant at which a time interval begins."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:endedAtTime
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "ended at time"@en ;
+    skos:definition "The instant at which a time interval ends; absent if the interval is still open."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:atTime
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "at time"@en ;
+    skos:definition "The instant at which a point-like event or observation occurred."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# RDF-star validity annotations (statement-level temporal scope for lighter cases).
+
+gmeow:validFrom
+    a owl:AnnotationProperty ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "valid from"@en ;
+    skos:definition "The instant from which the annotated statement is asserted to hold."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:validUntil
+    a owl:AnnotationProperty ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "valid until"@en ;
+    skos:definition "The instant until which the annotated statement is asserted to hold."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

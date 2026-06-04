@@ -26,6 +26,28 @@ gmeow:wasAttributedTo
     skos:definition "Ascribes responsibility for an entity to an agent."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:wasDerivedFrom
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "was derived from"@en ;
+    skos:definition "Relates a derived entity to the entity it was derived from — e.g. a text extraction, summary, or embedding to its source. The derivation's confidence and generating agent are recorded with gmeow:confidence and gmeow:wasGeneratedBy."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Summary
+    a owl:Class ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Summary"@en ;
+    skos:definition "A condensed account derived from a source information object (often machine-generated), linked to its source by gmeow:wasDerivedFrom."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:TextExtraction
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Document ;
+    rdfs:label "Text Extraction"@en ;
+    skos:definition "The text content extracted from a source object (e.g. a PDF attachment), linked to its source by gmeow:wasDerivedFrom."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:wasGeneratedBy
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
