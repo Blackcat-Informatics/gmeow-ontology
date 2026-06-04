@@ -20,6 +20,28 @@ def test_competency_agents_query() -> None:
         assert NAMESPACE + term in results
 
 
+def _query_terms(filename: str) -> set[str]:
+    graph = load_merged_graph(include_imports=False)
+    query = (COMPETENCY_DIR / filename).read_text(encoding="utf-8")
+    terms: set[str] = set()
+    for row in graph.query(query):
+        assert isinstance(row, ResultRow)
+        terms.add(str(row[0]))
+    return terms
+
+
+def test_competency_works_query() -> None:
+    terms = _query_terms("works.rq")
+    for term in ("CreativeWork", "Article", "Patent", "Dataset", "SoftwareProject"):
+        assert NAMESPACE + term in terms
+
+
+def test_competency_kinship_query() -> None:
+    terms = _query_terms("kinship.rq")
+    for term in ("hasParent", "hasChild", "hasSpouse", "hasSibling"):
+        assert NAMESPACE + term in terms
+
+
 def test_qc_missing_definitions_is_empty() -> None:
     # The skeleton is fully annotated, so the QC check returns no offenders.
     graph = load_merged_graph(include_imports=False)

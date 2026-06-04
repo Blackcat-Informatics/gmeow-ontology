@@ -197,6 +197,33 @@ def metadata() -> None:
 
 
 @app.command()
+def coverage(
+    show_gaps: bool = typer.Option(
+        False, "--gaps", help="List the uncovered (gap) classes and predicates."
+    ),
+) -> None:
+    """Report how much of the vendored entity slice GMEOW covers."""
+    from gmeow_tools.coverage import run_coverage
+
+    report = run_coverage()
+    console.print(
+        f"[green]classes[/green]   {len(report.covered_classes)} covered / "
+        f"{len(report.gap_classes)} gap "
+        f"({report.class_coverage:.0%})"
+    )
+    console.print(
+        f"[green]predicates[/green] {len(report.covered_predicates)} covered / "
+        f"{len(report.gap_predicates)} gap "
+        f"({report.predicate_coverage:.0%})"
+    )
+    if show_gaps:
+        for iri in sorted(report.gap_classes):
+            err_console.print(f"[yellow]gap class[/yellow] {iri}")
+        for iri in sorted(report.gap_predicates):
+            err_console.print(f"[yellow]gap predicate[/yellow] {iri}")
+
+
+@app.command()
 def apache() -> None:
     """Render the Apache content-negotiation include."""
     from gmeow_tools.apache import write_conf

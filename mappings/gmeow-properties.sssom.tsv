@@ -1,0 +1,44 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/properties
+# license: https://creativecommons.org/licenses/by/4.0/
+# comment: Canonical GMEOW property alignments. equivalentProperty for same-typed synonyms; skos:closeMatch for cross-type/fuzzy links.
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:name	owl:equivalentProperty	schema:name	semapv:ManualMappingCuration	1.0	
+gmeow:name	owl:equivalentProperty	foaf:name	semapv:ManualMappingCuration	1.0	
+gmeow:name	skos:closeMatch	vcard:fn	semapv:ManualMappingCuration	0.9	
+gmeow:givenName	owl:equivalentProperty	schema:givenName	semapv:ManualMappingCuration	1.0	
+gmeow:givenName	owl:equivalentProperty	foaf:givenName	semapv:ManualMappingCuration	1.0	
+gmeow:familyName	owl:equivalentProperty	schema:familyName	semapv:ManualMappingCuration	1.0	
+gmeow:familyName	owl:equivalentProperty	foaf:familyName	semapv:ManualMappingCuration	1.0	
+gmeow:email	owl:equivalentProperty	schema:email	semapv:ManualMappingCuration	1.0	
+gmeow:email	skos:closeMatch	foaf:mbox	semapv:ManualMappingCuration	0.9	foaf:mbox is an IRI; close not equivalent
+gmeow:email	skos:closeMatch	vcard:hasEmail	semapv:ManualMappingCuration	0.9	
+gmeow:telephone	owl:equivalentProperty	schema:telephone	semapv:ManualMappingCuration	1.0	
+gmeow:telephone	skos:closeMatch	vcard:hasTelephone	semapv:ManualMappingCuration	0.9	
+gmeow:hasContactPoint	owl:equivalentProperty	schema:contactPoint	semapv:ManualMappingCuration	0.9	
+gmeow:hasAuthor	owl:equivalentProperty	schema:author	semapv:ManualMappingCuration	1.0	
+gmeow:hasAuthor	skos:closeMatch	foaf:maker	semapv:ManualMappingCuration	0.9	
+gmeow:title	skos:closeMatch	dcterms:title	semapv:ManualMappingCuration	0.9	
+gmeow:datePublished	owl:equivalentProperty	schema:datePublished	semapv:ManualMappingCuration	1.0	
+gmeow:identifier	skos:closeMatch	bibo:doi	semapv:ManualMappingCuration	0.8	
+gmeow:developer	owl:equivalentProperty	doap:developer	semapv:ManualMappingCuration	1.0	
+gmeow:hasRepository	skos:closeMatch	doap:repository	semapv:ManualMappingCuration	0.9	
+gmeow:programmingLanguage	owl:equivalentProperty	doap:programming-language	semapv:ManualMappingCuration	1.0	
+gmeow:memberOf	owl:equivalentProperty	schema:memberOf	semapv:ManualMappingCuration	1.0	
+gmeow:memberOf	skos:closeMatch	org:memberOf	semapv:ManualMappingCuration	0.9	
+gmeow:hasMember	skos:closeMatch	org:member	semapv:ManualMappingCuration	0.8	
+gmeow:hasParent	owl:equivalentProperty	schema:parent	semapv:ManualMappingCuration	1.0	
+gmeow:hasParent	owl:equivalentProperty	rel:childOf	semapv:ManualMappingCuration	0.95	childOf points child->parent = hasParent
+gmeow:hasChild	owl:equivalentProperty	schema:children	semapv:ManualMappingCuration	1.0	
+gmeow:hasChild	owl:equivalentProperty	rel:parentOf	semapv:ManualMappingCuration	0.95	
+gmeow:hasSpouse	owl:equivalentProperty	schema:spouse	semapv:ManualMappingCuration	1.0	
+gmeow:hasSpouse	owl:equivalentProperty	rel:spouseOf	semapv:ManualMappingCuration	1.0	
+gmeow:hasSibling	owl:equivalentProperty	schema:sibling	semapv:ManualMappingCuration	1.0	
+gmeow:hasSibling	owl:equivalentProperty	rel:siblingOf	semapv:ManualMappingCuration	1.0	
+gmeow:latitude	owl:equivalentProperty	schema:latitude	semapv:ManualMappingCuration	1.0	
+gmeow:longitude	owl:equivalentProperty	schema:longitude	semapv:ManualMappingCuration	1.0	
+gmeow:containedInPlace	owl:equivalentProperty	schema:containedInPlace	semapv:ManualMappingCuration	1.0	
+gmeow:holdsAccount	owl:equivalentProperty	foaf:account	semapv:ManualMappingCuration	1.0	
+gmeow:accountName	owl:equivalentProperty	foaf:accountName	semapv:ManualMappingCuration	1.0	
+gmeow:hasOccupation	owl:equivalentProperty	schema:hasOccupation	semapv:ManualMappingCuration	1.0	
+gmeow:wasAttributedTo	owl:equivalentProperty	prov:wasAttributedTo	semapv:ManualMappingCuration	1.0	
+gmeow:wasGeneratedBy	owl:equivalentProperty	prov:wasGeneratedBy	semapv:ManualMappingCuration	1.0	

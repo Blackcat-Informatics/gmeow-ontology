@@ -69,6 +69,8 @@ SHAPES_FILE = SHAPES_DIR / "gmeow-shapes.ttl"
 QUERIES_DIR = PROJECT_ROOT / "queries"
 COMPETENCY_DIR = QUERIES_DIR / "competency"
 QC_DIR = QUERIES_DIR / "qc"
+#: Vendored coverage fixtures (public site graphs) used by the coverage harness.
+FIXTURES_DIR = PROJECT_ROOT / "tests" / "fixtures" / "coverage"
 METADATA_DIR = PROJECT_ROOT / "metadata"
 VOID_FILE = METADATA_DIR / "void.ttl"
 DCAT_FILE = METADATA_DIR / "dcat.ttl"
@@ -150,6 +152,13 @@ PREFIXES: dict[str, str] = {
     "time": "http://www.w3.org/2006/time#",
     "schema": "https://schema.org/",
     "gedcom": "http://www.w3.org/2000/10/swap/pim/gedcom#",
+    "vcard": "http://www.w3.org/2006/vcard/ns#",
+    "geo": "http://www.opengis.net/ont/geosparql#",
+    "bibo": "http://purl.org/ontology/bibo/",
+    "bibframe": "http://id.loc.gov/ontologies/bibframe/",
+    "sioc": "http://rdfs.org/sioc/ns#",
+    "mads": "http://www.loc.gov/mads/rdf/v1#",
+    "esco": "http://data.europa.eu/esco/model#",
     # Wikidata
     "wd": "http://www.wikidata.org/entity/",
     "wdt": "http://www.wikidata.org/prop/direct/",
@@ -300,6 +309,15 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "schema": AlignmentTarget(
         "Schema.org", PREFIXES["schema"], "CC-BY-SA-3.0", "schema"
     ),
+    "gedcom": AlignmentTarget(
+        "W3C GEDCOM", PREFIXES["gedcom"], "W3C-Document", "schema"
+    ),
+    "vcard": AlignmentTarget("vCard", PREFIXES["vcard"], "W3C-Document", "schema"),
+    "geo": AlignmentTarget("GeoSPARQL", PREFIXES["geo"], "OGC", "schema"),
+    "bibo": AlignmentTarget("BIBO", PREFIXES["bibo"], "CC-BY-3.0", "schema"),
+    "bibframe": AlignmentTarget("BIBFRAME", PREFIXES["bibframe"], "CC0-1.0", "schema"),
+    "sioc": AlignmentTarget("SIOC", PREFIXES["sioc"], "W3C-Document", "schema"),
+    "skos": AlignmentTarget("SKOS", PREFIXES["skos"], "W3C-Document", "concept_scheme"),
     "wikidata": AlignmentTarget(
         "Wikidata", PREFIXES["wd"], "CC0-1.0", "concept_scheme"
     ),

@@ -35,8 +35,13 @@
         <http://purl.org/nemo/gufo#> ,
         <https://blackcatinformatics.ca/gmeow/modules/core> ,
         <https://blackcatinformatics.ca/gmeow/modules/entities> ,
+        <https://blackcatinformatics.ca/gmeow/modules/organization> ,
+        <https://blackcatinformatics.ca/gmeow/modules/accounts> ,
         <https://blackcatinformatics.ca/gmeow/modules/documents> ,
+        <https://blackcatinformatics.ca/gmeow/modules/software> ,
         <https://blackcatinformatics.ca/gmeow/modules/genealogy> ,
         <https://blackcatinformatics.ca/gmeow/modules/agreements> ,
         <https://blackcatinformatics.ca/gmeow/modules/contacts> ,
+        <https://blackcatinformatics.ca/gmeow/modules/places> ,
+        <https://blackcatinformatics.ca/gmeow/modules/expertise> ,
         <https://blackcatinformatics.ca/gmeow/modules/provenance> .

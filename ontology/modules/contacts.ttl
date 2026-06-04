@@ -8,7 +8,7 @@
 <https://blackcatinformatics.ca/gmeow/modules/contacts>
     a owl:Ontology ;
     rdfs:label "GMEOW Contacts Module"@en ;
-    rdfs:comment "Contact points and channels: email, telephone, postal addresses."@en ;
+    rdfs:comment "Contact points and channels (email, telephone, postal address), plus temporally-scoped contact relationships (the schema.org / vCard superset layer)."@en ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:ContactPoint
@@ -25,10 +25,75 @@ gmeow:EmailAddress
     skos:definition "A contact point reachable via the Simple Mail Transfer Protocol (SMTP)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:TelephoneNumber
+    a owl:Class ;
+    rdfs:subClassOf gmeow:ContactPoint ;
+    rdfs:label "Telephone Number"@en ;
+    skos:definition "A contact point reachable by telephone."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:PostalAddress
+    a owl:Class ;
+    rdfs:subClassOf gmeow:ContactPoint ;
+    rdfs:label "Postal Address"@en ;
+    skos:definition "A contact point reachable by physical mail at a postal address."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:hasContactPoint
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:range gmeow:ContactPoint ;
     rdfs:label "has contact point"@en ;
     skos:definition "Relates an agent to a means of contacting it."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:email
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "email"@en ;
+    skos:definition "An email address at which an agent can be reached."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:telephone
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "telephone"@en ;
+    skos:definition "A telephone number at which an agent can be reached."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Temporally-scoped contact relationships (the temporal scope is carried in the
+# RDF-star / OWL-axiom-annotation layer; see the provenance module).
+
+gmeow:hasMet
+    a owl:ObjectProperty, owl:SymmetricProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "has met"@en ;
+    skos:definition "Records that two agents have met; symmetric."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasWorkedWith
+    a owl:ObjectProperty, owl:SymmetricProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "has worked with"@en ;
+    skos:definition "Records that two agents have worked together; symmetric."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasUsed
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "has used"@en ;
+    skos:definition "Records that an agent has used some entity (a tool, service, or work)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasAgreement
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Agreement ;
+    rdfs:label "has agreement"@en ;
+    skos:definition "Relates an agent to an agreement it is party to."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

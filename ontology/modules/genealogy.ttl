@@ -18,6 +18,13 @@ gmeow:Family
     skos:definition "A kinship group of persons related by descent, marriage, or adoption."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:Marriage
+    a owl:Class ;
+    rdfs:subClassOf gufo:Event ;
+    rdfs:label "Marriage"@en ;
+    skos:definition "The event of two persons entering into marriage, with a date and place."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:hasParent
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Person ;
@@ -33,4 +40,20 @@ gmeow:hasChild
     rdfs:range gmeow:Person ;
     rdfs:label "has child"@en ;
     skos:definition "Relates a person to a child; the inverse of hasParent."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasSpouse
+    a owl:ObjectProperty, owl:SymmetricProperty ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range gmeow:Person ;
+    rdfs:label "has spouse"@en ;
+    skos:definition "Relates a person to a spouse; symmetric."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasSibling
+    a owl:ObjectProperty, owl:SymmetricProperty ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range gmeow:Person ;
+    rdfs:label "has sibling"@en ;
+    skos:definition "Relates a person to a sibling; symmetric."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

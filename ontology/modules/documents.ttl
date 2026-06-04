@@ -1,27 +1,93 @@
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix gufo:    <http://purl.org/nemo/gufo#> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 <https://blackcatinformatics.ca/gmeow/modules/documents>
     a owl:Ontology ;
     rdfs:label "GMEOW Documents Module"@en ;
-    rdfs:comment "Document metadata: works, expressions, and the agents responsible for them."@en ;
+    rdfs:comment "Creative works and document metadata — articles, patents, datasets, media, web pages (the schema.org / BIBO / BIBFRAME superset layer)."@en ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:CreativeWork
+    a owl:Class ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Creative Work"@en ;
+    skos:definition "An information artifact resulting from creative or intellectual effort — a document, article, dataset, media object, or web page."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Document
     a owl:Class ;
-    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:subClassOf gmeow:CreativeWork ;
     rdfs:label "Document"@en ;
-    skos:definition "A bounded information artifact — a file, record, web page, or publication — that can be described, attributed, and dated."@en ;
+    skos:definition "A bounded textual or digital document — a file, record, or report."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Article
+    a owl:Class ;
+    rdfs:subClassOf gmeow:CreativeWork ;
+    rdfs:label "Article"@en ;
+    skos:definition "A written work published in a periodical, blog, or scholarly venue."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Patent
+    a owl:Class ;
+    rdfs:subClassOf gmeow:CreativeWork ;
+    rdfs:label "Patent"@en ;
+    skos:definition "A granted or filed patent describing an invention."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Dataset
+    a owl:Class ;
+    rdfs:subClassOf gmeow:CreativeWork ;
+    rdfs:label "Dataset"@en ;
+    skos:definition "A collection of data published as a unit."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:MediaObject
+    a owl:Class ;
+    rdfs:subClassOf gmeow:CreativeWork ;
+    rdfs:label "Media Object"@en ;
+    skos:definition "An image, audio, or video media file."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:WebPage
+    a owl:Class ;
+    rdfs:subClassOf gmeow:CreativeWork ;
+    rdfs:label "Web Page"@en ;
+    skos:definition "A page on the web identified by a URL."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasAuthor
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:Document ;
+    rdfs:domain gmeow:CreativeWork ;
     rdfs:range gmeow:Agent ;
     rdfs:label "has author"@en ;
-    skos:definition "Relates a document to an agent chiefly responsible for creating its intellectual content."@en ;
+    skos:definition "Relates a creative work to an agent chiefly responsible for creating its intellectual content."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:title
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "title"@en ;
+    skos:definition "The title of a creative work."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:identifier
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "identifier"@en ;
+    skos:definition "A formal identifier of a creative work, such as a DOI or patent number."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:datePublished
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "date published"@en ;
+    skos:definition "The date a creative work was published or issued."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

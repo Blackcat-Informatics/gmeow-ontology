@@ -44,3 +44,10 @@ gmeow:Agent
     rdfs:label "Agent"@en ;
     skos:definition "An entity that can act, bear responsibility, and enter into agreements: a person, an organization, or a software agent."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:InformationObject
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Information Object"@en ;
+    skos:definition "An entity whose nature is to carry information content: a document, dataset, software artifact, online account, or message. The shared parent of the document, software and account layers."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
