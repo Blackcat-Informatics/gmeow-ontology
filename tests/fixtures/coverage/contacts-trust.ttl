@@ -1,0 +1,96 @@
+# Synthetic coverage fixture for the contacts revisit (temporal + trust/WoT).
+# Two people with a time-bounded professional relationship and a social tie;
+# cryptographic keys (PGP + Nostr) held by agents and bound to an account; a
+# Web-of-Trust certification (Alice certifies Bob's key↔identity); a perspectival
+# owner-trust assertion + a flat endorsement; and a message signature wired to the
+# key that produced it. There is no public RDF corpus for personal trust graphs,
+# so this hand-authored slice exercises the GMEOW-native trust terms plus the WOT
+# schema / REL / FOAF surface vocabularies an importer would emit, so
+# `gmeow coverage` can measure contacts-trust coverage.
+
+@prefix ex:     <https://example.org/people/> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix wot:    <http://xmlns.com/wot/0.1/> .
+@prefix rel:    <http://purl.org/vocab/relationship/> .
+@prefix foaf:   <http://xmlns.com/foaf/0.1/> .
+@prefix schema: <https://schema.org/> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+ex:alice
+    a gmeow:Person, schema:Person ;
+    gmeow:name "Alice Example" ;
+    gmeow:hasMet ex:bob ;
+    gmeow:hasWorkedWith ex:bob ;
+    rel:hasMet ex:bob ;
+    foaf:knows ex:bob ;
+    gmeow:endorses ex:bob ;
+    gmeow:holdsKey ex:aliceKey .
+
+ex:bob
+    a gmeow:Person ;
+    gmeow:name "Bob Example" ;
+    gmeow:holdsKey ex:bobKey ;
+    gmeow:holdsAccount ex:bobNostr .
+
+# Reified ties: a time-bounded professional relationship + a social acquaintance.
+ex:rel1
+    a gmeow:ProfessionalRelationship ;
+    gmeow:relationshipParty ex:alice, ex:bob ;
+    gmeow:relationshipInterval ex:int1 .
+
+ex:int1
+    a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2019-03-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "2022-09-30T00:00:00Z"^^xsd:dateTime .
+
+ex:rel2
+    a gmeow:AcquaintanceRelationship ;
+    gmeow:relationshipParty ex:alice, ex:bob .
+
+# Cryptographic keys: an OpenPGP key (also a wot:PubKey) and a Nostr key bound to
+# an account. The scheme is a value (gmeow:keyScheme), not a key subclass.
+ex:aliceKey
+    a gmeow:CryptographicKey, wot:PubKey ;
+    gmeow:keyScheme gmeow:keySchemePGP ;
+    gmeow:fingerprint "9E7C 4F2A 11BD 6630 0A1C  3D55 7788 99AA BBCC DDEE" ;
+    wot:fingerprint "9E7C4F2A11BD66300A1C3D557788 99AABBCCDDEE" ;
+    gmeow:keyId "7788 99AA BBCC DDEE" ;
+    gmeow:keyAlgorithm "ed25519" ;
+    gmeow:keyExpiresAt "2027-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:bobKey
+    a gmeow:CryptographicKey ;
+    gmeow:keyScheme gmeow:keySchemeNostr ;
+    gmeow:keyMaterial "npub1bobexamplekeymaterialxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" ;
+    gmeow:keyId "bob-nostr-1" ;
+    gmeow:keyAlgorithm "secp256k1" .
+
+ex:bobNostr
+    a gmeow:OnlineAccount ;
+    gmeow:accountName "bob" ;
+    gmeow:nostrPubkey "npub1bobexamplekeymaterialxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" ;
+    gmeow:accountKey ex:bobKey .
+
+# Web-of-Trust certification: Alice attests that ex:bobKey belongs to Bob.
+ex:cert1
+    a gmeow:Certification ;
+    gmeow:certifier ex:alice ;
+    gmeow:certifiedKey ex:bobKey ;
+    gmeow:certifiedIdentity ex:bob ;
+    gmeow:certificationLevel "positive" .
+
+# Perspectival owner-trust: Alice marginally trusts Bob as an introducer.
+ex:trust1
+    a gmeow:TrustAssertion ;
+    gmeow:trustor ex:alice ;
+    gmeow:trustee ex:bob ;
+    gmeow:trustLevel "marginal" ;
+    gmeow:introducerDepth 1 ;
+    gmeow:introducerAmount 60 .
+
+# The messaging-trust ↔ trust seam: a signature wired to the key that made it.
+ex:sig1
+    a gmeow:PGPSignature ;
+    gmeow:signedBy ex:alice ;
+    gmeow:signingKey ex:aliceKey ;
+    gmeow:verificationStatus "verified" .

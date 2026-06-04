@@ -89,6 +89,39 @@ def test_email_participants_aligned_to_schema() -> None:
     ) in graph
 
 
+def test_trust_aligned_to_wot_schema() -> None:
+    from rdflib.namespace import SKOS
+
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "CryptographicKey"),
+        SKOS.closeMatch,
+        URIRef("http://xmlns.com/wot/0.1/PubKey"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "fingerprint"),
+        SKOS.closeMatch,
+        URIRef("http://xmlns.com/wot/0.1/fingerprint"),
+    ) in graph
+
+
+def test_relationships_aligned_to_rel_vocab() -> None:
+    from rdflib.namespace import SKOS
+
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "hasMet"),
+        SKOS.closeMatch,
+        URIRef("http://purl.org/vocab/relationship/hasMet"),
+    ) in graph
+
+
+def test_wot_is_reference_only() -> None:
+    # The WOT schema's license is unknown → fails safe to reference-only (linked,
+    # never imported).
+    assert ALIGNMENT_TARGETS["wot"].policy is LinkPolicy.REFERENCE_ONLY
+
+
 def test_schema_is_reference_only() -> None:
     # schema.org (CC-BY-SA) may be linked but never imported.
     assert ALIGNMENT_TARGETS["schema"].policy is LinkPolicy.REFERENCE_ONLY

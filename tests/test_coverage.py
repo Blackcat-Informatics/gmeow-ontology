@@ -43,6 +43,22 @@ def test_email_slice_terms_are_covered() -> None:
     assert not missing, f"email classes missing: {missing}"
 
 
+def test_contacts_trust_slice_covered() -> None:
+    report = run_coverage()
+    # The contacts revisit exercises the reified relationship + trust/WoT terms
+    # plus the WOT-schema surface vocabulary.
+    expected_covered = {
+        GMEOW + "ProfessionalRelationship",
+        GMEOW + "AcquaintanceRelationship",
+        GMEOW + "CryptographicKey",
+        GMEOW + "Certification",
+        GMEOW + "TrustAssertion",
+        "http://xmlns.com/wot/0.1/PubKey",
+    }
+    missing = expected_covered - report.covered_classes
+    assert not missing, f"contacts-trust classes missing: {missing}"
+
+
 def test_slice_is_partial() -> None:
     # The slice is intentionally incomplete: there must be tracked gaps, and
     # coverage must be a real (non-zero, non-total) fraction.
