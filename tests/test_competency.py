@@ -50,6 +50,24 @@ def test_competency_life_events_query() -> None:
     assert len(terms) >= 25
 
 
+def test_competency_email_participants_query() -> None:
+    terms = _query_terms("email-participants.rq")
+    # Every RFC 5322 role property routes through the EmailAddress seam.
+    for term in ("from", "sender", "replyTo", "to", "cc", "bcc"):
+        assert NAMESPACE + term in terms
+
+
+def test_competency_message_trust_query() -> None:
+    terms = _query_terms("message-trust.rq")
+    for term in (
+        "CryptographicSignature",
+        "DKIMSignature",
+        "SMIMESignature",
+        "PGPSignature",
+    ):
+        assert NAMESPACE + term in terms
+
+
 def test_qc_missing_definitions_is_empty() -> None:
     # The skeleton is fully annotated, so the QC check returns no offenders.
     graph = load_merged_graph(include_imports=False)

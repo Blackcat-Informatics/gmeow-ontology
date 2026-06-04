@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from gmeow_tools.coverage import run_coverage
 
+GMEOW = "https://blackcatinformatics.ca/gmeow/"
+
 
 def test_key_entity_kinds_are_covered() -> None:
     report = run_coverage()
@@ -19,6 +21,26 @@ def test_key_entity_kinds_are_covered() -> None:
     }
     missing = expected_covered - report.covered_classes
     assert not missing, f"expected covered classes missing: {missing}"
+
+
+def test_email_slice_terms_are_covered() -> None:
+    report = run_coverage()
+    # The email fixture exercises native GMEOW email + trust terms (no external
+    # surface vocab) alongside schema.org participants — all must be covered.
+    expected_covered = {
+        "https://schema.org/EmailMessage",
+        GMEOW + "EmailMessage",
+        GMEOW + "Thread",
+        GMEOW + "Attachment",
+        GMEOW + "Mailbox",
+        GMEOW + "AuthenticationResult",
+        GMEOW + "DKIMSignature",
+        GMEOW + "RelayHop",
+        GMEOW + "TextExtraction",
+        GMEOW + "Summary",
+    }
+    missing = expected_covered - report.covered_classes
+    assert not missing, f"email classes missing: {missing}"
 
 
 def test_slice_is_partial() -> None:

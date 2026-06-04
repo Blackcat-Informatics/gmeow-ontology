@@ -63,6 +63,32 @@ def test_parentchild_relationship_typed() -> None:
     ) in graph
 
 
+def test_email_message_equivalent_to_schema() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "EmailMessage"),
+        OWL.equivalentClass,
+        URIRef("https://schema.org/EmailMessage"),
+    ) in graph
+
+
+def test_email_participants_aligned_to_schema() -> None:
+    from rdflib.namespace import SKOS
+
+    graph = _graph()
+    # The author/recipient role properties close-match their schema.org peers.
+    assert (
+        URIRef(GMEOW + "from"),
+        SKOS.closeMatch,
+        URIRef("https://schema.org/sender"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "to"),
+        SKOS.closeMatch,
+        URIRef("https://schema.org/toRecipient"),
+    ) in graph
+
+
 def test_schema_is_reference_only() -> None:
     # schema.org (CC-BY-SA) may be linked but never imported.
     assert ALIGNMENT_TARGETS["schema"].policy is LinkPolicy.REFERENCE_ONLY
