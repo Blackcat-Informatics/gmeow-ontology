@@ -42,6 +42,27 @@ def test_kinship_property_alignment() -> None:
     ) in graph
 
 
+def test_genealogy_events_aligned_to_bio() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "Birth"),
+        OWL.equivalentClass,
+        URIRef("http://purl.org/vocab/bio/0.1/Birth"),
+    ) in graph
+
+
+def test_parentchild_relationship_typed() -> None:
+    # The reified parent-child relationship aligns to the GEDCOM X type.
+    from rdflib.namespace import SKOS
+
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "BiologicalParentChild"),
+        SKOS.closeMatch,
+        URIRef("http://gedcomx.org/BiologicalParent"),
+    ) in graph
+
+
 def test_schema_is_reference_only() -> None:
     # schema.org (CC-BY-SA) may be linked but never imported.
     assert ALIGNMENT_TARGETS["schema"].policy is LinkPolicy.REFERENCE_ONLY

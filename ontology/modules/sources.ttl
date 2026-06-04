@@ -1,0 +1,41 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/sources>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Sources Module"@en ;
+    rdfs:comment "Sources, citations, and the evidence layer — a cross-cutting facility (reused by genealogy and every other slice) for evidence-based, source-cited claims. Per-claim confidence is carried by gmeow:confidence (provenance module)."@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Source
+    a owl:Class ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Source"@en ;
+    skos:definition "A source from which evidence is drawn: a record, certificate, register, archive entry, or publication."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Citation
+    a owl:Class ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Citation"@en ;
+    skos:definition "A reference to a specific place within a source (a page, entry, image, or record locator)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasSource
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range gmeow:Source ;
+    rdfs:label "has source"@en ;
+    skos:definition "Relates an entity or reified claim to a source that provides evidence for it. The strength of that evidence is recorded with gmeow:confidence on the supported statement."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:citesSource
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Citation ;
+    rdfs:range gmeow:Source ;
+    rdfs:label "cites source"@en ;
+    skos:definition "Relates a citation to the source it points into."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

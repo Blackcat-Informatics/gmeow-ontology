@@ -8,8 +8,10 @@
 <https://blackcatinformatics.ca/gmeow/modules/genealogy>
     a owl:Ontology ;
     rdfs:label "GMEOW Genealogy Module"@en ;
-    rdfs:comment "Family structures and kinship relationships (the GEDCOM-superset layer)."@en ;
+    rdfs:comment "A comprehensive, event- and evidence-centric genealogy model: life events as first-class nodes with dates, places and roles; reified, typed kinship relationships; structured names; kinship convenience properties. Supersedes the unmaintained W3C SWAP gedcom vocabulary; aligned to BIO, GEDCOM X, schema.org, Wikidata, REL and GeoNames."@en ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# Classes
 
 gmeow:Family
     a owl:Class ;
@@ -18,19 +20,282 @@ gmeow:Family
     skos:definition "A kinship group of persons related by descent, marriage, or adoption."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:LifeEvent
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:label "Life Event"@en ;
+    skos:definition "An event in the life of a person or family — with a date, a place, and participating persons — to which sources and confidence can be attached."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:KinRelationship
+    a owl:Class ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Kin Relationship"@en ;
+    skos:definition "A reified kinship relationship between persons, able to bear its own events, dates and sources."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:CoupleRelationship
+    a owl:Class ;
+    rdfs:subClassOf gmeow:KinRelationship ;
+    rdfs:label "Couple Relationship"@en ;
+    skos:definition "A reified couple relationship (marriage, civil union, or partnership) between two persons; bears marriage, divorce and related events."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:ParentChildRelationship
+    a owl:Class ;
+    rdfs:subClassOf gmeow:KinRelationship ;
+    rdfs:label "Parent-Child Relationship"@en ;
+    skos:definition "A reified parent-child relationship, typed by its nature (biological, adoptive, step, or foster)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:BiologicalParentChild
+    a owl:Class ;
+    rdfs:subClassOf gmeow:ParentChildRelationship ;
+    rdfs:label "Biological Parent-Child"@en ;
+    skos:definition "A parent-child relationship by biological descent."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:AdoptiveParentChild
+    a owl:Class ;
+    rdfs:subClassOf gmeow:ParentChildRelationship ;
+    rdfs:label "Adoptive Parent-Child"@en ;
+    skos:definition "A parent-child relationship established by adoption."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:StepParentChild
+    a owl:Class ;
+    rdfs:subClassOf gmeow:ParentChildRelationship ;
+    rdfs:label "Step Parent-Child"@en ;
+    skos:definition "A parent-child relationship through marriage to a biological/adoptive parent."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:FosterParentChild
+    a owl:Class ;
+    rdfs:subClassOf gmeow:ParentChildRelationship ;
+    rdfs:label "Foster Parent-Child"@en ;
+    skos:definition "A parent-child relationship through fostering."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:PersonName
+    a owl:Class ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Person Name"@en ;
+    skos:definition "A structured, typed name borne by a person — birth name, married name, alias — with ordered name parts and an optional validity period."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Life-event hierarchy (seeded from BIO event classes and GEDCOM X fact types)
+
+gmeow:Birth
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Birth"@en ;
+    skos:definition "The event of a person being born."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Death
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Death"@en ;
+    skos:definition "The event of a person's death."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Burial
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Burial"@en ;
+    skos:definition "The burial of a deceased person."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Cremation
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Cremation"@en ;
+    skos:definition "The cremation of a deceased person."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Funeral
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Funeral"@en ;
+    skos:definition "A funeral or memorial service."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Baptism
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Baptism"@en ;
+    skos:definition "A baptism."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Christening
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Christening"@en ;
+    skos:definition "A christening or naming ceremony."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Confirmation
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Confirmation"@en ;
+    skos:definition "A religious confirmation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:BarMitzvah
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Bar Mitzvah"@en ;
+    skos:definition "A bar mitzvah."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:BatMitzvah
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Bat Mitzvah"@en ;
+    skos:definition "A bat mitzvah."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:FirstCommunion
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "First Communion"@en ;
+    skos:definition "A first communion."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Adoption
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Adoption"@en ;
+    skos:definition "The adoption of a person."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:Marriage
     a owl:Class ;
-    rdfs:subClassOf gufo:Event ;
+    rdfs:subClassOf gmeow:LifeEvent ;
     rdfs:label "Marriage"@en ;
-    skos:definition "The event of two persons entering into marriage, with a date and place."@en ;
+    skos:definition "The event of two persons entering into marriage."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Divorce
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Divorce"@en ;
+    skos:definition "The legal dissolution of a marriage."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Annulment
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Annulment"@en ;
+    skos:definition "The annulment of a marriage."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Engagement
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Engagement"@en ;
+    skos:definition "A betrothal or engagement to marry."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Separation
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Separation"@en ;
+    skos:definition "A legal or informal marital separation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Immigration
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Immigration"@en ;
+    skos:definition "A person's immigration into a country."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Emigration
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Emigration"@en ;
+    skos:definition "A person's emigration from a country."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Naturalization
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Naturalization"@en ;
+    skos:definition "The grant of citizenship by naturalization."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Residence
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Residence"@en ;
+    skos:definition "A person's residence at a place over a period."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Census
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Census"@en ;
+    skos:definition "A person's enumeration in a census."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Graduation
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Graduation"@en ;
+    skos:definition "Graduation from an educational program."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:MilitaryService
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Military Service"@en ;
+    skos:definition "A period of military service."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Will
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Will"@en ;
+    skos:definition "The making of a will."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Probate
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Probate"@en ;
+    skos:definition "The probate of an estate."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Retirement
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Retirement"@en ;
+    skos:definition "Retirement from working life."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:NameChange
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Name Change"@en ;
+    skos:definition "A formal change of name."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Ordination
+    a owl:Class ;
+    rdfs:subClassOf gmeow:LifeEvent ;
+    rdfs:label "Ordination"@en ;
+    skos:definition "Ordination into religious office."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Properties
 
 gmeow:hasParent
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:range gmeow:Person ;
     rdfs:label "has parent"@en ;
-    skos:definition "Relates a person to a parent (biological, adoptive, or social)."@en ;
+    skos:definition "Relates a person to a parent (any kind: biological, adoptive, step, or foster)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasChild
@@ -42,8 +307,27 @@ gmeow:hasChild
     skos:definition "Relates a person to a child; the inverse of hasParent."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:hasMother
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasParent ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range gmeow:Person ;
+    rdfs:label "has mother"@en ;
+    skos:definition "Relates a person to a female parent."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasFather
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasParent ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range gmeow:Person ;
+    rdfs:label "has father"@en ;
+    skos:definition "Relates a person to a male parent."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:hasSpouse
-    a owl:ObjectProperty, owl:SymmetricProperty ;
+    a owl:ObjectProperty ;
+    a owl:SymmetricProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:range gmeow:Person ;
     rdfs:label "has spouse"@en ;
@@ -51,9 +335,124 @@ gmeow:hasSpouse
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasSibling
-    a owl:ObjectProperty, owl:SymmetricProperty ;
+    a owl:ObjectProperty ;
+    a owl:SymmetricProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:range gmeow:Person ;
     rdfs:label "has sibling"@en ;
     skos:definition "Relates a person to a sibling; symmetric."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eventPlace
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LifeEvent ;
+    rdfs:range gmeow:Place ;
+    rdfs:label "event place"@en ;
+    skos:definition "The place at which a life event occurred."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasPrincipal
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LifeEvent ;
+    rdfs:range gmeow:Person ;
+    rdfs:label "has principal"@en ;
+    skos:definition "The person a life event is principally about (e.g. the child in a Birth, the deceased in a Death)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasParticipant
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LifeEvent ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "has participant"@en ;
+    skos:definition "An agent that took part in a life event."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasWitness
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasParticipant ;
+    rdfs:domain gmeow:LifeEvent ;
+    rdfs:range gmeow:Person ;
+    rdfs:label "has witness"@en ;
+    skos:definition "A person who witnessed a life event."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasOfficiant
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasParticipant ;
+    rdfs:domain gmeow:LifeEvent ;
+    rdfs:range gmeow:Person ;
+    rdfs:label "has officiant"@en ;
+    skos:definition "A person who officiated at a life event."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eventDate
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:LifeEvent ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "event date"@en ;
+    skos:definition "The date (possibly approximate or partial) on which a life event occurred."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasPartner
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CoupleRelationship ;
+    rdfs:range gmeow:Person ;
+    rdfs:label "has partner"@en ;
+    skos:definition "Relates a couple relationship to one of its two partners."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:relationshipParent
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ParentChildRelationship ;
+    rdfs:range gmeow:Person ;
+    rdfs:label "relationship parent"@en ;
+    skos:definition "The parent in a reified parent-child relationship."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:relationshipChild
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ParentChildRelationship ;
+    rdfs:range gmeow:Person ;
+    rdfs:label "relationship child"@en ;
+    skos:definition "The child in a reified parent-child relationship."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasName
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range gmeow:PersonName ;
+    rdfs:label "has name"@en ;
+    skos:definition "Relates a person to a structured, typed name they bear."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:nameType
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:PersonName ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "name type"@en ;
+    skos:definition "The kind of name (e.g. birth name, married name, also-known-as, religious name)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:givenNamePart
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:PersonName ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "given name part"@en ;
+    skos:definition "A given (fore) name part within a structured name."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:surnamePart
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:PersonName ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "surname part"@en ;
+    skos:definition "A surname (family) name part within a structured name."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sex
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "sex"@en ;
+    skos:definition "The recorded sex of a person (e.g. male, female, intersex, unknown)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
