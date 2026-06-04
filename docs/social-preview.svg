@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-labelledby="title desc">
+  <title id="title">GMEOW social preview</title>
+  <desc id="desc">GMEOW, the Global Metadata and Entity Ontology for the Web, with the black cat knowledge-graph logo.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" x2="1280" y1="0" y2="640" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#eef2ff"/>
+    </linearGradient>
+    <linearGradient id="rule" x1="500" x2="1028" y1="446" y2="446" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ea4335"/>
+      <stop offset="0.33" stop-color="#fbbc05"/>
+      <stop offset="0.66" stop-color="#34a853"/>
+      <stop offset="1" stop-color="#4285f4"/>
+    </linearGradient>
+    <filter id="shadow" x="-12%" y="-16%" width="124%" height="132%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#0f172a" flood-opacity="0.16"/>
+    </filter>
+    <style>
+      .label {
+        fill: #475569;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 24px;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+      }
+      .title {
+        fill: #0f172a;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 112px;
+        font-weight: 850;
+        letter-spacing: 0;
+      }
+      .tagline {
+        fill: #1e293b;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 32px;
+        font-weight: 650;
+        letter-spacing: 0;
+      }
+      .topics {
+        fill: #475569;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+    </style>
+  </defs>
+
+  <rect width="1280" height="640" fill="url(#background)"/>
+  <rect x="70" y="70" width="1140" height="500" rx="36" fill="#ffffff" filter="url(#shadow)"/>
+  <rect x="70" y="70" width="1140" height="500" rx="36" fill="none" stroke="#e2e8f0" stroke-width="2"/>
+  <circle cx="298" cy="320" r="188" fill="#f8fafc"/>
+  <image href="gmeow-logo.svg" x="118" y="140" width="360" height="360" preserveAspectRatio="xMidYMid meet"/>
+
+  <text x="525" y="214" class="label">GLOBAL METADATA &amp; ENTITY ONTOLOGY</text>
+  <text x="516" y="340" class="title">GMEOW</text>
+  <text x="522" y="402" class="tagline">A reasoning-centric super-vocabulary</text>
+  <rect x="522" y="444" width="508" height="8" rx="4" fill="url(#rule)"/>
+  <text x="522" y="502" class="topics">OWL 2 DL · gUFO-grounded · FAIR · Wikidata</text>
+</svg>
