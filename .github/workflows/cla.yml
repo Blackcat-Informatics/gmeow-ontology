@@ -26,10 +26,11 @@ jobs:
           || github.event_name == 'pull_request_target'
         uses: contributor-assistant/github-action@v2.6.1
         env:
+          # GITHUB_TOKEN (granted contents: write above) commits the signature
+          # file to the cla-signatures branch in THIS repository. No personal
+          # access token is needed for same-repository signature storage; a PAT
+          # would only be required to store signatures in a separate repo.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # A personal access token with rights to commit the signature file to
-          # the signatures branch below. Create it as a repository secret.
-          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           path-to-document: "https://gist.github.com/paudley/55093187feb1a7cbc231e889ff6dda9e"
           # Signatures are stored off `main` so the bot never needs to push to
