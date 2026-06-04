@@ -48,7 +48,7 @@ jobs:
         run: uv run gmeow rdf12
 
       - name: Upload published artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gmeow-${{ github.ref_name }}
           path: |
