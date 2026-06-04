@@ -10,9 +10,14 @@
     <!-- GMEOW modules -->
     <uri name="https://blackcatinformatics.ca/gmeow/modules/core" uri="ontology/modules/core.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/entities" uri="ontology/modules/entities.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/organization" uri="ontology/modules/organization.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/accounts" uri="ontology/modules/accounts.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/documents" uri="ontology/modules/documents.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/software" uri="ontology/modules/software.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/genealogy" uri="ontology/modules/genealogy.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/agreements" uri="ontology/modules/agreements.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/contacts" uri="ontology/modules/contacts.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/places" uri="ontology/modules/places.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/expertise" uri="ontology/modules/expertise.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/provenance" uri="ontology/modules/provenance.ttl"/>
 </catalog>

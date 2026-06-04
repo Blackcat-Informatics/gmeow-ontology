@@ -1,0 +1,51 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/organization>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Organization Module"@en ;
+    rdfs:comment "Organizational roles and memberships (the ORG-superset layer)."@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Role
+    a owl:Class ;
+    rdfs:subClassOf gufo:Role ;
+    rdfs:label "Role"@en ;
+    skos:definition "A function or position an agent plays in some context, such as a job title or organizational role."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Membership
+    a owl:Class ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Membership"@en ;
+    skos:definition "The reified relationship by which an agent is a member of an organization, optionally playing a role over a period of time."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:memberOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Organization ;
+    rdfs:label "member of"@en ;
+    skos:definition "Relates an agent to an organization it belongs to."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasMember
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:memberOf ;
+    rdfs:domain gmeow:Organization ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "has member"@en ;
+    skos:definition "Relates an organization to one of its member agents; the inverse of memberOf."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasRole
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Membership ;
+    rdfs:range gmeow:Role ;
+    rdfs:label "has role"@en ;
+    skos:definition "Relates a membership to the role the member plays."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

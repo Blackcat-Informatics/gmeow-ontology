@@ -5,17 +5,22 @@ that unifies document metadata, entity descriptions, legal agreements, contacts 
 person-centric data — a "super" FOAF + REL + DOAP + GEDCOM + PROV-O. It is grounded in
 **gUFO** and aligned to FOAF, REL, DOAP, PROV-O, ORG, schema.org and **Wikidata**.
 
+**Why does this exist?** GMEOW unifies the sprawl of overlapping vocabularies used to
+record a person's or organization's *digital existence*. See [`docs/RATIONALE.md`](./docs/RATIONALE.md)
+for the reason, the problems it solves, and the solution it offers.
+
 - **Canonical IRI:** <https://blackcatinformatics.ca/gmeow> (slash namespace, term IRIs
   like `…/gmeow/Person`)
 - **Vocabulary license:** [CC BY 4.0](./LICENSE-ontology) (dual-licensed — see [Licensing](#licensing))
 - **Tooling license:** [Apache-2.0](./LICENSE) (dual-licensed — see [Licensing](#licensing))
 - **Copyright:** © 2026 Blackcat Informatics® Inc.
 
-> **Status.** The ontology *specification* is authored separately. This repository is the
-> **tooling and infrastructure** to refine, validate, reason over, document, publish and
-> version it. The `ontology/` files are a working **skeleton** (a valid header, gUFO-grounded
-> module stubs) so the whole pipeline — including reasoning — runs green before the full
-> specification lands.
+> **Status.** GMEOW is built **incrementally, one slice of digital existence at a time**.
+> The first slice (**entities + contacts**) is modelled and aligned; planned next are
+> email → documents → temporal events → calendar → notes → projects → …. Each slice adds
+> canonical terms, SSSOM alignment tables, and a vendored fixture, and `make coverage`
+> reports how much of the slice GMEOW covers and what gaps remain. The full toolchain
+> (validate → reason → mappings → coverage → build → docs → publish) runs green at every step.
 
 ## Quick start
 

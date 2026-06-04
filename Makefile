@@ -51,6 +51,9 @@ wikidata-live: ## Also verify Wikidata ids resolve (network).
 metadata: ## Generate VoID + DCAT dataset descriptions.
 	uv run gmeow metadata
 
+coverage: ## Report how much of the vendored entity slice GMEOW covers.
+	uv run gmeow coverage --gaps
+
 apache: ## Render the Apache content-negotiation include.
 	uv run gmeow apache
 
@@ -78,7 +81,7 @@ build: ## Build all serializations + JSON-LD context + apache.conf into dist/.
 test: ## Run the test suite.
 	uv run pytest
 
-check: lint validate reason mappings wikidata test ## Full local quality gate.
+check: lint validate reason mappings wikidata coverage test ## Full local quality gate.
 	@echo "✓ all checks passed"
 
 release: ## Reasoned closure (HermiT) + build + metadata + CrossRef deposit + RDF 1.2.

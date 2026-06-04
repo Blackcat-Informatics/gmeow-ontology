@@ -1,0 +1,1923 @@
+@prefix acm: <http://dl.acm.org/ccs/> .
+@prefix bcid: <https://patrickaudley.com/lod#> .
+@prefix bf: <http://id.loc.gov/ontologies/bibframe/> .
+@prefix bibo: <http://purl.org/ontology/bibo/> .
+@prefix bii: <https://blackcatinformatics.ca/> .
+@prefix dbr: <http://dbpedia.org/resource/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix doap: <http://usefulinc.com/ns/doap#> .
+@prefix dpv: <https://w3id.org/dpv#> .
+@prefix esco: <http://data.europa.eu/esco/skill/> .
+@prefix eurovoc: <http://eurovoc.europa.eu/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix lcsh: <http://id.loc.gov/authorities/subjects/> .
+@prefix mads: <http://www.loc.gov/mads/rdf/v1#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix ontodm: <http://www.ontodm.com/OntoDM-core/> .
+@prefix openalex-topic: <https://openalex.org/> .
+@prefix org: <http://www.w3.org/ns/org#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix swebok: <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/> .
+@prefix tgn: <http://vocab.getty.edu/tgn/> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix wd: <http://www.wikidata.org/entity/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ontodm:OntoDM_000038 a rdfs:Class ;
+    rdfs:label "data mining algorithm"@en .
+
+ontodm:OntoDM_817888 a rdfs:Class ;
+    rdfs:label "data mining workflow"@en .
+
+<https://blackcatinformatics.ca/#content-provenance-manifest> a prov:Entity,
+        schema:CreativeWork,
+        schema:DigitalDocument ;
+    dcterms:conformsTo <https://c2pa.org/>,
+        <https://www.w3.org/TR/prov-o/> ;
+    dcterms:format "application/json"@en ;
+    prov:generatedAtTime "2026-06-04T09:20:22-06:00"@en ;
+    prov:wasAttributedTo <https://blackcatinformatics.ca/#bii> ;
+    prov:wasGeneratedBy <https://blackcatinformatics.ca/#build-process> ;
+    schema:about <https://blackcatinformatics.ca/#page> ;
+    schema:encodingFormat "application/json"@en ;
+    schema:name "blackcatinformatics.ca content provenance manifest"@en ;
+    schema:url <https://blackcatinformatics.ca/.well-known/content-provenance.json> .
+
+<https://blackcatinformatics.ca/#lang-zh> a schema:Language ;
+    schema:alternateName "Learning"@en ;
+    schema:iso6391Code "zh"@en ;
+    schema:name "Mandarin"@en .
+
+<https://blackcatinformatics.ca/#privacy-notice> a schema:CreativeWork,
+        dpv:PrivacyNotice ;
+    dcterms:conformsTo <https://globalprivacycontrol.org/>,
+        <https://w3id.org/dpv> ;
+    dcterms:creator <https://blackcatinformatics.ca/#bii> ;
+    schema:contactPoint [ a schema:ContactPoint ;
+            schema:contactType "privacy"@en ;
+            schema:email "privacy@blackcatinformatics.ca"@en ] ;
+    schema:description "This static site does not collect visitor personal data, does not use tracking cookies, and honors Global Privacy Control signals."@en ;
+    schema:name "Privacy notice"@en ;
+    schema:url <https://blackcatinformatics.ca/legal#privacy> ;
+    dpv:hasDataController <https://blackcatinformatics.ca/#bii> ;
+    dpv:hasTechnicalOrganisationalMeasure <https://blackcatinformatics.ca/.well-known/gpc.json>,
+        <https://blackcatinformatics.ca/.well-known/security.txt> .
+
+<https://blackcatinformatics.ca/#signed-artifact-manifest> a prov:Entity,
+        schema:CreativeWork,
+        schema:DigitalDocument ;
+    dcterms:format "text/plain"@en ;
+    prov:generatedAtTime "2026-06-04T09:20:22-06:00"@en ;
+    prov:wasAttributedTo <https://blackcatinformatics.ca/#bii> ;
+    prov:wasGeneratedBy <https://blackcatinformatics.ca/#build-process> ;
+    schema:about <https://blackcatinformatics.ca/#page> ;
+    schema:encodingFormat "text/plain"@en ;
+    schema:name "blackcatinformatics.ca signed artifact manifest"@en ;
+    schema:url <https://blackcatinformatics.ca/.well-known/manifest.txt> .
+
+<https://blackcatinformatics.ca/#about> a schema:WebPageElement .
+
+<https://blackcatinformatics.ca/#bii-founding-time> a time:Instant ;
+    time:inXSDDateTime "1996-04-04T00:00:00+00:00"^^xsd:dateTime .
+
+<https://blackcatinformatics.ca/#chi2007-usability-security> a bf:Work,
+        bibo:AcademicArticle,
+        schema:ScholarlyArticle ;
+    bf:title [ a bf:Title ;
+            rdfs:label "Evaluating Usability and Security with Users of All Ages"@en ] ;
+    time:hasTime [ a time:Instant ;
+            time:inXSDDateTime "2007-04-30T00:00:00+00:00"^^xsd:dateTime ] ;
+    schema:author <https://blackcatinformatics.ca/#paudley> ;
+    schema:datePublished "2007-04-30T00:00:00Z"@en ;
+    schema:headline "Evaluating Usability and Security with Users of All Ages"@en ;
+    schema:image <https://blackcatinformatics.ca/#bii-logo> ;
+    schema:isPartOf [ a schema:CreativeWork ;
+            schema:name "CHI 2007 — Workshop on Usability and Security"@en ] ;
+    schema:name "Evaluating Usability and Security with Users of All Ages"@en .
+
+<https://blackcatinformatics.ca/#contact> a schema:WebPageElement .
+
+<https://blackcatinformatics.ca/#contact-privacy> a schema:ContactPoint ;
+    schema:availableLanguage "en"@en ;
+    schema:contactType "privacy"@en ;
+    schema:email "privacy@blackcatinformatics.ca"@en .
+
+<https://blackcatinformatics.ca/#contact-sales> a schema:ContactPoint ;
+    schema:areaServed <https://blackcatinformatics.ca/#service-area> ;
+    schema:availableLanguage "en"@en ;
+    schema:contactType "sales"@en ;
+    schema:email "work.with.us@blackcatinformatics.ca"@en ;
+    schema:telephone "+1-604-245-2120"@en .
+
+<https://blackcatinformatics.ca/#contact-secure> a schema:ContactPoint ;
+    schema:availableLanguage "en"@en ;
+    schema:contactType "security"@en ;
+    schema:email "secure@blackcatinformatics.ca"@en .
+
+<https://blackcatinformatics.ca/#csr> a schema:WebPageElement .
+
+<https://blackcatinformatics.ca/#erin> a foaf:Organization,
+        schema:Organization ;
+    foaf:homepage "https://www.edmontonrin.ca/"@en ;
+    schema:description "Edmonton Regional Innovation Network — innovation and entrepreneurship support network."@en ;
+    schema:image <https://blackcatinformatics.ca/#bii-logo> ;
+    schema:name "Edmonton Regional Innovation Network"@en ;
+    schema:url <https://www.edmontonrin.ca/> .
+
+<https://blackcatinformatics.ca/#lang-en> a schema:Language ;
+    schema:alternateName "Native"@en ;
+    schema:iso6391Code "en"@en ;
+    schema:name "English"@en .
+
+<https://blackcatinformatics.ca/#lang-fr> a schema:Language ;
+    schema:alternateName "Professional working proficiency"@en ;
+    schema:iso6391Code "fr"@en ;
+    schema:name "French"@en .
+
+<https://blackcatinformatics.ca/#oande> a foaf:Organization,
+        schema:Organization ;
+    foaf:homepage "https://oddsandevens.ca"@en ;
+    schema:address <https://blackcatinformatics.ca/#main-address> ;
+    schema:alternateName "O&E"@en,
+        "奇偶簿记"@zh ;
+    schema:brand <https://blackcatinformatics.ca/#brand-oande> ;
+    schema:description "Bookkeeping and accounting services subsidiary."@en ;
+    schema:employee <https://blackcatinformatics.ca/#eaudley> ;
+    schema:founder <https://blackcatinformatics.ca/#eaudley>,
+        <https://blackcatinformatics.ca/#paudley> ;
+    schema:image <https://blackcatinformatics.ca/#bii-logo> ;
+    schema:legalName "Odds & Evens® Bookkeeping"@en ;
+    schema:name "Odds & Evens® Bookkeeping"@en ;
+    schema:parentOrganization <https://blackcatinformatics.ca/#bii> ;
+    schema:url <https://oddsandevens.ca> .
+
+<https://blackcatinformatics.ca/#oxbench> a bf:Work,
+        bibo:AcademicArticle,
+        schema:ScholarlyArticle ;
+    bf:identifiedBy [ a bf:Doi ;
+            rdf:value "10.1186/1471-2105-4-47"@en ;
+            schema:url <https://doi.org/10.1186/1471-2105-4-47> ] ;
+    bf:title [ a bf:Title ;
+            rdfs:label "OXBench: A benchmark for evaluation of protein multiple sequence alignment accuracy"@en ] ;
+    bibo:doi "10.1186/1471-2105-4-47"@en ;
+    time:hasTime [ a time:Instant ;
+            time:inXSDDateTime "2003-10-10T00:00:00+00:00"^^xsd:dateTime ] ;
+    schema:author <https://blackcatinformatics.ca/#paudley> ;
+    schema:datePublished "2003-10-10T00:00:00Z"@en ;
+    schema:headline "OXBench: A benchmark for evaluation of protein multiple sequence alignment accuracy"@en ;
+    schema:identifier [ a schema:PropertyValue ;
+            schema:propertyID "DOI"@en ;
+            schema:url <https://doi.org/10.1186/1471-2105-4-47> ;
+            schema:value "10.1186/1471-2105-4-47"@en ] ;
+    schema:image <https://blackcatinformatics.ca/#bii-logo> ;
+    schema:isPartOf [ a schema:CreativeWork ;
+            schema:name "BMC Bioinformatics 4:47 (2003)"@en ] ;
+    schema:name "OXBench: A benchmark for evaluation of protein multiple sequence alignment accuracy"@en ;
+    schema:sameAs <https://doi.org/10.1186/1471-2105-4-47>,
+        <https://www.wikidata.org/entity/Q24796738> .
+
+<https://blackcatinformatics.ca/#patent-gaas> a bibo:Patent,
+        schema:CreativeWork ;
+    bibo:identifier "US20080222706A1"@en ;
+    time:hasTime [ a time:Instant ;
+            time:inXSDDateTime "2008-09-11T00:00:00+00:00"^^xsd:dateTime ] ;
+    schema:creator <https://blackcatinformatics.ca/#paudley> ;
+    schema:datePublished "2008-09-11T00:00:00Z"@en ;
+    schema:identifier "US20080222706A1"@en ;
+    schema:inventor [ a schema:Person ;
+            schema:name "Martin Renaud"@en ],
+        [ a schema:Person ;
+            schema:name "John Bradley"@en ],
+        [ a schema:Person ;
+            schema:name "Patrick Audley"@en ] ;
+    schema:name "Globally Aware Authentication System"@en ;
+    schema:sameAs <https://www.wikidata.org/entity/Q139770396> ;
+    schema:url <https://patents.google.com/patent/US20080222706A1> .
+
+<https://blackcatinformatics.ca/#patent-user-polling> a bibo:Patent,
+        schema:CreativeWork ;
+    bibo:identifier "US8510385B2"@en ;
+    time:hasTime [ a time:Instant ;
+            time:inXSDDateTime "2013-08-13T00:00:00+00:00"^^xsd:dateTime ] ;
+    schema:creator <https://blackcatinformatics.ca/#paudley> ;
+    schema:datePublished "2013-08-13T00:00:00Z"@en ;
+    schema:identifier "US8510385B2"@en ;
+    schema:inventor [ a schema:Person ;
+            schema:name "Chi-Hao Chiang"@en ],
+        [ a schema:Person ;
+            schema:name "Clovis Najm"@en ],
+        [ a schema:Person ;
+            schema:name "Patrick Audley"@en ] ;
+    schema:name "System and method for user polling over a network"@en ;
+    schema:url <https://patents.google.com/patent/US8510385B2> .
+
+<https://blackcatinformatics.ca/#principals> a schema:WebPageElement .
+
+<https://blackcatinformatics.ca/#proj-ai-notes> a doap:Project,
+        schema:SoftwareSourceCode ;
+    doap:bug-database <https://github.com/paudley/ai-notes/issues> ;
+    doap:developer <https://blackcatinformatics.ca/#paudley> ;
+    doap:download-page <https://github.com/paudley/ai-notes/releases> ;
+    doap:homepage <https://github.com/paudley/ai-notes> ;
+    doap:maintainer <https://blackcatinformatics.ca/#paudley> ;
+    doap:name "ai-notes"@en ;
+    doap:programming-language "Shell"@en ;
+    doap:repository [ a doap:GitRepository ;
+            doap:browse "https://github.com/paudley/ai-notes"@en ] ;
+    doap:shortdesc "Notes for working with local models and machine-learning experimentation."@en ;
+    foaf:maker <https://blackcatinformatics.ca/#paudley> ;
+    schema:codeRepository "https://github.com/paudley/ai-notes"@en ;
+    schema:creator <https://blackcatinformatics.ca/#paudley> ;
+    schema:description "Notes for working with local models and machine-learning experimentation."@en ;
+    schema:license "https://opensource.org/licenses/MIT"@en ;
+    schema:maintainer <https://blackcatinformatics.ca/#paudley> ;
+    schema:name "ai-notes"@en ;
+    schema:programmingLanguage "Shell"@en ;
+    schema:url <https://github.com/paudley/ai-notes> .
+
+<https://blackcatinformatics.ca/#proj-coding-ethos> a doap:Project,
+        schema:SoftwareSourceCode ;
+    doap:bug-database <https://github.com/paudley/coding-ethos/issues> ;
+    doap:developer <https://blackcatinformatics.ca/#paudley> ;
+    doap:download-page <https://github.com/paudley/coding-ethos/releases> ;
+    doap:homepage <https://github.com/paudley/coding-ethos> ;
+    doap:maintainer <https://blackcatinformatics.ca/#paudley> ;
+    doap:name "coding-ethos"@en ;
+    doap:programming-language "Go"@en ;
+    doap:repository [ a doap:GitRepository ;
+            doap:browse "https://github.com/paudley/coding-ethos"@en ] ;
+    doap:shortdesc "Policy-as-code enforcement for AI agents: MCP server, CEL policies, git hooks, SARIF, and static-analysis guardrails."@en ;
+    foaf:maker <https://blackcatinformatics.ca/#paudley> ;
+    schema:codeRepository "https://github.com/paudley/coding-ethos"@en ;
+    schema:creator <https://blackcatinformatics.ca/#paudley> ;
+    schema:description "Policy-as-code enforcement for AI agents: MCP server, CEL policies, git hooks, SARIF, and static-analysis guardrails."@en ;
+    schema:license "https://opensource.org/licenses/MIT"@en ;
+    schema:maintainer <https://blackcatinformatics.ca/#paudley> ;
+    schema:name "coding-ethos"@en ;
+    schema:programmingLanguage "Go"@en ;
+    schema:url <https://github.com/paudley/coding-ethos> .
+
+<https://blackcatinformatics.ca/#proj-git-ai-reporter> a doap:Project,
+        schema:SoftwareSourceCode ;
+    doap:bug-database <https://github.com/paudley/git-ai-reporter/issues> ;
+    doap:developer <https://blackcatinformatics.ca/#paudley> ;
+    doap:download-page <https://github.com/paudley/git-ai-reporter/releases> ;
+    doap:homepage <https://github.com/paudley/git-ai-reporter> ;
+    doap:maintainer <https://blackcatinformatics.ca/#paudley> ;
+    doap:name "git-ai-reporter"@en ;
+    doap:programming-language "Python"@en ;
+    doap:repository [ a doap:GitRepository ;
+            doap:browse "https://github.com/paudley/git-ai-reporter"@en ] ;
+    doap:shortdesc "Git-driven AI analysis and reporter; keeps CHANGELOG and NEWS files up to date automatically."@en ;
+    foaf:maker <https://blackcatinformatics.ca/#paudley> ;
+    schema:codeRepository "https://github.com/paudley/git-ai-reporter"@en ;
+    schema:creator <https://blackcatinformatics.ca/#paudley> ;
+    schema:description "Git-driven AI analysis and reporter; keeps CHANGELOG and NEWS files up to date automatically."@en ;
+    schema:license "https://opensource.org/licenses/MIT"@en ;
+    schema:maintainer <https://blackcatinformatics.ca/#paudley> ;
+    schema:name "git-ai-reporter"@en ;
+    schema:programmingLanguage "Python"@en ;
+    schema:url <https://github.com/paudley/git-ai-reporter> .
+
+<https://blackcatinformatics.ca/#proj-lru-cache> a doap:Project,
+        schema:SoftwareSourceCode ;
+    doap:bug-database <https://github.com/paudley/lru_cache/issues> ;
+    doap:developer <https://blackcatinformatics.ca/#paudley> ;
+    doap:download-page <https://github.com/paudley/lru_cache/releases> ;
+    doap:homepage <https://github.com/paudley/lru_cache> ;
+    doap:maintainer <https://blackcatinformatics.ca/#paudley> ;
+    doap:name "lru_cache"@en ;
+    doap:programming-language "C++"@en ;
+    doap:repository [ a doap:GitRepository ;
+            doap:browse "https://github.com/paudley/lru_cache"@en ] ;
+    doap:shortdesc "Least-Recently-Used C++ template."@en ;
+    foaf:maker <https://blackcatinformatics.ca/#paudley> ;
+    schema:codeRepository "https://github.com/paudley/lru_cache"@en ;
+    schema:creator <https://blackcatinformatics.ca/#paudley> ;
+    schema:description "Least-Recently-Used C++ template."@en ;
+    schema:license "https://opensource.org/licenses/MIT"@en ;
+    schema:maintainer <https://blackcatinformatics.ca/#paudley> ;
+    schema:name "lru_cache"@en ;
+    schema:programmingLanguage "C++"@en ;
+    schema:url <https://github.com/paudley/lru_cache> .
+
+<https://blackcatinformatics.ca/#proj-pyqa-lint> a doap:Project,
+        schema:SoftwareSourceCode ;
+    doap:bug-database <https://github.com/paudley/pyqa_lint/issues> ;
+    doap:developer <https://blackcatinformatics.ca/#paudley> ;
+    doap:download-page <https://github.com/paudley/pyqa_lint/releases> ;
+    doap:homepage <https://github.com/paudley/pyqa_lint> ;
+    doap:maintainer <https://blackcatinformatics.ca/#paudley> ;
+    doap:name "pyqa_lint"@en ;
+    doap:programming-language "Python"@en ;
+    doap:repository [ a doap:GitRepository ;
+            doap:browse "https://github.com/paudley/pyqa_lint"@en ] ;
+    doap:shortdesc "Opinionated quality-assurance harness shipping a Typer-based CLI (pyqa) for Python projects."@en ;
+    foaf:maker <https://blackcatinformatics.ca/#paudley> ;
+    schema:codeRepository "https://github.com/paudley/pyqa_lint"@en ;
+    schema:creator <https://blackcatinformatics.ca/#paudley> ;
+    schema:description "Opinionated quality-assurance harness shipping a Typer-based CLI (pyqa) for Python projects."@en ;
+    schema:license "https://opensource.org/licenses/MIT"@en ;
+    schema:maintainer <https://blackcatinformatics.ca/#paudley> ;
+    schema:name "pyqa_lint"@en ;
+    schema:programmingLanguage "Python"@en ;
+    schema:url <https://github.com/paudley/pyqa_lint> .
+
+<https://blackcatinformatics.ca/#service-cloud-navigation> a schema:Service ;
+    schema:areaServed <https://blackcatinformatics.ca/#service-area> ;
+    schema:description "large scale deploys, from clusters and grids to lambdas and micro services, devops automation and helping you navigate the rapidly evolving cloud."@en ;
+    schema:name "Cloud Navigation"@en ;
+    schema:provider <https://blackcatinformatics.ca/#bii> ;
+    schema:serviceType "Cloud Navigation"@en .
+
+<https://blackcatinformatics.ca/#service-corporate-engineering> a schema:Service ;
+    schema:areaServed <https://blackcatinformatics.ca/#service-area> ;
+    schema:description "finding optimal corporate and team structures to streamline and focus."@en ;
+    schema:name "Corporate Engineering"@en ;
+    schema:provider <https://blackcatinformatics.ca/#bii> ;
+    schema:serviceType "Corporate Engineering"@en .
+
+<https://blackcatinformatics.ca/#service-development-alignment> a schema:Service ;
+    schema:areaServed <https://blackcatinformatics.ca/#service-area> ;
+    schema:description "helping to bring development shops in closer alignment with the rest of the company (et vice versa), agile process tuning and development HR help."@en ;
+    schema:name "Development Alignment"@en ;
+    schema:provider <https://blackcatinformatics.ca/#bii> ;
+    schema:serviceType "Development Alignment"@en .
+
+<https://blackcatinformatics.ca/#service-fractional-cto> a schema:Service ;
+    schema:areaServed <https://blackcatinformatics.ca/#service-area> ;
+    schema:description "high level management and guidance, executive oversight and execution."@en ;
+    schema:name "Fractional CTO"@en ;
+    schema:provider <https://blackcatinformatics.ca/#bii> ;
+    schema:serviceType "Fractional CTO"@en .
+
+<https://blackcatinformatics.ca/#service-programming> a schema:Service ;
+    schema:areaServed <https://blackcatinformatics.ca/#service-area> ;
+    schema:description "Golang and over 15 other languages spoken, AI and machine learning, Jupyter notebooks, spatial data analysis and bespoke esoterica. True full-stack, snout-to-tail, development."@en ;
+    schema:name "Programming"@en ;
+    schema:provider <https://blackcatinformatics.ca/#bii> ;
+    schema:serviceType "Programming"@en .
+
+<https://blackcatinformatics.ca/#service-solution-architecture> a schema:Service ;
+    schema:areaServed <https://blackcatinformatics.ca/#service-area> ;
+    schema:description "finding elegant solutions to complex technical problems, applying sparse resources efficiently and future-proofing technology strategies."@en ;
+    schema:name "Solution Architecture"@en ;
+    schema:provider <https://blackcatinformatics.ca/#bii> ;
+    schema:serviceType "Solution Architecture"@en .
+
+<https://blackcatinformatics.ca/#service-startup-process-and-execution> a schema:Service ;
+    schema:areaServed <https://blackcatinformatics.ca/#service-area> ;
+    schema:description "managing a path through the wilds of the startup and early-stage funding world with less pain and more success."@en ;
+    schema:name "Startup Process and Execution"@en ;
+    schema:provider <https://blackcatinformatics.ca/#bii> ;
+    schema:serviceType "Startup Process and Execution"@en .
+
+<https://blackcatinformatics.ca/#services> a schema:WebPageElement .
+
+<https://blackcatinformatics.ca/#services-offered> a schema:OfferCatalog ;
+    schema:itemListElement <https://blackcatinformatics.ca/#offer-cloud-navigation>,
+        <https://blackcatinformatics.ca/#offer-corporate-engineering>,
+        <https://blackcatinformatics.ca/#offer-development-alignment>,
+        <https://blackcatinformatics.ca/#offer-fractional-cto>,
+        <https://blackcatinformatics.ca/#offer-programming>,
+        <https://blackcatinformatics.ca/#offer-solution-architecture>,
+        <https://blackcatinformatics.ca/#offer-startup-process-and-execution> ;
+    schema:name "Services Offered"@en .
+
+<https://blackcatinformatics.ca/#concept-ai-agents> a skos:Concept ;
+    rdfs:label "Intelligent Agents (Agentic AI)"@en ;
+    mads:authoritativeLabel "Intelligent Agents (Agentic AI)"@en ;
+    owl:sameAs dbr:Intelligent_agent,
+        wd:Q170978 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-artificial-intelligence> ;
+    skos:closeMatch acm:10010147.10010178.10010219.10010220,
+        <unesco-thesaurus:3055> ;
+    skos:exactMatch dbr:Intelligent_agent,
+        wd:Q170978 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Intelligent Agents (Agentic AI)"@en,
+        "Agents intelligents (IA agentique)"@fr,
+        "智能体（Agent AI）"@zh ;
+    schema:sameAs dbr:Intelligent_agent,
+        wd:Q170978 .
+
+<https://blackcatinformatics.ca/#concept-bioinformatics> a skos:Concept ;
+    rdfs:label "Bioinformatics"@en ;
+    mads:authoritativeLabel "Bioinformatics"@en ;
+    mads:hasCloseExternalAuthority lcsh:sh00003585 ;
+    owl:sameAs dbr:Bioinformatics,
+        wd:Q128570 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-computer-science> ;
+    skos:closeMatch acm:10010405.10010444.10010450,
+        eurovoc:c_f0a7cb51,
+        lcsh:sh00003585,
+        openalex-topic:T10887 ;
+    skos:exactMatch dbr:Bioinformatics,
+        wd:Q128570 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Bioinformatics"@en,
+        "Bioinformatique"@fr,
+        "生物信息学"@zh ;
+    schema:sameAs dbr:Bioinformatics,
+        wd:Q128570 .
+
+<https://blackcatinformatics.ca/#concept-cloud-computing> a skos:Concept ;
+    rdfs:label "Cloud Computing"@en ;
+    mads:authoritativeLabel "Cloud Computing"@en ;
+    mads:hasCloseExternalAuthority lcsh:sh2008004883 ;
+    owl:sameAs dbr:Cloud_computing,
+        wd:Q483639 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-computer-science> ;
+    skos:closeMatch esco:bd14968e-e409-45af-b362-3495ed7b10e0,
+        acm:10003033.10003099.10003100,
+        eurovoc:c_433922a6,
+        lcsh:sh2008004883,
+        <http://www.sac.gov.cn/gbt/13745/5203030>,
+        openalex-topic:T10101,
+        swebok:containerization,
+        swebok:infrastructure_as_code ;
+    skos:exactMatch dbr:Cloud_computing,
+        wd:Q483639 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Cloud Computing"@en,
+        "Informatique en nuage"@fr,
+        "云计算"@zh ;
+    schema:sameAs dbr:Cloud_computing,
+        wd:Q483639 .
+
+<https://blackcatinformatics.ca/#concept-fractional-cto> a skos:Concept ;
+    rdfs:label "Fractional CTO"@en ;
+    mads:authoritativeLabel "Fractional CTO"@en ;
+    skos:broader <https://blackcatinformatics.ca/#concept-management-consulting> ;
+    skos:closeMatch eurovoc:3607,
+        swebok:software_engineering_management ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Fractional CTO"@en,
+        "Directeur technique à temps partagé"@fr,
+        "兼职CTO"@zh .
+
+<https://blackcatinformatics.ca/#concept-generative-ai> a skos:Concept ;
+    rdfs:label "Generative AI"@en ;
+    mads:authoritativeLabel "Generative AI"@en ;
+    owl:sameAs dbr:Generative_artificial_intelligence,
+        wd:Q108235848 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-artificial-intelligence> ;
+    skos:exactMatch dbr:Generative_artificial_intelligence,
+        wd:Q108235848 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Generative AI"@en,
+        "IA générative"@fr,
+        "生成式AI"@zh ;
+    schema:sameAs dbr:Generative_artificial_intelligence,
+        wd:Q108235848 .
+
+<https://blackcatinformatics.ca/#concept-high-performance-computing> a skos:Concept ;
+    rdfs:label "High Performance Computing"@en ;
+    mads:authoritativeLabel "High Performance Computing"@en ;
+    owl:sameAs dbr:High-performance_computing,
+        wd:Q189940 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-computer-science> ;
+    skos:closeMatch <http://www.sac.gov.cn/gbt/13745/5203020>,
+        swebok:concurrency ;
+    skos:exactMatch dbr:High-performance_computing,
+        wd:Q189940 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "High Performance Computing"@en,
+        "Calcul haute performance"@fr,
+        "高性能计算"@zh ;
+    schema:sameAs dbr:High-performance_computing,
+        wd:Q189940 .
+
+<https://blackcatinformatics.ca/#concept-large-language-models> a skos:Concept ;
+    rdfs:label "Large Language Models"@en ;
+    mads:authoritativeLabel "Large Language Models"@en ;
+    owl:sameAs dbr:Large_language_model,
+        wd:Q115305900 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-artificial-intelligence> ;
+    skos:closeMatch swebok:llm_engineering ;
+    skos:exactMatch dbr:Large_language_model,
+        wd:Q115305900 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Large Language Models"@en,
+        "Grands modèles de langage"@fr,
+        "大型语言模型"@zh ;
+    schema:sameAs dbr:Large_language_model,
+        wd:Q115305900 .
+
+<https://blackcatinformatics.ca/#concept-linked-data> a skos:Concept ;
+    rdfs:label "Linked Data"@en ;
+    mads:authoritativeLabel "Linked Data"@en ;
+    owl:sameAs dbr:Linked_data,
+        wd:Q515701 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-semantic-web> ;
+    skos:exactMatch dbr:Linked_data,
+        wd:Q515701 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Linked Data"@en,
+        "Données liées"@fr,
+        "关联数据"@zh ;
+    schema:sameAs dbr:Linked_data,
+        wd:Q515701 .
+
+<https://blackcatinformatics.ca/#concept-public-key-infrastructure> a skos:Concept ;
+    rdfs:label "Public Key Infrastructure"@en ;
+    mads:authoritativeLabel "Public Key Infrastructure"@en ;
+    mads:hasCloseExternalAuthority lcsh:sh2002004634 ;
+    owl:sameAs dbr:Public_key_infrastructure,
+        wd:Q224049 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-cryptography> ;
+    skos:closeMatch acm:10002978.10002979.10002981,
+        eurovoc:5181,
+        lcsh:sh2002004634,
+        swebok:authentication ;
+    skos:exactMatch dbr:Public_key_infrastructure,
+        wd:Q224049 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Public Key Infrastructure"@en,
+        "Infrastructure à clés publiques"@fr,
+        "公钥基础设施"@zh ;
+    schema:sameAs dbr:Public_key_infrastructure,
+        wd:Q224049 .
+
+<https://blackcatinformatics.ca/#concept-security> a skos:Concept ;
+    rdfs:label "Information Security"@en ;
+    mads:authoritativeLabel "Information Security"@en ;
+    mads:hasCloseExternalAuthority lcsh:sh90001862 ;
+    owl:sameAs dbr:Information_security,
+        wd:Q3510521 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-computer-science> ;
+    skos:closeMatch esco:11eebd42-44ab-401d-8a2c-bdb9fc9beb50,
+        acm:10002978.10002991,
+        eurovoc:c_04ae3ba8,
+        lcsh:sh90001862,
+        <http://www.sac.gov.cn/gbt/13745/5201060>,
+        openalex-topic:T10237,
+        swebok:secure_coding,
+        swebok:software_security,
+        swebok:threat_modeling ;
+    skos:exactMatch dbr:Information_security,
+        wd:Q3510521 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Information Security"@en,
+        "Sécurité de l'information"@fr,
+        "信息安全"@zh ;
+    schema:sameAs dbr:Information_security,
+        wd:Q3510521 .
+
+<https://blackcatinformatics.ca/#concept-semantic-analysis> a skos:Concept ;
+    rdfs:label "Semantic Analysis"@en ;
+    mads:authoritativeLabel "Semantic Analysis"@en ;
+    owl:sameAs dbr:Semantic_analysis_\(linguistics\),
+        wd:Q1144262 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-artificial-intelligence> ;
+    skos:closeMatch esco:fff0e2cd-d0bd-4b02-9daf-158b79d9688a,
+        acm:10010147.10010178.10010179,
+        <http://www.sac.gov.cn/gbt/13745/5202020> ;
+    skos:exactMatch dbr:Semantic_analysis_\(linguistics\),
+        wd:Q1144262 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Semantic Analysis"@en,
+        "Analyse sémantique"@fr,
+        "语义分析"@zh ;
+    schema:sameAs dbr:Semantic_analysis_\(linguistics\),
+        wd:Q1144262 .
+
+<https://blackcatinformatics.ca/#concept-solution-architecture> a skos:Concept ;
+    rdfs:label "Solution Architecture"@en ;
+    mads:authoritativeLabel "Solution Architecture"@en ;
+    owl:sameAs wd:Q7558977 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-management-consulting> ;
+    skos:closeMatch esco:2450c3b3-e78e-435b-b84d-e05d984e71dc,
+        <http://www.sac.gov.cn/gbt/13745/5204070>,
+        swebok:software_architecture ;
+    skos:exactMatch wd:Q7558977 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Solution Architecture"@en,
+        "Architecture de solutions"@fr,
+        "解决方案架构"@zh ;
+    schema:sameAs wd:Q7558977 .
+
+<https://blackcatinformatics.ca/#concept-startup-execution> a skos:Concept ;
+    rdfs:label "Startup Execution"@en ;
+    mads:authoritativeLabel "Startup Execution"@en ;
+    mads:hasCloseExternalAuthority lcsh:sh85091252 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-management-consulting> ;
+    skos:closeMatch eurovoc:2359,
+        lcsh:sh85091252,
+        swebok:software_engineering_economics ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Startup Execution"@en,
+        "Exécution d'entreprise en démarrage"@fr,
+        "初创企业执行"@zh .
+
+<https://blackcatinformatics.ca/#content-reuse-policy> a odrl:Offer,
+        odrl:Policy ;
+    dcterms:creator <https://blackcatinformatics.ca/#bii> ;
+    dcterms:issued "2026-06-04T09:20:22-06:00"@en ;
+    odrl:inheritFrom <https://creativecommons.org/licenses/by-nc-sa/2.5/ca/> ;
+    odrl:permission [ a odrl:Permission ;
+            odrl:action odrl:derive,
+                odrl:distribute,
+                odrl:reproduce,
+                odrl:use ;
+            odrl:assigner <https://blackcatinformatics.ca/#bii> ;
+            odrl:duty [ a odrl:Duty ;
+                    odrl:action odrl:shareAlike ],
+                [ a odrl:Duty ;
+                    odrl:action odrl:attribution ;
+                    odrl:assignee <https://blackcatinformatics.ca/#bii> ] ;
+            odrl:target <https://blackcatinformatics.ca/#page> ] ;
+    odrl:profile odrl: ;
+    odrl:prohibition [ a odrl:Prohibition ;
+            odrl:action odrl:commercialize ;
+            odrl:assigner <https://blackcatinformatics.ca/#bii> ;
+            odrl:target <https://blackcatinformatics.ca/#page> ] ;
+    odrl:uid <https://blackcatinformatics.ca/#content-reuse-policy> ;
+    schema:description "Original written content is licensed under Creative Commons BY-NC-SA CAv2.5; non-commercial reuse, reproduction, distribution, and adaptation are permitted with attribution and share-alike terms."@en ;
+    schema:name "Public content reuse policy"@en .
+
+<https://blackcatinformatics.ca/#offer-cloud-navigation> a schema:Offer ;
+    schema:itemOffered <https://blackcatinformatics.ca/#service-cloud-navigation> .
+
+<https://blackcatinformatics.ca/#offer-corporate-engineering> a schema:Offer ;
+    schema:itemOffered <https://blackcatinformatics.ca/#service-corporate-engineering> .
+
+<https://blackcatinformatics.ca/#offer-development-alignment> a schema:Offer ;
+    schema:itemOffered <https://blackcatinformatics.ca/#service-development-alignment> .
+
+<https://blackcatinformatics.ca/#offer-fractional-cto> a schema:Offer ;
+    schema:itemOffered <https://blackcatinformatics.ca/#service-fractional-cto> .
+
+<https://blackcatinformatics.ca/#offer-programming> a schema:Offer ;
+    schema:itemOffered <https://blackcatinformatics.ca/#service-programming> .
+
+<https://blackcatinformatics.ca/#offer-solution-architecture> a schema:Offer ;
+    schema:itemOffered <https://blackcatinformatics.ca/#service-solution-architecture> .
+
+<https://blackcatinformatics.ca/#offer-startup-process-and-execution> a schema:Offer ;
+    schema:itemOffered <https://blackcatinformatics.ca/#service-startup-process-and-execution> .
+
+<https://blackcatinformatics.ca/#service-hours> a schema:OpeningHoursSpecification ;
+    schema:closes "17:00"@en ;
+    schema:dayOfWeek "Friday"@en,
+        "Monday"@en,
+        "Thursday"@en,
+        "Tuesday"@en,
+        "Wednesday"@en ;
+    schema:opens "09:00"@en .
+
+<https://oddnumberedproductions.ca/#content> a schema:CreativeWork ;
+    dcterms:rights "All rights reserved"@en ;
+    odrl:hasPolicy <https://oddnumberedproductions.ca/#all-rights-reserved-policy> ;
+    schema:copyrightHolder <https://blackcatinformatics.ca/#onp> ;
+    schema:copyrightNotice "Copyright 2026 Odd Numbered Productions Inc. All rights reserved."@en ;
+    schema:creator <https://blackcatinformatics.ca/#onp> ;
+    schema:isPartOf <https://oddnumberedproductions.ca/#site> ;
+    schema:name "Odd Numbered Productions site content"@en ;
+    schema:usageInfo "https://oddnumberedproductions.ca/#all-rights-reserved-policy"@en .
+
+<http://www.sac.gov.cn/gbt/42131/2022> a schema:CreativeWork,
+        schema:DefinedTerm ;
+    schema:alternateName "人工智能 知识图谱技术框架"@en ;
+    schema:description "Chinese national standard used as a conformance reference for the knowledge-graph technical framework."@en ;
+    schema:identifier "GB/T 42131-2022"@en ;
+    schema:name "GB/T 42131-2022 Artificial intelligence - Technical framework of knowledge graph"@en .
+
+<https://blackcatinformatics.ca/#brand-oande> a schema:Brand ;
+    odrl:hasPolicy <https://blackcatinformatics.ca/#trademark-use-policy> ;
+    schema:additionalProperty [ a schema:PropertyValue ;
+            schema:propertyID "CIPO-Application"@en ;
+            schema:value "1833757"@en ],
+        [ a schema:PropertyValue ;
+            schema:propertyID "CIPO-Registration"@en ;
+            schema:url <https://ised-isde.canada.ca/cipo/trademark-search/1833757> ;
+            schema:value "TMA1006093"@en ],
+        [ a schema:PropertyValue ;
+            schema:propertyID "First-Use-Date"@en ;
+            schema:value "2015-09"@en ],
+        [ a schema:PropertyValue ;
+            schema:propertyID "Nice-Class"@en ;
+            schema:value "35,45"@en ] ;
+    schema:alternateName "Blackcat Informatics"@en ;
+    schema:description "Registered Canadian word-mark for Odds & Evens bookkeeping services, owned by Blackcat Informatics Inc., in use since September 2015 and registered with CIPO as TMA1006093 on 2018-10-03."@en ;
+    schema:name "ODDS & EVENS"@en ;
+    schema:owner <https://blackcatinformatics.ca/#bii> ;
+    schema:usageInfo "https://ised-isde.canada.ca/cipo/trademark-search/1833757"@en .
+
+<https://blackcatinformatics.ca/#brand-wordmark> a schema:Brand ;
+    odrl:hasPolicy <https://blackcatinformatics.ca/#trademark-use-policy> ;
+    schema:additionalProperty [ a schema:PropertyValue ;
+            schema:propertyID "CIPO-Registration"@en ;
+            schema:url <https://ised-isde.canada.ca/cipo/trademark-search/1833758> ;
+            schema:value "TMA1066935"@en ],
+        [ a schema:PropertyValue ;
+            schema:propertyID "CIPO-Application"@en ;
+            schema:value "1833758"@en ],
+        [ a schema:PropertyValue ;
+            schema:propertyID "Nice-Class"@en ;
+            schema:value "35,42"@en ],
+        [ a schema:PropertyValue ;
+            schema:propertyID "First-Use-Date"@en ;
+            schema:value "2014-11"@en ] ;
+    schema:alternateName "Blackcat Informatics"@en ;
+    schema:description "Registered Canadian word-mark for Blackcat Informatics Inc., active since November 2014 and registered with CIPO as TMA1066935 on 2019-12-19."@en ;
+    schema:name "BLACKCAT INFORMATICS"@en ;
+    schema:owner <https://blackcatinformatics.ca/#bii> ;
+    schema:usageInfo "https://ised-isde.canada.ca/cipo/trademark-search/1833758"@en .
+
+<https://blackcatinformatics.ca/#build-process> a prov:Activity ;
+    prov:endedAtTime "2026-06-04T09:20:22-06:00"@en ;
+    prov:qualifiedAssociation [ a prov:Association ;
+            prov:agent <https://blackcatinformatics.ca/#paudley> ;
+            prov:hadPlan [ a prov:Plan ;
+                    rdfs:label "BespokeIdentityHub_v2.5 static-site pipeline v18982a5e311fa960a5d6ca48f41aa4fc98c66b46e5da1cff773ec2fc0f14a877"@en ] ] ;
+    prov:wasAssociatedWith <https://blackcatinformatics.ca/#paudley> ;
+    schema:description "BespokeIdentityHub_v2.5 — a bespoke static-site pipeline that renders Go html/template into content-addressed, integrity-pinned HTML and linked data."@en ;
+    schema:name "BespokeIdentityHub_v2.5"@en ;
+    schema:url <https://blackcatinformatics.ca/colophon.html#build-process> .
+
+<https://blackcatinformatics.ca/#concept-cpp> a skos:Concept ;
+    rdfs:label "C++ (programming language)"@en ;
+    mads:authoritativeLabel "C++ (programming language)"@en ;
+    mads:hasCloseExternalAuthority lcsh:sh87007505 ;
+    owl:sameAs <http://dbpedia.org/resource/C++>,
+        wd:Q2407 ;
+    skos:closeMatch acm:10011007.10011006.10011008,
+        eurovoc:1696,
+        lcsh:sh87007505,
+        <http://www.sac.gov.cn/gbt/13745/5204030> ;
+    skos:exactMatch <http://dbpedia.org/resource/C++>,
+        wd:Q2407 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "C++ (programming language)"@en,
+        "C++ (langage de programmation)"@fr,
+        "C++（编程语言）"@zh ;
+    schema:sameAs <http://dbpedia.org/resource/C++>,
+        wd:Q2407 .
+
+<https://blackcatinformatics.ca/#concept-cryptography> a skos:Concept ;
+    rdfs:label "Cryptography"@en ;
+    mads:authoritativeLabel "Cryptography"@en ;
+    mads:hasCloseExternalAuthority lcsh:sh85034453 ;
+    owl:sameAs dbr:Cryptography,
+        wd:Q41048 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-computer-science> ;
+    skos:closeMatch esco:d32db06e-bd06-4415-a7ab-1b0ee68caa9a,
+        acm:10002978.10002979,
+        eurovoc:6778,
+        lcsh:sh85034453,
+        <http://www.sac.gov.cn/gbt/13745/5201060>,
+        openalex-topic:T10237,
+        swebok:cryptography ;
+    skos:exactMatch dbr:Cryptography,
+        wd:Q41048 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Cryptography"@en,
+        "Cryptographie"@fr,
+        "密码学"@zh ;
+    schema:sameAs dbr:Cryptography,
+        wd:Q41048 .
+
+<https://blackcatinformatics.ca/#concept-geomatics> a skos:Concept ;
+    rdfs:label "Geomatics"@en ;
+    mads:authoritativeLabel "Geomatics"@en ;
+    mads:hasCloseExternalAuthority lcsh:sh99004272 ;
+    owl:sameAs dbr:Geomatics,
+        wd:Q1399449 ;
+    skos:closeMatch acm:10002951.10003227.10003236.10003237,
+        lcsh:sh99004272 ;
+    skos:exactMatch dbr:Geomatics,
+        wd:Q1399449 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Geomatics"@en,
+        "Géomatique"@fr,
+        "地理信息科学"@zh ;
+    schema:sameAs dbr:Geomatics,
+        wd:Q1399449 .
+
+<https://blackcatinformatics.ca/#concept-go-programming-language> a skos:Concept ;
+    rdfs:label "Go (programming language)"@en ;
+    mads:authoritativeLabel "Go (programming language)"@en ;
+    mads:hasCloseExternalAuthority lcsh:sh2012000746 ;
+    owl:sameAs dbr:Go_\(programming_language\),
+        wd:Q37227 ;
+    skos:closeMatch acm:10011007.10011006.10011008,
+        eurovoc:1696,
+        lcsh:sh2012000746,
+        <http://www.sac.gov.cn/gbt/13745/5204030> ;
+    skos:exactMatch dbr:Go_\(programming_language\),
+        wd:Q37227 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Go (programming language)"@en,
+        "Go (langage de programmation)"@fr,
+        "Go（编程语言）"@zh ;
+    schema:sameAs dbr:Go_\(programming_language\),
+        wd:Q37227 .
+
+<https://blackcatinformatics.ca/#concept-machine-learning> a skos:Concept ;
+    rdfs:label "Machine Learning"@en ;
+    mads:authoritativeLabel "Machine Learning"@en ;
+    mads:hasCloseExternalAuthority lcsh:sh85079324 ;
+    owl:sameAs dbr:Machine_learning,
+        wd:Q2539 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-computer-science> ;
+    skos:closeMatch esco:8369c2d6-c100-4cf6-bd83-9668d8678433,
+        acm:10010147.10010257,
+        eurovoc:c_3dfe52ca,
+        lcsh:sh85079324,
+        <http://www.sac.gov.cn/gbt/13745/52020>,
+        openalex-topic:T12072,
+        swebok:machine_learning_engineering ;
+    skos:exactMatch dbr:Machine_learning,
+        wd:Q2539 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Machine Learning"@en,
+        "Apprentissage automatique"@fr,
+        "机器学习"@zh ;
+    schema:sameAs dbr:Machine_learning,
+        wd:Q2539 .
+
+<https://blackcatinformatics.ca/#concept-postgresql> a skos:Concept ;
+    rdfs:label "PostgreSQL"@en ;
+    mads:authoritativeLabel "PostgreSQL"@en ;
+    owl:sameAs dbr:PostgreSQL,
+        wd:Q192490 ;
+    skos:closeMatch acm:10002951.10002952,
+        eurovoc:435299,
+        <http://www.sac.gov.cn/gbt/13745/5204050>,
+        swebok:databases ;
+    skos:exactMatch dbr:PostgreSQL,
+        wd:Q192490 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "PostgreSQL"@en,
+        "PostgreSQL"@fr,
+        "PostgreSQL"@zh ;
+    schema:sameAs dbr:PostgreSQL,
+        wd:Q192490 .
+
+<https://blackcatinformatics.ca/#concept-python> a skos:Concept ;
+    rdfs:label "Python (programming language)"@en ;
+    mads:authoritativeLabel "Python (programming language)"@en ;
+    mads:hasCloseExternalAuthority lcsh:sh96008834 ;
+    owl:sameAs dbr:Python_\(programming_language\),
+        wd:Q28865 ;
+    skos:closeMatch acm:10011007.10011006.10011008,
+        eurovoc:1696,
+        lcsh:sh96008834,
+        <http://www.sac.gov.cn/gbt/13745/5204030> ;
+    skos:exactMatch dbr:Python_\(programming_language\),
+        wd:Q28865 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Python (programming language)"@en,
+        "Python (langage de programmation)"@fr,
+        "Python（编程语言）"@zh ;
+    schema:sameAs dbr:Python_\(programming_language\),
+        wd:Q28865 .
+
+<https://blackcatinformatics.ca/#concept-satellite-imagery> a skos:Concept ;
+    rdfs:label "Satellite Imagery"@en ;
+    mads:authoritativeLabel "Satellite Imagery"@en ;
+    mads:hasCloseExternalAuthority lcsh:sh85112798 ;
+    owl:sameAs dbr:Satellite_imagery,
+        wd:Q725252 ;
+    skos:closeMatch lcsh:sh85112798 ;
+    skos:exactMatch dbr:Satellite_imagery,
+        wd:Q725252 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Satellite Imagery"@en,
+        "Imagerie satellitaire"@fr,
+        "卫星影像"@zh ;
+    schema:sameAs dbr:Satellite_imagery,
+        wd:Q725252 .
+
+<https://blackcatinformatics.ca/#concept-topological-data-analysis> a skos:Concept ;
+    rdfs:label "Topological Data Analysis"@en ;
+    mads:authoritativeLabel "Topological Data Analysis"@en ;
+    owl:sameAs dbr:Topological_data_analysis,
+        wd:Q7825166 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-mathematics> ;
+    skos:closeMatch acm:10002950.10003741.10003742,
+        <http://www.sac.gov.cn/gbt/13745/11045> ;
+    skos:exactMatch dbr:Topological_data_analysis,
+        wd:Q7825166 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Topological Data Analysis"@en,
+        "Analyse topologique des données"@fr,
+        "拓扑数据分析"@zh ;
+    schema:sameAs dbr:Topological_data_analysis,
+        wd:Q7825166 .
+
+<https://blackcatinformatics.ca/#northpoint-geo> a geo:Geometry,
+        schema:GeoCoordinates ;
+    geo:asWKT "POINT(-113.92439808633804 53.544972052216295)"^^geo:wktLiteral ;
+    schema:latitude 5.354497e+01 ;
+    schema:longitude -1.139244e+02 .
+
+<https://discovery.ariba.com/profile/AN01693728648> a foaf:OnlineAccount,
+        schema:ProfilePage ;
+    foaf:accountName "AN01693728648"@en ;
+    foaf:accountServiceHomepage <https://www.sap.com/products/business-network.html> ;
+    schema:name "SAP Business Network profile"@en ;
+    schema:url <https://discovery.ariba.com/profile/AN01693728648> .
+
+<https://github.com/Blackcat-Informatics> a foaf:OnlineAccount,
+        schema:ProfilePage ;
+    foaf:accountName "blackcatinformatics"@en ;
+    foaf:accountServiceHomepage <https://github.com/> ;
+    schema:name "GitHub profile"@en ;
+    schema:url <https://github.com/Blackcat-Informatics> .
+
+<https://github.com/paudley> a foaf:OnlineAccount,
+        schema:ProfilePage ;
+    foaf:accountName "paudley"@en ;
+    foaf:accountServiceHomepage <https://github.com/> ;
+    schema:name "GitHub profile"@en ;
+    schema:url <https://github.com/paudley> .
+
+<https://oddnumberedproductions.ca/#site> a schema:WebSite ;
+    dcterms:rights "All rights reserved"@en ;
+    odrl:hasPolicy <https://oddnumberedproductions.ca/#all-rights-reserved-policy> ;
+    schema:copyrightHolder <https://blackcatinformatics.ca/#onp> ;
+    schema:copyrightNotice "Copyright 2026 Odd Numbered Productions Inc. All rights reserved."@en ;
+    schema:hasPart <https://oddnumberedproductions.ca/#content> ;
+    schema:name "Odd Numbered Productions Inc."@en ;
+    schema:publisher <https://blackcatinformatics.ca/#onp> ;
+    schema:url <https://oddnumberedproductions.ca> ;
+    schema:usageInfo "https://oddnumberedproductions.ca/#all-rights-reserved-policy"@en .
+
+<https://www.crunchbase.com/person/patrick-audley> a foaf:OnlineAccount,
+        schema:ProfilePage ;
+    foaf:accountName "patrick-audley"@en ;
+    foaf:accountServiceHomepage <https://www.crunchbase.com/> ;
+    schema:name "Crunchbase profile"@en ;
+    schema:url <https://www.crunchbase.com/person/patrick-audley> .
+
+<https://www.linkedin.com/company/blackcat-informatics/> a foaf:OnlineAccount,
+        schema:ProfilePage ;
+    foaf:accountName "blackcat-informatics-inc"@en ;
+    foaf:accountServiceHomepage <https://www.linkedin.com/> ;
+    schema:name "LinkedIn profile"@en ;
+    schema:url <https://www.linkedin.com/company/blackcat-informatics/> .
+
+<https://www.linkedin.com/in/erinaudley/> a foaf:OnlineAccount,
+        schema:ProfilePage ;
+    foaf:accountName "erinaudley"@en ;
+    foaf:accountServiceHomepage <https://www.linkedin.com/> ;
+    schema:name "LinkedIn profile"@en ;
+    schema:url <https://www.linkedin.com/in/erinaudley/> .
+
+<https://www.linkedin.com/in/patrickaudley/> a foaf:OnlineAccount,
+        schema:ProfilePage ;
+    foaf:accountName "patrickaudley"@en ;
+    foaf:accountServiceHomepage <https://www.linkedin.com/> ;
+    schema:name "LinkedIn profile"@en ;
+    schema:url <https://www.linkedin.com/in/patrickaudley/> .
+
+<https://blackcatinformatics.ca/#brand-design> a schema:Brand ;
+    odrl:hasPolicy <https://blackcatinformatics.ca/#trademark-use-policy> ;
+    schema:additionalProperty [ a schema:PropertyValue ;
+            schema:propertyID "CIPO-Application"@en ;
+            schema:value "2191681"@en ],
+        [ a schema:PropertyValue ;
+            schema:propertyID "Nice-Class"@en ;
+            schema:value "35,42"@en ],
+        [ a schema:PropertyValue ;
+            schema:propertyID "CIPO-Registration"@en ;
+            schema:url <https://ised-isde.canada.ca/cipo/trademark-search/2191681> ;
+            schema:value "TMA1233860"@en ] ;
+    schema:description "Registered Canadian design mark depicting a black cat silhouette positioned next to a Sierpinski triangle, registered with CIPO as TMA1233860 on 2024-05-17."@en ;
+    schema:image <https://blackcatinformatics.ca/#bii-logo> ;
+    schema:logo <https://blackcatinformatics.ca/#bii-logo> ;
+    schema:name "Black-cat-and-Sierpinski-triangle design mark"@en ;
+    schema:owner <https://blackcatinformatics.ca/#bii> ;
+    schema:usageInfo "https://ised-isde.canada.ca/cipo/trademark-search/2191681"@en .
+
+<https://blackcatinformatics.ca/#concept-ontology-engineering> a skos:Concept ;
+    rdfs:label "Ontology Engineering"@en ;
+    mads:authoritativeLabel "Ontology Engineering"@en ;
+    mads:hasCloseExternalAuthority lcsh:sh2005006014 ;
+    owl:sameAs dbr:Ontology_engineering,
+        wd:Q1414433 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-semantic-web> ;
+    skos:closeMatch acm:10010147.10010178.10010187.10010195,
+        lcsh:sh2005006014,
+        openalex-topic:T10215 ;
+    skos:exactMatch dbr:Ontology_engineering,
+        wd:Q1414433 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Ontology Engineering"@en,
+        "Ingénierie des ontologies"@fr,
+        "本体工程"@zh ;
+    schema:sameAs dbr:Ontology_engineering,
+        wd:Q1414433 .
+
+<https://blackcatinformatics.ca/#emergent-knowledge-graphs> a bf:Work,
+        bibo:AcademicArticle,
+        schema:ScholarlyArticle ;
+    bf:title [ a bf:Title ;
+            rdfs:label "Emergent Knowledge Graphs from High-Order Semantic Spaces"@en ] ;
+    dcterms:conformsTo <http://www.sac.gov.cn/gbt/42131/2022> ;
+    time:hasTime [ a time:Instant ;
+            time:inXSDDateTime "2025-10-01T00:00:00+00:00"^^xsd:dateTime ] ;
+    prov:wasAttributedTo <https://blackcatinformatics.ca/#paudley> ;
+    prov:wasDerivedFrom <https://blackcatinformatics.ca/#proj-nonlinear-semantic-graphs> ;
+    prov:wasGeneratedBy <https://blackcatinformatics.ca/#activity-emergent-kg-research> ;
+    schema:about <https://blackcatinformatics.ca/#method-emergent-kg-workflow> ;
+    schema:author <https://blackcatinformatics.ca/#paudley> ;
+    schema:datePublished "2025-10-01T00:00:00Z"@en ;
+    schema:headline "Emergent Knowledge Graphs from High-Order Semantic Spaces"@en ;
+    schema:image <https://blackcatinformatics.ca/#bii-logo> ;
+    schema:isPartOf [ a schema:CreativeWork ;
+            schema:name "Working paper · Blackcat Informatics Inc. (2025)"@en ] ;
+    schema:mentions <https://blackcatinformatics.ca/#method-labelled-semantic-relation-extraction>,
+        <https://blackcatinformatics.ca/#method-residual-factorization>,
+        <https://blackcatinformatics.ca/#method-semantic-manifold-learning>,
+        <https://blackcatinformatics.ca/#method-spectral-graph-analysis> ;
+    schema:name "Emergent Knowledge Graphs from High-Order Semantic Spaces"@en .
+
+<https://blackcatinformatics.ca/#method-labelled-semantic-relation-extraction> a ontodm:OntoDM_000038,
+        skos:Concept,
+        schema:DefinedTerm ;
+    skos:closeMatch <https://blackcatinformatics.ca/#concept-knowledge-graph>,
+        <https://blackcatinformatics.ca/#concept-ontology-engineering> ;
+    skos:prefLabel "labelled semantic relation extraction"@en ;
+    prov:wasAttributedTo <https://blackcatinformatics.ca/#paudley> ;
+    prov:wasGeneratedBy <https://blackcatinformatics.ca/#activity-emergent-kg-research> ;
+    schema:about <https://blackcatinformatics.ca/#concept-knowledge-graph>,
+        <https://blackcatinformatics.ca/#concept-ontology-engineering> ;
+    schema:additionalType ontodm:OntoDM_000038 ;
+    schema:description "Algorithmic step that extracts labelled semantic relations suitable for automated ontology construction."@en ;
+    schema:isPartOf <https://blackcatinformatics.ca/#method-emergent-kg-workflow> ;
+    schema:name "labelled semantic relation extraction"@en ;
+    schema:position 4 .
+
+<https://blackcatinformatics.ca/#method-residual-factorization> a ontodm:OntoDM_000038,
+        skos:Concept,
+        schema:DefinedTerm ;
+    skos:prefLabel "residual factorization"@en ;
+    prov:wasAttributedTo <https://blackcatinformatics.ca/#paudley> ;
+    prov:wasGeneratedBy <https://blackcatinformatics.ca/#activity-emergent-kg-research> ;
+    schema:additionalType ontodm:OntoDM_000038 ;
+    schema:description "Algorithmic step that factorizes residual structure after baseline similarity and geometry are accounted for."@en ;
+    schema:isPartOf <https://blackcatinformatics.ca/#method-emergent-kg-workflow> ;
+    schema:name "residual factorization"@en ;
+    schema:position 3 .
+
+<https://blackcatinformatics.ca/#method-semantic-manifold-learning> a ontodm:OntoDM_000038,
+        skos:Concept,
+        schema:DefinedTerm ;
+    skos:closeMatch wd:Q1191596,
+        <https://blackcatinformatics.ca/#concept-manifold-learning> ;
+    skos:prefLabel "semantic manifold learning"@en ;
+    prov:wasAttributedTo <https://blackcatinformatics.ca/#paudley> ;
+    prov:wasGeneratedBy <https://blackcatinformatics.ca/#activity-emergent-kg-research> ;
+    schema:about wd:Q1191596,
+        <https://blackcatinformatics.ca/#concept-manifold-learning> ;
+    schema:additionalType ontodm:OntoDM_000038 ;
+    schema:description "Manifold-learning step applied to high-dimensional semantic embeddings."@en ;
+    schema:isPartOf <https://blackcatinformatics.ca/#method-emergent-kg-workflow> ;
+    schema:name "semantic manifold learning"@en ;
+    schema:position 1 .
+
+<https://blackcatinformatics.ca/#method-spectral-graph-analysis> a ontodm:OntoDM_000038,
+        skos:Concept,
+        schema:DefinedTerm ;
+    skos:closeMatch wd:Q1064327,
+        <https://blackcatinformatics.ca/#concept-spectral-graph-theory> ;
+    skos:prefLabel "spectral graph analysis"@en ;
+    prov:wasAttributedTo <https://blackcatinformatics.ca/#paudley> ;
+    prov:wasGeneratedBy <https://blackcatinformatics.ca/#activity-emergent-kg-research> ;
+    schema:about wd:Q1064327,
+        <https://blackcatinformatics.ca/#concept-spectral-graph-theory> ;
+    schema:additionalType ontodm:OntoDM_000038 ;
+    schema:description "Spectral analysis step used to expose graph structure in semantic vector spaces."@en ;
+    schema:isPartOf <https://blackcatinformatics.ca/#method-emergent-kg-workflow> ;
+    schema:name "spectral graph analysis"@en ;
+    schema:position 2 .
+
+<https://blackcatinformatics.ca/#page> a schema:ProfilePage,
+        schema:WebPage ;
+    dcterms:modified "2026-06-04T09:20:22-06:00"@en ;
+    dcterms:rights bii:legal ;
+    odrl:hasPolicy <https://blackcatinformatics.ca/#content-reuse-policy> ;
+    prov:generatedAtTime "2026-06-04T09:20:22-06:00"@en ;
+    prov:wasAttributedTo <https://blackcatinformatics.ca/#paudley> ;
+    prov:wasGeneratedBy <https://blackcatinformatics.ca/#build-process> ;
+    schema:about <https://blackcatinformatics.ca/#kw-scheme> ;
+    schema:accountablePerson <https://blackcatinformatics.ca/#paudley> ;
+    schema:author <https://blackcatinformatics.ca/#paudley> ;
+    schema:breadcrumb [ a schema:BreadcrumbList ;
+            schema:itemListElement [ a schema:ListItem ;
+                    schema:item <https://blackcatinformatics.ca/#services> ;
+                    schema:name "Services"@en ;
+                    schema:position 2 ],
+                [ a schema:ListItem ;
+                    schema:item <https://blackcatinformatics.ca/#contact> ;
+                    schema:name "Contact"@en ;
+                    schema:position 5 ],
+                [ a schema:ListItem ;
+                    schema:item <https://blackcatinformatics.ca/#csr> ;
+                    schema:name "CSR"@en ;
+                    schema:position 3 ],
+                [ a schema:ListItem ;
+                    schema:item <https://blackcatinformatics.ca/#about> ;
+                    schema:name "About"@en ;
+                    schema:position 1 ],
+                [ a schema:ListItem ;
+                    schema:item <https://blackcatinformatics.ca/#principals> ;
+                    schema:name "Principals"@en ;
+                    schema:position 4 ] ] ;
+    schema:copyrightHolder <https://blackcatinformatics.ca/#bii> ;
+    schema:copyrightYear "2026"@en ;
+    schema:creator <https://blackcatinformatics.ca/#paudley> ;
+    schema:dateModified "2026-06-04T09:20:22-06:00"@en ;
+    schema:editor <https://blackcatinformatics.ca/#paudley> ;
+    schema:inLanguage "en"@en ;
+    schema:keywords "chief-technology-officer, cryptography, cto, high-performance-computing, management-consulting, pki, programming, security, solution-architecture, startups, generative-ai, llms, ai-agents, agentic-ai, topological-data-analysis, manifold-learning, spectral-graph-theory, semantic-analysis, knowledge-graphs, ontology-engineering, linked-data, semantic-web, python, cpp"@en ;
+    schema:license "https://creativecommons.org/licenses/by-nc-sa/2.5/ca/"@en ;
+    schema:locationCreated <https://blackcatinformatics.ca/#northpoint-office> ;
+    schema:mainEntity <https://blackcatinformatics.ca/#bii> ;
+    schema:primaryImageOfPage <https://blackcatinformatics.ca/#bii-logo> ;
+    schema:provider <https://blackcatinformatics.ca/#bii> ;
+    schema:publisher <https://blackcatinformatics.ca/#bii> ;
+    schema:reviewedBy <https://blackcatinformatics.ca/#paudley> ;
+    schema:url bii: ;
+    schema:usageInfo "https://blackcatinformatics.ca/#content-reuse-policy"@en ;
+    schema:version "18982a5e311fa960a5d6ca48f41aa4fc98c66b46e5da1cff773ec2fc0f14a877"@en .
+
+<https://blackcatinformatics.ca/#proj-nonlinear-semantic-graphs> a doap:Project,
+        schema:SoftwareSourceCode ;
+    dcterms:conformsTo <http://www.sac.gov.cn/gbt/42131/2022> ;
+    doap:bug-database <https://github.com/paudley/nonlinear-semantic-graphs/issues> ;
+    doap:developer <https://blackcatinformatics.ca/#paudley> ;
+    doap:download-page <https://github.com/paudley/nonlinear-semantic-graphs/releases> ;
+    doap:homepage <https://github.com/paudley/nonlinear-semantic-graphs> ;
+    doap:maintainer <https://blackcatinformatics.ca/#paudley> ;
+    doap:name "nonlinear-semantic-graphs"@en ;
+    doap:programming-language "Python"@en ;
+    doap:repository [ a doap:GitRepository ;
+            doap:browse "https://github.com/paudley/nonlinear-semantic-graphs"@en ] ;
+    doap:shortdesc "Discovering emergent knowledge-graph relations in high-order semantic vector spaces through manifold learning and spectral analysis."@en ;
+    prov:wasAttributedTo <https://blackcatinformatics.ca/#paudley> ;
+    prov:wasGeneratedBy <https://blackcatinformatics.ca/#activity-emergent-kg-research> ;
+    foaf:maker <https://blackcatinformatics.ca/#paudley> ;
+    schema:about <https://blackcatinformatics.ca/#method-emergent-kg-workflow> ;
+    schema:codeRepository "https://github.com/paudley/nonlinear-semantic-graphs"@en ;
+    schema:creator <https://blackcatinformatics.ca/#paudley> ;
+    schema:description "Discovering emergent knowledge-graph relations in high-order semantic vector spaces through manifold learning and spectral analysis."@en ;
+    schema:license "https://opensource.org/licenses/MIT"@en ;
+    schema:maintainer <https://blackcatinformatics.ca/#paudley> ;
+    schema:mentions <https://blackcatinformatics.ca/#method-labelled-semantic-relation-extraction>,
+        <https://blackcatinformatics.ca/#method-residual-factorization>,
+        <https://blackcatinformatics.ca/#method-semantic-manifold-learning>,
+        <https://blackcatinformatics.ca/#method-spectral-graph-analysis> ;
+    schema:name "nonlinear-semantic-graphs"@en ;
+    schema:programmingLanguage "Python"@en ;
+    schema:url <https://github.com/paudley/nonlinear-semantic-graphs> .
+
+<https://blackcatinformatics.ca/#trademark-use-policy> a odrl:Policy,
+        odrl:Set ;
+    dcterms:creator <https://blackcatinformatics.ca/#bii> ;
+    dcterms:issued "2026-06-04T09:20:22-06:00"@en ;
+    odrl:permission [ a odrl:Permission ;
+            odrl:action odrl:use ;
+            odrl:assigner <https://blackcatinformatics.ca/#bii> ;
+            odrl:duty [ a odrl:Duty ;
+                    odrl:action odrl:attribution ],
+                [ a odrl:Duty ;
+                    odrl:action odrl:obtainConsent ;
+                    odrl:assignee <https://blackcatinformatics.ca/#bii> ] ;
+            odrl:target <https://blackcatinformatics.ca/#brand-design>,
+                <https://blackcatinformatics.ca/#brand-oande>,
+                <https://blackcatinformatics.ca/#brand-wordmark> ] ;
+    odrl:profile odrl: ;
+    odrl:prohibition [ a odrl:Prohibition ;
+            odrl:action odrl:commercialize,
+                odrl:derive,
+                odrl:reproduce,
+                odrl:use ;
+            odrl:assigner <https://blackcatinformatics.ca/#bii> ;
+            odrl:target <https://blackcatinformatics.ca/#brand-design>,
+                <https://blackcatinformatics.ca/#brand-oande>,
+                <https://blackcatinformatics.ca/#brand-wordmark> ] ;
+    odrl:uid <https://blackcatinformatics.ca/#trademark-use-policy> ;
+    schema:description "Blackcat Informatics registered word and design marks are reserved. Trademark and logo use requires prior permission and must preserve trademark notices and registration details."@en ;
+    schema:name "Trademark use policy"@en .
+
+<https://orcid.org/0000-0003-4382-7625> a foaf:OnlineAccount,
+        schema:ProfilePage ;
+    foaf:accountName "0000-0003-4382-7625"@en ;
+    foaf:accountServiceHomepage <https://orcid.org/> ;
+    schema:name "ORCID profile"@en ;
+    schema:url <https://orcid.org/0000-0003-4382-7625> .
+
+<https://blackcatinformatics.ca/#concept-knowledge-graph> a skos:Concept ;
+    rdfs:label "Knowledge Graph"@en ;
+    mads:authoritativeLabel "Knowledge Graph"@en ;
+    owl:sameAs dbr:Knowledge_graph,
+        wd:Q33002955 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-semantic-web> ;
+    skos:closeMatch acm:10010147.10010178.10010187,
+        <http://www.sac.gov.cn/gbt/13745/5202070> ;
+    skos:exactMatch dbr:Knowledge_graph,
+        wd:Q33002955 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Knowledge Graph"@en,
+        "Graphe de connaissances"@fr,
+        "知识图谱"@zh ;
+    schema:sameAs dbr:Knowledge_graph,
+        wd:Q33002955 .
+
+<https://blackcatinformatics.ca/#concept-manifold-learning> a skos:Concept ;
+    rdfs:label "Manifold Learning"@en ;
+    mads:authoritativeLabel "Manifold Learning"@en ;
+    owl:sameAs dbr:Nonlinear_dimensionality_reduction,
+        wd:Q1191596 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-machine-learning> ;
+    skos:closeMatch acm:10010147.10010257.10010258.10010260.10010271,
+        swebok:embedding_models ;
+    skos:exactMatch dbr:Nonlinear_dimensionality_reduction,
+        wd:Q1191596 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Manifold Learning"@en,
+        "Apprentissage de variétés"@fr,
+        "流形学习"@zh ;
+    schema:sameAs dbr:Nonlinear_dimensionality_reduction,
+        wd:Q1191596 .
+
+<https://blackcatinformatics.ca/#concept-mathematics> a skos:Concept ;
+    rdfs:label "Mathematics"@en ;
+    mads:authoritativeLabel "Mathematics"@en ;
+    owl:sameAs dbr:Mathematics,
+        wd:Q395 ;
+    skos:closeMatch esco:4339176e-3acd-4f7f-a5d9-445bee3d23f2,
+        acm:10002950,
+        <http://www.sac.gov.cn/gbt/13745/110>,
+        openalex-topic:T12504,
+        swebok:mathematical_foundations,
+        <unesco-thesaurus:118> ;
+    skos:exactMatch dbr:Mathematics,
+        wd:Q395 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Mathematics"@en,
+        "Mathématiques"@fr,
+        "数学"@zh ;
+    schema:sameAs dbr:Mathematics,
+        wd:Q395 .
+
+<https://blackcatinformatics.ca/#concept-spectral-graph-theory> a skos:Concept ;
+    rdfs:label "Spectral Graph Theory"@en ;
+    mads:authoritativeLabel "Spectral Graph Theory"@en ;
+    mads:hasCloseExternalAuthority lcsh:sh85126408 ;
+    owl:sameAs dbr:Spectral_graph_theory,
+        wd:Q1064327 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-mathematics> ;
+    skos:closeMatch acm:10002950.10003624.10003633,
+        acm:10010147.10010257.10010321.10010335,
+        lcsh:sh85126408,
+        <http://www.sac.gov.cn/gbt/13745/11030> ;
+    skos:exactMatch dbr:Spectral_graph_theory,
+        wd:Q1064327 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Spectral Graph Theory"@en,
+        "Théorie spectrale des graphes"@fr,
+        "谱图理论"@zh ;
+    schema:sameAs dbr:Spectral_graph_theory,
+        wd:Q1064327 .
+
+<https://blackcatinformatics.ca/#northpoint-office> a geo:Feature,
+        org:Site,
+        schema:Place ;
+    geo: <https://blackcatinformatics.ca/#northpoint-geo> ;
+    geo:hasGeometry <https://blackcatinformatics.ca/#northpoint-geo> ;
+    org:siteAddress <https://blackcatinformatics.ca/#main-address> ;
+    org:siteOf <https://blackcatinformatics.ca/#bii> ;
+    schema:address <https://blackcatinformatics.ca/#main-address> ;
+    schema:hasMap "https://g.page/bii-bc?share"@en ;
+    schema:image <https://blackcatinformatics.ca/#bii-logo> ;
+    schema:name "Blackcat Informatics® Inc. Headquarters"@en ;
+    schema:publicAccess false .
+
+<https://oddnumberedproductions.ca/#all-rights-reserved-policy> a odrl:Policy,
+        odrl:Set ;
+    dcterms:creator <https://blackcatinformatics.ca/#onp> ;
+    dcterms:issued "2026-06-04T09:20:22-06:00"@en ;
+    dcterms:rights "All rights reserved"@en ;
+    odrl:profile odrl: ;
+    odrl:prohibition [ a odrl:Prohibition ;
+            odrl:action odrl:commercialize,
+                odrl:derive,
+                odrl:distribute,
+                odrl:extract,
+                odrl:reproduce,
+                odrl:use ;
+            odrl:assigner <https://blackcatinformatics.ca/#onp> ;
+            odrl:target <https://oddnumberedproductions.ca/#content>,
+                <https://oddnumberedproductions.ca/#site> ] ;
+    odrl:uid <https://oddnumberedproductions.ca/#all-rights-reserved-policy> ;
+    schema:description "All Odd Numbered Productions site content, works, media, and materials are all rights reserved. No reuse, reproduction, distribution, adaptation, extraction, or commercial use is granted without prior written permission."@en ;
+    schema:name "Odd Numbered Productions all-rights-reserved policy"@en .
+
+<https://blackcatinformatics.ca/#concept-artificial-intelligence> a skos:Concept ;
+    rdfs:label "Artificial Intelligence"@en ;
+    mads:authoritativeLabel "Artificial Intelligence"@en ;
+    mads:hasCloseExternalAuthority lcsh:sh85008180 ;
+    owl:sameAs dbr:Artificial_intelligence,
+        wd:Q11660 ;
+    skos:broader <https://blackcatinformatics.ca/#concept-computer-science> ;
+    skos:closeMatch esco:e465a154-93f7-4973-9ce1-31659fe16dd2,
+        acm:10010147.10010178,
+        eurovoc:3030,
+        lcsh:sh85008180,
+        <http://www.sac.gov.cn/gbt/13745/52020>,
+        swebok:llm_engineering,
+        <unesco-thesaurus:3052> ;
+    skos:exactMatch dbr:Artificial_intelligence,
+        wd:Q11660 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Artificial Intelligence"@en,
+        "Intelligence artificielle"@fr,
+        "人工智能"@zh ;
+    schema:sameAs dbr:Artificial_intelligence,
+        wd:Q11660 .
+
+<https://blackcatinformatics.ca/#concept-management-consulting> a skos:Concept ;
+    rdfs:label "Management Consulting"@en ;
+    mads:authoritativeLabel "Management Consulting"@en ;
+    owl:sameAs dbr:Management_consulting,
+        wd:Q4116214 ;
+    skos:closeMatch eurovoc:2602,
+        swebok:software_engineering_management,
+        <unesco-thesaurus:1183> ;
+    skos:exactMatch dbr:Management_consulting,
+        wd:Q4116214 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Management Consulting"@en,
+        "Conseil en management"@fr,
+        "管理咨询"@zh ;
+    schema:sameAs dbr:Management_consulting,
+        wd:Q4116214 .
+
+<https://blackcatinformatics.ca/#concept-semantic-web> a skos:Concept ;
+    rdfs:label "Semantic Web"@en ;
+    mads:authoritativeLabel "Semantic Web"@en ;
+    mads:hasCloseExternalAuthority lcsh:sh2002000569 ;
+    owl:sameAs dbr:Semantic_Web,
+        wd:Q54837 ;
+    skos:closeMatch esco:fda917eb-0d6a-4371-8c93-2a10bf950966,
+        acm:10002951.10003260.10003309.10003315,
+        eurovoc:7219,
+        lcsh:sh2002000569,
+        openalex-topic:T10215 ;
+    skos:exactMatch dbr:Semantic_Web,
+        wd:Q54837 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Semantic Web"@en,
+        "Web sémantique"@fr,
+        "语义网"@zh ;
+    schema:sameAs dbr:Semantic_Web,
+        wd:Q54837 .
+
+<https://blackcatinformatics.ca/#activity-emergent-kg-research> a prov:Activity,
+        schema:ResearchProject ;
+    prov:endedAtTime "2026-06-04T09:20:22-06:00"@en ;
+    prov:generated <https://blackcatinformatics.ca/#emergent-knowledge-graphs>,
+        <https://blackcatinformatics.ca/#method-emergent-kg-workflow>,
+        <https://blackcatinformatics.ca/#method-labelled-semantic-relation-extraction>,
+        <https://blackcatinformatics.ca/#method-residual-factorization>,
+        <https://blackcatinformatics.ca/#method-semantic-manifold-learning>,
+        <https://blackcatinformatics.ca/#method-spectral-graph-analysis> ;
+    prov:startedAtTime "2025-01-01T00:00:00Z"@en ;
+    prov:used <https://blackcatinformatics.ca/#concept-knowledge-graph>,
+        <https://blackcatinformatics.ca/#concept-manifold-learning>,
+        <https://blackcatinformatics.ca/#concept-spectral-graph-theory>,
+        <https://blackcatinformatics.ca/#concept-topological-data-analysis>,
+        <https://blackcatinformatics.ca/#proj-nonlinear-semantic-graphs> ;
+    prov:wasAssociatedWith <https://blackcatinformatics.ca/#paudley> ;
+    schema:description "Research and implementation activity that produced the emergent knowledge-graph workflow and its method descriptions."@en ;
+    schema:name "Emergent knowledge-graph research activity"@en .
+
+<https://blackcatinformatics.ca/#method-emergent-kg-workflow> a ontodm:OntoDM_817888,
+        schema:CreativeWork ;
+    dcterms:conformsTo ontodm:,
+        <http://www.sac.gov.cn/gbt/42131/2022> ;
+    prov:wasAttributedTo <https://blackcatinformatics.ca/#paudley> ;
+    prov:wasDerivedFrom <https://blackcatinformatics.ca/#emergent-knowledge-graphs> ;
+    prov:wasGeneratedBy <https://blackcatinformatics.ca/#activity-emergent-kg-research> ;
+    schema:creator <https://blackcatinformatics.ca/#paudley> ;
+    schema:description "Data-mining workflow for discovering emergent knowledge-graph relations in high-order semantic vector spaces."@en ;
+    schema:hasPart <https://blackcatinformatics.ca/#method-labelled-semantic-relation-extraction>,
+        <https://blackcatinformatics.ca/#method-residual-factorization>,
+        <https://blackcatinformatics.ca/#method-semantic-manifold-learning>,
+        <https://blackcatinformatics.ca/#method-spectral-graph-analysis> ;
+    schema:isBasedOn <https://blackcatinformatics.ca/#emergent-knowledge-graphs> ;
+    schema:name "Emergent knowledge-graph discovery workflow"@en ;
+    schema:workExample <https://blackcatinformatics.ca/#proj-nonlinear-semantic-graphs> .
+
+<https://blackcatinformatics.ca/#onp> a foaf:Organization,
+        schema:Organization ;
+    dcterms:rights "All rights reserved"@en ;
+    odrl:hasPolicy <https://oddnumberedproductions.ca/#all-rights-reserved-policy> ;
+    foaf:homepage "https://oddnumberedproductions.ca"@en ;
+    schema:address <https://blackcatinformatics.ca/#main-address> ;
+    schema:alternateName "ONP"@en,
+        "奇数制作"@zh ;
+    schema:copyrightNotice "Copyright 2026 Odd Numbered Productions Inc. All rights reserved."@en ;
+    schema:description "Arts subsidiary producing experimental film and cross-disciplinary artwork."@en ;
+    schema:founder <https://blackcatinformatics.ca/#eaudley>,
+        <https://blackcatinformatics.ca/#paudley> ;
+    schema:image <https://blackcatinformatics.ca/#bii-logo> ;
+    schema:legalName "Odd Numbered Productions Inc."@en ;
+    schema:name "Odd Numbered Productions Inc."@en ;
+    schema:owns <https://oddnumberedproductions.ca/#site> ;
+    schema:parentOrganization <https://blackcatinformatics.ca/#bii> ;
+    schema:subjectOf <https://oddnumberedproductions.ca/#all-rights-reserved-policy> ;
+    schema:url <https://oddnumberedproductions.ca> ;
+    schema:usageInfo "https://oddnumberedproductions.ca/#all-rights-reserved-policy"@en .
+
+<https://blackcatinformatics.ca/#eaudley> a foaf:Person,
+        schema:Person ;
+    vcard:fn "Erin Audley"@en ;
+    vcard:hasAddress <https://blackcatinformatics.ca/#main-address> ;
+    vcard:hasEmail <mailto:erin@blackcatinformatics.ca> ;
+    vcard:role "Principal"@en ;
+    foaf:account <https://www.linkedin.com/in/erinaudley/> ;
+    foaf:knows <https://blackcatinformatics.ca/#paudley> ;
+    foaf:mbox <mailto:erin@blackcatinformatics.ca> ;
+    foaf:name "Erin Audley"@en ;
+    schema:address <https://blackcatinformatics.ca/#main-address> ;
+    schema:alternateName "埃琳·奥德利"@zh,
+        "欧雅琳"@zh ;
+    schema:contactPoint <https://blackcatinformatics.ca/#main-address> ;
+    schema:email "mailto:erin@blackcatinformatics.ca"@en ;
+    schema:familyName "Audley"@en ;
+    schema:gender "Female"@en ;
+    schema:givenName "Erin"@en ;
+    schema:jobTitle "Principal"@en,
+        "Directrice"@fr,
+        "加拿大认证专业财务师"@zh ;
+    schema:knows <https://blackcatinformatics.ca/#paudley> ;
+    schema:knowsLanguage "en"@en ;
+    schema:name "Erin Audley"@en ;
+    schema:nationality "Canada"@en ;
+    schema:sameAs <https://www.linkedin.com/in/erinaudley/> ;
+    schema:spouse <https://blackcatinformatics.ca/#paudley> ;
+    schema:workLocation <https://blackcatinformatics.ca/#northpoint-office> ;
+    schema:worksFor <https://blackcatinformatics.ca/#bii> .
+
+<https://blackcatinformatics.ca/#concept-computer-science> a skos:Concept ;
+    rdfs:label "Computer Science"@en ;
+    mads:authoritativeLabel "Computer Science"@en ;
+    mads:hasCloseExternalAuthority lcsh:sh89003285 ;
+    owl:sameAs dbr:Computer_science,
+        wd:Q21198 ;
+    skos:closeMatch esco:7b5cce4d-c7fe-4119-b48f-70aa05391787,
+        acm:10010147,
+        eurovoc:5188,
+        lcsh:sh89003285,
+        <http://www.sac.gov.cn/gbt/13745/520>,
+        openalex-topic:T13674,
+        swebok:computing_foundations,
+        <unesco-thesaurus:450> ;
+    skos:exactMatch dbr:Computer_science,
+        wd:Q21198 ;
+    skos:inScheme <https://blackcatinformatics.ca/#kw-scheme> ;
+    skos:prefLabel "Computer Science"@en,
+        "Informatique"@fr,
+        "计算机科学"@zh ;
+    schema:sameAs dbr:Computer_science,
+        wd:Q21198 .
+
+<https://blackcatinformatics.ca/#service-area> a schema:Country ;
+    owl:sameAs dbr:Canada,
+        tgn:7005685,
+        <https://sws.geonames.org/6251999/>,
+        "wd:Q16"@en ;
+    schema:name "Canada"@en .
+
+<https://blackcatinformatics.ca/#bii-logo> a schema:ImageObject ;
+    schema:about <https://blackcatinformatics.ca/#brand-design> ;
+    schema:acquireLicensePage "https://blackcatinformatics.ca/legal"@en ;
+    schema:additionalProperty [ a schema:PropertyValue ;
+            schema:name "Trademark kind"@en ;
+            schema:propertyID "Trademark-Kind"@en ;
+            schema:value "design"@en ],
+        [ a schema:PropertyValue ;
+            schema:name "CIPO application"@en ;
+            schema:propertyID "CIPO-Application"@en ;
+            schema:url <https://ised-isde.canada.ca/cipo/trademark-search/2191681> ;
+            schema:value "2191681"@en ],
+        [ a schema:PropertyValue ;
+            schema:name "Nice classes"@en ;
+            schema:propertyID "Nice-Class"@en ;
+            schema:value "35,42"@en ] ;
+    schema:contentUrl "https://blackcatinformatics.ca/images/bii-logo_2022a_base_1024.avif"@en ;
+    schema:copyrightHolder <https://blackcatinformatics.ca/#bii> ;
+    schema:copyrightNotice "© Blackcat Informatics® Inc. All rights reserved. Registered trademark CIPO TMA1233860."@en ;
+    schema:copyrightYear "2022"@en ;
+    schema:creator <https://blackcatinformatics.ca/#bii> ;
+    schema:creditText "Blackcat Informatics® Inc."@en ;
+    schema:encoding [ a schema:MediaObject ;
+            schema:acquireLicensePage "https://blackcatinformatics.ca/legal"@en ;
+            schema:contentUrl "https://blackcatinformatics.ca/images/bii-logo_2022a_base_1024.jxl"@en ;
+            schema:copyrightNotice "© Blackcat Informatics® Inc. All rights reserved. Registered trademark CIPO TMA1233860."@en ;
+            schema:creditText "Blackcat Informatics® Inc."@en ;
+            schema:encodingFormat "image/jxl"@en ;
+            schema:height 1024 ;
+            schema:license "https://blackcatinformatics.ca/legal"@en ;
+            schema:width 1024 ],
+        [ a schema:MediaObject ;
+            schema:acquireLicensePage "https://blackcatinformatics.ca/legal"@en ;
+            schema:contentUrl "https://blackcatinformatics.ca/images/bii-logo_2022a_base_1024.avif"@en ;
+            schema:copyrightNotice "© Blackcat Informatics® Inc. All rights reserved. Registered trademark CIPO TMA1233860."@en ;
+            schema:creditText "Blackcat Informatics® Inc."@en ;
+            schema:encodingFormat "image/avif"@en ;
+            schema:height 1024 ;
+            schema:license "https://blackcatinformatics.ca/legal"@en ;
+            schema:width 1024 ],
+        [ a schema:MediaObject ;
+            schema:acquireLicensePage "https://blackcatinformatics.ca/legal"@en ;
+            schema:contentUrl "https://blackcatinformatics.ca/images/bii-logo_2022a_base_1024.png"@en ;
+            schema:copyrightNotice "© Blackcat Informatics® Inc. All rights reserved. Registered trademark CIPO TMA1233860."@en ;
+            schema:creditText "Blackcat Informatics® Inc."@en ;
+            schema:encodingFormat "image/png"@en ;
+            schema:height 1024 ;
+            schema:license "https://blackcatinformatics.ca/legal"@en ;
+            schema:width 1024 ],
+        [ a schema:MediaObject ;
+            schema:acquireLicensePage "https://blackcatinformatics.ca/legal"@en ;
+            schema:contentUrl "https://blackcatinformatics.ca/images/bii-logo_2022a_base_1024.webp"@en ;
+            schema:copyrightNotice "© Blackcat Informatics® Inc. All rights reserved. Registered trademark CIPO TMA1233860."@en ;
+            schema:creditText "Blackcat Informatics® Inc."@en ;
+            schema:encodingFormat "image/webp"@en ;
+            schema:height 1024 ;
+            schema:license "https://blackcatinformatics.ca/legal"@en ;
+            schema:width 1024 ],
+        [ a schema:MediaObject ;
+            schema:acquireLicensePage "https://blackcatinformatics.ca/legal"@en ;
+            schema:contentUrl "https://blackcatinformatics.ca/images/bii-logo_2022a.svg"@en ;
+            schema:copyrightNotice "© Blackcat Informatics® Inc. All rights reserved. Registered trademark CIPO TMA1233860."@en ;
+            schema:creditText "Blackcat Informatics® Inc."@en ;
+            schema:description "Vector master"@en ;
+            schema:encodingFormat "image/svg+xml"@en ;
+            schema:license "https://blackcatinformatics.ca/legal"@en ] ;
+    schema:encodingFormat "image/avif"@en ;
+    schema:height 1024 ;
+    schema:identifier [ a schema:PropertyValue ;
+            schema:name "CIPO trademark registration (Black-cat-and-Sierpinski-triangle design mark)"@en ;
+            schema:propertyID "CIPO-Trademark-Design"@en ;
+            schema:url <https://ised-isde.canada.ca/cipo/trademark-search/2191681> ;
+            schema:validFrom "2024-05-17"@en ;
+            schema:validThrough "2034-05-17"@en ;
+            schema:value "TMA1233860"@en ] ;
+    schema:license "https://blackcatinformatics.ca/legal"@en ;
+    schema:name "Blackcat Informatics® Inc. logo"@en ;
+    schema:thumbnailUrl "https://blackcatinformatics.ca/images/bii-logo_2022a_base_256.avif"@en ;
+    schema:url <https://blackcatinformatics.ca/images/bii-logo_2022a_base_1024.png> ;
+    schema:width 1024 .
+
+<https://blackcatinformatics.ca/#main-address> a vcard:Address,
+        schema:PostalAddress ;
+    vcard:country-name "Canada"@en ;
+    vcard:locality "Spruce Grove"@en ;
+    vcard:postal-code "T7X 1R6"@en ;
+    vcard:region "AB"@en ;
+    vcard:street-address "112 Westbourne Rd."@en ;
+    schema:addressCountry "CA"@en ;
+    schema:addressLocality "Spruce Grove"@en ;
+    schema:addressRegion "AB"@en ;
+    schema:areaServed <https://blackcatinformatics.ca/#service-area> ;
+    schema:availableLanguage "en"@en ;
+    schema:containedInPlace tgn:1013303,
+        <https://sws.geonames.org/6154383/> ;
+    schema:email "mailto:work.with.us@blackcatinformatics.ca"@en ;
+    schema:hoursAvailable <https://blackcatinformatics.ca/#service-hours> ;
+    schema:name "Blackcat Informatics® Inc. Office"@en ;
+    schema:postalCode "T7X 1R6"@en ;
+    schema:streetAddress "112 Westbourne Rd."@en ;
+    schema:telephone "+1-604-245-2120"@en .
+
+<https://blackcatinformatics.ca/#kw-scheme> a skos:ConceptScheme ;
+    dcterms:title "Blackcat Informatics knowledge areas"@en ;
+    skos:hasTopConcept <https://blackcatinformatics.ca/#concept-computer-science>,
+        <https://blackcatinformatics.ca/#concept-cpp>,
+        <https://blackcatinformatics.ca/#concept-geomatics>,
+        <https://blackcatinformatics.ca/#concept-go-programming-language>,
+        <https://blackcatinformatics.ca/#concept-management-consulting>,
+        <https://blackcatinformatics.ca/#concept-mathematics>,
+        <https://blackcatinformatics.ca/#concept-postgresql>,
+        <https://blackcatinformatics.ca/#concept-python>,
+        <https://blackcatinformatics.ca/#concept-satellite-imagery>,
+        <https://blackcatinformatics.ca/#concept-semantic-web> ;
+    skos:prefLabel "Blackcat Informatics knowledge areas"@en .
+
+<https://blackcatinformatics.ca/#bii> a org:FormalOrganization,
+        foaf:Organization,
+        schema:Organization,
+        schema:ProfessionalService ;
+    dcterms:description "Blackcat Informatics® Inc. provides high end IT and management consulting services to the Alberta startup and high-tech community. We have well over 30 years of solid startup experience in executive management as well as domain expertise covering high performance and cloud computing, military-grade security, carrier-grade networking, bioinformatics, machine learning, satellite imaging, geomatics, cryptology and a variety of other boutique fields."@en ;
+    geo: <https://blackcatinformatics.ca/#northpoint-geo> ;
+    time:hasBeginning <https://blackcatinformatics.ca/#bii-founding-time> ;
+    vcard:fn "Blackcat Informatics® Inc."@en ;
+    vcard:hasAddress <https://blackcatinformatics.ca/#main-address> ;
+    vcard:hasEmail <mailto:corp@blackcatinformatics.ca>,
+        <mailto:privacy@blackcatinformatics.ca>,
+        <mailto:secure@blackcatinformatics.ca>,
+        <mailto:work.with.us@blackcatinformatics.ca> ;
+    vcard:hasTelephone <tel:+16042452120> ;
+    vcard:hasURL bii: ;
+    vcard:organization-name "Blackcat Informatics® Inc."@en ;
+    foaf:account <https://discovery.ariba.com/profile/AN01693728648>,
+        <https://github.com/Blackcat-Informatics>,
+        <https://www.linkedin.com/company/blackcat-informatics/> ;
+    foaf:homepage "https://blackcatinformatics.ca/"@en ;
+    foaf:member <https://blackcatinformatics.ca/#eaudley>,
+        <https://blackcatinformatics.ca/#paudley> ;
+    foaf:name "Blackcat Informatics® Inc."@en ;
+    bcid:activityPubActor <https://social.blackcatinformatics.ca/users/root> ;
+    bcid:nip05 "root@blackcatinformatics.ca"@en ;
+    bcid:nostrPubkey "61c9c37a632bbba2e5dad12cdac10fd916ca4153f71c703c984b7508a0d831ed"@en ;
+    bcid:nostrRelay <wss://relay.blackcatinformatics.ca> ;
+    schema:additionalProperty [ a schema:PropertyValue ;
+            schema:description "信息技术咨询服务 (Information Technology Consulting Services)"@en ;
+            schema:name "GB/T 4754-2017 国民经济行业分类"@en ;
+            schema:propertyID "GBT-4754-2017"@en ;
+            schema:url <http://www.sac.gov.cn/gbt/4754/6560> ;
+            schema:value "6560"@en ],
+        [ a schema:PropertyValue ;
+            schema:description "信息系统集成服务 (Information Systems Integration Services)"@en ;
+            schema:name "GB/T 4754-2017 国民经济行业分类"@en ;
+            schema:propertyID "GBT-4754-2017"@en ;
+            schema:url <http://www.sac.gov.cn/gbt/4754/6531> ;
+            schema:value "6531"@en ],
+        [ a schema:PropertyValue ;
+            schema:description "应用软件开发 (Application Software Development)"@en ;
+            schema:name "GB/T 4754-2017 国民经济行业分类"@en ;
+            schema:propertyID "GBT-4754-2017"@en ;
+            schema:url <http://www.sac.gov.cn/gbt/4754/6513> ;
+            schema:value "6513"@en ],
+        [ a schema:PropertyValue ;
+            schema:description "社会经济咨询 (Socio-Economic Consulting)"@en ;
+            schema:name "GB/T 4754-2017 国民经济行业分类"@en ;
+            schema:propertyID "GBT-4754-2017"@en ;
+            schema:url <http://www.sac.gov.cn/gbt/4754/7243> ;
+            schema:value "7243"@en ] ;
+    schema:additionalType "wd:Q4116214"@en ;
+    schema:address <https://blackcatinformatics.ca/#main-address> ;
+    schema:alternateName "BII"@en,
+        "Blackcat Informatics"@en,
+        "Blackcat Informatics® Inc."@en,
+        "Chatnoir Informatiques Inc."@fr,
+        "黑猫信息科技"@zh ;
+    schema:areaServed <https://blackcatinformatics.ca/#service-area> ;
+    schema:brand <https://blackcatinformatics.ca/#brand-design>,
+        <https://blackcatinformatics.ca/#brand-wordmark> ;
+    schema:contactPoint <https://blackcatinformatics.ca/#contact-privacy>,
+        <https://blackcatinformatics.ca/#contact-sales>,
+        <https://blackcatinformatics.ca/#contact-secure> ;
+    schema:currenciesAccepted "CAD, USD, EUR"@en ;
+    schema:description "Blackcat Informatics® Inc. provides high end IT and management consulting services to the Alberta startup and high-tech community. We have well over 30 years of solid startup experience in executive management as well as domain expertise covering high performance and cloud computing, military-grade security, carrier-grade networking, bioinformatics, machine learning, satellite imaging, geomatics, cryptology and a variety of other boutique fields."@en ;
+    schema:email "mailto:work.with.us@blackcatinformatics.ca"@en ;
+    schema:employee <https://blackcatinformatics.ca/#eaudley>,
+        <https://blackcatinformatics.ca/#paudley> ;
+    schema:founder <https://blackcatinformatics.ca/#eaudley>,
+        <https://blackcatinformatics.ca/#paudley> ;
+    schema:foundingDate "1996-04-04"@en ;
+    schema:foundingLocation <https://blackcatinformatics.ca/#northpoint-office> ;
+    schema:hasMap "https://g.page/bii-bc?share"@en ;
+    schema:hasOfferCatalog <https://blackcatinformatics.ca/#services-offered> ;
+    schema:identifier [ a schema:PropertyValue ;
+            schema:name "Procurement Business Number (buyandsell.gc.ca)"@en ;
+            schema:propertyID "PBN"@en ;
+            schema:value "791838725PG0001"@en ],
+        [ a schema:PropertyValue ;
+            schema:name "CIPO trademark registration (ODDS & EVENS)"@en ;
+            schema:propertyID "CIPO-Trademark-Wordmark"@en ;
+            schema:url <https://ised-isde.canada.ca/cipo/trademark-search/1833757> ;
+            schema:validFrom "2018-10-03"@en ;
+            schema:validThrough "2033-10-03"@en ;
+            schema:value "TMA1006093"@en ],
+        [ a schema:PropertyValue ;
+            schema:name "SAP Ariba Network ID"@en ;
+            schema:propertyID "ANID"@en ;
+            schema:value "AN01693728648"@en ],
+        [ a schema:PropertyValue ;
+            schema:name "Government of Canada Personnel Security Screening"@en ;
+            schema:propertyID "GC-Security-Clearance"@en ;
+            schema:value "Reliability"@en ],
+        [ a schema:PropertyValue ;
+            schema:name "CIPO trademark registration (BLACKCAT INFORMATICS)"@en ;
+            schema:propertyID "CIPO-Trademark-Wordmark"@en ;
+            schema:url <https://ised-isde.canada.ca/cipo/trademark-search/1833758> ;
+            schema:validFrom "2019-12-19"@en ;
+            schema:validThrough "2029-12-19"@en ;
+            schema:value "TMA1066935"@en ],
+        [ a schema:PropertyValue ;
+            schema:name "D-U-N-S Number"@en ;
+            schema:propertyID "DUNS"@en ;
+            schema:value "24-197-3784"@en ],
+        [ a schema:PropertyValue ;
+            schema:name "CIPO trademark registration (Black-cat-and-Sierpinski-triangle design mark)"@en ;
+            schema:propertyID "CIPO-Trademark-Design"@en ;
+            schema:url <https://ised-isde.canada.ca/cipo/trademark-search/2191681> ;
+            schema:validFrom "2024-05-17"@en ;
+            schema:validThrough "2034-05-17"@en ;
+            schema:value "TMA1233860"@en ],
+        [ a schema:PropertyValue ;
+            schema:name "Canada Revenue Agency Business Number"@en ;
+            schema:propertyID "CRA-Business-Number"@en ;
+            schema:value "791838725"@en ] ;
+    schema:image <https://blackcatinformatics.ca/#bii-logo> ;
+    schema:isicV4 "7022"@en ;
+    schema:knowsAbout <https://blackcatinformatics.ca/#concept-ai-agents>,
+        <https://blackcatinformatics.ca/#concept-artificial-intelligence>,
+        <https://blackcatinformatics.ca/#concept-bioinformatics>,
+        <https://blackcatinformatics.ca/#concept-cloud-computing>,
+        <https://blackcatinformatics.ca/#concept-computer-science>,
+        <https://blackcatinformatics.ca/#concept-cpp>,
+        <https://blackcatinformatics.ca/#concept-cryptography>,
+        <https://blackcatinformatics.ca/#concept-fractional-cto>,
+        <https://blackcatinformatics.ca/#concept-generative-ai>,
+        <https://blackcatinformatics.ca/#concept-geomatics>,
+        <https://blackcatinformatics.ca/#concept-go-programming-language>,
+        <https://blackcatinformatics.ca/#concept-high-performance-computing>,
+        <https://blackcatinformatics.ca/#concept-knowledge-graph>,
+        <https://blackcatinformatics.ca/#concept-large-language-models>,
+        <https://blackcatinformatics.ca/#concept-linked-data>,
+        <https://blackcatinformatics.ca/#concept-machine-learning>,
+        <https://blackcatinformatics.ca/#concept-management-consulting>,
+        <https://blackcatinformatics.ca/#concept-manifold-learning>,
+        <https://blackcatinformatics.ca/#concept-mathematics>,
+        <https://blackcatinformatics.ca/#concept-ontology-engineering>,
+        <https://blackcatinformatics.ca/#concept-postgresql>,
+        <https://blackcatinformatics.ca/#concept-public-key-infrastructure>,
+        <https://blackcatinformatics.ca/#concept-python>,
+        <https://blackcatinformatics.ca/#concept-satellite-imagery>,
+        <https://blackcatinformatics.ca/#concept-security>,
+        <https://blackcatinformatics.ca/#concept-semantic-analysis>,
+        <https://blackcatinformatics.ca/#concept-semantic-web>,
+        <https://blackcatinformatics.ca/#concept-solution-architecture>,
+        <https://blackcatinformatics.ca/#concept-spectral-graph-theory>,
+        <https://blackcatinformatics.ca/#concept-startup-execution>,
+        <https://blackcatinformatics.ca/#concept-topological-data-analysis> ;
+    schema:legalName "Blackcat Informatics® Inc."@en ;
+    schema:location <https://blackcatinformatics.ca/#northpoint-office> ;
+    schema:logo <https://blackcatinformatics.ca/#bii-logo> ;
+    schema:mainEntityOfPage "https://blackcatinformatics.ca/"@en ;
+    schema:makesOffer <https://blackcatinformatics.ca/#offer-cloud-navigation>,
+        <https://blackcatinformatics.ca/#offer-corporate-engineering>,
+        <https://blackcatinformatics.ca/#offer-development-alignment>,
+        <https://blackcatinformatics.ca/#offer-fractional-cto>,
+        <https://blackcatinformatics.ca/#offer-programming>,
+        <https://blackcatinformatics.ca/#offer-solution-architecture>,
+        <https://blackcatinformatics.ca/#offer-startup-process-and-execution> ;
+    schema:memberOf <https://blackcatinformatics.ca/#erin> ;
+    schema:naics "541611"@en ;
+    schema:name "Blackcat Informatics® Inc."@en ;
+    schema:openingHoursSpecification <https://blackcatinformatics.ca/#service-hours> ;
+    schema:paymentAccepted "Cash, Credit Card, ACH, Cheque, Interac, SWIFT, CHAPS"@en ;
+    schema:potentialAction [ a schema:ReadAction ;
+            schema:name "Read JSON-LD structured data graph"@en ;
+            schema:target [ a schema:EntryPoint ;
+                    schema:encodingType "application/ld+json"@en ;
+                    schema:urlTemplate "https://blackcatinformatics.ca/index.jsonld"@en ] ],
+        [ a schema:CommunicateAction ;
+            schema:name "Email general inquiries"@en ;
+            schema:target "mailto:work.with.us@blackcatinformatics.ca"@en ],
+        [ a schema:CommunicateAction ;
+            schema:name "Call by telephone"@en ;
+            schema:target "tel:+16042452120"@en ],
+        [ a schema:ReadAction ;
+            schema:name "Read LLMs.txt for agent ingestion"@en ;
+            schema:target [ a schema:EntryPoint ;
+                    schema:encodingType "text/plain"@en ;
+                    schema:urlTemplate "https://blackcatinformatics.ca/llms.txt"@en ] ] ;
+    schema:priceRange "$$$"@en ;
+    schema:publicAccess false ;
+    schema:sameAs bii:,
+        <https://discovery.ariba.com/profile/AN01693728648>,
+        <https://github.com/Blackcat-Informatics>,
+        <https://social.blackcatinformatics.ca/users/root>,
+        <https://www.linkedin.com/company/blackcat-informatics/>,
+        <mailto:secure@blackcatinformatics.ca>,
+        <mailto:work.with.us@blackcatinformatics.ca> ;
+    schema:slogan "Bringing elegance to complexity since 1996."@en ;
+    schema:subOrganization <https://blackcatinformatics.ca/#oande>,
+        <https://blackcatinformatics.ca/#onp> ;
+    schema:taxID "791838725"@en ;
+    schema:telephone "+1-604-245-2120"@en ;
+    schema:url bii: .
+
+<https://blackcatinformatics.ca/#paudley> a foaf:Person,
+        schema:Person ;
+    vcard:fn "Patrick Colm Audley"@en ;
+    vcard:hasAddress <https://blackcatinformatics.ca/#main-address> ;
+    vcard:hasEmail <mailto:paudley@blackcatinformatics.ca> ;
+    vcard:hasTelephone <tel:+16042452120> ;
+    vcard:nickname "paudley"@en,
+        "首席顾问"@en ;
+    vcard:role "Principal"@en ;
+    foaf:account <https://github.com/paudley>,
+        <https://orcid.org/0000-0003-4382-7625>,
+        <https://www.crunchbase.com/person/patrick-audley>,
+        <https://www.linkedin.com/in/patrickaudley/> ;
+    foaf:familyName "Audley"@en ;
+    foaf:givenName "Patrick"@en ;
+    foaf:knows <https://blackcatinformatics.ca/#eaudley> ;
+    foaf:made <https://blackcatinformatics.ca/#proj-ai-notes>,
+        <https://blackcatinformatics.ca/#proj-coding-ethos>,
+        <https://blackcatinformatics.ca/#proj-git-ai-reporter>,
+        <https://blackcatinformatics.ca/#proj-lru-cache>,
+        <https://blackcatinformatics.ca/#proj-nonlinear-semantic-graphs>,
+        <https://blackcatinformatics.ca/#proj-pyqa-lint> ;
+    foaf:mbox <mailto:paudley@blackcatinformatics.ca> ;
+    foaf:name "Patrick Colm Audley"@en ;
+    foaf:nick "paudley"@en,
+        "首席顾问"@en ;
+    schema:address <https://blackcatinformatics.ca/#main-address> ;
+    schema:alternateName "paudley"@en,
+        "首席顾问"@en,
+        "帕特里克·奥德利"@zh,
+        "欧德理"@zh ;
+    schema:callsign "VE6XBC"@en ;
+    schema:contactPoint <https://blackcatinformatics.ca/#main-address> ;
+    schema:description "Founder · Full-Spectrum Technologist · Polymath"@en,
+        "Fondateur · Technologue polyvalent · Polymathe"@fr,
+        "创始人 · 全栈技术专家 · 博学家"@zh ;
+    schema:email "mailto:paudley@blackcatinformatics.ca"@en ;
+    schema:familyName "Audley"@en ;
+    schema:gender "Male"@en ;
+    schema:givenName "Patrick"@en ;
+    schema:identifier [ a schema:PropertyValue ;
+            schema:propertyID "Wikidata"@en ;
+            schema:url <https://www.wikidata.org/entity/Q139770478> ;
+            schema:value "Q139770478"@en ],
+        [ a schema:PropertyValue ;
+            schema:propertyID "ORCID"@en ;
+            schema:url <https://orcid.org/0000-0003-4382-7625> ;
+            schema:value "0000-0003-4382-7625"@en ] ;
+    schema:jobTitle "Principal"@en,
+        "Directeur"@fr,
+        "首席顾问"@zh ;
+    schema:knows <https://blackcatinformatics.ca/#eaudley> ;
+    schema:knowsAbout <https://blackcatinformatics.ca/#concept-ai-agents>,
+        <https://blackcatinformatics.ca/#concept-artificial-intelligence>,
+        <https://blackcatinformatics.ca/#concept-bioinformatics>,
+        <https://blackcatinformatics.ca/#concept-cloud-computing>,
+        <https://blackcatinformatics.ca/#concept-computer-science>,
+        <https://blackcatinformatics.ca/#concept-cpp>,
+        <https://blackcatinformatics.ca/#concept-cryptography>,
+        <https://blackcatinformatics.ca/#concept-fractional-cto>,
+        <https://blackcatinformatics.ca/#concept-generative-ai>,
+        <https://blackcatinformatics.ca/#concept-geomatics>,
+        <https://blackcatinformatics.ca/#concept-go-programming-language>,
+        <https://blackcatinformatics.ca/#concept-high-performance-computing>,
+        <https://blackcatinformatics.ca/#concept-knowledge-graph>,
+        <https://blackcatinformatics.ca/#concept-large-language-models>,
+        <https://blackcatinformatics.ca/#concept-linked-data>,
+        <https://blackcatinformatics.ca/#concept-machine-learning>,
+        <https://blackcatinformatics.ca/#concept-management-consulting>,
+        <https://blackcatinformatics.ca/#concept-manifold-learning>,
+        <https://blackcatinformatics.ca/#concept-mathematics>,
+        <https://blackcatinformatics.ca/#concept-ontology-engineering>,
+        <https://blackcatinformatics.ca/#concept-postgresql>,
+        <https://blackcatinformatics.ca/#concept-public-key-infrastructure>,
+        <https://blackcatinformatics.ca/#concept-python>,
+        <https://blackcatinformatics.ca/#concept-satellite-imagery>,
+        <https://blackcatinformatics.ca/#concept-security>,
+        <https://blackcatinformatics.ca/#concept-semantic-analysis>,
+        <https://blackcatinformatics.ca/#concept-semantic-web>,
+        <https://blackcatinformatics.ca/#concept-solution-architecture>,
+        <https://blackcatinformatics.ca/#concept-spectral-graph-theory>,
+        <https://blackcatinformatics.ca/#concept-startup-execution>,
+        <https://blackcatinformatics.ca/#concept-topological-data-analysis> ;
+    schema:knowsLanguage <https://blackcatinformatics.ca/#lang-en>,
+        <https://blackcatinformatics.ca/#lang-fr> ;
+    schema:name "Patrick Colm Audley"@en ;
+    schema:nationality "Canada"@en ;
+    schema:owns <https://blackcatinformatics.ca/#patent-gaas>,
+        <https://blackcatinformatics.ca/#patent-user-polling> ;
+    schema:sameAs <did:web:patrickaudley.com>,
+        wd:Q139770478,
+        <https://github.com/paudley>,
+        <https://orcid.org/0000-0003-4382-7625>,
+        <https://patrickaudley.com>,
+        <https://patrickaudley.com/#paudley>,
+        <https://www.crunchbase.com/person/patrick-audley>,
+        <https://www.linkedin.com/in/patrickaudley/>,
+        <mailto:paudley@blackcatinformatics.ca> ;
+    schema:spouse <https://blackcatinformatics.ca/#eaudley> ;
+    schema:subjectOf <https://blackcatinformatics.ca/#chi2007-usability-security>,
+        <https://blackcatinformatics.ca/#emergent-knowledge-graphs>,
+        <https://blackcatinformatics.ca/#oxbench> ;
+    schema:telephone "+1-604-678-4416"@en ;
+    schema:workLocation <https://blackcatinformatics.ca/#northpoint-office> ;
+    schema:worksFor <https://blackcatinformatics.ca/#bii> .
+
