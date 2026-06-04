@@ -1,4 +1,4 @@
-<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcat.ca> -->
+<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # GMEOW Contributor Code of Conduct
@@ -35,7 +35,7 @@ Project maintainers may take any action they deem appropriate, including warning
 
 If you experience or witness behavior that violates this Code of Conduct:
 
-- email <conduct@blackcat.ca>
+- email <conduct@blackcatinformatics.ca>
 - include links, context, and any relevant screenshots or logs
 - avoid public escalation while a report is being reviewed
 

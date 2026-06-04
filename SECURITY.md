@@ -1,4 +1,4 @@
-<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcat.ca> -->
+<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # GMEOW Security Policy
@@ -18,7 +18,7 @@ Do not open a public GitHub issue for a security vulnerability.
 
 Instead:
 
-- email <security@blackcat.ca>
+- email <security@blackcatinformatics.ca>
 - include `SECURITY` in the subject line
 - describe the issue, impact, and affected versions
 - provide reproduction steps, proof of concept, or patches when possible
@@ -65,7 +65,7 @@ the last 12 months.
 
 ## Contact
 
-- Email: <security@blackcat.ca>
+- Email: <security@blackcatinformatics.ca>
 - PGP key for encrypted reports:
 
 ```text
