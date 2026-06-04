@@ -97,3 +97,30 @@ gmeow:hasAgreement
     rdfs:label "has agreement"@en ;
     skos:definition "Relates an agent to an agreement it is party to."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Address tenure: an email address (or other contact point) is held by an agent
+# over a time interval — people acquire and relinquish addresses. Reified as a
+# time-scoped relation (see the temporal module).
+
+gmeow:AddressTenure
+    a owl:Class ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    rdfs:label "Address Tenure"@en ;
+    skos:definition "The reified, time-scoped fact that an agent held a contact point (e.g. an email address) over a particular interval."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:tenuredContactPoint
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:AddressTenure ;
+    rdfs:range gmeow:ContactPoint ;
+    rdfs:label "tenured contact point"@en ;
+    skos:definition "The contact point an address-tenure concerns."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:addressHolder
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:AddressTenure ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "address holder"@en ;
+    skos:definition "The agent who held the contact point over the tenure's interval."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

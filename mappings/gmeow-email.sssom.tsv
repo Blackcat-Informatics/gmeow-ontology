@@ -1,0 +1,30 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/email
+# license: https://creativecommons.org/licenses/by/4.0/
+# comment: Email alignments. EmailMessage is equivalent to schema:EmailMessage; the rest use skos:closeMatch (cross-type/loose) to schema.org, the Nepomuk Message Ontology (NMO), and SIOC. Trust terms (RelayHop/AuthenticationResult/signatures) are canonical — no maintained external RDF vocabulary exists for them.
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:EmailMessage	owl:equivalentClass	schema:EmailMessage	semapv:ManualMappingCuration	1.0	
+gmeow:EmailMessage	skos:closeMatch	nmo:Email	semapv:ManualMappingCuration	0.95	
+gmeow:EmailMessage	skos:closeMatch	sioc:Post	semapv:ManualMappingCuration	0.7	
+gmeow:Message	skos:closeMatch	schema:Message	semapv:ManualMappingCuration	0.9	
+gmeow:Message	skos:closeMatch	nmo:Message	semapv:ManualMappingCuration	0.9	
+gmeow:Thread	skos:closeMatch	sioc:Thread	semapv:ManualMappingCuration	0.8	
+gmeow:Mailbox	skos:closeMatch	nmo:Mailbox	semapv:ManualMappingCuration	0.85	
+gmeow:from	skos:closeMatch	schema:sender	semapv:ManualMappingCuration	0.9	
+gmeow:from	skos:closeMatch	nmo:from	semapv:ManualMappingCuration	0.9	
+gmeow:to	skos:closeMatch	schema:toRecipient	semapv:ManualMappingCuration	0.95	
+gmeow:to	skos:closeMatch	nmo:to	semapv:ManualMappingCuration	0.95	
+gmeow:cc	skos:closeMatch	schema:ccRecipient	semapv:ManualMappingCuration	0.95	
+gmeow:cc	skos:closeMatch	nmo:cc	semapv:ManualMappingCuration	0.95	
+gmeow:bcc	skos:closeMatch	schema:bccRecipient	semapv:ManualMappingCuration	0.95	
+gmeow:bcc	skos:closeMatch	nmo:bcc	semapv:ManualMappingCuration	0.95	
+gmeow:replyTo	skos:closeMatch	nmo:replyTo	semapv:ManualMappingCuration	0.9	
+gmeow:sentAt	skos:closeMatch	schema:dateSent	semapv:ManualMappingCuration	0.95	
+gmeow:sentAt	skos:closeMatch	nmo:sentDate	semapv:ManualMappingCuration	0.95	
+gmeow:receivedAt	skos:closeMatch	schema:dateReceived	semapv:ManualMappingCuration	0.95	
+gmeow:receivedAt	skos:closeMatch	nmo:receivedDate	semapv:ManualMappingCuration	0.95	
+gmeow:subject	skos:closeMatch	nmo:messageSubject	semapv:ManualMappingCuration	0.95	
+gmeow:rfcMessageId	skos:closeMatch	nmo:messageId	semapv:ManualMappingCuration	0.95	
+gmeow:inReplyTo	skos:closeMatch	nmo:inReplyTo	semapv:ManualMappingCuration	0.95	
+gmeow:references	skos:closeMatch	nmo:references	semapv:ManualMappingCuration	0.95	
+gmeow:hasAttachment	skos:closeMatch	schema:messageAttachment	semapv:ManualMappingCuration	0.9	
+gmeow:hasAttachment	skos:closeMatch	nmo:hasAttachment	semapv:ManualMappingCuration	0.9	

@@ -45,4 +45,7 @@
         <https://blackcatinformatics.ca/gmeow/modules/places> ,
         <https://blackcatinformatics.ca/gmeow/modules/expertise> ,
         <https://blackcatinformatics.ca/gmeow/modules/sources> ,
+        <https://blackcatinformatics.ca/gmeow/modules/temporal> ,
+        <https://blackcatinformatics.ca/gmeow/modules/email> ,
+        <https://blackcatinformatics.ca/gmeow/modules/messaging-trust> ,
         <https://blackcatinformatics.ca/gmeow/modules/provenance> .

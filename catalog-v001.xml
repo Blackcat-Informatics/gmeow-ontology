@@ -20,5 +20,8 @@
     <uri name="https://blackcatinformatics.ca/gmeow/modules/places" uri="ontology/modules/places.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/expertise" uri="ontology/modules/expertise.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/sources" uri="ontology/modules/sources.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/temporal" uri="ontology/modules/temporal.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/email" uri="ontology/modules/email.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/messaging-trust" uri="ontology/modules/messaging-trust.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/provenance" uri="ontology/modules/provenance.ttl"/>
 </catalog>

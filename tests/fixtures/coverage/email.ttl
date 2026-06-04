@@ -1,0 +1,93 @@
+# Synthetic email coverage fixture for the GMEOW email slice.
+# A two-message thread with participants (schema.org surface vocab), an
+# attachment, a mailbox, and a trust example (Authentication-Results + DKIM).
+# There is no public RDF email corpus, so this hand-authored slice exercises the
+# surface vocabularies a real importer would emit, plus the GMEOW-native trust
+# terms, so `gmeow coverage` can measure email-term coverage.
+
+@prefix ex:     <https://example.org/mail/> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix schema: <https://schema.org/> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+ex:thread1 a gmeow:Thread .
+
+ex:msg1
+    a schema:EmailMessage, gmeow:EmailMessage ;
+    gmeow:rfcMessageId "<msg1@example.org>" ;
+    gmeow:subject "Quarterly report" ;
+    schema:sender ex:addrAlice ;
+    schema:toRecipient ex:addrBob ;
+    schema:dateSent "2026-06-01T10:00:00Z"^^xsd:dateTime ;
+    gmeow:receivedAt "2026-06-01T10:00:03Z"^^xsd:dateTime ;
+    gmeow:partOfThread ex:thread1 ;
+    gmeow:residesIn ex:inbox ;
+    gmeow:hasKeyword gmeow:keywordSeen ;
+    gmeow:hasAuthenticationResult ex:auth1 ;
+    gmeow:hasSignature ex:dkim1 ;
+    gmeow:hasRelayHop ex:hop1 .
+
+ex:msg2
+    a schema:EmailMessage, gmeow:EmailMessage ;
+    gmeow:rfcMessageId "<msg2@example.org>" ;
+    gmeow:subject "Re: Quarterly report" ;
+    schema:sender ex:addrBob ;
+    schema:toRecipient ex:addrAlice ;
+    schema:dateSent "2026-06-01T14:30:00Z"^^xsd:dateTime ;
+    gmeow:inReplyTo ex:msg1 ;
+    gmeow:partOfThread ex:thread1 ;
+    gmeow:residesIn ex:inbox ;
+    schema:messageAttachment ex:att1 ;
+    gmeow:hasAttachment ex:att1 .
+
+ex:att1
+    a gmeow:Attachment ;
+    gmeow:filename "q2-report.pdf" ;
+    gmeow:mediaType "application/pdf" .
+
+# Derivation layer: a text extraction and an AI summary of the attachment.
+ex:att1-text
+    a gmeow:TextExtraction ;
+    gmeow:wasDerivedFrom ex:att1 .
+
+ex:att1-summary
+    a gmeow:Summary ;
+    gmeow:wasDerivedFrom ex:att1 ;
+    gmeow:wasGeneratedBy ex:summariser .
+
+ex:inbox
+    a gmeow:Mailbox ;
+    gmeow:mailboxRole "inbox" ;
+    gmeow:mailboxName "Inbox" ;
+    gmeow:mailboxOfAccount ex:aliceAccount .
+
+ex:aliceAccount a gmeow:OnlineAccount .
+
+# Trust indicators.
+ex:auth1
+    a gmeow:AuthenticationResult ;
+    gmeow:authMethod "dkim" ;
+    gmeow:authResult "pass" ;
+    gmeow:authServer "mx.example.org" .
+
+ex:dkim1
+    a gmeow:DKIMSignature ;
+    gmeow:signingDomain "example.org" ;
+    gmeow:signatureAlgorithm "rsa-sha256" ;
+    gmeow:verificationStatus "verified" .
+
+ex:hop1
+    a gmeow:RelayHop ;
+    gmeow:hopOrdinal 1 ;
+    gmeow:relayFrom "smtp.sender.example" ;
+    gmeow:relayBy "mx.example.org" ;
+    gmeow:relayProtocol "ESMTPS" ;
+    gmeow:relayAt "2026-06-01T10:00:02Z"^^xsd:dateTime .
+
+# Participants are reached through the EmailAddress seam.
+ex:addrAlice a gmeow:EmailAddress ; gmeow:email "alice@example.org" ;
+    gmeow:deliversToAccount ex:aliceAccount .
+ex:addrBob a gmeow:EmailAddress ; gmeow:email "bob@example.com" .
+
+ex:summariser a gmeow:SoftwareAgent .
