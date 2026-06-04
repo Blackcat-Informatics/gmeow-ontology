@@ -1,4 +1,4 @@
-<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcat.ca> -->
+<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
 # Contributing to GMEOW
@@ -12,7 +12,7 @@ documentation, mappings, and release infrastructure.
 
 Please read the [Code of Conduct](CODE_OF_CONDUCT.md) before participating. We
 expect respectful, professional collaboration. To report unacceptable behaviour,
-email <conduct@blackcat.ca>.
+email <conduct@blackcatinformatics.ca>.
 
 ## Ways to contribute
 
@@ -56,7 +56,7 @@ OWL 2 DL conformance, gUFO grounding, and (for alignments) license compatibility
 External contributions are accepted under the project Contributor License
 Agreement, enforced by CLA Assistant:
 
-https://gist.github.com/paudley/38386a03dd8b25d7c26cd9ce146219c1
+https://gist.github.com/paudley/55093187feb1a7cbc231e889ff6dda9e
 
 When you open a pull request, CLA Assistant may comment with a signing link and
 publish a status check. Follow that link and sign in with GitHub to accept the
@@ -170,7 +170,7 @@ test: cover the Wikidata QID existence check
 ## Questions
 
 For public questions, open an issue or discussion in the repository. For private
-matters, email <oss@blackcat.ca>.
+matters, email <oss@blackcatinformatics.ca>.
 
 ## License
 
