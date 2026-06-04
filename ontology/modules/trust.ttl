@@ -1,0 +1,208 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/trust>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Trust Module"@en ;
+    rdfs:comment "A cross-cutting trust facility: cryptographic keys, certifications (key↔identity attestations) and perspectival owner-trust — the Web-of-Trust superset layer (OpenPGP RFC 4880/9580, X.509, SSH, Nostr; aligned to the WOT schema). Reused wherever identity must be vouched for: contacts, accounts, and message signatures (the messaging-trust module builds on this). Trust here is asserted and perspectival; trust METRICS (transitive validity propagation) are deliberately left outside the logical core — represent inputs and outputs, never compute them in OWL."@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Cryptographic keys (information content held by an agent)
+# --------------------------------------------------------------------------- #
+
+gmeow:CryptographicKey
+    a owl:Class ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Cryptographic Key"@en ;
+    skos:definition "A public key, certificate, or key material bound to an agent's identity — the thing a signature is made with and a certification vouches for."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:KeyScheme
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Key Scheme"@en ;
+    skos:definition "The cryptographic scheme/format of a key (OpenPGP, X.509, SSH, Nostr, …). Modelled as a value, not a key subclass: the set of schemes is open-ended and they carry no distinct key structure here, so a new scheme is a new individual, not a new class."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Standard key schemes (extend by adding individuals, never subclasses).
+gmeow:keySchemePGP   a gmeow:KeyScheme ; rdfs:label "OpenPGP"@en .
+gmeow:keySchemeX509  a gmeow:KeyScheme ; rdfs:label "X.509"@en .
+gmeow:keySchemeSSH   a gmeow:KeyScheme ; rdfs:label "SSH"@en .
+gmeow:keySchemeNostr a gmeow:KeyScheme ; rdfs:label "Nostr"@en .
+
+gmeow:keyScheme
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:CryptographicKey ;
+    rdfs:range gmeow:KeyScheme ;
+    rdfs:label "key scheme"@en ;
+    skos:definition "The scheme/format of a cryptographic key (one of the gmeow:KeyScheme individuals). Functional: a key has exactly one scheme — a key of a different scheme is a different key."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:holdsKey
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:CryptographicKey ;
+    rdfs:label "holds key"@en ;
+    skos:definition "Relates an agent to a cryptographic key it holds. The period over which the agent held the key may be carried with gmeow:validFrom/validUntil on this statement."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:accountKey
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:OnlineAccount ;
+    rdfs:range gmeow:CryptographicKey ;
+    rdfs:label "account key"@en ;
+    skos:definition "Relates an online account to the cryptographic key that identifies it — the seam joining a decentralized-identity account (e.g. a Nostr account's nostrPubkey literal) to the key as a first-class entity."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:fingerprint
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CryptographicKey ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "fingerprint"@en ;
+    skos:definition "A fingerprint (hash) identifying a key. Not functional: different sources may report differing or differently-formatted fingerprints for the same key."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:keyId
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CryptographicKey ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "key id"@en ;
+    skos:definition "A short identifier for a key (e.g. a PGP long key id). Not functional (source-variable)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:keyAlgorithm
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CryptographicKey ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "key algorithm"@en ;
+    skos:definition "The key's algorithm (e.g. rsa, ed25519, secp256k1). Not functional (source-variable)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:keyMaterial
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CryptographicKey ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "key material"@en ;
+    skos:definition "The public key material itself (armored or hex form). Not functional (encodings vary by source)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:keyExpiresAt
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CryptographicKey ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "key expires at"@en ;
+    skos:definition "The instant a key is set to expire. Not functional (sources may report different expiry, and subkeys differ)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Certification: an agent attests a key↔identity binding (the WoT edge).
+# A relator (it mediates and depends on its players); certifications expire and
+# are revoked, so the validity window is carried with gmeow:validFrom/validUntil.
+# --------------------------------------------------------------------------- #
+
+gmeow:Certification
+    a owl:Class ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Certification"@en ;
+    skos:definition "A reified attestation that a cryptographic key belongs to a given identity, made by a certifying agent (a PGP key-signature / Web-of-Trust certification). Its validity window is carried with gmeow:validFrom/validUntil; revocation sets validUntil."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:certifier
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Certification ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "certifier"@en ;
+    skos:definition "The agent that made a certification."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:certifiedKey
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Certification ;
+    rdfs:range gmeow:CryptographicKey ;
+    rdfs:label "certified key"@en ;
+    skos:definition "The cryptographic key a certification vouches for."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:certifiedIdentity
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Certification ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "certified identity"@en ;
+    skos:definition "The agent identity a certification binds the key to."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:certificationLevel
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Certification ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "certification level"@en ;
+    skos:definition "How carefully the binding was verified (OpenPGP certification level): generic, persona, casual, or positive."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Owner-trust: a perspectival trust assertion. Reified with an explicit trustor
+# so that one agent's subjective trust never becomes a global fact. There is no
+# global gmeow:trusts object property, and gmeow:endorses is neither symmetric
+# nor transitive — trust must NOT propagate inside the reasoner.
+# --------------------------------------------------------------------------- #
+
+gmeow:TrustAssertion
+    a owl:Class ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Trust Assertion"@en ;
+    skos:definition "A reified, perspectival assertion that one agent (the trustor) trusts another (the trustee), optionally as an introducer to a given depth — the OpenPGP owner-trust notion. Its validity window is carried with gmeow:validFrom/validUntil."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:trustor
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TrustAssertion ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "trustor"@en ;
+    skos:definition "The agent whose (subjective) trust a trust-assertion expresses — the perspective holder."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:trustee
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TrustAssertion ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "trustee"@en ;
+    skos:definition "The agent that is trusted by the trustor in a trust-assertion."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:trustLevel
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TrustAssertion ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "trust level"@en ;
+    skos:definition "The degree of owner-trust expressed: ultimate, full, marginal, or none."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:introducerDepth
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TrustAssertion ;
+    rdfs:range xsd:integer ;
+    rdfs:label "introducer depth"@en ;
+    skos:definition "The trust-signature depth: how many levels of indirect introducers the trustor is willing to follow (a trust-signature notion, not computed here)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:introducerAmount
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TrustAssertion ;
+    rdfs:range xsd:integer ;
+    rdfs:label "introducer amount"@en ;
+    skos:definition "The trust-signature amount/weight the trustor assigns to the trustee as an introducer."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:endorses
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "endorses"@en ;
+    skos:definition "A convenience shortcut recording that one agent vouches for another. Deliberately NOT symmetric (endorsement is directional) and NOT transitive (trust must not propagate inside the reasoner — that is the metric the perspectival TrustAssertion bounds). Use gmeow:TrustAssertion for leveled, dated, perspectival trust."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
