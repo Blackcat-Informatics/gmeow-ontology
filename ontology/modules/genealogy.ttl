@@ -326,8 +326,7 @@ gmeow:hasFather
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasSpouse
-    a owl:ObjectProperty ;
-    a owl:SymmetricProperty ;
+    a owl:ObjectProperty, owl:SymmetricProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:range gmeow:Person ;
     rdfs:label "has spouse"@en ;
@@ -335,8 +334,7 @@ gmeow:hasSpouse
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasSibling
-    a owl:ObjectProperty ;
-    a owl:SymmetricProperty ;
+    a owl:ObjectProperty, owl:SymmetricProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:range gmeow:Person ;
     rdfs:label "has sibling"@en ;
@@ -353,6 +351,7 @@ gmeow:eventPlace
 
 gmeow:hasPrincipal
     a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasParticipant ;
     rdfs:domain gmeow:LifeEvent ;
     rdfs:range gmeow:Person ;
     rdfs:label "has principal"@en ;
@@ -402,7 +401,7 @@ gmeow:hasPartner
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:relationshipParent
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:ParentChildRelationship ;
     rdfs:range gmeow:Person ;
     rdfs:label "relationship parent"@en ;
@@ -410,7 +409,7 @@ gmeow:relationshipParent
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:relationshipChild
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:ParentChildRelationship ;
     rdfs:range gmeow:Person ;
     rdfs:label "relationship child"@en ;
@@ -426,7 +425,7 @@ gmeow:hasName
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:nameType
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:PersonName ;
     rdfs:range rdfs:Literal ;
     rdfs:label "name type"@en ;

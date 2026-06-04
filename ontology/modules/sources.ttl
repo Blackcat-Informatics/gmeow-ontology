@@ -33,7 +33,7 @@ gmeow:hasSource
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:citesSource
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Citation ;
     rdfs:range gmeow:Source ;
     rdfs:label "cites source"@en ;
