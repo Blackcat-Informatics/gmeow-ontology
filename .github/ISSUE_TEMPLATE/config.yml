@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcat.ca>
+# SPDX-License-Identifier: Apache-2.0
+
+blank_issues_enabled: false
+contact_links:
+  - name: GMEOW documentation
+    url: https://blackcatinformatics.ca/gmeow
+    about: Browse the published ontology, terms, and serializations.
+  - name: Security policy
+    url: https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/SECURITY.md
+    about: Report vulnerabilities privately using the process described in SECURITY.md.
+  - name: Questions & discussion
+    url: https://github.com/Blackcat-Informatics/gmeow-ontology/discussions
+    about: Ask usage questions or discuss modelling and alignment ideas.
