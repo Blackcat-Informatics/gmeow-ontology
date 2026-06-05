@@ -204,9 +204,9 @@ to grant separate commercial/proprietary licenses.
   place of — Blackcat Informatics' right to license either part under separate commercial
   terms. Contact `licensing@blackcatinformatics.ca`.
 
-**Trademarks.** "Blackcat Informatics®" is a registered trademark, and "GMEOW" is a
-trademark, of Blackcat Informatics Inc. Neither open license grants any right to use these
-names, logos, or marks (Apache-2.0 §6; CC BY 4.0 §2(b)).
+**Trademarks.** "Blackcat Informatics®" is a registered trademark of Blackcat Informatics
+Inc. Neither open license grants any right to use these names, logos, or marks (Apache-2.0 §6;
+CC BY 4.0 §2(b)).
 
 **Contributions** are accepted under the same open licenses; for the dual-licensing
 reservation to extend to contributed material, contributors license their contributions to
