@@ -40,7 +40,7 @@ gmeow:Place	owl:equivalentClass	schema:Place	semapv:ManualMappingCuration	1.0
 schema:Country	rdfs:subClassOf	gmeow:Place	semapv:ManualMappingCuration	1.0	
 geo:Feature	skos:closeMatch	gmeow:Place	semapv:ManualMappingCuration	0.7	
 gmeow:GeoCoordinates	owl:equivalentClass	schema:GeoCoordinates	semapv:ManualMappingCuration	1.0	
-geo:Geometry	skos:closeMatch	gmeow:GeoCoordinates	semapv:ManualMappingCuration	0.7	
+geo:Geometry	skos:closeMatch	gmeow:Geometry	semapv:ManualMappingCuration	0.9	
 gmeow:ContactPoint	owl:equivalentClass	schema:ContactPoint	semapv:ManualMappingCuration	1.0	
 gmeow:PostalAddress	owl:equivalentClass	schema:PostalAddress	semapv:ManualMappingCuration	1.0	
 vcard:Address	skos:closeMatch	gmeow:PostalAddress	semapv:ManualMappingCuration	0.9	

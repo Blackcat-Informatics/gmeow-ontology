@@ -138,6 +138,56 @@ def test_import_provenance_aligned_to_prov_and_dcterms() -> None:
     ) in graph
 
 
+def test_location_aligned_across_geo_vocabularies() -> None:
+    from rdflib.namespace import SKOS
+
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "VirtualLocation"),
+        SKOS.closeMatch,
+        URIRef("https://schema.org/VirtualLocation"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "Geometry"),
+        SKOS.closeMatch,
+        URIRef("http://www.opengis.net/ont/geosparql#Geometry"),
+    ) in graph
+    # Containment round-trips with every geo vocab's "within"/parent relation.
+    contained = URIRef(GMEOW + "containedInPlace")
+    assert (
+        contained,
+        SKOS.closeMatch,
+        URIRef("http://www.opengis.net/ont/geosparql#sfWithin"),
+    ) in graph
+    assert (
+        contained,
+        SKOS.closeMatch,
+        URIRef("http://www.wikidata.org/prop/direct/P131"),
+    ) in graph
+    # Address component equivalence + WGS84 coordinate alignment.
+    assert (
+        URIRef(GMEOW + "streetAddress"),
+        OWL.equivalentProperty,
+        URIRef("https://schema.org/streetAddress"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "latitude"),
+        SKOS.closeMatch,
+        URIRef("http://www.w3.org/2003/01/geo/wgs84_pos#lat"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "timezone"),
+        SKOS.closeMatch,
+        URIRef("http://www.w3.org/2006/vcard/ns#tz"),
+    ) in graph
+
+
+def test_geo_authority_targets_are_import_ok() -> None:
+    # Getty TGN/GVP (ODC-BY) and WGS84 (W3C) are link-and-copy-permitted.
+    for key in ("tgn", "wgs84", "gvp"):
+        assert ALIGNMENT_TARGETS[key].policy is LinkPolicy.IMPORT_OK
+
+
 def test_schema_is_reference_only() -> None:
     # schema.org (CC-BY-SA) may be linked but never imported.
     assert ALIGNMENT_TARGETS["schema"].policy is LinkPolicy.REFERENCE_ONLY

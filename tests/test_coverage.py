@@ -70,6 +70,16 @@ def test_import_provenance_slice_covered() -> None:
     assert not missing, f"import-provenance classes missing: {missing}"
 
 
+def test_locations_slice_covered() -> None:
+    report = run_coverage()
+    # GMEOW location terms exercised by the places fixture.
+    for cls in ("Place", "VirtualLocation", "StorageLocation", "Geometry"):
+        assert GMEOW + cls in report.covered_classes
+    # Aligning the address/geometry surface vocab now covers bii/paudley usage.
+    assert "https://schema.org/addressLocality" in report.covered_predicates
+    assert "http://www.opengis.net/ont/geosparql#asWKT" in report.covered_predicates
+
+
 def test_slice_is_partial() -> None:
     # The slice is intentionally incomplete: there must be tracked gaps, and
     # coverage must be a real (non-zero, non-total) fraction.
