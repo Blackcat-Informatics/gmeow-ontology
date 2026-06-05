@@ -79,14 +79,14 @@ gmeow:GmeowPropertyShape
 gmeow:AppellationHasContentShape
     a sh:NodeShape ;
     rdfs:label "Appellation content shape (no required surname)" ;
-    sh:targetClass gmeow:PersonName ;
+    sh:targetClass gmeow:Appellation ;
     sh:or (
         [ sh:path gmeow:fullName ; sh:minCount 1 ]
         [ sh:path gmeow:hasNamePart ; sh:minCount 1 ]
         [ sh:path gmeow:givenNamePart ; sh:minCount 1 ]
     ) ;
     sh:severity sh:Violation ;
-    sh:message "A PersonName must have a gmeow:fullName or at least one name part; a surname is never required (mononyms are valid)." .
+    sh:message "An appellation must have a gmeow:fullName or at least one name part; a surname is never required (mononyms are valid)." .
 
 # Deadnames and superseded names must be suppressed from display by default.
 gmeow:DeadnameSuppressionShape

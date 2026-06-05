@@ -8,7 +8,7 @@
 <https://blackcatinformatics.ca/gmeow/modules/genealogy>
     a owl:Ontology ;
     rdfs:label "GMEOW Genealogy Module"@en ;
-    rdfs:comment "A comprehensive, event- and evidence-centric genealogy model: life events as first-class nodes with dates, places and roles; reified, typed kinship relationships; structured names; kinship convenience properties. Supersedes the unmaintained W3C SWAP gedcom vocabulary; aligned to BIO, GEDCOM X, schema.org, Wikidata, REL and GeoNames."@en ;
+    rdfs:comment "A comprehensive, event- and evidence-centric genealogy model: life events as first-class nodes with dates, places and roles; reified, typed kinship relationships; kinship convenience properties. Structured naming terms (gmeow:PersonName et al.) are defined in the dedicated names module and linked to the events that confer them via gmeow:conferredByEvent. Supersedes the unmaintained W3C SWAP gedcom vocabulary; aligned to BIO, GEDCOM X, schema.org, Wikidata, REL and GeoNames."@en ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # Classes

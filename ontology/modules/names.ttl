@@ -191,7 +191,7 @@ gmeow:partText
 gmeow:partOrder
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:NamePart ;
-    rdfs:range xsd:integer ;
+    rdfs:range xsd:nonNegativeInteger ;
     rdfs:label "part order"@en ;
     skos:definition "The 0-based position of a part within its appellation's surface order, as actually written in its culture. Records observed order WITHOUT implying a given-before-family default — East-Asian family-first is simply order 0 = surname."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -268,11 +268,11 @@ gmeow:namePurpose
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:displayable
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Appellation ;
     rdfs:range xsd:boolean ;
     rdfs:label "displayable"@en ;
-    skos:definition "Whether an appellation may be shown in interfaces and reports. The ONLY display control in the model — there is deliberately no preferred/primary marker (display selection is locale-relative and symmetric). Superseded names, especially deadnames, set this false; consumers MUST honour false and never surface the string."@en ;
+    skos:definition "Whether an appellation may be shown in interfaces and reports. The ONLY display control in the model — there is deliberately no preferred/primary marker (display selection is locale-relative and symmetric). Superseded names, especially deadnames, set this false; consumers MUST honour false and never surface the string. NOT functional: in a multi-source merge, sources may disagree, and those claims must coexist rather than force a global inconsistency — the cautious value (false) wins at the projection layer. Cardinality is enforced by SHACL on data, not by the logical core."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:conferredByEvent

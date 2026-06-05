@@ -103,6 +103,26 @@ The canonical source of truth is **OWL 2 axiom annotations** (`owl:Axiom` +
 experimental preview* projected by Apache Jena (`make rdf12`) — the RDF 1.2 Turtle syntax is
 still a W3C Working Draft, so the step is gated and the output is clearly marked non-final.
 
+### Names: first-class, multi-culture, inclusive
+
+Most vocabularies treat a name as a flat string (`familyName`). GMEOW models it as a
+**reified, time-bounded, context-scoped, source-attributed relationship** — a
+`gmeow:Appellation` borne by an entity, with the `gmeow:NameUsage` relator binding *who is
+named × which name × toward whom × in what register × over what period*. That makes naming
+non-standard in deliberate, useful ways (full rationale in
+[`docs/names-mapping.md`](./docs/names-mapping.md)):
+
+- **Co-equal, anti-colonial.** A person's names in different languages/scripts (e.g.
+  *Patrick Colm Audley* and *欧德理*) are **co-equal full names** — neither is the other's
+  alternate or romanization, and **there is no `primaryName`/`preferredForDisplay` term**.
+  Display selection is locale-relative and symmetric; self-asserted names are top authority.
+- **Genuinely multi-cultural.** Name parts are an open value vocabulary — patronymic, Arabic
+  *ism/kunya/nasab/laqab/nisba*, Spanish double surname, East-Asian generation & clan names,
+  Balinese birth-order, Roman *nomina*, mononyms — with **no forced given+family order**.
+- **Contextual & temporal.** "Aunt Genny" (family) vs "Mrs Smith" (students) coexist via
+  `NameUsage`; name changes, and deadnames are recorded yet suppressed from display.
+- **Pronouns & honorifics** are first-class, contextual, and **independent of sex/gender**.
+
 ## Publishing
 
 1. **DOI (CrossRef).** Blackcat Informatics mints the DOI as a CrossRef member (its own prefix).

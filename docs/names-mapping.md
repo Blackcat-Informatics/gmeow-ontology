@@ -114,7 +114,7 @@ given-before-family default.
 | Birth-order / day name | `namePartBirthOrderName` | Balinese **Wayan**; Akan **Kofi** (Friday-born) |
 | Teknonym (parent-of) | `namePartTeknonym` | Indonesian **Ibu Sari** (mother of Sari) |
 | House / estate name | `namePartHouseName` | Germanic **Müllers** Hans (*Hofname*) |
-| Roman *nomina* | `namePartPraenomen` / `Nomen` / `Cognomen` / `Agnomen` | **Publius Cornelius Scipio Africanus** |
+| Roman *nomina* | `namePartPraenomen` / `namePartNomen` / `namePartCognomen` / `namePartAgnomen` | **Publius Cornelius Scipio Africanus** |
 | Filename | `namePartStem`, `namePartExtension` | `invoice` + `pdf` |
 
 The authoritative display string is always `gmeow:fullName` (in the name's natural
@@ -213,15 +213,20 @@ Term alignments live in `mappings/gmeow-names.sssom.tsv` (schema.org, vCard 4,
 GEDCOM X, FOAF, Wikidata). The structured parts and `fullName` give a lossless
 vCard `N` / `FN` round-trip:
 
-| vCard | GMEOW |
+In the structured column below, a `namePart…` token is a **`gmeow:NamePartType`
+value** carried by `gmeow:namePartType` on a `gmeow:NamePart` resource — *not* a
+predicate. The `gmeow:givenNamePart` / `gmeow:surnamePart` tokens *are* the flat
+literal shortcut predicates.
+
+| vCard | GMEOW (structured `gmeow:NamePart`) / flat shortcut |
 |---|---|
 | `FN` | `gmeow:fullName` |
-| `N` given-name | `namePartGiven` / `gmeow:givenNamePart` |
-| `N` family-name | `namePartSurname` / `gmeow:surnamePart` |
-| `N` additional-name | `namePartMiddle` |
-| `N` honorific-prefix | `namePartHonorificPrefix` (+ `gmeow:honorific` value) |
-| `N` honorific-suffix | `namePartHonorificSuffix` |
-| `NICKNAME` | `namePartNickname` |
+| `N` given-name | `gmeow:namePartType gmeow:namePartGiven` / `gmeow:givenNamePart` |
+| `N` family-name | `gmeow:namePartType gmeow:namePartSurname` / `gmeow:surnamePart` |
+| `N` additional-name | `gmeow:namePartType gmeow:namePartMiddle` |
+| `N` honorific-prefix | `gmeow:namePartType gmeow:namePartHonorificPrefix` (+ `gmeow:honorific` value) |
+| `N` honorific-suffix | `gmeow:namePartType gmeow:namePartHonorificSuffix` |
+| `NICKNAME` | `gmeow:namePartType gmeow:namePartNickname` |
 
 The flat shortcuts `gmeow:name`, `gmeow:givenName`, `gmeow:familyName` (entities
 module) and `gmeow:alternateName` (places module) remain as **lossy** convenience

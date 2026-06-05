@@ -10,7 +10,7 @@ preferred/primary/canonical-name term (co-equality is structural).
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, URIRef
+from rdflib import OWL, RDF, RDFS, Graph, Literal, URIRef
 from rdflib.namespace import XSD
 
 from gmeow_tools.graph import load_merged_graph
@@ -142,9 +142,16 @@ def test_custom_pronoun_set_has_five_forms() -> None:
         node = URIRef(GMEOW + form)
         assert (node, RDF.type, OWL.DatatypeProperty) in graph
         assert (node, RDF.type, OWL.FunctionalProperty) in graph
-    # A named set fills the forms (they/them).
+    # A named set fills ALL five forms (they/them).
     they = URIRef(GMEOW + "pronounTheyThem")
-    assert graph.value(they, URIRef(GMEOW + "pronounSubject")) is not None
+    for form in (
+        "pronounSubject",
+        "pronounObject",
+        "pronounPossessiveDeterminer",
+        "pronounPossessive",
+        "pronounReflexive",
+    ):
+        assert graph.value(they, URIRef(GMEOW + form)) is not None
 
 
 def test_pronouns_and_honorifics_independent_of_sex() -> None:
@@ -184,7 +191,9 @@ def test_displayable_is_the_only_display_control() -> None:
     graph = _graph()
     displayable = URIRef(GMEOW + "displayable")
     assert (displayable, RDF.type, OWL.DatatypeProperty) in graph
-    assert (displayable, RDF.type, OWL.FunctionalProperty) in graph
+    # NOT functional: multi-source true/false claims must coexist rather than
+    # force a global OWL inconsistency (the repo's conflicts-coexist stance).
+    assert (displayable, RDF.type, OWL.FunctionalProperty) not in graph
     assert (displayable, RDFS.range, XSD.boolean) in graph
 
 
@@ -209,7 +218,8 @@ def test_filename_claim_vs_reality_no_contradiction() -> None:
 
 def test_legacy_nametype_is_deprecated() -> None:
     graph = _graph()
-    assert graph.value(URIRef(GMEOW + "nameType"), OWL.deprecated) is not None
+    # Explicitly true — owl:deprecated false would (wrongly) pass a presence check.
+    assert graph.value(URIRef(GMEOW + "nameType"), OWL.deprecated) == Literal(True)
 
 
 def test_personname_no_longer_double_defined_in_genealogy() -> None:
