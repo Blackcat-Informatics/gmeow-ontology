@@ -78,6 +78,9 @@ normalize: ## Canonicalize the authored ontology sources (rewrites files).
 build: ## Build all serializations + JSON-LD context + apache.conf into dist/.
 	uv run gmeow build
 
+export: ## Generate flattened exports (CSV/CSVW, Markdown, JSONL, llms.txt) into dist/.
+	uv run gmeow export
+
 test: ## Run the test suite.
 	uv run pytest
 
