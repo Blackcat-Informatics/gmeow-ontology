@@ -1,0 +1,207 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+prov:actedOnBehalfOf a owl:ObjectProperty ;
+    rdfs:domain prov:Agent ;
+    rdfs:range prov:Agent .
+
+prov:activity a owl:ObjectProperty ;
+    rdfs:domain prov:ActivityInfluence ;
+    rdfs:range prov:Activity .
+
+prov:agent a owl:ObjectProperty ;
+    rdfs:domain prov:AgentInfluence ;
+    rdfs:range prov:Agent .
+
+prov:alternateOf a owl:ObjectProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range prov:Entity .
+
+prov:atLocation a owl:ObjectProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range prov:Location .
+
+prov:atTime a owl:DatatypeProperty ;
+    rdfs:domain prov:InstantaneousEvent ;
+    rdfs:range xsd:dateTime .
+
+prov:endedAtTime a owl:DatatypeProperty ;
+    rdfs:domain prov:Activity ;
+    rdfs:range xsd:dateTime .
+
+prov:entity a owl:ObjectProperty ;
+    rdfs:domain prov:EntityInfluence ;
+    rdfs:range prov:Entity .
+
+prov:generated a owl:ObjectProperty ;
+    rdfs:domain prov:Activity ;
+    rdfs:range prov:Entity ;
+    owl:inverseOf prov:wasGeneratedBy .
+
+prov:generatedAtTime a owl:DatatypeProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range xsd:dateTime .
+
+prov:hadActivity a owl:ObjectProperty ;
+    rdfs:domain [ ],
+        prov:Influence ;
+    rdfs:range prov:Activity .
+
+prov:hadGeneration a owl:ObjectProperty ;
+    rdfs:domain prov:Derivation ;
+    rdfs:range prov:Generation .
+
+prov:hadMember a owl:ObjectProperty ;
+    rdfs:domain prov:Collection ;
+    rdfs:range prov:Entity .
+
+prov:hadPlan a owl:ObjectProperty ;
+    rdfs:domain prov:Association ;
+    rdfs:range prov:Plan .
+
+prov:hadPrimarySource a owl:ObjectProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range prov:Entity .
+
+prov:hadRole a owl:ObjectProperty ;
+    rdfs:domain [ ],
+        prov:Influence ;
+    rdfs:range prov:Role .
+
+prov:hadUsage a owl:ObjectProperty ;
+    rdfs:domain prov:Derivation ;
+    rdfs:range prov:Usage .
+
+prov:influenced a owl:ObjectProperty ;
+    owl:inverseOf prov:wasInfluencedBy .
+
+prov:influencer a owl:ObjectProperty ;
+    rdfs:domain prov:Influence ;
+    rdfs:range owl:Thing .
+
+prov:invalidated a owl:ObjectProperty ;
+    rdfs:domain prov:Activity ;
+    rdfs:range prov:Entity ;
+    owl:inverseOf prov:wasInvalidatedBy .
+
+prov:invalidatedAtTime a owl:DatatypeProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range xsd:dateTime .
+
+prov:qualifiedAssociation a owl:ObjectProperty ;
+    rdfs:domain prov:Activity ;
+    rdfs:range prov:Association .
+
+prov:qualifiedAttribution a owl:ObjectProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range prov:Attribution .
+
+prov:qualifiedCommunication a owl:ObjectProperty ;
+    rdfs:domain prov:Activity ;
+    rdfs:range prov:Communication .
+
+prov:qualifiedDelegation a owl:ObjectProperty ;
+    rdfs:domain prov:Agent ;
+    rdfs:range prov:Delegation .
+
+prov:qualifiedDerivation a owl:ObjectProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range prov:Derivation .
+
+prov:qualifiedEnd a owl:ObjectProperty ;
+    rdfs:domain prov:Activity ;
+    rdfs:range prov:End .
+
+prov:qualifiedGeneration a owl:ObjectProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range prov:Generation .
+
+prov:qualifiedInfluence a owl:ObjectProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range prov:Influence .
+
+prov:qualifiedInvalidation a owl:ObjectProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range prov:Invalidation .
+
+prov:qualifiedPrimarySource a owl:ObjectProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range prov:PrimarySource .
+
+prov:qualifiedQuotation a owl:ObjectProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range prov:Quotation .
+
+prov:qualifiedRevision a owl:ObjectProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range prov:Revision .
+
+prov:qualifiedStart a owl:ObjectProperty ;
+    rdfs:domain prov:Activity ;
+    rdfs:range prov:Start .
+
+prov:qualifiedUsage a owl:ObjectProperty ;
+    rdfs:domain prov:Activity ;
+    rdfs:range prov:Usage .
+
+prov:specializationOf a owl:ObjectProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range prov:Entity .
+
+prov:startedAtTime a owl:DatatypeProperty ;
+    rdfs:domain prov:Activity ;
+    rdfs:range xsd:dateTime .
+
+prov:used a owl:ObjectProperty ;
+    rdfs:domain prov:Activity ;
+    rdfs:range prov:Entity .
+
+prov:value a owl:DatatypeProperty ;
+    rdfs:domain prov:Entity .
+
+prov:wasAssociatedWith a owl:ObjectProperty ;
+    rdfs:domain prov:Activity ;
+    rdfs:range prov:Agent .
+
+prov:wasAttributedTo a owl:ObjectProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range prov:Agent .
+
+prov:wasDerivedFrom a owl:ObjectProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range prov:Entity .
+
+prov:wasEndedBy a owl:ObjectProperty ;
+    rdfs:domain prov:Activity ;
+    rdfs:range prov:Entity .
+
+prov:wasInformedBy a owl:ObjectProperty ;
+    rdfs:domain prov:Activity ;
+    rdfs:range prov:Activity .
+
+prov:wasQuotedFrom a owl:ObjectProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range prov:Entity .
+
+prov:wasRevisionOf a owl:ObjectProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range prov:Entity .
+
+prov:wasStartedBy a owl:ObjectProperty ;
+    rdfs:domain prov:Activity ;
+    rdfs:range prov:Entity .
+
+prov:wasGeneratedBy a owl:ObjectProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range prov:Activity .
+
+prov:wasInfluencedBy a owl:ObjectProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range [ ] .
+
+prov:wasInvalidatedBy a owl:ObjectProperty ;
+    rdfs:domain prov:Entity ;
+    rdfs:range prov:Activity .
+

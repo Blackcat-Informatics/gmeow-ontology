@@ -1,0 +1,269 @@
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+geo:asDGGS a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:Geometry ;
+    rdfs:range geo:dggsLiteral .
+
+geo:asGML a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:Geometry ;
+    rdfs:range geo:gmlLiteral .
+
+geo:asGeoJSON a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:Geometry ;
+    rdfs:range geo:geoJSONLiteral .
+
+geo:asKML a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:Geometry ;
+    rdfs:range geo:kmlLiteral .
+
+geo:asWKT a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:Geometry ;
+    rdfs:range geo:wktLiteral .
+
+geo:coordinateDimension a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:Geometry ;
+    rdfs:range xsd:integer .
+
+geo:defaultGeometry a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:Feature ;
+    rdfs:range geo:Geometry .
+
+geo:dimension a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:Geometry ;
+    rdfs:range xsd:integer .
+
+geo:ehContains a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:ehCoveredBy a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:ehCovers a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:ehDisjoint a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:ehEquals a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:ehInside a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:ehMeet a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:ehOverlap a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:hasArea a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject .
+
+geo:hasBoundingBox a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:Feature ;
+    rdfs:range geo:Geometry .
+
+geo:hasCentroid a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:Feature ;
+    rdfs:range geo:Geometry .
+
+geo:hasDefaultGeometry a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:Feature ;
+    rdfs:range geo:Geometry .
+
+geo:hasGeometry a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:Feature ;
+    rdfs:range geo:Geometry .
+
+geo:hasLength a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject .
+
+geo:hasMetricArea a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range xsd:double .
+
+geo:hasMetricLength a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range xsd:double .
+
+geo:hasMetricPerimeterLength a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range xsd:double .
+
+geo:hasMetricSize a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range xsd:double .
+
+geo:hasMetricSpatialAccuracy a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:Geometry ;
+    rdfs:range xsd:double .
+
+geo:hasMetricSpatialResolution a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:Geometry ;
+    rdfs:range xsd:double .
+
+geo:hasMetricVolume a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range xsd:double .
+
+geo:hasPerimeterLength a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject .
+
+geo:hasSerialization a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:Geometry ;
+    rdfs:range rdfs:Literal .
+
+geo:hasSize a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject .
+
+geo:hasSpatialAccuracy a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:Geometry .
+
+geo:hasSpatialResolution a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:Geometry .
+
+geo:hasVolume a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject .
+
+geo:isEmpty a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:Geometry ;
+    rdfs:range xsd:boolean .
+
+geo:isSimple a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:Geometry ;
+    rdfs:range xsd:boolean .
+
+geo:rcc8dc a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:rcc8ec a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:rcc8eq a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:rcc8ntpp a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:rcc8ntppi a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:rcc8po a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:rcc8tpp a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:rcc8tppi a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:sfContains a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:sfCrosses a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:sfDisjoint a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:sfEquals a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:sfIntersects a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:sfOverlaps a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:sfTouches a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:sfWithin a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain geo:SpatialObject ;
+    rdfs:range geo:SpatialObject .
+
+geo:spatialDimension a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain geo:Geometry ;
+    rdfs:range xsd:integer .
+

@@ -359,11 +359,3 @@ gmeow:eqProperties042 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:sssomFile "gmeow-properties.sssom.tsv" .
-
-gmeow:eqProperties043 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:subOrganizationOf ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:subOrganization ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:sssomFile "gmeow-properties.sssom.tsv" .

@@ -57,7 +57,6 @@ gmeow:name	owl:equivalentProperty	schema:name	semapv:ManualMappingCuration	1.0
 gmeow:name	skos:closeMatch	vcard:fn	semapv:ManualMappingCuration	0.9	
 gmeow:subOrganizationOf	owl:equivalentProperty	org:subOrganizationOf	semapv:ManualMappingCuration	0.9	
 gmeow:subOrganizationOf	owl:equivalentProperty	schema:parentOrganization	semapv:ManualMappingCuration	0.9	
-gmeow:subOrganizationOf	skos:closeMatch	schema:subOrganization	semapv:ManualMappingCuration	0.6	
 gmeow:telephone	owl:equivalentProperty	schema:telephone	semapv:ManualMappingCuration	1.0	
 gmeow:telephone	skos:closeMatch	vcard:hasTelephone	semapv:ManualMappingCuration	0.9	
 gmeow:title	skos:closeMatch	dcterms:title	semapv:ManualMappingCuration	0.9	

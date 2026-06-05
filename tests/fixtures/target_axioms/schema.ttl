@@ -1,0 +1,32 @@
+# Hand-authored, validation-ONLY structural facts about schema.org terms.
+#
+# schema.org is CC-BY-SA-3.0 → REFERENCE_ONLY under the project's license policy
+# (config.policy_for_license), so its axioms must never be vendored under
+# imports/targets/ (refresh_snapshot refuses it) and must never enter the
+# published CC BY 4.0 artifact. This file lives under tests/fixtures/ and is read
+# only by the SSSOM alignment-direction linter (gmeow_tools.alignment_lint).
+#
+# It asserts only the handful of *structural facts* (inverse pairs + soft
+# domain/range) needed to catch direction errors offline — no labels, no
+# descriptions, no prose. These are facts, not a republication of schema.org.
+# The full vocabulary is fetched live under the `network` test mark / --network.
+
+@prefix schema: <https://schema.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# The org-hierarchy inverse pair behind the motivating bug (#25): GMEOW maps
+# gmeow:subOrganizationOf (child→parent) to BOTH schema:parentOrganization (the
+# correct, equivalent direction) and schema:subOrganization (the inverse). These
+# two schema.org terms are mutually inverse — so mapping one property to both is
+# the self-contradiction the linter flags.
+schema:subOrganization
+    rdf:type schema:Property ;
+    schema:inverseOf schema:parentOrganization ;
+    schema:domainIncludes schema:Organization ;
+    schema:rangeIncludes schema:Organization .
+
+schema:parentOrganization
+    rdf:type schema:Property ;
+    schema:inverseOf schema:subOrganization ;
+    schema:domainIncludes schema:Organization ;
+    schema:rangeIncludes schema:Organization .

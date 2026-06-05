@@ -10,8 +10,9 @@ TARGET ?= foaf
 
 .PHONY: help install fmt lint validate reason explain extract compile-mappings \
         compile-check compile-statements statements-check mappings wikidata \
-        wikidata-live metadata apache docs docs-full rdf12 quality normalize \
-        build export project test check release clean pull-images
+        wikidata-live lint-alignment refresh-target-axioms metadata apache docs \
+        docs-full rdf12 quality normalize build export project test check \
+        release clean pull-images
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -54,6 +55,12 @@ statements-check: ## Fail if the committed statement artifacts are stale vs stat
 
 mappings: compile-mappings ## Build alignment axioms + VoID linksets from SSSOM; validate QID syntax.
 	uv run gmeow mappings
+
+lint-alignment: ## Lint SSSOM mappings for inverse / domain-range-mismatched targets (offline).
+	uv run gmeow lint-alignment
+
+refresh-target-axioms: ## Re-vendor minimal target-axiom snapshots (IMPORT_OK targets only).
+	uv run gmeow refresh-target-axioms --target all
 
 wikidata: ## Validate Wikidata QID/PID syntax in the mappings (offline).
 	uv run gmeow wikidata
@@ -100,7 +107,7 @@ project: compile-mappings ## Project GMEOW data to pure schema.org/GeoSPARQL/vCa
 test: ## Run the test suite.
 	uv run pytest
 
-check: lint validate statements-check reason compile-check mappings wikidata coverage test ## Full local quality gate.
+check: lint validate statements-check reason compile-check mappings lint-alignment wikidata coverage test ## Full local quality gate.
 	@echo "✓ all checks passed"
 
 release: ## RDF 1.2 + OWL downcast → reasoned closure (HermiT) + build + metadata + CrossRef deposit.
