@@ -9,25 +9,74 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
+# The quality gate is split into independent jobs that run in parallel; each
+# restores the uv cache (setup-uv) so `uv sync` is fast. ruff/format live only
+# in the lint job's pre-commit run (not duplicated here).
 jobs:
-  quality:
+  lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v8.1.0
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
           enable-cache: true
 
       - name: Sync environment
         run: uv sync --frozen
 
-      - name: Lint (ruff) and type-check (mypy)
-        run: |
-          uv run ruff check .
-          uv run ruff format --check .
-          uv run mypy
+      - name: Cache pre-commit hook environments
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: |
+            pre-commit-${{ runner.os }}-
+
+      - name: Pre-commit (format, spelling, YAML/MD/shell/actions, secrets)
+        run: uv run pre-commit run --all-files --show-diff-on-failure
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Sync environment
+        run: uv sync --frozen
+
+      - name: Type-check (mypy)
+        run: uv run mypy
+
+      - name: Unit tests
+        run: uv run pytest -q
+
+  ontology:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Sync environment
+        run: uv sync --frozen
 
       - name: Validate (syntax, lint, SHACL)
         run: uv run gmeow validate
@@ -38,8 +87,20 @@ jobs:
       - name: Wikidata QID/PID syntax gate
         run: uv run gmeow wikidata
 
-      - name: Unit tests
-        run: uv run pytest -q
+  reason:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Sync environment
+        run: uv sync --frozen
 
       - name: Pull pinned ROBOT image
         run: |
@@ -48,3 +109,28 @@ jobs:
 
       - name: Reason (ELK) + OWL 2 DL profile
         run: uv run gmeow reason --reasoner ELK
+
+  # Aggregator gate. Branch protection requires the "quality" context; this job
+  # keeps that single required check stable while the work runs in parallel
+  # above. `if: always()` guarantees it reports a definite success/failure
+  # (never a merge-blocking "skipped") and fails if any parallel job did not.
+  quality:
+    needs: [lint, python, ontology, reason]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all quality jobs to have succeeded
+        env:
+          LINT: ${{ needs.lint.result }}
+          PYTHON: ${{ needs.python.result }}
+          ONTOLOGY: ${{ needs.ontology.result }}
+          REASON: ${{ needs.reason.result }}
+        run: |
+          echo "results: lint=$LINT python=$PYTHON ontology=$ONTOLOGY reason=$REASON"
+          for r in "$LINT" "$PYTHON" "$ONTOLOGY" "$REASON"; do
+            if [ "$r" != "success" ]; then
+              echo "::error::a quality job did not succeed ($r)"
+              exit 1
+            fi
+          done
+          echo "all quality jobs succeeded"
