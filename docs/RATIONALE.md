@@ -7,6 +7,9 @@
 > reasoning-centric, OWL 2 DL, gUFO-grounded **super-vocabulary** for modelling a
 > person's or organization's *digital existence*.
 
+This document explains the **problems** GMEOW answers; [`CONSTITUTION.md`](../CONSTITUTION.md)
+states the **commitments** the answers must honour. They complement, not duplicate, each other.
+
 ## The reason
 
 People and organizations now exist, in large part, as data: contacts, email,
@@ -63,11 +66,13 @@ GMEOW answers each challenge with a deliberate architectural choice:
 - **Coreference by alignment.** Canonical IRIs plus `skos:exactMatch`/`owl:sameAs`
   links to external authorities make coreference a first-class, queryable seam.
   *(Addresses coreference.)*
-- **Provenance, confidence and time as an RDF-star layer over an OWL-DL core.**
-  Statement-level `gmeow:confidence`, `gmeow:importanceLevel`, `gmeow:mappedFrom`
-  and temporally-scoped relationships annotate claims without disturbing the
-  decidable logical core. *(Addresses provenance/confidence, temporal validity, and
-  lossless-vs-canonical.)*
+- **Provenance, confidence and time as the canonical RDF 1.2 / RDF\* layer over an
+  OWL-DL core** ([Principle 2](../CONSTITUTION.md)). Statement-level `gmeow:confidence`,
+  `gmeow:importanceLevel`, `gmeow:mappedFrom` and temporally-scoped relationships are
+  authored as native RDF 1.2 metadata and annotate claims without disturbing the decidable
+  logical core; the OWL axiom-annotation form a reasoner consumes is a *generated downcast*
+  of this layer ([Principle 3](../CONSTITUTION.md)). *(Addresses provenance/confidence,
+  temporal validity, and lossless-vs-canonical.)*
 - **Reasoning-centric and FAIR-published.** OWL 2 DL, checked by ELK (fast) and
   HermiT (sound + complete) on every build; published with content negotiation,
   VoID/DCAT, a DOI, and submitted to the LOD Cloud.
@@ -86,6 +91,7 @@ yet?" stops being a vibe and becomes a number with an explicit, shrinking gap li
 
 ## See also
 
+- [`CONSTITUTION.md`](../CONSTITUTION.md) — the ten normative principles these choices answer to.
 - [`README.md`](../README.md) — the toolchain and how to build/validate/publish.
 - [`LICENSING.md`](../LICENSING.md) — dual licensing (Apache-2.0 tooling / CC BY 4.0 vocabulary).
 - `mappings/` — the SSSOM alignment tables that make the superset real.

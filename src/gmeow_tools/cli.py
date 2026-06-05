@@ -401,23 +401,73 @@ def docs(
         console.print(f"[green]✓ WIDOCO → {outdir}[/green]")
 
 
-@app.command()
-def rdf12() -> None:
-    """Materialize the RDF 1.2 / RDF* view (requires Apache Jena — no degraded mode)."""
-    from gmeow_tools import rdf12 as rdf12_mod
-    from gmeow_tools import reason as reasoning
+def _compile_statements(check: bool) -> None:
+    """Shared driver for ``compile-statements`` and its ``rdf12`` alias."""
+    from gmeow_tools.config import PROJECT_ROOT
+    from gmeow_tools.mapping_dsl import CompileError
     from gmeow_tools.runner import ToolUnavailableError
+    from gmeow_tools.statement_compile import compile_statements as run
 
     try:
-        merged = reasoning.merge_release()
-        out = rdf12_mod.project_rdf12(merged=merged)
+        report = run(check=check)
     except ToolUnavailableError as exc:
         raise _fail(
-            f"✗ RDF 1.2 view requires its toolchain: {exc}. RDF 1.2 is GMEOW's "
-            "primary statement-level model — there is no degraded fallback.",
+            f"✗ RDF 1.2 requires its toolchain: {exc}. RDF 1.2 is GMEOW's "
+            "canonical statement-level model — there is no degraded fallback.",
             code=2,
         ) from exc
-    console.print(f"[green]✓ RDF 1.2 / RDF* view → {out.name}[/green]")
+    except CompileError as exc:
+        raise _fail(f"✗ {exc}") from exc
+
+    if check:
+        if report.drifted:
+            for rel in sorted(report.drifted):
+                err_console.print(f"[red]drift[/red] {rel}")
+            raise _fail(
+                f"✗ {len(report.drifted)} statement artifact(s) out of date — "
+                "run `gmeow compile-statements`"
+            )
+        console.print(
+            "[green]✓ committed RDF 1.2 + OWL-form match statement-dsl/ "
+            "(no drift)[/green]"
+        )
+        return
+    for path in report.written:
+        console.print(f"[green]✓[/green] {path.relative_to(PROJECT_ROOT)}")
+    console.print(
+        f"[green]✓ compiled {len(report.written)} artifacts from statement-dsl/[/green]"
+    )
+
+
+@app.command(name="compile-statements")
+def compile_statements(
+    check: bool = typer.Option(
+        False,
+        "--check",
+        help="Verify committed RDF 1.2 + OWL-form artifacts match a fresh "
+        "compile; write nothing.",
+    ),
+) -> None:
+    """Compile statement-dsl/ → the RDF 1.2 lead artifact + OWL-form downcast (Jena).
+
+    The canonical RDF 1.2 / RDF* statement-metadata source in statement-dsl/ is
+    rendered to statements/gmeow.rdf12.ttl (the lead form) and
+    statements/gmeow-statements.owl.ttl (the reasoning-lossless downcast), proven
+    mutually lossless by round-trip isomorphism before writing. ``--check`` compiles
+    to a temp tree and reports any drift versus the committed files (the CI gate).
+    Apache Jena is required — RDF 1.2 has no degraded fallback.
+    """
+    _compile_statements(check)
+
+
+@app.command()
+def rdf12() -> None:
+    """Emit the RDF 1.2 / RDF* lead artifact + OWL downcast (requires Apache Jena).
+
+    A convenience alias of ``compile-statements`` that surfaces the RDF 1.2 lead
+    artifact — RDF 1.2 is GMEOW's canonical statement-level model, not an add-on.
+    """
+    _compile_statements(check=False)
 
 
 @app.command()

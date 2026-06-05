@@ -20,6 +20,7 @@ from gmeow_tools.config import (
     ONTOLOGY_FILE,
     PROJECT_ROOT,
     ROBOT_IMAGE,
+    STATEMENT_OWL_FILE,
 )
 from gmeow_tools.runner import run_container
 
@@ -41,28 +42,30 @@ def _robot(args: list[str]) -> str:
     return result.stdout + result.stderr
 
 
-def merge_release(output: Path = MERGED_FILE) -> Path:
+def merge_release(
+    output: Path = MERGED_FILE, *, include_statements: bool = True
+) -> Path:
     """Merge the import closure into a single, self-contained ontology.
+
+    The generated OWL axiom-annotation downcast of the canonical RDF 1.2 statement
+    metadata (``statements/gmeow-statements.owl.ttl``) is merged in too, so the
+    reasoner consumes the statement layer as a *generated downcast* — never an
+    authored one (CONSTITUTION Principles 2-3). Its freshness is guarded
+    separately by ``gmeow compile-statements --check``; merging the committed file
+    keeps reasoning a pure-ROBOT step (no Jena dependency here).
 
     Args:
         output: Destination for the merged Turtle file.
+        include_statements: Merge the statement-metadata OWL downcast when present.
 
     Returns:
         The path to the merged ontology.
     """
-    _robot(
-        [
-            "merge",
-            "--catalog",
-            _rel(CATALOG_FILE),
-            "--input",
-            _rel(ONTOLOGY_FILE),
-            "--collapse-import-closure",
-            "true",
-            "--output",
-            _rel(output),
-        ]
-    )
+    args = ["merge", "--catalog", _rel(CATALOG_FILE), "--input", _rel(ONTOLOGY_FILE)]
+    if include_statements and STATEMENT_OWL_FILE.exists():
+        args += ["--input", _rel(STATEMENT_OWL_FILE)]
+    args += ["--collapse-import-closure", "true", "--output", _rel(output)]
+    _robot(args)
     return output
 
 

@@ -26,7 +26,10 @@ the **executor** (pure-Python rdflib). **None of this is imported into the reaso
 core** — it is a consumable *view* layer. That separation is the whole point:
 SSSOM equivalence is a logical claim the reasoner enforces, so it must be honest;
 a **projection is deliberately lossy and directional** — it downgrades GMEOW into
-a target consumer's vocabulary without corrupting the canonical model.
+a target consumer's vocabulary without corrupting the canonical model. The OWL 2
+axiom-annotation encoding of GMEOW's RDF 1.2 statement metadata is a projection of
+exactly this kind — a *reasoning-lossless* downcast for tools that cannot yet consume
+RDF 1.2 ([Principles 3–4](../CONSTITUTION.md)) — not a competing source of truth.
 
 ## Run it
 
@@ -95,8 +98,8 @@ The four artifacts above are **generated**, not hand-authored. The same mapping
 used to live four ways and drift independently (an FnO param typed wrong, an EDOAL
 cell out of sync with its executor, a SSSOM row mapped to an inverse term). GMEOW's
 own doctrine — *one canonical source, everything else a generated lossy projection*
-— now applies to the mapping layer itself: **author each mapping once, generate the
-four.**
+([Principle 4](../CONSTITUTION.md)) — now applies to the mapping layer itself:
+**author each mapping once, generate the four.**
 
 The authoring source is a GMEOW-grounded Turtle DSL under `mapping-dsl/`
 (vocabulary in `mapping-dsl/vocabulary.ttl`, all in the `gmeow:` namespace, a spec
