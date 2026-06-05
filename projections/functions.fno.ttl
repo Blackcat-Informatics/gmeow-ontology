@@ -66,6 +66,22 @@ gmeow:fnHonorificToAffix
     fno:returns ( gmeow:oAffix ) ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
 
+gmeow:fnComposeBcp47
+    a fno:Function ;
+    rdfs:label "compose BCP-47 language tag"@en ;
+    dcterms:description "Composes a BCP-47 language tag from a language's gmeow:languageCode and a co-mingled writing system's gmeow:scriptCode (\"ja\" + \"Hani\" → \"ja-Hani\"; \"de\" + \"Latn\" → \"de-Latn\"). The registry tag GMEOW refuses as identity, reconstructed on demand for schema.org consumers and emitted as schema:alternateName on the language. A language with several scripts yields several tags (ja-Hani, ja-Hira, ja-Kana, ja-Latn)."@en ;
+    fno:expects ( gmeow:pLanguageCode gmeow:pScriptCode ) ;
+    fno:returns ( gmeow:oBcp47 ) ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
+
+gmeow:fnProficiencyToKnownLanguage
+    a fno:Function ;
+    rdfs:label "flatten LanguageProficiency → schema:knowsLanguage"@en ;
+    dcterms:description "Flattens the reified gmeow:LanguageProficiency relator (agent × language × modality × level) and the flat gmeow:knowsLanguage to schema:knowsLanguage(agent, language). Lossy: the CEFR/ILR/ACTFL level and skill modality are dropped — schema.org has no proficiency model."@en ;
+    fno:expects ( gmeow:pProficiencyLanguage ) ;
+    fno:returns ( gmeow:oKnownLanguage ) ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
+
 # Parameters and outputs (fno:predicate is the binding key; fno:type the datatype/class).
 gmeow:pPlaceType   a fno:Parameter ; fno:predicate gmeow:placeType ; fno:type gmeow:PlaceType ; fno:required true .
 gmeow:pLat         a fno:Parameter ; fno:predicate gmeow:latitude ; fno:type xsd:decimal ; fno:required true .
@@ -78,9 +94,14 @@ gmeow:pPostalCode  a fno:Parameter ; fno:predicate gmeow:postalCode ; fno:type r
 gmeow:pCountry     a fno:Parameter ; fno:predicate gmeow:countryCode ; fno:type rdfs:Literal .
 gmeow:pAppellation a fno:Parameter ; fno:predicate gmeow:hasAppellation ; fno:type gmeow:Appellation ; fno:required true .
 gmeow:pHonorific   a fno:Parameter ; fno:predicate gmeow:honorific ; fno:type gmeow:Honorific ; fno:required true .
+gmeow:pLanguageCode a fno:Parameter ; fno:predicate gmeow:languageCode ; fno:type rdfs:Literal ; fno:required true .
+gmeow:pScriptCode   a fno:Parameter ; fno:predicate gmeow:scriptCode ; fno:type rdfs:Literal .
+gmeow:pProficiencyLanguage a fno:Parameter ; fno:predicate gmeow:proficiencyLanguage ; fno:type gmeow:Language ; fno:required true .
 
 gmeow:oTargetClass   a fno:Output ; fno:predicate gmeow:projectedType ; fno:type rdfs:Class .
 gmeow:oWkt           a fno:Output ; fno:predicate geo:asWKT ; fno:type geo:wktLiteral .
 gmeow:oAddressString a fno:Output ; fno:predicate gmeow:projectedAddress ; fno:type xsd:string .
 gmeow:oDisplayName   a fno:Output ; fno:predicate gmeow:projectedName ; fno:type rdfs:Literal .
 gmeow:oAffix         a fno:Output ; fno:predicate gmeow:projectedAffix ; fno:type xsd:string .
+gmeow:oBcp47         a fno:Output ; fno:predicate gmeow:projectedLanguageTag ; fno:type xsd:string .
+gmeow:oKnownLanguage a fno:Output ; fno:predicate gmeow:projectedKnownLanguage ; fno:type gmeow:Language .

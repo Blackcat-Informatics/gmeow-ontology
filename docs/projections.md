@@ -11,7 +11,7 @@ transformations** SSSOM can't express. GMEOW's four-layer alignment stack:
 |---|---|---|
 | SSSOM | 1:1 term equivalence | `mappings/*.sssom.tsv` |
 | **EDOAL** | complex alignments (value→class, compositions, conditions) | `projections/*.edoal.ttl` |
-| **FnO** | the transformation *functions* EDOAL invokes | `projections/functions.fno.ttl` |
+| **FnO** | the transformation *functions* EDOAL invokes (+ the language conversion catalog) | `projections/functions.fno.ttl`, `projections/transforms.fno.ttl` |
 | **SPARQL CONSTRUCT** | the executor → a pure-profile graph | `queries/projections/*.rq` |
 
 FnO + EDOAL are the declarative, standards-consumable **spec**; the CONSTRUCT is
@@ -32,20 +32,29 @@ gmeow project --data mydata.ttl     # project your own GMEOW data
 Outputs `dist/gmeow-example-{schema-org,geosparql,vcard,foaf}.ttl` (round-trip
 verified). Also runs in `gmeow build`.
 
-## Transformation types (worked on locations + naming)
+## Transformation types (worked on locations + naming + languages)
 
 | Type | Example | Function |
 |---|---|---|
 | **value→class** | `placeType placeTypeCountry` → `rdf:type schema:Country` | `fnPlaceTypeToClass` |
 | **datatype retag** | `gmeow:asWKT "POINT…"` (rdfs:Literal) → `geo:asWKT …^^geo:wktLiteral` | `fnRetagWkt` |
 | **multi-property combine** | `latitude` + `longitude` → `POINT(lon lat)^^geo:wktLiteral` | `fnLatLongToWktPoint` |
+| | `languageCode` + `scriptCode` → BCP-47 `ja-Hani` (`schema:alternateName`) | `fnComposeBcp47` |
 | **compose / select** | displayable `fullName` → `schema:name`/`vcard:fn`/`foaf:name` | `fnSelectDisplayName` |
+| **relator flatten** | `LanguageProficiency` (agent×lang×level) → `schema:knowsLanguage` (lossy) | `fnProficiencyToKnownLanguage` |
 | **value→property by sub-value** | `honorific` (+ position) → `schema:honorificPrefix`/`Suffix` | `fnHonorificToAffix` |
-| **lossy drop** | `StorageLocation`, fine place types, `authorityLink`, pronouns, `NameUsage` | — |
+| **domain conversion** (catalog) | transliteration / transcription / translation as `fno:Function`s | `transforms.fno.ttl` |
+| **lossy drop** | `StorageLocation`, fine place types, `authorityLink`, pronouns, `NameUsage`, `WritingSystemUsage`, version lineage, proficiency level | — |
+
+The **language conversion catalog** (`projections/transforms.fno.ttl`) is a
+different use of FnO: it declares Hepburn / Pinyin / ISO 233 / IPA / translate as
+*domain* functions (script→script, language→language), each linked to its
+`gmeow:TransliterationScheme` value individual, so a `gmeow:romanization` records
+*how* it was derived. These are declarative specs with no bound executor.
 
 ## Profile lossiness
 
-- **schema.org** — richest fit: place value→class, decomposed addresses, GeoCoordinates, co-equal `schema:name`s, honorifics. Drops StorageLocation, fine place types, NameUsage/register/script.
+- **schema.org** — richest fit: place value→class, decomposed addresses, GeoCoordinates, co-equal `schema:name`s, honorifics, `schema:Language`/`ComputerLanguage` with composed BCP-47 tags and flattened `schema:knowsLanguage`. Drops StorageLocation, fine place types, NameUsage/register/script, WritingSystemUsage, proficiency level, version lineage.
 - **GeoSPARQL** — geometry only: `geo:Feature` + WKT (retagged), lat/long→POINT, `geo:sfWithin`. Drops names, addresses, types.
 - **vCard** — contact-card fit: `vcard:Address` components, `vcard:fn`, `vcard:given-name`/`family-name`. Drops the nested place hierarchy + QIDs, geometry.
 - **FOAF** — lowest common denominator: place+coords → `wgs84:SpatialThing`, `foaf:name`, `foaf:based_near`. Drops nearly all structure.

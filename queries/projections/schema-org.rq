@@ -6,6 +6,7 @@
 # wrappers, namePurpose/register/script, pronouns.
 PREFIX gmeow:  <https://blackcatinformatics.ca/gmeow/>
 PREFIX schema: <https://schema.org/>
+PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
 
 CONSTRUCT {
@@ -26,6 +27,10 @@ CONSTRUCT {
     ?ent schema:familyName ?family .
     ?ent schema:honorificPrefix ?honPrefix .
     ?ent schema:honorificSuffix ?honSuffix .
+    ?lang a schema:Language .
+    ?prog a schema:ComputerLanguage .
+    ?lang schema:alternateName ?bcp47 .
+    ?knower schema:knowsLanguage ?known .
 }
 WHERE {
     {
@@ -74,5 +79,18 @@ WHERE {
     } UNION {
         ?ent gmeow:honorific ?h .
         ?h rdfs:label ?honSuffix ; gmeow:honorificPosition gmeow:honorificPositionSuffix .
+    } UNION {
+        ?lang rdf:type/rdfs:subClassOf* gmeow:Language .
+    } UNION {
+        ?prog a gmeow:ProgrammingLanguage .
+    } UNION {
+        ?lang rdf:type/rdfs:subClassOf* gmeow:Language ; gmeow:languageCode ?code .
+        OPTIONAL { ?lang gmeow:usesWritingSystem ?ws . ?ws gmeow:scriptCode ?sc . }
+        BIND(IF(BOUND(?sc), CONCAT(STR(?code), "-", STR(?sc)), STR(?code)) AS ?bcp47)
+    } UNION {
+        ?knower gmeow:knowsLanguage ?known .
+    } UNION {
+        ?prof a gmeow:LanguageProficiency ;
+            gmeow:proficiencyAgent ?knower ; gmeow:proficiencyLanguage ?known .
     }
 }

@@ -1,6 +1,6 @@
 # mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/names
 # license: https://creativecommons.org/licenses/by/4.0/
-# comment: Name alignments for comprehensive, multi-culture interop — schema.org, vCard 4 (N components, nickname, fn), GEDCOM X (gx:) name parts, FOAF, and a few well-established Wikidata properties. The flat shortcuts givenNamePart/surnamePart align property-to-property; multi-cultural name-part KINDS (value individuals) align closeMatch to the nearest external concept, following the places.ttl idiom. PronounSet, NameRegister, NameUsage and the inclusivity machinery (displayable, namePurposeChosen/Deadname) are largely CANONICAL — no maintained external RDF vocabulary covers them faithfully; co-equality of multilingual names is a structural stance, not an external mapping. Coreference of name INSTANCES is done in data, not here.
+# comment: Name alignments for comprehensive, multi-culture interop — schema.org, vCard 4 (N components, nickname, fn), GEDCOM X (gx:) name parts, FOAF, and a few well-established Wikidata properties. Multi-cultural name-part KINDS (gmeow:NamePartType value individuals such as namePartGiven/namePartSurname) align closeMatch to the nearest external concept, following the places.ttl idiom; there are no flat given/family name properties — a 'First Last' rendering is produced by downcasting the structured gmeow:NamePart model in the projection layer (projections/*). PronounSet, NameRegister, NameUsage and the inclusivity machinery (displayable, namePurposeChosen/Deadname) are largely CANONICAL — no maintained external RDF vocabulary covers them faithfully; co-equality of multilingual names is a structural stance, not an external mapping. Coreference of name INSTANCES is done in data, not here.
 subject_id	predicate_id	object_id	mapping_justification	confidence
 gmeow:fullName	skos:closeMatch	schema:name	semapv:ManualMappingCuration	0.8
 gmeow:fullName	skos:closeMatch	vcard:fn	semapv:ManualMappingCuration	0.9
@@ -8,14 +8,14 @@ gmeow:fullName	skos:closeMatch	foaf:name	semapv:ManualMappingCuration	0.8
 gmeow:fullName	skos:closeMatch	wdt:P1559	semapv:ManualMappingCuration	0.7
 gmeow:PersonName	skos:closeMatch	gx:Name	semapv:ManualMappingCuration	0.8
 gmeow:hasNamePart	skos:closeMatch	gx:nameForm	semapv:ManualMappingCuration	0.6
-gmeow:givenNamePart	skos:closeMatch	schema:givenName	semapv:ManualMappingCuration	0.9
-gmeow:givenNamePart	skos:closeMatch	vcard:given-name	semapv:ManualMappingCuration	0.9
-gmeow:givenNamePart	skos:closeMatch	foaf:givenName	semapv:ManualMappingCuration	0.9
-gmeow:surnamePart	skos:closeMatch	schema:familyName	semapv:ManualMappingCuration	0.9
-gmeow:surnamePart	skos:closeMatch	vcard:family-name	semapv:ManualMappingCuration	0.9
-gmeow:surnamePart	skos:closeMatch	foaf:familyName	semapv:ManualMappingCuration	0.9
+gmeow:namePartGiven	skos:closeMatch	schema:givenName	semapv:ManualMappingCuration	0.8
+gmeow:namePartGiven	skos:closeMatch	vcard:given-name	semapv:ManualMappingCuration	0.8
+gmeow:namePartGiven	skos:closeMatch	foaf:givenName	semapv:ManualMappingCuration	0.8
 gmeow:namePartGiven	skos:closeMatch	gx:Given	semapv:ManualMappingCuration	0.8
 gmeow:namePartGiven	skos:closeMatch	wdt:P735	semapv:ManualMappingCuration	0.7
+gmeow:namePartSurname	skos:closeMatch	schema:familyName	semapv:ManualMappingCuration	0.8
+gmeow:namePartSurname	skos:closeMatch	vcard:family-name	semapv:ManualMappingCuration	0.8
+gmeow:namePartSurname	skos:closeMatch	foaf:familyName	semapv:ManualMappingCuration	0.8
 gmeow:namePartSurname	skos:closeMatch	gx:Surname	semapv:ManualMappingCuration	0.8
 gmeow:namePartSurname	skos:closeMatch	wdt:P734	semapv:ManualMappingCuration	0.7
 gmeow:namePartMiddle	skos:closeMatch	schema:additionalName	semapv:ManualMappingCuration	0.9

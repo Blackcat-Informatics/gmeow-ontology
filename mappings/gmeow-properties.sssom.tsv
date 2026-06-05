@@ -4,12 +4,8 @@
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:name	owl:equivalentProperty	schema:name	semapv:ManualMappingCuration	1.0	
 gmeow:name	owl:equivalentProperty	foaf:name	semapv:ManualMappingCuration	1.0	
-gmeow:name	skos:closeMatch	vcard:fn	semapv:ManualMappingCuration	0.9	
-gmeow:givenName	owl:equivalentProperty	schema:givenName	semapv:ManualMappingCuration	1.0	
-gmeow:givenName	owl:equivalentProperty	foaf:givenName	semapv:ManualMappingCuration	1.0	
-gmeow:familyName	owl:equivalentProperty	schema:familyName	semapv:ManualMappingCuration	1.0	
-gmeow:familyName	owl:equivalentProperty	foaf:familyName	semapv:ManualMappingCuration	1.0	
-gmeow:email	owl:equivalentProperty	schema:email	semapv:ManualMappingCuration	1.0	
+gmeow:name	skos:closeMatch	vcard:fn	semapv:ManualMappingCuration	0.9
+gmeow:email	owl:equivalentProperty	schema:email	semapv:ManualMappingCuration	1.0
 gmeow:email	skos:closeMatch	foaf:mbox	semapv:ManualMappingCuration	0.9	foaf:mbox is an IRI; close not equivalent
 gmeow:email	skos:closeMatch	vcard:hasEmail	semapv:ManualMappingCuration	0.9	
 gmeow:telephone	owl:equivalentProperty	schema:telephone	semapv:ManualMappingCuration	1.0	
@@ -21,9 +17,8 @@ gmeow:title	skos:closeMatch	dcterms:title	semapv:ManualMappingCuration	0.9
 gmeow:datePublished	owl:equivalentProperty	schema:datePublished	semapv:ManualMappingCuration	1.0	
 gmeow:identifier	skos:closeMatch	bibo:doi	semapv:ManualMappingCuration	0.8	
 gmeow:developer	owl:equivalentProperty	doap:developer	semapv:ManualMappingCuration	1.0	
-gmeow:hasRepository	skos:closeMatch	doap:repository	semapv:ManualMappingCuration	0.9	
-gmeow:programmingLanguage	owl:equivalentProperty	doap:programming-language	semapv:ManualMappingCuration	1.0	
-gmeow:memberOf	owl:equivalentProperty	schema:memberOf	semapv:ManualMappingCuration	1.0	
+gmeow:hasRepository	skos:closeMatch	doap:repository	semapv:ManualMappingCuration	0.9
+gmeow:memberOf	owl:equivalentProperty	schema:memberOf	semapv:ManualMappingCuration	1.0
 gmeow:memberOf	skos:closeMatch	org:memberOf	semapv:ManualMappingCuration	0.9	
 gmeow:hasMember	skos:closeMatch	org:member	semapv:ManualMappingCuration	0.8	
 gmeow:hasParent	owl:equivalentProperty	schema:parent	semapv:ManualMappingCuration	1.0	

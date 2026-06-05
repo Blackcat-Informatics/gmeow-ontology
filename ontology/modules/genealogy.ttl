@@ -76,13 +76,10 @@ gmeow:FosterParentChild
     skos:definition "A parent-child relationship through fostering."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-# gmeow:PersonName, gmeow:hasName, gmeow:nameType, gmeow:givenNamePart and
-# gmeow:surnamePart moved to the dedicated names module (ontology/modules/
-# names.ttl), where PersonName is now a gmeow:Appellation with the full
-# multi-culture, inclusive naming model. The IRIs are unchanged; genealogy still
-# uses them through the unified import closure, and links names to the events
-# that confer them via gmeow:conferredByEvent (e.g. Christening, NameChange,
-# Marriage, Adoption).
+# Names live in the dedicated names module: a person bears a gmeow:PersonName
+# (a gmeow:Appellation) via gmeow:hasName, with structured gmeow:NamePart
+# components. Genealogy links a name to the event that confers it via
+# gmeow:conferredByEvent (Christening, NameChange, Marriage, Adoption).
 
 # Life-event hierarchy (seeded from BIO event classes and GEDCOM X fact types)
 
@@ -417,10 +414,8 @@ gmeow:relationshipChild
     skos:definition "The child in a reified parent-child relationship."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-# gmeow:hasName, gmeow:nameType, gmeow:givenNamePart and gmeow:surnamePart now
-# live in the names module (see the note above). gmeow:sex stays here — it is a
-# Person property; pronouns and honorifics are modelled separately and
-# independently in the names module and are never inferred from sex.
+# gmeow:sex is a Person property; pronouns and honorifics are modelled separately
+# and independently in the names module and are never inferred from sex.
 
 gmeow:sex
     a owl:DatatypeProperty ;

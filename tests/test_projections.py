@@ -20,10 +20,14 @@ LOC = "https://example.org/loc/"
 NAMES = "https://example.org/names/"
 
 
+LANG = "https://example.org/lang/"
+
+
 def _source() -> Graph:
     graph = load_merged_graph(include_imports=False)
     graph.parse(FIXTURES_DIR / "places.ttl", format="turtle")
     graph.parse(FIXTURES_DIR / "names.ttl", format="turtle")
+    graph.parse(FIXTURES_DIR / "languages.ttl", format="turtle")
     return graph
 
 
@@ -38,6 +42,7 @@ def _assert_no_gmeow_leakage(graph: Graph) -> None:
 def test_fno_edoal_specs_parse() -> None:
     required = (
         "functions.fno.ttl",
+        "transforms.fno.ttl",
         "schema-org.edoal.ttl",
         "geosparql.edoal.ttl",
         "vcard.edoal.ttl",
@@ -71,6 +76,30 @@ def test_schema_org_projection() -> None:
         URIRef(SCHEMA + "honorificPrefix"),
         Literal("Mx", lang="en"),
     ) in g
+    _assert_no_gmeow_leakage(g)
+
+
+def test_languages_projection() -> None:
+    g = project_graph("schema-org", _source())
+    # Language → schema:Language; ProgrammingLanguage → schema:ComputerLanguage.
+    assert (URIRef(LANG + "german"), RDF.type, URIRef(SCHEMA + "Language")) in g
+    assert (
+        URIRef(LANG + "python"),
+        RDF.type,
+        URIRef(SCHEMA + "ComputerLanguage"),
+    ) in g
+    # The BCP-47 tag GMEOW refuses as identity, reconstructed on demand (de + Latn).
+    assert Literal("de-Latn") in set(
+        g.objects(URIRef(LANG + "german"), URIRef(SCHEMA + "alternateName"))
+    )
+    # The reified LanguageProficiency relator flattened to schema:knowsLanguage.
+    known = set(g.objects(URIRef(LANG + "learner"), URIRef(SCHEMA + "knowsLanguage")))
+    assert URIRef(LANG + "german") in known
+    assert URIRef(LANG + "english") in known
+    # Co-equal endonym/exonym language names BOTH emitted.
+    names = set(g.objects(URIRef(LANG + "german"), URIRef(SCHEMA + "name")))
+    assert Literal("Deutsch", lang="de") in names
+    assert Literal("German", lang="en") in names
     _assert_no_gmeow_leakage(g)
 
 

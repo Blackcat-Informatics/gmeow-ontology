@@ -1,0 +1,11 @@
+# Competency question: "What language-proficiency levels does GMEOW model, and on
+# which scales?" Expected: the ProficiencyLevel value individuals — the CEFR band
+# (A1–C2) plus scale-free native/heritage — each tied to its scale by
+# gmeow:levelScale. The leveled detail lives on the reified gmeow:LanguageProficiency.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?level WHERE {
+    ?level a gmeow:ProficiencyLevel .
+}
+ORDER BY ?level
