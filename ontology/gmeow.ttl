@@ -40,6 +40,7 @@
         <https://blackcatinformatics.ca/gmeow/modules/documents> ,
         <https://blackcatinformatics.ca/gmeow/modules/software> ,
         <https://blackcatinformatics.ca/gmeow/modules/genealogy> ,
+        <https://blackcatinformatics.ca/gmeow/modules/names> ,
         <https://blackcatinformatics.ca/gmeow/modules/agreements> ,
         <https://blackcatinformatics.ca/gmeow/modules/contacts> ,
         <https://blackcatinformatics.ca/gmeow/modules/places> ,

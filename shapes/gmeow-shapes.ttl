@@ -65,3 +65,47 @@ gmeow:GmeowPropertyShape
         sh:severity sh:Violation ;
         sh:message "Every GMEOW property must carry a skos:definition." ;
     ] .
+
+# --------------------------------------------------------------------------- #
+# Names building block — inclusivity + anti-colonial data shapes. These target
+# instance data (gmeow:PersonName individuals), so they are dormant when
+# validating the term graph (the TBox has no instances) and enforce when a data
+# graph is checked against these shapes.
+# --------------------------------------------------------------------------- #
+
+# A name must carry content, but a SURNAME is never required — mononyms and
+# non-Western naming systems are first-class. Satisfied by a full name or any
+# typed part.
+gmeow:AppellationHasContentShape
+    a sh:NodeShape ;
+    rdfs:label "Appellation content shape (no required surname)" ;
+    sh:targetClass gmeow:Appellation ;
+    sh:or (
+        [ sh:path gmeow:fullName ; sh:minCount 1 ]
+        [ sh:path gmeow:hasNamePart ; sh:minCount 1 ]
+        [ sh:path gmeow:givenNamePart ; sh:minCount 1 ]
+    ) ;
+    sh:severity sh:Violation ;
+    sh:message "An appellation must have a gmeow:fullName or at least one name part; a surname is never required (mononyms are valid)." .
+
+# Deadnames and superseded names must be suppressed from display by default.
+gmeow:DeadnameSuppressionShape
+    a sh:NodeShape ;
+    rdfs:label "Deadname / superseded suppression shape" ;
+    sh:targetClass gmeow:PersonName ;
+    sh:sparql [
+        sh:severity sh:Warning ;
+        sh:message "A superseded name or deadname should set gmeow:displayable false." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/namePurpose> ?p .
+                FILTER(?p IN (
+                    <https://blackcatinformatics.ca/gmeow/namePurposeDeadname>,
+                    <https://blackcatinformatics.ca/gmeow/namePurposeSuperseded>
+                ))
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
+                }
+            }
+        """ ;
+    ] .
