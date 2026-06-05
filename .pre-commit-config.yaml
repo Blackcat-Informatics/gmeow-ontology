@@ -2,7 +2,8 @@
 # locally (`pre-commit install`) and in CI (`pre-commit run --all-files`).
 # Python lint/type-check (ruff strict + mypy) stay in the Makefile/CI quality
 # gate; this file covers everything else: formatting, spelling, YAML, Markdown,
-# shell, GitHub Actions (lint + security), secrets, and license compliance.
+# shell, GitHub Actions (lint + security), and secrets. (Full REUSE/SPDX
+# license-header compliance is deferred to a separate follow-up.)
 default_language_version:
   python: python3.13
 
