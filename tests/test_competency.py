@@ -137,6 +137,41 @@ def test_competency_place_properties_query() -> None:
         assert NAMESPACE + term in terms
 
 
+def test_competency_appellation_kinds_query() -> None:
+    terms = _query_terms("appellation-kinds.rq")
+    for term in (
+        "Appellation",
+        "PersonName",
+        "Filename",
+        "PlaceName",
+        "OrganizationName",
+    ):
+        assert NAMESPACE + term in terms
+
+
+def test_competency_name_part_types_query() -> None:
+    terms = _query_terms("name-part-types.rq")
+    # Multi-cultural coverage: Western, Spanish double surname, Arabic, mononym.
+    for term in (
+        "namePartGiven",
+        "namePartSurname",
+        "namePartPaternalSurname",
+        "namePartNisba",
+        "namePartMononym",
+        "namePartGenerationName",
+        "namePartClanName",
+        "namePartBirthOrderName",
+        "namePartNomen",
+    ):
+        assert NAMESPACE + term in terms
+
+
+def test_competency_pronoun_sets_query() -> None:
+    terms = _query_terms("pronoun-sets.rq")
+    for term in ("pronounSheHer", "pronounHeHim", "pronounTheyThem", "pronounXeXem"):
+        assert NAMESPACE + term in terms
+
+
 def test_qc_missing_definitions_is_empty() -> None:
     # The skeleton is fully annotated, so the QC check returns no offenders.
     graph = load_merged_graph(include_imports=False)

@@ -80,6 +80,25 @@ def test_locations_slice_covered() -> None:
     assert "http://www.opengis.net/ont/geosparql#asWKT" in report.covered_predicates
 
 
+def test_names_slice_covered() -> None:
+    report = run_coverage()
+    # The names fixture exercises the universal Appellation framework, the
+    # context relator, structured parts and the pronoun set — all native GMEOW.
+    for cls in (
+        "PersonName",
+        "Filename",
+        "PlaceName",
+        "OrganizationName",
+        "NamePart",
+        "NameUsage",
+        "PronounSet",
+    ):
+        assert GMEOW + cls in report.covered_classes
+    # The co-equality machinery routes through these predicates.
+    for prop in ("hasName", "fullName", "namePurpose", "usageAppellation"):
+        assert GMEOW + prop in report.covered_predicates
+
+
 def test_slice_is_partial() -> None:
     # The slice is intentionally incomplete: there must be tracked gaps, and
     # coverage must be a real (non-zero, non-total) fraction.

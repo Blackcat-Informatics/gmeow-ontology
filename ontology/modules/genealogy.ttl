@@ -8,7 +8,7 @@
 <https://blackcatinformatics.ca/gmeow/modules/genealogy>
     a owl:Ontology ;
     rdfs:label "GMEOW Genealogy Module"@en ;
-    rdfs:comment "A comprehensive, event- and evidence-centric genealogy model: life events as first-class nodes with dates, places and roles; reified, typed kinship relationships; structured names; kinship convenience properties. Supersedes the unmaintained W3C SWAP gedcom vocabulary; aligned to BIO, GEDCOM X, schema.org, Wikidata, REL and GeoNames."@en ;
+    rdfs:comment "A comprehensive, event- and evidence-centric genealogy model: life events as first-class nodes with dates, places and roles; reified, typed kinship relationships; kinship convenience properties. Structured naming terms (gmeow:PersonName et al.) are defined in the dedicated names module and linked to the events that confer them via gmeow:conferredByEvent. Supersedes the unmaintained W3C SWAP gedcom vocabulary; aligned to BIO, GEDCOM X, schema.org, Wikidata, REL and GeoNames."@en ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # Classes
@@ -76,12 +76,13 @@ gmeow:FosterParentChild
     skos:definition "A parent-child relationship through fostering."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:PersonName
-    a owl:Class ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Person Name"@en ;
-    skos:definition "A structured, typed name borne by a person — birth name, married name, alias — with ordered name parts and an optional validity period."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+# gmeow:PersonName, gmeow:hasName, gmeow:nameType, gmeow:givenNamePart and
+# gmeow:surnamePart moved to the dedicated names module (ontology/modules/
+# names.ttl), where PersonName is now a gmeow:Appellation with the full
+# multi-culture, inclusive naming model. The IRIs are unchanged; genealogy still
+# uses them through the unified import closure, and links names to the events
+# that confer them via gmeow:conferredByEvent (e.g. Christening, NameChange,
+# Marriage, Adoption).
 
 # Life-event hierarchy (seeded from BIO event classes and GEDCOM X fact types)
 
@@ -416,37 +417,10 @@ gmeow:relationshipChild
     skos:definition "The child in a reified parent-child relationship."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:hasName
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Person ;
-    rdfs:range gmeow:PersonName ;
-    rdfs:label "has name"@en ;
-    skos:definition "Relates a person to a structured, typed name they bear."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:nameType
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:PersonName ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "name type"@en ;
-    skos:definition "The kind of name (e.g. birth name, married name, also-known-as, religious name)."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:givenNamePart
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:PersonName ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "given name part"@en ;
-    skos:definition "A given (fore) name part within a structured name."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:surnamePart
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:PersonName ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "surname part"@en ;
-    skos:definition "A surname (family) name part within a structured name."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+# gmeow:hasName, gmeow:nameType, gmeow:givenNamePart and gmeow:surnamePart now
+# live in the names module (see the note above). gmeow:sex stays here — it is a
+# Person property; pronouns and honorifics are modelled separately and
+# independently in the names module and are never inferred from sex.
 
 gmeow:sex
     a owl:DatatypeProperty ;

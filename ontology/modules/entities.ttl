@@ -46,7 +46,8 @@ gmeow:name
     rdfs:domain gmeow:Entity ;
     rdfs:range rdfs:Literal ;
     rdfs:label "name"@en ;
-    skos:definition "The name by which an entity is known."@en ;
+    skos:definition "A name by which an entity is known, as a flat literal. A lossy convenience shortcut — NOT the entity's canonical or 'primary' name. An entity bears many co-equal names (across languages, scripts, and life stages); the first-class, structured, multi-culture model is gmeow:Appellation / gmeow:PersonName (names module). Language-tag the literal where applicable."@en ;
+    skos:scopeNote "Flat projection of one of the co-equal gmeow:fullName values on a gmeow:Appellation; carries no precedence over an entity's other names."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:givenName
@@ -54,7 +55,7 @@ gmeow:givenName
     rdfs:domain gmeow:Person ;
     rdfs:range rdfs:Literal ;
     rdfs:label "given name"@en ;
-    skos:definition "A person's given (first) name."@en ;
+    skos:definition "A person's given (first) name, as a flat literal shortcut. The structured, culture-aware form is a typed gmeow:NamePart (gmeow:namePartGiven) on a gmeow:PersonName."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:familyName
@@ -62,5 +63,5 @@ gmeow:familyName
     rdfs:domain gmeow:Person ;
     rdfs:range rdfs:Literal ;
     rdfs:label "family name"@en ;
-    skos:definition "A person's family (last) name."@en ;
+    skos:definition "A person's family (last) name, as a flat literal shortcut. Optional — many naming systems have no family name (mononyms, patronymic systems). The structured form is a typed gmeow:NamePart (gmeow:namePartSurname) on a gmeow:PersonName."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
