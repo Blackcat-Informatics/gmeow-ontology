@@ -69,6 +69,10 @@ SHAPES_FILE = SHAPES_DIR / "gmeow-shapes.ttl"
 QUERIES_DIR = PROJECT_ROOT / "queries"
 COMPETENCY_DIR = QUERIES_DIR / "competency"
 QC_DIR = QUERIES_DIR / "qc"
+#: Per-profile projection CONSTRUCT queries (the FnO/EDOAL executors).
+PROJECTION_QUERY_DIR = QUERIES_DIR / "projections"
+#: FnO function catalog + EDOAL complex-alignment specs (consumable, not reasoned).
+PROJECTIONS_DIR = PROJECT_ROOT / "projections"
 #: Vendored coverage fixtures (public site graphs) used by the coverage harness.
 FIXTURES_DIR = PROJECT_ROOT / "tests" / "fixtures" / "coverage"
 METADATA_DIR = PROJECT_ROOT / "metadata"
@@ -137,6 +141,11 @@ PREFIXES: dict[str, str] = {
     "dcat": "http://www.w3.org/ns/dcat#",
     "sssom": "https://w3id.org/sssom/",
     "semapv": "https://w3id.org/semapv/vocab/",
+    # Transformation / complex-alignment layer (projection specs; not reasoned)
+    "fno": "https://w3id.org/function/ontology#",
+    "fnom": "https://w3id.org/function/vocabulary/mapping#",
+    "edoal": "http://ns.inria.org/edoal/1.0/#",
+    "align": "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#",
     # Upper-ontology spine
     "gufo": "http://purl.org/nemo/gufo#",
     "umbel": "http://umbel.org/umbel#",

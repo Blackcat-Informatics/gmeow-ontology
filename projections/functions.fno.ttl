@@ -1,0 +1,86 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix fno:     <https://w3id.org/function/ontology#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix geo:     <http://www.opengis.net/ont/geosparql#> .
+
+# FnO catalog — the declarative description of the transformation functions the
+# EDOAL alignments invoke when projecting GMEOW to pure schema.org / GeoSPARQL /
+# FOAF / vCard. These describe WHAT each transform does (parameters → output);
+# the executable HOW is the corresponding SPARQL CONSTRUCT in queries/projections/
+# (referenced via rdfs:seeAlso). This file is a consumable spec — it is NOT
+# imported into the ontology and is never reasoned over.
+
+<https://blackcatinformatics.ca/gmeow/projections/functions>
+    a owl:Ontology ;
+    rdfs:label "GMEOW projection functions (FnO)"@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:fnPlaceTypeToClass
+    a fno:Function ;
+    rdfs:label "place-type value → target class"@en ;
+    dcterms:description "Maps a gmeow:placeType value individual (e.g. placeTypeCountry) to the target vocabulary class to assert via rdf:type (e.g. schema:Country). The conditional retyping; place types without a target class are dropped."@en ;
+    fno:expects ( gmeow:pPlaceType ) ;
+    fno:returns ( gmeow:oTargetClass ) ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
+
+gmeow:fnLatLongToWktPoint
+    a fno:Function ;
+    rdfs:label "latitude + longitude → WKT POINT"@en ;
+    dcterms:description "Combines separate decimal latitude and longitude into a GeoSPARQL WKT POINT literal (POINT(lon lat), lon first per WKT), typed geo:wktLiteral."@en ;
+    fno:expects ( gmeow:pLat gmeow:pLong ) ;
+    fno:returns ( gmeow:oWkt ) ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> .
+
+gmeow:fnRetagWkt
+    a fno:Function ;
+    rdfs:label "retag WKT literal as geo:wktLiteral"@en ;
+    dcterms:description "Re-tags a gmeow:asWKT value (range rdfs:Literal, for OWL 2 DL safety) with the geo:wktLiteral datatype so GeoSPARQL spatial engines recognise it."@en ;
+    fno:expects ( gmeow:pLiteral ) ;
+    fno:returns ( gmeow:oWkt ) ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> .
+
+gmeow:fnComposeAddress
+    a fno:Function ;
+    rdfs:label "compose address components → single label string"@en ;
+    dcterms:description "Concatenates the decomposed address components (street, locality, region, postal code, country) into one single-line label string — emitted as vcard:label by the vCard projection. Lossy: formatting convention varies by locale."@en ;
+    fno:expects ( gmeow:pStreet gmeow:pLocality gmeow:pRegion gmeow:pPostalCode gmeow:pCountry ) ;
+    fno:returns ( gmeow:oAddressString ) ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> .
+
+gmeow:fnSelectDisplayName
+    a fno:Function ;
+    rdfs:label "select displayable full name"@en ;
+    dcterms:description "Returns an appellation's gmeow:fullName ONLY when gmeow:displayable is not false (deadnames and superseded names are suppressed). Co-equal: every displayable name is emitted; none is privileged as 'primary' — locale-relative selection is left to the consumer."@en ;
+    fno:expects ( gmeow:pAppellation ) ;
+    fno:returns ( gmeow:oDisplayName ) ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
+
+gmeow:fnHonorificToAffix
+    a fno:Function ;
+    rdfs:label "honorific value → prefix/suffix literal"@en ;
+    dcterms:description "Maps a gmeow:Honorific value to a target honorific-prefix or honorific-suffix string according to its gmeow:honorificPosition (e.g. honorificDr → schema:honorificPrefix \"Dr\"; honorificSan → a suffix)."@en ;
+    fno:expects ( gmeow:pHonorific ) ;
+    fno:returns ( gmeow:oAffix ) ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
+
+# Parameters and outputs (fno:predicate is the binding key; fno:type the datatype/class).
+gmeow:pPlaceType   a fno:Parameter ; fno:predicate gmeow:placeType ; fno:type gmeow:PlaceType ; fno:required true .
+gmeow:pLat         a fno:Parameter ; fno:predicate gmeow:latitude ; fno:type xsd:decimal ; fno:required true .
+gmeow:pLong        a fno:Parameter ; fno:predicate gmeow:longitude ; fno:type xsd:decimal ; fno:required true .
+gmeow:pLiteral     a fno:Parameter ; fno:predicate gmeow:asWKT ; fno:type rdfs:Literal ; fno:required true .
+gmeow:pStreet      a fno:Parameter ; fno:predicate gmeow:streetAddress ; fno:type rdfs:Literal .
+gmeow:pLocality    a fno:Parameter ; fno:predicate gmeow:addressLocality ; fno:type rdfs:Literal .
+gmeow:pRegion      a fno:Parameter ; fno:predicate gmeow:addressRegion ; fno:type rdfs:Literal .
+gmeow:pPostalCode  a fno:Parameter ; fno:predicate gmeow:postalCode ; fno:type rdfs:Literal .
+gmeow:pCountry     a fno:Parameter ; fno:predicate gmeow:countryCode ; fno:type rdfs:Literal .
+gmeow:pAppellation a fno:Parameter ; fno:predicate gmeow:hasAppellation ; fno:type gmeow:Appellation ; fno:required true .
+gmeow:pHonorific   a fno:Parameter ; fno:predicate gmeow:honorific ; fno:type gmeow:Honorific ; fno:required true .
+
+gmeow:oTargetClass   a fno:Output ; fno:predicate gmeow:projectedType ; fno:type rdfs:Class .
+gmeow:oWkt           a fno:Output ; fno:predicate geo:asWKT ; fno:type geo:wktLiteral .
+gmeow:oAddressString a fno:Output ; fno:predicate gmeow:projectedAddress ; fno:type xsd:string .
+gmeow:oDisplayName   a fno:Output ; fno:predicate gmeow:projectedName ; fno:type rdfs:Literal .
+gmeow:oAffix         a fno:Output ; fno:predicate gmeow:projectedAffix ; fno:type xsd:string .

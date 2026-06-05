@@ -1,0 +1,41 @@
+@prefix align:  <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
+@prefix edoal:  <http://ns.inria.org/edoal/1.0/#> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix foaf:   <http://xmlns.com/foaf/0.1/> .
+@prefix wgs84:  <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# EDOAL complex alignment: GMEOW → pure FOAF (lowest-common-denominator). FOAF is
+# thin on places — a Place with coordinates collapses to a wgs84:SpatialThing with
+# wgs84:lat/long; a displayable full name → foaf:name; an agent locatedAt a place →
+# foaf:based_near. Heavily lossy (drops address structure, place types, hierarchy,
+# geometry, names context, storage/virtual). Executable: queries/projections/foaf.rq.
+
+<https://blackcatinformatics.ca/gmeow/projections/foaf>
+    a align:Alignment ;
+    rdfs:label "GMEOW → FOAF (EDOAL)"@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    align:level "2EDOAL" ;
+    align:onto1 [ a align:Ontology ; align:formalism [ align:name "GMEOW" ] ] ;
+    align:onto2 [ a align:Ontology ; align:formalism [ align:name "FOAF" ] ] ;
+    align:map [
+        a align:Cell ;
+        rdfs:label "Place with coordinates → wgs84:SpatialThing (lat/long, no WKT)"@en ;
+        align:entity1 [ a edoal:Class ; edoal:uri gmeow:Place ] ;
+        align:entity2 [ a edoal:Class ; edoal:uri wgs84:SpatialThing ] ;
+        align:relation "<="
+    ] , [
+        a align:Cell ;
+        rdfs:label "displayable fullName → foaf:name"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:fullName ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri foaf:name ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayName ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "locatedAt a Place → foaf:based_near"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:locatedAt ] ;
+        align:entity2 [ a edoal:Relation ; edoal:uri foaf:based_near ] ;
+        align:relation "<="
+    ] .
