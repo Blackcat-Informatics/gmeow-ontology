@@ -103,6 +103,15 @@ Two sub-lanes, both closed-world, for the constraints OWL deliberately cannot en
   This lane is skipped when the pinned ROBOT image is absent (like the HermiT tests), but never
   silently passed — CI's reasoning job runs it for real.
 
+## The gUFO grounding reaches outward (foundational bridging)
+
+The meta-grounding above makes gUFO GMEOW's foundational spine. That spine is **bridged by
+reference** to the broader top-level world — gUFO's nature categories align (`skos:closeMatch`,
+never imported) to **BFO 2020** (ISO/IEC 21838-2), so GMEOW interoperates with the OBO-Foundry /
+ISO lineage without adding a single axiom to the reasoned core. This is the final phase of the
+reasoning-depth epic. Full rationale, the mapping table, the recorded gaps, and the maintenance /
+extension guide (incl. how to add DOLCE/SUMO): [`docs/foundational-bridging.md`](./foundational-bridging.md).
+
 ## Suppression, never erasure (Principle 10)
 
 The display contract is **validated, not merely conventional**. There is exactly one display

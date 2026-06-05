@@ -1,0 +1,173 @@
+@prefix bfo: <http://purl.obolibrary.org/obo/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+bfo:BFO_0000009 a owl:Class ;
+    rdfs:label "two-dimensional spatial region"@en ;
+    rdfs:subClassOf bfo:BFO_0000006 .
+
+bfo:BFO_0000011 a owl:Class ;
+    rdfs:label "spatiotemporal region"@en ;
+    rdfs:subClassOf bfo:BFO_0000003 .
+
+bfo:BFO_0000018 a owl:Class ;
+    rdfs:label "zero-dimensional spatial region"@en ;
+    rdfs:subClassOf bfo:BFO_0000006 .
+
+bfo:BFO_0000023 a owl:Class ;
+    rdfs:label "role"@en ;
+    rdfs:subClassOf bfo:BFO_0000017 .
+
+bfo:BFO_0000024 a owl:Class ;
+    rdfs:label "fiat object part"@en ;
+    rdfs:subClassOf bfo:BFO_0000040 .
+
+bfo:BFO_0000026 a owl:Class ;
+    rdfs:label "one-dimensional spatial region"@en ;
+    rdfs:subClassOf bfo:BFO_0000006 .
+
+bfo:BFO_0000027 a owl:Class ;
+    rdfs:label "object aggregate"@en ;
+    rdfs:subClassOf bfo:BFO_0000040 .
+
+bfo:BFO_0000028 a owl:Class ;
+    rdfs:label "three-dimensional spatial region"@en ;
+    rdfs:subClassOf bfo:BFO_0000006 .
+
+bfo:BFO_0000029 a owl:Class ;
+    rdfs:label "site"@en ;
+    rdfs:subClassOf bfo:BFO_0000141 .
+
+bfo:BFO_0000030 a owl:Class ;
+    rdfs:label "object"@en ;
+    rdfs:subClassOf bfo:BFO_0000040 .
+
+bfo:BFO_0000031 a owl:Class ;
+    rdfs:label "generically dependent continuant"@en ;
+    rdfs:subClassOf bfo:BFO_0000002 .
+
+bfo:BFO_0000034 a owl:Class ;
+    rdfs:label "function"@en ;
+    rdfs:subClassOf bfo:BFO_0000016 .
+
+bfo:BFO_0000035 a owl:Class ;
+    rdfs:label "process boundary"@en ;
+    rdfs:subClassOf bfo:BFO_0000003 .
+
+bfo:BFO_0000038 a owl:Class ;
+    rdfs:label "one-dimensional temporal region"@en ;
+    rdfs:subClassOf bfo:BFO_0000008 .
+
+bfo:BFO_0000142 a owl:Class ;
+    rdfs:label "one-dimensional continuant fiat boundary"@en ;
+    rdfs:subClassOf bfo:BFO_0000140 .
+
+bfo:BFO_0000144 a owl:Class ;
+    rdfs:label "process profile"@en ;
+    rdfs:subClassOf bfo:BFO_0000015 .
+
+bfo:BFO_0000145 a owl:Class ;
+    rdfs:label "relational quality"@en ;
+    rdfs:subClassOf bfo:BFO_0000019 .
+
+bfo:BFO_0000146 a owl:Class ;
+    rdfs:label "two-dimensional continuant fiat boundary"@en ;
+    rdfs:subClassOf bfo:BFO_0000140 .
+
+bfo:BFO_0000147 a owl:Class ;
+    rdfs:label "zero-dimensional continuant fiat boundary"@en ;
+    rdfs:subClassOf bfo:BFO_0000140 .
+
+bfo:BFO_0000148 a owl:Class ;
+    rdfs:label "zero-dimensional temporal region"@en ;
+    rdfs:subClassOf bfo:BFO_0000008 .
+
+bfo:BFO_0000179 rdfs:label "BFO OWL specification label"@en .
+
+bfo:BFO_0000180 rdfs:label "BFO CLIF specification label"@en .
+
+bfo:BFO_0000182 a owl:Class ;
+    rdfs:label "history"@en ;
+    rdfs:subClassOf bfo:BFO_0000015 .
+
+bfo:IAO_0000111 rdfs:label "editor preferred term"@en .
+
+bfo:IAO_0000112 rdfs:label "example of usage"@en .
+
+bfo:IAO_0000115 rdfs:label "definition"@en .
+
+bfo:IAO_0000116 rdfs:label "editor note"@en .
+
+bfo:IAO_0000117 rdfs:label "term editor"@en .
+
+bfo:IAO_0000118 rdfs:label "alternative term"@en .
+
+bfo:IAO_0000119 rdfs:label "definition source"@en .
+
+bfo:IAO_0000232 rdfs:label "curator note"@en .
+
+bfo:IAO_0000412 rdfs:label "imported from"@en .
+
+bfo:IAO_0000600 rdfs:label "elucidation"@en .
+
+bfo:IAO_0000601 rdfs:label "has associated axiom(nl)"@en .
+
+bfo:IAO_0000602 rdfs:label "has associated axiom(fol)"@en .
+
+bfo:IAO_0010000 rdfs:label "has axiom label"@en .
+
+bfo:BFO_0000016 a owl:Class ;
+    rdfs:label "disposition"@en ;
+    rdfs:subClassOf bfo:BFO_0000017 .
+
+bfo:BFO_0000019 a owl:Class ;
+    rdfs:label "quality"@en ;
+    rdfs:subClassOf bfo:BFO_0000020 .
+
+bfo:BFO_0000001 a owl:Class ;
+    rdfs:label "entity"@en .
+
+bfo:BFO_0000004 a owl:Class ;
+    rdfs:label "independent continuant"@en ;
+    rdfs:subClassOf bfo:BFO_0000002 .
+
+bfo:BFO_0000008 a owl:Class ;
+    rdfs:label "temporal region"@en ;
+    rdfs:subClassOf bfo:BFO_0000003 .
+
+bfo:BFO_0000015 a owl:Class ;
+    rdfs:label "process"@en ;
+    rdfs:subClassOf bfo:BFO_0000003 .
+
+bfo:BFO_0000017 a owl:Class ;
+    rdfs:label "realizable entity"@en ;
+    rdfs:subClassOf bfo:BFO_0000020 .
+
+bfo:BFO_0000020 a owl:Class ;
+    rdfs:label "specifically dependent continuant"@en ;
+    rdfs:subClassOf bfo:BFO_0000002 .
+
+bfo:BFO_0000002 a owl:Class ;
+    rdfs:label "continuant"@en ;
+    rdfs:subClassOf bfo:BFO_0000001 .
+
+bfo:BFO_0000040 a owl:Class ;
+    rdfs:label "material entity"@en ;
+    rdfs:subClassOf bfo:BFO_0000004 .
+
+bfo:BFO_0000140 a owl:Class ;
+    rdfs:label "continuant fiat boundary"@en ;
+    rdfs:subClassOf bfo:BFO_0000141 .
+
+bfo:BFO_0000141 a owl:Class ;
+    rdfs:label "immaterial entity"@en ;
+    rdfs:subClassOf bfo:BFO_0000004 .
+
+bfo:BFO_0000003 a owl:Class ;
+    rdfs:label "occurrent"@en ;
+    rdfs:subClassOf bfo:BFO_0000001 .
+
+bfo:BFO_0000006 a owl:Class ;
+    rdfs:label "spatial region"@en ;
+    rdfs:subClassOf bfo:BFO_0000141 .
+

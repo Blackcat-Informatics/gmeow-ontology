@@ -284,252 +284,328 @@ gmeow:implSchemaOrg a fno:Implementation ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
 
 [] a fno:Mapping ;
-    fno:function gmeow:fnProficiencyToKnownLanguage ;
-    fno:implementation gmeow:implSchemaOrg ;
-    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramProficiencyLanguage ;
-            fnom:implementationProperty "known" ] ;
-    fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outProficiencyToKnownLanguage ;
-            fnom:implementationProperty "known" ] .
-
-[] a fno:Mapping ;
-    fno:function gmeow:fnSelectDisplayableGender ;
-    fno:implementation gmeow:implFoaf ;
-    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramHasGenderIdentity ;
-            fnom:implementationProperty "gi" ] ;
-    fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outSelectDisplayableGender ;
-            fnom:implementationProperty "genderLabel" ] .
-
-[] a fno:Mapping ;
-    fno:function gmeow:fnSelectDisplayName ;
-    fno:implementation gmeow:implFoaf ;
-    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramHasAppellation ;
-            fnom:implementationProperty "app" ] ;
-    fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outSelectDisplayName ;
-            fnom:implementationProperty "dispName" ] .
-
-[] a fno:Mapping ;
-    fno:function gmeow:fnSelectDisplayableGender ;
-    fno:implementation gmeow:implSchemaOrg ;
-    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramHasGenderIdentity ;
-            fnom:implementationProperty "gi" ] ;
-    fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outSelectDisplayableGender ;
-            fnom:implementationProperty "genderLabel" ] .
-
-[] a fno:Mapping ;
-    fno:function gmeow:fnWebPageToUrl ;
-    fno:implementation gmeow:implFoaf ;
-    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramHasWebPage ;
-            fnom:implementationProperty "wp" ] ;
-    fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outWebPageToUrl ;
-            fnom:implementationProperty "wp" ] .
-
-[] a fno:Mapping ;
-    fno:function gmeow:fnComposeBcp47 ;
-    fno:implementation gmeow:implSchemaOrg ;
-    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramLanguageCode ;
-            fnom:implementationProperty "code" ],
-        [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramScriptCode ;
-            fnom:implementationProperty "sc" ] ;
-    fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outComposeBcp47 ;
-            fnom:implementationProperty "bcp47" ] .
-
-[] a fno:Mapping ;
-    fno:function gmeow:fnSelectDisplayName ;
-    fno:implementation gmeow:implVcard ;
-    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramHasAppellation ;
-            fnom:implementationProperty "app" ] ;
-    fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outSelectDisplayName ;
-            fnom:implementationProperty "dispName" ] .
-
-[] a fno:Mapping ;
+    rdfs:label "Birth life-event → schema:birthDate → schema-org (FnO mapping)"@en ;
     fno:function gmeow:fnBirthEventToDate ;
-    fno:implementation gmeow:implVcard ;
+    fno:implementation gmeow:implSchemaOrg ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramEventDate ↦ ?bdate"@en ;
             fnom:functionParameter gmeow:paramEventDate ;
             fnom:implementationProperty "bdate" ] ;
     fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnBirthEventToDate output ↦ ?bdate"@en ;
             fnom:functionOutput gmeow:outBirthEventToDate ;
             fnom:implementationProperty "bdate" ] .
 
 [] a fno:Mapping ;
-    fno:function gmeow:fnWebPageToUrl ;
-    fno:implementation gmeow:implVcard ;
-    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramHasWebPage ;
-            fnom:implementationProperty "wp" ] ;
-    fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outWebPageToUrl ;
-            fnom:implementationProperty "wp" ] .
-
-[] a fno:Mapping ;
-    fno:function gmeow:fnWebPageToUrl ;
-    fno:implementation gmeow:implSchemaOrg ;
-    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramHasWebPage ;
-            fnom:implementationProperty "wp" ] ;
-    fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outWebPageToUrl ;
-            fnom:implementationProperty "wp" ] .
-
-[] a fno:Mapping ;
-    fno:function gmeow:fnNicknameName ;
-    fno:implementation gmeow:implVcard ;
-    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramHasName ;
-            fnom:implementationProperty "nn" ] ;
-    fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outNicknameName ;
-            fnom:implementationProperty "nick" ] .
-
-[] a fno:Mapping ;
-    fno:function gmeow:fnPlaceTypeToClass ;
-    fno:implementation gmeow:implSchemaOrg ;
-    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramPlaceType ;
-            fnom:implementationProperty "pt" ] ;
-    fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outPlaceTypeToClass ;
-            fnom:implementationProperty "pt" ] .
-
-[] a fno:Mapping ;
-    fno:function gmeow:fnNicknameName ;
-    fno:implementation gmeow:implSchemaOrg ;
-    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramHasName ;
-            fnom:implementationProperty "nname" ] ;
-    fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outNicknameName ;
-            fnom:implementationProperty "nick" ] .
-
-[] a fno:Mapping ;
-    fno:function gmeow:fnLatLongToWktPoint ;
-    fno:implementation gmeow:implGeosparql ;
-    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramLongitude ;
-            fnom:implementationProperty "lon" ],
-        [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramLatitude ;
-            fnom:implementationProperty "lat" ] ;
-    fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outLatLongToWktPoint ;
-            fnom:implementationProperty "pointWkt" ] .
-
-[] a fno:Mapping ;
-    fno:function gmeow:fnSubOrgToDepartment ;
-    fno:implementation gmeow:implSchemaOrg ;
-    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramSubOrganizationOf ;
-            fnom:implementationProperty "parent" ] ;
-    fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outSubOrgToDepartment ;
-            fnom:implementationProperty "dept" ] .
-
-[] a fno:Mapping ;
-    fno:function gmeow:fnSelectDisplayName ;
-    fno:implementation gmeow:implSchemaOrg ;
-    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramHasAppellation ;
-            fnom:implementationProperty "app" ] ;
-    fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outSelectDisplayName ;
-            fnom:implementationProperty "dispName" ] .
-
-[] a fno:Mapping ;
-    fno:function gmeow:fnNicknameName ;
-    fno:implementation gmeow:implFoaf ;
-    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramHasName ;
-            fnom:implementationProperty "nn" ] ;
-    fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outNicknameName ;
-            fnom:implementationProperty "nick" ] .
-
-[] a fno:Mapping ;
+    rdfs:label "Birth life-event → schema:birthDate → vcard (FnO mapping)"@en ;
     fno:function gmeow:fnBirthEventToDate ;
-    fno:implementation gmeow:implSchemaOrg ;
+    fno:implementation gmeow:implVcard ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramEventDate ↦ ?bdate"@en ;
             fnom:functionParameter gmeow:paramEventDate ;
             fnom:implementationProperty "bdate" ] ;
     fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnBirthEventToDate output ↦ ?bdate"@en ;
             fnom:functionOutput gmeow:outBirthEventToDate ;
             fnom:implementationProperty "bdate" ] .
 
 [] a fno:Mapping ;
+    rdfs:label "compose address components → single label string → vcard (FnO mapping)"@en ;
     fno:function gmeow:fnComposeAddress ;
     fno:implementation gmeow:implVcard ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramStreetAddress ;
-            fnom:implementationProperty "street" ],
-        [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramCountryCode ;
-            fnom:implementationProperty "ccode" ],
-        [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramPostalCode ;
-            fnom:implementationProperty "pcode" ],
-        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramAddressLocality ↦ ?locality"@en ;
             fnom:functionParameter gmeow:paramAddressLocality ;
             fnom:implementationProperty "locality" ],
         [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramAddressRegion ↦ ?region"@en ;
             fnom:functionParameter gmeow:paramAddressRegion ;
-            fnom:implementationProperty "region" ] ;
+            fnom:implementationProperty "region" ],
+        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramCountryCode ↦ ?ccode"@en ;
+            fnom:functionParameter gmeow:paramCountryCode ;
+            fnom:implementationProperty "ccode" ],
+        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramPostalCode ↦ ?pcode"@en ;
+            fnom:functionParameter gmeow:paramPostalCode ;
+            fnom:implementationProperty "pcode" ],
+        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramStreetAddress ↦ ?street"@en ;
+            fnom:functionParameter gmeow:paramStreetAddress ;
+            fnom:implementationProperty "street" ] ;
     fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnComposeAddress output ↦ ?label"@en ;
             fnom:functionOutput gmeow:outComposeAddress ;
             fnom:implementationProperty "label" ] .
 
 [] a fno:Mapping ;
+    rdfs:label "compose BCP-47 language tag → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnComposeBcp47 ;
+    fno:implementation gmeow:implSchemaOrg ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramLanguageCode ↦ ?code"@en ;
+            fnom:functionParameter gmeow:paramLanguageCode ;
+            fnom:implementationProperty "code" ],
+        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramScriptCode ↦ ?sc"@en ;
+            fnom:functionParameter gmeow:paramScriptCode ;
+            fnom:implementationProperty "sc" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnComposeBcp47 output ↦ ?bcp47"@en ;
+            fnom:functionOutput gmeow:outComposeBcp47 ;
+            fnom:implementationProperty "bcp47" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "honorific value → prefix/suffix literal → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnHonorificToAffix ;
+    fno:implementation gmeow:implSchemaOrg ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramHonorific ↦ ?h"@en ;
+            fnom:functionParameter gmeow:paramHonorific ;
+            fnom:implementationProperty "h" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnHonorificToAffix output ↦ ?honPrefix"@en ;
+            fnom:functionOutput gmeow:outHonorificToAffix ;
+            fnom:implementationProperty "honPrefix" ],
+        [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnHonorificToAffix output ↦ ?honSuffix"@en ;
+            fnom:functionOutput gmeow:outHonorificToAffix ;
+            fnom:implementationProperty "honSuffix" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "latitude + longitude → WKT POINT → geosparql (FnO mapping)"@en ;
+    fno:function gmeow:fnLatLongToWktPoint ;
+    fno:implementation gmeow:implGeosparql ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramLatitude ↦ ?lat"@en ;
+            fnom:functionParameter gmeow:paramLatitude ;
+            fnom:implementationProperty "lat" ],
+        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramLongitude ↦ ?lon"@en ;
+            fnom:functionParameter gmeow:paramLongitude ;
+            fnom:implementationProperty "lon" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnLatLongToWktPoint output ↦ ?pointWkt"@en ;
+            fnom:functionOutput gmeow:outLatLongToWktPoint ;
+            fnom:implementationProperty "pointWkt" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "Membership + Role → schema:jobTitle → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnMembershipToJobTitle ;
+    fno:implementation gmeow:implSchemaOrg ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramHasRole ↦ ?role"@en ;
+            fnom:functionParameter gmeow:paramHasRole ;
+            fnom:implementationProperty "role" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnMembershipToJobTitle output ↦ ?title"@en ;
+            fnom:functionOutput gmeow:outMembershipToJobTitle ;
+            fnom:implementationProperty "title" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "Membership + Role → schema:jobTitle → vcard (FnO mapping)"@en ;
+    fno:function gmeow:fnMembershipToJobTitle ;
+    fno:implementation gmeow:implVcard ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramHasRole ↦ ?r"@en ;
+            fnom:functionParameter gmeow:paramHasRole ;
+            fnom:implementationProperty "r" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnMembershipToJobTitle output ↦ ?title"@en ;
+            fnom:functionOutput gmeow:outMembershipToJobTitle ;
+            fnom:implementationProperty "title" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "nickname-purpose PersonName → foaf:nick → foaf (FnO mapping)"@en ;
+    fno:function gmeow:fnNicknameName ;
+    fno:implementation gmeow:implFoaf ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramHasName ↦ ?nn"@en ;
+            fnom:functionParameter gmeow:paramHasName ;
+            fnom:implementationProperty "nn" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnNicknameName output ↦ ?nick"@en ;
+            fnom:functionOutput gmeow:outNicknameName ;
+            fnom:implementationProperty "nick" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "nickname-purpose PersonName → foaf:nick → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnNicknameName ;
+    fno:implementation gmeow:implSchemaOrg ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramHasName ↦ ?nname"@en ;
+            fnom:functionParameter gmeow:paramHasName ;
+            fnom:implementationProperty "nname" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnNicknameName output ↦ ?nick"@en ;
+            fnom:functionOutput gmeow:outNicknameName ;
+            fnom:implementationProperty "nick" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "nickname-purpose PersonName → foaf:nick → vcard (FnO mapping)"@en ;
+    fno:function gmeow:fnNicknameName ;
+    fno:implementation gmeow:implVcard ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramHasName ↦ ?nn"@en ;
+            fnom:functionParameter gmeow:paramHasName ;
+            fnom:implementationProperty "nn" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnNicknameName output ↦ ?nick"@en ;
+            fnom:functionOutput gmeow:outNicknameName ;
+            fnom:implementationProperty "nick" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "place-type value → target class → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnPlaceTypeToClass ;
+    fno:implementation gmeow:implSchemaOrg ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramPlaceType ↦ ?pt"@en ;
+            fnom:functionParameter gmeow:paramPlaceType ;
+            fnom:implementationProperty "pt" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnPlaceTypeToClass output ↦ ?pt"@en ;
+            fnom:functionOutput gmeow:outPlaceTypeToClass ;
+            fnom:implementationProperty "pt" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "flatten LanguageProficiency → schema:knowsLanguage → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnProficiencyToKnownLanguage ;
+    fno:implementation gmeow:implSchemaOrg ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramProficiencyLanguage ↦ ?known"@en ;
+            fnom:functionParameter gmeow:paramProficiencyLanguage ;
+            fnom:implementationProperty "known" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnProficiencyToKnownLanguage output ↦ ?known"@en ;
+            fnom:functionOutput gmeow:outProficiencyToKnownLanguage ;
+            fnom:implementationProperty "known" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "retag WKT literal as geo:wktLiteral → geosparql (FnO mapping)"@en ;
     fno:function gmeow:fnRetagWkt ;
     fno:implementation gmeow:implGeosparql ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramAsWKT ↦ ?wkt"@en ;
             fnom:functionParameter gmeow:paramAsWKT ;
             fnom:implementationProperty "wkt" ] ;
     fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnRetagWkt output ↦ ?wktTagged"@en ;
             fnom:functionOutput gmeow:outRetagWkt ;
             fnom:implementationProperty "wktTagged" ] .
 
 [] a fno:Mapping ;
-    fno:function gmeow:fnMembershipToJobTitle ;
-    fno:implementation gmeow:implSchemaOrg ;
+    rdfs:label "select displayable full name → foaf (FnO mapping)"@en ;
+    fno:function gmeow:fnSelectDisplayName ;
+    fno:implementation gmeow:implFoaf ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramHasRole ;
-            fnom:implementationProperty "role" ] ;
+            rdfs:label "paramHasAppellation ↦ ?app"@en ;
+            fnom:functionParameter gmeow:paramHasAppellation ;
+            fnom:implementationProperty "app" ] ;
     fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outMembershipToJobTitle ;
-            fnom:implementationProperty "title" ] .
+            rdfs:label "fnSelectDisplayName output ↦ ?dispName"@en ;
+            fnom:functionOutput gmeow:outSelectDisplayName ;
+            fnom:implementationProperty "dispName" ] .
 
 [] a fno:Mapping ;
-    fno:function gmeow:fnHonorificToAffix ;
+    rdfs:label "select displayable full name → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnSelectDisplayName ;
     fno:implementation gmeow:implSchemaOrg ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramHonorific ;
-            fnom:implementationProperty "h" ] ;
+            rdfs:label "paramHasAppellation ↦ ?app"@en ;
+            fnom:functionParameter gmeow:paramHasAppellation ;
+            fnom:implementationProperty "app" ] ;
     fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outHonorificToAffix ;
-            fnom:implementationProperty "honSuffix" ],
-        [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outHonorificToAffix ;
-            fnom:implementationProperty "honPrefix" ] .
+            rdfs:label "fnSelectDisplayName output ↦ ?dispName"@en ;
+            fnom:functionOutput gmeow:outSelectDisplayName ;
+            fnom:implementationProperty "dispName" ] .
 
 [] a fno:Mapping ;
-    fno:function gmeow:fnMembershipToJobTitle ;
+    rdfs:label "select displayable full name → vcard (FnO mapping)"@en ;
+    fno:function gmeow:fnSelectDisplayName ;
     fno:implementation gmeow:implVcard ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
-            fnom:functionParameter gmeow:paramHasRole ;
-            fnom:implementationProperty "r" ] ;
+            rdfs:label "paramHasAppellation ↦ ?app"@en ;
+            fnom:functionParameter gmeow:paramHasAppellation ;
+            fnom:implementationProperty "app" ] ;
     fno:returnMapping [ a fnom:DefaultReturnMapping ;
-            fnom:functionOutput gmeow:outMembershipToJobTitle ;
-            fnom:implementationProperty "title" ] .
+            rdfs:label "fnSelectDisplayName output ↦ ?dispName"@en ;
+            fnom:functionOutput gmeow:outSelectDisplayName ;
+            fnom:implementationProperty "dispName" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "select displayable gender identity → gender label → foaf (FnO mapping)"@en ;
+    fno:function gmeow:fnSelectDisplayableGender ;
+    fno:implementation gmeow:implFoaf ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramHasGenderIdentity ↦ ?gi"@en ;
+            fnom:functionParameter gmeow:paramHasGenderIdentity ;
+            fnom:implementationProperty "gi" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnSelectDisplayableGender output ↦ ?genderLabel"@en ;
+            fnom:functionOutput gmeow:outSelectDisplayableGender ;
+            fnom:implementationProperty "genderLabel" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "select displayable gender identity → gender label → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnSelectDisplayableGender ;
+    fno:implementation gmeow:implSchemaOrg ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramHasGenderIdentity ↦ ?gi"@en ;
+            fnom:functionParameter gmeow:paramHasGenderIdentity ;
+            fnom:implementationProperty "gi" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnSelectDisplayableGender output ↦ ?genderLabel"@en ;
+            fnom:functionOutput gmeow:outSelectDisplayableGender ;
+            fnom:implementationProperty "genderLabel" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "subOrganizationOf → schema:department → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnSubOrgToDepartment ;
+    fno:implementation gmeow:implSchemaOrg ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramSubOrganizationOf ↦ ?parent"@en ;
+            fnom:functionParameter gmeow:paramSubOrganizationOf ;
+            fnom:implementationProperty "parent" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnSubOrgToDepartment output ↦ ?dept"@en ;
+            fnom:functionOutput gmeow:outSubOrgToDepartment ;
+            fnom:implementationProperty "dept" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "hasWebPage → schema:url → foaf (FnO mapping)"@en ;
+    fno:function gmeow:fnWebPageToUrl ;
+    fno:implementation gmeow:implFoaf ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramHasWebPage ↦ ?wp"@en ;
+            fnom:functionParameter gmeow:paramHasWebPage ;
+            fnom:implementationProperty "wp" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnWebPageToUrl output ↦ ?wp"@en ;
+            fnom:functionOutput gmeow:outWebPageToUrl ;
+            fnom:implementationProperty "wp" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "hasWebPage → schema:url → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnWebPageToUrl ;
+    fno:implementation gmeow:implSchemaOrg ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramHasWebPage ↦ ?wp"@en ;
+            fnom:functionParameter gmeow:paramHasWebPage ;
+            fnom:implementationProperty "wp" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnWebPageToUrl output ↦ ?wp"@en ;
+            fnom:functionOutput gmeow:outWebPageToUrl ;
+            fnom:implementationProperty "wp" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "hasWebPage → schema:url → vcard (FnO mapping)"@en ;
+    fno:function gmeow:fnWebPageToUrl ;
+    fno:implementation gmeow:implVcard ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramHasWebPage ↦ ?wp"@en ;
+            fnom:functionParameter gmeow:paramHasWebPage ;
+            fnom:implementationProperty "wp" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnWebPageToUrl output ↦ ?wp"@en ;
+            fnom:functionOutput gmeow:outWebPageToUrl ;
+            fnom:implementationProperty "wp" ] .

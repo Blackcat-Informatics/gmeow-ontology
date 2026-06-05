@@ -72,8 +72,10 @@ invoking user, so generated files are never owned by root.
 ontology/gmeow.ttl        Root ontology: metadata + owl:imports (gUFO + modules)
 ontology/modules/*.ttl    Module stubs, each class grounded in a gUFO category
 imports/                  Vendored gUFO (+ future extracted subsets)
+imports/targets/          Validation-only axiom snapshots (alignment linter + foundational bridge); NOT in the reasoned closure
 catalog-v001.xml          Offline IRI→file resolution for ROBOT/Protégé
 mapping-dsl/              The single authoring source for the alignment layer (compiled)
+mapping-dsl/foundational/ gUFO↔BFO foundational-spine bridge (by reference) — see docs/foundational-bridging.md
 statement-dsl/            The canonical RDF 1.2 / RDF* statement-metadata source (compiled)
 shapes/gmeow-shapes.ttl   SHACL completeness shapes
 queries/competency/, qc/  Competency questions + QC SPARQL
@@ -105,6 +107,13 @@ resolves it. ELK gates every push (fast); HermiT gates releases (sound + complet
 - **UMBEL** (CC-BY-3.0) is intended as a *curated, extracted* reference-concept layer — never
   imported whole (it is too large for DL reasoning). Extraction is via ROBOT `extract` (SLME).
 - **DOLCE/DUL** (LGPL) is **link-only** — referenced, never imported.
+- **Foundational bridging (the spine reaches outward).** gUFO's *nature* categories are aligned
+  by reference to **BFO 2020** (ISO/IEC 21838-2) — `skos:closeMatch`, never imported — so GMEOW
+  interoperates with the OBO-Foundry / ISO top-level world. This is Principle 5 applied
+  recursively to the foundational layer; the emitted BFO IRIs are verified against a vendored
+  class snapshot (`imports/targets/bfo.ttl`), kept out of the reasoned closure. DOLCE/SUMO are
+  planned next. Authoring source: `mapping-dsl/foundational/`; full guide:
+  [`docs/foundational-bridging.md`](./docs/foundational-bridging.md).
 
 ### Linking & the license policy
 

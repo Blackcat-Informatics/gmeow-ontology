@@ -22,6 +22,19 @@ enforce that:
 The fetch keeps only the minimal structural axiom set (no labels, definitions, or
 prose) so even a transient in-memory copy of a reference-only vocabulary is facts,
 not republication.
+
+Two snapshot *shapes*, chosen by the target's ``kind`` (:class:`AlignmentTarget`):
+
+* *schema* / *concept_scheme* targets are bridged at the **property** level, so
+  their snapshot keeps property axioms (domain/range/inverse + property types) —
+  what :mod:`gmeow_tools.alignment_lint` reads.
+* *upper* ontologies (gUFO, BFO, …) are bridged at the **class** level (the
+  foundational spine — issue #40), so their snapshot keeps class facts
+  (``rdf:type owl:Class``, ``rdfs:subClassOf`` within the namespace, and the
+  short class ``rdfs:label``). These let the foundational-bridge tests verify,
+  offline, that every emitted upper-ontology IRI is a real class with the
+  expected label. Labels are kept only for IMPORT_OK upper ontologies whose
+  license permits it (BFO is CC-BY-4.0).
 """
 
 from __future__ import annotations
@@ -30,7 +43,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import httpx
-from rdflib import RDF, RDFS, Graph, URIRef
+from rdflib import RDF, RDFS, Graph, Literal, URIRef
 from rdflib.namespace import OWL
 
 from gmeow_tools.config import (
@@ -104,6 +117,10 @@ TARGET_SOURCES: dict[str, TargetSource] = {
         "https://schema.org/version/latest/schemaorg-current-https.ttl",
         "turtle",
     ),
+    # BFO 2020 (ISO/IEC 21838-2). Served as RDF/XML at the OBO PURL. An *upper*
+    # ontology bridged at the class level (issue #40), so its snapshot is the
+    # class-fact shape, not the property-axiom shape.
+    "bfo": TargetSource("bfo", "http://purl.obolibrary.org/obo/bfo.owl", "xml"),
 }
 
 _USER_AGENT = "gmeow-tools/0.1 (ontology alignment-direction validator)"
@@ -135,8 +152,49 @@ def _minimal_axiom_graph(source: Graph, namespace: str) -> Graph:
     return out
 
 
+def _minimal_class_graph(source: Graph, namespace: str) -> Graph:
+    """Filter a parsed *upper* ontology down to its class facts.
+
+    Upper ontologies (gUFO, BFO) are bridged at the class level (the foundational
+    spine — issue #40), so the snapshot keeps, for every ``owl:Class`` in
+    ``namespace``: the class declaration, its ``rdfs:subClassOf`` parents that are
+    also in ``namespace`` (the internal taxonomy), and its short ``rdfs:label``.
+    Everything else (definitions, axiom annotations, cross-imports) is dropped —
+    the snapshot is the minimal fact set the foundational-bridge tests verify
+    emitted IRIs against, not a republication of the ontology.
+
+    Args:
+        source: The fully-parsed upper ontology.
+        namespace: The target's IRI namespace prefix (only subjects under it kept).
+
+    Returns:
+        A new, prefix-bound graph containing the minimal class-fact subset.
+    """
+    out = Graph()
+    bind_prefixes(out)
+    for subject, predicate, obj in source:
+        if not isinstance(subject, URIRef) or not str(subject).startswith(namespace):
+            continue
+        keep = (
+            (predicate == RDF.type and obj == OWL.Class)
+            or (predicate == RDFS.label and isinstance(obj, Literal))
+            or (
+                predicate == RDFS.subClassOf
+                and isinstance(obj, URIRef)
+                and str(obj).startswith(namespace)
+            )
+        )
+        if keep:
+            out.add((subject, predicate, obj))
+    return out
+
+
 def fetch_target_axioms(prefix: str, *, timeout: float = 60.0) -> Graph:
     """Fetch a target vocabulary and return its minimal axiom graph.
+
+    The snapshot *shape* follows the target's ``kind`` (:class:`AlignmentTarget`):
+    *upper* ontologies get the class-fact subset (:func:`_minimal_class_graph`);
+    everything else gets the property-axiom subset (:func:`_minimal_axiom_graph`).
 
     Args:
         prefix: A key into :data:`TARGET_SOURCES`.
@@ -159,6 +217,9 @@ def fetch_target_axioms(prefix: str, *, timeout: float = 60.0) -> Graph:
     )
     response.raise_for_status()
     parsed = Graph().parse(data=response.text, format=source.fetch_format)
+    target = ALIGNMENT_TARGETS.get(prefix)
+    if target is not None and target.kind == "upper":
+        return _minimal_class_graph(parsed, namespace)
     return _minimal_axiom_graph(parsed, namespace)
 
 

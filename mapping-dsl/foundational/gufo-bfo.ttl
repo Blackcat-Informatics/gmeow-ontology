@@ -1,0 +1,107 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/> .
+
+# Foundational-spine bridge: gUFO ↔ BFO 2020 (ISO/IEC 21838-2), by reference.
+# GMEOW grounds every class in gUFO; this aligns gUFO's NATURE categories (not its
+# stereotype meta-classes — BFO has no meta-level) to BFO's ground categories, so a
+# GMEOW graph interoperates with the OBO-Foundry / ISO top-level world. Authoring
+# source for mappings/gmeow-foundational.sssom.tsv (issue #40; CONSTITUTION P5).
+#
+# Every cell is skos:closeMatch: UFO (re-)constructs the categories on a different
+# basis than BFO, so no pair is exactly equivalent — see docs/foundational-bridging.md
+# for the per-cell rationale and the recorded gaps (gufo:Situation, gufo:Abstract-
+# Individual / QualityValue, and all gUFO stereotypes have no BFO counterpart).
+# Each bfo: IRI is verified against imports/targets/bfo.ttl by the bridge tests.
+
+gmeow:mapsetFoundational a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-foundational.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/foundational" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "gUFO↔BFO foundational-spine alignments (by reference; closeMatch — UFO and BFO build their categories on different bases). BFO IRIs verified against the vendored snapshot." .
+
+# gufo:Endurant (a ConcreteIndividual that endures in time, keeping identity) ≈
+# bfo:continuant (persists, has continuant parts, bears qualities).
+gmeow:eqFoundational001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gufo:Endurant ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000002 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "continuant" ;
+    gmeow:sssomFile "gmeow-foundational.sssom.tsv" .
+
+# gufo:Object (an Endurant that does not depend on another endurant; its subclasses
+# FunctionalComplex/Collection/Quantity are material) ≈ bfo:material entity, the
+# independent continuant that has matter. (BFO_0000030 "object" is the narrower,
+# causally-unified case — see eqFoundational003.)
+gmeow:eqFoundational002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gufo:Object ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000040 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "material entity" ;
+    gmeow:comment "Social objects (e.g. organizations modelled as functional complexes) strain this correspondence — BFO has no social-object category." ;
+    gmeow:sssomFile "gmeow-foundational.sssom.tsv" .
+
+# gufo:FunctionalComplex (a structured whole of functionally-related parts) ≈
+# bfo:object (a maximal, causally-unified material entity).
+gmeow:eqFoundational003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gufo:FunctionalComplex ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000030 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "object" ;
+    gmeow:sssomFile "gmeow-foundational.sssom.tsv" .
+
+# gufo:Collection (a complex Object whose members play a uniform role) ≈
+# bfo:object aggregate (a material entity that is a mereological sum of objects).
+gmeow:eqFoundational004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gufo:Collection ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000027 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "object aggregate" ;
+    gmeow:sssomFile "gmeow-foundational.sssom.tsv" .
+
+# gufo:Relator (an ExtrinsicAspect that mediates two or more individuals; a reified
+# relationship) ≈ bfo:specifically dependent continuant (depends on its bearer(s)).
+# BFO's nearest relational specialisation is BFO_0000145 (relational quality); the
+# SDC superclass is the safer closeMatch for a general relator.
+gmeow:eqFoundational005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gufo:Relator ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000020 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "specifically dependent continuant" ;
+    gmeow:sssomFile "gmeow-foundational.sssom.tsv" .
+
+# gufo:Quality (an IntrinsicAspect measurable in a value space) ≈ bfo:quality.
+gmeow:eqFoundational006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gufo:Quality ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000019 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "quality" ;
+    gmeow:sssomFile "gmeow-foundational.sssom.tsv" .
+
+# gufo:Event (a ConcreteIndividual that occurs/happens in time, possibly
+# instantaneous) ≈ bfo:occurrent. NB: bfo:process (BFO_0000015) is the narrower
+# extended-in-time case; occurrent is the correct match because gUFO events may be
+# instantaneous (which BFO classes as process boundaries, not processes).
+gmeow:eqFoundational007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gufo:Event ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000003 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "occurrent" ;
+    gmeow:sssomFile "gmeow-foundational.sssom.tsv" .

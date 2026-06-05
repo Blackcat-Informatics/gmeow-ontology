@@ -11,40 +11,6 @@
     rdfs:label "GMEOW → foaf (EDOAL)"@en ;
     align:level "2EDOAL" ;
     align:map [ a align:Cell ;
-            rdfs:label "nickname-purpose PersonName → foaf:nick"@en ;
-            align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:hasName ] ;
-            align:entity2 [ a edoal:Property ;
-                    edoal:uri foaf:nick ] ;
-            align:relation "<=" ;
-            edoal:measure 9e-01 ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnNicknameName ] ],
-        [ a align:Cell ;
-            rdfs:label "hasWebPage → foaf:homepage (the WebPage IRI)"@en ;
-            align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:hasWebPage ] ;
-            align:entity2 [ a edoal:Property ;
-                    edoal:uri foaf:homepage ] ;
-            align:relation "<=" ;
-            edoal:measure 8e-01 ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnWebPageToUrl ] ],
-        [ a align:Cell ;
-            rdfs:label "Place with coordinates → wgs84:SpatialThing (lat/long, no WKT)"@en ;
-            align:entity1 [ a edoal:Class ;
-                    edoal:uri gmeow:Place ] ;
-            align:entity2 [ a edoal:Class ;
-                    edoal:uri wgs84:SpatialThing ] ;
-            align:relation "<=" ],
-        [ a align:Cell ;
-            rdfs:label "displayable fullName → foaf:name"@en ;
-            align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:fullName ] ;
-            align:entity2 [ a edoal:Property ;
-                    edoal:uri foaf:name ] ;
-            align:relation "<=" ;
-            edoal:measure 8e-01 ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayName ] ],
-        [ a align:Cell ;
             rdfs:label "locatedAt a Place → foaf:based_near"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:locatedAt ] ;
@@ -60,7 +26,41 @@
                     edoal:uri foaf:gender ] ;
             align:relation "<=" ;
             edoal:measure 6e-01 ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayableGender ] ] ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayableGender ] ],
+        [ a align:Cell ;
+            rdfs:label "hasWebPage → foaf:homepage (the WebPage IRI)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasWebPage ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri foaf:homepage ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnWebPageToUrl ] ],
+        [ a align:Cell ;
+            rdfs:label "displayable fullName → foaf:name"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:fullName ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri foaf:name ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayName ] ],
+        [ a align:Cell ;
+            rdfs:label "nickname-purpose PersonName → foaf:nick"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasName ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri foaf:nick ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnNicknameName ] ],
+        [ a align:Cell ;
+            rdfs:label "Place with coordinates → wgs84:SpatialThing (lat/long, no WKT)"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:Place ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri wgs84:SpatialThing ] ;
+            align:relation "<=" ] ;
     align:onto1 [ a align:Ontology ;
             align:formalism [ align:name "GMEOW" ] ] ;
     align:onto2 [ a align:Ontology ;
