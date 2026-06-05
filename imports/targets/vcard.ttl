@@ -1,0 +1,202 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+vcard:additional-name a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:adr a owl:ObjectProperty .
+
+vcard:agent a owl:ObjectProperty .
+
+vcard:anniversary a owl:DatatypeProperty ;
+    rdfs:range [ ] .
+
+vcard:bday a owl:DatatypeProperty ;
+    rdfs:range [ ] .
+
+vcard:category a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:class a owl:DatatypeProperty .
+
+vcard:country-name a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:email a owl:ObjectProperty .
+
+vcard:extended-address a owl:DatatypeProperty .
+
+vcard:family-name a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:fn a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:geo a owl:ObjectProperty .
+
+vcard:given-name a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:hasAdditionalName a owl:ObjectProperty .
+
+vcard:hasAddress a owl:ObjectProperty ;
+    rdfs:range vcard:Address .
+
+vcard:hasCalendarBusy a owl:ObjectProperty .
+
+vcard:hasCalendarLink a owl:ObjectProperty .
+
+vcard:hasCalendarRequest a owl:ObjectProperty .
+
+vcard:hasCategory a owl:ObjectProperty .
+
+vcard:hasCountryName a owl:ObjectProperty .
+
+vcard:hasEmail a owl:ObjectProperty ;
+    rdfs:range vcard:Email .
+
+vcard:hasFN a owl:ObjectProperty .
+
+vcard:hasFamilyName a owl:ObjectProperty .
+
+vcard:hasGender a owl:ObjectProperty .
+
+vcard:hasGeo a owl:ObjectProperty .
+
+vcard:hasGivenName a owl:ObjectProperty .
+
+vcard:hasHonorificPrefix a owl:ObjectProperty .
+
+vcard:hasHonorificSuffix a owl:ObjectProperty .
+
+vcard:hasInstantMessage a owl:ObjectProperty .
+
+vcard:hasKey a owl:ObjectProperty .
+
+vcard:hasLanguage a owl:ObjectProperty .
+
+vcard:hasLocality a owl:ObjectProperty .
+
+vcard:hasLogo a owl:ObjectProperty .
+
+vcard:hasMember a owl:ObjectProperty ;
+    rdfs:domain vcard:Group ;
+    rdfs:range vcard:Kind .
+
+vcard:hasName a owl:ObjectProperty ;
+    rdfs:range vcard:Name .
+
+vcard:hasNickname a owl:ObjectProperty .
+
+vcard:hasNote a owl:ObjectProperty .
+
+vcard:hasOrganizationName a owl:ObjectProperty .
+
+vcard:hasOrganizationUnit a owl:ObjectProperty .
+
+vcard:hasPhoto a owl:ObjectProperty .
+
+vcard:hasPostalCode a owl:ObjectProperty .
+
+vcard:hasRegion a owl:ObjectProperty .
+
+vcard:hasRelated a owl:ObjectProperty .
+
+vcard:hasRole a owl:ObjectProperty .
+
+vcard:hasSound a owl:ObjectProperty .
+
+vcard:hasSource a owl:ObjectProperty .
+
+vcard:hasStreetAddress a owl:ObjectProperty .
+
+vcard:hasTelephone a owl:ObjectProperty .
+
+vcard:hasTitle a owl:ObjectProperty .
+
+vcard:hasUID a owl:ObjectProperty .
+
+vcard:hasURL a owl:ObjectProperty .
+
+vcard:hasValue a owl:ObjectProperty .
+
+vcard:honorific-prefix a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:honorific-suffix a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:key a owl:ObjectProperty .
+
+vcard:label a owl:DatatypeProperty .
+
+vcard:language a owl:DatatypeProperty .
+
+vcard:latitude a owl:DatatypeProperty .
+
+vcard:locality a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:logo a owl:ObjectProperty .
+
+vcard:longitude a owl:DatatypeProperty .
+
+vcard:mailer a owl:DatatypeProperty .
+
+vcard:n a owl:ObjectProperty .
+
+vcard:nickname a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:note a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:org a owl:ObjectProperty .
+
+vcard:organization-name a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:organization-unit a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:photo a owl:ObjectProperty .
+
+vcard:post-office-box a owl:DatatypeProperty .
+
+vcard:postal-code a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:prodid a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:region a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:rev a owl:DatatypeProperty ;
+    rdfs:range xsd:dateTime .
+
+vcard:role a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:sort-string a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:sound a owl:ObjectProperty .
+
+vcard:street-address a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:tel a owl:ObjectProperty .
+
+vcard:title a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:tz a owl:DatatypeProperty ;
+    rdfs:range xsd:string .
+
+vcard:url a owl:ObjectProperty .
+
+vcard:value a owl:DatatypeProperty .
+

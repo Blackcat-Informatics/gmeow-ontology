@@ -1,0 +1,195 @@
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix org: <http://www.w3.org/ns/org#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+org:basedAt a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain foaf:Person ;
+    rdfs:range org:Site .
+
+org:classification a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:Organization ;
+    rdfs:range skos:Concept .
+
+org:hasPrimarySite a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:Organization ;
+    rdfs:range org:Site .
+
+org:hasRegisteredSite a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:FormalOrganization ;
+    rdfs:range org:Site .
+
+org:headOf a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain foaf:Agent ;
+    rdfs:range org:Organization .
+
+org:holds a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain foaf:Agent ;
+    rdfs:range org:Post ;
+    owl:inverseOf org:heldBy .
+
+org:identifier a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain org:Organization .
+
+org:linkedTo a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:Organization ;
+    rdfs:range org:Organization .
+
+org:location a rdf:Property,
+        owl:DatatypeProperty ;
+    rdfs:domain foaf:Person ;
+    rdfs:range xsd:string .
+
+org:memberDuring a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:Membership .
+
+org:organization a rdf:Property,
+        owl:FunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:domain org:Membership ;
+    rdfs:range org:Organization .
+
+org:postIn a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:Post ;
+    rdfs:range org:Organization ;
+    owl:inverseOf org:hasPost .
+
+org:purpose a rdf:Property ;
+    rdfs:domain org:Organization .
+
+org:remuneration a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:Role .
+
+org:reportsTo a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range [ ] .
+
+org:role a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range org:Role .
+
+org:roleProperty a rdf:Property ;
+    rdfs:domain org:Role ;
+    rdfs:range rdf:Property .
+
+org:siteAddress a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:Site .
+
+org:transitiveSubOrganizationOf a rdf:Property,
+        owl:ObjectProperty,
+        owl:TransitiveProperty ;
+    rdfs:domain org:Organization ;
+    rdfs:range org:Organization .
+
+org:changedBy a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:Organization ;
+    rdfs:range org:ChangeEvent ;
+    owl:inverseOf org:originalOrganization .
+
+org:hasMember a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:Organization ;
+    rdfs:range foaf:Agent ;
+    owl:inverseOf org:memberOf .
+
+org:hasMembership a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain foaf:Agent ;
+    rdfs:range org:Membership ;
+    owl:inverseOf org:member .
+
+org:hasPost a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:Organization ;
+    rdfs:range org:Post .
+
+org:hasSite a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:Organization ;
+    rdfs:range org:Site ;
+    owl:inverseOf org:siteOf .
+
+org:hasSubOrganization a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:Organization ;
+    rdfs:range org:Organization ;
+    owl:inverseOf org:subOrganizationOf .
+
+org:hasUnit a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:FormalOrganization ;
+    rdfs:range org:OrganizationalUnit ;
+    owl:inverseOf org:unitOf .
+
+org:heldBy a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:Post ;
+    rdfs:range foaf:Agent .
+
+org:member a rdf:Property,
+        owl:FunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:domain org:Membership ;
+    rdfs:range foaf:Agent ;
+    owl:inverseOf org:hasMembership .
+
+org:memberOf a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain foaf:Agent ;
+    rdfs:range org:Organization ;
+    owl:inverseOf org:hasMember .
+
+org:originalOrganization a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:ChangeEvent ;
+    rdfs:range org:Organization ;
+    owl:inverseOf org:changedBy .
+
+org:resultedFrom a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:Organization ;
+    rdfs:range org:ChangeEvent ;
+    owl:inverseOf org:resultingOrganization .
+
+org:resultingOrganization a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:ChangeEvent ;
+    rdfs:range org:Organization ;
+    owl:inverseOf org:resultedFrom .
+
+org:siteOf a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:Site ;
+    rdfs:range org:Organization ;
+    owl:inverseOf org:hasSite .
+
+org:subOrganizationOf a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:Organization ;
+    rdfs:range org:Organization ;
+    owl:inverseOf org:hasSubOrganization .
+
+org:unitOf a rdf:Property,
+        owl:ObjectProperty ;
+    rdfs:domain org:OrganizationalUnit ;
+    rdfs:range org:FormalOrganization ;
+    owl:inverseOf org:hasUnit .
+

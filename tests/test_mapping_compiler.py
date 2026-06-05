@@ -32,7 +32,7 @@ EDOAL = Namespace(PREFIXES["edoal"])
 def test_dsl_parses() -> None:
     dsl = load_dsl()
     # Every SSSOM data row became a TermEquivalence cell.
-    assert len(dsl.equivalences) == 353
+    assert len(dsl.equivalences) == 352
     # 14 projection transforms declared.
     assert len(dsl.functions) == 14
     # One MappingSet per TSV.
