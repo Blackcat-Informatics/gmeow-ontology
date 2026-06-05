@@ -1,4 +1,5 @@
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
@@ -19,7 +20,7 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:SexualOrientation
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:IdentityFacet ;
     rdfs:label "Sexual Orientation"@en ;
     skos:definition "A person's SELF-ASSERTED sexual orientation — the pattern of their sexual attraction — as a reified facet pointing (via gmeow:sexualOrientationValue) to an open gmeow:SexualOrientationValue. A SEPARATE axis from romantic orientation (split-attraction model) and from gender identity/expression; nothing infers one from another."@en ;
@@ -42,7 +43,7 @@ gmeow:sexualOrientationValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:RomanticOrientation
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:IdentityFacet ;
     rdfs:label "Romantic Orientation"@en ;
     skos:definition "A person's SELF-ASSERTED romantic orientation — the pattern of their romantic attraction — as a reified facet pointing (via gmeow:romanticOrientationValue) to an open gmeow:RomanticOrientationValue. A SEPARATE axis from sexual orientation (split-attraction model); the two are mutually independent (e.g. asexual yet biromantic)."@en ;
@@ -73,8 +74,8 @@ gmeow:romanticOrientationValue
 # =========================================================================== #
 
 gmeow:SexualOrientationValue
-    a owl:Class ;
-    rdfs:subClassOf gmeow:Entity ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Sexual Orientation Value"@en ;
     skos:definition "A pattern of sexual attraction — a VALUE pointed at by gmeow:sexualOrientationValue, never a subclass. Open: an orientation not seeded here is a fresh individual with rdfs:label."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -89,8 +90,8 @@ gmeow:orientQueer        a gmeow:SexualOrientationValue ; rdfs:label "queer"@en 
 gmeow:orientQuestioning  a gmeow:SexualOrientationValue ; rdfs:label "questioning"@en .
 
 gmeow:RomanticOrientationValue
-    a owl:Class ;
-    rdfs:subClassOf gmeow:Entity ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Romantic Orientation Value"@en ;
     skos:definition "A pattern of romantic attraction — a VALUE pointed at by gmeow:romanticOrientationValue, never a subclass. Kept separate from sexual orientation (split-attraction). Open: a fresh individual with rdfs:label when none is seeded."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

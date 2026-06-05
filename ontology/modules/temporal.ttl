@@ -13,13 +13,14 @@
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:TimeInterval
-    a owl:Class ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:AbstractIndividual ;
     rdfs:label "Time Interval"@en ;
     skos:definition "A bounded stretch of time, optionally open-ended, delimited by a start and/or end instant."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:TimeScopedRelation
-    a owl:Class ;
+    a owl:Class, gufo:SituationType ;
     rdfs:subClassOf gufo:Situation ;
     rdfs:label "Time-Scoped Relation"@en ;
     skos:definition "A reified relationship that holds only over a particular time interval — the base for residence, tenure, and membership-over-time situations."@en ;

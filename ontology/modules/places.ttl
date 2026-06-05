@@ -17,42 +17,42 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:Location
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Location"@en ;
     skos:definition "A locus where an entity can be situated, reside, or occur — a geographic place, an online (virtual) location, or a digital storage location."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Place
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Location ;
     rdfs:label "Place"@en ;
     skos:definition "A geographic location at any granularity — a country, region, city, thoroughfare, building, floor, or room. The specific kind is given by gmeow:placeType (a value), not a subclass, so any level can be a first-class place with its own coordinates and external identifiers."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:VirtualLocation
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Location ;
     rdfs:label "Virtual Location"@en ;
     skos:definition "A non-geographic location reachable online — a video-conference room, chat space, or metaverse room. Has an access locator and platform rather than coordinates."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:StorageLocation
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Location ;
     rdfs:label "Storage Location"@en ;
     skos:definition "A locus where digital objects reside — a cloud-storage folder, an object-store bucket, a filesystem path, a content-addressed store, or a physical disk. Its medium is a value (gmeow:storageMedium); a physical device may sit at a geographic gmeow:physicalPlace."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:GeoCoordinates
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity ;
     rdfs:label "Geo Coordinates"@en ;
     skos:definition "A geographic point expressed as latitude, longitude, and optional elevation."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Geometry
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Geometry"@en ;
     skos:definition "The spatial extent of a place — a point, line, or polygon — carrying a Well-Known Text (WKT) serialization for shapes richer than a single point (the GeoSPARQL geo:Geometry superset)."@en ;
@@ -63,8 +63,8 @@ gmeow:Geometry
 # --------------------------------------------------------------------------- #
 
 gmeow:PlaceType
-    a owl:Class ;
-    rdfs:subClassOf gmeow:Entity ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Place Type"@en ;
     skos:definition "The kind of a geographic place (country, region, city, building, room, …). Modelled as a value, not a Place subclass: the set of kinds is open-ended (GeoNames lists ~600 feature codes) and they share all of Place's structure, so a new kind is a new individual, not a new class."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -87,8 +87,8 @@ gmeow:placeTypeNaturalFeature     a gmeow:PlaceType ; rdfs:label "natural featur
 # --------------------------------------------------------------------------- #
 
 gmeow:StorageMedium
-    a owl:Class ;
-    rdfs:subClassOf gmeow:Entity ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Storage Medium"@en ;
     skos:definition "The kind of medium a storage location uses (cloud service, local filesystem, object store, content-addressed store, physical disk, removable media). A value, not a StorageLocation subclass: the kinds share the same structure (path, service, holder, physical place)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

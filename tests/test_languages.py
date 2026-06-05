@@ -94,7 +94,7 @@ def test_value_vocabularies_not_subclasses() -> None:
         assert (
             URIRef(GMEOW + vocab),
             RDFS.subClassOf,
-            URIRef(GMEOW + "Entity"),
+            URIRef(GUFO + "QualityValue"),
         ) in graph
         for ind in sample:
             assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + vocab)) in graph

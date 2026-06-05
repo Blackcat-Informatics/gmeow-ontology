@@ -17,7 +17,7 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:RelayHop
-    a owl:Class ;
+    a owl:Class, gufo:EventType ;
     rdfs:subClassOf gufo:Event ;
     rdfs:label "Relay Hop"@en ;
     skos:definition "One hop in a message's delivery path, recorded by a Received header: a relaying server, the host it received from, a server timestamp, and the protocol used."@en ;
@@ -76,7 +76,7 @@ gmeow:hopOrdinal
 # --------------------------------------------------------------------------- #
 
 gmeow:AuthenticationResult
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Authentication Result"@en ;
     skos:definition "The outcome of an email authentication check (RFC 8601 Authentication-Results) — a method (DKIM, SPF, DMARC, ARC), a verdict, and the verifying server."@en ;
@@ -119,28 +119,28 @@ gmeow:authServer
 # --------------------------------------------------------------------------- #
 
 gmeow:CryptographicSignature
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Cryptographic Signature"@en ;
     skos:definition "A cryptographic signature over a message or its headers, asserting origin and integrity."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:DKIMSignature
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:CryptographicSignature ;
     rdfs:label "DKIM Signature"@en ;
     skos:definition "A DomainKeys Identified Mail signature (RFC 6376) over selected headers and the body."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:SMIMESignature
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:CryptographicSignature ;
     rdfs:label "S/MIME Signature"@en ;
     skos:definition "An S/MIME signature (RFC 8551) over a message, bound to an X.509 certificate."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:PGPSignature
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:CryptographicSignature ;
     rdfs:label "PGP Signature"@en ;
     skos:definition "An OpenPGP signature (RFC 4880/9580, PGP-MIME RFC 3156) over a message, bound to a PGP key."@en ;
