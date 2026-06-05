@@ -86,7 +86,7 @@ def test_name_part_kinds_are_values_not_subclasses() -> None:
     assert (
         URIRef(GMEOW + "NamePartType"),
         RDFS.subClassOf,
-        URIRef(GMEOW + "Entity"),
+        URIRef(GUFO + "QualityValue"),
     ) in graph
     part_type = URIRef(GMEOW + "namePartType")
     assert (part_type, RDF.type, OWL.ObjectProperty) in graph
@@ -120,12 +120,14 @@ def test_purpose_register_honorific_pronoun_are_value_vocabularies() -> None:
         ("Honorific", ("honorificMx", "honorificDr", "honorificSan")),
         ("PronounSet", ("pronounSheHer", "pronounTheyThem", "pronounXeXem")),
     ):
-        parent = "InformationObject" if vocab == "PronounSet" else "Entity"
-        assert (
-            URIRef(GMEOW + vocab),
-            RDFS.subClassOf,
-            URIRef(GMEOW + parent),
-        ) in graph
+        # PronounSet is a STRUCTURED information artifact (five pronoun forms), so it
+        # stays an InformationObject; the flat value vocabularies are abstract value
+        # spaces (gufo:QualityValue).
+        if vocab == "PronounSet":
+            parent = URIRef(GMEOW + "InformationObject")
+        else:
+            parent = URIRef(GUFO + "QualityValue")
+        assert (URIRef(GMEOW + vocab), RDFS.subClassOf, parent) in graph
         for ind in sample:
             assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + vocab)) in graph
 

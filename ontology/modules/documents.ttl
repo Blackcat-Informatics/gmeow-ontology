@@ -1,4 +1,5 @@
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
@@ -12,49 +13,49 @@
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:CreativeWork
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Creative Work"@en ;
     skos:definition "An information artifact resulting from creative or intellectual effort — a document, article, dataset, media object, or web page."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Document
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:CreativeWork ;
     rdfs:label "Document"@en ;
     skos:definition "A bounded textual or digital document — a file, record, or report."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Article
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:CreativeWork ;
     rdfs:label "Article"@en ;
     skos:definition "A written work published in a periodical, blog, or scholarly venue."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Patent
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:CreativeWork ;
     rdfs:label "Patent"@en ;
     skos:definition "A granted or filed patent describing an invention."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Dataset
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:CreativeWork ;
     rdfs:label "Dataset"@en ;
     skos:definition "A collection of data published as a unit."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:MediaObject
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:CreativeWork ;
     rdfs:label "Media Object"@en ;
     skos:definition "An image, audio, or video media file."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:WebPage
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:CreativeWork ;
     rdfs:label "Web Page"@en ;
     skos:definition "A page on the web identified by a URL."@en ;

@@ -1,4 +1,5 @@
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
@@ -12,14 +13,14 @@
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Source
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Source"@en ;
     skos:definition "A source from which evidence is drawn: a record, certificate, register, archive entry, or publication."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Citation
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Citation"@en ;
     skos:definition "A reference to a specific place within a source (a page, entry, image, or record locator)."@en ;

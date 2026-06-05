@@ -12,14 +12,14 @@
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Role
-    a owl:Class ;
-    rdfs:subClassOf gufo:Role ;
+    a owl:Class, gufo:RoleMixin ;
+    rdfs:subClassOf gufo:FunctionalComplex ;
     rdfs:label "Role"@en ;
     skos:definition "A function or position an agent plays in some context, such as a job title or organizational role."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Membership
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Membership"@en ;
     skos:definition "The reified relationship by which an agent is a member of an organization, optionally playing a role over a period of time."@en ;

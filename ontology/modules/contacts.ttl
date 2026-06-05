@@ -12,28 +12,28 @@
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:ContactPoint
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Contact Point"@en ;
     skos:definition "A means of reaching an agent: an email address, telephone number, or postal address."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:EmailAddress
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:ContactPoint ;
     rdfs:label "Email Address"@en ;
     skos:definition "A contact point reachable via the Simple Mail Transfer Protocol (SMTP)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:TelephoneNumber
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:ContactPoint ;
     rdfs:label "Telephone Number"@en ;
     skos:definition "A contact point reachable by telephone."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:PostalAddress
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:ContactPoint ;
     rdfs:label "Postal Address"@en ;
     skos:definition "A contact point reachable by physical mail at a postal address. Its components below are the as-written surface form; the resolved, identifier-bearing geographic places are reached via gmeow:addressPlace and gmeow:containedInPlace."@en ;
@@ -179,21 +179,21 @@ gmeow:hasAgreement
 # flat hasMet/hasWorkedWith shortcuts above suffice.
 
 gmeow:InterpersonalRelationship
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Interpersonal Relationship"@en ;
     skos:definition "A reified standing relationship between agents (acquaintance, collaboration, …), able to bear its own time interval, confidence, and source evidence."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:ProfessionalRelationship
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:InterpersonalRelationship ;
     rdfs:label "Professional Relationship"@en ;
     skos:definition "An interpersonal relationship arising from work — colleagues, collaborators, a client and a provider (the reified form of hasWorkedWith)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:AcquaintanceRelationship
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:InterpersonalRelationship ;
     rdfs:label "Acquaintance Relationship"@en ;
     skos:definition "An interpersonal relationship of social acquaintance — agents who have met and know one another (the reified form of hasMet)."@en ;
@@ -220,7 +220,7 @@ gmeow:relationshipInterval
 # time-scoped relation (see the temporal module).
 
 gmeow:AddressTenure
-    a owl:Class ;
+    a owl:Class, gufo:SituationType ;
     rdfs:subClassOf gmeow:TimeScopedRelation ;
     rdfs:label "Address Tenure"@en ;
     skos:definition "The reified, time-scoped fact that an agent held a contact point (e.g. an email address) over a particular interval."@en ;

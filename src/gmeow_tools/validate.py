@@ -14,6 +14,7 @@ from rdflib.namespace import OWL, SKOS
 
 from gmeow_tools.config import NAMESPACE, SHAPES_FILE
 from gmeow_tools.graph import iter_source_files, load_merged_graph
+from gmeow_tools.reasoning_lint import reasoning_invariants
 
 _DEFINITION = SKOS.definition
 
@@ -99,6 +100,18 @@ def structural_lint(graph: Graph) -> ValidationResult:
     return result
 
 
+def reasoning_lint(graph: Graph) -> ValidationResult:
+    """Wrap the UFO anti-pattern checks as a :class:`ValidationResult`.
+
+    Each :mod:`gmeow_tools.reasoning_lint` violation (missing/conflicting gUFO
+    stereotype, identity conflict, anti-rigidity breach, under-mediated relator)
+    becomes an error so ``make validate`` fails if the meta-grounding is incomplete.
+    """
+    result = ValidationResult()
+    result.errors.extend(reasoning_invariants(graph))
+    return result
+
+
 def run_shacl(
     data_graph: Graph, *, shapes_path: Path = SHAPES_FILE
 ) -> ValidationResult:
@@ -142,5 +155,6 @@ def validate_all() -> ValidationResult:
         return result
     merged = load_merged_graph()
     result.extend(structural_lint(merged))
+    result.extend(reasoning_lint(merged))
     result.extend(run_shacl(merged))
     return result
