@@ -1,0 +1,25 @@
+# ROBOT verify QC (#39) — anti-overtyping on the reasoned graph (CONSTITUTION P9).
+# No class may be a subclass — ASSERTED OR INFERRED — of two distinct identity
+# axes, which are pairwise disjoint. This is the TBox dual of the
+# IdentityAxisOrthogonalityShape data-check, and it earns the reasoned graph: it
+# fires on subclass chains the reasoner closes, not just asserted edges. Any row
+# is a FAILURE (such a class would in fact be unsatisfiable).
+
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?class ?axisA ?axisB WHERE {
+    VALUES ?axisA {
+        gmeow:GenderIdentity gmeow:GenderExpression gmeow:SexAssignedAtBirth
+        gmeow:SexualOrientation gmeow:RomanticOrientation
+        gmeow:PronounSet gmeow:Honorific
+    }
+    VALUES ?axisB {
+        gmeow:GenderIdentity gmeow:GenderExpression gmeow:SexAssignedAtBirth
+        gmeow:SexualOrientation gmeow:RomanticOrientation
+        gmeow:PronounSet gmeow:Honorific
+    }
+    FILTER(STR(?axisA) < STR(?axisB))
+    ?class rdfs:subClassOf ?axisA , ?axisB .
+    FILTER(?class != ?axisA && ?class != ?axisB)
+}

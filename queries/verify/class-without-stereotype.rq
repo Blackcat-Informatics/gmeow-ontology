@@ -1,0 +1,17 @@
+# ROBOT verify QC (#39) — reasoning-centric meta-grounding (CONSTITUTION P8).
+# Every GMEOW class must be punned with a gUFO meta-class (gufo:Kind / SubKind /
+# Role / Phase / Category / EventType / …). The reasoned-graph dual of the
+# exactly_one_stereotype check in src/gmeow_tools/reasoning_lint.py. A non-empty
+# result set is a FAILURE: run with `robot ... verify --queries …`.
+
+PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+
+SELECT ?class WHERE {
+    ?class a owl:Class .
+    FILTER(STRSTARTS(STR(?class), "https://blackcatinformatics.ca/gmeow/"))
+    FILTER NOT EXISTS {
+        ?class a ?stereotype .
+        FILTER(STRSTARTS(STR(?stereotype), "http://purl.org/nemo/gufo#"))
+    }
+}

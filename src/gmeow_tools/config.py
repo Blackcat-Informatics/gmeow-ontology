@@ -75,6 +75,9 @@ SHAPES_FILE = SHAPES_DIR / "gmeow-shapes.ttl"
 QUERIES_DIR = PROJECT_ROOT / "queries"
 COMPETENCY_DIR = QUERIES_DIR / "competency"
 QC_DIR = QUERIES_DIR / "qc"
+#: Reasoned-graph negative-test queries (ROBOT ``verify``; any returned row is a
+#: violation — the OBO QC pattern). Run over the reasoned merged ontology.
+VERIFY_DIR = QUERIES_DIR / "verify"
 #: Per-profile projection CONSTRUCT queries (the FnO/EDOAL executors).
 PROJECTION_QUERY_DIR = QUERIES_DIR / "projections"
 #: FnO function catalog + EDOAL complex-alignment specs (consumable, not reasoned).
