@@ -8,7 +8,7 @@ SHELL := /bin/bash
 # Alignment target for `make extract` (license-checked). Override: make extract TARGET=foaf
 TARGET ?= foaf
 
-.PHONY: help install fmt lint validate reason explain extract compile-mappings \
+.PHONY: help install fmt lint validate reason reason-hermit explain extract compile-mappings \
         compile-check compile-statements statements-check mappings wikidata \
         wikidata-live lint-alignment refresh-target-axioms metadata apache docs \
         docs-full rdf12 quality normalize build export project test check \

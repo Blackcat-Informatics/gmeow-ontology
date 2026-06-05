@@ -103,6 +103,7 @@ def _is_consistent(extra: Graph, name: str, *, reasoner: str = "hermit") -> bool
     graph.parse(MERGED_FILE, format="turtle")
     graph += extra
     out = DIST_DIR / f"test-{name}.ttl"
+    out.parent.mkdir(parents=True, exist_ok=True)  # survive a fresh `make clean`
     graph.serialize(destination=out, format="turtle")
     try:
         reason(reasoner=reasoner, merged=out)
@@ -157,6 +158,8 @@ def test_worked_fixtures_stay_coherent_under_disjointness() -> None:
     tool to confirm no individual lands in two disjoint classes here.
     """
     fixtures = Graph()
-    for ttl in sorted(FIXTURES_DIR.glob("*.ttl")):
+    fixture_files = list(FIXTURES_DIR.rglob("*.ttl"))
+    assert fixture_files, f"no fixtures found in {FIXTURES_DIR}"  # never pass vacuously
+    for ttl in sorted(fixture_files):
         fixtures.parse(ttl, format="turtle")
     assert _is_consistent(fixtures, "fixtures", reasoner="ELK")
