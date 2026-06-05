@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """One-off migration: transcribe mappings/*.sssom.tsv → mapping-dsl/equivalences/.
 
 Each SSSOM data row becomes a gmeow:TermEquivalence cell; each file's YAML header
@@ -63,6 +63,12 @@ def bootstrap() -> list[Path]:
                 continue
             if not seen_columns:
                 columns = line.split("\t")
+                required = {"subject_id", "predicate_id", "object_id"}
+                missing = required.difference(columns)
+                if missing:
+                    raise ValueError(
+                        f"{tsv.name}: missing required SSSOM columns: {sorted(missing)}"
+                    )
                 seen_columns = True
                 continue
             if line.strip():

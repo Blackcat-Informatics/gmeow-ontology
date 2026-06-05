@@ -270,7 +270,7 @@ def render_expr(expr: Expr) -> str:
         return sparql_string(str(expr.const))
     if expr.op is None:
         raise CompileError("empty expression node")
-    name = str(expr.op).rsplit("/", 1)[-1]
+    name = str(expr.op).rsplit("/", 1)[-1].rsplit("#", 1)[-1]
     rendered = [render_expr(a) for a in expr.args]
     if name == "opRegex":
         return f"regex({', '.join(rendered)})"
@@ -300,6 +300,20 @@ def _rdf_list(graph: Graph, head: Node | None) -> list[Node]:
 
 def _uri(node: object) -> URIRef | None:
     return node if isinstance(node, URIRef) else None
+
+
+def _as_bool(node: object) -> bool:
+    """Parse an RDF boolean literal to a Python bool (RDF ``false`` stays False).
+
+    ``bool(Literal("false"))`` on an *untyped* literal is truthy (non-empty str);
+    parse the term's value explicitly so an authored ``false`` is honoured.
+    """
+    if isinstance(node, Literal):
+        value = node.toPython()
+        if isinstance(value, bool):
+            return value
+        return str(value).strip().lower() in ("true", "1")
+    return bool(node)
 
 
 def _str(node: object) -> str | None:
@@ -387,7 +401,7 @@ def _atom(graph: Graph, node: Node) -> Atom:
         object_var=str(obj_var) if obj_var is not None else None,
         object_value=_uri(obj_value),
         object_literal=obj_literal if isinstance(obj_literal, Literal) else None,
-        optional=bool(graph.value(node, GM.optional)),
+        optional=_as_bool(graph.value(node, GM.optional)),
     )
 
 
@@ -431,7 +445,7 @@ def _pattern(graph: Graph, node: Node) -> MappingPattern:
         mints=tuple(_bind(graph, m) for m in graph.objects(node, GM.mint)),
         edoal_source=_uri(graph.value(node, GM.edoalSource)),
         edoal_source_kind=str(graph.value(node, GM.edoalSourceKind) or "relation"),
-        edoal_path=bool(graph.value(node, GM.edoalPath)),
+        edoal_path=_as_bool(graph.value(node, GM.edoalPath)),
     )
 
 
@@ -465,7 +479,7 @@ def _binding(graph: Graph, node: Node) -> ProfileBinding:
         transform=_uri(graph.value(node, GM.transform)),
         confidence=float(str(confidence)) if confidence is not None else None,
         lossy_drops=tuple(str(d) for d in graph.objects(node, GM.lossyDrop)),
-        emit_sssom=bool(graph.value(node, GM.emitSssom)),
+        emit_sssom=_as_bool(graph.value(node, GM.emitSssom)),
         sssom_predicate=_uri(graph.value(node, GM.sssomPredicate)),
         sssom_file=_str(graph.value(node, GM.sssomFile)),
         edoal_target=_uri(graph.value(node, GM.edoalTarget)),

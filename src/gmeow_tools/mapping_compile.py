@@ -106,16 +106,18 @@ def emit_fno(dsl: Dsl, onto: Graph) -> Graph:
     graph.add((doc, DCTERMS.isPartOf, onto_iri))
     graph.add((doc, RDFS.comment, Literal(_GENERATED_BANNER, lang="en")))
 
-    # Which profiles use each transform (+ the cell, for the fnom var bindings).
+    # Which profiles use each transform (+ ALL cells per (transform, profile) — a
+    # transform can fan out to several cells, e.g. fnHonorificToAffix → prefix and
+    # suffix — so the fnom mapping must aggregate every cell's var bindings).
     used_by: dict[URIRef, list[str]] = {}
-    transform_cell: dict[tuple[URIRef, str], ProjectionCell] = {}
+    transform_cells: dict[tuple[URIRef, str], list[ProjectionCell]] = {}
     for cell in dsl.projections:
         for b in cell.bindings:
             if b.transform is not None:
                 used_by.setdefault(b.transform, [])
                 if b.profile not in used_by[b.transform]:
                     used_by[b.transform].append(b.profile)
-                transform_cell[(b.transform, b.profile)] = cell
+                transform_cells.setdefault((b.transform, b.profile), []).append(cell)
 
     params_emitted: dict[URIRef, URIRef] = {}
     for fn_iri in sorted(dsl.functions, key=str):
@@ -168,7 +170,7 @@ def emit_fno(dsl: Dsl, onto: Graph) -> Graph:
         graph.add((out, FNO.type, fn.output_type))
         _attach_list(graph, fn_iri, FNO.returns, [out])
 
-    _emit_fnom(graph, dsl, used_by, transform_cell)
+    _emit_fnom(graph, dsl, used_by, transform_cells)
     return graph
 
 
@@ -181,10 +183,31 @@ def _impl_iri(profile: str) -> URIRef:
 
 
 def _var_for_predicate(cell: ProjectionCell, predicate: URIRef) -> str | None:
-    """The SPARQL object variable bound by an atom on ``predicate`` (or None)."""
+    """The SPARQL object variable an atom binds for ``predicate`` (or None).
+
+    Matches a plain-predicate atom, and an alternation-path atom one of whose
+    alternatives is the predicate (e.g. ``hasAppellation`` inside
+    ``hasAppellation|hasName`` → the appellation variable).
+    """
     for atom in _flatten_atoms(cell.pattern.atoms):
-        if atom.predicate == predicate and atom.object_var is not None:
+        if atom.object_var is None:
+            continue
+        if atom.predicate == predicate or predicate in atom.path_alts:
             return atom.object_var
+    return None
+
+
+def _output_var(cell: ProjectionCell) -> str | None:
+    """The SPARQL variable a cell's output value binds to.
+
+    The pattern's ``value`` for a single-value projection; for a structural
+    (templateAtoms) transform with no value var, the last derived ``BIND`` var
+    (the composed/retagged literal — e.g. the WKT, the address label).
+    """
+    if cell.pattern.value is not None:
+        return cell.pattern.value
+    if cell.pattern.binds:
+        return cell.pattern.binds[-1].var
     return None
 
 
@@ -192,7 +215,7 @@ def _emit_fnom(
     graph: Graph,
     dsl: Dsl,
     used_by: dict[URIRef, list[str]],
-    transform_cell: dict[tuple[URIRef, str], ProjectionCell],
+    transform_cells: dict[tuple[URIRef, str], list[ProjectionCell]],
 ) -> None:
     """Emit fno:Implementation + fno:Mapping linking each function to its SPARQL.
 
@@ -200,6 +223,8 @@ def _emit_fnom(
     it executes: one fno:Implementation per profile .rq, and one fno:Mapping per
     (function, profile) binding each parameter/output to the SPARQL variable that
     realises it (a PropertyParameterMapping — a SPARQL var is a named property).
+    A transform may fan out to several cells in a profile (e.g. honorific →
+    prefix and suffix), so the bindings are aggregated across every such cell.
     """
     impl_emitted: set[str] = set()
     for fn_iri in sorted(dsl.functions, key=str):
@@ -220,29 +245,36 @@ def _emit_fnom(
                         URIRef(f"{ONTOLOGY_IRI}/queries/projections/{profile}.rq"),
                     )
                 )
-            cell = transform_cell.get((fn_iri, profile))
+            cells = transform_cells.get((fn_iri, profile), [])
+            # Aggregate every cell's parameter/output variable bindings.
+            param_vars: dict[URIRef, set[str]] = {}
+            out_vars: set[str] = set()
+            for cell in cells:
+                for predicate in (*fn.inputs, *fn.optional_inputs):
+                    var = _var_for_predicate(cell, predicate)
+                    if var is not None:
+                        param_vars.setdefault(_param_iri(predicate), set()).add(var)
+                out_var = _output_var(cell)
+                if out_var is not None:
+                    out_vars.add(out_var)
+
             mapping = BNode()
             graph.add((mapping, RDF.type, FNO.Mapping))
             graph.add((mapping, FNO.function, fn_iri))
             graph.add((mapping, FNO.implementation, impl))
-            if cell is not None:
-                for predicate in (*fn.inputs, *fn.optional_inputs):
-                    var = _var_for_predicate(cell, predicate)
-                    if var is None:
-                        continue
+            for param in sorted(param_vars, key=str):
+                for var in sorted(param_vars[param]):
                     pmap = BNode()
                     graph.add((pmap, RDF.type, FNOM.PropertyParameterMapping))
-                    graph.add((pmap, FNOM.functionParameter, _param_iri(predicate)))
+                    graph.add((pmap, FNOM.functionParameter, param))
                     graph.add((pmap, FNOM.implementationProperty, Literal(var)))
                     graph.add((mapping, FNO.parameterMapping, pmap))
-                if cell.pattern.value is not None:
-                    rmap = BNode()
-                    graph.add((rmap, RDF.type, FNOM.DefaultReturnMapping))
-                    graph.add((rmap, FNOM.functionOutput, out_node))
-                    graph.add(
-                        (rmap, FNOM.implementationProperty, Literal(cell.pattern.value))
-                    )
-                    graph.add((mapping, FNO.returnMapping, rmap))
+            for var in sorted(out_vars):
+                rmap = BNode()
+                graph.add((rmap, RDF.type, FNOM.DefaultReturnMapping))
+                graph.add((rmap, FNOM.functionOutput, out_node))
+                graph.add((rmap, FNOM.implementationProperty, Literal(var)))
+                graph.add((mapping, FNO.returnMapping, rmap))
 
 
 def _attach_list(
@@ -339,10 +371,19 @@ def _find_var_path(
 def _edoal_relation_step(graph: Graph, atom: Atom, forward: bool) -> BNode:
     """Render one navigation step as an EDOAL relation (inverse when backward)."""
     if atom.path_alts:
-        base = _edoal_entity(graph, atom.path_alts[0], "relation")
-        if len(atom.path_alts) > 1:
-            dropped = ", ".join(curie(a) for a in atom.path_alts[1:])
-            graph.add((base, RDFS.comment, Literal(f"alt: {dropped}")))
+        if len(atom.path_alts) == 1:
+            base = _edoal_entity(graph, atom.path_alts[0], "relation")
+        else:
+            # An alternation of relations: EDOAL edoal:or over the alternatives
+            # (validator-safe; the executor still matches `a|b`).
+            base = BNode()
+            graph.add((base, RDF.type, EDOAL.Relation))
+            _attach_list(
+                graph,
+                base,
+                EDOAL["or"],
+                [_edoal_entity(graph, a, "relation") for a in atom.path_alts],
+            )
     elif atom.predicate is not None:
         base = _edoal_entity(graph, atom.predicate, "relation")
     else:  # an opaque seq/zero-or-more path — degrade to a commented relation node
@@ -460,12 +501,8 @@ def _edoal_cells(graph: Graph, cell: ProjectionCell, b: ProfileBinding) -> list[
 
 def _attr_of(pattern: MappingPattern) -> URIRef:
     """The value->class restriction attribute (the placeType-style predicate)."""
-    for atom in pattern.atoms:
-        if (
-            isinstance(atom, Atom)
-            and atom.object_var == pattern.value
-            and atom.predicate is not None
-        ):
+    for atom in _flatten_atoms(pattern.atoms):
+        if atom.object_var == pattern.value and atom.predicate is not None:
             return atom.predicate
     raise CompileError("value-class pattern has no value-binding predicate")
 

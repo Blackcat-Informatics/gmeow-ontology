@@ -8,9 +8,12 @@ for graph/SPARQL consumers, using Apache Jena (the only mainstream engine with R
 1.2 triple-term support as of 2026).
 
 RDF 1.2 Turtle/N-Triples syntax is still finalizing at the W3C, so the step is
-**gated**: if the pinned Jena image is absent it is skipped (not a release
-blocker), raising :class:`~gmeow_tools.runner.ToolUnavailableError` for the caller
-to handle.
+toolchain-gated and **required** — RDF 1.2 is GMEOW's primary statement-level
+model, not an optional preview. If Docker or the pinned Jena image is unavailable
+this is a **hard failure**: :func:`project_rdf12` raises
+:class:`~gmeow_tools.runner.ToolUnavailableError` (via
+:func:`~gmeow_tools.runner.run_container`) and the CLI fails fast — there is no
+degraded/skip mode.
 """
 
 from __future__ import annotations

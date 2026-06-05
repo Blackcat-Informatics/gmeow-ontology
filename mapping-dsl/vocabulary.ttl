@@ -59,13 +59,13 @@ gmeow:ProfileBinding a owl:Class ;
 
 gmeow:alignSubject a owl:ObjectProperty ;
     rdfs:label "alignment subject"@en ;
-    skos:definition "The GMEOW term on the subject side of a term equivalence."@en .
+    skos:definition "The term on the subject side of a term equivalence (either a GMEOW or an external term — mappings are authored in whichever direction is honest, e.g. geo:Feature skos:closeMatch gmeow:Place)."@en .
 gmeow:alignPredicate a owl:ObjectProperty ;
     rdfs:label "alignment predicate"@en ;
     skos:definition "The mapping predicate of a term equivalence (owl:equivalentClass, owl:equivalentProperty, skos:exactMatch, skos:closeMatch, rdfs:subClassOf, …)."@en .
 gmeow:alignObject a owl:ObjectProperty ;
     rdfs:label "alignment object"@en ;
-    skos:definition "The external term on the object side of a term equivalence."@en .
+    skos:definition "The term on the object side of a term equivalence (either a GMEOW or an external term — see gmeow:alignSubject)."@en .
 gmeow:confidence a owl:DatatypeProperty ;
     rdfs:label "confidence"@en ;
     skos:definition "Curator confidence in a correspondence [0.0, 1.0]; rendered as the SSSOM confidence column and the EDOAL edoal:measure."@en .
@@ -436,7 +436,7 @@ gmeow:fnProficiencyToKnownLanguage a gmeow:ProjectionFunction ;
 gmeow:fnNicknameName a gmeow:ProjectionFunction ;
     rdfs:label "nickname-purpose PersonName → foaf:nick"@en ;
     dcterms:description "Returns the gmeow:fullName of a PersonName whose gmeow:namePurpose is gmeow:namePurposeNickname, for emission as foaf:nick / vcard:nickname / schema:alternateName. The nickname is a structured name in GMEOW; this downcasts it to the flat nick field."@en ;
-    gmeow:fnInput gmeow:hasAppellation ;
+    gmeow:fnInput gmeow:hasName ;
     gmeow:fnOutput gmeow:projectedNick ; gmeow:fnOutputType rdfs:Literal .
 
 gmeow:fnBirthEventToDate a gmeow:ProjectionFunction ;

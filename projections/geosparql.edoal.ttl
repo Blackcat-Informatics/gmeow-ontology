@@ -9,21 +9,21 @@
     rdfs:label "GMEOW → geosparql (EDOAL)"@en ;
     align:level "2EDOAL" ;
     align:map [ a align:Cell ;
-            rdfs:label "asWKT literal → geo:asWKT retagged geo:wktLiteral"@en ;
-            align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:asWKT ] ;
-            align:entity2 [ a edoal:Property ;
-                    edoal:uri geo:asWKT ] ;
-            align:relation "=" ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnRetagWkt ] ],
-        [ a align:Cell ;
             rdfs:label "latitude + longitude → geo:Geometry with WKT POINT"@en ;
             align:entity1 [ a edoal:Class ;
                     edoal:uri gmeow:GeoCoordinates ] ;
             align:entity2 [ a edoal:Class ;
                     edoal:uri geo:Geometry ] ;
             align:relation "<=" ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnLatLongToWktPoint ] ] ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnLatLongToWktPoint ] ],
+        [ a align:Cell ;
+            rdfs:label "asWKT literal → geo:asWKT retagged geo:wktLiteral"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:asWKT ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri geo:asWKT ] ;
+            align:relation "=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnRetagWkt ] ] ;
     align:onto1 [ a align:Ontology ;
             align:formalism [ align:name "GMEOW" ] ] ;
     align:onto2 [ a align:Ontology ;
