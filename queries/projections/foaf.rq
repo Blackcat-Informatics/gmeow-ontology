@@ -1,15 +1,19 @@
 # Projection: GMEOW → pure FOAF (lowest common denominator). Executable form of
 # projections/foaf.edoal.ttl. A Place with coordinates collapses to a
-# wgs84:SpatialThing (lat/long); a displayable full name → foaf:name; an agent
+# wgs84:SpatialThing (lat/long); a displayable full name → foaf:name; a displayable
+# gender identity → foaf:gender (suppressed labels never emitted); an agent
 # locatedAt a place → foaf:based_near. Heavily lossy (address structure, place
-# types, hierarchy, geometry, names context, storage/virtual all dropped).
+# types, hierarchy, geometry, names context, storage/virtual, gender expression,
+# orientation and sexAssignedAtBirth all dropped).
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
 PREFIX wgs84: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 
 CONSTRUCT {
     ?place a wgs84:SpatialThing ; wgs84:lat ?lat ; wgs84:long ?lon .
     ?ent foaf:name ?dispName .
+    ?ent foaf:gender ?genderLabel .
     ?agent foaf:based_near ?place .
 }
 WHERE {
@@ -21,6 +25,11 @@ WHERE {
         ?ent gmeow:hasAppellation|gmeow:hasName ?app .
         ?app gmeow:fullName ?dispName .
         FILTER NOT EXISTS { ?app gmeow:displayable false }
+    } UNION {
+        ?ent gmeow:hasGenderIdentity ?gi .
+        ?gi gmeow:genderValue ?gv .
+        ?gv rdfs:label ?genderLabel .
+        FILTER NOT EXISTS { ?gi gmeow:displayable false }
     } UNION {
         ?agent gmeow:locatedAt ?place .
     }

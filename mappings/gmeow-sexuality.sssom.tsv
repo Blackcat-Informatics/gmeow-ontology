@@ -1,0 +1,9 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/sexuality
+# license: https://creativecommons.org/licenses/by/4.0/
+# comment: Sexuality alignments — sexual/romantic orientation values to Homosaurus (the authoritative LGBTQ+ vocabulary) and the sexual-orientation property to Wikidata P91. GMEOW applies the SPLIT-ATTRACTION model (sexual orientation and romantic orientation are separate axes); most external vocabularies do NOT distinguish them, so romantic-orientation values map only to the few Homosaurus romantic terms and are otherwise canonical. schema.org and FOAF have no orientation term — orientation is a documented lossy drop at the projection layer. Only identifiers VERIFIED against Homosaurus are mapped; the value vocab is OPEN and extends here as IDs are curated. The reified, self-asserted, co-equal gmeow:IdentityFacet machinery is CANONICAL.
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:sexualOrientationValue	skos:closeMatch	wdt:P91	semapv:ManualMappingCuration	0.75	Wikidata 'sexual orientation'
+gmeow:orientAsexual	skos:closeMatch	homosaurus:homoit0000004	semapv:ManualMappingCuration	0.9	Homosaurus 'Asexuality'
+gmeow:orientDemisexual	skos:closeMatch	homosaurus:homoit0001644	semapv:ManualMappingCuration	0.9	Homosaurus 'Demisexuality'
+gmeow:orientPansexual	skos:closeMatch	homosaurus:homoit0001493	semapv:ManualMappingCuration	0.85	Homosaurus 'Pansexual people'
+gmeow:romanticAromantic	skos:closeMatch	homosaurus:homoit0001535	semapv:ManualMappingCuration	0.85	Homosaurus 'Aromantic people'

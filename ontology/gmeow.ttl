@@ -41,6 +41,8 @@
         <https://blackcatinformatics.ca/gmeow/modules/software> ,
         <https://blackcatinformatics.ca/gmeow/modules/genealogy> ,
         <https://blackcatinformatics.ca/gmeow/modules/names> ,
+        <https://blackcatinformatics.ca/gmeow/modules/gender> ,
+        <https://blackcatinformatics.ca/gmeow/modules/sexuality> ,
         <https://blackcatinformatics.ca/gmeow/modules/languages> ,
         <https://blackcatinformatics.ca/gmeow/modules/agreements> ,
         <https://blackcatinformatics.ca/gmeow/modules/contacts> ,

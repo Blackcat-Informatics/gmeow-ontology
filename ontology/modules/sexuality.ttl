@@ -1,0 +1,105 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/sexuality>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Sexuality Module"@en ;
+    rdfs:comment "A respectful, inclusive model of a person's orientation, reusing the gmeow:IdentityFacet base from the gender module (a reified, SELF-ASSERTED gufo:Relator). It applies the SPLIT-ATTRACTION model: sexual orientation and romantic orientation are SEPARATE, mutually independent axes — so asexual-biromantic, aromantic-bisexual and similar are directly expressible; neither is inferred from the other, nor from gender identity/expression, sex-assigned-at-birth, pronouns or honorifics. GOVERNING TENETS (shared with gender): self-assertion is the top authority; co-equality (no preferred/primary orientation; superseded labels kept with gmeow:displayable false, never deleted); INCLUSIVE WITHOUT OVERTYPING — gmeow:SexualOrientationValue and gmeow:RomanticOrientationValue are OPEN value vocabularies of individuals (never per-value subclasses, never a forced enum), an orientation not among the seeds being a FRESH value individual with rdfs:label. Aligns (lossily) to GSSO, Homosaurus and Wikidata; schema.org and FOAF have no orientation term, so orientation is a documented lossy drop at the projection layer. The machinery is otherwise canonical."@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Split-attraction orientation facets. Both subclass the shared gmeow:IdentityFacet
+# (gender module) — a reified, self-asserted gufo:Relator. Sexual and romantic
+# orientation are SEPARATE axes; there is deliberately no bridge between them.
+# Each value property is the SINGLE path to its value (a fresh individual with
+# rdfs:label when none is seeded) — no flat-literal shortcut.
+# --------------------------------------------------------------------------- #
+
+gmeow:SexualOrientation
+    a owl:Class ;
+    rdfs:subClassOf gmeow:IdentityFacet ;
+    rdfs:label "Sexual Orientation"@en ;
+    skos:definition "A person's SELF-ASSERTED sexual orientation — the pattern of their sexual attraction — as a reified facet pointing (via gmeow:sexualOrientationValue) to an open gmeow:SexualOrientationValue. A SEPARATE axis from romantic orientation (split-attraction model) and from gender identity/expression; nothing infers one from another."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasSexualOrientation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range gmeow:SexualOrientation ;
+    rdfs:label "has sexual orientation"@en ;
+    skos:definition "Relates a person to a self-asserted sexual-orientation facet. Non-functional and contextual; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasRomanticOrientation, gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sexualOrientationValue
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:SexualOrientation ;
+    rdfs:range gmeow:SexualOrientationValue ;
+    rdfs:label "sexual orientation value"@en ;
+    skos:definition "The gmeow:SexualOrientationValue a sexual-orientation facet asserts (functional per facet). A predefined individual or a fresh one with rdfs:label; the single path to the value."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:RomanticOrientation
+    a owl:Class ;
+    rdfs:subClassOf gmeow:IdentityFacet ;
+    rdfs:label "Romantic Orientation"@en ;
+    skos:definition "A person's SELF-ASSERTED romantic orientation — the pattern of their romantic attraction — as a reified facet pointing (via gmeow:romanticOrientationValue) to an open gmeow:RomanticOrientationValue. A SEPARATE axis from sexual orientation (split-attraction model); the two are mutually independent (e.g. asexual yet biromantic)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasRomanticOrientation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range gmeow:RomanticOrientation ;
+    rdfs:label "has romantic orientation"@en ;
+    skos:definition "Relates a person to a self-asserted romantic-orientation facet. Non-functional and contextual; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasSexualOrientation, gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:romanticOrientationValue
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:RomanticOrientation ;
+    rdfs:range gmeow:RomanticOrientationValue ;
+    rdfs:label "romantic orientation value"@en ;
+    skos:definition "The gmeow:RomanticOrientationValue a romantic-orientation facet asserts (functional per facet). A predefined individual or a fresh one with rdfs:label; the single path to the value."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# VALUE VOCABULARIES (open; new entries are individuals, not subclasses).
+# Sexual and romantic patterns are kept as SEPARATE vocabularies so the split-
+# attraction distinction is explicit (asexual ≠ aromantic). The seed lists are
+# anchors; the long tail is fresh individuals + the GSSO/Homosaurus alignments in
+# mappings/gmeow-sexuality.sssom.tsv.
+# =========================================================================== #
+
+gmeow:SexualOrientationValue
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Sexual Orientation Value"@en ;
+    skos:definition "A pattern of sexual attraction — a VALUE pointed at by gmeow:sexualOrientationValue, never a subclass. Open: an orientation not seeded here is a fresh individual with rdfs:label."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:orientHeterosexual a gmeow:SexualOrientationValue ; rdfs:label "heterosexual"@en .
+gmeow:orientHomosexual   a gmeow:SexualOrientationValue ; rdfs:label "homosexual / gay / lesbian"@en .
+gmeow:orientBisexual     a gmeow:SexualOrientationValue ; rdfs:label "bisexual"@en .
+gmeow:orientPansexual    a gmeow:SexualOrientationValue ; rdfs:label "pansexual"@en .
+gmeow:orientAsexual      a gmeow:SexualOrientationValue ; rdfs:label "asexual"@en .
+gmeow:orientDemisexual   a gmeow:SexualOrientationValue ; rdfs:label "demisexual"@en .
+gmeow:orientQueer        a gmeow:SexualOrientationValue ; rdfs:label "queer"@en .
+gmeow:orientQuestioning  a gmeow:SexualOrientationValue ; rdfs:label "questioning"@en .
+
+gmeow:RomanticOrientationValue
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Romantic Orientation Value"@en ;
+    skos:definition "A pattern of romantic attraction — a VALUE pointed at by gmeow:romanticOrientationValue, never a subclass. Kept separate from sexual orientation (split-attraction). Open: a fresh individual with rdfs:label when none is seeded."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:romanticHeteroromantic a gmeow:RomanticOrientationValue ; rdfs:label "heteroromantic"@en .
+gmeow:romanticHomoromantic   a gmeow:RomanticOrientationValue ; rdfs:label "homoromantic"@en .
+gmeow:romanticBiromantic     a gmeow:RomanticOrientationValue ; rdfs:label "biromantic"@en .
+gmeow:romanticPanromantic    a gmeow:RomanticOrientationValue ; rdfs:label "panromantic"@en .
+gmeow:romanticAromantic      a gmeow:RomanticOrientationValue ; rdfs:label "aromantic"@en .
+gmeow:romanticDemiromantic   a gmeow:RomanticOrientationValue ; rdfs:label "demiromantic"@en .
+gmeow:romanticQueerromantic  a gmeow:RomanticOrientationValue ; rdfs:label "queerplatonic / queer-romantic"@en .
+gmeow:romanticQuestioning    a gmeow:RomanticOrientationValue ; rdfs:label "questioning"@en .

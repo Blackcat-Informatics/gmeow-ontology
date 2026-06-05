@@ -58,6 +58,14 @@ gmeow:fnSelectDisplayName
     fno:returns ( gmeow:oDisplayName ) ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
 
+gmeow:fnSelectDisplayableGender
+    a fno:Function ;
+    rdfs:label "select displayable gender identity → gender label"@en ;
+    dcterms:description "Returns the rdfs:label of a person's displayable gmeow:GenderIdentity value (gmeow:genderValue) for emission as schema:gender / foaf:gender. A gmeow:displayable false facet (a superseded gender label) is NEVER emitted — the same suppression contract as a deadname. Lossy and directional: schema.org/FOAF conflate sex and gender, and orientation + sex-assigned-at-birth have no target term, so they are dropped."@en ;
+    fno:expects ( gmeow:pGenderIdentity ) ;
+    fno:returns ( gmeow:oGender ) ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
+
 gmeow:fnHonorificToAffix
     a fno:Function ;
     rdfs:label "honorific value → prefix/suffix literal"@en ;
@@ -94,6 +102,7 @@ gmeow:pPostalCode  a fno:Parameter ; fno:predicate gmeow:postalCode ; fno:type r
 gmeow:pCountry     a fno:Parameter ; fno:predicate gmeow:countryCode ; fno:type rdfs:Literal .
 gmeow:pAppellation a fno:Parameter ; fno:predicate gmeow:hasAppellation ; fno:type gmeow:Appellation ; fno:required true .
 gmeow:pHonorific   a fno:Parameter ; fno:predicate gmeow:honorific ; fno:type gmeow:Honorific ; fno:required true .
+gmeow:pGenderIdentity a fno:Parameter ; fno:predicate gmeow:hasGenderIdentity ; fno:type gmeow:GenderIdentity ; fno:required true .
 gmeow:pLanguageCode a fno:Parameter ; fno:predicate gmeow:languageCode ; fno:type rdfs:Literal ; fno:required true .
 gmeow:pScriptCode   a fno:Parameter ; fno:predicate gmeow:scriptCode ; fno:type rdfs:Literal .
 gmeow:pProficiencyLanguage a fno:Parameter ; fno:predicate gmeow:proficiencyLanguage ; fno:type gmeow:Language ; fno:required true .
@@ -103,5 +112,6 @@ gmeow:oWkt           a fno:Output ; fno:predicate geo:asWKT ; fno:type geo:wktLi
 gmeow:oAddressString a fno:Output ; fno:predicate gmeow:projectedAddress ; fno:type xsd:string .
 gmeow:oDisplayName   a fno:Output ; fno:predicate gmeow:projectedName ; fno:type rdfs:Literal .
 gmeow:oAffix         a fno:Output ; fno:predicate gmeow:projectedAffix ; fno:type xsd:string .
+gmeow:oGender        a fno:Output ; fno:predicate gmeow:projectedGender ; fno:type rdfs:Literal .
 gmeow:oBcp47         a fno:Output ; fno:predicate gmeow:projectedLanguageTag ; fno:type xsd:string .
 gmeow:oKnownLanguage a fno:Output ; fno:predicate gmeow:projectedKnownLanguage ; fno:type gmeow:Language .

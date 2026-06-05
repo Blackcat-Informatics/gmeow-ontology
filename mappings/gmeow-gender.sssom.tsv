@@ -1,0 +1,18 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/gender
+# license: https://creativecommons.org/licenses/by/4.0/
+# comment: Gender alignments — gender-identity values to Homosaurus and GSSO (the authoritative LGBTQ+ / sex-gender vocabularies) and the gender-carrying property to schema.org, FOAF and Wikidata (all LOSSY — they conflate sex and gender, which GMEOW keeps rigorously apart). Only identifiers VERIFIED against the source vocabularies are mapped; the value vocab is OPEN, so additional values extend this file as their IDs are curated. The reified, self-asserted, co-equal gmeow:IdentityFacet machinery (gmeow:hasGenderIdentity/genderValue, gmeow:selfAsserted, displayable suppression of a superseded label) is CANONICAL — no maintained external RDF vocabulary models it faithfully. sexAssignedAtBirth is a recorded administrative datum, mapped (loosely) to Wikidata P21 and FHIR administrative gender; documentary sex on records uses external gedcom:sex directly.
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:GenderIdentity	skos:closeMatch	homosaurus:homoit0000571	semapv:ManualMappingCuration	0.8	Homosaurus 'Gender identity'
+gmeow:genderValue	skos:closeMatch	schema:gender	semapv:ManualMappingCuration	0.7	lossy — schema:gender conflates sex/gender
+gmeow:genderValue	skos:closeMatch	foaf:gender	semapv:ManualMappingCuration	0.6	lossy legacy binary-leaning property
+gmeow:genderValue	skos:closeMatch	wdt:P21	semapv:ManualMappingCuration	0.7	Wikidata 'sex or gender' — conflated
+gmeow:genderWoman	skos:closeMatch	homosaurus:homoit0001509	semapv:ManualMappingCuration	0.85	Homosaurus 'Women'
+gmeow:genderMan	skos:closeMatch	homosaurus:homoit0001008	semapv:ManualMappingCuration	0.85	Homosaurus 'Men'
+gmeow:genderNonBinary	skos:closeMatch	homosaurus:homoit0001048	semapv:ManualMappingCuration	0.9	Homosaurus 'Non-binary people'
+gmeow:genderNonBinary	skos:closeMatch	gsso:000395	semapv:ManualMappingCuration	0.9	GSSO 'gender nonbinary'
+gmeow:genderAgender	skos:closeMatch	homosaurus:homoit0000021	semapv:ManualMappingCuration	0.9	Homosaurus 'Agender people'
+gmeow:genderGenderqueer	skos:closeMatch	homosaurus:homoit0001921	semapv:ManualMappingCuration	0.85	Homosaurus 'Genderqueer identity'
+gmeow:genderGenderfluid	skos:closeMatch	homosaurus:homoit0000570	semapv:ManualMappingCuration	0.9	Homosaurus 'Genderfluid people'
+gmeow:genderTwoSpirit	skos:closeMatch	gsso:007398	semapv:ManualMappingCuration	0.9	GSSO 'Two-Spirit gender identity'
+gmeow:sexAssignedAtBirth	skos:closeMatch	wdt:P21	semapv:ManualMappingCuration	0.6	Wikidata 'sex or gender' — narrower here; loose
+gmeow:sexAssignedAtBirth	skos:closeMatch	fhir:administrative-gender	semapv:ManualMappingCuration	0.5	FHIR administrative gender — loose neighbour, not birth-sex proper

@@ -21,6 +21,7 @@ NAMES = "https://example.org/names/"
 
 
 LANG = "https://example.org/lang/"
+IDENT = "https://example.org/identity/"
 
 
 def _source() -> Graph:
@@ -28,6 +29,7 @@ def _source() -> Graph:
     graph.parse(FIXTURES_DIR / "places.ttl", format="turtle")
     graph.parse(FIXTURES_DIR / "names.ttl", format="turtle")
     graph.parse(FIXTURES_DIR / "languages.ttl", format="turtle")
+    graph.parse(FIXTURES_DIR / "identity.ttl", format="turtle")
     return graph
 
 
@@ -141,6 +143,33 @@ def test_foaf_projection() -> None:
         g.objects(URIRef(NAMES + "patrick"), URIRef(FOAF + "name"))
     )
     _assert_no_gmeow_leakage(g)
+
+
+def test_gender_projection_displayable_and_suppressed() -> None:
+    """Displayable gender identity → schema:gender/foaf:gender; suppressed never leaks.
+
+    Orientation, gender expression and sexAssignedAtBirth have no schema/FOAF target
+    and are dropped — the documented lossy drop.
+    """
+    for profile, ns in (("schema-org", SCHEMA), ("foaf", FOAF)):
+        g = project_graph(profile, _source())
+        gender = URIRef(ns + "gender")
+        # Co-equal bigender: BOTH of alex's displayable identities are emitted.
+        alex = set(g.objects(URIRef(IDENT + "alex"), gender))
+        assert Literal("woman", lang="en") in alex
+        assert Literal("non-binary", lang="en") in alex
+        # The fresh self-described value (escape hatch) projects via its rdfs:label.
+        sam = set(g.objects(URIRef(IDENT + "sam"), gender))
+        assert Literal("demifluid (self-described)", lang="en") in sam
+        # Transition: robin's CURRENT gender is emitted; the SUPPRESSED one is NOT.
+        robin = set(g.objects(URIRef(IDENT + "robin"), gender))
+        assert Literal("non-binary", lang="en") in robin
+        assert Literal("man", lang="en") not in robin
+        # Lossy drops: no orientation / sexAssignedAtBirth / expression leaks anywhere.
+        blob = g.serialize(format="turtle")
+        for dropped in ("asexual", "biromantic", "intersex", "androgynous", "saab"):
+            assert dropped not in blob, f"{dropped} must not project to {profile}"
+        _assert_no_gmeow_leakage(g)
 
 
 def test_project_examples_round_trip(tmp_path: Path) -> None:
