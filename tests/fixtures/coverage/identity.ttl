@@ -82,13 +82,13 @@ ex:sam a gmeow:Person ;
     gmeow:hasGenderExpression ex:samExpr .
 
 ex:samGi a gmeow:GenderIdentity ;
-    gmeow:genderValue ex:genderDemiflux ;   # not a seed value — a fresh individual
+    gmeow:genderValue ex:genderDemifluid ;   # not a seed value — a fresh individual
     gmeow:selfAsserted true ;
     gmeow:displayable true ;
     gmeow:wasAttributedTo ex:sam .
 
 # The escape hatch: a new gmeow:Gender individual with a label, NOT a new class.
-ex:genderDemiflux a gmeow:Gender ; rdfs:label "demifluid (self-described)"@en .
+ex:genderDemifluid a gmeow:Gender ; rdfs:label "demifluid (self-described)"@en .
 
 ex:samExpr a gmeow:GenderExpression ;
     gmeow:expressionValue gmeow:expressionNeutral ;

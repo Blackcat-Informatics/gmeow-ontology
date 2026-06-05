@@ -46,7 +46,11 @@ def test_every_axis_property_exists_with_its_own_range() -> None:
             RDF.type,
             OWL.DatatypeProperty,
         ) in graph, f"{prop} must be defined"
-        assert (node, RDFS.range, URIRef(GMEOW + rng)) in graph, f"{prop} range"
+        # The axis ranges over its facet/value class EXCLUSIVELY — exactly one
+        # range, not its own plus extras (a stray shared range would let two axes
+        # collapse into the same value space and weaken the orthogonality guard).
+        declared = set(graph.objects(node, RDFS.range))
+        assert declared == {URIRef(GMEOW + rng)}, f"{prop} must range over only {rng}"
         ranges.add(URIRef(GMEOW + rng))
     # All seven ranges are distinct — no two axes share a value space.
     assert len(ranges) == len(AXES)

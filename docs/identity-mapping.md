@@ -68,9 +68,9 @@ self-description is a first-class value, never a second-class string.
 
 ```turtle
 ex:samGi a gmeow:GenderIdentity ;
-    gmeow:genderValue ex:genderDemiflux ;   # a fresh individual, not a seed
+    gmeow:genderValue ex:genderDemifluid ;   # a fresh individual, not a seed
     gmeow:selfAsserted true ; gmeow:displayable true .
-ex:genderDemiflux a gmeow:Gender ; rdfs:label "demifluid (self-described)"@en .
+ex:genderDemifluid a gmeow:Gender ; rdfs:label "demifluid (self-described)"@en .
 ```
 
 ## Interoperability (all external mappings are lossy)
