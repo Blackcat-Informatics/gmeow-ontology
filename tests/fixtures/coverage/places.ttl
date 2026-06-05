@@ -17,7 +17,6 @@
 # Nested, QID-bearing place hierarchy (country ⊃ region ⊃ city ⊃ premises ⊃ room).
 ex:canada a gmeow:Place ;
     gmeow:placeType gmeow:placeTypeCountry ;
-    gmeow:countryCode "CA" ;
     gmeow:timezone "America/Edmonton" ;
     gmeow:alternateName "Kanada"@de ;
     gmeow:authorityLink wd:Q16 ;
