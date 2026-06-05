@@ -1,0 +1,311 @@
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+
+# Projection mappings: GMEOW → pure schema.org (the richest profile). Compiled to
+# projections/schema-org.edoal.ttl + queries/projections/schema-org.rq by
+# `gmeow compile-mappings`.
+
+gmeow:mapSchemaPlace a gmeow:ProjectionMapping ;
+    rdfs:label "Place → schema:Place (+ containment, coordinates)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:containedInPlace ; gmeow:objectVar "parent" ; gmeow:optional true ]
+            [ gmeow:optionalGroup (
+                [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasCoordinates ; gmeow:objectVar "coords" ]
+                [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:latitude ; gmeow:objectVar "lat" ] ) ]
+                [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:longitude ; gmeow:objectVar "lon" ] ) ]
+                [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:elevation ; gmeow:objectVar "elev" ] ) ] ) ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "place" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:Place ]
+            [ gmeow:tSubj "place" ; gmeow:tPred schema:containedInPlace ; gmeow:tObj "parent" ]
+            [ gmeow:tSubj "place" ; gmeow:tPred schema:geo ; gmeow:tObj "coords" ]
+            [ gmeow:tSubj "coords" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:GeoCoordinates ]
+            [ gmeow:tSubj "coords" ; gmeow:tPred schema:latitude ; gmeow:tObj "lat" ]
+            [ gmeow:tSubj "coords" ; gmeow:tPred schema:longitude ; gmeow:tObj "lon" ]
+            [ gmeow:tSubj "coords" ; gmeow:tPred schema:elevation ; gmeow:tObj "elev" ] ) ] .
+
+gmeow:mapSchemaPlaceType a gmeow:ProjectionMapping ;
+    rdfs:label "Place placeType value → schema target class"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ; gmeow:value "pt" ;
+        gmeow:atom ( [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:placeType ; gmeow:objectVar "pt" ] ) ;
+        gmeow:edoalSource gmeow:Place ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "=" ;
+        gmeow:transform gmeow:fnPlaceTypeToClass ;
+        gmeow:valueClassMap (
+            [ gmeow:whenValue gmeow:placeTypeCountry ; gmeow:toClass schema:Country ]
+            [ gmeow:whenValue gmeow:placeTypeCity ; gmeow:toClass schema:City ]
+            [ gmeow:whenValue gmeow:placeTypeAdministrativeArea ; gmeow:toClass schema:AdministrativeArea ]
+            [ gmeow:whenValue gmeow:placeTypeRegion ; gmeow:toClass schema:AdministrativeArea ] ) ] .
+
+gmeow:mapSchemaVirtualLocation a gmeow:ProjectionMapping ;
+    rdfs:label "VirtualLocation → schema:VirtualLocation"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "vl" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "vl" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:VirtualLocation ]
+            [ gmeow:subjectVar "vl" ; gmeow:predicate gmeow:accessUrl ; gmeow:objectVar "vurl" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "vl" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:VirtualLocation ]
+            [ gmeow:tSubj "vl" ; gmeow:tPred schema:url ; gmeow:tObj "vurl" ] ) ] .
+
+gmeow:mapSchemaAddress a gmeow:ProjectionMapping ;
+    rdfs:label "PostalAddress → schema:PostalAddress"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "holder" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "holder" ; gmeow:predicate gmeow:hasContactPoint ; gmeow:objectVar "addr" ]
+            [ gmeow:subjectVar "addr" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:PostalAddress ]
+            [ gmeow:subjectVar "addr" ; gmeow:predicate gmeow:streetAddress ; gmeow:objectVar "street" ; gmeow:optional true ]
+            [ gmeow:subjectVar "addr" ; gmeow:predicate gmeow:addressLocality ; gmeow:objectVar "locality" ; gmeow:optional true ]
+            [ gmeow:subjectVar "addr" ; gmeow:predicate gmeow:addressRegion ; gmeow:objectVar "region" ; gmeow:optional true ]
+            [ gmeow:subjectVar "addr" ; gmeow:predicate gmeow:postalCode ; gmeow:objectVar "pcode" ; gmeow:optional true ]
+            [ gmeow:subjectVar "addr" ; gmeow:predicate gmeow:countryCode ; gmeow:objectVar "ccode" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "holder" ; gmeow:tPred schema:address ; gmeow:tObj "addr" ]
+            [ gmeow:tSubj "addr" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:PostalAddress ]
+            [ gmeow:tSubj "addr" ; gmeow:tPred schema:streetAddress ; gmeow:tObj "street" ]
+            [ gmeow:tSubj "addr" ; gmeow:tPred schema:addressLocality ; gmeow:tObj "locality" ]
+            [ gmeow:tSubj "addr" ; gmeow:tPred schema:addressRegion ; gmeow:tObj "region" ]
+            [ gmeow:tSubj "addr" ; gmeow:tPred schema:postalCode ; gmeow:tObj "pcode" ]
+            [ gmeow:tSubj "addr" ; gmeow:tPred schema:addressCountry ; gmeow:tObj "ccode" ] ) ] .
+
+gmeow:mapSchemaName a gmeow:ProjectionMapping ;
+    rdfs:label "displayable fullName → schema:name"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "dispName" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasAppellation gmeow:hasName ) ] ;
+              gmeow:objectVar "app" ]
+            [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:fullName ; gmeow:objectVar "dispName" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:fullName ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:name ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnSelectDisplayName ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "non-displayable names (deadnames) dropped" ] .
+
+gmeow:mapSchemaGivenName a gmeow:ProjectionMapping ;
+    rdfs:label "given-name part → schema:givenName"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "given" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasAppellation gmeow:hasName ) ] ;
+              gmeow:objectVar "app" ]
+            [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:hasNamePart ; gmeow:objectVar "np" ]
+            [ gmeow:subjectVar "np" ; gmeow:predicate gmeow:namePartType ; gmeow:objectValue gmeow:namePartGiven ]
+            [ gmeow:subjectVar "np" ; gmeow:predicate gmeow:partText ; gmeow:objectVar "given" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:givenName ; gmeow:relation "<=" ] .
+
+gmeow:mapSchemaFamilyName a gmeow:ProjectionMapping ;
+    rdfs:label "family-name part → schema:familyName"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "family" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasAppellation gmeow:hasName ) ] ;
+              gmeow:objectVar "app" ]
+            [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:hasNamePart ; gmeow:objectVar "np" ]
+            [ gmeow:subjectVar "np" ; gmeow:predicate gmeow:namePartType ; gmeow:objectValue gmeow:namePartSurname ]
+            [ gmeow:subjectVar "np" ; gmeow:predicate gmeow:partText ; gmeow:objectVar "family" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:familyName ; gmeow:relation "<=" ] .
+
+gmeow:mapSchemaGender a gmeow:ProjectionMapping ;
+    rdfs:label "displayable GenderIdentity value → schema:gender (lossy)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "genderLabel" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:hasGenderIdentity ; gmeow:objectVar "gi" ]
+            [ gmeow:subjectVar "gi" ; gmeow:predicate gmeow:genderValue ; gmeow:objectVar "gv" ]
+            [ gmeow:subjectVar "gv" ; gmeow:predicate rdfs:label ; gmeow:objectVar "genderLabel" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "gi" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:hasGenderIdentity ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:gender ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnSelectDisplayableGender ; gmeow:confidence 0.6 ;
+        gmeow:lossyDrop "orientation + sexAssignedAtBirth dropped; sex/gender conflated" ] .
+
+gmeow:mapSchemaHonorificPrefix a gmeow:ProjectionMapping ;
+    rdfs:label "Honorific (prefix position) → schema:honorificPrefix"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "honPrefix" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:honorific ; gmeow:objectVar "h" ]
+            [ gmeow:subjectVar "h" ; gmeow:predicate rdfs:label ; gmeow:objectVar "honPrefix" ]
+            [ gmeow:subjectVar "h" ; gmeow:predicate gmeow:honorificPosition ; gmeow:objectValue gmeow:honorificPositionPrefix ] ) ;
+        gmeow:edoalSource gmeow:honorific ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:honorificPrefix ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnHonorificToAffix ] .
+
+gmeow:mapSchemaHonorificSuffix a gmeow:ProjectionMapping ;
+    rdfs:label "Honorific (suffix position) → schema:honorificSuffix"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "honSuffix" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:honorific ; gmeow:objectVar "h" ]
+            [ gmeow:subjectVar "h" ; gmeow:predicate rdfs:label ; gmeow:objectVar "honSuffix" ]
+            [ gmeow:subjectVar "h" ; gmeow:predicate gmeow:honorificPosition ; gmeow:objectValue gmeow:honorificPositionSuffix ] ) ;
+        gmeow:edoalSource gmeow:honorific ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:honorificSuffix ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnHonorificToAffix ] .
+
+gmeow:mapSchemaLanguage a gmeow:ProjectionMapping ;
+    rdfs:label "gmeow:Language → schema:Language"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "lang" ;
+        gmeow:atom ( [ gmeow:subjectVar "lang" ;
+              gmeow:path [ a gmeow:SeqPath ; gmeow:pathSteps
+                  ( rdf:type [ a gmeow:ZeroOrMorePath ; gmeow:pathStep rdfs:subClassOf ] ) ] ;
+              gmeow:objectValue gmeow:Language ] ) ;
+        gmeow:edoalSource gmeow:Language ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toClass schema:Language ; gmeow:relation "=" ] .
+
+gmeow:mapSchemaProgrammingLanguage a gmeow:ProjectionMapping ;
+    rdfs:label "gmeow:ProgrammingLanguage → schema:ComputerLanguage"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "prog" ;
+        gmeow:atom ( [ gmeow:subjectVar "prog" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ProgrammingLanguage ] ) ;
+        gmeow:edoalSource gmeow:ProgrammingLanguage ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toClass schema:ComputerLanguage ; gmeow:relation "=" ] .
+
+gmeow:mapSchemaBcp47 a gmeow:ProjectionMapping ;
+    rdfs:label "languageCode (+ co-mingled scriptCode) → schema:alternateName (BCP-47)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "lang" ; gmeow:value "bcp47" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "lang" ;
+              gmeow:path [ a gmeow:SeqPath ; gmeow:pathSteps
+                  ( rdf:type [ a gmeow:ZeroOrMorePath ; gmeow:pathStep rdfs:subClassOf ] ) ] ;
+              gmeow:objectValue gmeow:Language ]
+            [ gmeow:subjectVar "lang" ; gmeow:predicate gmeow:languageCode ; gmeow:objectVar "code" ]
+            [ gmeow:optionalGroup (
+                [ gmeow:subjectVar "lang" ; gmeow:predicate gmeow:usesWritingSystem ; gmeow:objectVar "ws" ]
+                [ gmeow:subjectVar "ws" ; gmeow:predicate gmeow:scriptCode ; gmeow:objectVar "sc" ] ) ] ) ;
+        gmeow:excludeWhen [ gmeow:subjectVar "lang" ;
+            gmeow:path [ a gmeow:SeqPath ; gmeow:pathSteps
+                ( rdf:type [ a gmeow:ZeroOrMorePath ; gmeow:pathStep rdfs:subClassOf ] ) ] ;
+            gmeow:objectValue gmeow:FormalLanguage ] ;
+        gmeow:filter [ gmeow:exprOp gmeow:opRegex ; gmeow:exprArgs (
+            [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "code" ] ) ]
+            "^[a-zA-Z]{2,3}$" ) ] ;
+        gmeow:bind [ gmeow:bindVar "bcp47" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIf ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opBound ; gmeow:exprArgs ( [ gmeow:exprVar "sc" ] ) ]
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "code" ] ) ] "-"
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "sc" ] ) ] ) ]
+                [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "code" ] ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:languageCode ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:alternateName ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnComposeBcp47 ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "Glottocodes excluded; only 2-3 letter primary subtags" ] .
+
+gmeow:mapSchemaKnowsLanguageFlat a gmeow:ProjectionMapping ;
+    rdfs:label "knowsLanguage → schema:knowsLanguage (flat)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "knower" ; gmeow:value "known" ;
+        gmeow:atom ( [ gmeow:subjectVar "knower" ; gmeow:predicate gmeow:knowsLanguage ; gmeow:objectVar "known" ] ) ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:knowsLanguage ; gmeow:relation "<=" ] .
+
+gmeow:mapSchemaKnowsLanguageProficiency a gmeow:ProjectionMapping ;
+    rdfs:label "LanguageProficiency relator → schema:knowsLanguage (flatten, lossy)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "knower" ; gmeow:value "known" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "prof" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:LanguageProficiency ]
+            [ gmeow:subjectVar "prof" ; gmeow:predicate gmeow:proficiencyAgent ; gmeow:objectVar "knower" ]
+            [ gmeow:subjectVar "prof" ; gmeow:predicate gmeow:proficiencyLanguage ; gmeow:objectVar "known" ] ) ;
+        gmeow:edoalSource gmeow:knowsLanguage ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:knowsLanguage ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnProficiencyToKnownLanguage ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "CEFR/ILR/ACTFL level and skill modality dropped" ] .
+
+gmeow:mapSchemaDescription a gmeow:ProjectionMapping ;
+    rdfs:label "gmeow:description → schema:description"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "desc" ;
+        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:description ; gmeow:objectVar "desc" ] ) ;
+        gmeow:edoalSource gmeow:description ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:description ; gmeow:relation "=" ; gmeow:confidence 1.0 ] .
+
+gmeow:mapSchemaUrl a gmeow:ProjectionMapping ;
+    rdfs:label "hasWebPage → schema:url (the WebPage IRI)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "wp" ;
+        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:hasWebPage ; gmeow:objectVar "wp" ] ) ;
+        gmeow:edoalSource gmeow:hasWebPage ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:url ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnWebPageToUrl ; gmeow:confidence 0.8 ] .
+
+gmeow:mapSchemaNickname a gmeow:ProjectionMapping ;
+    rdfs:label "nickname-purpose PersonName → schema:alternateName (downcast)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "nick" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:hasName ; gmeow:objectVar "nname" ]
+            [ gmeow:subjectVar "nname" ; gmeow:predicate gmeow:namePurpose ; gmeow:objectValue gmeow:namePurposeNickname ]
+            [ gmeow:subjectVar "nname" ; gmeow:predicate gmeow:fullName ; gmeow:objectVar "nick" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "nname" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:hasName ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:alternateName ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnNicknameName ; gmeow:confidence 0.9 ] .
+
+gmeow:mapSchemaBirthDate a gmeow:ProjectionMapping ;
+    rdfs:label "Birth life-event date → schema:birthDate"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "person" ; gmeow:value "bdate" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "birth" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Birth ]
+            [ gmeow:subjectVar "birth" ; gmeow:predicate gmeow:hasPrincipal ; gmeow:objectVar "person" ]
+            [ gmeow:subjectVar "birth" ; gmeow:predicate gmeow:eventDate ; gmeow:objectVar "bdate" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:birthDate ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnBirthEventToDate ; gmeow:confidence 0.95 ] .
+
+gmeow:mapSchemaJobTitle a gmeow:ProjectionMapping ;
+    rdfs:label "Membership Role → schema:jobTitle"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "member" ; gmeow:value "title" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "m" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Membership ]
+            [ gmeow:subjectVar "m" ; gmeow:predicate gmeow:membershipMember ; gmeow:objectVar "member" ]
+            [ gmeow:subjectVar "m" ; gmeow:predicate gmeow:hasRole ; gmeow:objectVar "role" ]
+            [ gmeow:subjectVar "role" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( rdfs:label gmeow:name ) ] ;
+              gmeow:objectVar "title" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:jobTitle ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnMembershipToJobTitle ; gmeow:confidence 0.9 ] .
+
+gmeow:mapSchemaDepartment a gmeow:ProjectionMapping ;
+    rdfs:label "subOrganizationOf → schema:department (inverse, parent→child)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "parent" ; gmeow:value "dept" ;
+        gmeow:atom ( [ gmeow:subjectVar "dept" ; gmeow:predicate gmeow:subOrganizationOf ; gmeow:objectVar "parent" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:department ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnSubOrgToDepartment ; gmeow:confidence 1.0 ] .

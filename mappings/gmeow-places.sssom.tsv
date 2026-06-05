@@ -1,50 +1,68 @@
 # mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/places
+# mapping_set_version: 0.1.0
 # license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow compile-mappings
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
 # comment: Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard. placeType/storageMedium are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological "within"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here.
-subject_id	predicate_id	object_id	mapping_justification	confidence
-gmeow:VirtualLocation	skos:closeMatch	schema:VirtualLocation	semapv:ManualMappingCuration	0.9
-gmeow:Geometry	skos:closeMatch	geo:Geometry	semapv:ManualMappingCuration	0.9
-gmeow:placeType	skos:closeMatch	gvp:placeType	semapv:ManualMappingCuration	0.8
-gmeow:placeTypeCountry	skos:closeMatch	schema:Country	semapv:ManualMappingCuration	0.9
-gmeow:placeTypeCountry	skos:closeMatch	gn:A	semapv:ManualMappingCuration	0.7
-gmeow:placeTypeCountry	skos:closeMatch	wd:Q6256	semapv:ManualMappingCuration	0.9
-gmeow:placeTypeCity	skos:closeMatch	schema:City	semapv:ManualMappingCuration	0.9
-gmeow:placeTypeCity	skos:closeMatch	gn:P	semapv:ManualMappingCuration	0.8
-gmeow:placeTypeCity	skos:closeMatch	wd:Q515	semapv:ManualMappingCuration	0.9
-gmeow:placeTypeAdministrativeArea	skos:closeMatch	schema:AdministrativeArea	semapv:ManualMappingCuration	0.9
-gmeow:placeTypeAdministrativeArea	skos:closeMatch	gn:A	semapv:ManualMappingCuration	0.8
-gmeow:placeTypeBuilding	skos:closeMatch	gn:S	semapv:ManualMappingCuration	0.6
-gmeow:placeTypeBuilding	skos:closeMatch	wd:Q41176	semapv:ManualMappingCuration	0.8
-gmeow:placeTypeRoom	skos:closeMatch	wd:Q180516	semapv:ManualMappingCuration	0.8
-gmeow:placeTypeNaturalFeature	skos:closeMatch	gn:T	semapv:ManualMappingCuration	0.6
-gmeow:containedInPlace	skos:closeMatch	geo:sfWithin	semapv:ManualMappingCuration	0.8
-gmeow:containedInPlace	skos:closeMatch	gn:parentFeature	semapv:ManualMappingCuration	0.8
-gmeow:containedInPlace	skos:closeMatch	dcterms:isPartOf	semapv:ManualMappingCuration	0.7
-gmeow:containedInPlace	skos:closeMatch	wdt:P131	semapv:ManualMappingCuration	0.8
-gmeow:hasGeometry	skos:closeMatch	geo:hasGeometry	semapv:ManualMappingCuration	0.9
-gmeow:asWKT	skos:closeMatch	geo:asWKT	semapv:ManualMappingCuration	0.9
-gmeow:hasCoordinates	skos:closeMatch	schema:geo	semapv:ManualMappingCuration	0.8
-gmeow:latitude	skos:closeMatch	wgs84:lat	semapv:ManualMappingCuration	0.9
-gmeow:longitude	skos:closeMatch	wgs84:long	semapv:ManualMappingCuration	0.9
-gmeow:elevation	skos:closeMatch	wgs84:alt	semapv:ManualMappingCuration	0.9
-gmeow:elevation	skos:closeMatch	schema:elevation	semapv:ManualMappingCuration	0.9
-gmeow:locatedAt	skos:closeMatch	schema:location	semapv:ManualMappingCuration	0.7
-gmeow:streetAddress	owl:equivalentProperty	schema:streetAddress	semapv:ManualMappingCuration	1.0
-gmeow:streetAddress	skos:closeMatch	vcard:street-address	semapv:ManualMappingCuration	0.9
-gmeow:extendedAddress	skos:closeMatch	vcard:extended-address	semapv:ManualMappingCuration	0.9
-gmeow:postOfficeBox	skos:closeMatch	schema:postOfficeBoxNumber	semapv:ManualMappingCuration	0.9
-gmeow:postOfficeBox	skos:closeMatch	vcard:post-office-box	semapv:ManualMappingCuration	0.9
-gmeow:addressLocality	owl:equivalentProperty	schema:addressLocality	semapv:ManualMappingCuration	1.0
-gmeow:addressLocality	skos:closeMatch	vcard:locality	semapv:ManualMappingCuration	0.9
-gmeow:addressRegion	owl:equivalentProperty	schema:addressRegion	semapv:ManualMappingCuration	1.0
-gmeow:addressRegion	skos:closeMatch	vcard:region	semapv:ManualMappingCuration	0.9
-gmeow:postalCode	owl:equivalentProperty	schema:postalCode	semapv:ManualMappingCuration	1.0
-gmeow:postalCode	skos:closeMatch	vcard:postal-code	semapv:ManualMappingCuration	0.9
-gmeow:countryCode	skos:closeMatch	schema:addressCountry	semapv:ManualMappingCuration	0.8
-gmeow:countryCode	skos:closeMatch	vcard:country-name	semapv:ManualMappingCuration	0.7
-gmeow:addressPlace	skos:closeMatch	schema:address	semapv:ManualMappingCuration	0.7
-gmeow:timezone	skos:closeMatch	vcard:tz	semapv:ManualMappingCuration	0.9
-gmeow:alternateName	owl:equivalentProperty	schema:alternateName	semapv:ManualMappingCuration	1.0
-gmeow:alternateName	skos:closeMatch	skos:altLabel	semapv:ManualMappingCuration	0.9
-gmeow:alternateName	skos:closeMatch	gn:alternateName	semapv:ManualMappingCuration	0.9
-gmeow:authorityLink	skos:closeMatch	schema:sameAs	semapv:ManualMappingCuration	0.7
+# curie_map:
+#   dcterms: http://purl.org/dc/terms/
+#   geo: http://www.opengis.net/ont/geosparql#
+#   gmeow: https://blackcatinformatics.ca/gmeow/
+#   gn: http://www.geonames.org/ontology#
+#   gvp: http://vocab.getty.edu/ontology#
+#   owl: http://www.w3.org/2002/07/owl#
+#   schema: https://schema.org/
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+#   vcard: http://www.w3.org/2006/vcard/ns#
+#   wd: http://www.wikidata.org/entity/
+#   wdt: http://www.wikidata.org/prop/direct/
+#   wgs84: http://www.w3.org/2003/01/geo/wgs84_pos#
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:Geometry	skos:closeMatch	geo:Geometry	semapv:ManualMappingCuration	0.9	
+gmeow:VirtualLocation	skos:closeMatch	schema:VirtualLocation	semapv:ManualMappingCuration	0.9	
+gmeow:addressLocality	owl:equivalentProperty	schema:addressLocality	semapv:ManualMappingCuration	1.0	
+gmeow:addressLocality	skos:closeMatch	vcard:locality	semapv:ManualMappingCuration	0.9	
+gmeow:addressPlace	skos:closeMatch	schema:address	semapv:ManualMappingCuration	0.7	
+gmeow:addressRegion	owl:equivalentProperty	schema:addressRegion	semapv:ManualMappingCuration	1.0	
+gmeow:addressRegion	skos:closeMatch	vcard:region	semapv:ManualMappingCuration	0.9	
+gmeow:alternateName	owl:equivalentProperty	schema:alternateName	semapv:ManualMappingCuration	1.0	
+gmeow:alternateName	skos:closeMatch	gn:alternateName	semapv:ManualMappingCuration	0.9	
+gmeow:alternateName	skos:closeMatch	skos:altLabel	semapv:ManualMappingCuration	0.9	
+gmeow:asWKT	skos:closeMatch	geo:asWKT	semapv:ManualMappingCuration	0.9	
+gmeow:authorityLink	skos:closeMatch	schema:sameAs	semapv:ManualMappingCuration	0.7	
+gmeow:containedInPlace	skos:closeMatch	dcterms:isPartOf	semapv:ManualMappingCuration	0.7	
+gmeow:containedInPlace	skos:closeMatch	geo:sfWithin	semapv:ManualMappingCuration	0.8	
+gmeow:containedInPlace	skos:closeMatch	gn:parentFeature	semapv:ManualMappingCuration	0.8	
+gmeow:containedInPlace	skos:closeMatch	wdt:P131	semapv:ManualMappingCuration	0.8	
+gmeow:countryCode	skos:closeMatch	schema:addressCountry	semapv:ManualMappingCuration	0.8	
+gmeow:countryCode	skos:closeMatch	vcard:country-name	semapv:ManualMappingCuration	0.7	
+gmeow:elevation	skos:closeMatch	schema:elevation	semapv:ManualMappingCuration	0.9	
+gmeow:elevation	skos:closeMatch	wgs84:alt	semapv:ManualMappingCuration	0.9	
+gmeow:extendedAddress	skos:closeMatch	vcard:extended-address	semapv:ManualMappingCuration	0.9	
+gmeow:hasCoordinates	skos:closeMatch	schema:geo	semapv:ManualMappingCuration	0.8	
+gmeow:hasGeometry	skos:closeMatch	geo:hasGeometry	semapv:ManualMappingCuration	0.9	
+gmeow:latitude	skos:closeMatch	wgs84:lat	semapv:ManualMappingCuration	0.9	
+gmeow:locatedAt	skos:closeMatch	schema:location	semapv:ManualMappingCuration	0.7	
+gmeow:longitude	skos:closeMatch	wgs84:long	semapv:ManualMappingCuration	0.9	
+gmeow:placeType	skos:closeMatch	gvp:placeType	semapv:ManualMappingCuration	0.8	
+gmeow:placeTypeAdministrativeArea	skos:closeMatch	gn:A	semapv:ManualMappingCuration	0.8	
+gmeow:placeTypeAdministrativeArea	skos:closeMatch	schema:AdministrativeArea	semapv:ManualMappingCuration	0.9	
+gmeow:placeTypeBuilding	skos:closeMatch	gn:S	semapv:ManualMappingCuration	0.6	
+gmeow:placeTypeBuilding	skos:closeMatch	wd:Q41176	semapv:ManualMappingCuration	0.8	
+gmeow:placeTypeCity	skos:closeMatch	gn:P	semapv:ManualMappingCuration	0.8	
+gmeow:placeTypeCity	skos:closeMatch	schema:City	semapv:ManualMappingCuration	0.9	
+gmeow:placeTypeCity	skos:closeMatch	wd:Q515	semapv:ManualMappingCuration	0.9	
+gmeow:placeTypeCountry	skos:closeMatch	gn:A	semapv:ManualMappingCuration	0.7	
+gmeow:placeTypeCountry	skos:closeMatch	schema:Country	semapv:ManualMappingCuration	0.9	
+gmeow:placeTypeCountry	skos:closeMatch	wd:Q6256	semapv:ManualMappingCuration	0.9	
+gmeow:placeTypeNaturalFeature	skos:closeMatch	gn:T	semapv:ManualMappingCuration	0.6	
+gmeow:placeTypeRoom	skos:closeMatch	wd:Q180516	semapv:ManualMappingCuration	0.8	
+gmeow:postOfficeBox	skos:closeMatch	schema:postOfficeBoxNumber	semapv:ManualMappingCuration	0.9	
+gmeow:postOfficeBox	skos:closeMatch	vcard:post-office-box	semapv:ManualMappingCuration	0.9	
+gmeow:postalCode	owl:equivalentProperty	schema:postalCode	semapv:ManualMappingCuration	1.0	
+gmeow:postalCode	skos:closeMatch	vcard:postal-code	semapv:ManualMappingCuration	0.9	
+gmeow:streetAddress	owl:equivalentProperty	schema:streetAddress	semapv:ManualMappingCuration	1.0	
+gmeow:streetAddress	skos:closeMatch	vcard:street-address	semapv:ManualMappingCuration	0.9	
+gmeow:timezone	skos:closeMatch	vcard:tz	semapv:ManualMappingCuration	0.9	

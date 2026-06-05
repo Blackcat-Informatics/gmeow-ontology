@@ -1,0 +1,165 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+
+# Projection mappings: GMEOW → vCard-RDF. Address components → vcard:Address (+ a
+# composed vcard:label); displayable full name → vcard:fn; given/family parts → a
+# vcard:Name node. Compiled to projections/vcard.edoal.ttl + queries/projections/
+# vcard.rq by `gmeow compile-mappings`.
+
+gmeow:mapVcardAddress a gmeow:ProjectionMapping ;
+    rdfs:label "PostalAddress → vcard:Address (component rename + composed vcard:label)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "holder" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "holder" ; gmeow:predicate gmeow:hasContactPoint ; gmeow:objectVar "addr" ]
+            [ gmeow:subjectVar "addr" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:PostalAddress ]
+            [ gmeow:subjectVar "addr" ; gmeow:predicate gmeow:streetAddress ; gmeow:objectVar "street" ; gmeow:optional true ]
+            [ gmeow:subjectVar "addr" ; gmeow:predicate gmeow:addressLocality ; gmeow:objectVar "locality" ; gmeow:optional true ]
+            [ gmeow:subjectVar "addr" ; gmeow:predicate gmeow:addressRegion ; gmeow:objectVar "region" ; gmeow:optional true ]
+            [ gmeow:subjectVar "addr" ; gmeow:predicate gmeow:postalCode ; gmeow:objectVar "pcode" ; gmeow:optional true ]
+            [ gmeow:subjectVar "addr" ; gmeow:predicate gmeow:countryCode ; gmeow:objectVar "ccode" ; gmeow:optional true ] ) ;
+        gmeow:bind [ gmeow:bindVar "label" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opCoalesce ; gmeow:exprArgs ( [ gmeow:exprVar "street" ] "" ) ] ", "
+                [ gmeow:exprOp gmeow:opCoalesce ; gmeow:exprArgs ( [ gmeow:exprVar "locality" ] "" ) ] " "
+                [ gmeow:exprOp gmeow:opCoalesce ; gmeow:exprArgs ( [ gmeow:exprVar "region" ] "" ) ] " "
+                [ gmeow:exprOp gmeow:opCoalesce ; gmeow:exprArgs ( [ gmeow:exprVar "pcode" ] "" ) ] " "
+                [ gmeow:exprOp gmeow:opCoalesce ; gmeow:exprArgs ( [ gmeow:exprVar "ccode" ] "" ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:PostalAddress ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "vcard" ; gmeow:relation "=" ;
+        gmeow:edoalTarget vcard:Address ; gmeow:edoalTargetKind "class" ;
+        gmeow:transform gmeow:fnComposeAddress ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "holder" ; gmeow:tPred vcard:hasAddress ; gmeow:tObj "addr" ]
+            [ gmeow:tSubj "addr" ; gmeow:tPred rdf:type ; gmeow:tObjValue vcard:Address ]
+            [ gmeow:tSubj "addr" ; gmeow:tPred vcard:street-address ; gmeow:tObj "street" ]
+            [ gmeow:tSubj "addr" ; gmeow:tPred vcard:locality ; gmeow:tObj "locality" ]
+            [ gmeow:tSubj "addr" ; gmeow:tPred vcard:region ; gmeow:tObj "region" ]
+            [ gmeow:tSubj "addr" ; gmeow:tPred vcard:postal-code ; gmeow:tObj "pcode" ]
+            [ gmeow:tSubj "addr" ; gmeow:tPred vcard:country-name ; gmeow:tObj "ccode" ]
+            [ gmeow:tSubj "addr" ; gmeow:tPred vcard:label ; gmeow:tObj "label" ] ) ] .
+
+gmeow:mapVcardFn a gmeow:ProjectionMapping ;
+    rdfs:label "displayable fullName → vcard:fn"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "dispName" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasAppellation gmeow:hasName ) ] ;
+              gmeow:objectVar "app" ]
+            [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:fullName ; gmeow:objectVar "dispName" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:fullName ] ;
+    gmeow:hasBinding [
+        gmeow:profile "vcard" ; gmeow:toPredicate vcard:fn ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnSelectDisplayName ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "non-displayable names (deadnames) dropped" ] .
+
+gmeow:mapVcardGivenName a gmeow:ProjectionMapping ;
+    rdfs:label "given-name part → vcard:Name node"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "given" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasAppellation gmeow:hasName ) ] ;
+              gmeow:objectVar "app" ]
+            [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:hasNamePart ; gmeow:objectVar "np" ]
+            [ gmeow:subjectVar "np" ; gmeow:predicate gmeow:namePartType ; gmeow:objectValue gmeow:namePartGiven ]
+            [ gmeow:subjectVar "np" ; gmeow:predicate gmeow:partText ; gmeow:objectVar "given" ] ) ;
+        gmeow:mint [ gmeow:bindVar "vname" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "ent" ] ) ] "-vcardname" ) ] ) ] ] ] ;
+    gmeow:hasBinding [
+        gmeow:profile "vcard" ; gmeow:relation "=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "ent" ; gmeow:tPred vcard:hasName ; gmeow:tObj "vname" ]
+            [ gmeow:tSubj "vname" ; gmeow:tPred rdf:type ; gmeow:tObjValue vcard:Name ]
+            [ gmeow:tSubj "vname" ; gmeow:tPred vcard:given-name ; gmeow:tObj "given" ] ) ] .
+
+gmeow:mapVcardFamilyName a gmeow:ProjectionMapping ;
+    rdfs:label "family-name part → vcard:Name node"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "family" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasAppellation gmeow:hasName ) ] ;
+              gmeow:objectVar "app" ]
+            [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:hasNamePart ; gmeow:objectVar "np" ]
+            [ gmeow:subjectVar "np" ; gmeow:predicate gmeow:namePartType ; gmeow:objectValue gmeow:namePartSurname ]
+            [ gmeow:subjectVar "np" ; gmeow:predicate gmeow:partText ; gmeow:objectVar "family" ] ) ;
+        gmeow:mint [ gmeow:bindVar "vname" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "ent" ] ) ] "-vcardname" ) ] ) ] ] ] ;
+    gmeow:hasBinding [
+        gmeow:profile "vcard" ; gmeow:relation "=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "ent" ; gmeow:tPred vcard:hasName ; gmeow:tObj "vname" ]
+            [ gmeow:tSubj "vname" ; gmeow:tPred rdf:type ; gmeow:tObjValue vcard:Name ]
+            [ gmeow:tSubj "vname" ; gmeow:tPred vcard:family-name ; gmeow:tObj "family" ] ) ] .
+
+gmeow:mapVcardNickname a gmeow:ProjectionMapping ;
+    rdfs:label "nickname-purpose PersonName → vcard:nickname"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "nick" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:hasName ; gmeow:objectVar "nn" ]
+            [ gmeow:subjectVar "nn" ; gmeow:predicate gmeow:namePurpose ; gmeow:objectValue gmeow:namePurposeNickname ]
+            [ gmeow:subjectVar "nn" ; gmeow:predicate gmeow:fullName ; gmeow:objectVar "nick" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "nn" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:hasName ] ;
+    gmeow:hasBinding [
+        gmeow:profile "vcard" ; gmeow:toPredicate vcard:nickname ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnNicknameName ; gmeow:confidence 0.9 ] .
+
+gmeow:mapVcardBday a gmeow:ProjectionMapping ;
+    rdfs:label "Birth life-event date → vcard:bday"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "bdate" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "b" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Birth ]
+            [ gmeow:subjectVar "b" ; gmeow:predicate gmeow:hasPrincipal ; gmeow:objectVar "ent" ]
+            [ gmeow:subjectVar "b" ; gmeow:predicate gmeow:eventDate ; gmeow:objectVar "bdate" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "vcard" ; gmeow:toPredicate vcard:bday ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnBirthEventToDate ; gmeow:confidence 0.95 ] .
+
+gmeow:mapVcardTitle a gmeow:ProjectionMapping ;
+    rdfs:label "Membership Role → vcard:title"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "title" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "m" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Membership ]
+            [ gmeow:subjectVar "m" ; gmeow:predicate gmeow:membershipMember ; gmeow:objectVar "ent" ]
+            [ gmeow:subjectVar "m" ; gmeow:predicate gmeow:hasRole ; gmeow:objectVar "r" ]
+            [ gmeow:subjectVar "r" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( rdfs:label gmeow:name ) ] ;
+              gmeow:objectVar "title" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "vcard" ; gmeow:toPredicate vcard:title ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnMembershipToJobTitle ; gmeow:confidence 0.9 ] .
+
+gmeow:mapVcardNote a gmeow:ProjectionMapping ;
+    rdfs:label "gmeow:description → vcard:note"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "desc" ;
+        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:description ; gmeow:objectVar "desc" ] ) ;
+        gmeow:edoalSource gmeow:description ] ;
+    gmeow:hasBinding [
+        gmeow:profile "vcard" ; gmeow:toPredicate vcard:note ; gmeow:relation "<=" ; gmeow:confidence 0.8 ] .
+
+gmeow:mapVcardUrl a gmeow:ProjectionMapping ;
+    rdfs:label "hasWebPage → vcard:hasURL (the WebPage IRI)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "wp" ;
+        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:hasWebPage ; gmeow:objectVar "wp" ] ) ;
+        gmeow:edoalSource gmeow:hasWebPage ] ;
+    gmeow:hasBinding [
+        gmeow:profile "vcard" ; gmeow:toPredicate vcard:hasURL ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnWebPageToUrl ; gmeow:confidence 0.8 ] .

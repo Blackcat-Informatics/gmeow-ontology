@@ -95,5 +95,6 @@ markers = [
 # vendored gUFO import, and the vendored public-data fixtures (upstream content,
 # not ours to correct). Patterns are fnmatch'd against repo-relative paths.
 skip = "uv.lock,*.svg,*.png,imports,imports/*,tests/fixtures/coverage/bii.ttl,tests/fixtures/coverage/paudley.ttl"
-# False positives: LOD (Linked Open Data), "derails" (valid word), domain tokens.
-ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd"
+# False positives: LOD (Linked Open Data), "derails" (valid word), domain tokens,
+# opNe (the not-equal expression operator in the mapping DSL algebra).
+ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne"

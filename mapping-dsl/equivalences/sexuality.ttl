@@ -1,0 +1,189 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix gsso: <http://purl.obolibrary.org/obo/GSSO_> .
+@prefix homosaurus: <https://homosaurus.org/v4/> .
+@prefix wd: <http://www.wikidata.org/entity/> .
+@prefix wdt: <http://www.wikidata.org/prop/direct/> .
+
+# Term equivalences for the sexuality domain — GMEOW authoring source.
+# Compiled to mappings/gmeow-sexuality.sssom.tsv by `gmeow compile-mappings`.
+
+gmeow:mapsetSexuality a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/sexuality" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Sexuality alignments — sexual-orientation values to Wikidata P91 value items, Homosaurus v4 and GSSO; the property to P91. EVERY external identifier was verified against the local authoritative copies (Homosaurus v4 + GSSO from /opt/foundation; Wikidata via API) — scraped IDs proved unreliable (e.g. the v3 numbers did not match). GMEOW applies the SPLIT-ATTRACTION model (sexual orientation and romantic orientation are separate axes); most external vocabularies do NOT distinguish them, so romantic orientation maps only where a distinct term is verified (Homosaurus 'Aromanticism') and is otherwise canonical. schema.org and FOAF have no orientation term — orientation is a documented lossy drop at the projection layer. The value vocab is OPEN; the reified, self-asserted, co-equal gmeow:IdentityFacet machinery is CANONICAL." .
+
+gmeow:eqSexuality001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:sexualOrientationValue ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P91 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "Wikidata 'sexual orientation' property" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:orientHeterosexual ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1035954 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Wikidata 'heterosexuality'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:orientHeterosexual ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject homosaurus:homoit0000631 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Homosaurus v4 'Heterosexuality'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:orientHeterosexual ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gsso:001592 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "GSSO 'heterosexual'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:orientHomosexual ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q6636 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Wikidata 'homosexuality'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:orientHomosexual ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject homosaurus:homoit0000647 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Homosaurus v4 'Homosexuality'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:orientBisexual ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q43200 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'bisexuality'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:orientBisexual ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject homosaurus:homoit0000170 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Homosaurus v4 'Bisexual people'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:orientBisexual ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gsso:001590 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "GSSO 'bisexual'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:orientPansexual ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q271534 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'pansexuality'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:orientPansexual ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject homosaurus:homoit0001073 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Homosaurus v4 'Pansexual people'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality012 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:orientPansexual ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gsso:001593 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "GSSO 'pansexual'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:orientAsexual ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q724351 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'asexuality'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality014 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:orientAsexual ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject homosaurus:homoit0000004 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Homosaurus v4 'Asexuality'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality015 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:orientDemisexual ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q23912283 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'demisexuality'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:orientDemisexual ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject homosaurus:homoit0000343 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Homosaurus v4 'Demisexuality'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality017 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:orientQueer ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q51415 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Wikidata 'queer'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality018 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:orientQueer ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject homosaurus:homoit0001195 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "Homosaurus v4 'Queer people'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .
+
+gmeow:eqSexuality019 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:romanticAromantic ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject homosaurus:homoit0001644 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Homosaurus v4 'Aromanticism'" ;
+    gmeow:sssomFile "gmeow-sexuality.sssom.tsv" .

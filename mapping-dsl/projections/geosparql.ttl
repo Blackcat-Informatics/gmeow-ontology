@@ -1,0 +1,79 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix geo:   <http://www.opengis.net/ont/geosparql#> .
+
+# Projection mappings: GMEOW → pure GeoSPARQL. WKT datatype retag + lat/long→POINT
+# combine + Feature/sfWithin. Compiled to projections/geosparql.edoal.ttl +
+# queries/projections/geosparql.rq by `gmeow compile-mappings`.
+
+gmeow:mapGeoFeature a gmeow:ProjectionMapping ;
+    rdfs:label "Place → geo:Feature"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ;
+        gmeow:atom ( [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ] ) ] ;
+    gmeow:hasBinding [ gmeow:profile "geosparql" ; gmeow:toClass geo:Feature ; gmeow:relation "=" ] .
+
+gmeow:mapGeoWktRetag a gmeow:ProjectionMapping ;
+    rdfs:label "asWKT literal → geo:asWKT retagged geo:wktLiteral"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasGeometry ; gmeow:objectVar "g" ]
+            [ gmeow:subjectVar "g" ; gmeow:predicate gmeow:asWKT ; gmeow:objectVar "wkt" ] ) ;
+        gmeow:bind [ gmeow:bindVar "wktTagged" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opStrDatatype ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "wkt" ] ) ]
+                geo:wktLiteral ) ] ] ;
+        gmeow:edoalSource gmeow:asWKT ; gmeow:edoalSourceKind "relation" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "geosparql" ; gmeow:relation "=" ;
+        gmeow:edoalTarget geo:asWKT ; gmeow:edoalTargetKind "property" ;
+        gmeow:transform gmeow:fnRetagWkt ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "place" ; gmeow:tPred geo:hasGeometry ; gmeow:tObj "g" ]
+            [ gmeow:tSubj "g" ; gmeow:tPred rdf:type ; gmeow:tObjValue geo:Geometry ]
+            [ gmeow:tSubj "g" ; gmeow:tPred geo:asWKT ; gmeow:tObj "wktTagged" ] ) ] .
+
+gmeow:mapGeoPoint a gmeow:ProjectionMapping ;
+    rdfs:label "latitude + longitude → geo:Geometry with WKT POINT"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasCoordinates ; gmeow:objectVar "c" ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:latitude ; gmeow:objectVar "lat" ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:longitude ; gmeow:objectVar "lon" ] ) ;
+        gmeow:mint [ gmeow:bindVar "ptGeom" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "place" ] ) ]
+                    "-geom" ) ] ) ] ] ;
+        gmeow:bind [ gmeow:bindVar "pointWkt" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opStrDatatype ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    "POINT("
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "lon" ] ) ]
+                    " "
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "lat" ] ) ]
+                    ")" ) ]
+                geo:wktLiteral ) ] ] ;
+        gmeow:edoalSource gmeow:GeoCoordinates ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "geosparql" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget geo:Geometry ; gmeow:edoalTargetKind "class" ;
+        gmeow:transform gmeow:fnLatLongToWktPoint ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "place" ; gmeow:tPred geo:hasGeometry ; gmeow:tObj "ptGeom" ]
+            [ gmeow:tSubj "ptGeom" ; gmeow:tPred rdf:type ; gmeow:tObjValue geo:Geometry ]
+            [ gmeow:tSubj "ptGeom" ; gmeow:tPred geo:asWKT ; gmeow:tObj "pointWkt" ] ) ] .
+
+gmeow:mapGeoWithin a gmeow:ProjectionMapping ;
+    rdfs:label "containedInPlace → geo:sfWithin"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ; gmeow:value "parent" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:containedInPlace ; gmeow:objectVar "parent" ] ) ] ;
+    gmeow:hasBinding [ gmeow:profile "geosparql" ; gmeow:toPredicate geo:sfWithin ; gmeow:relation "=" ] .

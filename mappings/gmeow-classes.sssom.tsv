@@ -1,50 +1,71 @@
 # mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/classes
+# mapping_set_version: 0.1.0
 # license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow compile-mappings
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
 # comment: Canonical GMEOW class alignments to the surface vocabularies in the slice (the superset layer). schema.org is reference-only (linked, never imported).
+# curie_map:
+#   bibframe: http://id.loc.gov/ontologies/bibframe/
+#   bibo: http://purl.org/ontology/bibo/
+#   doap: http://usefulinc.com/ns/doap#
+#   foaf: http://xmlns.com/foaf/0.1/
+#   gedcom: http://www.w3.org/2000/10/swap/pim/gedcom#
+#   geo: http://www.opengis.net/ont/geosparql#
+#   gmeow: https://blackcatinformatics.ca/gmeow/
+#   org: http://www.w3.org/ns/org#
+#   owl: http://www.w3.org/2002/07/owl#
+#   prov: http://www.w3.org/ns/prov#
+#   rdfs: http://www.w3.org/2000/01/rdf-schema#
+#   schema: https://schema.org/
+#   semapv: https://w3id.org/semapv/vocab/
+#   sioc: http://rdfs.org/sioc/ns#
+#   skos: http://www.w3.org/2004/02/skos/core#
+#   vcard: http://www.w3.org/2006/vcard/ns#
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
-gmeow:Person	owl:equivalentClass	schema:Person	semapv:ManualMappingCuration	1.0	person
-gmeow:Person	owl:equivalentClass	foaf:Person	semapv:ManualMappingCuration	1.0	person
-gmeow:Person	owl:equivalentClass	gedcom:Individual	semapv:ManualMappingCuration	0.95	genealogical individual is a person
-gmeow:Organization	owl:equivalentClass	schema:Organization	semapv:ManualMappingCuration	1.0	
-gmeow:Organization	owl:equivalentClass	foaf:Organization	semapv:ManualMappingCuration	1.0	
-org:FormalOrganization	rdfs:subClassOf	gmeow:Organization	semapv:ManualMappingCuration	1.0	formal org is an organization
+bibframe:Work	skos:closeMatch	gmeow:CreativeWork	semapv:ManualMappingCuration	0.8	
+bibo:AcademicArticle	rdfs:subClassOf	gmeow:Article	semapv:ManualMappingCuration	1.0	
+doap:GitRepository	rdfs:subClassOf	gmeow:Repository	semapv:ManualMappingCuration	1.0	
+geo:Feature	skos:closeMatch	gmeow:Place	semapv:ManualMappingCuration	0.7	
+geo:Geometry	skos:closeMatch	gmeow:Geometry	semapv:ManualMappingCuration	0.9	
+gmeow:Activity	owl:equivalentClass	prov:Activity	semapv:ManualMappingCuration	1.0	
 gmeow:Agent	owl:equivalentClass	foaf:Agent	semapv:ManualMappingCuration	1.0	
 gmeow:Agent	owl:equivalentClass	prov:Agent	semapv:ManualMappingCuration	0.95	
-gmeow:Group	owl:equivalentClass	foaf:Group	semapv:ManualMappingCuration	0.95	
-gmeow:Role	owl:equivalentClass	org:Role	semapv:ManualMappingCuration	1.0	
-schema:OrganizationRole	rdfs:subClassOf	gmeow:Role	semapv:ManualMappingCuration	0.9	
-gmeow:Membership	owl:equivalentClass	org:Membership	semapv:ManualMappingCuration	1.0	
-gmeow:OnlineAccount	owl:equivalentClass	foaf:OnlineAccount	semapv:ManualMappingCuration	1.0	
-sioc:UserAccount	rdfs:subClassOf	gmeow:OnlineAccount	semapv:ManualMappingCuration	0.9	
-gmeow:CreativeWork	owl:equivalentClass	schema:CreativeWork	semapv:ManualMappingCuration	1.0	
-gmeow:Document	owl:equivalentClass	schema:DigitalDocument	semapv:ManualMappingCuration	0.9	
 gmeow:Article	owl:equivalentClass	schema:Article	semapv:ManualMappingCuration	1.0	
-schema:ScholarlyArticle	rdfs:subClassOf	gmeow:Article	semapv:ManualMappingCuration	1.0	
-bibo:AcademicArticle	rdfs:subClassOf	gmeow:Article	semapv:ManualMappingCuration	1.0	
-schema:NewsArticle	rdfs:subClassOf	gmeow:Article	semapv:ManualMappingCuration	1.0	
-schema:BlogPosting	rdfs:subClassOf	gmeow:Article	semapv:ManualMappingCuration	0.9	
-gmeow:Patent	owl:equivalentClass	bibo:Patent	semapv:ManualMappingCuration	1.0	
-gmeow:Dataset	owl:equivalentClass	schema:Dataset	semapv:ManualMappingCuration	1.0	
-gmeow:MediaObject	owl:equivalentClass	schema:MediaObject	semapv:ManualMappingCuration	1.0	
-schema:ImageObject	rdfs:subClassOf	gmeow:MediaObject	semapv:ManualMappingCuration	1.0	
-schema:AudioObject	rdfs:subClassOf	gmeow:MediaObject	semapv:ManualMappingCuration	1.0	
-gmeow:WebPage	owl:equivalentClass	schema:WebPage	semapv:ManualMappingCuration	1.0	
-bibframe:Work	skos:closeMatch	gmeow:CreativeWork	semapv:ManualMappingCuration	0.8	
-gmeow:SoftwareProject	owl:equivalentClass	doap:Project	semapv:ManualMappingCuration	1.0	
-schema:SoftwareSourceCode	rdfs:subClassOf	gmeow:SoftwareProject	semapv:ManualMappingCuration	0.9	
-schema:SoftwareApplication	rdfs:subClassOf	gmeow:SoftwareProject	semapv:ManualMappingCuration	0.8	
-doap:GitRepository	rdfs:subClassOf	gmeow:Repository	semapv:ManualMappingCuration	1.0	
-gmeow:Family	owl:equivalentClass	gedcom:Family	semapv:ManualMappingCuration	1.0	
-gmeow:Marriage	owl:equivalentClass	gedcom:Marriage	semapv:ManualMappingCuration	1.0	
-gmeow:Place	owl:equivalentClass	schema:Place	semapv:ManualMappingCuration	1.0	
-schema:Country	rdfs:subClassOf	gmeow:Place	semapv:ManualMappingCuration	1.0	
-geo:Feature	skos:closeMatch	gmeow:Place	semapv:ManualMappingCuration	0.7	
-gmeow:GeoCoordinates	owl:equivalentClass	schema:GeoCoordinates	semapv:ManualMappingCuration	1.0	
-geo:Geometry	skos:closeMatch	gmeow:Geometry	semapv:ManualMappingCuration	0.9	
 gmeow:ContactPoint	owl:equivalentClass	schema:ContactPoint	semapv:ManualMappingCuration	1.0	
-gmeow:PostalAddress	owl:equivalentClass	schema:PostalAddress	semapv:ManualMappingCuration	1.0	
-vcard:Address	skos:closeMatch	gmeow:PostalAddress	semapv:ManualMappingCuration	0.9	
-gmeow:Occupation	owl:equivalentClass	schema:Occupation	semapv:ManualMappingCuration	1.0	
+gmeow:CreativeWork	owl:equivalentClass	schema:CreativeWork	semapv:ManualMappingCuration	1.0	
 gmeow:Credential	owl:equivalentClass	schema:EducationalOccupationalCredential	semapv:ManualMappingCuration	1.0	
-gmeow:Activity	owl:equivalentClass	prov:Activity	semapv:ManualMappingCuration	1.0	
+gmeow:Dataset	owl:equivalentClass	schema:Dataset	semapv:ManualMappingCuration	1.0	
+gmeow:Document	owl:equivalentClass	schema:DigitalDocument	semapv:ManualMappingCuration	0.9	
+gmeow:Family	owl:equivalentClass	gedcom:Family	semapv:ManualMappingCuration	1.0	
+gmeow:GeoCoordinates	owl:equivalentClass	schema:GeoCoordinates	semapv:ManualMappingCuration	1.0	
+gmeow:Group	owl:equivalentClass	foaf:Group	semapv:ManualMappingCuration	0.95	
+gmeow:Marriage	owl:equivalentClass	gedcom:Marriage	semapv:ManualMappingCuration	1.0	
+gmeow:MediaObject	owl:equivalentClass	schema:MediaObject	semapv:ManualMappingCuration	1.0	
+gmeow:Membership	owl:equivalentClass	org:Membership	semapv:ManualMappingCuration	1.0	
+gmeow:Occupation	owl:equivalentClass	schema:Occupation	semapv:ManualMappingCuration	1.0	
+gmeow:OnlineAccount	owl:equivalentClass	foaf:OnlineAccount	semapv:ManualMappingCuration	1.0	
+gmeow:Organization	owl:equivalentClass	foaf:Organization	semapv:ManualMappingCuration	1.0	
+gmeow:Organization	owl:equivalentClass	schema:Organization	semapv:ManualMappingCuration	1.0	
+gmeow:Patent	owl:equivalentClass	bibo:Patent	semapv:ManualMappingCuration	1.0	
+gmeow:Person	owl:equivalentClass	foaf:Person	semapv:ManualMappingCuration	1.0	person
+gmeow:Person	owl:equivalentClass	gedcom:Individual	semapv:ManualMappingCuration	0.95	genealogical individual is a person
+gmeow:Person	owl:equivalentClass	schema:Person	semapv:ManualMappingCuration	1.0	person
+gmeow:Place	owl:equivalentClass	schema:Place	semapv:ManualMappingCuration	1.0	
+gmeow:PostalAddress	owl:equivalentClass	schema:PostalAddress	semapv:ManualMappingCuration	1.0	
+gmeow:Role	owl:equivalentClass	org:Role	semapv:ManualMappingCuration	1.0	
+gmeow:SoftwareProject	owl:equivalentClass	doap:Project	semapv:ManualMappingCuration	1.0	
+gmeow:WebPage	owl:equivalentClass	schema:WebPage	semapv:ManualMappingCuration	1.0	
+org:FormalOrganization	rdfs:subClassOf	gmeow:Organization	semapv:ManualMappingCuration	1.0	formal org is an organization
 prov:Entity	skos:closeMatch	gmeow:Entity	semapv:ManualMappingCuration	0.7	
+schema:AudioObject	rdfs:subClassOf	gmeow:MediaObject	semapv:ManualMappingCuration	1.0	
+schema:BlogPosting	rdfs:subClassOf	gmeow:Article	semapv:ManualMappingCuration	0.9	
+schema:Country	rdfs:subClassOf	gmeow:Place	semapv:ManualMappingCuration	1.0	
+schema:ImageObject	rdfs:subClassOf	gmeow:MediaObject	semapv:ManualMappingCuration	1.0	
+schema:NewsArticle	rdfs:subClassOf	gmeow:Article	semapv:ManualMappingCuration	1.0	
+schema:OrganizationRole	rdfs:subClassOf	gmeow:Role	semapv:ManualMappingCuration	0.9	
+schema:ScholarlyArticle	rdfs:subClassOf	gmeow:Article	semapv:ManualMappingCuration	1.0	
+schema:SoftwareApplication	rdfs:subClassOf	gmeow:SoftwareProject	semapv:ManualMappingCuration	0.8	
+schema:SoftwareSourceCode	rdfs:subClassOf	gmeow:SoftwareProject	semapv:ManualMappingCuration	0.9	
+sioc:UserAccount	rdfs:subClassOf	gmeow:OnlineAccount	semapv:ManualMappingCuration	0.9	
+vcard:Address	skos:closeMatch	gmeow:PostalAddress	semapv:ManualMappingCuration	0.9	
