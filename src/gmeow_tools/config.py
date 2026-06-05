@@ -175,7 +175,7 @@ PREFIXES: dict[str, str] = {
     "wot": "http://xmlns.com/wot/0.1/",
     # Gender / sexuality identity vocabularies
     "gsso": "http://purl.obolibrary.org/obo/GSSO_",
-    "homosaurus": "https://homosaurus.org/v3/",
+    "homosaurus": "https://homosaurus.org/v4/",
     "fhir": "http://hl7.org/fhir/",
     # Genealogy
     "bio": "http://purl.org/vocab/bio/0.1/",
@@ -360,7 +360,7 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "gsso": AlignmentTarget(
         "Gender, Sex, and Sexual Orientation Ontology",
         PREFIXES["gsso"],
-        "CC-BY-4.0",
+        "CC-BY-NC-ND 4.0",  # per SOURCE_REGISTRY; reference-only (we only link)
         "concept_scheme",
     ),
     "homosaurus": AlignmentTarget(
