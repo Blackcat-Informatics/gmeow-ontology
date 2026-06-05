@@ -71,3 +71,23 @@ gmeow:validUntil
     rdfs:label "valid until"@en ;
     skos:definition "The instant until which the annotated statement is asserted to hold."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Observation/recording-time annotations — distinct from validity (above). These
+# keep the "four clocks" apart: validFrom/validUntil = when the fact holds;
+# assertedAt = when it was observed/asserted; recordedNoLaterThan = a derived
+# upper bound on when it was committed to a record; ingestion time lives on the
+# import Activity (gmeow:ingestedAt, provenance module).
+
+gmeow:assertedAt
+    a owl:AnnotationProperty ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "asserted at"@en ;
+    skos:definition "The instant an agent observed or asserted the annotated claim (e.g. an email Date header or a vCard REV) — a witness that the fact held at that instant. Distinct from validity (validFrom/validUntil) and from a source's carrier time."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:recordedNoLaterThan
+    a owl:AnnotationProperty ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "recorded no later than"@en ;
+    skos:definition "A DERIVED upper bound (terminus ante quem) on when the annotated claim was committed to a record — typically taken from the modification time of its source carrier (gmeow:sourceModifiedAt) when no stronger observation time is known. Carries low gmeow:confidence; it is neither valid-time nor a point observation. Populate it in the importer/query layer, not by OWL inference."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
