@@ -60,7 +60,7 @@ invoking user, so generated files are never owned by root.
 
 ## Architecture
 
-```
+```text
 ontology/gmeow.ttl        Root ontology: metadata + owl:imports (gUFO + modules)
 ontology/modules/*.ttl    Module stubs, each class grounded in a gUFO category
 imports/                  Vendored gUFO (+ future extracted subsets)

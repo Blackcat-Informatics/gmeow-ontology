@@ -10,16 +10,24 @@ on:
   push:
     tags: ["v*"]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v8.1.0
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
-          enable-cache: true
+          # No cache on the privileged tag-release build: a PR run could write a
+          # cache entry this job would otherwise restore (cache-poisoning path).
+          # Releases are infrequent — a clean, hermetic build is worth more.
+          enable-cache: false
 
       - name: Sync environment
         run: uv sync --frozen
@@ -48,7 +56,7 @@ jobs:
         run: uv run gmeow rdf12
 
       - name: Upload published artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: gmeow-${{ github.ref_name }}
           path: |
