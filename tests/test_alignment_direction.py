@@ -91,6 +91,54 @@ def test_detects_self_contradicting_inverse_mapping(tmp_path: Path) -> None:
     assert flagged.suggestion == "schema:parentOrganization"
 
 
+def test_self_inverse_target_is_not_flagged(tmp_path: Path) -> None:
+    """A symmetric target (T owl:inverseOf T) must not self-contradict.
+
+    e.g. ``foaf:knows owl:inverseOf foaf:knows`` — the term is its own inverse,
+    so a single mapping to it is not a direction conflict.
+    """
+    snapshots = tmp_path / "snapshots"
+    snapshots.mkdir()
+    fixtures = tmp_path / "fixtures"
+    fixtures.mkdir()
+    (fixtures / "foaf.ttl").write_text(
+        "@prefix foaf: <http://xmlns.com/foaf/0.1/> .\n"
+        "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n"
+        "foaf:knows a owl:ObjectProperty ; owl:inverseOf foaf:knows .\n",
+        encoding="utf-8",
+    )
+    cells = [
+        "gmeow:hasMet",
+        "skos:closeMatch",
+        "foaf:knows",
+        "semapv:ManualMappingCuration",
+        "0.8",
+    ]
+    table = tmp_path / "m.sssom.tsv"
+    table.write_text(_SSSOM_HEADER + "\t".join(cells) + "\n", encoding="utf-8")
+    findings = lint_alignment_directions(
+        mappings_dir=tmp_path,
+        snapshot_dir=snapshots,
+        fixture_dir=fixtures,
+        allow_network=False,
+    )
+    inverse = [f for f in findings if f.check == "inverse-direction"]
+    assert not inverse, (
+        f"self-inverse target wrongly flagged: {[f.render() for f in inverse]}"
+    )
+
+
+def test_refresh_snapshot_refuses_target_without_fetch_source() -> None:
+    """An IMPORT_OK target with no fetch source fails with a clear policy error."""
+    from gmeow_tools.extract import LicensePolicyError
+    from gmeow_tools.target_axioms import TARGET_SOURCES, refresh_snapshot
+
+    # `rel` is CC-BY (IMPORT_OK) but has no entry in TARGET_SOURCES.
+    assert "rel" not in TARGET_SOURCES
+    with pytest.raises(LicensePolicyError):
+        refresh_snapshot("rel")
+
+
 def test_target_snapshots_stay_out_of_the_published_artifact() -> None:
     """Vendored target snapshots must never enter the published import closure."""
     snapshot_root = TARGET_SNAPSHOT_DIR.resolve()

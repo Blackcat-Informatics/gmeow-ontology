@@ -36,7 +36,6 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
-import httpx
 from rdflib import RDF, RDFS, Graph, URIRef
 from rdflib.namespace import OWL
 
@@ -53,6 +52,7 @@ from gmeow_tools.target_axioms import (
     SCHEMA_DOMAIN_INCLUDES,
     SCHEMA_INVERSE_OF,
     SCHEMA_RANGE_INCLUDES,
+    TARGET_SOURCES,
     fetch_target_axioms,
     load_target_snapshot,
 )
@@ -167,9 +167,13 @@ def _target_graphs(
         fixture = _load_fixture(prefix, fixture_dir)
         if fixture is not None:
             graph += fixture
-        if len(graph) == 0 and allow_network and prefix in ALIGNMENT_TARGETS:
-            # On any fetch failure, fall through to the "unavailable" set.
-            with contextlib.suppress(httpx.HTTPError, KeyError):
+        # Under --network this is a *full* live sweep: fetch and merge the live
+        # axioms on top of any snapshot/fixture (so reference-only targets whose
+        # only offline source is a tiny fixture get their complete vocabulary).
+        if allow_network and prefix in TARGET_SOURCES:
+            # Best-effort: any failure (HTTP, an HTML error page that fails to
+            # parse, a bad content type) falls back to whatever we have offline.
+            with contextlib.suppress(Exception):
                 graph += fetch_target_axioms(prefix)
         if len(graph) == 0:
             unavailable.add(prefix)
@@ -215,13 +219,27 @@ def _target_inverses(graph: Graph, term: URIRef) -> set[URIRef]:
 # --------------------------------------------------------------------------- #
 
 
-def _build_class_bridge(mappings: list[Mapping]) -> dict[URIRef, set[URIRef]]:
-    """Build a class-compatibility closure from the SSSOM class mappings.
+def _build_class_bridge(
+    mappings: list[Mapping],
+    onto: Graph,
+    target_graphs: dict[str, Graph],
+) -> dict[URIRef, set[URIRef]]:
+    """Build a class-compatibility closure for domain/range overlap testing.
 
-    ``owl:equivalentClass``/``skos:exactMatch`` link both directions; an
-    ``rdfs:subClassOf`` adds the superclass to the subclass's set (an instance of
-    the subclass is also an instance of the superclass, so a domain/range stated
-    in subclass terms is compatible with one stated in superclass terms).
+    Three sources feed the closure, so a domain/range stated in one vocabulary's
+    terms can be matched against an equivalent stated in another's:
+
+    * the cross-vocabulary SSSOM class mappings (``owl:equivalentClass``/
+      ``skos:exactMatch`` link both directions; ``rdfs:subClassOf`` links the
+      subclass up to its superclass — an instance of the subclass is also an
+      instance of the superclass);
+    * GMEOW-internal ``rdfs:subClassOf``/``owl:equivalentClass`` axioms (e.g.
+      ``gmeow:FormalOrganization rdfs:subClassOf gmeow:Organization``);
+    * the same axioms inside each target snapshot (e.g.
+      ``org:FormalOrganization rdfs:subClassOf org:Organization``).
+
+    Non-``URIRef`` objects (blank nodes for OWL restrictions/unions) are dropped
+    so no internal blank-node id leaks into the closure.
     """
     adjacency: dict[URIRef, set[URIRef]] = {}
 
@@ -238,6 +256,16 @@ def _build_class_bridge(mappings: list[Mapping]) -> dict[URIRef, set[URIRef]]:
             link(obj, subj)
         elif m.predicate_id == "rdfs:subClassOf":
             link(subj, obj)
+
+    # Internal taxonomy of GMEOW and of every loaded target snapshot.
+    for graph in (onto, *target_graphs.values()):
+        for sub, sup in graph.subject_objects(RDFS.subClassOf):
+            if isinstance(sub, URIRef) and isinstance(sup, URIRef):
+                link(sub, sup)
+        for a, b in graph.subject_objects(OWL.equivalentClass):
+            if isinstance(a, URIRef) and isinstance(b, URIRef):
+                link(a, b)
+                link(b, a)
 
     # Transitive closure (the graph is tiny — a simple fixpoint suffices).
     closure: dict[URIRef, set[URIRef]] = {}
@@ -327,6 +355,8 @@ def _check_inverse_direction(
 
             # (1) Self-contradiction: the property maps to both T and an inverse.
             for inv in inverses:
+                if inv == target_iri:
+                    continue  # a self-inverse (symmetric) target is not a conflict
                 if inv not in by_iri:
                     continue
                 pair = frozenset({target_iri, inv})
@@ -376,6 +406,8 @@ def _check_inverse_direction(
             if direct_fit:
                 continue
             for inv in inverses:
+                if inv == target_iri:
+                    continue  # self-inverse: its orientation equals the direct one
                 inv_dom = _target_domain(graph, inv)
                 inv_rng = _target_range(graph, inv)
                 if not (inv_dom and inv_rng):
@@ -436,8 +468,21 @@ def _check_domain_range(
             t_dom = _target_domain(graph, target_iri)
             t_rng = _target_range(graph, target_iri)
             if not (t_dom and t_rng):
-                continue  # nothing to check against
+                # The target axioms are present but this term declares no
+                # domain/range — honestly record that the row was not checked
+                # rather than silently passing it (issue #25 "warn, don't skip").
+                findings.append(
+                    _info_not_checkable(
+                        m, "target term declares no domain/range to check against"
+                    )
+                )
+                continue
             if not (g_dom and g_rng):
+                findings.append(
+                    _info_not_checkable(
+                        m, "GMEOW term declares no domain/range to check against"
+                    )
+                )
                 continue
             if _overlaps(g_dom, t_dom, bridge) and _overlaps(g_rng, t_rng, bridge):
                 continue  # direct orientation agrees
@@ -588,6 +633,17 @@ def _info_unavailable(m: Mapping, prefix: str, check: str) -> AlignmentFinding:
     )
 
 
+def _info_not_checkable(m: Mapping, reason: str) -> AlignmentFinding:
+    return AlignmentFinding(
+        severity=Severity.INFO,
+        check="domain-range",
+        subject_id=m.subject_id,
+        predicate_id=m.predicate_id,
+        object_id=m.object_id,
+        message=f"direction not checked — {reason}",
+    )
+
+
 def _character_finding(
     m: Mapping, severity: Severity, message: str
 ) -> AlignmentFinding:
@@ -628,7 +684,6 @@ def lint_alignment_directions(
     """
     onto = load_merged_graph(include_imports=False)
     mappings = load_mappings(mappings_dir)
-    bridge = _build_class_bridge(mappings)
 
     # Group the property mappings (subject is a GMEOW property, object is a known
     # alignment target) by the GMEOW property they align.
@@ -657,6 +712,9 @@ def lint_alignment_directions(
         fixture_dir=fixture_dir,
         allow_network=allow_network,
     )
+    # Built after the target graphs so the bridge can ingest their internal
+    # taxonomies (and GMEOW's) alongside the cross-vocabulary SSSOM mappings.
+    bridge = _build_class_bridge(mappings, onto, target_graphs)
 
     inverse_findings, judged = _check_inverse_direction(
         gmeow_props=gmeow_props,

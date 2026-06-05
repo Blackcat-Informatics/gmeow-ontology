@@ -179,7 +179,8 @@ def refresh_snapshot(
         The path to the written snapshot.
 
     Raises:
-        LicensePolicyError: If the target is unknown or ``REFERENCE_ONLY``.
+        LicensePolicyError: If the target is unknown, ``REFERENCE_ONLY``, or has
+            no configured fetch source.
         httpx.HTTPError: On a network/HTTP failure.
     """
     # Imported here to avoid a module-level cycle (extract imports config too).
@@ -195,6 +196,14 @@ def refresh_snapshot(
             f"refusing to vendor {target.name} ({target.license}): "
             f"{target.policy.value}. Its axioms are fetched live at lint time "
             f"(--network) — never committed into CC BY 4.0 GMEOW."
+        )
+    if prefix not in TARGET_SOURCES:
+        # An IMPORT_OK target with no configured fetch source (e.g. "rel") would
+        # otherwise KeyError deep in fetch_target_axioms — fail with a clear
+        # policy-level message instead.
+        raise LicensePolicyError(
+            f"no fetch source configured for alignment target {prefix!r}; "
+            f"cannot vendor a snapshot"
         )
     graph = fetch_target_axioms(prefix, timeout=timeout)
     snapshot_dir.mkdir(parents=True, exist_ok=True)
