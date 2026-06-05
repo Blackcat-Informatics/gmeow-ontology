@@ -126,8 +126,16 @@ def _text(graph: Graph, subject: URIRef, predicate: URIRef) -> str:
 
 
 def _curies(graph: Graph, subject: URIRef, predicate: URIRef) -> list[str]:
-    """Return all object IRIs of ``predicate`` on ``subject`` as sorted CURIEs."""
-    return sorted(curie(str(o)) for o in graph.objects(subject, predicate))
+    """Return named object IRIs of ``predicate`` on ``subject`` as sorted CURIEs.
+
+    Anonymous objects (blank-node OWL restrictions/chains) are skipped so their
+    internal ids never leak into the flattened parent/super lists.
+    """
+    return sorted(
+        curie(str(o))
+        for o in graph.objects(subject, predicate)
+        if isinstance(o, URIRef)
+    )
 
 
 def _alignments(alignments: Graph, subject: URIRef) -> list[str]:
@@ -186,6 +194,8 @@ def collect_terms(
         )
 
     for s, kind in properties.items():
+        domain_val = graph.value(s, RDFS.domain)
+        range_val = graph.value(s, RDFS.range)
         terms.append(
             Term(
                 category="property",
@@ -194,36 +204,38 @@ def collect_terms(
                 label=_text(graph, s, RDFS.label),
                 definition=_text(graph, s, SKOS.definition),
                 prop_kind=kind,
-                domain=curie(str(graph.value(s, RDFS.domain)))
-                if graph.value(s, RDFS.domain)
-                else "",
-                range=curie(str(graph.value(s, RDFS.range)))
-                if graph.value(s, RDFS.range)
-                else "",
+                domain=curie(str(domain_val)) if domain_val is not None else "",
+                range=curie(str(range_val)) if range_val is not None else "",
                 functional=(s, RDF.type, OWL.FunctionalProperty) in graph,
                 sub_property_of=_curies(graph, s, RDFS.subPropertyOf),
                 alignments=_alignments(alignments, s),
             )
         )
 
+    # Named individuals typed by a GMEOW class. Use the type index per class
+    # (graph.subjects(RDF.type, cls)) rather than scanning every subject.
     declared = classes | set(properties)
-    for s in set(graph.subjects()):
-        if not _in_namespace(s) or s in declared:
-            continue
-        gmeow_types = [t for t in graph.objects(s, RDF.type) if t in classes]
-        if not gmeow_types:
-            continue
-        terms.append(
-            Term(
-                category="individual",
-                iri=str(s),
-                curie=curie(str(s)),
-                label=_text(graph, s, RDFS.label),
-                definition=_text(graph, s, SKOS.definition),
-                types=sorted(curie(str(t)) for t in gmeow_types),
-                alignments=_alignments(alignments, s),
+    seen: set[URIRef] = set()
+    for cls in classes:
+        for s in graph.subjects(RDF.type, cls):
+            if not _in_namespace(s) or s in declared or s in seen:
+                continue
+            seen.add(s)
+            terms.append(
+                Term(
+                    category="individual",
+                    iri=str(s),
+                    curie=curie(str(s)),
+                    label=_text(graph, s, RDFS.label),
+                    definition=_text(graph, s, SKOS.definition),
+                    types=sorted(
+                        curie(str(t))
+                        for t in graph.objects(s, RDF.type)
+                        if t in classes
+                    ),
+                    alignments=_alignments(alignments, s),
+                )
             )
-        )
 
     return sorted(terms, key=lambda t: (t.category, t.curie))
 
@@ -389,6 +401,15 @@ def write_markdown(terms: list[Term], dist_dir: Path) -> Path:
         if t.alignments:
             lines.append(f"\n*Aligns:* {', '.join(f'`{a}`' for a in t.alignments)}")
         lines.append("")
+    if individuals:
+        lines += ["## Individuals", ""]
+        for t in individuals:
+            lines.append(f"### {t.label or t.curie} (`{t.curie}`)")
+            if t.definition:
+                lines.append(f"\n{t.definition}")
+            if t.types:
+                lines.append(f"\n*Type:* {', '.join(f'`{x}`' for x in t.types)}")
+            lines.append("")
     path = dist_dir / "gmeow-terms.md"
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path

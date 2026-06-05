@@ -104,6 +104,15 @@ def test_csvw_descriptor_is_valid(tmp_path: Path) -> None:
     }
 
 
+def test_markdown_reference_has_all_sections(tmp_path: Path) -> None:
+    export_all(dist_dir=tmp_path)
+    md = (tmp_path / "gmeow-terms.md").read_text(encoding="utf-8")
+    # The header counts individuals, so the section must actually be emitted.
+    for section in ("## Classes", "## Properties", "## Individuals"):
+        assert section in md
+    assert "gmeow:keySchemePGP" in md
+
+
 def test_llms_txt_bundle(tmp_path: Path) -> None:
     export_all(dist_dir=tmp_path)
     text = (tmp_path / "llms.txt").read_text(encoding="utf-8")
