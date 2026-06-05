@@ -202,7 +202,7 @@ gmeow:versionOf
 gmeow:supersedes
     a owl:ObjectProperty ;
     rdfs:domain gmeow:LanguageVersion ;
-    rdfs:range gmeow:Language ;
+    rdfs:range gmeow:LanguageVersion ;
     rdfs:label "supersedes"@en ;
     skos:definition "Relates a language version to the prior version it supersedes. Non-functional (a version may consolidate several). Orders a lineage's versions WITHOUT implying the prior is invalid — older versions remain first-class and usable."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -468,7 +468,7 @@ gmeow:TransliterationScheme
     a owl:Class ;
     rdfs:subClassOf gmeow:Entity ;
     rdfs:label "Transliteration Scheme"@en ;
-    skos:definition "A named transliteration/romanization/transcription system (Hepburn, Pinyin, ISO 233, IPA, …). A value carried by gmeow:transliterationScheme; each scheme is catalogued as an FnO function in the projection layer (rdfs:seeAlso)."@en ;
+    skos:definition "A named transliteration/romanization/transcription system (Hepburn, Pinyin, ISO 233, IPA, …). A value carried by gmeow:transliterationScheme; the major schemes are catalogued as FnO functions in the projection layer (projections/transforms.fno.ttl)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:schemeHepburn              a gmeow:TransliterationScheme ; rdfs:label "Hepburn (Japanese → Latin)"@en .

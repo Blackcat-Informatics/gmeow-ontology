@@ -361,7 +361,9 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "wikidata": AlignmentTarget(
         "Wikidata", PREFIXES["wd"], "CC0-1.0", "concept_scheme"
     ),
-    "lexvo": AlignmentTarget("Lexvo", PREFIXES["lexvo"], "CC-BY-3.0", "concept_scheme"),
+    "lexvo": AlignmentTarget(
+        "Lexvo", PREFIXES["lexvo"], "CC-BY-SA-3.0", "concept_scheme"
+    ),
     "glottolog": AlignmentTarget(
         "Glottolog", PREFIXES["glottolog"], "CC-BY-4.0", "concept_scheme"
     ),
