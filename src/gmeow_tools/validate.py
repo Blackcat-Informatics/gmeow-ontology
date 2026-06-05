@@ -122,7 +122,11 @@ def run_shacl(
         shapes_path: Path to the SHACL shapes Turtle file.
 
     Returns:
-        The validation result; SHACL violations become errors.
+        The validation result, bucketed by SHACL severity: ``sh:Violation``
+        results become errors, while ``sh:Warning`` / ``sh:Info`` results become
+        warnings. A warning-only graph therefore still passes (``result.ok`` is
+        ``True``) — which is the point of the Warning severity on the suppression
+        contract (a source may legitimately lag setting ``gmeow:displayable``).
 
     Raises:
         FileNotFoundError: If the shapes file is missing.
@@ -133,7 +137,7 @@ def run_shacl(
     from pyshacl import validate as shacl_validate
 
     shapes_graph = Graph().parse(shapes_path, format="turtle")
-    conforms, _report_graph, report_text = shacl_validate(
+    conforms, report_graph, report_text = shacl_validate(
         data_graph,
         shacl_graph=shapes_graph,
         advanced=True,  # SPARQL-based targets are SHACL-AF
@@ -142,9 +146,41 @@ def run_shacl(
         meta_shacl=False,
     )
     result = ValidationResult()
-    if not conforms:
+    if conforms:
+        return result
+
+    violations, warnings = _partition_shacl_results(report_graph)
+    if violations:
+        result.errors.append("SHACL violations:\n" + "\n".join(violations))
+    if warnings:
+        result.warnings.append("SHACL warnings:\n" + "\n".join(warnings))
+    # Defensive: a non-conforming report we could not parse must still surface.
+    if not violations and not warnings:
         result.errors.append(f"SHACL validation failed:\n{report_text.strip()}")
     return result
+
+
+def _partition_shacl_results(report_graph: Graph) -> tuple[list[str], list[str]]:
+    """Split a SHACL report into (violations, warnings) by ``sh:resultSeverity``.
+
+    ``sh:Violation`` results are returned as error lines; ``sh:Warning`` and
+    ``sh:Info`` as warning lines. Each line is ``<focusNode>: <message>`` for a
+    readable, severity-aware report.
+    """
+    from rdflib.namespace import SH
+
+    violations: list[str] = []
+    warnings: list[str] = []
+    for node in report_graph.subjects(RDF.type, SH.ValidationResult):
+        severity = report_graph.value(node, SH.resultSeverity)
+        message = report_graph.value(node, SH.resultMessage)
+        focus = report_graph.value(node, SH.focusNode)
+        line = f"{focus}: {message}" if message is not None else str(focus)
+        if severity in (SH.Warning, SH.Info):
+            warnings.append(line)
+        else:
+            violations.append(line)
+    return violations, warnings
 
 
 def validate_all() -> ValidationResult:

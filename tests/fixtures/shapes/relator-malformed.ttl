@@ -1,0 +1,31 @@
+# Malformed relator fixture (#39). Each subject carries exactly ONE deliberate
+# violation of the closed-world SHACL shapes in shapes/gmeow-shapes.ttl, so a
+# test can pin each shape by message. `run_shacl` over this graph MUST NOT
+# conform. Keep out of tests/fixtures/coverage/ (it is intentionally broken).
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# (a) Cardinality — a GenderIdentity facet with TWO values (maxCount 1 violated).
+ex:badTwoValues a gmeow:GenderIdentity ;
+    gmeow:genderValue gmeow:genderWoman , gmeow:genderMan .
+
+# (a) Cardinality — a GenderIdentity facet with NO value (minCount 1 violated).
+ex:badNoValue a gmeow:GenderIdentity .
+
+# (a) Cardinality — a NameUsage missing its appellation (minCount 1 violated).
+ex:badUsage a gmeow:NameUsage ;
+    gmeow:usageNamed ex:someone .
+
+# (b) Suppression — a superseded facet (has validUntil) NOT suppressed (Warning).
+ex:badSuperseded a gmeow:GenderIdentity ;
+    gmeow:genderValue gmeow:genderMan ;
+    gmeow:validUntil "2019-03-01T00:00:00"^^xsd:dateTime ;
+    gmeow:displayable true .
+
+# (c) Orthogonality — one node fills TWO disjoint identity axes (Violation).
+ex:badTwoAxes a gmeow:GenderIdentity , gmeow:GenderExpression ;
+    gmeow:genderValue gmeow:genderNonBinary ;
+    gmeow:expressionValue gmeow:expressionNeutral .

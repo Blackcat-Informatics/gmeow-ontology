@@ -48,6 +48,7 @@ make check           # full local gate: lint, validate, reason (ELK), mappings, 
 | `make validate` | Turtle syntax + term-annotation lint + SHACL (pure Python) |
 | `make reason` | Merge import closure → OWL 2 **DL** profile check → **ELK** consistency (Docker/ROBOT) |
 | `make explain` | Explain unsatisfiable classes with **HermiT** |
+| `make verify` | Reasoned-graph SPARQL QC (ROBOT `verify` over `queries/verify/`) — the closed-world half of the [OWL-infers / SHACL-validates split](./docs/reasoning.md) |
 | `make compile-mappings` | Compile the `mapping-dsl/` source → SSSOM + EDOAL + FnO + SPARQL artifacts (in-place) |
 | `make mappings` | SSSOM → OWL/SKOS alignment axioms + VoID linksets; validates Wikidata QID syntax |
 | `make wikidata` / `wikidata-live` | Wikidata QID/PID syntax gate (offline) / + existence check (network) |

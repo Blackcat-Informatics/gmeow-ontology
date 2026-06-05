@@ -2,6 +2,7 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 
 # SHACL shapes for the GMEOW vocabulary. The SPARQL target restricts each shape
 # to GMEOW-namespaced terms so imported gUFO/peer-schema terms are not flagged.
@@ -105,6 +106,185 @@ gmeow:DeadnameSuppressionShape
                 FILTER NOT EXISTS {
                     $this <https://blackcatinformatics.ca/gmeow/displayable> false
                 }
+            }
+        """ ;
+    ] .
+
+# =========================================================================== #
+# Hybrid OWL+SHACL closed-world data shapes (#39, epic #35).
+#
+# These shapes are the CLOSED-WORLD counterpart of the phase-2 (#38) open-world
+# OWL 2 EL axioms. A relator carries `owl:someValuesFrom` so the reasoner can
+# *classify* it ("a GenderIdentity points at SOME Gender"); SHACL adds the
+# cardinality the reasoner deliberately cannot enforce under the open-world
+# assumption ("...at EXACTLY one Gender"). OWL infers; SHACL validates
+# (Knublauch, "SHACL and OWL Compared"). Like the names shapes above, all of
+# these target INSTANCE DATA, so they stay dormant when `gmeow validate` checks
+# the term graph (the TBox has no instances) and bite only when a data graph is
+# validated against them. See docs/reasoning.md for the full division of labour.
+# =========================================================================== #
+
+# --------------------------------------------------------------------------- #
+# (a) Relator well-formedness — closed-world cardinality (CONSTITUTION P7/P8).
+# Each facet relator mediates its value via EXACTLY ONE path: the value property
+# is functional per facet, but OWL functionality does not REJECT a second value
+# (it infers the two are owl:sameAs). SHACL minCount/maxCount enforces it.
+# --------------------------------------------------------------------------- #
+
+gmeow:GenderIdentityFacetShape
+    a sh:NodeShape ;
+    rdfs:label "GenderIdentity well-formedness shape" ;
+    sh:targetClass gmeow:GenderIdentity ;
+    sh:property [
+        sh:path gmeow:genderValue ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A GenderIdentity facet must point at exactly one gmeow:Gender value (gmeow:genderValue)." ;
+    ] .
+
+gmeow:GenderExpressionFacetShape
+    a sh:NodeShape ;
+    rdfs:label "GenderExpression well-formedness shape" ;
+    sh:targetClass gmeow:GenderExpression ;
+    sh:property [
+        sh:path gmeow:expressionValue ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A GenderExpression facet must point at exactly one gmeow:GenderExpressionStyle value (gmeow:expressionValue)." ;
+    ] .
+
+gmeow:SexualOrientationFacetShape
+    a sh:NodeShape ;
+    rdfs:label "SexualOrientation well-formedness shape" ;
+    sh:targetClass gmeow:SexualOrientation ;
+    sh:property [
+        sh:path gmeow:sexualOrientationValue ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A SexualOrientation facet must point at exactly one gmeow:SexualOrientationValue (gmeow:sexualOrientationValue)." ;
+    ] .
+
+gmeow:RomanticOrientationFacetShape
+    a sh:NodeShape ;
+    rdfs:label "RomanticOrientation well-formedness shape" ;
+    sh:targetClass gmeow:RomanticOrientation ;
+    sh:property [
+        sh:path gmeow:romanticOrientationValue ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A RomanticOrientation facet must point at exactly one gmeow:RomanticOrientationValue (gmeow:romanticOrientationValue)." ;
+    ] .
+
+# The NameUsage relator binds {who is named} × {which appellation}; both relata
+# are required and single-valued per usage (a distinct usage is minted per
+# audience/register). Audience, register and period stay optional.
+gmeow:NameUsageShape
+    a sh:NodeShape ;
+    rdfs:label "NameUsage well-formedness shape" ;
+    sh:targetClass gmeow:NameUsage ;
+    sh:property [
+        sh:path gmeow:usageNamed ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A NameUsage must name exactly one entity (gmeow:usageNamed)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:usageAppellation ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A NameUsage must use exactly one appellation (gmeow:usageAppellation)." ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# (b) Suppression / display contract (CONSTITUTION P10 — suppression, never
+# erasure). The IdentityFacet sibling of DeadnameSuppressionShape: a facet that
+# has been superseded (it carries gmeow:validUntil) must be suppressed from
+# display (gmeow:displayable false) rather than deleted. Warning, like the
+# deadname shape — a source may legitimately lag on setting the flag.
+# --------------------------------------------------------------------------- #
+
+# Targets the four concrete IdentityFacet axes directly (not the abstract base):
+# a closed-world data check runs without subclass inference, so an instance typed
+# only as gmeow:GenderIdentity would not match a gmeow:IdentityFacet target.
+gmeow:SupersededFacetSuppressionShape
+    a sh:NodeShape ;
+    rdfs:label "Superseded identity-facet suppression shape" ;
+    sh:targetClass gmeow:GenderIdentity ;
+    sh:targetClass gmeow:GenderExpression ;
+    sh:targetClass gmeow:SexualOrientation ;
+    sh:targetClass gmeow:RomanticOrientation ;
+    sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it (a source may lag the flag)
+    sh:sparql [
+        sh:message "A superseded identity facet (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/validUntil> ?until .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
+                }
+            }
+        """ ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# (c) Orthogonality data-check (CONSTITUTION P9 — anti-overtyping). The
+# closed-world counterpart of the 7-axis owl:AllDisjointClasses matrix: it
+# catches an individual placed in two disjoint identity axes WITHOUT a reasoner
+# (HermiT proves the same as an inconsistency — see
+# tests/test_reasoning_entailments.py::test_two_axis_individual_is_inconsistent).
+# --------------------------------------------------------------------------- #
+
+gmeow:IdentityAxisOrthogonalityShape
+    a sh:NodeShape ;
+    rdfs:label "Identity-axis orthogonality data-check" ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            SELECT ?this WHERE {
+                ?this a ?axis .
+                FILTER(?axis IN (
+                    <https://blackcatinformatics.ca/gmeow/GenderIdentity>,
+                    <https://blackcatinformatics.ca/gmeow/GenderExpression>,
+                    <https://blackcatinformatics.ca/gmeow/SexAssignedAtBirth>,
+                    <https://blackcatinformatics.ca/gmeow/SexualOrientation>,
+                    <https://blackcatinformatics.ca/gmeow/RomanticOrientation>,
+                    <https://blackcatinformatics.ca/gmeow/PronounSet>,
+                    <https://blackcatinformatics.ca/gmeow/Honorific>
+                ))
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "An individual may fill at most one identity axis; these seven axes are orthogonal and disjoint (no overtyping)." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this a ?a , ?b .
+                FILTER(STR(?a) < STR(?b))   # ordered pair: one result per violation, not two
+                FILTER(?a IN (
+                    <https://blackcatinformatics.ca/gmeow/GenderIdentity>,
+                    <https://blackcatinformatics.ca/gmeow/GenderExpression>,
+                    <https://blackcatinformatics.ca/gmeow/SexAssignedAtBirth>,
+                    <https://blackcatinformatics.ca/gmeow/SexualOrientation>,
+                    <https://blackcatinformatics.ca/gmeow/RomanticOrientation>,
+                    <https://blackcatinformatics.ca/gmeow/PronounSet>,
+                    <https://blackcatinformatics.ca/gmeow/Honorific>
+                ))
+                FILTER(?b IN (
+                    <https://blackcatinformatics.ca/gmeow/GenderIdentity>,
+                    <https://blackcatinformatics.ca/gmeow/GenderExpression>,
+                    <https://blackcatinformatics.ca/gmeow/SexAssignedAtBirth>,
+                    <https://blackcatinformatics.ca/gmeow/SexualOrientation>,
+                    <https://blackcatinformatics.ca/gmeow/RomanticOrientation>,
+                    <https://blackcatinformatics.ca/gmeow/PronounSet>,
+                    <https://blackcatinformatics.ca/gmeow/Honorific>
+                ))
             }
         """ ;
     ] .

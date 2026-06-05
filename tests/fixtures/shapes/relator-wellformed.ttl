@@ -1,0 +1,48 @@
+# Well-formed relator fixture (#39). Every reified relator here satisfies the
+# closed-world SHACL shapes in shapes/gmeow-shapes.ttl: each facet points at
+# EXACTLY ONE value, the NameUsage binds exactly one entity to exactly one
+# appellation, the superseded facet is suppressed (gmeow:displayable false), and
+# no individual fills two disjoint identity axes. `run_shacl` over this graph
+# MUST conform. Keep this fixture out of tests/fixtures/coverage/ so the
+# coverage/disjointness harness does not pick it up.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- A person with one well-formed facet on each axis ----------------------- #
+
+ex:dana a gmeow:Person ;
+    gmeow:hasGenderIdentity ex:danaGi ;
+    gmeow:hasGenderExpression ex:danaExpr ;
+    gmeow:hasSexualOrientation ex:danaSexual ;
+    gmeow:hasRomanticOrientation ex:danaRomantic .
+
+ex:danaGi a gmeow:GenderIdentity ;
+    gmeow:genderValue gmeow:genderNonBinary .
+
+ex:danaExpr a gmeow:GenderExpression ;
+    gmeow:expressionValue gmeow:expressionAndrogynous .
+
+ex:danaSexual a gmeow:SexualOrientation ;
+    gmeow:sexualOrientationValue gmeow:orientBisexual .
+
+ex:danaRomantic a gmeow:RomanticOrientation ;
+    gmeow:romanticOrientationValue gmeow:romanticBiromantic .
+
+# --- A superseded facet, correctly suppressed (never deleted) ---------------- #
+
+ex:danaGiOld a gmeow:GenderIdentity ;
+    gmeow:genderValue gmeow:genderMan ;
+    gmeow:validUntil "2020-01-01T00:00:00"^^xsd:dateTime ;
+    gmeow:displayable false .
+
+# --- A well-formed NameUsage: one named entity, one appellation -------------- #
+
+ex:danaUsage a gmeow:NameUsage ;
+    gmeow:usageNamed ex:dana ;
+    gmeow:usageAppellation ex:danaName .
+
+ex:danaName a gmeow:PersonName ;
+    gmeow:fullName "Dana Example" .

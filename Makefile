@@ -8,7 +8,7 @@ SHELL := /bin/bash
 # Alignment target for `make extract` (license-checked). Override: make extract TARGET=foaf
 TARGET ?= foaf
 
-.PHONY: help install fmt lint validate reason reason-hermit explain extract compile-mappings \
+.PHONY: help install fmt lint validate reason reason-hermit explain verify extract compile-mappings \
         compile-check compile-statements statements-check mappings wikidata \
         wikidata-live lint-alignment refresh-target-axioms metadata apache docs \
         docs-full rdf12 quality normalize build export project test check \
@@ -40,6 +40,9 @@ reason-hermit: ## Sound + complete consistency check with HermiT (Docker).
 
 explain: ## Explain any unsatisfiable classes (HermiT, Docker).
 	uv run gmeow explain
+
+verify: ## Reasoned-graph negative tests (ROBOT verify over queries/verify/, Docker).
+	uv run gmeow verify --reasoner ELK
 
 extract: ## Report import/extract policy for TARGET (refuses reference-only).
 	uv run gmeow extract --target $(TARGET)
@@ -110,7 +113,7 @@ project: compile-mappings ## Project GMEOW data to pure schema.org/GeoSPARQL/vCa
 test: ## Run the test suite.
 	uv run pytest
 
-check: lint validate statements-check reason reason-hermit compile-check mappings lint-alignment wikidata coverage test ## Full local quality gate.
+check: lint validate statements-check reason reason-hermit verify compile-check mappings lint-alignment wikidata coverage test ## Full local quality gate.
 	@echo "✓ all checks passed"
 
 release: ## RDF 1.2 + OWL downcast → reasoned closure (HermiT) + build + metadata + CrossRef deposit.
