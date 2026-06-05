@@ -77,6 +77,20 @@ PROJECTIONS_DIR = PROJECT_ROOT / "projections"
 #: compile-mappings`` renders these cells into the SSSOM / EDOAL / FnO / SPARQL
 #: artifacts. Authored, never generated; not in the reasoned import closure.
 MAPPING_DSL_DIR = PROJECT_ROOT / "mapping-dsl"
+#: Single-source statement DSL (the canonical RDF 1.2 / RDF* statement-metadata
+#: layer — provenance, confidence, temporal scope). ``gmeow compile-statements``
+#: renders these cells to the RDF 1.2 lead artifact + the OWL axiom-annotation
+#: compatibility downcast. Authored, never generated; a spec layer (CONSTITUTION
+#: Principles 2-3). The RDF 1.2 form is canonical; the OWL form is the generated,
+#: reasoning-lossless downcast the OWL 2 DL reasoners consume.
+STATEMENT_DSL_DIR = PROJECT_ROOT / "statement-dsl"
+#: Generated statement-metadata artifacts (committed, like mappings/ — so the
+#: ``compile-statements --check`` no-drift gate has a committed target).
+STATEMENTS_DIR = PROJECT_ROOT / "statements"
+#: The RDF 1.2 / RDF* lead serialization (canonical statement-metadata form).
+STATEMENT_RDF12_FILE = STATEMENTS_DIR / "gmeow.rdf12.ttl"
+#: The OWL 2 axiom-annotation downcast (generated; consumed by the reasoner).
+STATEMENT_OWL_FILE = STATEMENTS_DIR / "gmeow-statements.owl.ttl"
 #: Vendored coverage fixtures (public site graphs) used by the coverage harness.
 FIXTURES_DIR = PROJECT_ROOT / "tests" / "fixtures" / "coverage"
 METADATA_DIR = PROJECT_ROOT / "metadata"
@@ -98,7 +112,11 @@ DOCS_DIR = PROJECT_ROOT / "docs" / "_generated"
 
 ROBOT_IMAGE = "obolibrary/robot:v1.9.7"
 WIDOCO_IMAGE = "ghcr.io/dgarijo/widoco:v1.4.25"
-JENA_IMAGE = "stain/jena:5.4.0"  # riot + sparql; RDF 1.2 / triple-term support
+#: Apache Jena CLI (riot + sparql) — the required RDF 1.2 / triple-term engine.
+#: No maintained public Jena 5.4 CLI image exists, so this pinned tag is built
+#: from ``docker/jena/Dockerfile`` (``make pull-images`` / CI build it). A private
+#: mirror under the same tag is pulled if present.
+JENA_IMAGE = "stain/jena:5.4.0"
 
 # --------------------------------------------------------------------------- #
 # CrossRef DOI deposit

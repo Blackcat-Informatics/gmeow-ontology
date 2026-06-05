@@ -1,0 +1,87 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# =============================================================================
+# GMEOW statement DSL — the canonical source for the RDF 1.2 / RDF* statement-
+# metadata layer (provenance, confidence, temporal scope).
+#
+# GMEOW is RDF 1.2 / RDF*-FIRST (CONSTITUTION Principles 2-3): statement-level
+# metadata is authored ONCE here, and `gmeow compile-statements` generates two
+# verified artifacts from it — the RDF 1.2 / RDF* serialization (the canonical
+# LEAD form, via Apache Jena) and the OWL 2 axiom-annotation form (the generated,
+# reasoning-lossless DOWNCAST the OWL 2 DL reasoners consume). The OWL form is a
+# projection (Principle 4), never a competing source of truth; it recedes as
+# RDF-1.2-native reasoners arrive.
+#
+# WHY A DSL AND NOT LITERAL RDF 1.2 TURTLE? rdflib (the pure-Python engine the
+# whole pipeline lints/serializes/round-trips with) cannot yet parse RDF 1.2
+# triple-term syntax (`<<( s p o )>>` / rdf:reifies). So we author in plain Turtle
+# that rdflib reads today — but each cell is a 1:1 STRUCTURAL TRANSCRIPTION of one
+# RDF 1.2 reifying statement: the (qSubject qPredicate qObject) triad IS the
+# quoted triple, gmeow:reifier IS the rdf:reifies subject, and the gmeow:annotation
+# list IS every triple hung off the reifier. The source READS as RDF 1.2; the
+# eventual switch to native `<<( )>>` is a near-syntactic re-skin of the parser,
+# not a re-model.
+#
+# This file is a SPEC LAYER — grounded in gmeow: and annotated like every GMEOW
+# term, but NOT owl:imports-ed into the reasoned OWL 2 DL core. It is the sibling
+# of mapping-dsl/vocabulary.ttl.
+# =============================================================================
+
+<https://blackcatinformatics.ca/gmeow/statement-dsl>
+    a owl:Ontology ;
+    rdfs:label "GMEOW statement DSL vocabulary"@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment "Authoring vocabulary for the canonical RDF 1.2 / RDF* statement-metadata layer; compiled to the RDF 1.2 serialization + the OWL axiom-annotation downcast by `gmeow compile-statements`."@en .
+
+# --------------------------------------------------------------------------- #
+# The cell type — one reified statement
+# --------------------------------------------------------------------------- #
+
+gmeow:StatementMetadata a owl:Class ;
+    rdfs:label "statement metadata"@en ;
+    skos:definition "One reified RDF 1.2 statement: a quoted base triple (qSubject/qPredicate/qObject) plus the metadata annotations hung off its reifier (confidence, provenance, temporal scope). The structural isomorph of `?reifier rdf:reifies <<( ?s ?p ?o )>> . ?reifier <annProp> <annVal> .` — authored as plain Turtle, compiled to both RDF 1.2 and the OWL owl:Axiom downcast."@en .
+
+# --------------------------------------------------------------------------- #
+# The reifier and the quoted triple
+# --------------------------------------------------------------------------- #
+
+gmeow:reifier a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "reifier"@en ;
+    skos:definition "The named reifier IRI for the statement — the subject of `rdf:reifies` in the RDF 1.2 form and the `owl:Axiom` node in the OWL downcast. OPTIONAL: when omitted, the compiler mints a deterministic, content-addressed reifier IRI from the quoted triple, so the same statement always yields the same reifier (no spurious drift)."@en .
+
+gmeow:qSubject a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "quoted subject"@en ;
+    skos:definition "The subject of the quoted base triple — the `s` in `<<( s p o )>>` and the `owl:annotatedSource` in the OWL downcast."@en .
+
+gmeow:qPredicate a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "quoted predicate"@en ;
+    skos:definition "The predicate of the quoted base triple — the `p` in `<<( s p o )>>` and the `owl:annotatedProperty` in the OWL downcast."@en .
+
+gmeow:qObject a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "quoted object (IRI)"@en ;
+    skos:definition "The object of the quoted base triple when it is an IRI / value individual — the `o` in `<<( s p o )>>` and the `owl:annotatedTarget` in the OWL downcast. Mutually exclusive with gmeow:qObjectLiteral."@en .
+
+gmeow:qObjectLiteral a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "quoted object (literal)"@en ;
+    skos:definition "The object of the quoted base triple when it is a literal (a date, a string, a number). Mutually exclusive with gmeow:qObject."@en .
+
+# --------------------------------------------------------------------------- #
+# The annotations hung off the reifier
+# --------------------------------------------------------------------------- #
+
+gmeow:annotation a owl:ObjectProperty ;
+    rdfs:label "annotation"@en ;
+    skos:definition "Links a statement cell to one metadata annotation node (annProperty + annValue). Each annotation becomes one triple on the reifier in the RDF 1.2 form and one annotation on the owl:Axiom in the OWL downcast. A cell carries several."@en .
+
+gmeow:annProperty a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "annotation property"@en ;
+    skos:definition "The metadata property of one annotation — a real GMEOW statement-level annotation property (gmeow:confidence, gmeow:validFrom, gmeow:assertedAt, gmeow:mappedFrom, …). Must be an owl:AnnotationProperty in the ontology so the generated OWL downcast stays OWL 2 DL-clean."@en .
+
+gmeow:annValue a rdf:Property, owl:FunctionalProperty ;
+    rdfs:label "annotation value"@en ;
+    skos:definition "The value of one annotation — an IRI/value individual or a literal (0.95, a date, an agent IRI). Authored as a single field for ergonomics; the compiler emits it verbatim into both forms. (A bare rdf:Property in this spec layer, never reasoned; the generated OWL form attaches it under the real owl:AnnotationProperty named by gmeow:annProperty.)"@en .

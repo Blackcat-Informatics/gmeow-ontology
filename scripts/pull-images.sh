@@ -1,18 +1,26 @@
 #!/usr/bin/env bash
-# Pre-pull the pinned Docker images used by the GMEOW toolchain.
+# Pre-pull (or build) the pinned Docker images used by the GMEOW toolchain.
 # Image references are read from gmeow_tools.config so they never drift.
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-mapfile -t images < <(
+read -r ROBOT_IMAGE WIDOCO_IMAGE JENA_IMAGE < <(
 	uv run python -c \
-		"from gmeow_tools.config import ROBOT_IMAGE, WIDOCO_IMAGE, JENA_IMAGE; print(ROBOT_IMAGE); print(WIDOCO_IMAGE); print(JENA_IMAGE)"
+		"from gmeow_tools.config import ROBOT_IMAGE, WIDOCO_IMAGE, JENA_IMAGE; print(ROBOT_IMAGE, WIDOCO_IMAGE, JENA_IMAGE)"
 )
 
-for image in "${images[@]}"; do
+for image in "${ROBOT_IMAGE}" "${WIDOCO_IMAGE}"; do
 	echo "Pulling ${image} ..."
 	docker pull "${image}"
 done
 
-echo "✓ pinned images pulled"
+# Apache Jena: no maintained public 5.4 CLI image exists, so pull if available
+# (e.g. a private mirror) and otherwise build the pinned tag from docker/jena/.
+echo "Obtaining ${JENA_IMAGE} (RDF 1.2 engine) ..."
+if ! docker pull "${JENA_IMAGE}" 2>/dev/null; then
+	echo "  pull unavailable — building from docker/jena/Dockerfile"
+	docker build -t "${JENA_IMAGE}" docker/jena
+fi
+
+echo "✓ pinned images ready"
