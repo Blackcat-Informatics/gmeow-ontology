@@ -1,0 +1,644 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix gedcom: <http://www.w3.org/2000/10/swap/pim/gedcom#> .
+@prefix bio: <http://purl.org/vocab/bio/0.1/> .
+@prefix gx: <http://gedcomx.org/> .
+@prefix gxv: <http://gedcomx.org/v1/> .
+@prefix gn: <http://www.geonames.org/ontology#> .
+@prefix wdt: <http://www.wikidata.org/prop/direct/> .
+
+# Term equivalences for the genealogy domain — GMEOW authoring source.
+# Compiled to mappings/gmeow-genealogy.sssom.tsv by `gmeow compile-mappings`.
+
+gmeow:mapsetGenealogy a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/genealogy" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Genealogy alignments — events to BIO + GEDCOM X fact types; kinship to Wikidata; legacy W3C gedcom predicates for coverage. Supersedes the unmaintained SWAP gedcom as the canonical model." .
+
+gmeow:eqGenealogy001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Birth ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject bio:Birth ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Death ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject bio:Death ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Burial ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject bio:Burial ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Cremation ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject bio:Cremation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Funeral ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject bio:Funeral ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Baptism ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject bio:Baptism ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Adoption ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject bio:Adoption ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Marriage ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject bio:Marriage ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Divorce ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject bio:Divorce ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Annulment ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject bio:Annulment ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Graduation ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject bio:Graduation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy012 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Naturalization ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject bio:Naturalization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Ordination ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject bio:Ordination ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy014 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:NameChange ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject bio:NameChange ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy015 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Birth ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Birth ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Death ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Death ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy017 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Burial ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Burial ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy018 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Cremation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Cremation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy019 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Funeral ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Funeral ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy020 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Baptism ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Baptism ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy021 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Christening ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Christening ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy022 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Confirmation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Confirmation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy023 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:BarMitzvah ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:BarMitzvah ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy024 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:BatMitzvah ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:BatMitzvah ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy025 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:FirstCommunion ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:FirstCommunion ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy026 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Adoption ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Adoption ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy027 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Marriage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Marriage ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy028 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Divorce ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Divorce ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy029 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Annulment ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Annulment ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy030 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Engagement ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Engagement ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy031 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Separation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Separation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy032 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Immigration ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Immigration ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy033 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Emigration ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Emigration ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy034 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Naturalization ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Naturalization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy035 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Residence ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Residence ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy036 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Census ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Census ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy037 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Graduation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Graduation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy038 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:MilitaryService ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:MilitaryService ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy039 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Will ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Will ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy040 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Probate ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Probate ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy041 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Retirement ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Retirement ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy042 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Ordination ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Ordination ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy043 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Person ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gxv:Person ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy044 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:CoupleRelationship ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Couple ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy045 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ParentChildRelationship ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:ParentChild ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy046 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:BiologicalParentChild ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:BiologicalParent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy047 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:AdoptiveParentChild ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:AdoptiveParent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy048 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:StepParentChild ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:StepParent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy049 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:FosterParentChild ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:FosterParent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy050 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:PersonName ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gxv:Name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy051 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Source ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gxv:SourceDescription ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy052 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Citation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gxv:SourceReference ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy053 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Place ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gn:Feature ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "GeoNames feature" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy054 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasFather ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bio:father ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy055 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasMother ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bio:mother ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy056 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasChild ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bio:child ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy057 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventDate ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bio:date ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy058 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventPlace ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bio:place ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy059 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasPrincipal ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bio:principal ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy060 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasParticipant ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bio:agent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy061 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasWitness ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bio:witness ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy062 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasOfficiant ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bio:officiator ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy063 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasParent ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P8810 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "parent (gender-neutral)" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy064 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasFather ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P22 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "father" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy065 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasMother ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P25 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "mother" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy066 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasChild ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P40 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "child" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy067 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasSpouse ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P26 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "spouse" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy068 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasSibling ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P3373 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "sibling" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy069 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventDate ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gedcom:date ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "legacy W3C gedcom" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy070 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventPlace ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gedcom:place ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "legacy W3C gedcom" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy071 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasChild ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gedcom:child ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "legacy W3C gedcom" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy072 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasPartner ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gedcom:husband ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "legacy W3C gedcom couple role" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+gmeow:eqGenealogy073 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasPartner ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gedcom:wife ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "legacy W3C gedcom couple role" ;
+    gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .

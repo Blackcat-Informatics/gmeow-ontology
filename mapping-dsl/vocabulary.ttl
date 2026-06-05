@@ -1,0 +1,464 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix geo:     <http://www.opengis.net/ont/geosparql#> .
+
+# =============================================================================
+# GMEOW mapping DSL — the single authoring source for the alignment layer.
+#
+# GMEOW's doctrine is "one canonical source, everything else a generated lossy
+# projection". The alignment layer is the one place that doctrine was not yet
+# applied to itself: the SAME mappings were hand-authored four ways (SSSOM rows,
+# EDOAL cells, FnO functions, SPARQL CONSTRUCT executors) and drifted. This
+# vocabulary is the recursion: author each mapping ONCE as a gmeow: cell, and
+# `gmeow compile-mappings` renders the four standard artifacts from it.
+#
+# This file is a SPEC LAYER — grounded in the gmeow: namespace and annotated like
+# every GMEOW term, but NOT owl:imports-ed into the reasoned OWL 2 DL core
+# (projections are a deliberately lossy, directional VIEW, never reasoned). It is
+# the sibling of projections/functions.fno.ttl, not of ontology/modules/*.
+# =============================================================================
+
+<https://blackcatinformatics.ca/gmeow/mapping-dsl>
+    a owl:Ontology ;
+    rdfs:label "GMEOW mapping DSL vocabulary"@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment "Authoring vocabulary for cross-ontology alignments and lossy projections; compiled to SSSOM / EDOAL / FnO / SPARQL by `gmeow compile-mappings`."@en .
+
+# --------------------------------------------------------------------------- #
+# Cell types — the two authoring units
+# --------------------------------------------------------------------------- #
+
+gmeow:TermEquivalence a owl:Class ;
+    rdfs:label "term equivalence"@en ;
+    skos:definition "A pure cross-ontology term link (e.g. gmeow:Person owl:equivalentClass foaf:Person). It is a logical correspondence only — it compiles to a single SSSOM row (and through that to the OWL/SKOS alignment axioms) and has no executable projection branch."@en .
+
+gmeow:ProjectionMapping a owl:Class ;
+    rdfs:label "projection mapping"@en ;
+    skos:definition "A directional, possibly lossy downcast from a GMEOW graph pattern to one or more target-vocabulary triples. Always compiles to a SPARQL CONSTRUCT branch; additionally to an EDOAL cell, an FnO function declaration (when it carries a transform), and an SSSOM row (when a profile binding is a 1:1 rename flagged emitSssom)."@en .
+
+gmeow:MappingPattern a owl:Class ;
+    rdfs:label "mapping pattern"@en ;
+    skos:definition "The GMEOW-side graph pattern of a projection mapping: its anchor (the node the output hangs on), its projected value, the structural atoms, and any suppression filters, derived bindings or minted nodes."@en .
+
+gmeow:PatternAtom a owl:Class ;
+    rdfs:label "pattern atom"@en ;
+    skos:definition "One triple/path constraint inside a mapping pattern — a subject variable, a predicate (or structured property path), and an object (variable, value individual, or literal), optionally wrapped OPTIONAL."@en .
+
+gmeow:ProfileBinding a owl:Class ;
+    rdfs:label "profile binding"@en ;
+    skos:definition "The per-target-profile face of a projection mapping: the target term it emits for one profile, the EDOAL relation, the transform, the confidence, the SSSOM predicate, and the profile-specific lossy drops. One mapping fans out to several bindings (one source -> different target terms across schema.org / vCard / FOAF)."@en .
+
+# --------------------------------------------------------------------------- #
+# Alignment fields (both cell types)
+# --------------------------------------------------------------------------- #
+
+gmeow:alignSubject a owl:ObjectProperty ;
+    rdfs:label "alignment subject"@en ;
+    skos:definition "The term on the subject side of a term equivalence (either a GMEOW or an external term — mappings are authored in whichever direction is honest, e.g. geo:Feature skos:closeMatch gmeow:Place)."@en .
+gmeow:alignPredicate a owl:ObjectProperty ;
+    rdfs:label "alignment predicate"@en ;
+    skos:definition "The mapping predicate of a term equivalence (owl:equivalentClass, owl:equivalentProperty, skos:exactMatch, skos:closeMatch, rdfs:subClassOf, …)."@en .
+gmeow:alignObject a owl:ObjectProperty ;
+    rdfs:label "alignment object"@en ;
+    skos:definition "The term on the object side of a term equivalence (either a GMEOW or an external term — see gmeow:alignSubject)."@en .
+gmeow:confidence a owl:DatatypeProperty ;
+    rdfs:label "confidence"@en ;
+    skos:definition "Curator confidence in a correspondence [0.0, 1.0]; rendered as the SSSOM confidence column and the EDOAL edoal:measure."@en .
+gmeow:justification a owl:ObjectProperty ;
+    rdfs:label "mapping justification"@en ;
+    skos:definition "The SSSOM mapping_justification (defaults to semapv:ManualMappingCuration)."@en .
+gmeow:comment a owl:DatatypeProperty ;
+    rdfs:label "mapping comment"@en ;
+    skos:definition "Free-text note carried into the SSSOM comment column."@en .
+gmeow:subjectLabel a owl:DatatypeProperty ;
+    rdfs:label "subject label"@en ;
+    skos:definition "Human-readable label of the subject term, emitted as the SSSOM subject_label column (for review without dereferencing)."@en .
+gmeow:objectLabel a owl:DatatypeProperty ;
+    rdfs:label "object label"@en ;
+    skos:definition "Human-readable label of the (external) object term, emitted as the SSSOM object_label column (e.g. the Wikidata item's English label)."@en .
+gmeow:sssomFile a owl:DatatypeProperty ;
+    rdfs:label "SSSOM file"@en ;
+    skos:definition "The basename of the mappings/*.sssom.tsv file this row is routed to (e.g. \"gmeow-properties.sssom.tsv\")."@en .
+
+gmeow:MappingSet a owl:Class ;
+    rdfs:label "SSSOM mapping set"@en ;
+    skos:definition "Per-file SSSOM header metadata (set id, license, comment, optional trailer) for one generated mappings/*.sssom.tsv file."@en .
+gmeow:setId a owl:DatatypeProperty ;
+    rdfs:label "mapping set id"@en ;
+    skos:definition "The SSSOM mapping_set_id header value."@en .
+gmeow:license a owl:DatatypeProperty ;
+    rdfs:label "mapping set license"@en ;
+    skos:definition "The SSSOM license header value."@en .
+gmeow:setComment a owl:DatatypeProperty ;
+    rdfs:label "mapping set comment"@en ;
+    skos:definition "The SSSOM comment header value."@en .
+gmeow:setTrailer a owl:DatatypeProperty ;
+    rdfs:label "mapping set trailer"@en ;
+    skos:definition "Optional trailing comment lines appended after the data rows (e.g. forward-looking, commented-out mappings)."@en .
+gmeow:sssomPredicate a owl:ObjectProperty ;
+    rdfs:label "SSSOM predicate"@en ;
+    skos:definition "For a projection binding flagged emitSssom, the SSSOM mapping predicate of its 1:1 row (distinct from the EDOAL gmeow:relation axis)."@en .
+
+# --------------------------------------------------------------------------- #
+# Pattern fields
+# --------------------------------------------------------------------------- #
+
+gmeow:hasMappingPattern a owl:ObjectProperty ;
+    rdfs:label "has mapping pattern"@en ;
+    skos:definition "Links a projection mapping to its GMEOW-side pattern."@en .
+gmeow:anchor a owl:DatatypeProperty ;
+    rdfs:label "anchor variable"@en ;
+    skos:definition "The name (string) of the variable that the output triple's SUBJECT binds to — the node the projected fact is predicated of (jobTitle on the person, not the Membership)."@en .
+gmeow:value a owl:DatatypeProperty ;
+    rdfs:label "value variable"@en ;
+    skos:definition "The name (string) of the variable that the output triple's OBJECT binds to — the projected value."@en .
+gmeow:atom a owl:ObjectProperty ;
+    rdfs:label "pattern atom"@en ;
+    skos:definition "An ordered rdf:List of the pattern's atoms (triple/path constraints)."@en .
+gmeow:subjectVar a owl:DatatypeProperty ;
+    rdfs:label "subject variable"@en ;
+    skos:definition "The subject variable name of a pattern/template atom."@en .
+gmeow:predicate a owl:ObjectProperty ;
+    rdfs:label "atom predicate"@en ;
+    skos:definition "The predicate IRI of a pattern atom (mutually exclusive with gmeow:path)."@en .
+gmeow:path a owl:ObjectProperty ;
+    rdfs:label "atom property path"@en ;
+    skos:definition "A structured SPARQL property path (AltPath / SeqPath / ZeroOrMorePath) for a pattern atom whose predicate is not a single IRI."@en .
+gmeow:objectVar a owl:DatatypeProperty ;
+    rdfs:label "object variable"@en ;
+    skos:definition "The object variable name of a pattern atom."@en .
+gmeow:objectValue a owl:ObjectProperty ;
+    rdfs:label "object value"@en ;
+    skos:definition "A fixed IRI/value-individual on the object side of a pattern atom (e.g. gmeow:Birth, gmeow:namePartGiven)."@en .
+gmeow:objectLiteral a owl:DatatypeProperty ;
+    rdfs:label "object literal"@en ;
+    skos:definition "A fixed literal on the object side of a pattern atom (e.g. the boolean false in a displayable check)."@en .
+gmeow:optional a owl:DatatypeProperty ;
+    rdfs:label "optional atom"@en ;
+    skos:definition "When true, the atom is wrapped in OPTIONAL { } in the generated SPARQL."@en .
+gmeow:OptionalGroup a owl:Class ;
+    rdfs:label "optional group"@en ;
+    skos:definition "A nested OPTIONAL { … } group of pattern items (atoms or further groups) — needed where a block of constraints is jointly optional (e.g. coordinates with their lat/long sub-optionals)."@en .
+gmeow:optionalGroup a owl:ObjectProperty ;
+    rdfs:label "optional group items"@en ;
+    skos:definition "The ordered rdf:List of pattern items inside an OPTIONAL group."@en .
+gmeow:suppressWhen a owl:ObjectProperty ;
+    rdfs:label "suppress when"@en ;
+    skos:definition "A negative guard atom: the projection is suppressed when this pattern matches, rendered FILTER NOT EXISTS { }. Honours the GMEOW displayable-suppression contract (deadnames / superseded labels are never emitted)."@en .
+gmeow:excludeWhen a owl:ObjectProperty ;
+    rdfs:label "exclude when"@en ;
+    skos:definition "A negative guard atom on the anchor itself (e.g. exclude FormalLanguage), rendered FILTER NOT EXISTS { }."@en .
+gmeow:filter a owl:ObjectProperty ;
+    rdfs:label "boolean filter"@en ;
+    skos:definition "A boolean expression evaluated as a SPARQL FILTER( )."@en .
+gmeow:bind a owl:ObjectProperty ;
+    rdfs:label "derived binding"@en ;
+    skos:definition "Binds a variable to a computed expression, rendered BIND( expr AS ?var ) — for composed values (BCP-47, address label)."@en .
+gmeow:mint a owl:ObjectProperty ;
+    rdfs:label "minted node"@en ;
+    skos:definition "Binds a variable to a freshly-minted IRI (e.g. a synthetic vcard:Name node), rendered BIND( IRI(...) AS ?var )."@en .
+gmeow:bindVar a owl:DatatypeProperty ;
+    rdfs:label "bound variable"@en ;
+    skos:definition "The name of the variable a bind/mint produces."@en .
+gmeow:bindExpr a owl:ObjectProperty ;
+    rdfs:label "bind expression"@en ;
+    skos:definition "The expression a bind/mint evaluates."@en .
+
+# --------------------------------------------------------------------------- #
+# Profile-binding fields (per-profile fan-out)
+# --------------------------------------------------------------------------- #
+
+gmeow:hasBinding a owl:ObjectProperty ;
+    rdfs:label "has profile binding"@en ;
+    skos:definition "Links a projection mapping to one of its per-profile bindings."@en .
+gmeow:profile a owl:DatatypeProperty ;
+    rdfs:label "target profile"@en ;
+    skos:definition "The projection profile key: \"schema-org\", \"vcard\", \"foaf\" or \"geosparql\"."@en .
+gmeow:toPredicate a owl:ObjectProperty ;
+    rdfs:label "target predicate"@en ;
+    skos:definition "The target-vocabulary property the value is emitted under (the simple, single-triple output)."@en .
+gmeow:toClass a owl:ObjectProperty ;
+    rdfs:label "target class"@en ;
+    skos:definition "The target-vocabulary class the anchor is retyped to (rdf:type output), unconditionally or per a value->class map."@en .
+gmeow:templateAtoms a owl:ObjectProperty ;
+    rdfs:label "template atoms"@en ;
+    skos:definition "An ordered rdf:List of output (template) atoms for a multi-triple projection — e.g. minting and typing a vcard:Name node. Used in place of toPredicate/toClass for structural outputs."@en .
+gmeow:tSubj a owl:DatatypeProperty ;
+    rdfs:label "template subject"@en ;
+    skos:definition "The subject variable of a template atom."@en .
+gmeow:tPred a owl:ObjectProperty ;
+    rdfs:label "template predicate"@en ;
+    skos:definition "The target predicate of a template atom."@en .
+gmeow:tObj a owl:DatatypeProperty ;
+    rdfs:label "template object variable"@en ;
+    skos:definition "The object variable of a template atom."@en .
+gmeow:tObjValue a owl:ObjectProperty ;
+    rdfs:label "template object value"@en ;
+    skos:definition "A fixed IRI on the object side of a template atom (e.g. a target class for an rdf:type triple)."@en .
+gmeow:valueClassMap a owl:ObjectProperty ;
+    rdfs:label "value-to-class map"@en ;
+    skos:definition "An ordered rdf:List of (whenValue -> toClass) entries: a source value individual mapped to the target class to assert (rendered a SPARQL VALUES table + N EDOAL AttributeValueRestriction cells)."@en .
+gmeow:whenValue a owl:ObjectProperty ;
+    rdfs:label "when value"@en ;
+    skos:definition "The source value individual matched by a value-to-class entry (e.g. gmeow:placeTypeCountry)."@en .
+gmeow:relation a owl:DatatypeProperty ;
+    rdfs:label "EDOAL relation"@en ;
+    skos:definition "The EDOAL align:relation string: \"=\" (equivalence), \"<=\" (lossy/subsumed), or \">=\" (subsumes)."@en .
+gmeow:transform a owl:ObjectProperty ;
+    rdfs:label "transform function"@en ;
+    skos:definition "The FnO projection function this binding invokes (a gmeow:ProjectionFunction)."@en .
+gmeow:edoalSource a owl:ObjectProperty ;
+    rdfs:label "EDOAL entity1 term"@en ;
+    skos:definition "The salient GMEOW term to use as the EDOAL align:entity1 (e.g. gmeow:fullName for a displayable-name rename). An authored override; when omitted and gmeow:edoalPath is not set, and there is no value->class map, the binding emits no EDOAL cell (a pure structural / SSSOM-backed projection)."@en .
+gmeow:edoalPath a owl:DatatypeProperty ;
+    rdfs:label "derive EDOAL relation path"@en ;
+    skos:definition "When true, the EDOAL align:entity1 is DERIVED as the relation path from the pattern's anchor to its value, expressed with edoal:compose + edoal:inverse (e.g. a Birth-event traversal becomes compose(inverse(hasPrincipal), eventDate)). For multi-hop relator/event traversals — makes the EDOAL genuinely declarative rather than a bare class + opaque transform."@en .
+gmeow:edoalSourceKind a owl:DatatypeProperty ;
+    rdfs:label "EDOAL entity1 kind"@en ;
+    skos:definition "Whether the EDOAL entity1 is a \"class\" or a \"relation\" (default \"relation\")."@en .
+gmeow:edoalTarget a owl:ObjectProperty ;
+    rdfs:label "EDOAL entity2 term"@en ;
+    skos:definition "The target term that is the EDOAL align:entity2, when the output is structural (templateAtoms) rather than a single toPredicate/toClass."@en .
+gmeow:edoalTargetKind a owl:DatatypeProperty ;
+    rdfs:label "EDOAL entity2 kind"@en ;
+    skos:definition "Whether the EDOAL entity2 is a \"class\", \"property\" or \"relation\" (default derived: class for toClass/edoalTarget-class, property for toPredicate)."@en .
+gmeow:lossyDrop a owl:DatatypeProperty ;
+    rdfs:label "lossy drop"@en ;
+    skos:definition "A note describing what GMEOW structure this profile drops; aggregated into the generated EDOAL/SPARQL header comments."@en .
+gmeow:emitSssom a owl:DatatypeProperty ;
+    rdfs:label "emit SSSOM row"@en ;
+    skos:definition "When true, this 1:1 rename binding also emits an SSSOM row (subject = the source predicate, object = gmeow:toPredicate)."@en .
+
+# --------------------------------------------------------------------------- #
+# Property-path algebra (no raw SPARQL)
+# --------------------------------------------------------------------------- #
+
+gmeow:AltPath a owl:Class ;
+    rdfs:label "alternative path"@en ;
+    skos:definition "A SPARQL alternative property path p1|p2|… (gmeow:pathAlts)."@en .
+gmeow:SeqPath a owl:Class ;
+    rdfs:label "sequence path"@en ;
+    skos:definition "A SPARQL sequence property path p1/p2/… (gmeow:pathSteps)."@en .
+gmeow:ZeroOrMorePath a owl:Class ;
+    rdfs:label "zero-or-more path"@en ;
+    skos:definition "A SPARQL zero-or-more property path p* (gmeow:pathStep)."@en .
+gmeow:pathAlts a owl:ObjectProperty ;
+    rdfs:label "path alternatives"@en ;
+    skos:definition "The ordered rdf:List of alternatives of an AltPath."@en .
+gmeow:pathSteps a owl:ObjectProperty ;
+    rdfs:label "path steps"@en ;
+    skos:definition "The ordered rdf:List of steps of a SeqPath (each a predicate IRI or a nested path)."@en .
+gmeow:pathStep a owl:ObjectProperty ;
+    rdfs:label "path step"@en ;
+    skos:definition "The single inner predicate/path of a ZeroOrMorePath / OneOrMorePath / ZeroOrOnePath / InversePath."@en .
+gmeow:InversePath a owl:Class ;
+    rdfs:label "inverse path"@en ;
+    skos:definition "A SPARQL inverse property path ^p (gmeow:pathStep) — traverse the relation backwards."@en .
+gmeow:OneOrMorePath a owl:Class ;
+    rdfs:label "one-or-more path"@en ;
+    skos:definition "A SPARQL one-or-more property path p+ (gmeow:pathStep)."@en .
+gmeow:ZeroOrOnePath a owl:Class ;
+    rdfs:label "zero-or-one path"@en ;
+    skos:definition "A SPARQL zero-or-one (optional) property path p? (gmeow:pathStep)."@en .
+gmeow:NegatedPropertySet a owl:Class ;
+    rdfs:label "negated property set"@en ;
+    skos:definition "A SPARQL negated property set !(p1|p2|…) (gmeow:pathSet) — any predicate except the listed ones."@en .
+gmeow:pathSet a owl:ObjectProperty ;
+    rdfs:label "negated path set"@en ;
+    skos:definition "The ordered rdf:List of predicates excluded by a NegatedPropertySet."@en .
+
+# --------------------------------------------------------------------------- #
+# Expression algebra (closed operator set — no raw SPARQL)
+# --------------------------------------------------------------------------- #
+
+gmeow:ExpressionOperator a owl:Class ;
+    rdfs:label "expression operator"@en ;
+    skos:definition "An operator in the closed SPARQL-expression algebra the compiler renders for composed/derived values."@en .
+gmeow:exprOp a owl:ObjectProperty ;
+    rdfs:label "expression operator"@en ;
+    skos:definition "The operator applied by an expression node."@en .
+gmeow:exprArgs a owl:ObjectProperty ;
+    rdfs:label "expression arguments"@en ;
+    skos:definition "The ordered rdf:List of an expression node's arguments (each a nested expression, a gmeow:exprVar node, or a literal/IRI constant)."@en .
+gmeow:exprVar a owl:DatatypeProperty ;
+    rdfs:label "expression variable"@en ;
+    skos:definition "A variable reference inside an expression (the variable name as a string)."@en .
+
+gmeow:opConcat a gmeow:ExpressionOperator ; rdfs:label "CONCAT"@en ;
+    skos:definition "String concatenation of its arguments."@en .
+gmeow:opCoalesce a gmeow:ExpressionOperator ; rdfs:label "COALESCE"@en ;
+    skos:definition "First bound argument (used to default optional address components to empty)."@en .
+gmeow:opIf a gmeow:ExpressionOperator ; rdfs:label "IF"@en ;
+    skos:definition "Ternary conditional IF(cond, then, else)."@en .
+gmeow:opBound a gmeow:ExpressionOperator ; rdfs:label "BOUND"@en ;
+    skos:definition "Whether a variable is bound."@en .
+gmeow:opStr a gmeow:ExpressionOperator ; rdfs:label "STR"@en ;
+    skos:definition "Lexical string of a term."@en .
+gmeow:opIri a gmeow:ExpressionOperator ; rdfs:label "IRI"@en ;
+    skos:definition "Construct an IRI from a string (node minting)."@en .
+gmeow:opStrDatatype a gmeow:ExpressionOperator ; rdfs:label "STRDT"@en ;
+    skos:definition "Tag a lexical string with a datatype IRI (e.g. geo:wktLiteral)."@en .
+gmeow:opRegex a gmeow:ExpressionOperator ; rdfs:label "regex"@en ;
+    skos:definition "Boolean regular-expression match (for primary-subtag filtering)."@en .
+
+# String / language / datatype functions (rendered NAME(args)).
+gmeow:opLang a gmeow:ExpressionOperator ; rdfs:label "LANG"@en ;
+    skos:definition "The language tag of a literal."@en .
+gmeow:opLangMatches a gmeow:ExpressionOperator ; rdfs:label "LANGMATCHES"@en ;
+    skos:definition "Whether a language tag matches a language range."@en .
+gmeow:opStrLang a gmeow:ExpressionOperator ; rdfs:label "STRLANG"@en ;
+    skos:definition "Tag a lexical string with a language tag (preserve a tag on a composed value)."@en .
+gmeow:opDatatype a gmeow:ExpressionOperator ; rdfs:label "DATATYPE"@en ;
+    skos:definition "The datatype IRI of a literal."@en .
+gmeow:opSubstr a gmeow:ExpressionOperator ; rdfs:label "SUBSTR"@en ;
+    skos:definition "Substring extraction SUBSTR(source, start[, length])."@en .
+gmeow:opReplace a gmeow:ExpressionOperator ; rdfs:label "REPLACE"@en ;
+    skos:definition "Regex-based string replacement REPLACE(source, pattern, replacement[, flags])."@en .
+gmeow:opUcase a gmeow:ExpressionOperator ; rdfs:label "UCASE"@en ;
+    skos:definition "Upper-case a string."@en .
+gmeow:opLcase a gmeow:ExpressionOperator ; rdfs:label "LCASE"@en ;
+    skos:definition "Lower-case a string."@en .
+gmeow:opStrBefore a gmeow:ExpressionOperator ; rdfs:label "STRBEFORE"@en ;
+    skos:definition "Substring before the first occurrence of a separator."@en .
+gmeow:opStrAfter a gmeow:ExpressionOperator ; rdfs:label "STRAFTER"@en ;
+    skos:definition "Substring after the first occurrence of a separator."@en .
+gmeow:opStrLen a gmeow:ExpressionOperator ; rdfs:label "STRLEN"@en ;
+    skos:definition "Length of a string."@en .
+gmeow:opContains a gmeow:ExpressionOperator ; rdfs:label "CONTAINS"@en ;
+    skos:definition "Whether a string contains a substring."@en .
+gmeow:opStrStarts a gmeow:ExpressionOperator ; rdfs:label "STRSTARTS"@en ;
+    skos:definition "Whether a string starts with a prefix."@en .
+gmeow:opStrEnds a gmeow:ExpressionOperator ; rdfs:label "STRENDS"@en ;
+    skos:definition "Whether a string ends with a suffix."@en .
+gmeow:opEncodeForUri a gmeow:ExpressionOperator ; rdfs:label "ENCODE_FOR_URI"@en ;
+    skos:definition "Percent-encode a string for use in an IRI."@en .
+
+# Infix operators (rendered (a OP b)). Arithmetic, comparison, boolean.
+gmeow:opAdd a gmeow:ExpressionOperator ; rdfs:label "+"@en ; skos:definition "Numeric addition."@en .
+gmeow:opSub a gmeow:ExpressionOperator ; rdfs:label "-"@en ; skos:definition "Numeric subtraction."@en .
+gmeow:opMul a gmeow:ExpressionOperator ; rdfs:label "*"@en ; skos:definition "Numeric multiplication."@en .
+gmeow:opDiv a gmeow:ExpressionOperator ; rdfs:label "/"@en ; skos:definition "Numeric division."@en .
+gmeow:opEq a gmeow:ExpressionOperator ; rdfs:label "="@en ; skos:definition "Equality comparison."@en .
+gmeow:opNe a gmeow:ExpressionOperator ; rdfs:label "!="@en ; skos:definition "Inequality comparison."@en .
+gmeow:opLt a gmeow:ExpressionOperator ; rdfs:label "<"@en ; skos:definition "Less-than comparison."@en .
+gmeow:opGt a gmeow:ExpressionOperator ; rdfs:label ">"@en ; skos:definition "Greater-than comparison."@en .
+gmeow:opLe a gmeow:ExpressionOperator ; rdfs:label "<="@en ; skos:definition "Less-or-equal comparison."@en .
+gmeow:opGe a gmeow:ExpressionOperator ; rdfs:label ">="@en ; skos:definition "Greater-or-equal comparison."@en .
+gmeow:opAnd a gmeow:ExpressionOperator ; rdfs:label "&&"@en ; skos:definition "Logical conjunction."@en .
+gmeow:opOr a gmeow:ExpressionOperator ; rdfs:label "||"@en ; skos:definition "Logical disjunction."@en .
+gmeow:opNot a gmeow:ExpressionOperator ; rdfs:label "!"@en ; skos:definition "Logical negation (unary)."@en .
+gmeow:opIn a gmeow:ExpressionOperator ; rdfs:label "IN"@en ;
+    skos:definition "Set membership: arg0 IN (arg1, arg2, …)."@en .
+
+# --------------------------------------------------------------------------- #
+# Projection functions (FnO source) — label + description + I/O signature.
+# The compiler renders these to projections/functions.fno.ttl, DERIVING each
+# input parameter's fno:type from the predicate's rdfs:range in the ontology
+# (so the fno-type-mismatch bug class is structurally impossible). The output
+# type is authored here (projected* predicates have no ontology range).
+# --------------------------------------------------------------------------- #
+
+gmeow:ProjectionFunction a owl:Class ;
+    rdfs:label "projection function"@en ;
+    skos:definition "Source declaration of an FnO projection transform: its human description and its input predicate(s) + output predicate/type, from which the compiler renders the FnO fno:Function."@en .
+gmeow:fnInput a owl:ObjectProperty ;
+    rdfs:label "function input predicate"@en ;
+    skos:definition "A required GMEOW source predicate feeding a projection function; its FnO fno:type is derived from the predicate's rdfs:range."@en .
+gmeow:fnInputOptional a owl:ObjectProperty ;
+    rdfs:label "optional function input predicate"@en ;
+    skos:definition "An optional GMEOW source predicate feeding a projection function."@en .
+gmeow:fnOutput a owl:ObjectProperty ;
+    rdfs:label "function output predicate"@en ;
+    skos:definition "The FnO output predicate a projection function returns under."@en .
+gmeow:fnOutputType a owl:ObjectProperty ;
+    rdfs:label "function output type"@en ;
+    skos:definition "The authored fno:type of a projection function's output (projected* predicates have no ontology range to derive from)."@en .
+
+gmeow:fnPlaceTypeToClass a gmeow:ProjectionFunction ;
+    rdfs:label "place-type value → target class"@en ;
+    dcterms:description "Maps a gmeow:placeType value individual (e.g. placeTypeCountry) to the target vocabulary class to assert via rdf:type (e.g. schema:Country). The conditional retyping; place types without a target class are dropped."@en ;
+    gmeow:fnInput gmeow:placeType ;
+    gmeow:fnOutput gmeow:projectedType ; gmeow:fnOutputType rdfs:Class .
+
+gmeow:fnLatLongToWktPoint a gmeow:ProjectionFunction ;
+    rdfs:label "latitude + longitude → WKT POINT"@en ;
+    dcterms:description "Combines separate decimal latitude and longitude into a GeoSPARQL WKT POINT literal (POINT(lon lat), lon first per WKT), typed geo:wktLiteral."@en ;
+    gmeow:fnInput gmeow:latitude , gmeow:longitude ;
+    gmeow:fnOutput geo:asWKT ; gmeow:fnOutputType geo:wktLiteral .
+
+gmeow:fnRetagWkt a gmeow:ProjectionFunction ;
+    rdfs:label "retag WKT literal as geo:wktLiteral"@en ;
+    dcterms:description "Re-tags a gmeow:asWKT value (range rdfs:Literal, for OWL 2 DL safety) with the geo:wktLiteral datatype so GeoSPARQL spatial engines recognise it."@en ;
+    gmeow:fnInput gmeow:asWKT ;
+    gmeow:fnOutput geo:asWKT ; gmeow:fnOutputType geo:wktLiteral .
+
+gmeow:fnComposeAddress a gmeow:ProjectionFunction ;
+    rdfs:label "compose address components → single label string"@en ;
+    dcterms:description "Concatenates the decomposed address components (street, locality, region, postal code, country) into one single-line label string — emitted as vcard:label by the vCard projection. Lossy: formatting convention varies by locale."@en ;
+    gmeow:fnInputOptional gmeow:streetAddress , gmeow:addressLocality , gmeow:addressRegion , gmeow:postalCode , gmeow:countryCode ;
+    gmeow:fnOutput gmeow:projectedAddress ; gmeow:fnOutputType xsd:string .
+
+gmeow:fnSelectDisplayName a gmeow:ProjectionFunction ;
+    rdfs:label "select displayable full name"@en ;
+    dcterms:description "Returns an appellation's gmeow:fullName ONLY when gmeow:displayable is not false (deadnames and superseded names are suppressed). Co-equal: every displayable name is emitted; none is privileged as 'primary' — locale-relative selection is left to the consumer."@en ;
+    gmeow:fnInput gmeow:hasAppellation ;
+    gmeow:fnOutput gmeow:projectedName ; gmeow:fnOutputType rdfs:Literal .
+
+gmeow:fnSelectDisplayableGender a gmeow:ProjectionFunction ;
+    rdfs:label "select displayable gender identity → gender label"@en ;
+    dcterms:description "Returns the rdfs:label of a person's displayable gmeow:GenderIdentity value for emission as schema:gender / foaf:gender. A gmeow:displayable false facet is NEVER emitted — the same suppression contract as a deadname. Lossy and directional: schema.org/FOAF conflate sex and gender, and orientation + sex-assigned-at-birth have no target term, so they are dropped."@en ;
+    gmeow:fnInput gmeow:hasGenderIdentity ;
+    gmeow:fnOutput gmeow:projectedGender ; gmeow:fnOutputType rdfs:Literal .
+
+gmeow:fnHonorificToAffix a gmeow:ProjectionFunction ;
+    rdfs:label "honorific value → prefix/suffix literal"@en ;
+    dcterms:description "Maps a gmeow:Honorific value to a target honorific-prefix or honorific-suffix string according to its gmeow:honorificPosition (e.g. honorificDr → schema:honorificPrefix \"Dr\"; honorificSan → a suffix)."@en ;
+    gmeow:fnInput gmeow:honorific ;
+    gmeow:fnOutput gmeow:projectedAffix ; gmeow:fnOutputType xsd:string .
+
+gmeow:fnComposeBcp47 a gmeow:ProjectionFunction ;
+    rdfs:label "compose BCP-47 language tag"@en ;
+    dcterms:description "Composes a BCP-47 language tag from a language's gmeow:languageCode and a co-mingled writing system's gmeow:scriptCode (\"ja\" + \"Hani\" → \"ja-Hani\"). The registry tag GMEOW refuses as identity, reconstructed on demand for schema.org consumers and emitted as schema:alternateName. A language with several scripts yields several tags."@en ;
+    gmeow:fnInput gmeow:languageCode ; gmeow:fnInputOptional gmeow:scriptCode ;
+    gmeow:fnOutput gmeow:projectedLanguageTag ; gmeow:fnOutputType xsd:string .
+
+gmeow:fnProficiencyToKnownLanguage a gmeow:ProjectionFunction ;
+    rdfs:label "flatten LanguageProficiency → schema:knowsLanguage"@en ;
+    dcterms:description "Flattens the reified gmeow:LanguageProficiency relator (agent × language × modality × level) and the flat gmeow:knowsLanguage to schema:knowsLanguage(agent, language). Lossy: the CEFR/ILR/ACTFL level and skill modality are dropped — schema.org has no proficiency model."@en ;
+    gmeow:fnInput gmeow:proficiencyLanguage ;
+    gmeow:fnOutput gmeow:projectedKnownLanguage ; gmeow:fnOutputType gmeow:Language .
+
+gmeow:fnNicknameName a gmeow:ProjectionFunction ;
+    rdfs:label "nickname-purpose PersonName → foaf:nick"@en ;
+    dcterms:description "Returns the gmeow:fullName of a PersonName whose gmeow:namePurpose is gmeow:namePurposeNickname, for emission as foaf:nick / vcard:nickname / schema:alternateName. The nickname is a structured name in GMEOW; this downcasts it to the flat nick field."@en ;
+    gmeow:fnInput gmeow:hasName ;
+    gmeow:fnOutput gmeow:projectedNick ; gmeow:fnOutputType rdfs:Literal .
+
+gmeow:fnBirthEventToDate a gmeow:ProjectionFunction ;
+    rdfs:label "Birth life-event → schema:birthDate"@en ;
+    dcterms:description "Extracts a person's birth date by traversing the reified event model: a gmeow:Birth (gmeow:hasPrincipal ?person) with a gmeow:eventDate yields ?person schema:birthDate. GMEOW models birth as an event (with place, sources, confidence); this downcasts the event's date to the flat schema:birthDate / vCard BDAY field."@en ;
+    gmeow:fnInput gmeow:eventDate ;
+    gmeow:fnOutput gmeow:projectedBirthDate ; gmeow:fnOutputType rdfs:Literal .
+
+gmeow:fnMembershipToJobTitle a gmeow:ProjectionFunction ;
+    rdfs:label "Membership + Role → schema:jobTitle"@en ;
+    dcterms:description "Extracts a job title by traversing the reified relator: a gmeow:Membership (gmeow:membershipMember ?person, gmeow:hasRole ?role) yields ?person schema:jobTitle = the role's label. GMEOW models a job as a role played in a membership; this downcasts the role label to the flat schema:jobTitle / vCard TITLE field."@en ;
+    gmeow:fnInput gmeow:hasRole ;
+    gmeow:fnOutput gmeow:projectedJobTitle ; gmeow:fnOutputType rdfs:Literal .
+
+gmeow:fnSubOrgToDepartment a gmeow:ProjectionFunction ;
+    rdfs:label "subOrganizationOf → schema:department"@en ;
+    dcterms:description "Projects org hierarchy: a gmeow:Organization that is gmeow:subOrganizationOf a parent is emitted as the parent's schema:department (parent→child, the inverse direction). The department is a first-class sub-organization in GMEOW."@en ;
+    gmeow:fnInput gmeow:subOrganizationOf ;
+    gmeow:fnOutput gmeow:projectedDepartment ; gmeow:fnOutputType gmeow:Organization .
+
+gmeow:fnWebPageToUrl a gmeow:ProjectionFunction ;
+    rdfs:label "hasWebPage → schema:url"@en ;
+    dcterms:description "Projects an entity's structured web presence: gmeow:hasWebPage points to a first-class gmeow:WebPage whose IRI is its URL, emitted as schema:url / foaf:homepage on the entity. Downcasts the structured page resource to the flat URL field."@en ;
+    gmeow:fnInput gmeow:hasWebPage ;
+    gmeow:fnOutput gmeow:projectedUrl ; gmeow:fnOutputType xsd:anyURI .

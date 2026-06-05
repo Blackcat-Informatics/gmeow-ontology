@@ -116,11 +116,19 @@ make help
 - Author ontology changes in `ontology/modules/*.ttl`; every GMEOW term must
   carry an `rdfs:label` and a `skos:definition` and be grounded under a gUFO
   category. Keep the logical core in OWL 2 DL.
-- Manage cross-ontology alignments as SSSOM tables in `mappings/`. Link by IRI
-  freely; never copy axioms from a reference-only (NC/ND/share-alike/copyleft)
-  source — the tooling refuses this by design.
-- Keep RDF 1.2 / rdf-star content out of logical axioms; statement-level metadata
-  belongs in OWL axiom annotations (the canonical layer).
+- Author cross-ontology alignments **in the mapping DSL** under `mapping-dsl/`
+  (`equivalences/` for 1:1 SSSOM links, `projections/` for the lossy downcasts),
+  then run `gmeow compile-mappings`. The `mappings/*.sssom.tsv`,
+  `projections/*.edoal.ttl`, `projections/functions.fno.ttl`, and
+  `queries/projections/*.rq` are **generated — do not edit them by hand** (CI's
+  `compile-mappings --check` fails on drift). Link by IRI freely; never copy axioms
+  from a reference-only (NC/ND/share-alike/copyleft) source — the tooling refuses
+  this by design.
+- Statement-level metadata is **RDF 1.2 / RDF\*** in GMEOW's model. Because today's
+  OWL 2 DL reasoners can't yet consume RDF 1.2, author it as OWL 2 axiom annotations
+  (`owl:Axiom` + `owl:annotatedSource/Property/Target`) — the plain-RDF
+  **compatibility encoding** the RDF 1.2 view is generated from — and keep it out of
+  the logical OWL 2 DL axioms.
 - If the CLI or build outputs change, update [README.md](README.md).
 
 ## Coding style
@@ -141,7 +149,8 @@ Before requesting review, make sure you:
 - [ ] ran `make lint` (ruff + mypy)
 - [ ] ran `make validate` (syntax, term annotations, SHACL)
 - [ ] ran `make reason` after any ontology change (ELK consistency + OWL 2 DL profile)
-- [ ] ran `make mappings` and `make wikidata` after any mapping change
+- [ ] ran `gmeow compile-mappings` after any `mapping-dsl/` change, then
+      `make mappings` and `make wikidata`
 - [ ] ran `uv run pytest`
 - [ ] ran `make check` for the full repository gate
 - [ ] updated tests for any behavioural change

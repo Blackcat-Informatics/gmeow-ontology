@@ -5,14 +5,21 @@
 
 GMEOW's definitions are richer than the vocabularies people consume. **SSSOM**
 gives 1:1 term equivalence; projecting *down* to a target needs **structural
-transformations** SSSOM can't express. GMEOW's four-layer alignment stack:
+transformations** SSSOM can't express. GMEOW's alignment stack has four standard
+artifacts — but they are **no longer hand-authored four ways**. A single
+GMEOW-grounded DSL in `mapping-dsl/` is the authoring source, and
+`gmeow compile-mappings` renders all four (see [Single-source compilation](#single-source-compilation)):
 
-| Layer | Expresses | Artifact |
+| Layer | Expresses | Generated artifact |
 |---|---|---|
 | SSSOM | 1:1 term equivalence | `mappings/*.sssom.tsv` |
-| **EDOAL** | complex alignments (value→class, compositions, conditions) | `projections/*.edoal.ttl` |
-| **FnO** | the transformation *functions* EDOAL invokes (+ the language conversion catalog) | `projections/functions.fno.ttl`, `projections/transforms.fno.ttl` |
+| **EDOAL** | complex alignments (value→class, compositions, conditions) + `edoal:measure` | `projections/*.edoal.ttl` |
+| **FnO** | the transformation *functions* EDOAL invokes (+ the language conversion catalog) | `projections/functions.fno.ttl`, `projections/transforms.fno.ttl`† |
 | **SPARQL CONSTRUCT** | the executor → a pure-profile graph | `queries/projections/*.rq` |
+
+†`transforms.fno.ttl` (the language-conversion catalog) is the one hand-authored
+FnO file — it is a different concern (script→script / language→language domain
+functions), not a GMEOW→external projection, so it stays outside the compiler.
 
 FnO + EDOAL are the declarative, standards-consumable **spec**; the CONSTRUCT is
 the **executor** (pure-Python rdflib). **None of this is imported into the reasoned
@@ -82,8 +89,124 @@ display control, `gmeow:displayable`. The projection therefore:
 - **suppresses** any `displayable false` name — a recorded deadname is never
   emitted to any target. (`fnSelectDisplayName`.)
 
-## Future
+## Single-source compilation
 
-The CONSTRUCT executors are hand-authored and kept in sync with the FnO/EDOAL
-specs; auto-generating the CONSTRUCT from the EDOAL alignment is a future
-enhancement. Other modules extend the same framework by adding cells + functions.
+The four artifacts above are **generated**, not hand-authored. The same mapping
+used to live four ways and drift independently (an FnO param typed wrong, an EDOAL
+cell out of sync with its executor, a SSSOM row mapped to an inverse term). GMEOW's
+own doctrine — *one canonical source, everything else a generated lossy projection*
+— now applies to the mapping layer itself: **author each mapping once, generate the
+four.**
+
+The authoring source is a GMEOW-grounded Turtle DSL under `mapping-dsl/`
+(vocabulary in `mapping-dsl/vocabulary.ttl`, all in the `gmeow:` namespace, a spec
+layer never reasoned over):
+
+- `mapping-dsl/equivalences/*.ttl` — `gmeow:TermEquivalence` cells (one per SSSOM
+  row);
+- `mapping-dsl/projections/*.ttl` — `gmeow:ProjectionMapping` cells, one per
+  CONSTRUCT branch, each with an **anchor** (the node the output hangs on), a
+  GMEOW-side graph pattern, and per-profile **bindings** (target term, EDOAL
+  relation, transform, confidence). The irregular transforms (BCP-47 compose,
+  WKT POINT, the `vcard:Name` mint) are expressed in a small **closed algebra**
+  (`CONCAT`/`COALESCE`/`IF`/`STR`/`IRI`/`STRDT`/`regex` + alt/seq/zero-or-more
+  property paths) — **no raw SPARQL** appears in the source.
+
+```sh
+gmeow compile-mappings          # render all four artifacts in-place
+gmeow compile-mappings --check  # CI gate: fail if a committed artifact is stale
+```
+
+Two properties hold **by construction**, eliminating the bug classes review used
+to catch:
+
+- each FnO parameter's `fno:type` is **derived from the predicate's `rdfs:range`**
+  in the ontology — it can never disagree;
+- the EDOAL `entity2` set and the SPARQL-emitted term set come from the *same*
+  binding list — they cannot drift.
+
+The compiler runs the three `projection_lint` cross-layer invariants on its own
+output before writing; a violation aborts the compile. `gmeow compile-mappings
+--check` is wired into CI as the standing no-drift regression. Adding a new
+projection is now a **single DSL cell**, not four edits.
+
+### Maximal use of the four target languages
+
+The compiler uses each emitted standard to its full expressive extent (so the
+DSL is ready for a much richer future ontology, not just today's):
+
+- **EDOAL** — a multi-hop traversal sets `gmeow:edoalPath true` and its
+  `align:entity1` is **derived as a real relation path** with `edoal:compose` +
+  `edoal:inverse` (a Birth-event date becomes
+  `compose(inverse(hasPrincipal), eventDate)`), so the alignment is genuinely
+  declarative rather than a bare class + opaque transform. Each cell also carries
+  `edoal:measure` (confidence).
+- **FnO** — each function declares **how it executes**: an `fno:Implementation`
+  per profile `.rq` and an `fno:Mapping` (the `fnom` vocabulary) binding every
+  parameter and the output to the SPARQL variable that realises it.
+- **SSSOM** — files carry deterministic provenance (`mapping_tool`,
+  `mapping_tool_version`, `mapping_set_version`, `mapping_date`) and a `curie_map`
+  of the prefixes they use; `subject_label`/`object_label` columns appear when a
+  cell populates them (e.g. the Wikidata item labels).
+- **SPARQL** — the closed algebra spans the full property-path set (alt / seq /
+  `^` inverse / `*` / `+` / `?` / `!(…)` negated) and expression set (the string,
+  language, datatype, arithmetic, comparison and boolean operators, `IN`), all as
+  GMEOW operator individuals — still **no raw SPARQL** in the source.
+
+### Authoring a mapping
+
+Every DSL term carries an `rdfs:label` + `skos:definition` in
+`mapping-dsl/vocabulary.ttl` — that file is the authoritative field/operator
+reference. There are two cell types.
+
+**A cross-ontology term link** → one SSSOM row. Add it to the matching
+`mapping-dsl/equivalences/<domain>.ttl`:
+
+```turtle
+gmeow:eqPersonFoaf a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Person ;
+    gmeow:alignPredicate owl:equivalentClass ;   # or skos:exactMatch / closeMatch …
+    gmeow:alignObject   foaf:Person ;
+    gmeow:confidence    1.0 ;
+    gmeow:objectLabel   "person" ;                # optional → object_label column
+    gmeow:sssomFile     "gmeow-classes.sssom.tsv" .
+```
+
+**A projection (a lossy downcast)** → an EDOAL cell + FnO function + a SPARQL
+branch. Add it to `mapping-dsl/projections/<profile>.ttl`. A cell names an
+**anchor** (the node the output hangs on) and a **value**, a GMEOW-side graph
+pattern of `gmeow:atom`s, and one `gmeow:hasBinding` per target profile:
+
+```turtle
+gmeow:mapSchemaBirthDate a gmeow:ProjectionMapping ;
+    rdfs:label "Birth life-event date → schema:birthDate"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "person" ; gmeow:value "bdate" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "birth" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Birth ]
+            [ gmeow:subjectVar "birth" ; gmeow:predicate gmeow:hasPrincipal ; gmeow:objectVar "person" ]
+            [ gmeow:subjectVar "birth" ; gmeow:predicate gmeow:eventDate ; gmeow:objectVar "bdate" ] ) ;
+        gmeow:edoalPath true ] ;                         # entity1 ← derived compose/inverse path
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:birthDate ;
+        gmeow:relation "<=" ; gmeow:transform gmeow:fnBirthEventToDate ; gmeow:confidence 0.95 ] .
+```
+
+Key authoring choices, each a single field on the pattern or binding:
+
+- **value→class** (`gmeow:valueClassMap`) — a source value individual → a target
+  class (`placeTypeCountry → schema:Country`), rendered as a SPARQL `VALUES` table
+  plus EDOAL `AttributeValueRestriction` cells.
+- **suppression** (`gmeow:suppressWhen`) — the displayable/deadname contract, a
+  `FILTER NOT EXISTS`.
+- **composed/derived values** (`gmeow:bind` / `gmeow:mint`) — a closed expression
+  algebra (`gmeow:opConcat`, `opIf`, `opStrDatatype`, `opStrLang`, … — never raw
+  SPARQL); multi-triple outputs use `gmeow:templateAtoms`.
+- **EDOAL entity1** — `gmeow:edoalPath true` derives the relation path for a
+  traversal; otherwise `gmeow:edoalSource` names the salient term; otherwise the
+  projection is structural / SSSOM-backed (no EDOAL cell).
+
+After any change, run `gmeow compile-mappings` (then `make mappings`); the
+compiler runs the cross-layer invariants on its own output and refuses to emit on
+violation. Never hand-edit the generated `mappings/`, `projections/`,
+`queries/projections/` files — `gmeow compile-mappings --check` (in CI) fails on drift.

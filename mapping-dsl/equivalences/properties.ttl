@@ -1,0 +1,369 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix rel: <http://purl.org/vocab/relationship/> .
+@prefix doap: <http://usefulinc.com/ns/doap#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix org: <http://www.w3.org/ns/org#> .
+@prefix schema: <https://schema.org/> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix bibo: <http://purl.org/ontology/bibo/> .
+
+# Term equivalences for the properties domain — GMEOW authoring source.
+# Compiled to mappings/gmeow-properties.sssom.tsv by `gmeow compile-mappings`.
+
+gmeow:mapsetProperties a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/properties" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Canonical GMEOW property alignments. equivalentProperty for same-typed synonyms; skos:closeMatch for cross-type/fuzzy links." .
+
+gmeow:eqProperties001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:name ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:name ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject foaf:name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:name ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:fn ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:email ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:email ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:email ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject foaf:mbox ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "foaf:mbox is an IRI; close not equivalent" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:email ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:hasEmail ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:telephone ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:telephone ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:telephone ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:hasTelephone ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasContactPoint ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:contactPoint ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasAuthor ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:author ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasAuthor ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject foaf:maker ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties012 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:title ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:title ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:datePublished ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:datePublished ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties014 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:identifier ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bibo:doi ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties015 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:developer ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject doap:developer ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasRepository ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject doap:repository ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties017 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:memberOf ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:memberOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties018 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:memberOf ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject org:memberOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties019 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasMember ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject org:member ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties020 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasParent ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:parent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties021 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasParent ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject rel:childOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "childOf points child->parent = hasParent" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties022 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasChild ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:children ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties023 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasChild ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject rel:parentOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties024 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasSpouse ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:spouse ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties025 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasSpouse ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject rel:spouseOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties026 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasSibling ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:sibling ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties027 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasSibling ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject rel:siblingOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties028 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:latitude ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:latitude ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties029 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:longitude ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:longitude ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties030 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:containedInPlace ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:containedInPlace ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties031 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:holdsAccount ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject foaf:account ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties032 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:accountName ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject foaf:accountName ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties033 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasOccupation ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:hasOccupation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties034 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:wasAttributedTo ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject prov:wasAttributedTo ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties035 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:wasGeneratedBy ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject prov:wasGeneratedBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties036 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:description ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:description ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties037 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:description ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:description ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties038 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:description ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:note ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties039 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasWebPage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:url ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties040 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasWebPage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject foaf:homepage ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties041 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:subOrganizationOf ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject org:subOrganizationOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties042 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:subOrganizationOf ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:parentOrganization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties043 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:subOrganizationOf ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:subOrganization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .

@@ -25,7 +25,12 @@ from pathlib import Path
 from rdflib import RDF, RDFS, Graph, URIRef
 from rdflib.namespace import Namespace
 
-from gmeow_tools.config import PREFIXES, PROJECTION_QUERY_DIR, PROJECTIONS_DIR
+from gmeow_tools.config import (
+    MAPPINGS_DIR,
+    PREFIXES,
+    PROJECTION_QUERY_DIR,
+    PROJECTIONS_DIR,
+)
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
 
@@ -60,17 +65,17 @@ _STRUCTURAL_OUTPUTS: frozenset[str] = frozenset(
 )
 
 
-def _fno_graph() -> Graph:
+def _fno_graph(projections_dir: Path = PROJECTIONS_DIR) -> Graph:
     graph = Graph()
     for name in _FNO_FILES:
-        graph.parse(PROJECTIONS_DIR / name, format="turtle")
+        graph.parse(projections_dir / name, format="turtle")
     return graph
 
 
-def fno_type_mismatches() -> list[str]:
+def fno_type_mismatches(projections_dir: Path = PROJECTIONS_DIR) -> list[str]:
     """Return FnO param/output types that disagree with their predicate's range."""
     onto = load_merged_graph(include_imports=False)
-    fno = _fno_graph()
+    fno = _fno_graph(projections_dir)
     problems: list[str] = []
     params = set(fno.subjects(RDF.type, FNO.Parameter)) | set(
         fno.subjects(RDF.type, FNO.Output)
@@ -91,11 +96,11 @@ def fno_type_mismatches() -> list[str]:
     return problems
 
 
-def fno_reference_integrity() -> list[str]:
+def fno_reference_integrity(projections_dir: Path = PROJECTIONS_DIR) -> list[str]:
     """Return EDOAL ``edoal:transformation`` references to undefined FnO functions."""
-    defined = set(_fno_graph().subjects(RDF.type, FNO.Function))
+    defined = set(_fno_graph(projections_dir).subjects(RDF.type, FNO.Function))
     problems: list[str] = []
-    for edoal in sorted(PROJECTIONS_DIR.glob("*.edoal.ttl")):
+    for edoal in sorted(projections_dir.glob("*.edoal.ttl")):
         graph = Graph().parse(edoal, format="turtle")
         for cell in graph.subjects(RDF.type, ALIGN.Cell):
             for trans in graph.objects(cell, EDOAL.transformation):
@@ -130,12 +135,16 @@ def _edoal_targets(path: Path, namespaces: tuple[str, ...]) -> set[str]:
     return out
 
 
-def projection_spec_drift() -> list[str]:
+def projection_spec_drift(
+    projections_dir: Path = PROJECTIONS_DIR,
+    query_dir: Path = PROJECTION_QUERY_DIR,
+    mappings_dir: Path = MAPPINGS_DIR,
+) -> list[str]:
     """Return CONSTRUCT↔EDOAL↔SSSOM inconsistencies, per profile."""
     # An SSSOM row may place the external term in subject OR object position
     # (e.g. "geo:Feature closeMatch gmeow:Place"), so collect both.
     aligned: set[str] = set()
-    for subject, _predicate, obj in build_alignment_graph(load_mappings()):
+    for subject, _predicate, obj in build_alignment_graph(load_mappings(mappings_dir)):
         for node in (subject, obj):
             if isinstance(node, URIRef):
                 aligned.add(str(node))
@@ -143,10 +152,10 @@ def projection_spec_drift() -> list[str]:
     for profile, prefixes in _PROFILE_TARGETS.items():
         namespaces = tuple(PREFIXES[p] for p in prefixes)
         emitted = _target_terms_in_query(
-            (PROJECTION_QUERY_DIR / f"{profile}.rq").read_text(encoding="utf-8"),
+            (query_dir / f"{profile}.rq").read_text(encoding="utf-8"),
             prefixes,
         )
-        edoal = _edoal_targets(PROJECTIONS_DIR / f"{profile}.edoal.ttl", namespaces)
+        edoal = _edoal_targets(projections_dir / f"{profile}.edoal.ttl", namespaces)
         declared = (
             edoal
             | {t for t in aligned if t.startswith(namespaces)}
