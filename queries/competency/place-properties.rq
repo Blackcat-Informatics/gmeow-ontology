@@ -1,0 +1,11 @@
+# Competency question: "What can be recorded about a geographic Place?"
+# Expected: the properties domained on gmeow:Place — containment, coordinates,
+# geometry, and place type.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?property WHERE {
+    ?property rdfs:domain gmeow:Place .
+}
+ORDER BY ?property

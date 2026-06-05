@@ -1,0 +1,87 @@
+# Synthetic coverage fixture for the locations building block. The worked
+# "112 Westbourne Rd, Spruce Grove, Alberta, Canada" example: a nested,
+# QID-bearing place hierarchy (each level a first-class gmeow:Place chained by
+# containedInPlace), a precise point + WKT geometry on the premises, a room
+# inside the building, a decomposed postal address bridged by addressPlace, an
+# online (virtual) location, and two storage locations (cloud + physical disk,
+# the disk sited at the room). No RDF-star (the coverage parser can't read << >>).
+
+@prefix ex:     <https://example.org/loc/> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix geo:    <http://www.opengis.net/ont/geosparql#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix wd:     <http://www.wikidata.org/entity/> .
+@prefix tgn:    <http://vocab.getty.edu/tgn/> .
+
+# Nested, QID-bearing place hierarchy (country ⊃ region ⊃ city ⊃ premises ⊃ room).
+ex:canada a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeCountry ;
+    gmeow:countryCode "CA" ;
+    gmeow:timezone "America/Edmonton" ;
+    gmeow:alternateName "Kanada"@de ;
+    gmeow:authorityLink wd:Q16 ;
+    skos:exactMatch wd:Q16 .
+
+ex:alberta a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeRegion ;
+    gmeow:containedInPlace ex:canada ;
+    skos:exactMatch wd:Q1951 .
+
+ex:spruceGrove a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeCity ;
+    gmeow:containedInPlace ex:alberta ;
+    gmeow:authorityLink tgn:7013364 .
+
+ex:westbourne112 a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypePremises ;
+    gmeow:containedInPlace ex:spruceGrove ;
+    gmeow:hasCoordinates ex:wbCoords ;
+    gmeow:hasGeometry ex:wbGeo ;
+    gmeow:alternateName "112 Westbourne Road"@en .
+
+ex:homeOffice a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeRoom ;
+    gmeow:containedInPlace ex:westbourne112 .
+
+ex:wbCoords a gmeow:GeoCoordinates ;
+    gmeow:latitude 53.544972 ;
+    gmeow:longitude -113.924398 ;
+    gmeow:elevation 645.0 .
+
+# Data may carry the geo:wktLiteral tag even though the OWL range is rdfs:Literal.
+ex:wbGeo a gmeow:Geometry ;
+    gmeow:asWKT "POINT(-113.924398 53.544972)"^^geo:wktLiteral .
+
+# Decomposed postal address (surface form) bridged to the resolved premises.
+ex:addr a gmeow:PostalAddress ;
+    gmeow:streetAddress "112 Westbourne Rd" ;
+    gmeow:addressLocality "Spruce Grove" ;
+    gmeow:addressRegion "AB" ;
+    gmeow:postalCode "T7X 0A1" ;
+    gmeow:countryCode "CA" ;
+    gmeow:addressPlace ex:westbourne112 .
+
+# A virtual location (online meeting).
+ex:standup a gmeow:VirtualLocation ;
+    gmeow:accessUrl "https://example.zoom.us/j/123456"^^xsd:anyURI ;
+    gmeow:virtualPlatform "Zoom" .
+
+# Storage locations: a cloud service (holds an import source) and a physical
+# disk sited at the home-office room.
+ex:drive a gmeow:StorageLocation ;
+    gmeow:storageMedium gmeow:storageMediumCloudService ;
+    gmeow:storageService "Google Drive" ;
+    gmeow:storagePath "/Contacts/backup.vcf" .
+
+ex:hdd a gmeow:StorageLocation ;
+    gmeow:storageMedium gmeow:storageMediumPhysicalDisk ;
+    gmeow:storageService "local" ;
+    gmeow:physicalPlace ex:homeOffice .
+
+ex:vcardSource a gmeow:Source ;
+    gmeow:storedIn ex:drive .
+
+ex:patrick a gmeow:Person ;
+    gmeow:locatedAt ex:westbourne112 ;
+    gmeow:hasContactPoint ex:addr .
