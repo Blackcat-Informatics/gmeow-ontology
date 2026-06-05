@@ -9,7 +9,7 @@ trim_trailing_whitespace = true
 indent_style = space
 indent_size = 4
 
-[*.{yml,yaml,json,jsonld,md,ttl,rq,toml}]
+[*.{yml,yaml,json,jsonld,md,ttl,rq,toml,xml}]
 indent_size = 2
 
 [*.py]
