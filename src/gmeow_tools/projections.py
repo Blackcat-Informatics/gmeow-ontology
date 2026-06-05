@@ -55,8 +55,7 @@ def project_graph(profile: str, source: Graph) -> Graph:
     constructed = source.query(query).graph
     out = Graph()
     if constructed is not None:
-        for triple in constructed:
-            out.add(triple)
+        out += constructed
     bind_prefixes(out)
     for prefix in prof.prefixes:
         out.bind(prefix, PREFIXES[prefix])
@@ -93,7 +92,9 @@ def project_examples(dist_dir: Path = DIST_DIR) -> list[Path]:
 
 def project_file(input_path: Path, profile: str, *, dist_dir: Path = DIST_DIR) -> Path:
     """Project an input data file to one profile (ontology merged in for context)."""
+    from rdflib.util import guess_format
+
     source = load_merged_graph(include_imports=False)
-    source.parse(input_path, format="turtle")
+    source.parse(input_path, format=guess_format(str(input_path)) or "turtle")
     out = project_graph(profile, source)
     return _serialize(out, dist_dir / f"gmeow-{input_path.stem}-{profile}.ttl")

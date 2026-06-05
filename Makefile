@@ -10,7 +10,7 @@ TARGET ?= foaf
 
 .PHONY: help install fmt lint validate reason explain extract mappings wikidata \
         wikidata-live metadata apache docs docs-full rdf12 quality normalize \
-        build test check release clean pull-images
+        build export project test check release clean pull-images
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \

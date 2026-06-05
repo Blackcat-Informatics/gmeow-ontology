@@ -30,6 +30,6 @@
         rdfs:label "latitude + longitude → geo:Geometry with WKT POINT"@en ;
         align:entity1 [ a edoal:Class ; edoal:uri gmeow:GeoCoordinates ] ;
         align:entity2 [ a edoal:Class ; edoal:uri geo:Geometry ] ;
-        align:relation "&lt;=" ;
+        align:relation "<=" ;
         edoal:transformation [ rdfs:seeAlso gmeow:fnLatLongToWktPoint ]
     ] .

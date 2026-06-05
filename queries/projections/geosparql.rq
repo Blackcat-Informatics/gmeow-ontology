@@ -16,15 +16,15 @@ WHERE {
     {
         ?place a gmeow:Place .
     } UNION {
-        ?place gmeow:hasGeometry ?g .
+        ?place a gmeow:Place ; gmeow:hasGeometry ?g .
         ?g gmeow:asWKT ?wkt .
         BIND ( STRDT(STR(?wkt), geo:wktLiteral) AS ?wktTagged )
     } UNION {
-        ?place gmeow:hasCoordinates ?c .
+        ?place a gmeow:Place ; gmeow:hasCoordinates ?c .
         ?c gmeow:latitude ?lat ; gmeow:longitude ?lon .
         BIND ( IRI(CONCAT(STR(?place), "-geom")) AS ?ptGeom )
         BIND ( STRDT(CONCAT("POINT(", STR(?lon), " ", STR(?lat), ")"), geo:wktLiteral) AS ?pointWkt )
     } UNION {
-        ?place gmeow:containedInPlace ?parent .
+        ?place a gmeow:Place ; gmeow:containedInPlace ?parent .
     }
 }

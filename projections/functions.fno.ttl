@@ -44,8 +44,8 @@ gmeow:fnRetagWkt
 
 gmeow:fnComposeAddress
     a fno:Function ;
-    rdfs:label "compose address components → single string"@en ;
-    dcterms:description "Concatenates the decomposed address components (street, locality, region, postal code, country) into one display string for targets that expect a single schema:address text. Lossy: formatting convention varies by locale."@en ;
+    rdfs:label "compose address components → single label string"@en ;
+    dcterms:description "Concatenates the decomposed address components (street, locality, region, postal code, country) into one single-line label string — emitted as vcard:label by the vCard projection. Lossy: formatting convention varies by locale."@en ;
     fno:expects ( gmeow:pStreet gmeow:pLocality gmeow:pRegion gmeow:pPostalCode gmeow:pCountry ) ;
     fno:returns ( gmeow:oAddressString ) ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> .

@@ -26,7 +26,7 @@ a target consumer's vocabulary without corrupting the canonical model.
 ```sh
 gmeow project                       # project the worked-example fixtures, all profiles
 gmeow project --profile schema-org  # one profile
-gmeow project --input mydata.ttl    # project your own GMEOW data
+gmeow project --data mydata.ttl     # project your own GMEOW data
 ```
 
 Outputs `dist/gmeow-example-{schema-org,geosparql,vcard,foaf}.ttl` (round-trip

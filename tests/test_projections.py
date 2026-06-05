@@ -36,9 +36,16 @@ def _assert_no_gmeow_leakage(graph: Graph) -> None:
 
 
 def test_fno_edoal_specs_parse() -> None:
-    specs = sorted(PROJECTIONS_DIR.glob("*.ttl"))
-    assert len(specs) == 5  # functions.fno + 4 edoal
-    for spec in specs:
+    required = (
+        "functions.fno.ttl",
+        "schema-org.edoal.ttl",
+        "geosparql.edoal.ttl",
+        "vcard.edoal.ttl",
+        "foaf.edoal.ttl",
+    )
+    for name in required:
+        spec = PROJECTIONS_DIR / name
+        assert spec.exists(), f"missing projection spec: {name}"
         assert len(Graph().parse(spec, format="turtle")) > 0
 
 
@@ -81,11 +88,11 @@ def test_geosparql_projection() -> None:
 def test_vcard_projection() -> None:
     g = project_graph("vcard", _source())
     assert (None, RDF.type, URIRef(VCARD + "Address")) in g
-    assert (
-        URIRef(NAMES + "patrick"),
-        URIRef(VCARD + "given-name"),
-        Literal("Patrick"),
-    ) in g
+    # given/family hang off a vcard:Name node (their correct vCard-RDF domain).
+    name_node = URIRef(NAMES + "patrick-vcardname")
+    assert (URIRef(NAMES + "patrick"), URIRef(VCARD + "hasName"), name_node) in g
+    assert (name_node, RDF.type, URIRef(VCARD + "Name")) in g
+    assert (name_node, URIRef(VCARD + "given-name"), Literal("Patrick")) in g
     assert Literal("Patrick Colm Audley", lang="en") in set(
         g.objects(URIRef(NAMES + "patrick"), URIRef(VCARD + "fn"))
     )
