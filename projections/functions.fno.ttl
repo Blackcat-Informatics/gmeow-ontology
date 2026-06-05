@@ -284,7 +284,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
 
 [] a fno:Mapping ;
-    rdfs:label "Birth life-event → schema:birthDate → schema-org (FnO mapping)"@en ;
+    rdfs:label "fnBirthEventToDate → schema-org (FnO mapping)"@en ;
     fno:function gmeow:fnBirthEventToDate ;
     fno:implementation gmeow:implSchemaOrg ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -297,7 +297,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "bdate" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "Birth life-event → schema:birthDate → vcard (FnO mapping)"@en ;
+    rdfs:label "fnBirthEventToDate → vcard (FnO mapping)"@en ;
     fno:function gmeow:fnBirthEventToDate ;
     fno:implementation gmeow:implVcard ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -310,7 +310,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "bdate" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "compose address components → single label string → vcard (FnO mapping)"@en ;
+    rdfs:label "fnComposeAddress → vcard (FnO mapping)"@en ;
     fno:function gmeow:fnComposeAddress ;
     fno:implementation gmeow:implVcard ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -339,7 +339,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "label" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "compose BCP-47 language tag → schema-org (FnO mapping)"@en ;
+    rdfs:label "fnComposeBcp47 → schema-org (FnO mapping)"@en ;
     fno:function gmeow:fnComposeBcp47 ;
     fno:implementation gmeow:implSchemaOrg ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -356,7 +356,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "bcp47" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "honorific value → prefix/suffix literal → schema-org (FnO mapping)"@en ;
+    rdfs:label "fnHonorificToAffix → schema-org (FnO mapping)"@en ;
     fno:function gmeow:fnHonorificToAffix ;
     fno:implementation gmeow:implSchemaOrg ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -373,7 +373,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "honSuffix" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "latitude + longitude → WKT POINT → geosparql (FnO mapping)"@en ;
+    rdfs:label "fnLatLongToWktPoint → geosparql (FnO mapping)"@en ;
     fno:function gmeow:fnLatLongToWktPoint ;
     fno:implementation gmeow:implGeosparql ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -390,7 +390,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "pointWkt" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "Membership + Role → schema:jobTitle → schema-org (FnO mapping)"@en ;
+    rdfs:label "fnMembershipToJobTitle → schema-org (FnO mapping)"@en ;
     fno:function gmeow:fnMembershipToJobTitle ;
     fno:implementation gmeow:implSchemaOrg ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -403,7 +403,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "title" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "Membership + Role → schema:jobTitle → vcard (FnO mapping)"@en ;
+    rdfs:label "fnMembershipToJobTitle → vcard (FnO mapping)"@en ;
     fno:function gmeow:fnMembershipToJobTitle ;
     fno:implementation gmeow:implVcard ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -416,7 +416,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "title" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "nickname-purpose PersonName → foaf:nick → foaf (FnO mapping)"@en ;
+    rdfs:label "fnNicknameName → foaf (FnO mapping)"@en ;
     fno:function gmeow:fnNicknameName ;
     fno:implementation gmeow:implFoaf ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -429,7 +429,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "nick" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "nickname-purpose PersonName → foaf:nick → schema-org (FnO mapping)"@en ;
+    rdfs:label "fnNicknameName → schema-org (FnO mapping)"@en ;
     fno:function gmeow:fnNicknameName ;
     fno:implementation gmeow:implSchemaOrg ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -442,7 +442,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "nick" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "nickname-purpose PersonName → foaf:nick → vcard (FnO mapping)"@en ;
+    rdfs:label "fnNicknameName → vcard (FnO mapping)"@en ;
     fno:function gmeow:fnNicknameName ;
     fno:implementation gmeow:implVcard ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -455,7 +455,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "nick" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "place-type value → target class → schema-org (FnO mapping)"@en ;
+    rdfs:label "fnPlaceTypeToClass → schema-org (FnO mapping)"@en ;
     fno:function gmeow:fnPlaceTypeToClass ;
     fno:implementation gmeow:implSchemaOrg ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -468,7 +468,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "pt" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "flatten LanguageProficiency → schema:knowsLanguage → schema-org (FnO mapping)"@en ;
+    rdfs:label "fnProficiencyToKnownLanguage → schema-org (FnO mapping)"@en ;
     fno:function gmeow:fnProficiencyToKnownLanguage ;
     fno:implementation gmeow:implSchemaOrg ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -481,7 +481,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "known" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "retag WKT literal as geo:wktLiteral → geosparql (FnO mapping)"@en ;
+    rdfs:label "fnRetagWkt → geosparql (FnO mapping)"@en ;
     fno:function gmeow:fnRetagWkt ;
     fno:implementation gmeow:implGeosparql ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -494,7 +494,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "wktTagged" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "select displayable full name → foaf (FnO mapping)"@en ;
+    rdfs:label "fnSelectDisplayName → foaf (FnO mapping)"@en ;
     fno:function gmeow:fnSelectDisplayName ;
     fno:implementation gmeow:implFoaf ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -507,7 +507,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "dispName" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "select displayable full name → schema-org (FnO mapping)"@en ;
+    rdfs:label "fnSelectDisplayName → schema-org (FnO mapping)"@en ;
     fno:function gmeow:fnSelectDisplayName ;
     fno:implementation gmeow:implSchemaOrg ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -520,7 +520,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "dispName" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "select displayable full name → vcard (FnO mapping)"@en ;
+    rdfs:label "fnSelectDisplayName → vcard (FnO mapping)"@en ;
     fno:function gmeow:fnSelectDisplayName ;
     fno:implementation gmeow:implVcard ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -533,7 +533,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "dispName" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "select displayable gender identity → gender label → foaf (FnO mapping)"@en ;
+    rdfs:label "fnSelectDisplayableGender → foaf (FnO mapping)"@en ;
     fno:function gmeow:fnSelectDisplayableGender ;
     fno:implementation gmeow:implFoaf ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -546,7 +546,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "genderLabel" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "select displayable gender identity → gender label → schema-org (FnO mapping)"@en ;
+    rdfs:label "fnSelectDisplayableGender → schema-org (FnO mapping)"@en ;
     fno:function gmeow:fnSelectDisplayableGender ;
     fno:implementation gmeow:implSchemaOrg ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -559,7 +559,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "genderLabel" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "subOrganizationOf → schema:department → schema-org (FnO mapping)"@en ;
+    rdfs:label "fnSubOrgToDepartment → schema-org (FnO mapping)"@en ;
     fno:function gmeow:fnSubOrgToDepartment ;
     fno:implementation gmeow:implSchemaOrg ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -572,7 +572,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "dept" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "hasWebPage → schema:url → foaf (FnO mapping)"@en ;
+    rdfs:label "fnWebPageToUrl → foaf (FnO mapping)"@en ;
     fno:function gmeow:fnWebPageToUrl ;
     fno:implementation gmeow:implFoaf ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -585,7 +585,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "wp" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "hasWebPage → schema:url → schema-org (FnO mapping)"@en ;
+    rdfs:label "fnWebPageToUrl → schema-org (FnO mapping)"@en ;
     fno:function gmeow:fnWebPageToUrl ;
     fno:implementation gmeow:implSchemaOrg ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;
@@ -598,7 +598,7 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "wp" ] .
 
 [] a fno:Mapping ;
-    rdfs:label "hasWebPage → schema:url → vcard (FnO mapping)"@en ;
+    rdfs:label "fnWebPageToUrl → vcard (FnO mapping)"@en ;
     fno:function gmeow:fnWebPageToUrl ;
     fno:implementation gmeow:implVcard ;
     fno:parameterMapping [ a fnom:PropertyParameterMapping ;

@@ -282,11 +282,15 @@ def _emit_fnom(
             fn_local = _local(fn_iri)
             mapping = _stable_bnode(f"mapping-{fn_local}-{profile}")
             graph.add((mapping, RDF.type, FNO.Mapping))
+            # Label from the *neutral* function local name + profile — never
+            # ``fn.label``, which may embed one profile's target term (e.g.
+            # "… → schema:birthDate") and mislead when the function is reused
+            # across profiles (vCard/FOAF).
             graph.add(
                 (
                     mapping,
                     RDFS.label,
-                    Literal(f"{fn.label} → {profile} (FnO mapping)", lang="en"),
+                    Literal(f"{fn_local} → {profile} (FnO mapping)", lang="en"),
                 )
             )
             graph.add((mapping, FNO.function, fn_iri))

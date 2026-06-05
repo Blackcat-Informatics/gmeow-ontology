@@ -31,6 +31,9 @@ from gmeow_tools.target_axioms import load_target_snapshot
 
 GUFO = "http://purl.org/nemo/gufo#"
 BFO = "http://purl.obolibrary.org/obo/"
+#: BFO class IRIs share the OBO namespace with other ontologies (GSSO, …), so the
+#: leak check keys on the ``BFO_`` local-name prefix, not the bare OBO namespace.
+BFO_CLASS_PREFIX = f"{BFO}BFO_"
 
 #: The expected gUFO-nature → BFO closeMatch cells (subject local, bfo local, label).
 EXPECTED_CELLS: tuple[tuple[str, str, str], ...] = (
@@ -81,7 +84,7 @@ def test_bridge_uses_closematch_only() -> None:
 
 
 def test_every_bfo_iri_is_a_real_class_in_the_snapshot() -> None:
-
+    """Principle 7: each emitted BFO IRI is a declared owl:Class with the stated
     label, verified offline against the vendored snapshot."""
     snapshot = load_target_snapshot("bfo")
     assert snapshot is not None, (
@@ -106,7 +109,9 @@ def test_bridge_is_link_only_no_import() -> None:
     (Principle 5). The snapshot lives in imports/targets/, a subdir not merged."""
     merged = load_merged_graph(include_imports=True)
     bfo_subjects = [
-        s for s in merged.subjects(RDF.type, OWL.Class) if str(s).startswith(BFO)
+        s
+        for s in merged.subjects(RDF.type, OWL.Class)
+        if str(s).startswith(BFO_CLASS_PREFIX)
     ]
     assert not bfo_subjects, (
         f"BFO classes leaked into the reasoned graph: {bfo_subjects[:3]} — "

@@ -96,7 +96,8 @@ The bridge has a two-rail verification, so a mistyped or invented BFO IRI fails 
    matching BFO's own label**. CI needs no network.
 2. **Online, freshness (network-marked).** `test_vendored_snapshot_matches_live_bfo`
    (`@pytest.mark.network`) re-fetches live BFO and re-checks the same IRIs + labels, so the
-   offline snapshot cannot silently rot. Run it with `uv run pytest -m network` or `make quality`.
+   offline snapshot cannot silently rot. Run it with
+   `uv run pytest tests/test_foundational_bridging.py -m network`.
 
 The snapshot lives in `imports/targets/` — a **subdirectory** of `imports/` that
 `graph.iter_import_files()` does **not** glob (it globs `imports/*.ttl` non-recursively). So no

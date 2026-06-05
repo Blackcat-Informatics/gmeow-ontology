@@ -82,39 +82,9 @@ bfo:BFO_0000148 a owl:Class ;
     rdfs:label "zero-dimensional temporal region"@en ;
     rdfs:subClassOf bfo:BFO_0000008 .
 
-bfo:BFO_0000179 rdfs:label "BFO OWL specification label"@en .
-
-bfo:BFO_0000180 rdfs:label "BFO CLIF specification label"@en .
-
 bfo:BFO_0000182 a owl:Class ;
     rdfs:label "history"@en ;
     rdfs:subClassOf bfo:BFO_0000015 .
-
-bfo:IAO_0000111 rdfs:label "editor preferred term"@en .
-
-bfo:IAO_0000112 rdfs:label "example of usage"@en .
-
-bfo:IAO_0000115 rdfs:label "definition"@en .
-
-bfo:IAO_0000116 rdfs:label "editor note"@en .
-
-bfo:IAO_0000117 rdfs:label "term editor"@en .
-
-bfo:IAO_0000118 rdfs:label "alternative term"@en .
-
-bfo:IAO_0000119 rdfs:label "definition source"@en .
-
-bfo:IAO_0000232 rdfs:label "curator note"@en .
-
-bfo:IAO_0000412 rdfs:label "imported from"@en .
-
-bfo:IAO_0000600 rdfs:label "elucidation"@en .
-
-bfo:IAO_0000601 rdfs:label "has associated axiom(nl)"@en .
-
-bfo:IAO_0000602 rdfs:label "has associated axiom(fol)"@en .
-
-bfo:IAO_0010000 rdfs:label "has axiom label"@en .
 
 bfo:BFO_0000016 a owl:Class ;
     rdfs:label "disposition"@en ;
