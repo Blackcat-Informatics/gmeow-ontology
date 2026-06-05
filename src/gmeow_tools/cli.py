@@ -281,9 +281,24 @@ def build() -> None:
     written = serialize_graph(graph, stem="gmeow")
     context = write_context()
     from gmeow_tools.apache import write_conf
+    from gmeow_tools.export import export_all
 
     conf = write_conf()
-    for path in (*written.values(), context, conf):
+    exports = export_all()
+    for path in (*written.values(), context, conf, *exports):
+        console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
+
+
+@app.command()
+def export() -> None:
+    """Generate flattened export views (CSV/CSVW, Markdown, JSONL, llms.txt).
+
+    Pure-Python (no reasoning/Docker): projects the asserted vocabulary +
+    alignments into broadly-consumable tabular and LLM-ingestable forms in dist/.
+    """
+    from gmeow_tools.export import export_all
+
+    for path in export_all():
         console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
 
 
