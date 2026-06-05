@@ -206,3 +206,23 @@ gmeow:endorses
     rdfs:label "endorses"@en ;
     skos:definition "A convenience shortcut recording that one agent vouches for another. Deliberately NOT symmetric (endorsement is directional) and NOT transitive (trust must not propagate inside the reasoner — that is the metric the perspectival TrustAssertion bounds). Use gmeow:TrustAssertion for leveled, dated, perspectival trust."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# AXIOMATIZED DOCTRINE (#38 — phase 2 of the reasoning-depth epic #35)
+#
+# Relator mediation for the two trust relators (EL someValuesFrom, open-world;
+# closed-world cardinality is SHACL's, #39). NO property chain is asserted over
+# gmeow:trustor / trustee / endorses: OpenPGP owner-trust is DELIBERATELY
+# non-transitive — A trusting B and B trusting C does not make A trust C (that is
+# exactly what trust-signature depth bounds). Transitive-trust computation is a
+# projection-layer metric, never a reasoner entailment.
+# =========================================================================== #
+
+gmeow:Certification rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:certifier ; owl:someValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:certifiedKey ; owl:someValuesFrom gmeow:CryptographicKey ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:certifiedIdentity ; owl:someValuesFrom gmeow:Agent ] .
+
+gmeow:TrustAssertion rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:trustor ; owl:someValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:trustee ; owl:someValuesFrom gmeow:Agent ] .

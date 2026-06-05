@@ -104,3 +104,16 @@ gmeow:romanticAromantic      a gmeow:RomanticOrientationValue ; rdfs:label "arom
 gmeow:romanticDemiromantic   a gmeow:RomanticOrientationValue ; rdfs:label "demiromantic"@en .
 gmeow:romanticQueerromantic  a gmeow:RomanticOrientationValue ; rdfs:label "queerplatonic / queer-romantic"@en .
 gmeow:romanticQuestioning    a gmeow:RomanticOrientationValue ; rdfs:label "questioning"@en .
+
+# =========================================================================== #
+# AXIOMATIZED DOCTRINE (#38). The cross-module disjointness of the orientation
+# axes (SexualOrientation / RomanticOrientation) and their value spaces is
+# asserted with the rest of the seven-axis matrix in gender.ttl. Here we add the
+# relator-mediation existentials for the two orientation facets — EL, open-world
+# (the closed-world "exactly one value" is SHACL's job, #39).
+# =========================================================================== #
+
+gmeow:SexualOrientation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:sexualOrientationValue ; owl:someValuesFrom gmeow:SexualOrientationValue ] .
+gmeow:RomanticOrientation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:romanticOrientationValue ; owl:someValuesFrom gmeow:RomanticOrientationValue ] .
