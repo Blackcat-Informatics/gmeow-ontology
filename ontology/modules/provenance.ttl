@@ -4,6 +4,7 @@
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/modules/provenance>
     a owl:Ontology ;
@@ -16,6 +17,21 @@ gmeow:Activity
     rdfs:subClassOf gufo:Event ;
     rdfs:label "Activity"@en ;
     skos:definition "Something that occurs over a period of time and acts upon or with entities — creating, transforming, using, or attributing them."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:ImportActivity
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:label "Import Activity"@en ;
+    skos:definition "An activity that ingested an external source artifact (an import envelope such as a vCard file) and recorded the claims it carried. Carries the ingestion (transaction) time — when the system learned the claims, distinct from when they were asserted or when they hold."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:ingestedAt
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Activity ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "ingested at"@en ;
+    skos:definition "When an import activity recorded its claims into the system — the transaction time. Distinct from gmeow:assertedAt (observation) and gmeow:validFrom/validUntil (validity)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:wasAttributedTo

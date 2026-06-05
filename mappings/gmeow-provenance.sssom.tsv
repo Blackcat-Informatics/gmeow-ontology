@@ -1,0 +1,14 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/provenance
+# license: https://creativecommons.org/licenses/by/4.0/
+# comment: Provenance + import-provenance alignments. The core PROV-O anchors (Activity, wasDerivedFrom, wasGeneratedBy, wasAttributedTo) and the carrier/ingestion terms align to PROV-O and Dublin Core Terms. recordedNoLaterThan and contentDigest are canonical — no faithful external term models a derived terminus-ante-quem or a content-addressed carrier digest.
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:Activity	skos:closeMatch	prov:Activity	semapv:ManualMappingCuration	0.9
+gmeow:wasDerivedFrom	skos:closeMatch	prov:wasDerivedFrom	semapv:ManualMappingCuration	0.9
+gmeow:wasGeneratedBy	skos:closeMatch	prov:wasGeneratedBy	semapv:ManualMappingCuration	0.9
+gmeow:wasAttributedTo	skos:closeMatch	prov:wasAttributedTo	semapv:ManualMappingCuration	0.9
+gmeow:Source	skos:closeMatch	prov:Entity	semapv:ManualMappingCuration	0.6
+gmeow:ImportActivity	skos:closeMatch	prov:Activity	semapv:ManualMappingCuration	0.8
+gmeow:ingestedAt	skos:closeMatch	prov:endedAtTime	semapv:ManualMappingCuration	0.85
+gmeow:assertedAt	skos:closeMatch	prov:generatedAtTime	semapv:ManualMappingCuration	0.85
+gmeow:sourceModifiedAt	skos:closeMatch	dcterms:modified	semapv:ManualMappingCuration	0.9
+gmeow:sourceLocation	skos:closeMatch	dcterms:source	semapv:ManualMappingCuration	0.6

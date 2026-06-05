@@ -122,6 +122,22 @@ def test_wot_is_reference_only() -> None:
     assert ALIGNMENT_TARGETS["wot"].policy is LinkPolicy.REFERENCE_ONLY
 
 
+def test_import_provenance_aligned_to_prov_and_dcterms() -> None:
+    from rdflib.namespace import SKOS
+
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "sourceModifiedAt"),
+        SKOS.closeMatch,
+        URIRef("http://purl.org/dc/terms/modified"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "assertedAt"),
+        SKOS.closeMatch,
+        URIRef("http://www.w3.org/ns/prov#generatedAtTime"),
+    ) in graph
+
+
 def test_schema_is_reference_only() -> None:
     # schema.org (CC-BY-SA) may be linked but never imported.
     assert ALIGNMENT_TARGETS["schema"].policy is LinkPolicy.REFERENCE_ONLY
