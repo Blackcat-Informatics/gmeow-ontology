@@ -90,6 +90,46 @@ gmeow:fnProficiencyToKnownLanguage
     fno:returns ( gmeow:oKnownLanguage ) ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
 
+gmeow:fnNicknameName
+    a fno:Function ;
+    rdfs:label "nickname-purpose PersonName → foaf:nick"@en ;
+    dcterms:description "Returns the gmeow:fullName of a PersonName whose gmeow:namePurpose is gmeow:namePurposeNickname (or a NamePart typed gmeow:namePartNickname), for emission as foaf:nick / vcard:nickname / schema:alternateName. The nickname is a structured name in GMEOW; this downcasts it to the flat nick field."@en ;
+    fno:expects ( gmeow:pAppellation ) ;
+    fno:returns ( gmeow:oNick ) ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
+
+gmeow:fnBirthEventToDate
+    a fno:Function ;
+    rdfs:label "Birth life-event → schema:birthDate"@en ;
+    dcterms:description "Extracts a person's birth date by traversing the reified event model: a gmeow:Birth (gmeow:hasPrincipal ?person) with a gmeow:eventDate yields ?person schema:birthDate. GMEOW models birth as an event (with place, sources, confidence); this downcasts the event's date to the flat schema:birthDate / vCard BDAY field."@en ;
+    fno:expects ( gmeow:pBirthEvent ) ;
+    fno:returns ( gmeow:oBirthDate ) ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
+
+gmeow:fnMembershipToJobTitle
+    a fno:Function ;
+    rdfs:label "Membership + Role → schema:jobTitle"@en ;
+    dcterms:description "Extracts a job title by traversing the reified relator: a gmeow:Membership (gmeow:membershipMember ?person, gmeow:hasRole ?role) yields ?person schema:jobTitle = the role's rdfs:label/gmeow:name. GMEOW models a job as a role played in a membership (a relationship founded on a contract, bounded by events — see the employment issue); this downcasts the role label to the flat schema:jobTitle / vCard TITLE field."@en ;
+    fno:expects ( gmeow:pMembership ) ;
+    fno:returns ( gmeow:oJobTitle ) ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
+
+gmeow:fnSubOrgToDepartment
+    a fno:Function ;
+    rdfs:label "subOrganizationOf → schema:department"@en ;
+    dcterms:description "Projects org hierarchy: a gmeow:Organization that is gmeow:subOrganizationOf a parent is emitted as the parent's schema:department (parent→child, the inverse direction). The department is a first-class sub-organization in GMEOW."@en ;
+    fno:expects ( gmeow:pSubOrg ) ;
+    fno:returns ( gmeow:oDepartment ) ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
+
+gmeow:fnWebPageToUrl
+    a fno:Function ;
+    rdfs:label "hasWebPage → schema:url"@en ;
+    dcterms:description "Projects an entity's structured web presence: gmeow:hasWebPage points to a first-class gmeow:WebPage whose IRI is its URL, emitted as schema:url / foaf:homepage on the entity. Downcasts the structured page resource to the flat URL field."@en ;
+    fno:expects ( gmeow:pWebPage ) ;
+    fno:returns ( gmeow:oUrl ) ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> .
+
 # Parameters and outputs (fno:predicate is the binding key; fno:type the datatype/class).
 gmeow:pPlaceType   a fno:Parameter ; fno:predicate gmeow:placeType ; fno:type gmeow:PlaceType ; fno:required true .
 gmeow:pLat         a fno:Parameter ; fno:predicate gmeow:latitude ; fno:type xsd:decimal ; fno:required true .
@@ -115,3 +155,12 @@ gmeow:oAffix         a fno:Output ; fno:predicate gmeow:projectedAffix ; fno:typ
 gmeow:oGender        a fno:Output ; fno:predicate gmeow:projectedGender ; fno:type rdfs:Literal .
 gmeow:oBcp47         a fno:Output ; fno:predicate gmeow:projectedLanguageTag ; fno:type xsd:string .
 gmeow:oKnownLanguage a fno:Output ; fno:predicate gmeow:projectedKnownLanguage ; fno:type gmeow:Language .
+gmeow:pBirthEvent  a fno:Parameter ; fno:predicate gmeow:eventDate ; fno:type rdfs:Literal ; fno:required true .
+gmeow:pMembership  a fno:Parameter ; fno:predicate gmeow:hasRole ; fno:type gmeow:Role ; fno:required true .
+gmeow:pSubOrg      a fno:Parameter ; fno:predicate gmeow:subOrganizationOf ; fno:type gmeow:Organization ; fno:required true .
+gmeow:pWebPage     a fno:Parameter ; fno:predicate gmeow:hasWebPage ; fno:type gmeow:WebPage ; fno:required true .
+gmeow:oNick        a fno:Output ; fno:predicate gmeow:projectedNick ; fno:type rdfs:Literal .
+gmeow:oBirthDate   a fno:Output ; fno:predicate gmeow:projectedBirthDate ; fno:type rdfs:Literal .
+gmeow:oJobTitle    a fno:Output ; fno:predicate gmeow:projectedJobTitle ; fno:type rdfs:Literal .
+gmeow:oDepartment  a fno:Output ; fno:predicate gmeow:projectedDepartment ; fno:type gmeow:Organization .
+gmeow:oUrl         a fno:Output ; fno:predicate gmeow:projectedUrl ; fno:type xsd:anyURI .

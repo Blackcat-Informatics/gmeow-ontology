@@ -34,6 +34,12 @@ CONSTRUCT {
     ?prog a schema:ComputerLanguage .
     ?lang schema:alternateName ?bcp47 .
     ?knower schema:knowsLanguage ?known .
+    ?ent schema:description ?desc .
+    ?ent schema:url ?wp .
+    ?ent schema:alternateName ?nick .
+    ?person schema:birthDate ?bdate .
+    ?member schema:jobTitle ?title .
+    ?parent schema:department ?dept .
 }
 WHERE {
     {
@@ -111,5 +117,28 @@ WHERE {
     } UNION {
         ?prof a gmeow:LanguageProficiency ;
             gmeow:proficiencyAgent ?knower ; gmeow:proficiencyLanguage ?known .
+    } UNION {
+        # Contact fields (fnNicknameName, fnBirthEventToDate, fnMembershipToJobTitle,
+        # fnSubOrgToDepartment, fnWebPageToUrl): downcasts of structured GMEOW models
+        # to the flat schema.org fields. description is a 1:1 rename.
+        ?ent gmeow:description ?desc .
+    } UNION {
+        ?ent gmeow:hasWebPage ?wp .
+    } UNION {
+        # A nickname is a structured PersonName (namePurpose = nickname); downcast its
+        # surface form to schema:alternateName.
+        ?ent gmeow:hasName ?nname .
+        ?nname gmeow:namePurpose gmeow:namePurposeNickname ; gmeow:fullName ?nick .
+        FILTER NOT EXISTS { ?nname gmeow:displayable false }
+    } UNION {
+        # Birth life-event → flat schema:birthDate on the principal.
+        ?birth a gmeow:Birth ; gmeow:hasPrincipal ?person ; gmeow:eventDate ?bdate .
+    } UNION {
+        # Membership + Role → flat schema:jobTitle on the member.
+        ?m a gmeow:Membership ; gmeow:membershipMember ?member ; gmeow:hasRole ?role .
+        ?role rdfs:label|gmeow:name ?title .
+    } UNION {
+        # subOrganizationOf (child→parent) → schema:department (parent→child).
+        ?dept gmeow:subOrganizationOf ?parent .
     }
 }

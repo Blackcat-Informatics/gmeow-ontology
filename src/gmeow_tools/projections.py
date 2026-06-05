@@ -36,8 +36,14 @@ PROFILES: dict[str, Profile] = {
     "foaf": Profile("foaf", ("foaf", "wgs84")),
 }
 
-#: Worked-example inputs (locations + naming + languages + identity fixtures).
-_EXAMPLE_FIXTURES = ("places.ttl", "names.ttl", "languages.ttl", "identity.ttl")
+#: Worked-example inputs (locations + naming + languages + identity + contacts).
+_EXAMPLE_FIXTURES = (
+    "places.ttl",
+    "names.ttl",
+    "languages.ttl",
+    "identity.ttl",
+    "contact-fields.ttl",
+)
 
 
 def project_graph(profile: str, source: Graph) -> Graph:

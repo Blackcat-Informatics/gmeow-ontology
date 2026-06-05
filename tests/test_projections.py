@@ -30,6 +30,7 @@ def _source() -> Graph:
     graph.parse(FIXTURES_DIR / "names.ttl", format="turtle")
     graph.parse(FIXTURES_DIR / "languages.ttl", format="turtle")
     graph.parse(FIXTURES_DIR / "identity.ttl", format="turtle")
+    graph.parse(FIXTURES_DIR / "contact-fields.ttl", format="turtle")
     return graph
 
 
@@ -103,6 +104,51 @@ def test_languages_projection() -> None:
     assert Literal("Deutsch", lang="de") in names
     assert Literal("German", lang="en") in names
     _assert_no_gmeow_leakage(g)
+
+
+def test_contact_fields_projection() -> None:
+    g = project_graph("schema-org", _source())
+    cf = "https://example.org/cf/"
+    sam = URIRef(cf + "sam")
+    # description (1:1), url (from hasWebPage), nickname (from a nickname PersonName).
+    assert (
+        sam,
+        URIRef(SCHEMA + "description"),
+        Literal("Backend engineer; enjoys ontologies and strong tea.", lang="en"),
+    ) in g
+    assert (sam, URIRef(SCHEMA + "url"), URIRef("https://sam.example.com/")) in g
+    assert Literal("Sammy", lang="en") in set(
+        g.objects(sam, URIRef(SCHEMA + "alternateName"))
+    )
+    # birthDate from the Birth event; jobTitle from the Membership Role.
+    assert (sam, URIRef(SCHEMA + "birthDate"), Literal("1990-04-12")) in g
+    title = Literal("Principal Engineer", lang="en")
+    assert (sam, URIRef(SCHEMA + "jobTitle"), title) in g
+    # department from subOrganizationOf (inverse, parent→child).
+    assert (
+        URIRef(cf + "acme"),
+        URIRef(SCHEMA + "department"),
+        URIRef(cf + "engDept"),
+    ) in g
+    _assert_no_gmeow_leakage(g)
+
+
+def test_contact_fields_vcard_and_foaf() -> None:
+    cf = "https://example.org/cf/"
+    sam = URIRef(cf + "sam")
+    gv = project_graph("vcard", _source())
+    vnicks = set(gv.objects(sam, URIRef(VCARD + "nickname")))
+    assert Literal("Sammy", lang="en") in vnicks
+    assert (sam, URIRef(VCARD + "bday"), Literal("1990-04-12")) in gv
+    assert Literal("Principal Engineer", lang="en") in set(
+        gv.objects(sam, URIRef(VCARD + "title"))
+    )
+    assert (sam, URIRef(VCARD + "hasURL"), URIRef("https://sam.example.com/")) in gv
+    _assert_no_gmeow_leakage(gv)
+    gf = project_graph("foaf", _source())
+    assert Literal("Sammy", lang="en") in set(gf.objects(sam, URIRef(FOAF + "nick")))
+    assert (sam, URIRef(FOAF + "homepage"), URIRef("https://sam.example.com/")) in gf
+    _assert_no_gmeow_leakage(gf)
 
 
 def test_geosparql_projection() -> None:
