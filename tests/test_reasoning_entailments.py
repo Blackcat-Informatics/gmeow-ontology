@@ -117,6 +117,7 @@ def _is_consistent(extra: Graph, name: str, *, reasoner: str = "hermit") -> bool
         out.unlink(missing_ok=True)
 
 
+@pytest.mark.docker
 @requires_robot
 def test_two_axis_individual_is_inconsistent() -> None:
     """One individual in two disjoint identity axes is rejected by HermiT."""
@@ -128,6 +129,7 @@ def test_two_axis_individual_is_inconsistent() -> None:
     )
 
 
+@pytest.mark.docker
 @requires_robot
 def test_two_kind_individual_is_inconsistent() -> None:
     """One individual in two disjoint ultimate Kinds (Person, Organization) is bad."""
@@ -137,6 +139,7 @@ def test_two_kind_individual_is_inconsistent() -> None:
     assert not _is_consistent(bad, "two-kind")
 
 
+@pytest.mark.docker
 @requires_robot
 def test_well_formed_individual_stays_consistent() -> None:
     """The control: a normal person with one gender-identity facet is coherent."""
@@ -148,6 +151,7 @@ def test_well_formed_individual_stays_consistent() -> None:
     assert _is_consistent(ok, "well-formed")
 
 
+@pytest.mark.docker
 @requires_robot
 def test_worked_fixtures_stay_coherent_under_disjointness() -> None:
     """Broad disjointness must not turn the worked example data inconsistent.
