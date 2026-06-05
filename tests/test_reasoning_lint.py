@@ -85,7 +85,11 @@ def test_rigid_under_anti_rigid_is_flagged_mixrig() -> None:
     student = _cls(graph, "Student", GUFO.Role)
     _cls(graph, "HonorsStudent", GUFO.SubKind, parent=student)  # rigid ⊑ anti-rigid
     problems = anti_rigidity_discipline(graph)
-    assert any("MixRig" in p and "gmeow:HonorsStudent" in p for p in problems)
+    # The message names both the rigid class and the offending anti-rigid ancestor.
+    assert any(
+        "MixRig" in p and "gmeow:HonorsStudent" in p and "gmeow:Student" in p
+        for p in problems
+    )
 
 
 def test_under_mediated_relator_is_flagged_relcomp() -> None:

@@ -105,7 +105,7 @@ def reasoning_lint(graph: Graph) -> ValidationResult:
 
     Each :mod:`gmeow_tools.reasoning_lint` violation (missing/conflicting gUFO
     stereotype, identity conflict, anti-rigidity breach, under-mediated relator)
-    becomes an error so ``make validate`` fails the meta-grounding is incomplete.
+    becomes an error so ``make validate`` fails if the meta-grounding is incomplete.
     """
     result = ValidationResult()
     result.errors.extend(reasoning_invariants(graph))

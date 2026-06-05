@@ -39,7 +39,8 @@ GUFO = Namespace(PREFIXES["gufo"])
 _CATALOGUE = "https://ontouml.readthedocs.io/en/latest/anti-patterns/"
 
 #: gUFO ``EndurantType`` stereotypes, by sortality and rigidity, for endurants
-#: (relators, modes, qualities and quality values are all endurants too).
+#: (relators, modes and qualities are all endurants too — but quality *values*
+#: are abstract individuals, see _ABSTRACT_STEREOTYPES below).
 _ENDURANT_STEREOTYPES: frozenset[URIRef] = frozenset(
     {
         GUFO.Kind,
@@ -115,12 +116,13 @@ def _stereotypes(graph: Graph, cls: URIRef) -> set[URIRef]:
 
 
 def _local(term: URIRef) -> str:
-    """Short ``gmeow:Name`` rendering for messages."""
-    return (
-        "gmeow:" + str(term)[len(NAMESPACE) :]
-        if _is_gmeow_class_iri(term)
-        else str(term)
-    )
+    """Prefixed ``gmeow:`` / ``gufo:`` rendering for messages (full IRI otherwise)."""
+    iri = str(term)
+    if _is_gmeow_class_iri(term):
+        return "gmeow:" + iri[len(NAMESPACE) :]
+    if iri.startswith(str(GUFO)):
+        return "gufo:" + iri[len(str(GUFO)) :]
+    return iri
 
 
 def exactly_one_stereotype(graph: Graph) -> list[str]:
@@ -132,7 +134,8 @@ def exactly_one_stereotype(graph: Graph) -> list[str]:
             problems.append(
                 f"{_local(cls)} carries no gUFO meta-class — pun it with exactly one "
                 f"of gufo:Kind/SubKind/Role/Phase/Category/Mixin/RoleMixin/PhaseMixin "
-                f"(or gufo:EventType/SituationType for perdurants)"
+                f"(gufo:EventType/SituationType for perdurants, or "
+                f"gufo:AbstractIndividualType for abstract individuals)"
             )
         elif len(stereotypes) > 1:
             names = ", ".join(sorted(_local(s) for s in stereotypes))
@@ -194,17 +197,21 @@ def anti_rigidity_discipline(graph: Graph) -> list[str]:
                 f"no rigid sortal — nowhere to inherit a principle of identity "
                 f"(OntoUML FreeRole). See {_CATALOGUE}"
             )
-        if (stereotypes & _RIGID_SORTALS) and (
-            ancestor_stereotypes & _ANTI_RIGID_TYPES
-        ):
-            bad = ", ".join(
-                sorted(_local(s) for s in ancestor_stereotypes & _ANTI_RIGID_TYPES)
-            )
-            problems.append(
-                f"{_local(cls)} is a rigid sortal (Kind/SubKind) but specializes the "
-                f"anti-rigid type ({bad}) — a rigid type cannot inherit contingent "
-                f"instantiation (OntoUML MixRig). See {_CATALOGUE}"
-            )
+        if stereotypes & _RIGID_SORTALS:
+            # Name the offending ancestor class(es) and their anti-rigid stereotype.
+            bad_ancestors = []
+            for ancestor in _proper_ancestors(graph, cls):
+                bad = _stereotypes(graph, ancestor) & _ANTI_RIGID_TYPES
+                if bad:
+                    labels = ", ".join(sorted(_local(s) for s in bad))
+                    bad_ancestors.append(f"{_local(ancestor)} ({labels})")
+            if bad_ancestors:
+                names = ", ".join(sorted(bad_ancestors))
+                problems.append(
+                    f"{_local(cls)} is a rigid sortal (Kind/SubKind) but specializes "
+                    f"anti-rigid ancestor(s) {names} — a rigid type cannot inherit "
+                    f"contingent instantiation (OntoUML MixRig). See {_CATALOGUE}"
+                )
     return problems
 
 
