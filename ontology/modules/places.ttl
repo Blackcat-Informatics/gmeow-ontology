@@ -263,3 +263,17 @@ gmeow:alternateName
 # Future: gmeow:adjacentTo (symmetric place topology) and time-varying place
 # facts (renames, boundary/jurisdiction changes) reified over the temporal
 # module's gmeow:TimeScopedRelation — deferred; no current consumer.
+
+# =========================================================================== #
+# AXIOMATIZED DOCTRINE (#38 — phase 2 of the reasoning-depth epic #35)
+#
+# Location propagates through geographic containment: a thing located AT a place
+# is located at every place that CONTAINS it (a desk in a room is in the
+# building, the city, the country). Expressed as the EL property chain
+# locatedAt ∘ containedInPlace ⊑ locatedAt. gmeow:containedInPlace is already
+# transitive (room ⊂ city is derived), so the two compose. This is the regular
+# R ∘ S ⊑ R form (containedInPlace ≺ locatedAt); locatedAt thereby becomes
+# non-simple and is kept out of all cardinality axioms, preserving OWL 2 DL.
+# =========================================================================== #
+
+gmeow:locatedAt owl:propertyChainAxiom ( gmeow:locatedAt gmeow:containedInPlace ) .

@@ -27,6 +27,7 @@ dev = [
     "pytest>=8.3",
     "pytest-cov>=6.0",
     "pre-commit>=4.0",
+    "owlrl>=6.0.2",  # pure-Python OWL 2 RL — fast, Docker-free entailment tests (#38)
 ]
 
 [build-system]
@@ -78,7 +79,7 @@ files = ["src", "tests"]
 
 [[tool.mypy.overrides]]
 # Third-party libraries without complete type information.
-module = ["pylode.*", "sssom.*", "pyshacl.*"]
+module = ["pylode.*", "sssom.*", "pyshacl.*", "owlrl.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

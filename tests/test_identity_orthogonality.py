@@ -15,6 +15,7 @@ from __future__ import annotations
 from itertools import combinations
 
 from rdflib import OWL, RDF, RDFS, Graph, URIRef
+from rdflib.collection import Collection
 
 from gmeow_tools.graph import load_merged_graph
 
@@ -65,6 +66,45 @@ def test_no_axis_is_inferred_from_another() -> None:
         assert (nb, RDFS.subPropertyOf, na) not in graph, f"{b} ⊑ {a} forbidden"
         assert (na, OWL.equivalentProperty, nb) not in graph, f"{a} ≡ {b} forbidden"
         assert (nb, OWL.equivalentProperty, na) not in graph, f"{b} ≡ {a} forbidden"
+
+
+def _all_disjoint_member_sets(graph: Graph) -> list[set[URIRef]]:
+    """Every owl:AllDisjointClasses, as the set of class IRIs it makes disjoint."""
+    sets: list[set[URIRef]] = []
+    for node in graph.subjects(RDF.type, OWL.AllDisjointClasses):
+        members = graph.value(node, OWL.members)
+        if members is not None:
+            members_list = Collection(graph, members)
+            sets.append({m for m in members_list if isinstance(m, URIRef)})
+    return sets
+
+
+def test_identity_axes_are_disjoint_classes_axiom() -> None:
+    """The matrix is now also an OWL theorem (#38), not only a Python guard.
+
+    The seven axis range classes are jointly disjoint via a single
+    owl:AllDisjointClasses — so the four IdentityFacet siblings (the load-bearing
+    case that gUFO does not already separate) are pairwise disjoint, and a
+    reasoner rejects any individual placed in two axes. This complements, and does
+    not replace, the subPropertyOf/equivalentProperty-absence guards above.
+    """
+    member_sets = _all_disjoint_member_sets(_graph())
+    axis_classes = {URIRef(GMEOW + rng) for rng in AXES.values()}
+    assert any(axis_classes <= s for s in member_sets), (
+        "the seven identity axes must share one owl:AllDisjointClasses"
+    )
+    facets = {
+        URIRef(GMEOW + c)
+        for c in (
+            "GenderIdentity",
+            "GenderExpression",
+            "SexualOrientation",
+            "RomanticOrientation",
+        )
+    }
+    assert any(facets <= s for s in member_sets), (
+        "the four IdentityFacet siblings must be jointly disjoint"
+    )
 
 
 def test_no_preferred_or_primary_identity_term() -> None:

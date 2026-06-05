@@ -57,6 +57,16 @@ gender and sexuality together is what makes the matrix *complete*: the claim
 "orientation is independent of gender identity" is only a real test when both
 exist to be held apart.
 
+Since #38 the matrix is also a **reasoner theorem**, not only a Python guard. The
+seven axis range classes are declared jointly disjoint
+(`owl:AllDisjointClasses`, OWL 2 EL) in `gender.ttl`, so ELK and HermiT *reject*
+any individual placed in two axes at once — and a negative test
+(`tests/test_reasoning_entailments.py`) proves the axiom bites by injecting such
+an individual and asserting inconsistency. The two guards are complementary: OWL
+cannot express "is **not** a sub-property of", so the `subPropertyOf` /
+`equivalentProperty`-absence checks stay in Python; the disjoint range classes
+add the entailment that no *instance* can straddle two axes.
+
 ## The escape hatch (inclusive without overtyping)
 
 The seed value vocabularies are **anchors, not a fence**. An identity not among the
