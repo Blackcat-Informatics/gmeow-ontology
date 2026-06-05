@@ -59,9 +59,11 @@ not a point:
 
 ### On the `Source` (the envelope) — `sources` module
 
-- **`gmeow:sourceModifiedAt`** (functional, `xsd:dateTime`) — the carrier's
-  last-modification time (the file `mtime`). A terminus-ante-quem on the recording
-  of the claims it carries. Advisory and resettable.
+- **`gmeow:sourceModifiedAt`** (`xsd:dateTime`) — the carrier's last-modification
+  time (the file `mtime`). A terminus-ante-quem on the recording of the claims it
+  carries. Advisory and resettable — and **not functional**: because a source is
+  identified by its `contentDigest`, copies/syncs of the same bytes may report
+  different mtimes, which must coexist rather than force an inconsistency.
 - **`gmeow:contentDigest`** (`xsd:string`-ish literal) — a content hash, e.g.
   `"blake3:9f86…"`. **This is the reliable identity** of the carrier: two imports
   of the same bytes are the same `Source` regardless of `mtime` or path. (Not

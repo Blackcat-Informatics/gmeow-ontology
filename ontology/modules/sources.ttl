@@ -47,11 +47,11 @@ gmeow:citesSource
 # claims (see gmeow:recordedNoLaterThan), never their tenure or observation time.
 
 gmeow:sourceModifiedAt
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:Source ;
     rdfs:range xsd:dateTime ;
     rdfs:label "source modified at"@en ;
-    skos:definition "The last-modification time of the source artifact itself (e.g. a file mtime). A terminus-ante-quem on the recording of the claims this source carries — NOT valid-time (tenure) and NOT observation-time. Advisory and resettable (copy/sync); the reliable identity is gmeow:contentDigest."@en ;
+    skos:definition "The last-modification time of the source artifact itself (e.g. a file mtime). A terminus-ante-quem on the recording of the claims this source carries — NOT valid-time (tenure) and NOT observation-time. Advisory and resettable; the reliable identity is gmeow:contentDigest. NOT functional: because a source is identified by its content digest, copies/syncs of the same bytes may legitimately report different modification times, which must coexist rather than force an inconsistency."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:contentDigest

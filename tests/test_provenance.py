@@ -30,9 +30,11 @@ def test_import_activity_is_an_activity() -> None:
 
 def test_carrier_and_ingestion_props() -> None:
     graph = _graph()
-    # sourceModifiedAt: functional, on the Source (carrier time).
+    # sourceModifiedAt: on the Source (carrier time), and NOT functional — copies
+    # of the same content-addressed source may report different mtimes, which must
+    # coexist rather than force a global inconsistency.
     src_modified = URIRef(GMEOW + "sourceModifiedAt")
-    assert (src_modified, RDF.type, OWL.FunctionalProperty) in graph
+    assert (src_modified, RDF.type, OWL.FunctionalProperty) not in graph
     assert (src_modified, RDFS.domain, URIRef(GMEOW + "Source")) in graph
     # ingestedAt: functional (transaction time).
     assert (URIRef(GMEOW + "ingestedAt"), RDF.type, OWL.FunctionalProperty) in graph

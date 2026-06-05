@@ -28,7 +28,7 @@ gmeow:ImportActivity
 
 gmeow:ingestedAt
     a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Activity ;
+    rdfs:domain gmeow:ImportActivity ;
     rdfs:range xsd:dateTime ;
     rdfs:label "ingested at"@en ;
     skos:definition "When an import activity recorded its claims into the system — the transaction time. Distinct from gmeow:assertedAt (observation) and gmeow:validFrom/validUntil (validity)."@en ;
