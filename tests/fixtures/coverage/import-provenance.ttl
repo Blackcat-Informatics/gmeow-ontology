@@ -21,7 +21,7 @@ ex:vcard1
 ex:import1
     a gmeow:ImportActivity ;
     gmeow:ingestedAt "2026-06-05T12:00:00Z"^^xsd:dateTime ;
-    gmeow:wasAttributedTo ex:importer .
+    gmeow:wasAssociatedWith ex:importer .
 
 ex:importer
     a gmeow:SoftwareAgent ;

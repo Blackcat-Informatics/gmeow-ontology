@@ -42,6 +42,14 @@ gmeow:wasAttributedTo
     skos:definition "Ascribes responsibility for an entity to an agent."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:wasAssociatedWith
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Activity ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "was associated with"@en ;
+    skos:definition "Relates an activity to an agent associated with carrying it out — e.g. the software agent that ran an import. (Activity→Agent; the counterpart of gmeow:wasAttributedTo, which ascribes an endurant Entity to an agent.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:wasDerivedFrom
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Entity ;

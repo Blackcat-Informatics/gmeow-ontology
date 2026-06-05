@@ -104,9 +104,12 @@ ex:bob-vcf a gmeow:Source ;
     gmeow:sourceModifiedAt "2009-03-14T08:22:00Z"^^xsd:dateTime ;  # carrier time
     gmeow:contentDigest    "blake3:9f86d081…" .                     # reliable id
 
+ex:vcard-importer a gmeow:SoftwareAgent ;
+    gmeow:name "gmeow vCard importer" .
+
 ex:import-2026-06-05 a gmeow:ImportActivity ;
-    gmeow:ingestedAt   "2026-06-05T12:00:00Z"^^xsd:dateTime ;       # transaction time
-    gmeow:wasAttributedTo ex:vcard-importer .
+    gmeow:ingestedAt        "2026-06-05T12:00:00Z"^^xsd:dateTime ;  # transaction time
+    gmeow:wasAssociatedWith ex:vcard-importer .                     # activity → agent
 
 ex:bob a gmeow:Person ;
     gmeow:name  "Bob" ;

@@ -28,6 +28,16 @@ def test_import_activity_is_an_activity() -> None:
     ) in graph
 
 
+def test_activity_agent_link_is_event_safe() -> None:
+    # An import activity names its agent via wasAssociatedWith (Activity→Agent),
+    # NOT wasAttributedTo (Entity→Agent) — the latter on an Event-class activity
+    # would clash with gUFO endurant/event disjointness.
+    graph = _graph()
+    assoc = URIRef(GMEOW + "wasAssociatedWith")
+    assert (assoc, RDFS.domain, URIRef(GMEOW + "Activity")) in graph
+    assert (assoc, RDFS.range, URIRef(GMEOW + "Agent")) in graph
+
+
 def test_carrier_and_ingestion_props() -> None:
     graph = _graph()
     # sourceModifiedAt: on the Source (carrier time), and NOT functional — copies

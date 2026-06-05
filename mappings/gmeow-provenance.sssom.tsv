@@ -6,6 +6,7 @@ gmeow:Activity	skos:closeMatch	prov:Activity	semapv:ManualMappingCuration	0.9
 gmeow:wasDerivedFrom	skos:closeMatch	prov:wasDerivedFrom	semapv:ManualMappingCuration	0.9
 gmeow:wasGeneratedBy	skos:closeMatch	prov:wasGeneratedBy	semapv:ManualMappingCuration	0.9
 gmeow:wasAttributedTo	skos:closeMatch	prov:wasAttributedTo	semapv:ManualMappingCuration	0.9
+gmeow:wasAssociatedWith	skos:closeMatch	prov:wasAssociatedWith	semapv:ManualMappingCuration	0.9
 gmeow:Source	skos:closeMatch	prov:Entity	semapv:ManualMappingCuration	0.6
 gmeow:ImportActivity	skos:closeMatch	prov:Activity	semapv:ManualMappingCuration	0.8
 gmeow:ingestedAt	skos:closeMatch	prov:endedAtTime	semapv:ManualMappingCuration	0.85
