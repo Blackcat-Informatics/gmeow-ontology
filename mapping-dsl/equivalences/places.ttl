@@ -1,0 +1,391 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix schema: <https://schema.org/> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix wgs84: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix gvp: <http://vocab.getty.edu/ontology#> .
+@prefix gn: <http://www.geonames.org/ontology#> .
+@prefix wd: <http://www.wikidata.org/entity/> .
+@prefix wdt: <http://www.wikidata.org/prop/direct/> .
+
+# Term equivalences for the places domain — GMEOW authoring source.
+# Compiled to mappings/gmeow-places.sssom.tsv by `gmeow compile-mappings`.
+
+gmeow:mapsetPlaces a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/places" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard. placeType/storageMedium are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here." .
+
+gmeow:eqPlaces001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:VirtualLocation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:VirtualLocation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Geometry ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject geo:Geometry ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeType ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gvp:placeType ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeCountry ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:Country ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeCountry ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gn:A ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeCountry ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q6256 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeCity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:City ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeCity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gn:P ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeCity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q515 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeAdministrativeArea ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:AdministrativeArea ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeAdministrativeArea ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gn:A ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces012 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeBuilding ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gn:S ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeBuilding ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q41176 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces014 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeRoom ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q180516 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces015 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeNaturalFeature ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gn:T ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:containedInPlace ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject geo:sfWithin ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces017 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:containedInPlace ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gn:parentFeature ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces018 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:containedInPlace ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:isPartOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces019 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:containedInPlace ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P131 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces020 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasGeometry ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject geo:hasGeometry ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces021 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:asWKT ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject geo:asWKT ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces022 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasCoordinates ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:geo ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces023 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:latitude ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wgs84:lat ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces024 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:longitude ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wgs84:long ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces025 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:elevation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wgs84:alt ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces026 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:elevation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:elevation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces027 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:locatedAt ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:location ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces028 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:streetAddress ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:streetAddress ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces029 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:streetAddress ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:street-address ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces030 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:extendedAddress ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:extended-address ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces031 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:postOfficeBox ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:postOfficeBoxNumber ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces032 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:postOfficeBox ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:post-office-box ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces033 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:addressLocality ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:addressLocality ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces034 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:addressLocality ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:locality ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces035 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:addressRegion ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:addressRegion ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces036 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:addressRegion ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:region ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces037 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:postalCode ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:postalCode ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces038 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:postalCode ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:postal-code ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces039 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:countryCode ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:addressCountry ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces040 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:countryCode ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:country-name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces041 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:addressPlace ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:address ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces042 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:timezone ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:tz ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces043 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:alternateName ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:alternateName ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces044 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:alternateName ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject skos:altLabel ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces045 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:alternateName ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gn:alternateName ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces046 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:authorityLink ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:sameAs ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .

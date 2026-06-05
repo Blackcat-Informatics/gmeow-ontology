@@ -8,9 +8,10 @@ SHELL := /bin/bash
 # Alignment target for `make extract` (license-checked). Override: make extract TARGET=foaf
 TARGET ?= foaf
 
-.PHONY: help install fmt lint validate reason explain extract mappings wikidata \
-        wikidata-live metadata apache docs docs-full rdf12 quality normalize \
-        build export project test check release clean pull-images
+.PHONY: help install fmt lint validate reason explain extract compile-mappings \
+        compile-check mappings wikidata wikidata-live metadata apache docs \
+        docs-full rdf12 quality normalize build export project test check \
+        release clean pull-images
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -39,7 +40,13 @@ explain: ## Explain any unsatisfiable classes (HermiT, Docker).
 extract: ## Report import/extract policy for TARGET (refuses reference-only).
 	uv run gmeow extract --target $(TARGET)
 
-mappings: ## Build alignment axioms + VoID linksets from SSSOM; validate QID syntax.
+compile-mappings: ## Compile the mapping DSL → SSSOM + EDOAL + FnO + SPARQL (in-place).
+	uv run gmeow compile-mappings
+
+compile-check: ## Fail if the committed projection artifacts are stale vs the DSL.
+	uv run gmeow compile-mappings --check
+
+mappings: compile-mappings ## Build alignment axioms + VoID linksets from SSSOM; validate QID syntax.
 	uv run gmeow mappings
 
 wikidata: ## Validate Wikidata QID/PID syntax in the mappings (offline).
@@ -66,7 +73,7 @@ docs: ## Generate pyLODE HTML documentation.
 docs-full: ## Generate pyLODE + WIDOCO documentation (Docker).
 	uv run gmeow docs --widoco
 
-rdf12: ## Project the RDF 1.2 / rdf-star preview view (Jena, gated/skips if absent).
+rdf12: ## Materialize the RDF 1.2 / RDF* view (requires Apache Jena; fails if absent).
 	uv run gmeow rdf12
 
 quality: ## Run OOPS! pitfall scan (network, best-effort).
@@ -81,13 +88,13 @@ build: ## Build all serializations + JSON-LD context + apache.conf into dist/.
 export: ## Generate flattened exports (CSV/CSVW, Markdown, JSONL, llms.txt) into dist/.
 	uv run gmeow export
 
-project: ## Project GMEOW data to pure schema.org/GeoSPARQL/vCard/FOAF profiles (FnO/EDOAL).
+project: compile-mappings ## Project GMEOW data to pure schema.org/GeoSPARQL/vCard/FOAF profiles (FnO/EDOAL).
 	uv run gmeow project
 
 test: ## Run the test suite.
 	uv run pytest
 
-check: lint validate reason mappings wikidata coverage test ## Full local quality gate.
+check: lint validate reason compile-check mappings wikidata coverage test ## Full local quality gate.
 	@echo "✓ all checks passed"
 
 release: ## Reasoned closure (HermiT) + build + metadata + CrossRef deposit + RDF 1.2.

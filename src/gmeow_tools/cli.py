@@ -122,6 +122,48 @@ def extract(
     )
 
 
+@app.command(name="compile-mappings")
+def compile_mappings(
+    check: bool = typer.Option(
+        False,
+        "--check",
+        help="Verify committed artifacts match a fresh compile; write nothing.",
+    ),
+) -> None:
+    """Compile the mapping DSL → SSSOM + EDOAL + FnO + SPARQL artifacts (in-place).
+
+    The single authoring source in mapping-dsl/ is rendered into the four standard
+    alignment artifacts. The three projection-lint invariants are enforced on the
+    output before it is written, so drift cannot be produced. ``--check`` compiles
+    to a temp tree and reports any drift versus the committed files (the CI gate).
+    """
+    from gmeow_tools.mapping_compile import compile_all
+    from gmeow_tools.mapping_dsl import CompileError
+
+    try:
+        report = compile_all(check=check)
+    except CompileError as exc:
+        raise _fail(f"✗ {exc}") from exc
+
+    if check:
+        if report.drifted:
+            for rel in sorted(report.drifted):
+                err_console.print(f"[red]drift[/red] {rel}")
+            raise _fail(
+                f"✗ {len(report.drifted)} artifact(s) out of date — "
+                "run `gmeow compile-mappings`"
+            )
+        console.print("[green]✓ committed artifacts match the DSL (no drift)[/green]")
+        return
+    from gmeow_tools.config import PROJECT_ROOT
+
+    for path in report.written:
+        console.print(f"[green]✓[/green] {path.relative_to(PROJECT_ROOT)}")
+    console.print(
+        f"[green]✓ compiled {len(report.written)} artifacts from mapping-dsl/[/green]"
+    )
+
+
 @app.command()
 def mappings() -> None:
     """Build alignment axioms + VoID linksets from SSSOM, validating QIDs."""
@@ -361,7 +403,7 @@ def docs(
 
 @app.command()
 def rdf12() -> None:
-    """Project the OWL axiom annotations into the RDF 1.2 preview (Jena, gated)."""
+    """Materialize the RDF 1.2 / RDF* view (requires Apache Jena — no degraded mode)."""
     from gmeow_tools import rdf12 as rdf12_mod
     from gmeow_tools import reason as reasoning
     from gmeow_tools.runner import ToolUnavailableError
@@ -370,9 +412,12 @@ def rdf12() -> None:
         merged = reasoning.merge_release()
         out = rdf12_mod.project_rdf12(merged=merged)
     except ToolUnavailableError as exc:
-        err_console.print(f"[yellow]skipped (gated): {exc}[/yellow]")
-        return
-    console.print(f"[green]✓ RDF 1.2 preview → {out.name}[/green]")
+        raise _fail(
+            f"✗ RDF 1.2 view requires its toolchain: {exc}. RDF 1.2 is GMEOW's "
+            "primary statement-level model — there is no degraded fallback.",
+            code=2,
+        ) from exc
+    console.print(f"[green]✓ RDF 1.2 / RDF* view → {out.name}[/green]")
 
 
 @app.command()

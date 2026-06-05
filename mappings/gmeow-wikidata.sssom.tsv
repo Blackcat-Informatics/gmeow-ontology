@@ -1,9 +1,18 @@
 # mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/wikidata
+# mapping_set_version: 0.1.0
 # license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow compile-mappings
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
 # comment: GMEOW term to Wikidata Q-item alignments (concept-scheme layer; QIDs validated).
-subject_id	predicate_id	object_id	mapping_justification	confidence	comment
-gmeow:Person	skos:exactMatch	wd:Q5	semapv:ManualMappingCuration	0.95	human
-gmeow:Organization	skos:exactMatch	wd:Q43229	semapv:ManualMappingCuration	0.9	organization
-gmeow:Place	skos:exactMatch	wd:Q2221906	semapv:ManualMappingCuration	0.9	geographic location
-gmeow:SoftwareProject	skos:exactMatch	wd:Q7397	semapv:ManualMappingCuration	0.8	software
-gmeow:Family	skos:exactMatch	wd:Q8436	semapv:ManualMappingCuration	0.9	family
+# curie_map:
+#   gmeow: https://blackcatinformatics.ca/gmeow/
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+#   wd: http://www.wikidata.org/entity/
+subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
+gmeow:Family	skos:exactMatch	wd:Q8436	family	semapv:ManualMappingCuration	0.9	
+gmeow:Organization	skos:exactMatch	wd:Q43229	organization	semapv:ManualMappingCuration	0.9	
+gmeow:Person	skos:exactMatch	wd:Q5	human	semapv:ManualMappingCuration	0.95	
+gmeow:Place	skos:exactMatch	wd:Q2221906	geographic location	semapv:ManualMappingCuration	0.9	
+gmeow:SoftwareProject	skos:exactMatch	wd:Q7397	software	semapv:ManualMappingCuration	0.8	

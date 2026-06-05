@@ -1,0 +1,225 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix schema: <https://schema.org/> .
+@prefix sioc: <http://rdfs.org/sioc/ns#> .
+@prefix nmo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#> .
+
+# Term equivalences for the email domain — GMEOW authoring source.
+# Compiled to mappings/gmeow-email.sssom.tsv by `gmeow compile-mappings`.
+
+gmeow:mapsetEmail a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/email" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Email alignments. EmailMessage is equivalent to schema:EmailMessage; the rest use skos:closeMatch (cross-type/loose) to schema.org, the Nepomuk Message Ontology (NMO), and SIOC. Trust terms (RelayHop/AuthenticationResult/signatures) are canonical — no maintained external RDF vocabulary exists for them." .
+
+gmeow:eqEmail001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:EmailMessage ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject schema:EmailMessage ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:EmailMessage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nmo:Email ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:EmailMessage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sioc:Post ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Message ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:Message ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Message ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nmo:Message ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Thread ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sioc:Thread ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Mailbox ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nmo:Mailbox ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:from ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:sender ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:from ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nmo:from ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:to ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:toRecipient ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:to ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nmo:to ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail012 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:cc ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:ccRecipient ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:cc ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nmo:cc ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail014 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:bcc ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:bccRecipient ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail015 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:bcc ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nmo:bcc ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:replyTo ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nmo:replyTo ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail017 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:sentAt ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:dateSent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail018 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:sentAt ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nmo:sentDate ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail019 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:receivedAt ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:dateReceived ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail020 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:receivedAt ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nmo:receivedDate ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail021 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:subject ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nmo:messageSubject ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail022 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:rfcMessageId ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nmo:messageId ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail023 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:inReplyTo ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nmo:inReplyTo ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail024 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:references ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nmo:references ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail025 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasAttachment ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:messageAttachment ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+gmeow:eqEmail026 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasAttachment ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject nmo:hasAttachment ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .

@@ -1,0 +1,259 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix schema: <https://schema.org/> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix gx: <http://gedcomx.org/> .
+@prefix wdt: <http://www.wikidata.org/prop/direct/> .
+
+# Term equivalences for the names domain — GMEOW authoring source.
+# Compiled to mappings/gmeow-names.sssom.tsv by `gmeow compile-mappings`.
+
+gmeow:mapsetNames a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/names" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Name alignments for comprehensive, multi-culture interop — schema.org, vCard 4 (N components, nickname, fn), GEDCOM X (gx:) name parts, FOAF, and a few well-established Wikidata properties. Multi-cultural name-part KINDS (gmeow:NamePartType value individuals such as namePartGiven/namePartSurname) align closeMatch to the nearest external concept, following the places.ttl idiom; there are no flat given/family name properties — a 'First Last' rendering is produced by downcasting the structured gmeow:NamePart model in the projection layer (projections/*). PronounSet, NameRegister, NameUsage and the inclusivity machinery (displayable, namePurposeChosen/Deadname) are largely CANONICAL — no maintained external RDF vocabulary covers them faithfully; co-equality of multilingual names is a structural stance, not an external mapping. Coreference of name INSTANCES is done in data, not here." .
+
+gmeow:eqNames001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:fullName ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:fullName ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:fn ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:fullName ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject foaf:name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:fullName ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P1559 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:PersonName ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasNamePart ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:nameForm ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartGiven ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:givenName ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartGiven ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:given-name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartGiven ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject foaf:givenName ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartGiven ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Given ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartGiven ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P735 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames012 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartSurname ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:familyName ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartSurname ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:family-name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames014 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartSurname ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject foaf:familyName ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames015 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartSurname ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Surname ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartSurname ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P734 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames017 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartMiddle ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:additionalName ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames018 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartMiddle ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:additional-name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames019 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartNickname ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:nickname ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames020 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartNickname ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject foaf:nick ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames021 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartNickname ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P1449 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames022 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartHonorificPrefix ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:honorificPrefix ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames023 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartHonorificPrefix ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:honorific-prefix ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames024 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartHonorificSuffix ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:honorificSuffix ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames025 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartHonorificSuffix ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject vcard:honorific-suffix ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames026 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePartPatronymic ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Patronymic ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames027 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:honorific ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:honorificPrefix ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames028 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:honorific ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P511 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames029 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePurposeBirth ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P1477 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames030 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePurposePenStage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P742 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .

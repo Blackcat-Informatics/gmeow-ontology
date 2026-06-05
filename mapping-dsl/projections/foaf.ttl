@@ -1,0 +1,92 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
+@prefix wgs84: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+
+# Projection mappings: GMEOW → pure FOAF (lowest common denominator). Compiled to
+# projections/foaf.edoal.ttl + queries/projections/foaf.rq by `gmeow compile-mappings`.
+
+gmeow:mapFoafSpatialThing a gmeow:ProjectionMapping ;
+    rdfs:label "Place with coordinates → wgs84:SpatialThing (lat/long, no WKT)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasCoordinates ; gmeow:objectVar "c" ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:latitude ; gmeow:objectVar "lat" ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:longitude ; gmeow:objectVar "lon" ] ) ;
+        gmeow:edoalSource gmeow:Place ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget wgs84:SpatialThing ; gmeow:edoalTargetKind "class" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "place" ; gmeow:tPred rdf:type ; gmeow:tObjValue wgs84:SpatialThing ]
+            [ gmeow:tSubj "place" ; gmeow:tPred wgs84:lat ; gmeow:tObj "lat" ]
+            [ gmeow:tSubj "place" ; gmeow:tPred wgs84:long ; gmeow:tObj "lon" ] ) ;
+        gmeow:lossyDrop "address structure, place types, hierarchy, geometry/WKT" ] .
+
+gmeow:mapFoafName a gmeow:ProjectionMapping ;
+    rdfs:label "displayable fullName → foaf:name"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "dispName" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasAppellation gmeow:hasName ) ] ;
+              gmeow:objectVar "app" ]
+            [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:fullName ; gmeow:objectVar "dispName" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:fullName ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:toPredicate foaf:name ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnSelectDisplayName ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "non-displayable names (deadnames) dropped" ] .
+
+gmeow:mapFoafGender a gmeow:ProjectionMapping ;
+    rdfs:label "displayable GenderIdentity value → foaf:gender (lossy; suppressed labels dropped)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "genderLabel" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:hasGenderIdentity ; gmeow:objectVar "gi" ]
+            [ gmeow:subjectVar "gi" ; gmeow:predicate gmeow:genderValue ; gmeow:objectVar "gv" ]
+            [ gmeow:subjectVar "gv" ; gmeow:predicate rdfs:label ; gmeow:objectVar "genderLabel" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "gi" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:hasGenderIdentity ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:toPredicate foaf:gender ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnSelectDisplayableGender ; gmeow:confidence 0.6 ;
+        gmeow:lossyDrop "orientation + sexAssignedAtBirth dropped; sex/gender conflated" ] .
+
+gmeow:mapFoafNick a gmeow:ProjectionMapping ;
+    rdfs:label "nickname-purpose PersonName → foaf:nick"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "nick" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:hasName ; gmeow:objectVar "nn" ]
+            [ gmeow:subjectVar "nn" ; gmeow:predicate gmeow:namePurpose ; gmeow:objectValue gmeow:namePurposeNickname ]
+            [ gmeow:subjectVar "nn" ; gmeow:predicate gmeow:fullName ; gmeow:objectVar "nick" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "nn" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:hasName ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:toPredicate foaf:nick ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnNicknameName ; gmeow:confidence 0.9 ] .
+
+gmeow:mapFoafHomepage a gmeow:ProjectionMapping ;
+    rdfs:label "hasWebPage → foaf:homepage (the WebPage IRI)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "wp" ;
+        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:hasWebPage ; gmeow:objectVar "wp" ] ) ;
+        gmeow:edoalSource gmeow:hasWebPage ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:toPredicate foaf:homepage ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnWebPageToUrl ; gmeow:confidence 0.8 ] .
+
+gmeow:mapFoafBasedNear a gmeow:ProjectionMapping ;
+    rdfs:label "locatedAt a Place → foaf:based_near"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "agent" ; gmeow:value "place" ;
+        gmeow:atom ( [ gmeow:subjectVar "agent" ; gmeow:predicate gmeow:locatedAt ; gmeow:objectVar "place" ] ) ;
+        gmeow:edoalSource gmeow:locatedAt ] ;
+    gmeow:hasBinding [
+        gmeow:profile "foaf" ; gmeow:toPredicate foaf:based_near ; gmeow:relation "<=" ;
+        gmeow:confidence 0.7 ] .

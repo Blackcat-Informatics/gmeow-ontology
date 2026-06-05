@@ -1,0 +1,397 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix doap: <http://usefulinc.com/ns/doap#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix org: <http://www.w3.org/ns/org#> .
+@prefix schema: <https://schema.org/> .
+@prefix gedcom: <http://www.w3.org/2000/10/swap/pim/gedcom#> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix bibo: <http://purl.org/ontology/bibo/> .
+@prefix bibframe: <http://id.loc.gov/ontologies/bibframe/> .
+@prefix sioc: <http://rdfs.org/sioc/ns#> .
+
+# Term equivalences for the classes domain — GMEOW authoring source.
+# Compiled to mappings/gmeow-classes.sssom.tsv by `gmeow compile-mappings`.
+
+gmeow:mapsetClasses a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/classes" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Canonical GMEOW class alignments to the surface vocabularies in the slice (the superset layer). schema.org is reference-only (linked, never imported)." .
+
+gmeow:eqClasses001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Person ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject schema:Person ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "person" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Person ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject foaf:Person ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "person" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Person ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject gedcom:Individual ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "genealogical individual is a person" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Organization ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject schema:Organization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Organization ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject foaf:Organization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject org:FormalOrganization ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:Organization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "formal org is an organization" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Agent ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject foaf:Agent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Agent ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject prov:Agent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Group ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject foaf:Group ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Role ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject org:Role ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject schema:OrganizationRole ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:Role ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses012 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Membership ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject org:Membership ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:OnlineAccount ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject foaf:OnlineAccount ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses014 a gmeow:TermEquivalence ;
+    gmeow:alignSubject sioc:UserAccount ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:OnlineAccount ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses015 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:CreativeWork ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject schema:CreativeWork ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Document ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject schema:DigitalDocument ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses017 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Article ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject schema:Article ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses018 a gmeow:TermEquivalence ;
+    gmeow:alignSubject schema:ScholarlyArticle ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:Article ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses019 a gmeow:TermEquivalence ;
+    gmeow:alignSubject bibo:AcademicArticle ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:Article ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses020 a gmeow:TermEquivalence ;
+    gmeow:alignSubject schema:NewsArticle ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:Article ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses021 a gmeow:TermEquivalence ;
+    gmeow:alignSubject schema:BlogPosting ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:Article ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses022 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Patent ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject bibo:Patent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses023 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Dataset ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject schema:Dataset ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses024 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:MediaObject ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject schema:MediaObject ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses025 a gmeow:TermEquivalence ;
+    gmeow:alignSubject schema:ImageObject ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:MediaObject ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses026 a gmeow:TermEquivalence ;
+    gmeow:alignSubject schema:AudioObject ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:MediaObject ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses027 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:WebPage ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject schema:WebPage ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses028 a gmeow:TermEquivalence ;
+    gmeow:alignSubject bibframe:Work ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gmeow:CreativeWork ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses029 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SoftwareProject ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject doap:Project ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses030 a gmeow:TermEquivalence ;
+    gmeow:alignSubject schema:SoftwareSourceCode ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:SoftwareProject ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses031 a gmeow:TermEquivalence ;
+    gmeow:alignSubject schema:SoftwareApplication ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:SoftwareProject ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses032 a gmeow:TermEquivalence ;
+    gmeow:alignSubject doap:GitRepository ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:Repository ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses033 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Family ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject gedcom:Family ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses034 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Marriage ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject gedcom:Marriage ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses035 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Place ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject schema:Place ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses036 a gmeow:TermEquivalence ;
+    gmeow:alignSubject schema:Country ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:Place ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses037 a gmeow:TermEquivalence ;
+    gmeow:alignSubject geo:Feature ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gmeow:Place ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses038 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:GeoCoordinates ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject schema:GeoCoordinates ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses039 a gmeow:TermEquivalence ;
+    gmeow:alignSubject geo:Geometry ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gmeow:Geometry ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses040 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ContactPoint ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject schema:ContactPoint ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses041 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:PostalAddress ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject schema:PostalAddress ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses042 a gmeow:TermEquivalence ;
+    gmeow:alignSubject vcard:Address ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gmeow:PostalAddress ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses043 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Occupation ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject schema:Occupation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses044 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Credential ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject schema:EducationalOccupationalCredential ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses045 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Activity ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject prov:Activity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses046 a gmeow:TermEquivalence ;
+    gmeow:alignSubject prov:Entity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gmeow:Entity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .

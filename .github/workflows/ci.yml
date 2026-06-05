@@ -81,6 +81,9 @@ jobs:
       - name: Validate (syntax, lint, SHACL)
         run: uv run gmeow validate
 
+      - name: Mapping DSL compiles with no drift
+        run: uv run gmeow compile-mappings --check
+
       - name: Mappings → axioms + linksets, QID syntax
         run: uv run gmeow mappings
 

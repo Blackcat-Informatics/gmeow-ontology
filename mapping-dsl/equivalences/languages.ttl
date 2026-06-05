@@ -1,0 +1,129 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix schema: <https://schema.org/> .
+@prefix wd: <http://www.wikidata.org/entity/> .
+@prefix wdt: <http://www.wikidata.org/prop/direct/> .
+
+# Term equivalences for the languages domain — GMEOW authoring source.
+# Compiled to mappings/gmeow-languages.sssom.tsv by `gmeow compile-mappings`.
+
+gmeow:mapsetLanguages a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/languages" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Language alignments — schema.org + Wikidata. gmeow:Language is registry-INDEPENDENT (a self-minted IRI); these are see-also links, and coreference of language INSTANCES to Lexvo (http://lexvo.org/id/iso639-3/…), Glottolog and Wikidata items is asserted in data with skos:exactMatch + gmeow:authorityLink, not here. Proficiency scales (CEFR/ILR/ACTFL), writing-system roles, version lineage, origin/modality/status value vocabularies and the WritingSystemUsage relator are largely CANONICAL — no maintained external RDF vocabulary covers them faithfully. The reified gmeow:LanguageProficiency flattens to schema:knowsLanguage / wdt:P1412 only via the EDOAL+FnO projection layer, not by a 1:1 SSSOM claim." .
+
+gmeow:eqLanguages001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Language ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:Language ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+
+gmeow:eqLanguages002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Language ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q34770 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+
+gmeow:eqLanguages003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:FormalLanguage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q205892 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+
+gmeow:eqLanguages004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ProgrammingLanguage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:ComputerLanguage ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+
+gmeow:eqLanguages005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ProgrammingLanguage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q9143 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+
+gmeow:eqLanguages006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:WritingSystem ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q8192 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+
+gmeow:eqLanguages007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:usesWritingSystem ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P282 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+
+gmeow:eqLanguages008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:knowsLanguage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:knowsLanguage ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+
+gmeow:eqLanguages009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:knowsLanguage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P1412 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+
+gmeow:eqLanguages010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:nativeLanguage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P103 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+
+gmeow:eqLanguages011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:languageCode ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:iso6391Code ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+
+gmeow:eqLanguages012 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:originNatural ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q33742 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+
+gmeow:eqLanguages013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:originConstructedEngineered ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q33215 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+
+gmeow:eqLanguages014 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:modalitySigned ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q34228 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" .

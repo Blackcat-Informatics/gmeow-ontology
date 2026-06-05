@@ -73,6 +73,10 @@ QC_DIR = QUERIES_DIR / "qc"
 PROJECTION_QUERY_DIR = QUERIES_DIR / "projections"
 #: FnO function catalog + EDOAL complex-alignment specs (consumable, not reasoned).
 PROJECTIONS_DIR = PROJECT_ROOT / "projections"
+#: Single-source mapping DSL (the GMEOW-grounded authoring layer). ``gmeow
+#: compile-mappings`` renders these cells into the SSSOM / EDOAL / FnO / SPARQL
+#: artifacts. Authored, never generated; not in the reasoned import closure.
+MAPPING_DSL_DIR = PROJECT_ROOT / "mapping-dsl"
 #: Vendored coverage fixtures (public site graphs) used by the coverage harness.
 FIXTURES_DIR = PROJECT_ROOT / "tests" / "fixtures" / "coverage"
 METADATA_DIR = PROJECT_ROOT / "metadata"
