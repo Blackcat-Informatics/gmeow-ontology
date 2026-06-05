@@ -8,6 +8,8 @@ subcommands rather than reimplementing any behaviour.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import typer
 from rich.console import Console
 
@@ -282,10 +284,12 @@ def build() -> None:
     context = write_context()
     from gmeow_tools.apache import write_conf
     from gmeow_tools.export import export_all
+    from gmeow_tools.projections import project_examples
 
     conf = write_conf()
     exports = export_all()
-    for path in (*written.values(), context, conf, *exports):
+    projected = project_examples()
+    for path in (*written.values(), context, conf, *exports, *projected):
         console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
 
 
@@ -300,6 +304,35 @@ def export() -> None:
 
     for path in export_all():
         console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
+
+
+@app.command()
+def project(
+    profile: str = typer.Option(
+        "all", help="Target profile: all|schema-org|geosparql|vcard|foaf."
+    ),
+    data: str = typer.Option(
+        "", help="GMEOW data file to project (default: the worked-example fixtures)."
+    ),
+) -> None:
+    """Project GMEOW data to a pure schema.org / GeoSPARQL / vCard / FOAF profile.
+
+    The FnO/EDOAL specs under projections/ describe the transformations; this runs
+    their executable SPARQL CONSTRUCT form (pure-Python rdflib). Lossy by design.
+    """
+    from gmeow_tools.projections import PROFILES, project_examples, project_file
+
+    names = list(PROFILES) if profile == "all" else [profile]
+    for name in names:
+        if name not in PROFILES:
+            raise _fail(f"unknown profile: {name}")
+    if not data:
+        for path in project_examples():
+            console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
+    else:
+        for name in names:
+            path = project_file(Path(data), name)
+            console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
 
 
 @app.command()

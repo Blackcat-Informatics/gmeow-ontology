@@ -10,7 +10,7 @@ TARGET ?= foaf
 
 .PHONY: help install fmt lint validate reason explain extract mappings wikidata \
         wikidata-live metadata apache docs docs-full rdf12 quality normalize \
-        build test check release clean pull-images
+        build export project test check release clean pull-images
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -80,6 +80,9 @@ build: ## Build all serializations + JSON-LD context + apache.conf into dist/.
 
 export: ## Generate flattened exports (CSV/CSVW, Markdown, JSONL, llms.txt) into dist/.
 	uv run gmeow export
+
+project: ## Project GMEOW data to pure schema.org/GeoSPARQL/vCard/FOAF profiles (FnO/EDOAL).
+	uv run gmeow project
 
 test: ## Run the test suite.
 	uv run pytest

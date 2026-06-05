@@ -1,0 +1,78 @@
+# Projection: GMEOW → pure schema.org (locations + naming). Executable form of
+# projections/schema-org.edoal.ttl. Run over instance data + the ontology (for
+# honorific labels). value→class place typing, displayable-name selection
+# (deadnames suppressed), name parts, honorific affixes. Lossy drops: Location/
+# StorageLocation, fine place types, authorityLink, NameUsage/Appellation
+# wrappers, namePurpose/register/script, pronouns.
+PREFIX gmeow:  <https://blackcatinformatics.ca/gmeow/>
+PREFIX schema: <https://schema.org/>
+PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
+
+CONSTRUCT {
+    ?place a schema:Place .
+    ?place a ?schemaClass .
+    ?place schema:containedInPlace ?parent .
+    ?place schema:geo ?coords .
+    ?coords a schema:GeoCoordinates ;
+        schema:latitude ?lat ; schema:longitude ?lon ; schema:elevation ?elev .
+    ?vl a schema:VirtualLocation ; schema:url ?vurl .
+    ?holder schema:address ?addr .
+    ?addr a schema:PostalAddress ;
+        schema:streetAddress ?street ; schema:addressLocality ?locality ;
+        schema:addressRegion ?region ; schema:postalCode ?pcode ;
+        schema:addressCountry ?ccode .
+    ?ent schema:name ?dispName .
+    ?ent schema:givenName ?given .
+    ?ent schema:familyName ?family .
+    ?ent schema:honorificPrefix ?honPrefix .
+    ?ent schema:honorificSuffix ?honSuffix .
+}
+WHERE {
+    {
+        ?place a gmeow:Place .
+        OPTIONAL { ?place gmeow:containedInPlace ?parent . }
+        OPTIONAL {
+            ?place gmeow:hasCoordinates ?coords .
+            OPTIONAL { ?coords gmeow:latitude ?lat . }
+            OPTIONAL { ?coords gmeow:longitude ?lon . }
+            OPTIONAL { ?coords gmeow:elevation ?elev . }
+        }
+    } UNION {
+        ?place gmeow:placeType ?pt .
+        VALUES ( ?pt ?schemaClass ) {
+            ( gmeow:placeTypeCountry schema:Country )
+            ( gmeow:placeTypeCity schema:City )
+            ( gmeow:placeTypeAdministrativeArea schema:AdministrativeArea )
+            ( gmeow:placeTypeRegion schema:AdministrativeArea )
+        }
+    } UNION {
+        ?vl a gmeow:VirtualLocation .
+        OPTIONAL { ?vl gmeow:accessUrl ?vurl . }
+    } UNION {
+        ?holder gmeow:hasContactPoint ?addr .
+        ?addr a gmeow:PostalAddress .
+        OPTIONAL { ?addr gmeow:streetAddress ?street . }
+        OPTIONAL { ?addr gmeow:addressLocality ?locality . }
+        OPTIONAL { ?addr gmeow:addressRegion ?region . }
+        OPTIONAL { ?addr gmeow:postalCode ?pcode . }
+        OPTIONAL { ?addr gmeow:countryCode ?ccode . }
+    } UNION {
+        ?ent gmeow:hasAppellation|gmeow:hasName ?app .
+        ?app gmeow:fullName ?dispName .
+        FILTER NOT EXISTS { ?app gmeow:displayable false }
+    } UNION {
+        ?ent gmeow:hasAppellation|gmeow:hasName ?app .
+        ?app gmeow:hasNamePart ?np .
+        ?np gmeow:namePartType gmeow:namePartGiven ; gmeow:partText ?given .
+    } UNION {
+        ?ent gmeow:hasAppellation|gmeow:hasName ?app .
+        ?app gmeow:hasNamePart ?np .
+        ?np gmeow:namePartType gmeow:namePartSurname ; gmeow:partText ?family .
+    } UNION {
+        ?ent gmeow:honorific ?h .
+        ?h rdfs:label ?honPrefix ; gmeow:honorificPosition gmeow:honorificPositionPrefix .
+    } UNION {
+        ?ent gmeow:honorific ?h .
+        ?h rdfs:label ?honSuffix ; gmeow:honorificPosition gmeow:honorificPositionSuffix .
+    }
+}

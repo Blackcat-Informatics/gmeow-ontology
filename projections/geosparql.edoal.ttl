@@ -1,0 +1,35 @@
+@prefix align:  <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
+@prefix edoal:  <http://ns.inria.org/edoal/1.0/#> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix geo:    <http://www.opengis.net/ont/geosparql#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# EDOAL complex alignment: GMEOW → pure GeoSPARQL. Complex cells: WKT datatype
+# retag and lat/long→POINT combine. 1:1 (Place→geo:Feature, hasGeometry→
+# geo:hasGeometry, containedInPlace→geo:sfWithin) are in the SSSOM mappings.
+# Lossy drops: addresses, place types, names, virtual/storage. Executable form:
+# queries/projections/geosparql.rq. Spec only — not reasoned.
+
+<https://blackcatinformatics.ca/gmeow/projections/geosparql>
+    a align:Alignment ;
+    rdfs:label "GMEOW → GeoSPARQL (EDOAL)"@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    align:level "2EDOAL" ;
+    align:onto1 [ a align:Ontology ; align:formalism [ align:name "GMEOW" ] ] ;
+    align:onto2 [ a align:Ontology ; align:formalism [ align:name "GeoSPARQL" ] ] ;
+    align:map [
+        a align:Cell ;
+        rdfs:label "asWKT literal → geo:asWKT retagged geo:wktLiteral"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:asWKT ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri geo:asWKT ] ;
+        align:relation "=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnRetagWkt ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "latitude + longitude → geo:Geometry with WKT POINT"@en ;
+        align:entity1 [ a edoal:Class ; edoal:uri gmeow:GeoCoordinates ] ;
+        align:entity2 [ a edoal:Class ; edoal:uri geo:Geometry ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnLatLongToWktPoint ]
+    ] .

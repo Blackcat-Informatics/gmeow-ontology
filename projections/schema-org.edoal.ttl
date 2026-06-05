@@ -1,0 +1,74 @@
+@prefix align:  <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
+@prefix edoal:  <http://ns.inria.org/edoal/1.0/#> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix schema: <https://schema.org/> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# EDOAL complex alignment: GMEOW → pure schema.org. Records the correspondences
+# SSSOM cannot express (value→class conditions, lossy display selection). The 1:1
+# term renames are in mappings/gmeow-*.sssom.tsv; the executable form is
+# queries/projections/schema-org.rq. Lossy drops on this profile: StorageLocation,
+# fine place types (floor/premises/thoroughfare/neighborhood/POI), authorityLink,
+# NameUsage/Appellation wrappers, namePurpose/register/script, pronouns,
+# non-displayable names (deadnames). This file is a spec, not reasoned.
+
+<https://blackcatinformatics.ca/gmeow/projections/schema-org>
+    a align:Alignment ;
+    rdfs:label "GMEOW → schema.org (EDOAL)"@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    align:level "2EDOAL" ;
+    align:onto1 [ a align:Ontology ; align:formalism [ align:name "GMEOW" ] ] ;
+    align:onto2 [ a align:Ontology ; align:formalism [ align:name "schema.org" ] ] ;
+    align:map [
+        a align:Cell ;
+        rdfs:label "a Place typed placeTypeCountry → schema:Country"@en ;
+        align:entity1 [ a edoal:Class ; edoal:and (
+            [ a edoal:Class ; edoal:uri gmeow:Place ]
+            [ a edoal:AttributeValueRestriction ;
+              edoal:onAttribute [ a edoal:Relation ; edoal:uri gmeow:placeType ] ;
+              edoal:comparator edoal:equals ;
+              edoal:value [ edoal:uri gmeow:placeTypeCountry ] ] ) ] ;
+        align:entity2 [ a edoal:Class ; edoal:uri schema:Country ] ;
+        align:relation "=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnPlaceTypeToClass ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "a Place typed placeTypeCity → schema:City"@en ;
+        align:entity1 [ a edoal:Class ; edoal:and (
+            [ a edoal:Class ; edoal:uri gmeow:Place ]
+            [ a edoal:AttributeValueRestriction ;
+              edoal:onAttribute [ a edoal:Relation ; edoal:uri gmeow:placeType ] ;
+              edoal:comparator edoal:equals ;
+              edoal:value [ edoal:uri gmeow:placeTypeCity ] ] ) ] ;
+        align:entity2 [ a edoal:Class ; edoal:uri schema:City ] ;
+        align:relation "=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnPlaceTypeToClass ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "a Place typed placeTypeAdministrativeArea → schema:AdministrativeArea"@en ;
+        align:entity1 [ a edoal:Class ; edoal:and (
+            [ a edoal:Class ; edoal:uri gmeow:Place ]
+            [ a edoal:AttributeValueRestriction ;
+              edoal:onAttribute [ a edoal:Relation ; edoal:uri gmeow:placeType ] ;
+              edoal:comparator edoal:equals ;
+              edoal:value [ edoal:uri gmeow:placeTypeAdministrativeArea ] ] ) ] ;
+        align:entity2 [ a edoal:Class ; edoal:uri schema:AdministrativeArea ] ;
+        align:relation "=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnPlaceTypeToClass ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "displayable Appellation fullName → schema:name (lossy: drops non-displayable)"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:fullName ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri schema:name ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayName ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "Honorific value → schema:honorificPrefix/Suffix by position"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:honorific ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri schema:honorificPrefix ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnHonorificToAffix ]
+    ] .
