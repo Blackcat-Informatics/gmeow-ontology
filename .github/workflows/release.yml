@@ -24,7 +24,10 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
-          enable-cache: true
+          # No cache on the privileged tag-release build: a PR run could write a
+          # cache entry this job would otherwise restore (cache-poisoning path).
+          # Releases are infrequent — a clean, hermetic build is worth more.
+          enable-cache: false
 
       - name: Sync environment
         run: uv sync --frozen
