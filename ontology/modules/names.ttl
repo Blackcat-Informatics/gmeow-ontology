@@ -142,9 +142,9 @@ gmeow:usageInterval
 # --------------------------------------------------------------------------- #
 # Bearing a name + structured parts.
 # gmeow:hasAppellation is the universal bearing property; gmeow:hasName is its
-# person-scoped subproperty (re-homed from genealogy). The flat
-# givenNamePart/surnamePart shortcuts (also re-homed) coexist with the richer
-# typed NamePart route, just as contacts' hasMet bypasses the relator.
+# person-scoped subproperty. Name components are ALWAYS the typed, reified
+# gmeow:NamePart (hasNamePart + namePartType + partText) — a flat given/family
+# rendering is a downcast in the projection layer, never a canonical property.
 # --------------------------------------------------------------------------- #
 
 gmeow:hasAppellation
@@ -204,22 +204,6 @@ gmeow:partExpansion
     skos:definition "The expanded form of an abbreviated part — e.g. the full word a South-Indian (Tamil) initial stands for."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:givenNamePart
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Appellation ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "given name part"@en ;
-    skos:definition "A given (fore) name part within a structured name, as a flat literal shortcut. Use the typed gmeow:hasNamePart → gmeow:NamePart route when order, kind, or multiplicity matters."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:surnamePart
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Appellation ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "surname part"@en ;
-    skos:definition "A surname (family) name part within a structured name, as a flat literal shortcut. Optional — mononyms have none. Use the typed gmeow:hasNamePart route when order, kind, or multiplicity matters."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
 # --------------------------------------------------------------------------- #
 # Whole-name surface form, language/script, and the purpose value.
 # gmeow:fullName is authoritative for display; the parts are for matching and
@@ -257,6 +241,7 @@ gmeow:romanization
     rdfs:range rdfs:Literal ;
     rdfs:label "romanization"@en ;
     skos:definition "A Latin-script transliteration of THIS SAME appellation in another script (e.g. \"Yamada Tarō\" for \"山田太郎\"; pinyin for a Chinese name). Strictly a transliteration of one name — it NEVER bridges two distinct co-equal names (a Mandarin name is not the romanization of a Latin one)."@en ;
+    skos:scopeNote "Name the system that produced the romanization with gmeow:transliterationScheme (languages module) — Hepburn vs Kunrei for Japanese, Pinyin vs Wade-Giles for Mandarin — so the romanization records HOW it was derived; each scheme is catalogued as an FnO function in the projection layer."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:namePurpose
@@ -281,17 +266,6 @@ gmeow:conferredByEvent
     rdfs:range gmeow:LifeEvent ;
     rdfs:label "conferred by event"@en ;
     skos:definition "The life event that conferred or changed an appellation — a gmeow:Christening, gmeow:NameChange, gmeow:Marriage (a married name), or gmeow:Adoption. Non-functional. The seam joining the names module to genealogy's event spine."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-# Legacy free-text name kind — DEPRECATED, superseded by gmeow:namePurpose +
-# gmeow:NamePurpose value individuals. Retained so legacy data still parses.
-gmeow:nameType
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
-    owl:deprecated true ;
-    rdfs:domain gmeow:PersonName ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "name type"@en ;
-    skos:definition "DEPRECATED free-text name kind (e.g. \"birth\", \"married\"). Superseded by gmeow:namePurpose with gmeow:NamePurpose value individuals. Retained for backward compatibility so legacy data continues to parse."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #

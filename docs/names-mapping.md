@@ -210,29 +210,28 @@ extension.
 ## Interoperability
 
 Term alignments live in `mappings/gmeow-names.sssom.tsv` (schema.org, vCard 4,
-GEDCOM X, FOAF, Wikidata). The structured parts and `fullName` give a lossless
-vCard `N` / `FN` round-trip:
+GEDCOM X, FOAF, Wikidata). There are **no flat given/family name properties** in
+the canonical model — a name component is always a typed `gmeow:NamePart`, and a
+"First Last" rendering for vCard / schema.org / FOAF is produced by **downcasting**
+that structured model in the projection layer (`gmeow project`), never stored.
 
-In the structured column below, a `namePart…` token is a **`gmeow:NamePartType`
-value** carried by `gmeow:namePartType` on a `gmeow:NamePart` resource — *not* a
-predicate. The `gmeow:givenNamePart` / `gmeow:surnamePart` tokens *are* the flat
-literal shortcut predicates.
+In the table below, a `namePart…` token is a **`gmeow:NamePartType` value** carried
+by `gmeow:namePartType` on a `gmeow:NamePart` resource — *not* a predicate:
 
-| vCard | GMEOW (structured `gmeow:NamePart`) / flat shortcut |
-|---|---|
-| `FN` | `gmeow:fullName` |
-| `N` given-name | `gmeow:namePartType gmeow:namePartGiven` / `gmeow:givenNamePart` |
-| `N` family-name | `gmeow:namePartType gmeow:namePartSurname` / `gmeow:surnamePart` |
-| `N` additional-name | `gmeow:namePartType gmeow:namePartMiddle` |
-| `N` honorific-prefix | `gmeow:namePartType gmeow:namePartHonorificPrefix` (+ `gmeow:honorific` value) |
-| `N` honorific-suffix | `gmeow:namePartType gmeow:namePartHonorificSuffix` |
-| `NICKNAME` | `gmeow:namePartType gmeow:namePartNickname` |
+| vCard | GMEOW (structured `gmeow:NamePart`) | downcast to |
+|---|---|---|
+| `FN` | `gmeow:fullName` | `vcard:fn` / `schema:name` |
+| `N` given-name | `gmeow:namePartType gmeow:namePartGiven` | `vcard:given-name` / `schema:givenName` |
+| `N` family-name | `gmeow:namePartType gmeow:namePartSurname` | `vcard:family-name` / `schema:familyName` |
+| `N` additional-name | `gmeow:namePartType gmeow:namePartMiddle` | `vcard:additional-name` |
+| `N` honorific-prefix | `gmeow:namePartType gmeow:namePartHonorificPrefix` (+ `gmeow:honorific`) | `vcard:honorific-prefix` |
+| `N` honorific-suffix | `gmeow:namePartType gmeow:namePartHonorificSuffix` | `vcard:honorific-suffix` |
+| `NICKNAME` | `gmeow:namePartType gmeow:namePartNickname` | `vcard:nickname` |
 
-The flat shortcuts `gmeow:name`, `gmeow:givenName`, `gmeow:familyName` (entities
-module) and `gmeow:alternateName` (places module) remain as **lossy** convenience
-projections — `gmeow:name` is explicitly **not** canonical. The legacy free-text
-`gmeow:nameType` is **deprecated** in favour of `gmeow:namePurpose` + the
-`gmeow:NamePurpose` value vocabulary.
+The only flat name term retained is `gmeow:name` — the simple `rdfs:label` tier for
+entities that don't need the full naming apparatus (it carries no precedence over
+an entity's other names). `gmeow:alternateName` (places module) remains for
+gazetteer matching.
 
 ## What's deliberately non-standard (and why)
 

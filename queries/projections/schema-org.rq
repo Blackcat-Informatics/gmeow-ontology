@@ -6,6 +6,7 @@
 # wrappers, namePurpose/register/script, pronouns.
 PREFIX gmeow:  <https://blackcatinformatics.ca/gmeow/>
 PREFIX schema: <https://schema.org/>
+PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
 
 CONSTRUCT {
@@ -26,6 +27,10 @@ CONSTRUCT {
     ?ent schema:familyName ?family .
     ?ent schema:honorificPrefix ?honPrefix .
     ?ent schema:honorificSuffix ?honSuffix .
+    ?lang a schema:Language .
+    ?prog a schema:ComputerLanguage .
+    ?lang schema:alternateName ?bcp47 .
+    ?knower schema:knowsLanguage ?known .
 }
 WHERE {
     {
@@ -74,5 +79,25 @@ WHERE {
     } UNION {
         ?ent gmeow:honorific ?h .
         ?h rdfs:label ?honSuffix ; gmeow:honorificPosition gmeow:honorificPositionSuffix .
+    } UNION {
+        ?lang rdf:type/rdfs:subClassOf* gmeow:Language .
+    } UNION {
+        ?prog a gmeow:ProgrammingLanguage .
+    } UNION {
+        # BCP-47 tag = language code + a co-mingled script's code. gmeow:usesWritingSystem
+        # is the direct Language→WritingSystem shortcut (the WritingSystemUsage relator is
+        # only needed for role/period). Natural-language tags only: formal/programming
+        # languages are excluded, and ?code must look like a BCP-47 primary subtag (2–3
+        # letters) so a Glottocode never yields a bogus "stan1295-Hani".
+        ?lang rdf:type/rdfs:subClassOf* gmeow:Language ; gmeow:languageCode ?code .
+        FILTER NOT EXISTS { ?lang rdf:type/rdfs:subClassOf* gmeow:FormalLanguage }
+        FILTER(regex(str(?code), "^[a-zA-Z]{2,3}$"))
+        OPTIONAL { ?lang gmeow:usesWritingSystem ?ws . ?ws gmeow:scriptCode ?sc . }
+        BIND(IF(BOUND(?sc), CONCAT(STR(?code), "-", STR(?sc)), STR(?code)) AS ?bcp47)
+    } UNION {
+        ?knower gmeow:knowsLanguage ?known .
+    } UNION {
+        ?prof a gmeow:LanguageProficiency ;
+            gmeow:proficiencyAgent ?knower ; gmeow:proficiencyLanguage ?known .
     }
 }

@@ -123,6 +123,30 @@ non-standard in deliberate, useful ways (full rationale in
   `NameUsage`; name changes, and deadnames are recorded yet suppressed from display.
 - **Pronouns & honorifics** are first-class, contextual, and **independent of sex/gender**.
 
+### Languages: registry-independent, conlang- & AI-ready
+
+Most vocabularies treat a language as an opaque tag (`inLanguage "ja"`) — *a language **is**
+its ISO/BCP-47 code*. GMEOW inverts that: a **`gmeow:Language` has a self-minted IRI**, and
+registry codes are optional alignments, never identity (full rationale in
+[`docs/languages-mapping.md`](./docs/languages-mapping.md)):
+
+- **Registry-independent.** A code-less conlang (**Ithkuil**), a fast-versioning AI-minted
+  interlingua, an under-coded sign/minority language, and a programming language are all
+  **co-equal first-class languages**. BCP-47/ISO/Glottolog/Wikidata attach *when they exist*,
+  as `gmeow:authorityLink`/`skos:exactMatch` — and the BCP-47 tag is **reconstructed on demand**
+  by the projection layer (`ja`+`Hani` → `ja-Hani`).
+- **Co-mingled writing systems.** A language uses many co-equal scripts at once: Japanese
+  interleaves kanji, hiragana, katakana and rōmaji, each in a distinct *role*, via the reified
+  `gmeow:WritingSystemUsage` relator (which also models script changes over time). Bespoke and
+  non-linear conlang scripts are first-class.
+- **First-class version lineage** (Ithkuil 1993/2011/New; AI v1→v2), **AI/software creators**,
+  and **reified per-skill proficiency** (CEFR/ILR/ACTFL — "native overall" and "B2 writing"
+  coexist).
+- **Transformations are functions.** Transliteration/transcription/translation (Hepburn,
+  Pinyin, IPA, …) are declarative **FnO functions**, so a romanization records *how* it was
+  derived. Flat "First Last" / `schema:knowsLanguage` renderings are **downcast projections**,
+  never canonical clutter.
+
 ## Publishing
 
 1. **DOI (CrossRef).** Blackcat Informatics mints the DOI as a CrossRef member (its own prefix).

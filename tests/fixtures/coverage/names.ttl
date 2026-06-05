@@ -27,8 +27,6 @@ ex:nameLatin a gmeow:PersonName ;
     gmeow:nameScript "Latn" ;
     gmeow:namePurpose gmeow:namePurposeLegal ;
     gmeow:displayable true ;
-    gmeow:givenNamePart "Patrick" ;
-    gmeow:surnamePart "Audley" ;
     gmeow:hasNamePart ex:plGiven , ex:plMiddle , ex:plSurname ;
     gmeow:wasAttributedTo ex:patrick .
 
@@ -234,7 +232,6 @@ ex:platoMono a gmeow:NamePart ;
 ex:charles a gmeow:Person ; gmeow:hasName ex:charlesName .
 ex:charlesName a gmeow:PersonName ;
     gmeow:fullName "Charles Beaumont Sr. III"@en ;
-    gmeow:givenNamePart "Charles" ; gmeow:surnamePart "Beaumont" ;
     gmeow:hasNamePart ex:cbGiven , ex:cbSurname , ex:cbSenior , ex:cbThird .
 ex:cbGiven a gmeow:NamePart ;
     gmeow:namePartType gmeow:namePartGiven ; gmeow:partText "Charles" ; gmeow:partOrder 0 .

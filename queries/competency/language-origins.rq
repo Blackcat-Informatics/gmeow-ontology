@@ -1,0 +1,12 @@
+# Competency question: "What language origins does GMEOW recognise — including
+# AI-generated and formal/programming languages?" Expected: the LanguageOrigin
+# value individuals (natural, constructed-*, AI-generated, programming, creole,
+# reconstructed, …). Origins are values, not subclasses — extend by adding
+# individuals.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?origin WHERE {
+    ?origin a gmeow:LanguageOrigin .
+}
+ORDER BY ?origin

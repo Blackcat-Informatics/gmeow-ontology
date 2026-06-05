@@ -185,6 +185,9 @@ PREFIXES: dict[str, str] = {
     "p": "http://www.wikidata.org/prop/",
     "ps": "http://www.wikidata.org/prop/statement/",
     "wds": "http://www.wikidata.org/entity/statement/",
+    # Languages (the ISO 639 hub is Lexvo; Glottolog for genealogy/languoids)
+    "lexvo": "http://lexvo.org/id/",
+    "glottolog": "https://glottolog.org/resource/languoid/id/",
 }
 
 # --------------------------------------------------------------------------- #
@@ -357,5 +360,11 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     ),
     "wikidata": AlignmentTarget(
         "Wikidata", PREFIXES["wd"], "CC0-1.0", "concept_scheme"
+    ),
+    "lexvo": AlignmentTarget(
+        "Lexvo", PREFIXES["lexvo"], "CC-BY-SA-3.0", "concept_scheme"
+    ),
+    "glottolog": AlignmentTarget(
+        "Glottolog", PREFIXES["glottolog"], "CC-BY-4.0", "concept_scheme"
     ),
 }
