@@ -164,6 +164,88 @@ def compile_mappings(
     )
 
 
+@app.command(name="lint-alignment")
+def lint_alignment(
+    network: bool = typer.Option(
+        False,
+        "--network",
+        help="Fetch reference-only target axioms (schema.org) live.",
+    ),
+    strict: bool = typer.Option(
+        False, "--strict", help="Treat warnings as failures too."
+    ),
+) -> None:
+    """Lint SSSOM property mappings for inverse / domain-range-mismatched targets.
+
+    Validates each ``owl:equivalentProperty`` / ``skos:closeMatch`` row against the
+    target term's own axioms (domain/range, ``owl:inverseOf``, property character).
+    Offline by default — target axioms missing a vendored snapshot or fixture are
+    reported as non-fatal info. ``--network`` fetches them live (incl. schema.org).
+    """
+    from gmeow_tools.alignment_lint import Severity, lint_alignment_directions
+
+    findings = lint_alignment_directions(allow_network=network)
+    errors = [f for f in findings if f.severity is Severity.ERROR]
+    warnings = [f for f in findings if f.severity is Severity.WARNING]
+    infos = [f for f in findings if f.severity is Severity.INFO]
+
+    for finding in errors:
+        err_console.print(f"[red]error[/red] {finding.render()}")
+    for finding in warnings:
+        err_console.print(f"[yellow]warning[/yellow] {finding.render()}")
+    if infos:
+        console.print(f"[dim]{len(infos)} row(s) skipped (no target axioms)[/dim]")
+
+    if errors or (strict and warnings):
+        raise _fail(
+            f"✗ {len(errors)} error(s), {len(warnings)} warning(s) in alignments"
+        )
+    console.print(
+        f"[green]✓ alignment directions OK[/green] "
+        f"({len(warnings)} warning(s), {len(infos)} skipped)"
+    )
+
+
+@app.command(name="refresh-target-axioms")
+def refresh_target_axioms(
+    target: str = typer.Option(
+        "all", help="Target prefix to refresh, or 'all' for every IMPORT_OK target."
+    ),
+) -> None:
+    """Re-vendor minimal target-axiom snapshots into imports/targets/.
+
+    Fetches each IMPORT_OK target's canonical document, keeps only the structural
+    axioms (domain/range/inverse + property types), and writes the snapshot. Refuses
+    reference-only targets (e.g. CC-BY-SA schema.org) — those are fetched live at
+    lint time and never committed into the CC BY 4.0 artifact.
+    """
+    import httpx
+
+    from gmeow_tools.config import ALIGNMENT_TARGETS, PROJECT_ROOT, LinkPolicy
+    from gmeow_tools.extract import LicensePolicyError
+    from gmeow_tools.target_axioms import TARGET_SOURCES, refresh_snapshot
+
+    prefixes = list(TARGET_SOURCES) if target == "all" else [target]
+    written = 0
+    for prefix in prefixes:
+        meta = ALIGNMENT_TARGETS.get(prefix)
+        if meta is not None and meta.policy is not LinkPolicy.IMPORT_OK:
+            err_console.print(
+                f"[yellow]skip[/yellow] {prefix} ({meta.license}): reference-only — "
+                "fetched live at lint time, not vendored"
+            )
+            continue
+        try:
+            path = refresh_snapshot(prefix)
+        except LicensePolicyError as exc:
+            raise _fail(f"✗ {exc}") from exc
+        except httpx.HTTPError as exc:
+            raise _fail(f"✗ fetch failed for {prefix}: {exc}", code=2) from exc
+        console.print(f"[green]✓[/green] {path.relative_to(PROJECT_ROOT)}")
+        written += 1
+    console.print(f"[green]✓ refreshed {written} target snapshot(s)[/green]")
+
+
 @app.command()
 def mappings() -> None:
     """Build alignment axioms + VoID linksets from SSSOM, validating QIDs."""

@@ -1,0 +1,247 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+time:day a owl:DatatypeProperty ;
+    rdfs:domain time:GeneralDateTimeDescription .
+
+time:dayOfWeek a owl:ObjectProperty ;
+    rdfs:domain time:GeneralDateTimeDescription ;
+    rdfs:range time:DayOfWeek .
+
+time:dayOfYear a owl:DatatypeProperty ;
+    rdfs:domain time:GeneralDateTimeDescription ;
+    rdfs:range xsd:nonNegativeInteger .
+
+time:days a owl:DatatypeProperty ;
+    rdfs:domain time:GeneralDurationDescription ;
+    rdfs:range xsd:decimal .
+
+time:hasBeginning a owl:ObjectProperty ;
+    rdfs:domain time:TemporalEntity ;
+    rdfs:range time:Instant .
+
+time:hasDateTimeDescription a owl:ObjectProperty ;
+    rdfs:domain time:DateTimeInterval ;
+    rdfs:range time:GeneralDateTimeDescription .
+
+time:hasDuration a owl:ObjectProperty ;
+    rdfs:range time:Duration .
+
+time:hasDurationDescription a owl:ObjectProperty ;
+    rdfs:range time:GeneralDurationDescription .
+
+time:hasEnd a owl:ObjectProperty ;
+    rdfs:domain time:TemporalEntity ;
+    rdfs:range time:Instant .
+
+time:hasTRS a owl:FunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range time:TRS .
+
+time:hasTemporalDuration a owl:ObjectProperty ;
+    rdfs:domain time:TemporalEntity ;
+    rdfs:range time:TemporalDuration .
+
+time:hasTime a owl:ObjectProperty ;
+    rdfs:range time:TemporalEntity .
+
+time:hasXSDDuration a owl:DatatypeProperty ;
+    rdfs:domain time:TemporalEntity ;
+    rdfs:range xsd:duration .
+
+time:hour a owl:DatatypeProperty ;
+    rdfs:domain time:GeneralDateTimeDescription ;
+    rdfs:range xsd:nonNegativeInteger .
+
+time:hours a owl:DatatypeProperty ;
+    rdfs:domain time:GeneralDurationDescription ;
+    rdfs:range xsd:decimal .
+
+time:inDateTime a owl:ObjectProperty ;
+    rdfs:domain time:Instant ;
+    rdfs:range time:GeneralDateTimeDescription .
+
+time:inTemporalPosition a owl:ObjectProperty ;
+    rdfs:domain time:Instant ;
+    rdfs:range time:TemporalPosition .
+
+time:inTimePosition a owl:ObjectProperty ;
+    rdfs:domain time:Instant ;
+    rdfs:range time:TimePosition .
+
+time:inXSDDate a owl:DatatypeProperty ;
+    rdfs:domain time:Instant ;
+    rdfs:range xsd:date .
+
+time:inXSDDateTime a owl:DatatypeProperty ;
+    rdfs:domain time:Instant ;
+    rdfs:range xsd:dateTime .
+
+time:inXSDDateTimeStamp a owl:DatatypeProperty ;
+    rdfs:domain time:Instant ;
+    rdfs:range xsd:dateTimeStamp .
+
+time:inXSDgYear a owl:DatatypeProperty ;
+    rdfs:domain time:Instant ;
+    rdfs:range xsd:gYear .
+
+time:inXSDgYearMonth a owl:DatatypeProperty ;
+    rdfs:domain time:Instant ;
+    rdfs:range xsd:gYearMonth .
+
+time:inside a owl:ObjectProperty ;
+    rdfs:domain time:Interval ;
+    rdfs:range time:Instant .
+
+time:intervalDisjoint a owl:ObjectProperty ;
+    rdfs:domain time:ProperInterval ;
+    rdfs:range time:ProperInterval .
+
+time:intervalEquals a owl:ObjectProperty ;
+    rdfs:domain time:ProperInterval ;
+    rdfs:range time:ProperInterval .
+
+time:intervalIn a owl:ObjectProperty ;
+    rdfs:domain time:ProperInterval ;
+    rdfs:range time:ProperInterval .
+
+time:minute a owl:DatatypeProperty ;
+    rdfs:domain time:GeneralDateTimeDescription ;
+    rdfs:range xsd:nonNegativeInteger .
+
+time:minutes a owl:DatatypeProperty ;
+    rdfs:domain time:GeneralDurationDescription ;
+    rdfs:range xsd:decimal .
+
+time:month a owl:DatatypeProperty ;
+    rdfs:domain time:GeneralDateTimeDescription .
+
+time:monthOfYear a owl:ObjectProperty ;
+    rdfs:domain time:GeneralDateTimeDescription ;
+    rdfs:range time:MonthOfYear .
+
+time:months a owl:DatatypeProperty ;
+    rdfs:domain time:GeneralDurationDescription ;
+    rdfs:range xsd:decimal .
+
+time:nominalPosition a owl:DatatypeProperty ;
+    rdfs:domain time:TimePosition ;
+    rdfs:range xsd:string .
+
+time:numericDuration a owl:DatatypeProperty ;
+    rdfs:domain time:Duration ;
+    rdfs:range xsd:decimal .
+
+time:numericPosition a owl:DatatypeProperty ;
+    rdfs:domain time:TimePosition ;
+    rdfs:range xsd:decimal .
+
+time:second a owl:DatatypeProperty ;
+    rdfs:domain time:GeneralDateTimeDescription ;
+    rdfs:range xsd:decimal .
+
+time:seconds a owl:DatatypeProperty ;
+    rdfs:domain time:GeneralDurationDescription ;
+    rdfs:range xsd:decimal .
+
+time:timeZone a owl:ObjectProperty ;
+    rdfs:domain time:GeneralDateTimeDescription ;
+    rdfs:range time:TimeZone .
+
+time:unitType a owl:ObjectProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range time:TemporalUnit .
+
+time:week a owl:DatatypeProperty ;
+    rdfs:domain time:GeneralDateTimeDescription ;
+    rdfs:range xsd:nonNegativeInteger .
+
+time:weeks a owl:DatatypeProperty ;
+    rdfs:domain time:GeneralDurationDescription ;
+    rdfs:range xsd:decimal .
+
+time:xsdDateTime a owl:DatatypeProperty ;
+    rdfs:domain time:DateTimeInterval ;
+    rdfs:range xsd:dateTime .
+
+time:year a owl:DatatypeProperty ;
+    rdfs:domain time:GeneralDateTimeDescription .
+
+time:years a owl:DatatypeProperty ;
+    rdfs:domain time:GeneralDurationDescription ;
+    rdfs:range xsd:decimal .
+
+time:after a owl:ObjectProperty ;
+    rdfs:domain time:TemporalEntity ;
+    rdfs:range time:TemporalEntity ;
+    owl:inverseOf time:before .
+
+time:before a owl:ObjectProperty,
+        owl:TransitiveProperty ;
+    rdfs:domain time:TemporalEntity ;
+    rdfs:range time:TemporalEntity ;
+    owl:inverseOf time:after .
+
+time:intervalAfter a owl:ObjectProperty ;
+    rdfs:domain time:ProperInterval ;
+    rdfs:range time:ProperInterval ;
+    owl:inverseOf time:intervalBefore .
+
+time:intervalBefore a owl:ObjectProperty ;
+    rdfs:domain time:ProperInterval ;
+    rdfs:range time:ProperInterval ;
+    owl:inverseOf time:intervalAfter .
+
+time:intervalContains a owl:ObjectProperty ;
+    rdfs:domain time:ProperInterval ;
+    rdfs:range time:ProperInterval ;
+    owl:inverseOf time:intervalDuring .
+
+time:intervalDuring a owl:ObjectProperty ;
+    rdfs:domain time:ProperInterval ;
+    rdfs:range time:ProperInterval ;
+    owl:inverseOf time:intervalContains .
+
+time:intervalFinishedBy a owl:ObjectProperty ;
+    rdfs:domain time:ProperInterval ;
+    rdfs:range time:ProperInterval ;
+    owl:inverseOf time:intervalFinishes .
+
+time:intervalFinishes a owl:ObjectProperty ;
+    rdfs:domain time:ProperInterval ;
+    rdfs:range time:ProperInterval ;
+    owl:inverseOf time:intervalFinishedBy .
+
+time:intervalMeets a owl:ObjectProperty ;
+    rdfs:domain time:ProperInterval ;
+    rdfs:range time:ProperInterval ;
+    owl:inverseOf time:intervalMetBy .
+
+time:intervalMetBy a owl:ObjectProperty ;
+    rdfs:domain time:ProperInterval ;
+    rdfs:range time:ProperInterval ;
+    owl:inverseOf time:intervalMeets .
+
+time:intervalOverlappedBy a owl:ObjectProperty ;
+    rdfs:domain time:ProperInterval ;
+    rdfs:range time:ProperInterval ;
+    owl:inverseOf time:intervalOverlaps .
+
+time:intervalOverlaps a owl:ObjectProperty ;
+    rdfs:domain time:ProperInterval ;
+    rdfs:range time:ProperInterval ;
+    owl:inverseOf time:intervalOverlappedBy .
+
+time:intervalStartedBy a owl:ObjectProperty ;
+    rdfs:domain time:ProperInterval ;
+    rdfs:range time:ProperInterval ;
+    owl:inverseOf time:intervalStarts .
+
+time:intervalStarts a owl:ObjectProperty ;
+    rdfs:domain time:ProperInterval ;
+    rdfs:range time:ProperInterval ;
+    owl:inverseOf time:intervalStartedBy .
+

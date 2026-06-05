@@ -63,6 +63,12 @@ MODULES_DIR = ONTOLOGY_DIR / "modules"
 ONTOLOGY_FILE = ONTOLOGY_DIR / "gmeow.ttl"
 
 IMPORTS_DIR = PROJECT_ROOT / "imports"
+#: Validation-time target-vocabulary axiom snapshots (domain/range/inverseOf only).
+#: A SUBDIR of ``imports/`` so it is NOT picked up by ``iter_import_files()``
+#: (which globs ``imports/*.ttl`` non-recursively) and never enters the published
+#: CC BY 4.0 artifact. Used solely by the SSSOM alignment-direction linter; only
+#: IMPORT_OK targets are vendored here (reference-only ones are fetched live).
+TARGET_SNAPSHOT_DIR = IMPORTS_DIR / "targets"
 MAPPINGS_DIR = PROJECT_ROOT / "mappings"
 SHAPES_DIR = PROJECT_ROOT / "shapes"
 SHAPES_FILE = SHAPES_DIR / "gmeow-shapes.ttl"
