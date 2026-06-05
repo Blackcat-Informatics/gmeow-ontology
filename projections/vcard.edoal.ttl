@@ -34,4 +34,38 @@
         align:entity2 [ a edoal:Class ; edoal:uri vcard:Address ] ;
         align:relation "=" ;
         edoal:transformation [ rdfs:seeAlso gmeow:fnComposeAddress ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "nickname-purpose PersonName → vcard:nickname"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:hasName ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri vcard:nickname ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnNicknameName ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "Birth life-event date → vcard:bday"@en ;
+        align:entity1 [ a edoal:Class ; edoal:uri gmeow:Birth ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri vcard:bday ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnBirthEventToDate ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "Membership Role → vcard:title"@en ;
+        align:entity1 [ a edoal:Class ; edoal:uri gmeow:Membership ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri vcard:title ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnMembershipToJobTitle ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "gmeow:description → vcard:note (1:1)"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:description ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri vcard:note ] ;
+        align:relation "<="
+    ] , [
+        a align:Cell ;
+        rdfs:label "hasWebPage → vcard:hasURL (the WebPage IRI)"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:hasWebPage ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri vcard:hasURL ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnWebPageToUrl ]
     ] .

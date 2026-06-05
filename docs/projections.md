@@ -43,8 +43,20 @@ verified). Also runs in `gmeow build`.
 | **compose / select** | displayable `fullName` → `schema:name`/`vcard:fn`/`foaf:name` | `fnSelectDisplayName` |
 | **relator flatten** | `LanguageProficiency` (agent×lang×level) → `schema:knowsLanguage` (lossy) | `fnProficiencyToKnownLanguage` |
 | **value→property by sub-value** | `honorific` (+ position) → `schema:honorificPrefix`/`Suffix` | `fnHonorificToAffix` |
+| **structured→flat field** | nickname-purpose `PersonName` → `foaf:nick` / `vcard:nickname` / `schema:alternateName` | `fnNicknameName` |
+| | `Birth` event `eventDate` → `schema:birthDate` / vCard `BDAY` | `fnBirthEventToDate` |
+| | `Membership` `Role` → `schema:jobTitle` / vCard `TITLE` | `fnMembershipToJobTitle` |
+| | `hasWebPage` → `schema:url` / `foaf:homepage` / `vcard:hasURL` | `fnWebPageToUrl` |
+| | `subOrganizationOf` → `schema:department` | `fnSubOrgToDepartment` |
 | **domain conversion** (catalog) | transliteration / transcription / translation as `fno:Function`s | `transforms.fno.ttl` |
 | **lossy drop** | `StorageLocation`, fine place types, `authorityLink`, pronouns, `NameUsage`, `WritingSystemUsage`, version lineage, proficiency level | — |
+
+The **structured→flat field** transforms are the contact-card downcasts: GMEOW has
+**no** flat `nickname` / `birthDate` / `jobTitle` properties — a nickname is a
+structured `PersonName`, a birth date is a `Birth` event, a job title is a `Role` in
+a `Membership` — so the flat schema.org / vCard / FOAF fields are *reconstructed on
+projection*, never stored. `gmeow:description` (the one genuinely-unstructured note)
+and `gmeow:hasWebPage` are 1:1 / near-1:1 renames.
 
 The **language conversion catalog** (`projections/transforms.fno.ttl`) is a
 different use of FnO: it declares Hepburn / Pinyin / ISO 233 / IPA / translate as

@@ -117,6 +117,18 @@ def test_languages_slice_covered() -> None:
         assert GMEOW + prop in report.covered_predicates
 
 
+def test_contact_field_alignments_covered() -> None:
+    report = run_coverage()
+    # The new SSSOM alignments move these previously-gap external IRIs (used heavily
+    # in the bii/paudley fixtures) into coverage: description, url, homepage.
+    for iri in (
+        "https://schema.org/description",
+        "https://schema.org/url",
+        "http://xmlns.com/foaf/0.1/homepage",
+    ):
+        assert iri in report.covered_predicates
+
+
 def test_slice_is_partial() -> None:
     # The slice is intentionally incomplete: there must be tracked gaps, and
     # coverage must be a real (non-zero, non-total) fraction.

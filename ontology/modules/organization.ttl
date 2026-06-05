@@ -49,3 +49,27 @@ gmeow:hasRole
     rdfs:label "has role"@en ;
     skos:definition "Relates a membership to the role the member plays."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:membershipMember
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Membership ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "membership member"@en ;
+    skos:definition "The agent whose membership a gmeow:Membership reifies. Functional — a membership concerns one member (the relator's member role); the flat gmeow:memberOf is the agent→organization shortcut, this connects the reified relator to its member so role and period can be carried."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:membershipOrganization
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Membership ;
+    rdfs:range gmeow:Organization ;
+    rdfs:label "membership organization"@en ;
+    skos:definition "The organization a gmeow:Membership is in. Functional — a membership concerns one organization (which may be a department, i.e. a gmeow:subOrganizationOf a larger org)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:subOrganizationOf
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:domain gmeow:Organization ;
+    rdfs:range gmeow:Organization ;
+    rdfs:label "sub-organization of"@en ;
+    skos:definition "Relates an organization to a larger organization it is part of — a department or division within a company, a team within a department. Transitive (a team is part of the company through its division). A department is thus a first-class gmeow:Organization, and a gmeow:Membership may target it directly. The 'department' field is the sub-organization a person's membership is in."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

@@ -47,4 +47,18 @@
         align:entity2 [ a edoal:Property ; edoal:uri foaf:gender ] ;
         align:relation "<=" ;
         edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayableGender ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "nickname-purpose PersonName → foaf:nick"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:hasName ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri foaf:nick ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnNicknameName ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "hasWebPage → foaf:homepage (the WebPage IRI)"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:hasWebPage ] ;
+        align:entity2 [ a edoal:Relation ; edoal:uri foaf:homepage ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnWebPageToUrl ]
     ] .

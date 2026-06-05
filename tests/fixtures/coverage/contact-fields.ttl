@@ -1,0 +1,41 @@
+# Coverage fixture for the audited contact fields. Exercises the small new terms
+# (gmeow:description, gmeow:hasWebPage, gmeow:subOrganizationOf, and the completed
+# gmeow:Membership relator) and gives the schema.org projection GMEOW-native data
+# to DOWNCAST from: a nickname is a structured PersonName, a birth date is a Birth
+# event, a job title is a Role in a Membership, a department is a sub-organization.
+# No RDF-star.
+
+@prefix ex:     <https://example.org/cf/> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+
+ex:sam a gmeow:Person ;
+    gmeow:description "Backend engineer; enjoys ontologies and strong tea."@en ;
+    gmeow:hasWebPage <https://sam.example.com/> ;
+    gmeow:hasName ex:samLegal , ex:samNick ;
+    gmeow:memberOf ex:acme .
+
+# A web presence is a first-class WebPage whose IRI is its URL.
+<https://sam.example.com/> a gmeow:WebPage ; gmeow:name "Sam's site"@en .
+
+# Names: a legal name and a co-equal nickname (structured, not a flat field).
+ex:samLegal a gmeow:PersonName ;
+    gmeow:fullName "Samuel Lee"@en ; gmeow:namePurpose gmeow:namePurposeLegal ;
+    gmeow:displayable true .
+ex:samNick a gmeow:PersonName ;
+    gmeow:fullName "Sammy"@en ; gmeow:namePurpose gmeow:namePurposeNickname ;
+    gmeow:displayable true .
+
+# Birth date = the eventDate of a Birth life-event.
+ex:samBirth a gmeow:Birth ; gmeow:hasPrincipal ex:sam ; gmeow:eventDate "1990-04-12" .
+
+# Job title = a Role played in a Membership (the relator now links its member + org).
+ex:samMembership a gmeow:Membership ;
+    gmeow:membershipMember ex:sam ;
+    gmeow:membershipOrganization ex:engDept ;
+    gmeow:hasRole ex:samRole .
+ex:samRole a gmeow:Role ; gmeow:name "Principal Engineer"@en .
+
+# Org hierarchy: a department is a sub-organization.
+ex:acme a gmeow:Organization ; gmeow:name "Acme Corp"@en .
+ex:engDept a gmeow:Organization ;
+    gmeow:name "Engineering"@en ; gmeow:subOrganizationOf ex:acme .
