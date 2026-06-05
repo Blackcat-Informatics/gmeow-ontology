@@ -9,7 +9,7 @@
 <https://blackcatinformatics.ca/gmeow/modules/names>
     a owl:Ontology ;
     rdfs:label "GMEOW Names Module"@en ;
-    rdfs:comment "A universal, multi-culture, inclusive naming model (the schema.org / vCard N / GEDCOM X NameForm / W3C pronouns superset layer). A name is never a bare attribute: it is a reified gmeow:Appellation (an information object with structured, typed parts) borne by an entity, and gmeow:NameUsage is the gufo:Relator binding {who is named} × {which appellation} × {by/among whom} × {register} × {period} — so 'Aunt Genny' (intimate, family audience) is distinct from 'Mrs Smith' (formal) without privileging either. Name-part kinds, purposes, registers, pronoun sets and honorifics are open VALUE vocabularies, so patronymic, Arabic ism/kunya/nasab/laqab/nisba, Spanish double surname, East-Asian family-first and courtesy names, Tamil initial-expansion and mononym are all expressible without forcing a Western given+family order. GOVERNING TENET — co-equality (anti-colonial naming): a person's names in different languages/scripts (e.g. Patrick Colm Audley and 欧德理) are CO-EQUAL full names; none is the other's alternateName or romanization, none is 'primary'. There is deliberately NO preferredForDisplay / primaryName term — display SELECTION is locale-relative and symmetric; only display SUPPRESSION (gmeow:displayable false, e.g. a deadname) is modelled. Pronouns and honorifics are sex/gender INDEPENDENT (never inferred from gmeow:sex). Follows the W3C 'Personal names around the world' guidance."@en ;
+    rdfs:comment "A universal, multi-culture, inclusive naming model (the schema.org / vCard N / GEDCOM X NameForm / W3C pronouns superset layer). A name is never a bare attribute: it is a reified gmeow:Appellation (an information object with structured, typed parts) borne by an entity, and gmeow:NameUsage is the gufo:Relator binding {who is named} × {which appellation} × {by/among whom} × {register} × {period} — so 'Aunt Genny' (intimate, family audience) is distinct from 'Mrs Smith' (formal) without privileging either. Name-part kinds, purposes, registers, pronoun sets and honorifics are open VALUE vocabularies, so patronymic, Arabic ism/kunya/nasab/laqab/nisba, Spanish double surname, East-Asian family-first and courtesy names, Tamil initial-expansion and mononym are all expressible without forcing a Western given+family order. GOVERNING TENET — co-equality (anti-colonial naming): a person's names in different languages/scripts (e.g. Patrick Colm Audley and 欧德理) are CO-EQUAL full names; none is the other's alternateName or romanization, none is 'primary'. There is deliberately NO preferredForDisplay / primaryName term — display SELECTION is locale-relative and symmetric; only display SUPPRESSION (gmeow:displayable false, e.g. a deadname) is modelled. Pronouns and honorifics are sex/gender INDEPENDENT — ADDRESS (what you want to be called) is not IDENTITY (what you are): they are never inferred from, nor do they imply, gmeow:hasGenderIdentity / gmeow:hasGenderExpression / gmeow:sexAssignedAtBirth / orientation (modelled in the gender + sexuality modules). Follows the W3C 'Personal names around the world' guidance."@en ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -254,10 +254,9 @@ gmeow:namePurpose
 
 gmeow:displayable
     a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Appellation ;
     rdfs:range xsd:boolean ;
     rdfs:label "displayable"@en ;
-    skos:definition "Whether an appellation may be shown in interfaces and reports. The ONLY display control in the model — there is deliberately no preferred/primary marker (display selection is locale-relative and symmetric). Superseded names, especially deadnames, set this false; consumers MUST honour false and never surface the string. NOT functional: in a multi-source merge, sources may disagree, and those claims must coexist rather than force a global inconsistency — the cautious value (false) wins at the projection layer. Cardinality is enforced by SHACL on data, not by the logical core."@en ;
+    skos:definition "Whether a name or identity facet may be shown in interfaces and reports. The ONLY display control in the model — across naming (gmeow:Appellation) and identity (gmeow:IdentityFacet: gender/orientation), deliberately no preferred/primary marker (display selection is locale-relative and symmetric). It is intentionally domain-free so it applies to both. Superseded names (especially deadnames) and superseded gender/orientation labels set this false; consumers MUST honour false and never surface the string. NOT functional: in a multi-source merge, sources may disagree, and those claims must coexist rather than force a global inconsistency — the cautious value (false) wins at the projection layer. Cardinality is enforced by SHACL on data, not by the logical core."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:conferredByEvent
@@ -292,9 +291,10 @@ gmeow:detectedMediaType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
-# Pronouns + honorifics — first-class identity facets, contextual, temporal, and
-# sex/gender INDEPENDENT. They carry NO axiom tying them to gmeow:sex and MUST
-# NOT be inferred from it.
+# Pronouns + honorifics — first-class forms of ADDRESS, contextual, temporal, and
+# sex/gender INDEPENDENT. Address is not identity: they carry NO axiom tying them to
+# gender identity/expression, sex-assigned-at-birth or orientation (gender/sexuality
+# modules) and MUST NOT be inferred from them, nor those from these.
 # --------------------------------------------------------------------------- #
 
 gmeow:hasPronounSet
@@ -302,7 +302,7 @@ gmeow:hasPronounSet
     rdfs:domain gmeow:Person ;
     rdfs:range gmeow:PronounSet ;
     rdfs:label "has pronoun set"@en ;
-    skos:definition "Relates a person to a pronoun set they go by. Non-functional and contextual (scope a context-specific set with gmeow:validFrom/validUntil on the statement, or via a NameUsage). Sex/gender-independent — MUST NOT be inferred from gmeow:sex."@en ;
+    skos:definition "Relates a person to a pronoun set they go by. Non-functional and contextual (scope a context-specific set with gmeow:validFrom/validUntil on the statement, or via a NameUsage). A form of ADDRESS, sex/gender-independent — MUST NOT be inferred from gender identity/expression, sex-assigned-at-birth or orientation."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:pronounSubject
@@ -350,7 +350,7 @@ gmeow:honorific
     rdfs:domain gmeow:Person ;
     rdfs:range gmeow:Honorific ;
     rdfs:label "honorific"@en ;
-    skos:definition "An honorific/title of address for a person (a gmeow:Honorific value). Non-functional and contextual. Sex/gender-independent — MUST NOT be inferred from gmeow:sex."@en ;
+    skos:definition "An honorific/title of address for a person (a gmeow:Honorific value). Non-functional and contextual. A form of ADDRESS, sex/gender-independent — MUST NOT be inferred from gender identity/expression, sex-assigned-at-birth or orientation."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:honorificPosition

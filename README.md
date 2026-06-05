@@ -147,6 +147,34 @@ registry codes are optional alignments, never identity (full rationale in
   derived. Flat "First Last" / `schema:knowsLanguage` renderings are **downcast projections**,
   never canonical clutter.
 
+### Gender & sexuality: orthogonal, self-asserted, inclusive
+
+Most data models cram a person into one `gender` string — conflating things that are
+*independent* and erasing self-determination and change. GMEOW models gender and
+sexuality as **reified, self-asserted, co-equal facets** on a shared
+`gmeow:IdentityFacet` (a `gufo:Relator`, the `NameUsage` idiom), across two modules
+(full rationale in [`docs/identity-mapping.md`](./docs/identity-mapping.md)):
+
+- **Orthogonal axes, proven.** Address (pronouns/honorifics — in the names module),
+  **gender identity**, **gender expression**, **sex assigned at birth**, and — split
+  apart — **sexual** and **romantic** orientation are independent. A 7-axis
+  **orthogonality matrix is enforced by tests**: no axis is inferred from another.
+  *What you want to be called ≠ what you are; sex ≠ gender; asexual yet biromantic is
+  expressible.*
+- **Self-assertion is the top authority**, and identities are **co-equal** — bigender
+  is two facets, neither primary. There is no `primaryGender`; a superseded label
+  (a former gender, like a deadname) is kept with `gmeow:displayable false` —
+  recorded yet **never displayed, never deleted**.
+- **Inclusive without overtyping.** Gender and orientation are **open value
+  vocabularies of individuals** (woman, non-binary, agender, Two-Spirit, …;
+  bi/pan/ace/aro/…) — never per-value `Person` subclasses, never a forced enum. An
+  identity not yet seeded is a **fresh value individual with a label**, the single
+  path — no flat-literal shortcut.
+- **Honestly interoperable.** Values align (lossily) to GSSO, Homosaurus, Wikidata
+  (`P21`/`P91`), schema.org, FOAF and FHIR — every identifier verified against the
+  source. Displayable gender projects to `schema:gender`/`foaf:gender`; suppressed
+  labels never leak, and orientation is a documented lossy drop.
+
 ## Publishing
 
 1. **DOI (CrossRef).** Blackcat Informatics mints the DOI as a CrossRef member (its own prefix).

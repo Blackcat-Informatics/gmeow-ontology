@@ -1,9 +1,11 @@
-# Projection: GMEOW → pure schema.org (locations + naming). Executable form of
-# projections/schema-org.edoal.ttl. Run over instance data + the ontology (for
-# honorific labels). value→class place typing, displayable-name selection
-# (deadnames suppressed), name parts, honorific affixes. Lossy drops: Location/
-# StorageLocation, fine place types, authorityLink, NameUsage/Appellation
-# wrappers, namePurpose/register/script, pronouns.
+# Projection: GMEOW → pure schema.org (locations + naming + gender). Executable
+# form of projections/schema-org.edoal.ttl. Run over instance data + the ontology
+# (for honorific/gender labels). value→class place typing, displayable-name
+# selection (deadnames suppressed), name parts, honorific affixes, displayable
+# gender identity → schema:gender (suppressed labels never emitted). Lossy drops:
+# Location/StorageLocation, fine place types, authorityLink, NameUsage/Appellation
+# wrappers, namePurpose/register/script, pronouns, gender expression, orientation
+# (sexual + romantic), sexAssignedAtBirth.
 PREFIX gmeow:  <https://blackcatinformatics.ca/gmeow/>
 PREFIX schema: <https://schema.org/>
 PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -27,6 +29,7 @@ CONSTRUCT {
     ?ent schema:familyName ?family .
     ?ent schema:honorificPrefix ?honPrefix .
     ?ent schema:honorificSuffix ?honSuffix .
+    ?ent schema:gender ?genderLabel .
     ?lang a schema:Language .
     ?prog a schema:ComputerLanguage .
     ?lang schema:alternateName ?bcp47 .
@@ -73,6 +76,15 @@ WHERE {
         ?ent gmeow:hasAppellation|gmeow:hasName ?app .
         ?app gmeow:hasNamePart ?np .
         ?np gmeow:namePartType gmeow:namePartSurname ; gmeow:partText ?family .
+    } UNION {
+        # Gender identity → schema:gender (the displayable value's label). A
+        # displayable=false facet (superseded gender) is NEVER emitted — the same
+        # suppression contract as a deadname. Orientation + sexAssignedAtBirth are
+        # dropped (no schema.org target term).
+        ?ent gmeow:hasGenderIdentity ?gi .
+        ?gi gmeow:genderValue ?gv .
+        ?gv rdfs:label ?genderLabel .
+        FILTER NOT EXISTS { ?gi gmeow:displayable false }
     } UNION {
         ?ent gmeow:honorific ?h .
         ?h rdfs:label ?honPrefix ; gmeow:honorificPosition gmeow:honorificPositionPrefix .

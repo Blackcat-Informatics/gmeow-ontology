@@ -70,9 +70,6 @@ gmeow:hasMother	skos:closeMatch	wdt:P25	semapv:ManualMappingCuration	0.95	mother
 gmeow:hasChild	skos:closeMatch	wdt:P40	semapv:ManualMappingCuration	0.95	child
 gmeow:hasSpouse	skos:closeMatch	wdt:P26	semapv:ManualMappingCuration	0.95	spouse
 gmeow:hasSibling	skos:closeMatch	wdt:P3373	semapv:ManualMappingCuration	0.95	sibling
-gmeow:sex	skos:closeMatch	wdt:P21	semapv:ManualMappingCuration	0.9	sex or gender
-gmeow:sex	skos:closeMatch	schema:gender	semapv:ManualMappingCuration	0.85	
-gmeow:sex	skos:closeMatch	gedcom:sex	semapv:ManualMappingCuration	0.9	legacy W3C gedcom
 gmeow:eventDate	skos:closeMatch	gedcom:date	semapv:ManualMappingCuration	0.8	legacy W3C gedcom
 gmeow:eventPlace	skos:closeMatch	gedcom:place	semapv:ManualMappingCuration	0.8	legacy W3C gedcom
 gmeow:hasChild	skos:closeMatch	gedcom:child	semapv:ManualMappingCuration	0.8	legacy W3C gedcom

@@ -173,6 +173,10 @@ PREFIXES: dict[str, str] = {
     "esco": "http://data.europa.eu/esco/model#",
     "nmo": "http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#",
     "wot": "http://xmlns.com/wot/0.1/",
+    # Gender / sexuality identity vocabularies
+    "gsso": "http://purl.obolibrary.org/obo/GSSO_",
+    "homosaurus": "https://homosaurus.org/v4/",
+    "fhir": "http://hl7.org/fhir/",
     # Genealogy
     "bio": "http://purl.org/vocab/bio/0.1/",
     "gx": "http://gedcomx.org/",
@@ -353,6 +357,16 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
         "Nepomuk Message Ontology", PREFIXES["nmo"], "Unknown", "schema"
     ),
     "wot": AlignmentTarget("WOT Schema", PREFIXES["wot"], "Unknown", "schema"),
+    "gsso": AlignmentTarget(
+        "Gender, Sex, and Sexual Orientation Ontology",
+        PREFIXES["gsso"],
+        "CC-BY-NC-ND 4.0",  # per SOURCE_REGISTRY; reference-only (we only link)
+        "concept_scheme",
+    ),
+    "homosaurus": AlignmentTarget(
+        "Homosaurus", PREFIXES["homosaurus"], "CC-BY-4.0", "concept_scheme"
+    ),
+    "fhir": AlignmentTarget("HL7 FHIR", PREFIXES["fhir"], "CC0-1.0", "schema"),
     "bio": AlignmentTarget("BIO vocabulary", PREFIXES["bio"], "CC-BY-3.0", "schema"),
     "gedcomx": AlignmentTarget("GEDCOM X", PREFIXES["gx"], "Apache-2.0", "schema"),
     "geonames": AlignmentTarget(

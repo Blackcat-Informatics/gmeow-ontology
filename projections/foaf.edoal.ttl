@@ -9,8 +9,10 @@
 # EDOAL complex alignment: GMEOW → pure FOAF (lowest-common-denominator). FOAF is
 # thin on places — a Place with coordinates collapses to a wgs84:SpatialThing with
 # wgs84:lat/long; a displayable full name → foaf:name; an agent locatedAt a place →
-# foaf:based_near. Heavily lossy (drops address structure, place types, hierarchy,
-# geometry, names context, storage/virtual). Executable: queries/projections/foaf.rq.
+# foaf:based_near; a displayable gender identity → foaf:gender (suppressed labels
+# dropped). Heavily lossy (drops address structure, place types, hierarchy,
+# geometry, names context, storage/virtual, gender expression, orientation and
+# sexAssignedAtBirth). Executable: queries/projections/foaf.rq.
 
 <https://blackcatinformatics.ca/gmeow/projections/foaf>
     a align:Alignment ;
@@ -38,4 +40,11 @@
         align:entity1 [ a edoal:Relation ; edoal:uri gmeow:locatedAt ] ;
         align:entity2 [ a edoal:Relation ; edoal:uri foaf:based_near ] ;
         align:relation "<="
+    ] , [
+        a align:Cell ;
+        rdfs:label "displayable GenderIdentity value → foaf:gender (lossy; suppressed labels dropped)"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:hasGenderIdentity ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri foaf:gender ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayableGender ]
     ] .
