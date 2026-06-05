@@ -1,4 +1,5 @@
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
@@ -12,7 +13,7 @@
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:OnlineAccount
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Online Account"@en ;
     skos:definition "An account an agent holds with an online service — a social profile, code-forge account, or decentralized identity."@en ;

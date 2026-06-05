@@ -19,56 +19,56 @@
 # =========================================================================== #
 
 gmeow:Language
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Language"@en ;
     skos:definition "A language as a first-class information object with a self-minted IRI: a system of signs/symbols and rules used for communication or computation. Registry-INDEPENDENT — BCP-47/ISO 639/Glottolog/Wikidata are optional alignments (gmeow:languageCode, gmeow:authorityLink, skos:exactMatch), never identity, so a code-less conlang or AI-generated language is fully first-class. Origin, modality and status are open value vocabularies; the scripts it is written in are bound co-equally via gmeow:WritingSystemUsage; its endonym/exonym names are gmeow:Appellation."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:FormalLanguage
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Language ;
     rdfs:label "Formal Language"@en ;
     skos:definition "A grammar-defined language with a machine modality and no human native speakers — programming, markup, query, logic, schema, and configuration languages. A thin structural split from gmeow:Language (the sociolinguistic facets — endonym/exonym, co-mingled scripts, native-speaker status — do not apply), complemented by the gmeow:languageOrigin value for fine-grained classification."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:ProgrammingLanguage
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:FormalLanguage ;
     rdfs:label "Programming Language"@en ;
     skos:definition "A formal language for expressing executable computation (Python, Rust, SQL-as-implemented). The first-class target of gmeow:writtenInLanguage, by which a software project declares the languages it is written in."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:LanguageVersion
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Language ;
     rdfs:label "Language Version"@en ;
     skos:definition "A concrete, dated revision of a language that is itself a fully usable language (Ithkuil 1993 / 2011 / New Ithkuil; an AI language v1 / v2). Subclass of gmeow:Language so a version bears its own scripts, names and status; gmeow:versionOf links it to the lineage language, gmeow:supersedes orders versions, and gmeow:wasDerivedFrom records derivation. Forward-looking for rapidly-versioned AI languages."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:WritingSystem
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Writing System"@en ;
     skos:definition "A first-class system for visually or tactilely representing language — a script: Latin, Han (kanji), Hiragana, Katakana, Arabic, Braille, or a bespoke conlang/AI script. Carries gmeow:scriptCode (ISO 15924 when one exists, else a bespoke identifier), a type (gmeow:writingSystemType) and a direction (gmeow:textDirection). Bound to the languages that use it — co-equally and simultaneously — through gmeow:WritingSystemUsage; bespoke and non-linear scripts (Ithkuil) are first-class."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:WritingSystemUsage
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Writing System Usage"@en ;
     skos:definition "A reified, role- and period-scoped use of a writing system by a language — the gufo:Relator binding {language} × {writing system} × {role} × {period}, mirroring names' gmeow:NameUsage. Lets Japanese co-mingle Han (logographic content), Hiragana (syllabic grammar), Katakana (loanwords) and Latin (transliteration) co-equally, and models script changes over time (Turkish Arabic→Latin, 1928) via the usage's validity. Mint one usage per (language, writing system, role) tuple."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:LanguageProficiency
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Language Proficiency"@en ;
     skos:definition "A reified, leveled proficiency of an agent in a language, in a particular skill modality — the gufo:Relator binding {agent} × {language} × {skill modality} × {level on a scale}, mirroring names' gmeow:NameUsage. Mint one per (agent, language, modality) so 'native overall' and 'B2 writing' coexist. The base gmeow:knowsLanguage relation states that an agent knows a language; this relator adds the level and the skill."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:LanguageCreation
-    a owl:Class ;
+    a owl:Class, gufo:EventType ;
     rdfs:subClassOf gmeow:Activity ;
     rdfs:label "Language Creation"@en ;
     skos:definition "The activity of creating or generating a language — a conlanger's design work or an AI model's generation run. Linked to its product by gmeow:wasGeneratedBy (the language → activity) and to its agent by gmeow:wasAssociatedWith; the language is ascribed to its creator with gmeow:wasAttributedTo (a gmeow:SoftwareAgent for an AI-generated language)."@en ;
@@ -320,8 +320,8 @@ gmeow:transliterationScheme
 # =========================================================================== #
 
 gmeow:LanguageOrigin
-    a owl:Class ;
-    rdfs:subClassOf gmeow:Entity ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Language Origin"@en ;
     skos:definition "How a language came to be (natural, constructed, AI-generated, formal, pidgin, creole, reconstructed, …). A value, not a Language subclass: origins are open-ended and share Language's structure."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -342,8 +342,8 @@ gmeow:originMixed                 a gmeow:LanguageOrigin ; rdfs:label "mixed / c
 gmeow:originReconstructed         a gmeow:LanguageOrigin ; rdfs:label "reconstructed (proto-language)"@en .
 
 gmeow:LanguageModality
-    a owl:Class ;
-    rdfs:subClassOf gmeow:Entity ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Language Modality"@en ;
     skos:definition "The sensory/transmission channel of a language (spoken, signed, written, whistled, tactile, machine, multimodal). A value carried by gmeow:languageModality."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -357,8 +357,8 @@ gmeow:modalityMachine    a gmeow:LanguageModality ; rdfs:label "machine / progra
 gmeow:modalityMultimodal a gmeow:LanguageModality ; rdfs:label "multimodal"@en .
 
 gmeow:LanguageStatus
-    a owl:Class ;
-    rdfs:subClassOf gmeow:Entity ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Language Status"@en ;
     skos:definition "The vitality status of a language (living, historical, extinct, dormant, revived, emerging, proposed, constructed-active). A value carried by gmeow:languageStatus."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -373,8 +373,8 @@ gmeow:statusProposed          a gmeow:LanguageStatus ; rdfs:label "proposed"@en 
 gmeow:statusConstructedActive a gmeow:LanguageStatus ; rdfs:label "constructed — actively used"@en .
 
 gmeow:WritingSystemType
-    a owl:Class ;
-    rdfs:subClassOf gmeow:Entity ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Writing System Type"@en ;
     skos:definition "The structural kind of a writing system (alphabet, abjad, abugida, syllabary, logographic, featural, ideographic, pictographic, non-linear, mixed). A value carried by gmeow:writingSystemType."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -391,8 +391,8 @@ gmeow:wsTypeNonLinear    a gmeow:WritingSystemType ; rdfs:label "non-linear (e.g
 gmeow:wsTypeMixed        a gmeow:WritingSystemType ; rdfs:label "mixed"@en .
 
 gmeow:TextDirection
-    a owl:Class ;
-    rdfs:subClassOf gmeow:Entity ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Text Direction"@en ;
     skos:definition "The writing direction of a writing system (ltr, rtl, vertical, boustrophedon, non-linear, contextual). A value carried by gmeow:textDirection."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -406,8 +406,8 @@ gmeow:directionNonLinear     a gmeow:TextDirection ; rdfs:label "non-linear"@en 
 gmeow:directionContextual    a gmeow:TextDirection ; rdfs:label "contextual / bidirectional"@en .
 
 gmeow:ScriptRole
-    a owl:Class ;
-    rdfs:subClassOf gmeow:Entity ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Script Role"@en ;
     skos:definition "The role a writing system plays within a language's mixed orthography (primary, logographic content, syllabic grammar, loanword, transliteration, liturgical, historical, decorative). A value carried by gmeow:scriptRole."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -422,8 +422,8 @@ gmeow:scriptRoleHistorical         a gmeow:ScriptRole ; rdfs:label "historical /
 gmeow:scriptRoleDecorative         a gmeow:ScriptRole ; rdfs:label "decorative"@en .
 
 gmeow:ProficiencyModality
-    a owl:Class ;
-    rdfs:subClassOf gmeow:Entity ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Proficiency Modality"@en ;
     skos:definition "The skill channel a language proficiency rates (speaking, listening, reading, writing, signing, comprehension, overall). A value carried by gmeow:proficiencyModality."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -437,8 +437,8 @@ gmeow:profModalityComprehension a gmeow:ProficiencyModality ; rdfs:label "compre
 gmeow:profModalityOverall       a gmeow:ProficiencyModality ; rdfs:label "overall"@en .
 
 gmeow:ProficiencyScale
-    a owl:Class ;
-    rdfs:subClassOf gmeow:Entity ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Proficiency Scale"@en ;
     skos:definition "A framework for rating language proficiency (CEFR, ILR, ACTFL, self-reported). A value carried by gmeow:proficiencyScale and gmeow:levelScale."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -449,8 +449,8 @@ gmeow:scaleACTFL        a gmeow:ProficiencyScale ; rdfs:label "ACTFL"@en .
 gmeow:scaleSelfReported a gmeow:ProficiencyScale ; rdfs:label "self-reported"@en .
 
 gmeow:ProficiencyLevel
-    a owl:Class ;
-    rdfs:subClassOf gmeow:Entity ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Proficiency Level"@en ;
     skos:definition "An attained proficiency level on a scale (CEFR A1–C2; native; heritage). A value carried by gmeow:proficiencyLevel; gmeow:levelScale ties it to its scale. ILR (0–5) and ACTFL levels are added as further individuals."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -465,8 +465,8 @@ gmeow:levelNative   a gmeow:ProficiencyLevel ; rdfs:label "native"@en .
 gmeow:levelHeritage a gmeow:ProficiencyLevel ; rdfs:label "heritage"@en .
 
 gmeow:TransliterationScheme
-    a owl:Class ;
-    rdfs:subClassOf gmeow:Entity ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Transliteration Scheme"@en ;
     skos:definition "A named transliteration/romanization/transcription system (Hepburn, Pinyin, ISO 233, IPA, …). A value carried by gmeow:transliterationScheme; the major schemes are catalogued as FnO functions in the projection layer (projections/transforms.fno.ttl)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

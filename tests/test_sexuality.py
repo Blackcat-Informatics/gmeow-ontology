@@ -16,6 +16,7 @@ from gmeow_tools.config import COMPETENCY_DIR
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
+GUFO = "http://purl.org/nemo/gufo#"
 
 
 def _graph() -> Graph:
@@ -47,8 +48,9 @@ def test_split_attraction_axes_are_independent() -> None:
 
 def test_orientation_values_are_individuals_not_subclasses() -> None:
     graph = _graph()
+    qv = URIRef(GUFO + "QualityValue")
     for cls in ("SexualOrientationValue", "RomanticOrientationValue"):
-        assert (URIRef(GMEOW + cls), RDFS.subClassOf, URIRef(GMEOW + "Entity")) in graph
+        assert (URIRef(GMEOW + cls), RDFS.subClassOf, qv) in graph
     assert (
         URIRef(GMEOW + "orientAsexual"),
         RDF.type,

@@ -12,28 +12,28 @@
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Person
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Agent ;
     rdfs:label "Person"@en ;
     skos:definition "An individual human being, living or deceased."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Organization
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Agent ;
     rdfs:label "Organization"@en ;
     skos:definition "A structured group of agents — a company, institution, association, or governmental body — able to act as a single agent."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Group
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity, gufo:Collection ;
     rdfs:label "Group"@en ;
     skos:definition "A collection of agents treated as a unit without the formal structure of an organization."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:SoftwareAgent
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Agent ;
     rdfs:label "Software Agent"@en ;
     skos:definition "A software process or autonomous program that acts on behalf of a person or organization."@en ;

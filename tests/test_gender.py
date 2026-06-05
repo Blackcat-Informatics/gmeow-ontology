@@ -50,9 +50,10 @@ def test_identity_facet_is_a_relator() -> None:
 
 def test_gender_values_are_individuals_not_subclasses() -> None:
     graph = _graph()
-    # The value classes subclass Entity.
+    # The value classes are abstract value spaces (gufo:QualityValue), not endurants.
+    qv = URIRef(GUFO + "QualityValue")
     for cls in ("Gender", "GenderExpressionStyle", "SexAssignedAtBirth"):
-        assert (URIRef(GMEOW + cls), RDFS.subClassOf, URIRef(GMEOW + "Entity")) in graph
+        assert (URIRef(GMEOW + cls), RDFS.subClassOf, qv) in graph
     # Seed values exist as INDIVIDUALS of gmeow:Gender.
     for ind in ("genderWoman", "genderMan", "genderNonBinary", "genderTwoSpirit"):
         assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "Gender")) in graph

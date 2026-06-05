@@ -1,4 +1,5 @@
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
@@ -17,57 +18,57 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:Message
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Message"@en ;
     skos:definition "A communication sent from one agent to others — the parent of email and other message kinds."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:EmailMessage
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Message ;
     rdfs:label "Email Message"@en ;
     skos:definition "An RFC 5322 email message, with headers, participants, a thread, body parts and mailbox residence."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Thread
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Thread"@en ;
     skos:definition "A conversation: a set of messages related by reply/reference chains."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Mailbox
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Mailbox"@en ;
     skos:definition "A named container of messages within an account — a folder, JMAP mailbox, or Gmail label."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:MessageHeader
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Message Header"@en ;
     skos:definition "A single RFC 5322 header field (name and value) of a message."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:BodyPart
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Body Part"@en ;
     skos:definition "A MIME part of a message's body, with a media type and content."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Attachment
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:BodyPart ;
     rdfs:label "Attachment"@en ;
     skos:definition "A non-inline body part presented as an attached file. An attachment may also be a gmeow:Document or gmeow:MediaObject (the two are not disjoint), and its text extraction or summary is a derived object linked by gmeow:wasDerivedFrom."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:MessageKeyword
-    a owl:Class ;
-    rdfs:subClassOf gmeow:Entity ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Message Keyword"@en ;
     skos:definition "A flag/keyword applied to a message (IMAP flag or JMAP keyword) such as seen, flagged, answered, draft, forwarded, or junk."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -81,7 +82,7 @@ gmeow:keywordForwarded a gmeow:MessageKeyword ; rdfs:label "forwarded"@en .
 gmeow:keywordJunk      a gmeow:MessageKeyword ; rdfs:label "junk"@en .
 
 gmeow:MailboxResidence
-    a owl:Class ;
+    a owl:Class, gufo:SituationType ;
     rdfs:subClassOf gmeow:TimeScopedRelation ;
     rdfs:label "Mailbox Residence"@en ;
     skos:definition "The reified, time-scoped fact that a message resided in a mailbox/label over an interval (membership is time-varying — messages move between folders and labels)."@en ;

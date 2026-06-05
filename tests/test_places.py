@@ -14,6 +14,7 @@ from rdflib.namespace import XSD
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
+GUFO = "http://purl.org/nemo/gufo#"
 GEO = "http://www.opengis.net/ont/geosparql#"
 
 
@@ -41,7 +42,7 @@ def test_place_kind_is_value_not_subclass() -> None:
     assert (
         URIRef(GMEOW + "PlaceType"),
         RDFS.subClassOf,
-        URIRef(GMEOW + "Entity"),
+        URIRef(GUFO + "QualityValue"),
     ) in graph
     place_type = URIRef(GMEOW + "placeType")
     assert (place_type, RDF.type, OWL.ObjectProperty) in graph

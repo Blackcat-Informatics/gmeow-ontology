@@ -17,15 +17,15 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:CryptographicKey
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Cryptographic Key"@en ;
     skos:definition "A public key, certificate, or key material bound to an agent's identity — the thing a signature is made with and a certification vouches for."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:KeyScheme
-    a owl:Class ;
-    rdfs:subClassOf gmeow:Entity ;
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Key Scheme"@en ;
     skos:definition "The cryptographic scheme/format of a key (OpenPGP, X.509, SSH, Nostr, …). Modelled as a value, not a key subclass: the set of schemes is open-ended and they carry no distinct key structure here, so a new scheme is a new individual, not a new class."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -107,7 +107,7 @@ gmeow:keyExpiresAt
 # --------------------------------------------------------------------------- #
 
 gmeow:Certification
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Certification"@en ;
     skos:definition "A reified attestation that a cryptographic key belongs to a given identity, made by a certifying agent (a PGP key-signature / Web-of-Trust certification). Its validity window is carried with gmeow:validFrom/validUntil; revocation sets validUntil."@en ;
@@ -153,7 +153,7 @@ gmeow:certificationLevel
 # --------------------------------------------------------------------------- #
 
 gmeow:TrustAssertion
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Trust Assertion"@en ;
     skos:definition "A reified, perspectival assertion that one agent (the trustor) trusts another (the trustee), optionally as an introducer to a given depth — the OpenPGP owner-trust notion. Its validity window is carried with gmeow:validFrom/validUntil."@en ;

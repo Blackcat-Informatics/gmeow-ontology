@@ -12,14 +12,14 @@
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Agreement
-    a owl:Class ;
+    a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Agreement"@en ;
     skos:definition "A mutual understanding between two or more agents that creates obligations or rights, reified as a relator connecting its parties."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Contract
-    a owl:Class ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Agreement ;
     rdfs:label "Contract"@en ;
     skos:definition "A legally enforceable agreement."@en ;
