@@ -155,8 +155,8 @@ gmeow:oAffix         a fno:Output ; fno:predicate gmeow:projectedAffix ; fno:typ
 gmeow:oGender        a fno:Output ; fno:predicate gmeow:projectedGender ; fno:type rdfs:Literal .
 gmeow:oBcp47         a fno:Output ; fno:predicate gmeow:projectedLanguageTag ; fno:type xsd:string .
 gmeow:oKnownLanguage a fno:Output ; fno:predicate gmeow:projectedKnownLanguage ; fno:type gmeow:Language .
-gmeow:pBirthEvent  a fno:Parameter ; fno:predicate gmeow:eventDate ; fno:type gmeow:Birth ; fno:required true .
-gmeow:pMembership  a fno:Parameter ; fno:predicate gmeow:hasRole ; fno:type gmeow:Membership ; fno:required true .
+gmeow:pBirthEvent  a fno:Parameter ; fno:predicate gmeow:eventDate ; fno:type rdfs:Literal ; fno:required true .
+gmeow:pMembership  a fno:Parameter ; fno:predicate gmeow:hasRole ; fno:type gmeow:Role ; fno:required true .
 gmeow:pSubOrg      a fno:Parameter ; fno:predicate gmeow:subOrganizationOf ; fno:type gmeow:Organization ; fno:required true .
 gmeow:pWebPage     a fno:Parameter ; fno:predicate gmeow:hasWebPage ; fno:type gmeow:WebPage ; fno:required true .
 gmeow:oNick        a fno:Output ; fno:predicate gmeow:projectedNick ; fno:type rdfs:Literal .

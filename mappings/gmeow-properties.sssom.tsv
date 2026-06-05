@@ -43,4 +43,5 @@ gmeow:description	skos:closeMatch	vcard:note	semapv:ManualMappingCuration	0.8
 gmeow:hasWebPage	skos:closeMatch	schema:url	semapv:ManualMappingCuration	0.8
 gmeow:hasWebPage	skos:closeMatch	foaf:homepage	semapv:ManualMappingCuration	0.8
 gmeow:subOrganizationOf	owl:equivalentProperty	org:subOrganizationOf	semapv:ManualMappingCuration	0.9
+gmeow:subOrganizationOf	owl:equivalentProperty	schema:parentOrganization	semapv:ManualMappingCuration	0.9
 gmeow:subOrganizationOf	skos:closeMatch	schema:subOrganization	semapv:ManualMappingCuration	0.6	
