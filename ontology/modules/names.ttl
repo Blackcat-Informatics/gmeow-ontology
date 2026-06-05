@@ -579,3 +579,17 @@ gmeow:pronounEyEm a gmeow:PronounSet ; rdfs:label "ey/em"@en ;
     gmeow:pronounReflexive "emself" .
 gmeow:pronounAny a gmeow:PronounSet ; rdfs:label "any pronouns"@en .
 gmeow:pronounAsk a gmeow:PronounSet ; rdfs:label "ask me"@en .
+
+# =========================================================================== #
+# AXIOMATIZED DOCTRINE (#38) — relator mediation for the NameUsage relator.
+#
+# A name-usage mediates (at least) the named entity and the appellation used.
+# EL someValuesFrom, open-world — it documents the relata for the reasoner; the
+# closed-world "exactly one named / one appellation" stays in SHACL (#39).
+# gmeow:PronounSet and gmeow:Honorific participate in the seven-axis
+# AllDisjointClasses asserted in gender.ttl.
+# =========================================================================== #
+
+gmeow:NameUsage rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:usageNamed ; owl:someValuesFrom gmeow:Entity ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:usageAppellation ; owl:someValuesFrom gmeow:Appellation ] .

@@ -419,3 +419,42 @@ gmeow:relationshipChild
 # gmeow:hasGenderIdentity / gmeow:hasGenderExpression / orientation facets — kept
 # rigorously separate from one another and from address (pronouns/honorifics in
 # names). Documentary sex on historical records uses external gedcom:sex directly.
+
+# =========================================================================== #
+# AXIOMATIZED DOCTRINE (#38 — phase 2 of the reasoning-depth epic #35)
+#
+# Derived ancestry. gmeow:hasAncestor is transitive and gmeow:hasParent is one of
+# its sub-properties, so hasParent ∘ hasParent ⊑ hasAncestor is ENTAILED — a
+# reasoner derives the full ancestor/descendant closure that was never asserted.
+# All EL (transitive property + sub-property); gmeow:hasDescendant adds the DL
+# inverse (HermiT-complete). gmeow:hasAncestor / hasDescendant are non-simple
+# (transitive) and so are deliberately kept out of every cardinality / functional
+# axiom, preserving OWL 2 DL regularity.
+# =========================================================================== #
+
+gmeow:hasAncestor
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range gmeow:Person ;
+    rdfs:label "has ancestor"@en ;
+    skos:definition "Relates a person to an ancestor — a parent, a parent's parent, and so on. Transitive: an ancestor of an ancestor is an ancestor. gmeow:hasParent (hence gmeow:hasMother / hasFather) is a sub-property, so ancestry is DERIVED from parentage by the reasoner and is never asserted directly."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasDescendant
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    owl:inverseOf gmeow:hasAncestor ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range gmeow:Person ;
+    rdfs:label "has descendant"@en ;
+    skos:definition "Relates a person to a descendant — a child, a child's child, and so on; the transitive inverse of gmeow:hasAncestor. Derived by the reasoner (gmeow:hasChild is a sub-property), never asserted directly."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasParent rdfs:subPropertyOf gmeow:hasAncestor .
+gmeow:hasChild  rdfs:subPropertyOf gmeow:hasDescendant .
+
+# Relator mediation: a parent-child relationship mediates a parent and a child
+# (EL existential, open-world; closed-world cardinality is SHACL's, #39). Applies
+# to every subtype (Biological / Adoptive / Step / Foster).
+gmeow:ParentChildRelationship rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:relationshipParent ; owl:someValuesFrom gmeow:Person ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:relationshipChild ; owl:someValuesFrom gmeow:Person ] .

@@ -178,3 +178,48 @@ gmeow:saabFemale   a gmeow:SexAssignedAtBirth ; rdfs:label "assigned female"@en 
 gmeow:saabMale     a gmeow:SexAssignedAtBirth ; rdfs:label "assigned male"@en .
 gmeow:saabIntersex a gmeow:SexAssignedAtBirth ; rdfs:label "intersex"@en .
 gmeow:saabUnknown  a gmeow:SexAssignedAtBirth ; rdfs:label "unknown / not recorded"@en .
+
+# =========================================================================== #
+# AXIOMATIZED DOCTRINE (#38 — phase 2 of the reasoning-depth epic #35)
+#
+# The orthogonality matrix (Principle 9) and relator well-formedness, until now
+# guarded only by Python tests over the ASSERTED graph, are made reasoner
+# THEOREMS here. Every axiom is OWL 2 EL (DisjointClasses, someValuesFrom) so the
+# fast ELK pre-check acts on them and HermiT is the complete gate; OWL 2 DL is
+# preserved. Closed-world relata CARDINALITY ("exactly one value per facet") is
+# deliberately left to SHACL (phase 3 / #39), not asserted as OWL cardinality.
+# =========================================================================== #
+
+# --- Orthogonality as a theorem: the seven identity axes are pairwise disjoint.
+# Spans three modules — GenderIdentity / GenderExpression / SexAssignedAtBirth
+# here, SexualOrientation / RomanticOrientation in sexuality.ttl, PronounSet /
+# Honorific in names.ttl. The four gmeow:IdentityFacet siblings are the
+# load-bearing case (they share the gufo:Relator branch, so they are not
+# otherwise disjoint); the value / information-object axes are already
+# cross-branch-disjoint via gUFO and are listed so the WHOLE matrix is
+# ELK-visible and any individual placed in two axes is rejected. This COMPLEMENTS
+# (never replaces) the property-bridge-absence guard in
+# tests/test_identity_orthogonality.py — OWL cannot express "is NOT a
+# sub-property of", so that closed-world lint stays.
+[] a owl:AllDisjointClasses ;
+    owl:members ( gmeow:GenderIdentity gmeow:GenderExpression gmeow:SexAssignedAtBirth
+                  gmeow:SexualOrientation gmeow:RomanticOrientation
+                  gmeow:PronounSet gmeow:Honorific ) .
+
+# --- The underlying VALUE spaces are likewise pairwise disjoint, so even a raw
+# value individual cannot cross axes (a gmeow:Gender is never a
+# gmeow:SexualOrientationValue, a gmeow:SexAssignedAtBirth is never a
+# gmeow:GenderExpressionStyle, and so on).
+[] a owl:AllDisjointClasses ;
+    owl:members ( gmeow:Gender gmeow:GenderExpressionStyle gmeow:SexAssignedAtBirth
+                  gmeow:SexualOrientationValue gmeow:RomanticOrientationValue ) .
+
+# --- Relator mediation (EL existential): each concrete identity facet mediates
+# its value. This documents the relator's relatum FOR THE REASONER; it asserts
+# existence under the open-world assumption, not a violation — the closed-world
+# "exactly one" lives in SHACL (#39). The abstract base gmeow:IdentityFacet is
+# left unrestricted (the value property differs per concrete axis).
+gmeow:GenderIdentity rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:genderValue ; owl:someValuesFrom gmeow:Gender ] .
+gmeow:GenderExpression rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:expressionValue ; owl:someValuesFrom gmeow:GenderExpressionStyle ] .

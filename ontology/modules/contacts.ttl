@@ -241,3 +241,13 @@ gmeow:addressHolder
     rdfs:label "address holder"@en ;
     skos:definition "The agent who held the contact point over the tenure's interval."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# AXIOMATIZED DOCTRINE (#38) — relator mediation for interpersonal relationships.
+# A relationship mediates at least one agent party (EL someValuesFrom,
+# open-world; closed-world "exactly two parties" is SHACL's, #39). Applies to
+# every subtype (Professional / Acquaintance).
+# =========================================================================== #
+
+gmeow:InterpersonalRelationship rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:relationshipParty ; owl:someValuesFrom gmeow:Agent ] .

@@ -64,3 +64,21 @@ gmeow:hasWebPage
     rdfs:label "has web page"@en ;
     skos:definition "Relates an entity to a web page representing it — a homepage, a profile page, a project site. The structured form of a 'website / URL' field: the page is a first-class gmeow:WebPage (documents module) whose IRI is its URL, so it can itself carry a title, language, and rights. Non-functional — an entity may have several pages."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# AXIOMATIZED DOCTRINE (#38) — principal ultimate Kinds are pairwise disjoint.
+#
+# By UFO, distinct gufo:Kinds each supply their own principle of identity, so an
+# individual instantiates exactly one ultimate Kind. We assert that disjointness
+# over the CORE, unarguably mutually-exclusive top-level sortals (cross-module —
+# the IRIs resolve after merge). A person is not an organization, a place, a key,
+# a name, a language or a writing system; software agents are distinct from human
+# persons. Deliberately EXCLUDED: gmeow:Group (a structured organization is
+# arguably a group) and the gmeow:InformationObject document / message / source
+# family (a Source may legitimately also be a Document / CreativeWork) — asserting
+# those disjoint would turn benign overlap into an inconsistency, which Principle 9
+# forbids. Add only disjointness that is TRUE.
+[] a owl:AllDisjointClasses ;
+    owl:members ( gmeow:Person gmeow:Organization gmeow:SoftwareAgent
+                  gmeow:Location gmeow:ContactPoint gmeow:CryptographicKey
+                  gmeow:Appellation gmeow:Language gmeow:WritingSystem ) .

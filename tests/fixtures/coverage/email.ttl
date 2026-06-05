@@ -54,7 +54,7 @@ ex:att1-text
 ex:att1-summary
     a gmeow:Summary ;
     gmeow:wasDerivedFrom ex:att1 ;
-    gmeow:wasGeneratedBy ex:summariser .
+    gmeow:wasAttributedTo ex:summariser .
 
 ex:inbox
     a gmeow:Mailbox ;
