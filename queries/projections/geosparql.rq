@@ -1,0 +1,30 @@
+# Projection: GMEOW → pure GeoSPARQL. Executable form of
+# projections/geosparql.edoal.ttl. WKT datatype retag + lat/long→POINT combine +
+# Feature/sfWithin. Lossy drops: addresses, names, place types, virtual/storage.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX geo:   <http://www.opengis.net/ont/geosparql#>
+
+CONSTRUCT {
+    ?place a geo:Feature .
+    ?place geo:hasGeometry ?g .
+    ?g a geo:Geometry ; geo:asWKT ?wktTagged .
+    ?place geo:hasGeometry ?ptGeom .
+    ?ptGeom a geo:Geometry ; geo:asWKT ?pointWkt .
+    ?place geo:sfWithin ?parent .
+}
+WHERE {
+    {
+        ?place a gmeow:Place .
+    } UNION {
+        ?place gmeow:hasGeometry ?g .
+        ?g gmeow:asWKT ?wkt .
+        BIND ( STRDT(STR(?wkt), geo:wktLiteral) AS ?wktTagged )
+    } UNION {
+        ?place gmeow:hasCoordinates ?c .
+        ?c gmeow:latitude ?lat ; gmeow:longitude ?lon .
+        BIND ( IRI(CONCAT(STR(?place), "-geom")) AS ?ptGeom )
+        BIND ( STRDT(CONCAT("POINT(", STR(?lon), " ", STR(?lat), ")"), geo:wktLiteral) AS ?pointWkt )
+    } UNION {
+        ?place gmeow:containedInPlace ?parent .
+    }
+}

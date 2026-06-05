@@ -1,0 +1,40 @@
+# Projection: GMEOW → vCard-RDF (the W3C vcard namespace, decomposed — not the
+# single-line VCARD text format). Executable form of projections/vcard.edoal.ttl.
+# Address component rename + displayable full name → vcard:fn + given/family parts.
+# Lossy drops: nested Place hierarchy + QIDs, placeType granularity, geometry,
+# NameUsage/register/purpose, non-displayable names, StorageLocation.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
+
+CONSTRUCT {
+    ?holder vcard:hasAddress ?addr .
+    ?addr a vcard:Address ;
+        vcard:street-address ?street ; vcard:locality ?locality ;
+        vcard:region ?region ; vcard:postal-code ?pcode ; vcard:country-name ?ccode .
+    ?ent vcard:fn ?dispName .
+    ?ent vcard:given-name ?given .
+    ?ent vcard:family-name ?family .
+}
+WHERE {
+    {
+        ?holder gmeow:hasContactPoint ?addr .
+        ?addr a gmeow:PostalAddress .
+        OPTIONAL { ?addr gmeow:streetAddress ?street . }
+        OPTIONAL { ?addr gmeow:addressLocality ?locality . }
+        OPTIONAL { ?addr gmeow:addressRegion ?region . }
+        OPTIONAL { ?addr gmeow:postalCode ?pcode . }
+        OPTIONAL { ?addr gmeow:countryCode ?ccode . }
+    } UNION {
+        ?ent gmeow:hasAppellation|gmeow:hasName ?app .
+        ?app gmeow:fullName ?dispName .
+        FILTER NOT EXISTS { ?app gmeow:displayable false }
+    } UNION {
+        ?ent gmeow:hasAppellation|gmeow:hasName ?app .
+        ?app gmeow:hasNamePart ?np .
+        ?np gmeow:namePartType gmeow:namePartGiven ; gmeow:partText ?given .
+    } UNION {
+        ?ent gmeow:hasAppellation|gmeow:hasName ?app .
+        ?app gmeow:hasNamePart ?np .
+        ?np gmeow:namePartType gmeow:namePartSurname ; gmeow:partText ?family .
+    }
+}

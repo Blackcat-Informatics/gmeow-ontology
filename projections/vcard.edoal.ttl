@@ -1,0 +1,37 @@
+@prefix align:  <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
+@prefix edoal:  <http://ns.inria.org/edoal/1.0/#> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix vcard:  <http://www.w3.org/2006/vcard/ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# EDOAL complex alignment: GMEOW → vCard-RDF. Complex cells: compose the
+# displayable full name into vcard:fn, and (optionally) the address components
+# into a single label. Decomposed parts (street/locality/region/postal/given/
+# family) rename 1:1 via the SSSOM mappings. Lossy drops: nested Place hierarchy
+# + QIDs, placeType granularity, geometry/WKT, NameUsage/register/purpose,
+# non-displayable names, StorageLocation. (vcard-RDF, not the single-line VCARD
+# text serialization.) Executable: queries/projections/vcard.rq. Spec only.
+
+<https://blackcatinformatics.ca/gmeow/projections/vcard>
+    a align:Alignment ;
+    rdfs:label "GMEOW → vCard-RDF (EDOAL)"@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    align:level "2EDOAL" ;
+    align:onto1 [ a align:Ontology ; align:formalism [ align:name "GMEOW" ] ] ;
+    align:onto2 [ a align:Ontology ; align:formalism [ align:name "vCard" ] ] ;
+    align:map [
+        a align:Cell ;
+        rdfs:label "displayable fullName → vcard:fn"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:fullName ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri vcard:fn ] ;
+        align:relation "&lt;=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayName ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "PostalAddress → vcard:Address (component rename + optional label compose)"@en ;
+        align:entity1 [ a edoal:Class ; edoal:uri gmeow:PostalAddress ] ;
+        align:entity2 [ a edoal:Class ; edoal:uri vcard:Address ] ;
+        align:relation "=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnComposeAddress ]
+    ] .

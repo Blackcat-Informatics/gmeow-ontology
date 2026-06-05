@@ -1,0 +1,27 @@
+# Projection: GMEOW → pure FOAF (lowest common denominator). Executable form of
+# projections/foaf.edoal.ttl. A Place with coordinates collapses to a
+# wgs84:SpatialThing (lat/long); a displayable full name → foaf:name; an agent
+# locatedAt a place → foaf:based_near. Heavily lossy (address structure, place
+# types, hierarchy, geometry, names context, storage/virtual all dropped).
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
+PREFIX wgs84: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+
+CONSTRUCT {
+    ?place a wgs84:SpatialThing ; wgs84:lat ?lat ; wgs84:long ?lon .
+    ?ent foaf:name ?dispName .
+    ?agent foaf:based_near ?place .
+}
+WHERE {
+    {
+        ?place a gmeow:Place .
+        ?place gmeow:hasCoordinates ?c .
+        ?c gmeow:latitude ?lat ; gmeow:longitude ?lon .
+    } UNION {
+        ?ent gmeow:hasAppellation|gmeow:hasName ?app .
+        ?app gmeow:fullName ?dispName .
+        FILTER NOT EXISTS { ?app gmeow:displayable false }
+    } UNION {
+        ?agent gmeow:locatedAt ?place .
+    }
+}
