@@ -36,4 +36,11 @@ gmeow:holdsAccount	owl:equivalentProperty	foaf:account	semapv:ManualMappingCurat
 gmeow:accountName	owl:equivalentProperty	foaf:accountName	semapv:ManualMappingCuration	1.0	
 gmeow:hasOccupation	owl:equivalentProperty	schema:hasOccupation	semapv:ManualMappingCuration	1.0	
 gmeow:wasAttributedTo	owl:equivalentProperty	prov:wasAttributedTo	semapv:ManualMappingCuration	1.0	
-gmeow:wasGeneratedBy	owl:equivalentProperty	prov:wasGeneratedBy	semapv:ManualMappingCuration	1.0	
+gmeow:wasGeneratedBy	owl:equivalentProperty	prov:wasGeneratedBy	semapv:ManualMappingCuration	1.0
+gmeow:description	owl:equivalentProperty	schema:description	semapv:ManualMappingCuration	1.0
+gmeow:description	skos:closeMatch	dcterms:description	semapv:ManualMappingCuration	0.9
+gmeow:description	skos:closeMatch	vcard:note	semapv:ManualMappingCuration	0.8
+gmeow:hasWebPage	skos:closeMatch	schema:url	semapv:ManualMappingCuration	0.8
+gmeow:hasWebPage	skos:closeMatch	foaf:homepage	semapv:ManualMappingCuration	0.8
+gmeow:subOrganizationOf	owl:equivalentProperty	org:subOrganizationOf	semapv:ManualMappingCuration	0.9
+gmeow:subOrganizationOf	skos:closeMatch	schema:subOrganization	semapv:ManualMappingCuration	0.6	

@@ -6,6 +6,7 @@
 # NameUsage/register/purpose, non-displayable names, StorageLocation.
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 
 CONSTRUCT {
     ?holder vcard:hasAddress ?addr .
@@ -16,6 +17,11 @@ CONSTRUCT {
     ?ent vcard:fn ?dispName .
     ?ent vcard:hasName ?vname .
     ?vname a vcard:Name ; vcard:given-name ?given ; vcard:family-name ?family .
+    ?ent vcard:nickname ?nick .
+    ?ent vcard:bday ?bdate .
+    ?ent vcard:title ?title .
+    ?ent vcard:note ?desc .
+    ?ent vcard:hasURL ?wp .
 }
 WHERE {
     {
@@ -45,5 +51,21 @@ WHERE {
         ?app gmeow:hasNamePart ?np .
         ?np gmeow:namePartType gmeow:namePartSurname ; gmeow:partText ?family .
         BIND ( IRI(CONCAT(STR(?ent), "-vcardname")) AS ?vname )
+    } UNION {
+        # Standard vCard fields downcast from structured GMEOW models: NICKNAME from
+        # a nickname-purpose PersonName, BDAY from a Birth event, TITLE from a
+        # Membership Role, NOTE from gmeow:description, URL from gmeow:hasWebPage.
+        ?ent gmeow:hasName ?nn .
+        ?nn gmeow:namePurpose gmeow:namePurposeNickname ; gmeow:fullName ?nick .
+        FILTER NOT EXISTS { ?nn gmeow:displayable false }
+    } UNION {
+        ?b a gmeow:Birth ; gmeow:hasPrincipal ?ent ; gmeow:eventDate ?bdate .
+    } UNION {
+        ?m a gmeow:Membership ; gmeow:membershipMember ?ent ; gmeow:hasRole ?r .
+        ?r rdfs:label|gmeow:name ?title .
+    } UNION {
+        ?ent gmeow:description ?desc .
+    } UNION {
+        ?ent gmeow:hasWebPage ?wp .
     }
 }

@@ -14,6 +14,8 @@ CONSTRUCT {
     ?place a wgs84:SpatialThing ; wgs84:lat ?lat ; wgs84:long ?lon .
     ?ent foaf:name ?dispName .
     ?ent foaf:gender ?genderLabel .
+    ?ent foaf:nick ?nick .
+    ?ent foaf:homepage ?wp .
     ?agent foaf:based_near ?place .
 }
 WHERE {
@@ -30,6 +32,12 @@ WHERE {
         ?gi gmeow:genderValue ?gv .
         ?gv rdfs:label ?genderLabel .
         FILTER NOT EXISTS { ?gi gmeow:displayable false }
+    } UNION {
+        ?ent gmeow:hasName ?nn .
+        ?nn gmeow:namePurpose gmeow:namePurposeNickname ; gmeow:fullName ?nick .
+        FILTER NOT EXISTS { ?nn gmeow:displayable false }
+    } UNION {
+        ?ent gmeow:hasWebPage ?wp .
     } UNION {
         ?agent gmeow:locatedAt ?place .
     }

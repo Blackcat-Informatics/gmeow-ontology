@@ -106,4 +106,45 @@
         align:entity2 [ a edoal:Property ; edoal:uri schema:gender ] ;
         align:relation "<=" ;
         edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayableGender ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "gmeow:description → schema:description (1:1)"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:description ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri schema:description ] ;
+        align:relation "="
+    ] , [
+        a align:Cell ;
+        rdfs:label "hasWebPage → schema:url (the WebPage IRI is the URL)"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:hasWebPage ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri schema:url ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnWebPageToUrl ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "nickname-purpose PersonName → schema:alternateName (downcast)"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:hasName ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri schema:alternateName ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnNicknameName ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "Birth life-event date → schema:birthDate (event → flat date)"@en ;
+        align:entity1 [ a edoal:Class ; edoal:uri gmeow:Birth ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri schema:birthDate ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnBirthEventToDate ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "Membership Role → schema:jobTitle (relator → flat title)"@en ;
+        align:entity1 [ a edoal:Class ; edoal:uri gmeow:Membership ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri schema:jobTitle ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnMembershipToJobTitle ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "subOrganizationOf → schema:department (inverse, parent→child)"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:subOrganizationOf ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri schema:department ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnSubOrgToDepartment ]
     ] .
