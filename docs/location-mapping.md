@@ -38,6 +38,7 @@ its own identifier. The two coexist, bridged by `addressPlace → containedInPla
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix wd:    <http://www.wikidata.org/entity/> .
+@prefix ex:    <https://example.org/loc/> .
 
 # Resolved hierarchy — a QID at every level (Wikidata as hub).
 ex:canada       a gmeow:Place ; gmeow:placeType gmeow:placeTypeCountry ; skos:exactMatch wd:Q16 .

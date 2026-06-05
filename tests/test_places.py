@@ -62,7 +62,9 @@ def test_storage_medium_is_value_not_subclass() -> None:
     graph = _graph()
     medium = URIRef(GMEOW + "storageMedium")
     assert (medium, RDF.type, OWL.ObjectProperty) in graph
-    assert (medium, RDF.type, OWL.FunctionalProperty) not in graph
+    # Functional: the medium is constitutive of the storage location (like
+    # keyScheme), unlike the descriptive placeType.
+    assert (medium, RDF.type, OWL.FunctionalProperty) in graph
     for ind in ("storageMediumCloudService", "storageMediumPhysicalDisk"):
         assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "StorageMedium")) in graph
     for rejected in ("CloudStorage", "LocalStorage", "ObjectStore"):

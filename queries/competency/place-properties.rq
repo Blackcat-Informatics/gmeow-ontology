@@ -5,7 +5,11 @@
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
+# Domains Place and Location (its umbrella) — so location-level inherited
+# properties (e.g. timezone) are included without dragging in every generic
+# Entity-domain property across the whole vocabulary.
 SELECT ?property WHERE {
-    ?property rdfs:domain gmeow:Place .
+    VALUES ?domain { gmeow:Place gmeow:Location }
+    ?property rdfs:domain ?domain .
 }
 ORDER BY ?property

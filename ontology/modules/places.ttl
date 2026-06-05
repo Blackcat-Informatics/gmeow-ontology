@@ -154,11 +154,11 @@ gmeow:placeType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:storageMedium
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:StorageLocation ;
     rdfs:range gmeow:StorageMedium ;
     rdfs:label "storage medium"@en ;
-    skos:definition "The medium of a storage location (a gmeow:StorageMedium individual)."@en ;
+    skos:definition "The medium of a storage location (a gmeow:StorageMedium individual). Functional: the medium is constitutive of the storage location (a different medium is a different store) — unlike the descriptive, multi-source gmeow:placeType."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:physicalPlace
