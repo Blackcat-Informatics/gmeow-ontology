@@ -96,6 +96,18 @@ def test_competency_trust_assertions_query() -> None:
         assert NAMESPACE + term in terms
 
 
+def test_competency_import_provenance_query() -> None:
+    terms = _query_terms("import-provenance.rq")
+    for term in ("sourceModifiedAt", "contentDigest", "sourceLocation"):
+        assert NAMESPACE + term in terms
+
+
+def test_competency_temporal_provenance_clocks_query() -> None:
+    terms = _query_terms("temporal-provenance-clocks.rq")
+    for term in ("validFrom", "validUntil", "assertedAt", "recordedNoLaterThan"):
+        assert NAMESPACE + term in terms
+
+
 def test_qc_missing_definitions_is_empty() -> None:
     # The skeleton is fully annotated, so the QC check returns no offenders.
     graph = load_merged_graph(include_imports=False)

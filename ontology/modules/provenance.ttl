@@ -4,6 +4,7 @@
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/modules/provenance>
     a owl:Ontology ;
@@ -18,12 +19,35 @@ gmeow:Activity
     skos:definition "Something that occurs over a period of time and acts upon or with entities — creating, transforming, using, or attributing them."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:ImportActivity
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:label "Import Activity"@en ;
+    skos:definition "An activity that ingested an external source artifact (an import envelope such as a vCard file) and recorded the claims it carried. Carries the ingestion (transaction) time — when the system learned the claims, distinct from when they were asserted or when they hold."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:ingestedAt
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ImportActivity ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "ingested at"@en ;
+    skos:definition "When an import activity recorded its claims into the system — the transaction time. Distinct from gmeow:assertedAt (observation) and gmeow:validFrom/validUntil (validity)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:wasAttributedTo
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:range gmeow:Agent ;
     rdfs:label "was attributed to"@en ;
     skos:definition "Ascribes responsibility for an entity to an agent."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:wasAssociatedWith
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Activity ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "was associated with"@en ;
+    skos:definition "Relates an activity to an agent associated with carrying it out — e.g. the software agent that ran an import. (Activity→Agent; the counterpart of gmeow:wasAttributedTo, which ascribes an endurant Entity to an agent.)"@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:wasDerivedFrom

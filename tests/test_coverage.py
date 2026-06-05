@@ -59,6 +59,17 @@ def test_contacts_trust_slice_covered() -> None:
     assert not missing, f"contacts-trust classes missing: {missing}"
 
 
+def test_import_provenance_slice_covered() -> None:
+    report = run_coverage()
+    expected_covered = {
+        GMEOW + "Source",
+        GMEOW + "ImportActivity",
+        GMEOW + "SoftwareAgent",
+    }
+    missing = expected_covered - report.covered_classes
+    assert not missing, f"import-provenance classes missing: {missing}"
+
+
 def test_slice_is_partial() -> None:
     # The slice is intentionally incomplete: there must be tracked gaps, and
     # coverage must be a real (non-zero, non-total) fraction.

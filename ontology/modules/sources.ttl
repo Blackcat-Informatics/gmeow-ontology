@@ -3,6 +3,7 @@
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/modules/sources>
     a owl:Ontology ;
@@ -38,4 +39,33 @@ gmeow:citesSource
     rdfs:range gmeow:Source ;
     rdfs:label "cites source"@en ;
     skos:definition "Relates a citation to the source it points into."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Carrier metadata — when a source is an import "envelope" (a file carrying a
+# bundle of claims), these describe the artifact itself, not the claims. The
+# carrier's modification time is a terminus-ante-quem on the recording of its
+# claims (see gmeow:recordedNoLaterThan), never their tenure or observation time.
+
+gmeow:sourceModifiedAt
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Source ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "source modified at"@en ;
+    skos:definition "The last-modification time of the source artifact itself (e.g. a file mtime). A terminus-ante-quem on the recording of the claims this source carries — NOT valid-time (tenure) and NOT observation-time. Advisory and resettable; the reliable identity is gmeow:contentDigest. NOT functional: because a source is identified by its content digest, copies/syncs of the same bytes may legitimately report different modification times, which must coexist rather than force an inconsistency."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:contentDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Source ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "content digest"@en ;
+    skos:definition "A content hash of the source's bytes (e.g. \"blake3:…\") — the reliable carrier identity (two imports of the same bytes are the same source, regardless of mtime or path). Not functional: a source may carry digests under several algorithms."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sourceLocation
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Source ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "source location"@en ;
+    skos:definition "Where the source artifact came from — a file path, original filename, or URL. Provenance/audit only; carries no reliable identity."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
