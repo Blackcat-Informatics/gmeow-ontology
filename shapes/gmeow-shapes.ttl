@@ -266,7 +266,7 @@ gmeow:IdentityAxisOrthogonalityShape
         sh:select """
             SELECT $this WHERE {
                 $this a ?a , ?b .
-                FILTER(?a != ?b)
+                FILTER(STR(?a) < STR(?b))   # ordered pair: one result per violation, not two
                 FILTER(?a IN (
                     <https://blackcatinformatics.ca/gmeow/GenderIdentity>,
                     <https://blackcatinformatics.ca/gmeow/GenderExpression>,

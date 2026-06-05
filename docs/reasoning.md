@@ -67,8 +67,9 @@ triple the reasoner *derives*:
 `tests/test_competency.py` runs the competency questions over an `owlrl`-materialized graph, so
 they test what GMEOW **entails**, not merely what is asserted (entailment is monotonic, so every
 asserted answer survives). `test_competency_ancestry_is_answered_only_by_reasoning` makes the
-gain explicit: it shows a grandparent-as-ancestor answer is **absent** from the asserted graph
-and **present** after materialization — a property path over asserted edges cannot reach it.
+gain explicit: it shows the `gmeow:hasAncestor` answer triple is **absent** from the asserted
+graph and **present** after materialization — it is entailed by the property chain, authored
+nowhere in the A-Box.
 
 ### Lane 4 — closed-world validation (SHACL + ROBOT `verify`)
 

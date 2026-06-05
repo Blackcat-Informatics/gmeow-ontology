@@ -1,0 +1,15 @@
+# Warning-only fixture (#39). A single superseded identity facet (it carries
+# gmeow:validUntil) that is NOT suppressed (gmeow:displayable true) — this trips
+# the gmeow:SupersededFacetSuppressionShape, which is sh:Warning severity
+# (Principle 10: a source may lag the flag). The facet is otherwise well-formed:
+# exactly one gmeow:genderValue, a single axis type — so NO Violation fires.
+# `run_shacl` must report a WARNING but still pass (result.ok is True).
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:laggedFacet a gmeow:GenderIdentity ;
+    gmeow:genderValue gmeow:genderMan ;
+    gmeow:validUntil "2019-01-01T00:00:00"^^xsd:dateTime ;
+    gmeow:displayable true .

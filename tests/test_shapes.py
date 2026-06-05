@@ -35,13 +35,29 @@ def test_malformed_relator_fixture_is_flagged() -> None:
     """A malformed data graph is rejected, and each shape names its violation (AC#1)."""
     result = run_shacl(_fixture("relator-malformed"))
     assert not result.ok
-    report = "\n".join(result.errors)
+    # Cardinality + orthogonality are Violations (errors); suppression is a Warning.
+    errors = "\n".join(result.errors)
+    report = "\n".join(result.errors + result.warnings)
     # Relator well-formedness (exactly-one cardinality), both min and max ends.
-    assert "exactly one gmeow:Gender value" in report
-    assert "must use exactly one appellation" in report
-    # Suppression contract (Principle 10) and orthogonality (Principle 9).
+    assert "exactly one gmeow:Gender value" in errors
+    assert "must use exactly one appellation" in errors
+    # Orthogonality (Principle 9) is a Violation; suppression (P10) is a Warning.
+    assert "may fill at most one identity axis" in errors
     assert "should set gmeow:displayable false" in report
-    assert "may fill at most one identity axis" in report
+
+
+def test_suppression_warning_does_not_fail_validation() -> None:
+    """A superseded-but-unsuppressed facet warns, but does not hard-fail (Principle 10).
+
+    The suppression contract is sh:Warning severity: a source may lag setting
+    gmeow:displayable, so the graph still conforms (result.ok). This guards against
+    drift in the severity bucketing in gmeow_tools.validate.run_shacl.
+    """
+    result = run_shacl(_fixture("suppression-warning-only"))
+    assert result.ok, f"warning-only graph must pass; errors: {result.errors}"
+    assert any("should set gmeow:displayable false" in w for w in result.warnings), (
+        result.warnings
+    )
 
 
 def test_orthogonality_data_check_rejects_two_axes() -> None:

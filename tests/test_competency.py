@@ -224,12 +224,14 @@ def test_competency_proficiency_levels_query() -> None:
 def test_competency_ancestry_is_answered_only_by_reasoning() -> None:
     """AC#2: a competency answer ENTAILED, not asserted.
 
-    "Who are a person's ancestors?" is answerable only over the reasoned graph:
-    ``hasParent ∘ hasParent ⊑ hasAncestor`` (a property chain, #38). No SPARQL
-    property path over the *asserted* edges yields the grandparent hop — only
-    materialization does. This contrasts the asserted and reasoned graphs on the
-    same A-Box to prove the entailment is absent before reasoning and present
-    after.
+    "Who are a person's ancestors?" is answered by the ``gmeow:hasAncestor``
+    relation, which is derived by the property chain ``hasParent ∘ hasParent ⊑
+    hasAncestor`` (#38). The ``hasAncestor`` triple is authored *nowhere* in the
+    A-Box — it only appears once the chain is materialized. (One could of course
+    walk ``hasParent+`` as a path, but the competency answer relation is
+    ``hasAncestor``, and that triple is entailed, not asserted.) This contrasts
+    the asserted and reasoned graphs on the same A-Box to prove the entailment is
+    absent before reasoning and present after.
     """
     abox = (
         (EX.a, GMEOW.hasParent, EX.b),
