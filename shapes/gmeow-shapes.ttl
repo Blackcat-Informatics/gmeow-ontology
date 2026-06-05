@@ -83,7 +83,6 @@ gmeow:AppellationHasContentShape
     sh:or (
         [ sh:path gmeow:fullName ; sh:minCount 1 ]
         [ sh:path gmeow:hasNamePart ; sh:minCount 1 ]
-        [ sh:path gmeow:givenNamePart ; sh:minCount 1 ]
     ) ;
     sh:severity sh:Violation ;
     sh:message "An appellation must have a gmeow:fullName or at least one name part; a surname is never required (mononyms are valid)." .

@@ -172,6 +172,34 @@ def test_competency_pronoun_sets_query() -> None:
         assert NAMESPACE + term in terms
 
 
+def test_competency_language_origins_query() -> None:
+    terms = _query_terms("language-origins.rq")
+    for term in (
+        "originNatural",
+        "originAiGenerated",
+        "originProgramming",
+        "originConstructedEngineered",
+    ):
+        assert NAMESPACE + term in terms
+
+
+def test_competency_writing_systems_query() -> None:
+    terms = _query_terms("writing-systems.rq")
+    for term in (
+        "scriptRoleLogographicContent",
+        "scriptRoleSyllabicGrammar",
+        "scriptRoleLoanword",
+        "scriptRoleTransliteration",
+    ):
+        assert NAMESPACE + term in terms
+
+
+def test_competency_proficiency_levels_query() -> None:
+    terms = _query_terms("proficiency-levels.rq")
+    for term in ("cefrA1", "cefrC2", "levelNative", "levelHeritage"):
+        assert NAMESPACE + term in terms
+
+
 def test_qc_missing_definitions_is_empty() -> None:
     # The skeleton is fully annotated, so the QC check returns no offenders.
     graph = load_merged_graph(include_imports=False)

@@ -40,11 +40,3 @@ gmeow:developer
     rdfs:label "developer"@en ;
     skos:definition "Relates a software project to an agent that develops it."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:programmingLanguage
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:SoftwareProject ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "programming language"@en ;
-    skos:definition "A programming language a software project is written in."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

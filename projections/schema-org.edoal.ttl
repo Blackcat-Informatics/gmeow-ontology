@@ -71,4 +71,30 @@
         align:entity2 [ a edoal:Property ; edoal:uri schema:honorificPrefix ] ;
         align:relation "<=" ;
         edoal:transformation [ rdfs:seeAlso gmeow:fnHonorificToAffix ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "gmeow:Language → schema:Language"@en ;
+        align:entity1 [ a edoal:Class ; edoal:uri gmeow:Language ] ;
+        align:entity2 [ a edoal:Class ; edoal:uri schema:Language ] ;
+        align:relation "="
+    ] , [
+        a align:Cell ;
+        rdfs:label "gmeow:ProgrammingLanguage → schema:ComputerLanguage"@en ;
+        align:entity1 [ a edoal:Class ; edoal:uri gmeow:ProgrammingLanguage ] ;
+        align:entity2 [ a edoal:Class ; edoal:uri schema:ComputerLanguage ] ;
+        align:relation "="
+    ] , [
+        a align:Cell ;
+        rdfs:label "knowsLanguage / LanguageProficiency relator → schema:knowsLanguage (flatten, lossy: drops level/modality)"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:knowsLanguage ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri schema:knowsLanguage ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnProficiencyToKnownLanguage ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "languageCode (+ co-mingled scriptCode) → schema:alternateName (composed BCP-47 tag)"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:languageCode ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri schema:alternateName ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnComposeBcp47 ]
     ] .

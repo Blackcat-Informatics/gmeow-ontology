@@ -10,7 +10,7 @@ preferred/primary/canonical-name term (co-equality is structural).
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, Literal, URIRef
+from rdflib import OWL, RDF, RDFS, Graph, URIRef
 from rdflib.namespace import XSD
 
 from gmeow_tools.graph import load_merged_graph
@@ -216,10 +216,21 @@ def test_filename_claim_vs_reality_no_contradiction() -> None:
     ) not in graph
 
 
-def test_legacy_nametype_is_deprecated() -> None:
+def test_no_flat_name_part_properties() -> None:
+    """Greenfield: name components are ALWAYS the typed gmeow:NamePart — the flat
+    literal duplicates (givenName/familyName/givenNamePart/surnamePart) and the
+    deprecated nameType are removed; a 'First Last' rendering is a projection."""
     graph = _graph()
-    # Explicitly true — owl:deprecated false would (wrongly) pass a presence check.
-    assert graph.value(URIRef(GMEOW + "nameType"), OWL.deprecated) == Literal(True)
+    for removed in (
+        "givenName",
+        "familyName",
+        "givenNamePart",
+        "surnamePart",
+        "nameType",
+    ):
+        node = URIRef(GMEOW + removed)
+        assert (node, RDF.type, OWL.DatatypeProperty) not in graph
+        assert (node, RDF.type, OWL.ObjectProperty) not in graph
 
 
 def test_personname_no_longer_double_defined_in_genealogy() -> None:

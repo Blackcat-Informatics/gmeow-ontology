@@ -99,6 +99,24 @@ def test_names_slice_covered() -> None:
         assert GMEOW + prop in report.covered_predicates
 
 
+def test_languages_slice_covered() -> None:
+    report = run_coverage()
+    # The languages fixture exercises the first-class language + writing-system
+    # model, the two reified relators, and version lineage — all native GMEOW.
+    for cls in (
+        "Language",
+        "WritingSystem",
+        "WritingSystemUsage",
+        "LanguageProficiency",
+        "LanguageVersion",
+        "ProgrammingLanguage",
+        "LanguageCreation",
+    ):
+        assert GMEOW + cls in report.covered_classes
+    for prop in ("usesWritingSystem", "knowsLanguage", "languageOrigin", "scriptRole"):
+        assert GMEOW + prop in report.covered_predicates
+
+
 def test_slice_is_partial() -> None:
     # The slice is intentionally incomplete: there must be tracked gaps, and
     # coverage must be a real (non-zero, non-total) fraction.
