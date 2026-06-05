@@ -104,12 +104,27 @@ def _value(node: object) -> URIRef | Literal:
     raise CompileError(f"statement value must be an IRI or literal, got {node!r}")
 
 
+def _single(graph: Graph, subject: Node, predicate: URIRef) -> Node | None:
+    """Return the single object of ``(subject, predicate)``, or None if absent.
+
+    Raises :class:`CompileError` if more than one is present — ``graph.value``
+    would silently pick one and hide a malformed cell (two qObjects, two
+    annValues, …).
+    """
+    objects = list(graph.objects(subject, predicate))
+    if len(objects) > 1:
+        raise CompileError(
+            f"{subject} has {len(objects)} values for {predicate} — expected one"
+        )
+    return objects[0] if objects else None
+
+
 def _annotations(graph: Graph, cell: Node) -> tuple[Annotation, ...]:
     """Parse and deterministically sort a cell's annotation nodes."""
     out: list[Annotation] = []
     for ann in graph.objects(cell, GM.annotation):
-        prop = graph.value(ann, GM.annProperty)
-        value = graph.value(ann, GM.annValue)
+        prop = _single(graph, ann, GM.annProperty)
+        value = _single(graph, ann, GM.annValue)
         if not isinstance(prop, URIRef):
             raise CompileError(f"annotation on {cell} missing an IRI annProperty")
         if value is None:
@@ -121,10 +136,10 @@ def _annotations(graph: Graph, cell: Node) -> tuple[Annotation, ...]:
 
 def _quoted_triple(graph: Graph, cell: Node) -> QuotedTriple:
     """Parse the quoted base triple (qSubject / qPredicate / qObject|Literal)."""
-    subject = graph.value(cell, GM.qSubject)
-    predicate = graph.value(cell, GM.qPredicate)
-    obj_iri = graph.value(cell, GM.qObject)
-    obj_lit = graph.value(cell, GM.qObjectLiteral)
+    subject = _single(graph, cell, GM.qSubject)
+    predicate = _single(graph, cell, GM.qPredicate)
+    obj_iri = _single(graph, cell, GM.qObject)
+    obj_lit = _single(graph, cell, GM.qObjectLiteral)
     if not isinstance(subject, URIRef):
         raise CompileError(f"statement {cell} missing an IRI qSubject")
     if not isinstance(predicate, URIRef):
@@ -151,7 +166,7 @@ def _cells(graph: Graph) -> list[StatementCell]:
         if not isinstance(cell, URIRef):
             raise CompileError("statement metadata cell must be a named IRI")
         triple = _quoted_triple(graph, cell)
-        reifier = graph.value(cell, GM.reifier)
+        reifier = _single(graph, cell, GM.reifier)
         if reifier is not None and not isinstance(reifier, URIRef):
             raise CompileError(f"statement {cell} reifier must be an IRI")
         cells.append(

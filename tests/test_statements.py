@@ -74,6 +74,24 @@ def test_reifier_minting_is_deterministic_and_content_addressed() -> None:
     assert minted, "expected at least one minted reifier in the worked examples"
 
 
+def test_duplicate_annotation_value_is_rejected(tmp_path: Path) -> None:
+    """Two annValues on one annotation node is a malformed cell, not a silent pick."""
+    from gmeow_tools.mapping_dsl import CompileError
+
+    ttl = (
+        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n"
+        "@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/> .\n"
+        "ex:c a gmeow:StatementMetadata ;\n"
+        "    gmeow:qSubject ex:s ; gmeow:qPredicate gmeow:knowsLanguage ;\n"
+        "    gmeow:qObject ex:o ;\n"
+        "    gmeow:annotation [ gmeow:annProperty gmeow:confidence ;\n"
+        "        gmeow:annValue 0.5 ; gmeow:annValue 0.6 ] .\n"
+    )
+    (tmp_path / "dup.ttl").write_text(ttl, encoding="utf-8")
+    with pytest.raises(CompileError, match="expected one"):
+        load_statement_dsl(src=tmp_path)
+
+
 def test_emit_owl_produces_axiom_annotation_form() -> None:
     dsl = load_statement_dsl()
     owl = emit_owl(dsl)

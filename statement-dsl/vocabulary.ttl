@@ -50,23 +50,23 @@ gmeow:StatementMetadata a owl:Class ;
 # The reifier and the quoted triple
 # --------------------------------------------------------------------------- #
 
-gmeow:reifier a owl:ObjectProperty ;
+gmeow:reifier a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "reifier"@en ;
     skos:definition "The named reifier IRI for the statement — the subject of `rdf:reifies` in the RDF 1.2 form and the `owl:Axiom` node in the OWL downcast. OPTIONAL: when omitted, the compiler mints a deterministic, content-addressed reifier IRI from the quoted triple, so the same statement always yields the same reifier (no spurious drift)."@en .
 
-gmeow:qSubject a owl:ObjectProperty ;
+gmeow:qSubject a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "quoted subject"@en ;
     skos:definition "The subject of the quoted base triple — the `s` in `<<( s p o )>>` and the `owl:annotatedSource` in the OWL downcast."@en .
 
-gmeow:qPredicate a owl:ObjectProperty ;
+gmeow:qPredicate a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "quoted predicate"@en ;
     skos:definition "The predicate of the quoted base triple — the `p` in `<<( s p o )>>` and the `owl:annotatedProperty` in the OWL downcast."@en .
 
-gmeow:qObject a owl:ObjectProperty ;
+gmeow:qObject a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "quoted object (IRI)"@en ;
     skos:definition "The object of the quoted base triple when it is an IRI / value individual — the `o` in `<<( s p o )>>` and the `owl:annotatedTarget` in the OWL downcast. Mutually exclusive with gmeow:qObjectLiteral."@en .
 
-gmeow:qObjectLiteral a owl:DatatypeProperty ;
+gmeow:qObjectLiteral a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "quoted object (literal)"@en ;
     skos:definition "The object of the quoted base triple when it is a literal (a date, a string, a number). Mutually exclusive with gmeow:qObject."@en .
 
@@ -78,10 +78,10 @@ gmeow:annotation a owl:ObjectProperty ;
     rdfs:label "annotation"@en ;
     skos:definition "Links a statement cell to one metadata annotation node (annProperty + annValue). Each annotation becomes one triple on the reifier in the RDF 1.2 form and one annotation on the owl:Axiom in the OWL downcast. A cell carries several."@en .
 
-gmeow:annProperty a owl:ObjectProperty ;
+gmeow:annProperty a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "annotation property"@en ;
     skos:definition "The metadata property of one annotation — a real GMEOW statement-level annotation property (gmeow:confidence, gmeow:validFrom, gmeow:assertedAt, gmeow:mappedFrom, …). Must be an owl:AnnotationProperty in the ontology so the generated OWL downcast stays OWL 2 DL-clean."@en .
 
-gmeow:annValue a rdf:Property ;
+gmeow:annValue a rdf:Property, owl:FunctionalProperty ;
     rdfs:label "annotation value"@en ;
     skos:definition "The value of one annotation — an IRI/value individual or a literal (0.95, a date, an agent IRI). Authored as a single field for ergonomics; the compiler emits it verbatim into both forms. (A bare rdf:Property in this spec layer, never reasoned; the generated OWL form attaches it under the real owl:AnnotationProperty named by gmeow:annProperty.)"@en .
