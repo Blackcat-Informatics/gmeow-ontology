@@ -108,6 +108,35 @@ def test_competency_temporal_provenance_clocks_query() -> None:
         assert NAMESPACE + term in terms
 
 
+def test_competency_location_kinds_query() -> None:
+    terms = _query_terms("location-kinds.rq")
+    for term in ("Location", "Place", "VirtualLocation", "StorageLocation"):
+        assert NAMESPACE + term in terms
+
+
+def test_competency_place_types_query() -> None:
+    terms = _query_terms("place-types.rq")
+    for term in (
+        "placeTypeCountry",
+        "placeTypeCity",
+        "placeTypeRoom",
+        "placeTypePremises",
+    ):
+        assert NAMESPACE + term in terms
+
+
+def test_competency_storage_media_query() -> None:
+    terms = _query_terms("storage-media.rq")
+    for term in ("storageMediumCloudService", "storageMediumPhysicalDisk"):
+        assert NAMESPACE + term in terms
+
+
+def test_competency_place_properties_query() -> None:
+    terms = _query_terms("place-properties.rq")
+    for term in ("containedInPlace", "hasCoordinates", "hasGeometry", "placeType"):
+        assert NAMESPACE + term in terms
+
+
 def test_qc_missing_definitions_is_empty() -> None:
     # The skeleton is fully annotated, so the QC check returns no offenders.
     graph = load_merged_graph(include_imports=False)

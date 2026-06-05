@@ -154,6 +154,9 @@ PREFIXES: dict[str, str] = {
     "gedcom": "http://www.w3.org/2000/10/swap/pim/gedcom#",
     "vcard": "http://www.w3.org/2006/vcard/ns#",
     "geo": "http://www.opengis.net/ont/geosparql#",
+    "wgs84": "http://www.w3.org/2003/01/geo/wgs84_pos#",
+    "tgn": "http://vocab.getty.edu/tgn/",
+    "gvp": "http://vocab.getty.edu/ontology#",
     "bibo": "http://purl.org/ontology/bibo/",
     "bibframe": "http://id.loc.gov/ontologies/bibframe/",
     "sioc": "http://rdfs.org/sioc/ns#",
@@ -321,6 +324,15 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     ),
     "vcard": AlignmentTarget("vCard", PREFIXES["vcard"], "W3C-Document", "schema"),
     "geo": AlignmentTarget("GeoSPARQL", PREFIXES["geo"], "OGC", "schema"),
+    "wgs84": AlignmentTarget(
+        "WGS84 Geo Positioning", PREFIXES["wgs84"], "W3C-Document", "schema"
+    ),
+    "tgn": AlignmentTarget(
+        "Getty TGN", PREFIXES["tgn"], "ODC-BY-1.0", "concept_scheme"
+    ),
+    "gvp": AlignmentTarget(
+        "Getty Vocabulary Program", PREFIXES["gvp"], "ODC-BY-1.0", "concept_scheme"
+    ),
     "bibo": AlignmentTarget("BIBO", PREFIXES["bibo"], "CC-BY-3.0", "schema"),
     "bibframe": AlignmentTarget("BIBFRAME", PREFIXES["bibframe"], "CC0-1.0", "schema"),
     "sioc": AlignmentTarget("SIOC", PREFIXES["sioc"], "W3C-Document", "schema"),
