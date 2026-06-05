@@ -25,7 +25,7 @@ from rdflib import RDF, Graph, Namespace
 from rdflib.term import Node
 
 from gmeow_tools.config import DIST_DIR, FIXTURES_DIR, ONTOLOGY_DIR, ROBOT_IMAGE
-from gmeow_tools.reason import MERGED_FILE, merge_release, reason
+from gmeow_tools.reason import MERGED_FILE, merge_release, reason, verify
 from gmeow_tools.runner import ToolExecutionError, image_available
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
@@ -149,6 +149,23 @@ def test_well_formed_individual_stays_consistent() -> None:
     ok.add((EX.fac, RDF.type, GMEOW.GenderIdentity))
     ok.add((EX.fac, GMEOW.genderValue, GMEOW.genderNonBinary))
     assert _is_consistent(ok, "well-formed")
+
+
+@pytest.mark.docker
+@requires_robot
+def test_verify_queries_pass_on_clean_ontology() -> None:
+    """The reasoned-graph QC lane: ROBOT verify finds no violations on the real
+    ontology.
+
+    ``reason.verify`` materializes the merged ontology and runs every
+    queries/verify/*.rq SELECT over it; any returned row is a violation and ROBOT
+    exits non-zero (raising ToolExecutionError). A clean run is the smoke test
+    that the closed-world QC queries — meta-grounding completeness, orthogonality
+    integrity, no class subclassing two disjoint axes — hold. See docs/reasoning.md.
+    """
+    report = verify()  # raises ToolExecutionError if any query returns rows
+    assert "PASS" in report
+    assert "FAIL" not in report
 
 
 @pytest.mark.docker

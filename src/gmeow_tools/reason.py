@@ -21,6 +21,7 @@ from gmeow_tools.config import (
     PROJECT_ROOT,
     ROBOT_IMAGE,
     STATEMENT_OWL_FILE,
+    VERIFY_DIR,
 )
 from gmeow_tools.runner import run_container
 
@@ -153,6 +154,61 @@ def explain_unsatisfiable(
         return ""
     text = output.read_text(encoding="utf-8").strip()
     return "" if text == "No explanations found." else text
+
+
+def verify(
+    *,
+    merged: Path = MERGED_FILE,
+    queries: Path = VERIFY_DIR,
+    reasoner: str = "ELK",
+    output_dir: Path = DIST_DIR / "verify",
+) -> str:
+    """Run the reasoned-graph negative tests (ROBOT ``verify``).
+
+    The closed-world half of the OWL-infers / SHACL-validates split: ROBOT
+    ``reason`` materializes the ontology, then ``verify`` runs the SPARQL SELECT
+    "bad-example" queries in ``queries/verify/`` over it (the OBO QC pattern). Any
+    query that returns a row is a violation, so ROBOT exits non-zero and the
+    failure surfaces as :class:`ToolExecutionError`. Reasoning runs with
+    ``--exclude-tautologies structural`` so trivial entailments (e.g.
+    ``X subClassOf owl:Thing``) never trip a verify query. Unlike the pure-Python
+    pyshacl lane (asserted graph only), these checks see the reasoned closure and
+    so catch violations that only appear after inference. See docs/reasoning.md.
+
+    Args:
+        merged: The merged ontology (produced if absent).
+        queries: Directory of ``*.rq`` SELECT verify queries.
+        reasoner: ``ELK`` (fast, EL) or ``hermit`` (sound+complete DL).
+        output_dir: Directory ROBOT writes the per-query violation reports to.
+
+    Returns:
+        The ROBOT report text (empty problem set if every query is clean).
+
+    Raises:
+        ToolExecutionError: If any verify query returns offending rows.
+    """
+    if not merged.exists():
+        merge_release(merged)
+    query_files = sorted(queries.glob("*.rq"))
+    if not query_files:
+        raise FileNotFoundError(f"no verify queries found in {queries}")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    return _robot(
+        [
+            "reason",
+            "--reasoner",
+            reasoner,
+            "--exclude-tautologies",
+            "structural",
+            "--input",
+            _rel(merged),
+            "verify",
+            "--queries",
+            *[_rel(q) for q in query_files],
+            "--output-dir",
+            _rel(output_dir),
+        ]
+    )
 
 
 def build_full(*, merged: Path = MERGED_FILE, output: Path = FULL_FILE) -> Path:

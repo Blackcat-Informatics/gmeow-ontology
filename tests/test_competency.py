@@ -1,33 +1,54 @@
-"""Tests that the competency and QC SPARQL queries behave as expected."""
+"""Tests that the competency and QC SPARQL queries behave as expected.
+
+Phase 3 of the reasoning-depth epic (#35) upgrades the competency harness to run
+over a **reasoned (materialized) graph** rather than the asserted one, so the
+queries test what GMEOW *entails*, not merely what is written down (CONSTITUTION
+Principle 7, verified by construction; Principle 8, reasoning-centric). The merged
+graph is closed under OWL 2 RL with ``owlrl`` once and cached — pure-Python and
+Docker-free, the same fast lane as ``tests/test_reasoning_entailments.py``.
+Entailment is monotonic, so every answer the asserted graph gave is still present;
+reasoning only adds. ``test_competency_ancestry_is_answered_only_by_reasoning``
+makes the gain explicit: a competency answer absent from the asserted graph yet
+present after materialization.
+"""
 
 from __future__ import annotations
 
+from functools import lru_cache
+
+import owlrl
+from rdflib import Graph, Namespace
 from rdflib.query import ResultRow
 
-from gmeow_tools.config import COMPETENCY_DIR, NAMESPACE, QC_DIR
+from gmeow_tools.config import COMPETENCY_DIR, NAMESPACE, ONTOLOGY_DIR, QC_DIR
 from gmeow_tools.graph import load_merged_graph
 
+GMEOW = Namespace(NAMESPACE)
+EX = Namespace("https://example.org/test/")
 
-def test_competency_agents_query() -> None:
+
+@lru_cache(maxsize=1)
+def _reasoned_graph() -> Graph:
+    """The merged ontology closed under OWL 2 RL (materialized once, cached)."""
     graph = load_merged_graph(include_imports=False)
-    query = (COMPETENCY_DIR / "agents.rq").read_text(encoding="utf-8")
-    results: set[str] = set()
-    for row in graph.query(query):
-        assert isinstance(row, ResultRow)
-        results.add(str(row[0]))
-    # Agent and its skeleton subclasses must be returned.
-    for term in ("Agent", "Person", "Organization"):
-        assert NAMESPACE + term in results
+    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    return graph
 
 
 def _query_terms(filename: str) -> set[str]:
-    graph = load_merged_graph(include_imports=False)
     query = (COMPETENCY_DIR / filename).read_text(encoding="utf-8")
     terms: set[str] = set()
-    for row in graph.query(query):
+    for row in _reasoned_graph().query(query):
         assert isinstance(row, ResultRow)
         terms.add(str(row[0]))
     return terms
+
+
+def test_competency_agents_query() -> None:
+    results = _query_terms("agents.rq")
+    # Agent and its skeleton subclasses must be returned.
+    for term in ("Agent", "Person", "Organization"):
+        assert NAMESPACE + term in results
 
 
 def test_competency_works_query() -> None:
@@ -200,8 +221,46 @@ def test_competency_proficiency_levels_query() -> None:
         assert NAMESPACE + term in terms
 
 
+def test_competency_ancestry_is_answered_only_by_reasoning() -> None:
+    """AC#2: a competency answer ENTAILED, not asserted.
+
+    "Who are a person's ancestors?" is answered by the ``gmeow:hasAncestor``
+    relation, which is derived by the property chain ``hasParent ∘ hasParent ⊑
+    hasAncestor`` (#38). The ``hasAncestor`` triple is authored *nowhere* in the
+    A-Box — it only appears once the chain is materialized. (One could of course
+    walk ``hasParent+`` as a path, but the competency answer relation is
+    ``hasAncestor``, and that triple is entailed, not asserted.) This contrasts
+    the asserted and reasoned graphs on the same A-Box to prove the entailment is
+    absent before reasoning and present after.
+    """
+    abox = (
+        (EX.a, GMEOW.hasParent, EX.b),
+        (EX.b, GMEOW.hasParent, EX.c),
+    )
+    asserted = Graph()
+    asserted.parse(ONTOLOGY_DIR / "modules" / "genealogy.ttl", format="turtle")
+    for triple in abox:
+        asserted.add(triple)
+
+    grandparent = (EX.a, GMEOW.hasAncestor, EX.c)
+    ask = f"PREFIX gmeow: <{NAMESPACE}> ASK {{ <{EX.a}> gmeow:hasAncestor <{EX.c}> }}"
+    # Absent in the asserted graph...
+    assert grandparent not in asserted
+    assert not bool(asserted.query(ask))
+
+    # ...present once the property chain is materialized.
+    reasoned = Graph()
+    reasoned += asserted
+    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(reasoned)
+    assert grandparent in reasoned
+    assert bool(reasoned.query(ask))
+
+
 def test_qc_missing_definitions_is_empty() -> None:
-    # The skeleton is fully annotated, so the QC check returns no offenders.
+    # The skeleton is fully annotated, so the QC check returns no offenders. This
+    # QC check stays on the ASSERTED graph deliberately: reasoning must not be
+    # able to invent a definition (or spuriously type a bnode as a class), so the
+    # completeness guard is only meaningful over what is actually authored.
     graph = load_merged_graph(include_imports=False)
     query = (QC_DIR / "missing-definitions.rq").read_text(encoding="utf-8")
     offenders = list(graph.query(query))

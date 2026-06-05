@@ -100,6 +100,28 @@ def explain() -> None:
 
 
 @app.command()
+def verify(
+    reasoner: str = typer.Option("ELK", help="Reasoner: ELK (fast) or hermit (DL)."),
+) -> None:
+    """Run reasoned-graph negative tests (ROBOT verify over queries/verify/).
+
+    The closed-world QC lane of the hybrid OWL+SHACL architecture: reason, then
+    run each SPARQL "bad-example" query over the materialized graph. Any returned
+    row is a violation (the OBO QC pattern), failing the gate.
+    """
+    from gmeow_tools import reason as reasoning
+    from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
+
+    try:
+        reasoning.verify(reasoner=reasoner)
+    except ToolUnavailableError as exc:
+        raise _fail(f"tool unavailable: {exc}", code=2) from exc
+    except ToolExecutionError as exc:
+        raise _fail(f"verify found violations:\n{exc.output}") from exc
+    console.print("[green]✓ verify: no violations on the reasoned graph[/green]")
+
+
+@app.command()
 def extract(
     target: str = typer.Option(..., help="Alignment target key (license-checked)."),
 ) -> None:
