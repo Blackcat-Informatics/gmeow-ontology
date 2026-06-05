@@ -14,6 +14,12 @@ Please read the [Code of Conduct](CODE_OF_CONDUCT.md) before participating. We
 expect respectful, professional collaboration. To report unacceptable behaviour,
 email <conduct@blackcatinformatics.ca>.
 
+## Principles
+
+GMEOW is governed by [`CONSTITUTION.md`](CONSTITUTION.md) — ten normative principles every
+design decision and pull request is measured against. Read it before proposing terms, mappings,
+or tooling changes, and cite the relevant principle(s) by number in issues and PRs.
+
 ## Ways to contribute
 
 ### Report bugs
@@ -48,8 +54,11 @@ OWL 2 DL conformance, gUFO grounding, and (for alignments) license compatibility
 3. Make the smallest coherent change that solves the problem.
 4. Add or update tests when behaviour changes.
 5. Update docs when outputs, flags, terms, or workflow change.
-6. Complete the CLA Assistant check if prompted on your pull request.
-7. Run the verification steps below before requesting review.
+6. Cite the [Constitution](CONSTITUTION.md) principle(s) your change embodies or affects (by
+   number) in the PR description. A change that appears to conflict with a principle must be
+   revised to comply or include the amendment to `CONSTITUTION.md` that permits it.
+7. Complete the CLA Assistant check if prompted on your pull request.
+8. Run the verification steps below before requesting review.
 
 ## Contributor License Agreement
 
@@ -124,11 +133,14 @@ make help
   `compile-mappings --check` fails on drift). Link by IRI freely; never copy axioms
   from a reference-only (NC/ND/share-alike/copyleft) source — the tooling refuses
   this by design.
-- Statement-level metadata is **RDF 1.2 / RDF\*** in GMEOW's model. Because today's
-  OWL 2 DL reasoners can't yet consume RDF 1.2, author it as OWL 2 axiom annotations
-  (`owl:Axiom` + `owl:annotatedSource/Property/Target`) — the plain-RDF
-  **compatibility encoding** the RDF 1.2 view is generated from — and keep it out of
-  the logical OWL 2 DL axioms.
+- Statement-level metadata is **RDF 1.2 / RDF\*** in GMEOW's model, and it is the
+  **canonical** form (Principles 2–3). Author it once in `statement-dsl/` — the
+  RDF 1.2-shaped Turtle DSL — then run `gmeow compile-statements`. The RDF 1.2 / RDF\*
+  serialization **and** the OWL 2 axiom-annotation form (`owl:Axiom` +
+  `owl:annotatedSource/Property/Target`) are both **generated — do not hand-author
+  either** (CI's `compile-statements --check` fails on drift). The OWL form is the
+  reasoning-lossless downcast the OWL 2 DL reasoners consume; the logical TBox stays
+  OWL 2 DL.
 - If the CLI or build outputs change, update [README.md](README.md).
 
 ## Coding style
@@ -151,10 +163,12 @@ Before requesting review, make sure you:
 - [ ] ran `make reason` after any ontology change (ELK consistency + OWL 2 DL profile)
 - [ ] ran `gmeow compile-mappings` after any `mapping-dsl/` change, then
       `make mappings` and `make wikidata`
+- [ ] ran `gmeow compile-statements` after any `statement-dsl/` change (Jena required)
 - [ ] ran `uv run pytest`
 - [ ] ran `make check` for the full repository gate
 - [ ] updated tests for any behavioural change
 - [ ] updated `README.md` if usage, flags, terms, or outputs changed
+- [ ] cited the affected Constitution principle(s) in the PR description
 
 ## Commit messages
 
@@ -172,7 +186,7 @@ Examples:
 ```text
 feat: add Account and credential classes to the entities module
 fix: correct gUFO grounding for Agreement
-docs: clarify the RDF 1.2 derived-view workflow
+docs: document the RDF 1.2-first authoring workflow
 test: cover the Wikidata QID existence check
 ```
 

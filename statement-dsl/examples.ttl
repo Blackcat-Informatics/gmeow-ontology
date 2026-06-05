@@ -1,0 +1,66 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+
+# =============================================================================
+# Worked statement-metadata cells — the canonical RDF 1.2 / RDF* exemplars.
+#
+# Each gmeow:StatementMetadata cell is a 1:1 transcription of one RDF 1.2
+# reifying statement. `gmeow compile-statements` renders these to:
+#   * statements/gmeow.rdf12.ttl          (the RDF 1.2 / RDF* lead artifact)
+#   * statements/gmeow-statements.owl.ttl (the OWL axiom-annotation downcast)
+# verified mutually lossless by round-trip isomorphism.
+#
+# Annotation properties are the genuine GMEOW owl:AnnotationProperty terms
+# (gmeow:confidence, gmeow:assertedAt, gmeow:validFrom, gmeow:mappedFrom,
+# gmeow:importanceLevel) so the generated OWL form stays OWL 2 DL-clean. Agent
+# attribution is the REIFIED provenance model (gmeow:Activity / wasAttributedTo),
+# not a lightweight axiom annotation — the "four clocks" separation in the
+# temporal module.
+# =============================================================================
+
+# 1. A self-asserted gender identity. Self-assertion is top authority
+#    (CONSTITUTION Principle 9): high confidence, time-scoped, witnessed.
+ex:claim-alice-gender-001 a gmeow:StatementMetadata ;
+    rdfs:label "Alice's gender identity — self-asserted, witnessed 2019, confidence 0.98"@en ;
+    gmeow:reifier    ex:claim-alice-gender-001 ;
+    gmeow:qSubject   ex:gi-alice ;
+    gmeow:qPredicate gmeow:genderValue ;
+    gmeow:qObject    gmeow:genderWoman ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.98 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2019-06-01T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:validFrom  ; gmeow:annValue "2019-06-01"^^xsd:date ] .
+
+# 2. A MACHINE-DERIVED claim that Alice knows a language (Principle 9: a value
+#    inferred by an AI is recorded AS an inference — attributed, confidence-
+#    weighted — never as ground truth; provenance is carried, not erased).
+#    No gmeow:reifier authored → the compiler mints a deterministic one.
+ex:claim-alice-lang-tp a gmeow:StatementMetadata ;
+    rdfs:label "Alice knows Toki Pona — AI-inferred from corpus, confidence 0.6"@en ;
+    gmeow:qSubject   ex:alice ;
+    gmeow:qPredicate gmeow:knowsLanguage ;
+    gmeow:qObject    ex:lang-toki-pona ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence      ; gmeow:annValue 0.6 ] ,
+        [ gmeow:annProperty gmeow:importanceLevel ; gmeow:annValue 2 ] ,
+        [ gmeow:annProperty gmeow:mappedFrom      ; gmeow:annValue ex:agent-corpus-classifier ] .
+
+# 3. A birth-event date with a LITERAL object (gmeow:qObjectLiteral) — a
+#    genealogical fact from a source document, confidence 0.9. The base-triple
+#    literal uses xsd:dateTime (an OWL 2 datatype) so the reasoned OWL downcast
+#    stays OWL 2 DL — xsd:date is NOT in the OWL 2 datatype map and the compiler
+#    rejects it (base_triple_dl_datatypes). Annotation literals (validFrom) are
+#    exempt, living outside the logical core.
+ex:claim-alice-birthdate a gmeow:StatementMetadata ;
+    rdfs:label "Alice's birth-event date — from civil register, confidence 0.9"@en ;
+    gmeow:reifier        ex:claim-alice-birthdate ;
+    gmeow:qSubject       ex:birth-alice ;
+    gmeow:qPredicate     gmeow:eventDate ;
+    gmeow:qObjectLiteral "1990-05-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.9 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2021-03-14T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:mappedFrom ; gmeow:annValue ex:src-civil-register ] .

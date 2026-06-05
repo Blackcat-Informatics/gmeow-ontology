@@ -8,9 +8,10 @@ Two failure modes are distinguished:
 
 * A *required* tool that is missing raises :class:`ToolUnavailableError`
   (fail-fast — ETHOS: no silent degradation).
-* A *gated* tool (one the plan allows to skip, e.g. Jena for the preview RDF 1.2
-  view) is checked with :func:`image_available` so the caller can skip with a
-  visible warning.
+* A *gated* tool (one a command may skip with a visible warning, e.g. WIDOCO for
+  the optional rich documentation) is checked with :func:`image_available` so the
+  caller can skip with a visible warning. (Jena is **not** gated — RDF 1.2 is a
+  required, verified output, so the RDF 1.2 codec hard-fails without it.)
 """
 
 from __future__ import annotations
@@ -92,6 +93,7 @@ def run_container(
     *,
     workdir: Path = PROJECT_ROOT,
     network: bool = False,
+    hostname: str | None = None,
     check: bool = True,
     timeout: float | None = 900,
 ) -> subprocess.CompletedProcess[str]:
@@ -104,6 +106,11 @@ def run_container(
         network: If ``False`` (default), run with ``--network none`` for
             hermetic, deterministic builds. Set ``True`` only for steps that
             must reach the network.
+        hostname: Fix the container hostname. Some JVM tools (Apache Jena) call
+            ``InetAddress.getLocalHost()`` during init, which throws under
+            ``--network none`` when the random container hostname is unresolvable;
+            passing ``"localhost"`` makes it resolve via ``/etc/hosts`` while
+            staying fully hermetic.
         check: Raise :class:`ToolExecutionError` on a non-zero exit.
         timeout: Seconds before the container is killed.
 
@@ -130,6 +137,8 @@ def run_container(
         "--workdir",
         "/work",
     ]
+    if hostname is not None:
+        docker_cmd += ["--hostname", hostname]
     if not network:
         docker_cmd += ["--network", "none"]
     docker_cmd.append(image)

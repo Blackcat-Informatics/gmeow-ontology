@@ -9,9 +9,9 @@ SHELL := /bin/bash
 TARGET ?= foaf
 
 .PHONY: help install fmt lint validate reason explain extract compile-mappings \
-        compile-check mappings wikidata wikidata-live metadata apache docs \
-        docs-full rdf12 quality normalize build export project test check \
-        release clean pull-images
+        compile-check compile-statements statements-check mappings wikidata \
+        wikidata-live metadata apache docs docs-full rdf12 quality normalize \
+        build export project test check release clean pull-images
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -46,6 +46,12 @@ compile-mappings: ## Compile the mapping DSL → SSSOM + EDOAL + FnO + SPARQL (i
 compile-check: ## Fail if the committed projection artifacts are stale vs the DSL.
 	uv run gmeow compile-mappings --check
 
+compile-statements: ## Compile statement-dsl/ → RDF 1.2 lead artifact + OWL downcast (Jena).
+	uv run gmeow compile-statements
+
+statements-check: ## Fail if the committed statement artifacts are stale vs statement-dsl/ (Jena).
+	uv run gmeow compile-statements --check
+
 mappings: compile-mappings ## Build alignment axioms + VoID linksets from SSSOM; validate QID syntax.
 	uv run gmeow mappings
 
@@ -73,7 +79,7 @@ docs: ## Generate pyLODE HTML documentation.
 docs-full: ## Generate pyLODE + WIDOCO documentation (Docker).
 	uv run gmeow docs --widoco
 
-rdf12: ## Materialize the RDF 1.2 / RDF* view (requires Apache Jena; fails if absent).
+rdf12: ## Emit the RDF 1.2 / RDF* lead artifact + OWL downcast (alias of compile-statements; Jena).
 	uv run gmeow rdf12
 
 quality: ## Run OOPS! pitfall scan (network, best-effort).
@@ -94,15 +100,15 @@ project: compile-mappings ## Project GMEOW data to pure schema.org/GeoSPARQL/vCa
 test: ## Run the test suite.
 	uv run pytest
 
-check: lint validate reason compile-check mappings wikidata coverage test ## Full local quality gate.
+check: lint validate statements-check reason compile-check mappings wikidata coverage test ## Full local quality gate.
 	@echo "✓ all checks passed"
 
-release: ## Reasoned closure (HermiT) + build + metadata + CrossRef deposit + RDF 1.2.
+release: ## RDF 1.2 + OWL downcast → reasoned closure (HermiT) + build + metadata + CrossRef deposit.
+	uv run gmeow compile-statements
 	uv run gmeow reason --reasoner hermit --full
 	uv run gmeow build
 	uv run gmeow metadata
 	uv run gmeow crossref
-	uv run gmeow rdf12
 
 pull-images: ## Pre-pull the pinned Docker images (ROBOT, WIDOCO, Jena).
 	bash scripts/pull-images.sh
