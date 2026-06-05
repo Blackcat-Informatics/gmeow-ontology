@@ -39,6 +39,7 @@ Two snapshot *shapes*, chosen by the target's ``kind`` (:class:`AlignmentTarget`
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -126,30 +127,44 @@ TARGET_SOURCES: dict[str, TargetSource] = {
 _USER_AGENT = "gmeow-tools/0.1 (ontology alignment-direction validator)"
 
 
+def _filter_triples(
+    source: Graph, namespace: str, keep_fn: Callable[[URIRef, object], bool]
+) -> Graph:
+    """Filter ``source`` to triples whose subject is in ``namespace`` and ``keep_fn`` returns True.
+
+    Both snapshot shapes share this loop: iterate every triple, skip subjects
+    outside the namespace, then apply a shape-specific keep predicate.
+
+    Args:
+        source: The fully-parsed source graph.
+        namespace: Only subjects whose IRI starts with this string are kept.
+        keep_fn: Callable(predicate, obj) → bool — the shape-specific filter.
+
+    Returns:
+        A new, prefix-bound graph containing the filtered triples.
+    """
+    out = Graph()
+    bind_prefixes(out)
+    for subject, predicate, obj in source:
+        if isinstance(subject, URIRef) and str(subject).startswith(namespace):
+            if keep_fn(predicate, obj):
+                out.add((subject, predicate, obj))
+    return out
+
+
 def _minimal_axiom_graph(source: Graph, namespace: str) -> Graph:
     """Filter a parsed vocabulary down to the linter-relevant axioms.
 
     Keeps only triples whose subject is in ``namespace`` and whose predicate is a
     structural axiom (domain/range/inverse) or an ``rdf:type`` naming a property
     kind. Drops labels, definitions, and all prose — the snapshot is facts only.
-
-    Args:
-        source: The fully-parsed target vocabulary.
-        namespace: The target's IRI namespace prefix (only subjects under it kept).
-
-    Returns:
-        A new, prefix-bound graph containing the minimal axiom subset.
     """
-    out = Graph()
-    bind_prefixes(out)
-    for subject, predicate, obj in source:
-        if not isinstance(subject, URIRef) or not str(subject).startswith(namespace):
-            continue
-        if predicate in _AXIOM_PREDICATES or (
+    def keep(predicate: URIRef, obj: object) -> bool:
+        return predicate in _AXIOM_PREDICATES or (
             predicate == RDF.type and obj in _PROPERTY_TYPES
-        ):
-            out.add((subject, predicate, obj))
-    return out
+        )
+
+    return _filter_triples(source, namespace, keep)
 
 
 def _minimal_class_graph(source: Graph, namespace: str) -> Graph:
@@ -162,20 +177,9 @@ def _minimal_class_graph(source: Graph, namespace: str) -> Graph:
     Everything else (definitions, axiom annotations, cross-imports) is dropped —
     the snapshot is the minimal fact set the foundational-bridge tests verify
     emitted IRIs against, not a republication of the ontology.
-
-    Args:
-        source: The fully-parsed upper ontology.
-        namespace: The target's IRI namespace prefix (only subjects under it kept).
-
-    Returns:
-        A new, prefix-bound graph containing the minimal class-fact subset.
     """
-    out = Graph()
-    bind_prefixes(out)
-    for subject, predicate, obj in source:
-        if not isinstance(subject, URIRef) or not str(subject).startswith(namespace):
-            continue
-        keep = (
+    def keep(predicate: URIRef, obj: object) -> bool:
+        return (
             (predicate == RDF.type and obj == OWL.Class)
             or (predicate == RDFS.label and isinstance(obj, Literal))
             or (
@@ -184,9 +188,8 @@ def _minimal_class_graph(source: Graph, namespace: str) -> Graph:
                 and str(obj).startswith(namespace)
             )
         )
-        if keep:
-            out.add((subject, predicate, obj))
-    return out
+
+    return _filter_triples(source, namespace, keep)
 
 
 def fetch_target_axioms(prefix: str, *, timeout: float = 60.0) -> Graph:

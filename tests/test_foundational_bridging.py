@@ -71,16 +71,17 @@ def test_expected_cells_present_in_alignment_graph() -> None:
 def test_bridge_uses_closematch_only() -> None:
     # UFO and BFO build their categories on different bases, so no cell may claim
     # exact equivalence — every foundational row is a fuzzy closeMatch.
-    for m in _foundational_mappings():
+    mappings = _foundational_mappings()
+    for m in mappings:
         assert m.predicate_id == "skos:closeMatch", (
             f"{m.subject_id} → {m.object_id} uses {m.predicate_id}; "
             "foundational-spine cells must be skos:closeMatch"
         )
-    assert len(_foundational_mappings()) == len(EXPECTED_CELLS)
+    assert len(mappings) == len(EXPECTED_CELLS)
 
 
 def test_every_bfo_iri_is_a_real_class_in_the_snapshot() -> None:
-    """Principle 7: each emitted BFO IRI is a declared owl:Class with the stated
+
     label, verified offline against the vendored snapshot."""
     snapshot = load_target_snapshot("bfo")
     assert snapshot is not None, (

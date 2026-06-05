@@ -84,13 +84,20 @@ _GENERATED_BANNER = (
 # --------------------------------------------------------------------------- #
 
 
+def _local(iri: URIRef) -> str:
+    """The local name of an IRI (after the last ``#`` or ``/``)."""
+    text = str(iri)
+    cut = max(text.rfind("#"), text.rfind("/"))
+    return text[cut + 1 :] if cut >= 0 else text
+
+
 def _param_iri(predicate: URIRef) -> URIRef:
-    local = str(predicate).rsplit("/", 1)[-1].rsplit("#", 1)[-1]
+    local = _local(predicate)
     return URIRef(GM + "param" + local[:1].upper() + local[1:])
 
 
 def _output_iri(fn: URIRef) -> URIRef:
-    local = str(fn).rsplit("/", 1)[-1].rsplit("#", 1)[-1]
+    local = _local(fn)
     stem = local[2:] if local.startswith("fn") else local
     return URIRef(GM + "out" + stem)
 
@@ -209,13 +216,6 @@ def _output_var(cell: ProjectionCell) -> str | None:
     if cell.pattern.binds:
         return cell.pattern.binds[-1].var
     return None
-
-
-def _local(iri: URIRef) -> str:
-    """The local name of an IRI (after the last ``#`` or ``/``)."""
-    text = str(iri)
-    cut = max(text.rfind("#"), text.rfind("/"))
-    return text[cut + 1 :] if cut >= 0 else text
 
 
 def _stable_bnode(label: str) -> BNode:
