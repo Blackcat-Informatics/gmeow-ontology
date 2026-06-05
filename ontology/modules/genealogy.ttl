@@ -414,13 +414,8 @@ gmeow:relationshipChild
     skos:definition "The child in a reified parent-child relationship."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-# gmeow:sex is a Person property; pronouns and honorifics are modelled separately
-# and independently in the names module and are never inferred from sex.
-
-gmeow:sex
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Person ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "sex"@en ;
-    skos:definition "The recorded sex of a person (e.g. male, female, intersex, unknown)."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+# A person's sex/gender is modelled in the dedicated gender + sexuality modules:
+# gmeow:sexAssignedAtBirth (a recorded administrative datum) and the self-asserted
+# gmeow:hasGenderIdentity / gmeow:hasGenderExpression / orientation facets — kept
+# rigorously separate from one another and from address (pronouns/honorifics in
+# names). Documentary sex on historical records uses external gedcom:sex directly.

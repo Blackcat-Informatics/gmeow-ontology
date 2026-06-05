@@ -154,16 +154,16 @@ def test_custom_pronoun_set_has_five_forms() -> None:
         assert graph.value(they, URIRef(GMEOW + form)) is not None
 
 
-def test_pronouns_and_honorifics_independent_of_sex() -> None:
-    """The inclusivity invariant: nothing ties pronoun/honorific to gmeow:sex."""
+def test_pronouns_and_honorifics_are_address_value_facets() -> None:
+    """Pronouns/honorifics are forms of ADDRESS over their own value vocabularies.
+
+    The cross-axis independence (address is never inferred from gender/sex/
+    orientation) is asserted in test_identity_orthogonality.py; the removed
+    gmeow:sex literal is replaced by the gender + sexuality modules.
+    """
     graph = _graph()
-    sex = URIRef(GMEOW + "sex")
     for facet in ("hasPronounSet", "honorific"):
         node = URIRef(GMEOW + facet)
-        # No subproperty/equivalence bridge between the facet and sex.
-        assert (node, RDFS.subPropertyOf, sex) not in graph
-        assert (sex, RDFS.subPropertyOf, node) not in graph
-        assert (node, OWL.equivalentProperty, sex) not in graph
         # The facet ranges over its own value vocabulary, not a sex/gender value.
         ranges = set(graph.objects(node, RDFS.range))
         expected = "PronounSet" if facet == "hasPronounSet" else "Honorific"

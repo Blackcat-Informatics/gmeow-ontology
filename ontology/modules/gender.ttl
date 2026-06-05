@@ -1,0 +1,180 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/gender>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Gender Module"@en ;
+    rdfs:comment "A respectful, inclusive model of a person's gender, grounded on a shared gmeow:IdentityFacet — a reified, SELF-ASSERTED claim (a gufo:Relator, the same idiom as names' NameUsage) that mediates a person and an identity value, carrying an optional validity period and the gmeow:displayable display control. This module covers gender IDENTITY, gender EXPRESSION, and the recorded sex-assigned-at-birth datum; the sibling sexuality module reuses the same IdentityFacet base for sexual/romantic orientation. GOVERNING TENETS: (1) ADDRESS ≠ IDENTITY — pronouns and honorifics (in the names module) are how a person is addressed and carry NO inferential bridge to gender; nothing infers one from the other. (2) SEX ≠ GENDER — gmeow:sexAssignedAtBirth is a recorded administrative datum, NOT an IdentityFacet and never equated with gender identity/expression. (3) SELF-ASSERTION is the top authority (gmeow:selfAsserted). (4) CO-EQUALITY — a person may bear many co-equal identities (e.g. bigender = two facets); there is deliberately NO preferred/primary gender term; only display SUPPRESSION (gmeow:displayable false, the deadname analog for a superseded label) is modelled, never deletion. (5) INCLUSIVE WITHOUT OVERTYPING — gmeow:Gender, gmeow:GenderExpressionStyle and gmeow:SexAssignedAtBirth are OPEN value vocabularies of individuals (never per-value Person subclasses, never a forced enum); an identity not among the seeds is expressed by minting a FRESH value individual carrying rdfs:label, the names' custom-PronounSet idiom — there is deliberately no parallel flat-literal shortcut. Aligns (lossily) to GSSO, Homosaurus, schema.org, Wikidata, FOAF and HL7/FHIR; the reified self-asserted-co-equal machinery is canonical."@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Shared identity base. An IdentityFacet is a reified, self-asserted claim that
+# a person identifies a certain way — a gufo:Relator (mediating person × value),
+# the same reification idiom as names' NameUsage. Relator ⊑ Aspect ⊑ Endurant, so
+# it bears gmeow:displayable / gmeow:wasAttributedTo without clashing with the
+# Endurant-domained core. Its validity period (optional) is carried by
+# gmeow:validFrom / gmeow:validUntil on the facet. The sibling sexuality module's
+# SexualOrientation / RomanticOrientation subclass this same base.
+# --------------------------------------------------------------------------- #
+
+gmeow:IdentityFacet
+    a owl:Class ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Identity Facet"@en ;
+    skos:definition "A reified, SELF-ASSERTED claim about an aspect of a person's identity — gender identity, gender expression, or (in the sexuality module) sexual/romantic orientation — mediating the person and an open identity value. A gufo:Relator, the same idiom as gmeow:NameUsage. A person bears MANY co-equal facets (e.g. bigender); none is privileged, there is no preferred/primary marker, and a superseded facet is kept with gmeow:displayable false rather than deleted. Self-assertion (gmeow:selfAsserted) is the top authority; the optional validity period is carried by gmeow:validFrom/validUntil on the facet."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:selfAsserted
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:IdentityFacet ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "self-asserted"@en ;
+    skos:definition "Whether an identity facet was asserted by the person themselves (true — the top authority) rather than recorded or inferred by a third party (false). Non-functional: a multi-source merge may carry both a self-assertion and a third-party record, which coexist rather than force a contradiction."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Gender identity — what a person IS (distinct from how they are addressed, and
+# from sex-assigned-at-birth). Non-functional: co-equal/fluid/multiple identities
+# are multiple facets. gmeow:genderValue is the SINGLE path to the value (a
+# gmeow:Gender individual, canonical or freshly minted) — there is deliberately
+# no flat gmeow:gender shortcut.
+# --------------------------------------------------------------------------- #
+
+gmeow:GenderIdentity
+    a owl:Class ;
+    rdfs:subClassOf gmeow:IdentityFacet ;
+    rdfs:label "Gender Identity"@en ;
+    skos:definition "A person's SELF-ASSERTED gender identity — what they are — as a reified facet pointing (via gmeow:genderValue) to an open gmeow:Gender value. Independent of pronouns/honorifics (address), of gender expression, and of sex-assigned-at-birth; nothing infers any of these from another. Multiple co-equal GenderIdentity facets express bigender/genderfluid/transition without privileging any."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasGenderIdentity
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range gmeow:GenderIdentity ;
+    rdfs:label "has gender identity"@en ;
+    skos:definition "Relates a person to a self-asserted gender-identity facet they hold. Non-functional and contextual — a person bears many co-equal identities; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasPronounSet, gmeow:honorific, gmeow:hasGenderExpression or gmeow:sexAssignedAtBirth."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:genderValue
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:GenderIdentity ;
+    rdfs:range gmeow:Gender ;
+    rdfs:label "gender value"@en ;
+    skos:definition "The gmeow:Gender value a gender-identity facet asserts (functional PER FACET — one value each; multiplicity is expressed by multiple facets). The value is a gmeow:Gender individual: a predefined one, or — when none fits — a fresh individual carrying rdfs:label (the custom-PronounSet idiom). The single path to the gender value; there is deliberately no flat datatype shortcut."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Gender expression — how a person presents (a separate axis from identity).
+# --------------------------------------------------------------------------- #
+
+gmeow:GenderExpression
+    a owl:Class ;
+    rdfs:subClassOf gmeow:IdentityFacet ;
+    rdfs:label "Gender Expression"@en ;
+    skos:definition "A person's SELF-ASSERTED gender expression — how they present (a gmeow:GenderExpressionStyle value via gmeow:expressionValue). A distinct axis from gender identity: expression is never inferred from identity (or vice versa), nor from sex or address."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasGenderExpression
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range gmeow:GenderExpression ;
+    rdfs:label "has gender expression"@en ;
+    skos:definition "Relates a person to a self-asserted gender-expression facet. Non-functional and contextual. MUST NOT be inferred from gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:expressionValue
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:GenderExpression ;
+    rdfs:range gmeow:GenderExpressionStyle ;
+    rdfs:label "expression value"@en ;
+    skos:definition "The gmeow:GenderExpressionStyle value a gender-expression facet asserts (functional per facet). A predefined individual or a fresh one with rdfs:label; the single path to the value."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Sex assigned at birth — a RECORDED administrative datum, NOT an IdentityFacet
+# and NOT self-asserted. Distinct from gender identity/expression; never equated.
+# Non-functional so a correction and a prior record can coexist (multi-source).
+# Documentary/genealogical sex on historical records keeps using external
+# gedcom:sex; this is GMEOW's native, value-vocab-backed term.
+# --------------------------------------------------------------------------- #
+
+gmeow:sexAssignedAtBirth
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range gmeow:SexAssignedAtBirth ;
+    rdfs:label "sex assigned at birth"@en ;
+    skos:definition "The sex recorded for a person at birth (a gmeow:SexAssignedAtBirth value) — a RECORDED administrative datum, NOT a self-asserted identity and NOT a gufo IdentityFacet. Deliberately separate from gender identity/expression, which it never implies and is never implied by. Non-functional: a correction and a prior record coexist rather than contradict."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:intersexVariation
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Person ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "intersex variation"@en ;
+    skos:definition "An optional free-text note recording an intersex variation, for inclusivity where gmeow:sexAssignedAtBirth gmeow:saabIntersex is insufficient. Deliberately a plain note, NOT a clinical DSD taxonomy and NOT a value vocabulary — GMEOW does not model medical sex characteristics in depth."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# VALUE VOCABULARIES (open; new entries are individuals, not subclasses).
+# Following the places.ttl placeType / names.ttl NamePartType idiom: value
+# individuals carry rdfs:label (the structural lint requires label + definition
+# on classes/properties only). The seed lists are anchors, not a fence — the long
+# tail is fresh individuals + the GSSO/Homosaurus alignments in
+# mappings/gmeow-gender.sssom.tsv. The full rationale is in docs/identity-mapping.md.
+# =========================================================================== #
+
+# --- Gender — open, multi-cultural; never a Person subclass ----------------- #
+
+gmeow:Gender
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Gender"@en ;
+    skos:definition "A gender a person may identify with — a VALUE, never a gmeow:Person subclass. The set is open and culturally diverse; a gender not among the seed individuals is a FRESH gmeow:Gender individual carrying rdfs:label, not a new class. Pointed at by gmeow:genderValue."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:genderWoman       a gmeow:Gender ; rdfs:label "woman"@en .
+gmeow:genderMan         a gmeow:Gender ; rdfs:label "man"@en .
+gmeow:genderNonBinary   a gmeow:Gender ; rdfs:label "non-binary"@en .
+gmeow:genderAgender     a gmeow:Gender ; rdfs:label "agender"@en .
+gmeow:genderGenderfluid a gmeow:Gender ; rdfs:label "genderfluid"@en .
+gmeow:genderGenderqueer a gmeow:Gender ; rdfs:label "genderqueer"@en .
+gmeow:genderBigender    a gmeow:Gender ; rdfs:label "bigender"@en .
+gmeow:genderDemigirl    a gmeow:Gender ; rdfs:label "demigirl"@en .
+gmeow:genderDemiboy     a gmeow:Gender ; rdfs:label "demiboy"@en .
+gmeow:genderTwoSpirit   a gmeow:Gender ; rdfs:label "Two-Spirit"@en ;
+    skos:scopeNote "An umbrella term specific to certain Indigenous North American cultures; not a generic synonym for non-binary and to be used only self-referentially within those contexts."@en .
+gmeow:genderQuestioning a gmeow:Gender ; rdfs:label "questioning"@en .
+
+# --- Gender expression style — how a person presents ------------------------ #
+
+gmeow:GenderExpressionStyle
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Gender Expression Style"@en ;
+    skos:definition "A style of gender expression — a VALUE pointed at by gmeow:expressionValue, never a subclass. Open: a style not seeded here is a fresh individual with rdfs:label."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:expressionFeminine    a gmeow:GenderExpressionStyle ; rdfs:label "feminine"@en .
+gmeow:expressionMasculine   a gmeow:GenderExpressionStyle ; rdfs:label "masculine"@en .
+gmeow:expressionAndrogynous a gmeow:GenderExpressionStyle ; rdfs:label "androgynous"@en .
+gmeow:expressionFluid       a gmeow:GenderExpressionStyle ; rdfs:label "fluid"@en .
+gmeow:expressionNeutral     a gmeow:GenderExpressionStyle ; rdfs:label "neutral"@en .
+
+# --- Sex assigned at birth — recorded administrative value ------------------ #
+
+gmeow:SexAssignedAtBirth
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Sex Assigned at Birth"@en ;
+    skos:definition "A recorded sex-assigned-at-birth value pointed at by gmeow:sexAssignedAtBirth — a VALUE, never a subclass. Deliberately coarse and inclusive (incl. intersex); finer sex-characteristic detail is an optional free-text gmeow:intersexVariation note, not a clinical taxonomy."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:saabFemale   a gmeow:SexAssignedAtBirth ; rdfs:label "assigned female"@en .
+gmeow:saabMale     a gmeow:SexAssignedAtBirth ; rdfs:label "assigned male"@en .
+gmeow:saabIntersex a gmeow:SexAssignedAtBirth ; rdfs:label "intersex"@en .
+gmeow:saabUnknown  a gmeow:SexAssignedAtBirth ; rdfs:label "unknown / not recorded"@en .

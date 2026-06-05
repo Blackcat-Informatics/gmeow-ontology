@@ -12,7 +12,9 @@
 # queries/projections/schema-org.rq. Lossy drops on this profile: StorageLocation,
 # fine place types (floor/premises/thoroughfare/neighborhood/POI), authorityLink,
 # NameUsage/Appellation wrappers, namePurpose/register/script, pronouns,
-# non-displayable names (deadnames). This file is a spec, not reasoned.
+# non-displayable names (deadnames) and non-displayable gender labels, gender
+# expression, orientation (sexual + romantic) and sexAssignedAtBirth (no
+# schema.org target term). This file is a spec, not reasoned.
 
 <https://blackcatinformatics.ca/gmeow/projections/schema-org>
     a align:Alignment ;
@@ -97,4 +99,11 @@
         align:entity2 [ a edoal:Property ; edoal:uri schema:alternateName ] ;
         align:relation "<=" ;
         edoal:transformation [ rdfs:seeAlso gmeow:fnComposeBcp47 ]
+    ] , [
+        a align:Cell ;
+        rdfs:label "displayable GenderIdentity value → schema:gender (lossy: conflates sex/gender; suppressed labels dropped)"@en ;
+        align:entity1 [ a edoal:Relation ; edoal:uri gmeow:hasGenderIdentity ] ;
+        align:entity2 [ a edoal:Property ; edoal:uri schema:gender ] ;
+        align:relation "<=" ;
+        edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayableGender ]
     ] .

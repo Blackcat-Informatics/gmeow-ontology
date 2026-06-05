@@ -1,0 +1,130 @@
+# Synthetic coverage fixture for the gender + sexuality building blocks. Every
+# term in both modules is exercised, and the GOVERNING TENETS are demonstrated:
+#  - CO-EQUALITY / bigender: ex:alex bears TWO co-equal GenderIdentity facets,
+#    neither primary.
+#  - TRANSITION without erasure: ex:robin keeps a superseded gender (gmeow:displayable
+#    false), never deleted, alongside the current one — the deadname analog.
+#  - INCLUSIVE WITHOUT OVERTYPING: ex:sam's identity is a FRESH gmeow:Gender
+#    individual carrying rdfs:label (the escape hatch), not a predefined value.
+#  - SEX ≠ GENDER: ex:kai records gmeow:sexAssignedAtBirth (a recorded datum) wholly
+#    separately from gender identity, with an intersex note.
+#  - SPLIT ATTRACTION: ex:jo is asexual yet biromantic — sexual and romantic
+#    orientation are independent axes.
+#  - ADDRESS ≠ IDENTITY: pronouns (names module) appear alongside gender but are
+#    never derived from it.
+# Self-assertion is recorded with gmeow:selfAsserted + gmeow:wasAttributedTo (the
+# person = top authority). No RDF-star (the coverage parser can't read << >>);
+# a facet's validity period sits directly on the reified facet.
+
+@prefix ex:     <https://example.org/identity/> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Co-equal / bigender: two GenderIdentity facets, neither privileged -------- #
+
+ex:alex a gmeow:Person ;
+    gmeow:hasGenderIdentity ex:alexGiWoman , ex:alexGiNB ;
+    gmeow:hasGenderExpression ex:alexExpr ;
+    gmeow:sexAssignedAtBirth gmeow:saabFemale ;
+    gmeow:hasSexualOrientation ex:alexSexual ;
+    gmeow:hasRomanticOrientation ex:alexRomantic ;
+    gmeow:hasPronounSet gmeow:pronounTheyThem .   # address — independent of all the above
+
+ex:alexGiWoman a gmeow:GenderIdentity ;
+    gmeow:genderValue gmeow:genderWoman ;
+    gmeow:selfAsserted true ;
+    gmeow:displayable true ;
+    gmeow:wasAttributedTo ex:alex .
+
+ex:alexGiNB a gmeow:GenderIdentity ;
+    gmeow:genderValue gmeow:genderNonBinary ;
+    gmeow:selfAsserted true ;
+    gmeow:displayable true ;
+    gmeow:wasAttributedTo ex:alex .
+
+ex:alexExpr a gmeow:GenderExpression ;
+    gmeow:expressionValue gmeow:expressionAndrogynous ;
+    gmeow:selfAsserted true .
+
+ex:alexSexual a gmeow:SexualOrientation ;
+    gmeow:sexualOrientationValue gmeow:orientBisexual ;
+    gmeow:selfAsserted true ; gmeow:displayable true .
+
+ex:alexRomantic a gmeow:RomanticOrientation ;
+    gmeow:romanticOrientationValue gmeow:romanticBiromantic ;
+    gmeow:selfAsserted true ; gmeow:displayable true .
+
+# --- Transition without erasure: a superseded gender kept, never deleted ------- #
+
+ex:robin a gmeow:Person ;
+    gmeow:hasGenderIdentity ex:robinGiOld , ex:robinGiNow .
+
+# Superseded label — recorded for history, SUPPRESSED from display, never deleted.
+ex:robinGiOld a gmeow:GenderIdentity ;
+    gmeow:genderValue gmeow:genderMan ;
+    gmeow:selfAsserted true ;
+    gmeow:displayable false ;
+    gmeow:validUntil "2018-06-01T00:00:00"^^xsd:dateTime ;
+    gmeow:wasAttributedTo ex:robin .
+
+ex:robinGiNow a gmeow:GenderIdentity ;
+    gmeow:genderValue gmeow:genderNonBinary ;
+    gmeow:selfAsserted true ;
+    gmeow:displayable true ;
+    gmeow:validFrom "2018-06-01T00:00:00"^^xsd:dateTime ;
+    gmeow:wasAttributedTo ex:robin .
+
+# --- Inclusive without overtyping: a FRESH self-described gender value --------- #
+
+ex:sam a gmeow:Person ;
+    gmeow:hasGenderIdentity ex:samGi ;
+    gmeow:hasGenderExpression ex:samExpr .
+
+ex:samGi a gmeow:GenderIdentity ;
+    gmeow:genderValue ex:genderDemifluid ;   # not a seed value — a fresh individual
+    gmeow:selfAsserted true ;
+    gmeow:displayable true ;
+    gmeow:wasAttributedTo ex:sam .
+
+# The escape hatch: a new gmeow:Gender individual with a label, NOT a new class.
+ex:genderDemifluid a gmeow:Gender ; rdfs:label "demifluid (self-described)"@en .
+
+ex:samExpr a gmeow:GenderExpression ;
+    gmeow:expressionValue gmeow:expressionNeutral ;
+    gmeow:selfAsserted true .
+
+# --- Sex ≠ gender: recorded sex-assigned-at-birth, kept apart from identity ----- #
+
+ex:kai a gmeow:Person ;
+    gmeow:hasGenderIdentity ex:kaiGi ;
+    gmeow:sexAssignedAtBirth gmeow:saabIntersex ;
+    gmeow:intersexVariation "recorded intersex variation (free-text note, not clinical)"@en .
+
+ex:kaiGi a gmeow:GenderIdentity ;
+    gmeow:genderValue gmeow:genderTwoSpirit ;
+    gmeow:selfAsserted true ;
+    gmeow:displayable true ;
+    gmeow:wasAttributedTo ex:kai .
+
+# --- Split attraction: asexual YET biromantic — two independent axes ----------- #
+
+ex:jo a gmeow:Person ;
+    gmeow:hasGenderIdentity ex:joGi ;
+    gmeow:hasSexualOrientation ex:joSexual ;
+    gmeow:hasRomanticOrientation ex:joRomantic .
+
+ex:joGi a gmeow:GenderIdentity ;
+    gmeow:genderValue gmeow:genderAgender ;
+    gmeow:selfAsserted true ; gmeow:displayable true ;
+    gmeow:wasAttributedTo ex:jo .
+
+ex:joSexual a gmeow:SexualOrientation ;
+    gmeow:sexualOrientationValue gmeow:orientAsexual ;
+    gmeow:selfAsserted true ; gmeow:displayable true ;
+    gmeow:wasAttributedTo ex:jo .
+
+ex:joRomantic a gmeow:RomanticOrientation ;
+    gmeow:romanticOrientationValue gmeow:romanticBiromantic ;
+    gmeow:selfAsserted true ; gmeow:displayable true ;
+    gmeow:wasAttributedTo ex:jo .
