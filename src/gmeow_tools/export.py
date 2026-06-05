@@ -351,7 +351,9 @@ def write_csvw(dist_dir: Path) -> Path:
         ],
     }
     path = dist_dir / "gmeow-terms.csvw.json"
-    path.write_text(json.dumps(descriptor, indent=2) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(descriptor, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
     return path
 
 

@@ -264,7 +264,7 @@ def normalize() -> None:
 
 @app.command()
 def build() -> None:
-    """Build all published serializations + JSON-LD context into dist/."""
+    """Build serializations, JSON-LD context, apache.conf, and exports into dist/."""
     from rdflib import Graph
 
     from gmeow_tools import reason as reasoning
