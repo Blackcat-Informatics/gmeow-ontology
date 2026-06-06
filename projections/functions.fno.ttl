@@ -15,7 +15,7 @@
 
 gmeow:fnCoarsenToGranularity a fno:Function ;
     rdfs:label "coarsen coordinates to the enclosing region (generalization, P10)"@en ;
-    dcterms:description "Disclosure control by generalization (#72, CONSTITUTION P10): when a place carries gmeow:coarsenTo a target gmeow:GranularityLevel, emit the coordinates of the enclosing ancestor at that level (reached by gmeow:containedInPlace) INSTEAD of the place's precise point — a coarser region rather than exact coordinates, never deletion. Aligns by reference to dpv:Generalisation. Heavier geomasking / k-anonymity stays in the solver layer (P12); this transform selects the ancestor and re-emits its WKT POINT."@en ;
+    dcterms:description "Disclosure control by generalization (#72, CONSTITUTION P10): a place that carries gmeow:coarsenTo a target gmeow:GranularityLevel is projected with the coordinates of the enclosing ancestor at that level INSTEAD of its precise point — a coarser region rather than exact coordinates, never deletion. Aligns by reference to dpv:Generalisation. Ancestor SELECTION is performed declaratively in the SPARQL projection (the gmeow:containedInPlace+ path matching the ancestor whose gmeow:hasGranularity is the target level); this transform documents the resulting generalization, receiving the already-selected ancestor's coordinates (paramLatitude/paramLongitude) and re-emitting them as the place's location. Heavier geomasking / k-anonymity stays in the solver layer (P12)."@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> ;
     fno:expects ( gmeow:paramCoarsenTo gmeow:paramLatitude gmeow:paramLongitude ) ;
     fno:returns ( gmeow:outCoarsenToGranularity ) .
@@ -145,10 +145,6 @@ gmeow:fnSelectDisplayableGender a fno:Function ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/foaf.rq> ;
     fno:expects ( gmeow:paramHasGenderIdentity ) ;
     fno:returns ( gmeow:outSelectDisplayableGender ) .
-
-gmeow:outCoarsenToGranularity a fno:Output ;
-    fno:predicate geo:asWKT ;
-    fno:type geo:wktLiteral .
 
 gmeow:outComposeAddress a fno:Output ;
     fno:predicate gmeow:projectedAddress ;
@@ -340,6 +336,10 @@ gmeow:outBirthEventToDate a fno:Output ;
     fno:predicate gmeow:projectedBirthDate ;
     fno:type rdfs:Literal .
 
+gmeow:outCoarsenToGranularity a fno:Output ;
+    fno:predicate geo:asWKT ;
+    fno:type geo:wktLiteral .
+
 gmeow:outHonorificToAffix a fno:Output ;
     fno:predicate gmeow:projectedAffix ;
     fno:type xsd:string .
@@ -475,7 +475,11 @@ gmeow:implSchemaOrg a fno:Implementation ;
     fno:returnMapping [ a fnom:DefaultReturnMapping ;
             rdfs:label "fnCoarsenToGranularity output ↦ ?pointWkt"@en ;
             fnom:functionOutput gmeow:outCoarsenToGranularity ;
-            fnom:implementationProperty "pointWkt" ] .
+            fnom:implementationProperty "pointWkt" ],
+        [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnCoarsenToGranularity output ↦ ?wktTagged"@en ;
+            fnom:functionOutput gmeow:outCoarsenToGranularity ;
+            fnom:implementationProperty "wktTagged" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnComposeAddress → vcard (FnO mapping)"@en ;

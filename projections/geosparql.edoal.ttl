@@ -25,6 +25,14 @@
             align:relation "<=" ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnLatLongToWktPoint ] ],
         [ a align:Cell ;
+            rdfs:label "coarsenTo → enclosing-region WKT geometry (privacy generalization)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:coarsenTo ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri geo:Geometry ] ;
+            align:relation "<=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnCoarsenToGranularity ] ],
+        [ a align:Cell ;
             rdfs:label "asWKT literal → geo:asWKT retagged geo:wktLiteral"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:asWKT ] ;

@@ -1,5 +1,6 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://example.org/loc/> .
+@prefix geo:   <http://www.opengis.net/ont/geosparql#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
@@ -15,23 +16,31 @@ ex:metropolis a gmeow:Place ;
     gmeow:placeType gmeow:placeTypeCity ;
     gmeow:hasGranularity gmeow:granularityCity ;
     gmeow:hasCoordinates ex:metroCoords ;
+    gmeow:hasGeometry ex:metroGeom ;
     rdfs:label "Metropolis"@en .
 
 ex:metroCoords a gmeow:GeoCoordinates ;
     gmeow:latitude 51.5072 ;
     gmeow:longitude -0.1276 .
 
+ex:metroGeom a gmeow:Geometry ;
+    gmeow:asWKT "POLYGON((-0.14 51.50, -0.11 51.50, -0.11 51.52, -0.14 51.52, -0.14 51.50))"^^geo:wktLiteral .
+
 # --- A precise place that OPTS IN to coarsening (granularityCity) --------------- #
 ex:secretLab a gmeow:Place ;
     gmeow:placeType gmeow:placeTypePremises ;
     gmeow:containedInPlace ex:metropolis ;
     gmeow:hasCoordinates ex:secretCoords ;
+    gmeow:hasGeometry ex:secretGeom ;
     gmeow:coarsenTo gmeow:granularityCity ;
     rdfs:label "Secret Lab"@en .
 
 ex:secretCoords a gmeow:GeoCoordinates ;
     gmeow:latitude 51.500001 ;
     gmeow:longitude -0.124999 .
+
+ex:secretGeom a gmeow:Geometry ;
+    gmeow:asWKT "POINT(-0.124999 51.500001)"^^geo:wktLiteral .
 
 # --- Control: a precise place that does NOT opt in (keeps its exact point) ------ #
 ex:openCafe a gmeow:Place ;

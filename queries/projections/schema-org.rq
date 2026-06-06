@@ -13,10 +13,10 @@ CONSTRUCT {
     ?coords schema:latitude ?lat .
     ?coords schema:longitude ?lon .
     ?coords schema:elevation ?elev .
-    ?place schema:geo ?ccoords .
-    ?ccoords a schema:GeoCoordinates .
-    ?ccoords schema:latitude ?lat .
-    ?ccoords schema:longitude ?lon .
+    ?place schema:geo ?coarseGeo .
+    ?coarseGeo a schema:GeoCoordinates .
+    ?coarseGeo schema:latitude ?lat .
+    ?coarseGeo schema:longitude ?lon .
     ?part schema:isPartOf ?whole .
     ?whole schema:hasPart ?part .
     ?place a ?ptClass .
@@ -94,6 +94,7 @@ WHERE {
         OPTIONAL {
             ?ccoords gmeow:longitude ?lon .
         }
+        BIND ( IRI(CONCAT(STR(?place), "-geo-coarsened")) AS ?coarseGeo )
     }
     UNION {
         ?part ?partPredicate ?whole .

@@ -26,6 +26,7 @@ gmeow:mapGeoWktRetag a gmeow:ProjectionMapping ;
             [ gmeow:exprOp gmeow:opStrDatatype ; gmeow:exprArgs (
                 [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "wkt" ] ) ]
                 geo:wktLiteral ) ] ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:coarsenTo ; gmeow:objectVar "anyLvl" ] ;
         gmeow:edoalSource gmeow:asWKT ; gmeow:edoalSourceKind "relation" ] ;
     gmeow:hasBinding [
         gmeow:profile "geosparql" ; gmeow:relation "=" ;
@@ -35,6 +36,37 @@ gmeow:mapGeoWktRetag a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "place" ; gmeow:tPred geo:hasGeometry ; gmeow:tObj "g" ]
             [ gmeow:tSubj "g" ; gmeow:tPred rdf:type ; gmeow:tObjValue geo:Geometry ]
             [ gmeow:tSubj "g" ; gmeow:tPred geo:asWKT ; gmeow:tObj "wktTagged" ] ) ] .
+
+gmeow:mapGeoWktCoarsened a gmeow:ProjectionMapping ;
+    rdfs:label "coarsenTo → enclosing-region WKT geometry (privacy generalization)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:coarsenTo ; gmeow:objectVar "lvl" ]
+            [ gmeow:subjectVar "place" ; gmeow:path [ a gmeow:OneOrMorePath ; gmeow:pathStep gmeow:containedInPlace ] ; gmeow:objectVar "coarse" ]
+            [ gmeow:subjectVar "coarse" ; gmeow:predicate gmeow:hasGranularity ; gmeow:objectVar "lvl" ]
+            [ gmeow:subjectVar "coarse" ; gmeow:predicate gmeow:hasGeometry ; gmeow:objectVar "sourceGeom" ]
+            [ gmeow:subjectVar "sourceGeom" ; gmeow:predicate gmeow:asWKT ; gmeow:objectVar "wkt" ] ) ;
+        gmeow:mint [ gmeow:bindVar "coarseGeom" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "place" ] ) ]
+                    "-geom-coarsened-wkt" ) ] ) ] ] ;
+        gmeow:bind [ gmeow:bindVar "wktTagged" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opStrDatatype ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "wkt" ] ) ]
+                geo:wktLiteral ) ] ] ;
+        gmeow:edoalSource gmeow:coarsenTo ; gmeow:edoalSourceKind "relation" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "geosparql" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget geo:Geometry ; gmeow:edoalTargetKind "class" ;
+        gmeow:transform gmeow:fnCoarsenToGranularity ;
+        gmeow:lossyDrop "precise WKT geometry coarsened to the enclosing region at gmeow:coarsenTo level (privacy generalization, P10)" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "place" ; gmeow:tPred geo:hasGeometry ; gmeow:tObj "coarseGeom" ]
+            [ gmeow:tSubj "coarseGeom" ; gmeow:tPred rdf:type ; gmeow:tObjValue geo:Geometry ]
+            [ gmeow:tSubj "coarseGeom" ; gmeow:tPred geo:asWKT ; gmeow:tObj "wktTagged" ] ) ] .
 
 gmeow:mapGeoPoint a gmeow:ProjectionMapping ;
     rdfs:label "latitude + longitude → geo:Geometry with WKT POINT"@en ;

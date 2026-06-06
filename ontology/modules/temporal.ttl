@@ -98,10 +98,13 @@ gmeow:recordedNoLaterThan
 # Ordered coarse→fine by gmeow:coarserThan (transitive). Aligned BY REFERENCE to
 # OWL-Time's open time:TemporalUnit members (skos:exactMatch) — the resolution of a
 # time position in OWL-Time is its time:unitType; this is the GMEOW counterpart.
+# Decade and century have NO term in the published OWL-Time ontology (it defines
+# unitSecond…unitYear + unitWeek, but not unitDecade/unitCentury), so they carry no
+# skos:exactMatch — they are canonical GMEOW levels in the coarserThan ordering only.
 gmeow:granularityCentury a gmeow:GranularityLevel ; rdfs:label "century level"@en ;
-    gmeow:coarserThan gmeow:granularityDecade ; skos:exactMatch time:unitCentury .
+    gmeow:coarserThan gmeow:granularityDecade .
 gmeow:granularityDecade  a gmeow:GranularityLevel ; rdfs:label "decade level"@en ;
-    gmeow:coarserThan gmeow:granularityYear ; skos:exactMatch time:unitDecade .
+    gmeow:coarserThan gmeow:granularityYear .
 gmeow:granularityYear    a gmeow:GranularityLevel ; rdfs:label "year level"@en ;
     gmeow:coarserThan gmeow:granularityMonth ; skos:exactMatch time:unitYear .
 gmeow:granularityMonth   a gmeow:GranularityLevel ; rdfs:label "month level"@en ;

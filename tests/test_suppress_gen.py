@@ -40,8 +40,9 @@ def test_coarsen_emits_enclosing_region_not_precise_point() -> None:
     points = _wkt_points(g)
     # The enclosing city's coordinates ARE emitted (the coarsened value).
     assert any("51.5072" in p and "-0.1276" in p for p in points), points
-    # The precise coordinates of the marked place are NEVER emitted.
+    # The precise coordinates or WKT geometry of the marked place are NEVER emitted.
     assert not any("51.500001" in p for p in points), points
+    assert not any("-0.124999" in p for p in points), points
 
 
 def test_uncoarsened_place_keeps_its_precise_point() -> None:
@@ -58,6 +59,7 @@ def test_coarsened_geometry_attaches_to_the_marked_place() -> None:
     assert geoms, "secretLab should still carry a (coarsened) geometry"
     wkts = {str(o) for geom in geoms for o in g.objects(geom, URIRef(GEO + "asWKT"))}
     assert any("51.5072" in w for w in wkts), wkts
+    assert any(w.startswith("POLYGON") for w in wkts), wkts
     assert not any("51.500001" in w for w in wkts), wkts
 
 

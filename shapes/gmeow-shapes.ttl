@@ -754,8 +754,27 @@ gmeow:CoarsenToShape
     sh:property [
         sh:path gmeow:coarsenTo ;
         sh:class gmeow:GranularityLevel ;
+        sh:maxCount 1 ;
         sh:severity sh:Violation ;
-        sh:message "gmeow:coarsenTo must point at a gmeow:GranularityLevel — the coarsest level the value may be disclosed at." ;
+        sh:message "gmeow:coarsenTo must point at a single gmeow:GranularityLevel — the coarsest level the value may be disclosed at; multiple, possibly conflicting, markers are ill-formed." ;
+    ] ;
+    # Reachability (warning): coarsening replaces the precise value with an enclosing
+    # ancestor at the target level. If no gmeow:containedInPlace+ ancestor carries that
+    # gmeow:hasGranularity, the precise value is suppressed with nothing to put in its
+    # place — silent precision loss. Warn rather than fail (the ancestor may be supplied
+    # by a separate graph, or coarsening deferred to the solver).
+    sh:sparql [
+        sh:severity sh:Warning ;
+        sh:message "A gmeow:coarsenTo target level is not reachable: no gmeow:containedInPlace+ ancestor carries a matching gmeow:hasGranularity, so the value would be suppressed with no coarser replacement." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/coarsenTo> ?lvl .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/containedInPlace>+ ?ancestor .
+                    ?ancestor <https://blackcatinformatics.ca/gmeow/hasGranularity> ?lvl .
+                }
+            }
+        """ ;
     ] .
 
 gmeow:HasGranularityShape
