@@ -154,6 +154,7 @@ def test_coordinate_props_nonfunctional() -> None:
 
 
 def test_location_superset_core() -> None:
+    """Verifies classes, value scaffolds, properties, and topology of Location Core."""
     graph = _graph()
 
     # 1. New classes
@@ -205,6 +206,7 @@ def test_location_superset_core() -> None:
         RDFS.range,
         URIRef(GMEOW + "SpatialRealm"),
     ) in graph
+    assert (URIRef(GMEOW + "frameRealm"), RDF.type, OWL.FunctionalProperty) in graph
     assert (
         URIRef(GMEOW + "hasAxis"),
         RDFS.domain,
@@ -232,6 +234,7 @@ def test_location_superset_core() -> None:
         RDFS.range,
         URIRef(GMEOW + "FrameKind"),
     ) in graph
+    assert (URIRef(GMEOW + "frameKind"), RDF.type, OWL.FunctionalProperty) in graph
     assert (
         URIRef(GMEOW + "requiresHost"),
         RDFS.domain,
@@ -277,6 +280,11 @@ def test_location_superset_core() -> None:
         URIRef(GMEOW + "Determinacy"),
     ) in graph
     assert (
+        URIRef(GMEOW + "determinacyModel"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+    assert (
         URIRef(GMEOW + "coordinateFrame"),
         RDFS.domain,
         URIRef(GMEOW + "SpatialCoordinates"),
@@ -313,12 +321,32 @@ def test_location_superset_core() -> None:
     assert (URIRef(GMEOW + "connectsTo"), RDF.type, OWL.SymmetricProperty) in graph
 
     # 5. locatedAt property chain axiom
-    chain = list(graph.objects(URIRef(GMEOW + "locatedAt"), OWL.propertyChainAxiom))
-    assert len(chain) > 0
+    chain_head = graph.value(URIRef(GMEOW + "locatedAt"), OWL.propertyChainAxiom)
+    assert chain_head is not None
+    chain_elements = list(graph.items(chain_head))
+    assert chain_elements == [
+        URIRef(GMEOW + "locatedAt"),
+        URIRef(GMEOW + "containedInLocation"),
+    ]
 
     # 6. RCC-8 JEPD disjoint properties
-    all_disjoint = list(graph.subjects(RDF.type, OWL.AllDisjointProperties))
-    assert len(all_disjoint) > 0
+    all_disjoint_nodes = list(graph.subjects(RDF.type, OWL.AllDisjointProperties))
+    assert len(all_disjoint_nodes) == 1
+    disjoint_node = all_disjoint_nodes[0]
+    members_head = graph.value(disjoint_node, OWL.members)
+    assert members_head is not None
+    members_elements = set(graph.items(members_head))
+    expected_members = {
+        URIRef(GMEOW + "rcc8dc"),
+        URIRef(GMEOW + "rcc8ec"),
+        URIRef(GMEOW + "rcc8po"),
+        URIRef(GMEOW + "rcc8tpp"),
+        URIRef(GMEOW + "rcc8ntpp"),
+        URIRef(GMEOW + "rcc8tppi"),
+        URIRef(GMEOW + "rcc8ntppi"),
+        URIRef(GMEOW + "rcc8eq"),
+    }
+    assert members_elements == expected_members
 
     # 7. RCC-8 subproperties
     assert (

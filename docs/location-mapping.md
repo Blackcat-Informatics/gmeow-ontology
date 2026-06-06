@@ -132,5 +132,5 @@ Every spatial measurement or coordinate tuple is relative to a reference system.
 
 To introduce a new domain (e.g. robotic configuration space, narrated fictional settings, or astronomical coordinates) without modifying the core ontology classes:
 1. **Declare the Spatial Realm**: Create a new individual of type `gmeow:SpatialRealm` (e.g., `ex:narrativeRealm`).
-2. **Define a Reference Frame Profile**: Declare a `gmeow:ReferenceFrame` instance with complete profile descriptors (axes, dimension count, kind, determinacy) and set its `gmeow:frameRealm` to your spatial realm individual.
+2. **Define a Reference Frame Profile**: Declare a `gmeow:ReferenceFrame` instance with complete profile descriptors (including `gmeow:frameRealm`, `gmeow:hasAxis`, `gmeow:dimensionCount`, `gmeow:frameKind`, `gmeow:requiresHost`, and `gmeow:determinacyModel`). All of these properties are required by the SHACL shapes (validated in `test_shapes.py`), so omitting `gmeow:requiresHost` or any other mandatory descriptor will cause validation to fail.
 3. **Align by Reference**: Add external vocabulary mappings in your domain-specific mapping DSL file (e.g. using `skos:closeMatch` or `skos:relatedMatch` to standard terms), leaving core class definitions untouched.

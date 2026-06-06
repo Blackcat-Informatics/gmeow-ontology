@@ -652,6 +652,7 @@ gmeow:FrameProfileShape
     sh:property [
         sh:path gmeow:frameRealm ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:class gmeow:SpatialRealm ;
         sh:severity sh:Violation ;
         sh:message "A reference frame must declare its spatial realm." ;
@@ -667,7 +668,7 @@ gmeow:FrameProfileShape
         sh:path gmeow:dimensionCount ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:datatype xsd:integer ;
+        sh:datatype xsd:nonNegativeInteger ;
         sh:severity sh:Violation ;
         sh:message "A reference frame must declare exactly one dimension count." ;
     ] ;

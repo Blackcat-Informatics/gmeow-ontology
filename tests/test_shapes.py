@@ -13,6 +13,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from rdflib import RDF, Graph, Literal, Namespace
+from rdflib.namespace import XSD
 
 from gmeow_tools.validate import run_shacl
 
@@ -91,11 +92,14 @@ def test_internal_language_tag_shape_is_case_insensitive() -> None:
 
 
 def test_wellformed_reference_frame_passes() -> None:
+    """A reference frame profile with all required properties passes SHACL."""
     ok = Graph()
     ok.add((EX.frame, RDF.type, GMEOW.ReferenceFrame))
     ok.add((EX.frame, GMEOW.frameRealm, GMEOW.spatialRealmTerrestrial))
     ok.add((EX.frame, GMEOW.hasAxis, EX.axisX))
-    ok.add((EX.frame, GMEOW.dimensionCount, Literal(3)))
+    ok.add(
+        (EX.frame, GMEOW.dimensionCount, Literal(3, datatype=XSD.nonNegativeInteger))
+    )
     ok.add((EX.frame, GMEOW.frameKind, GMEOW.frameKindCartesian))
     ok.add((EX.frame, GMEOW.requiresHost, Literal(False)))
     ok.add((EX.frame, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
@@ -110,6 +114,7 @@ def test_wellformed_reference_frame_passes() -> None:
 
 
 def test_malformed_reference_frame_fails() -> None:
+    """A reference frame profile missing required descriptors fails SHACL validation."""
     bad = Graph()
     bad.add((EX.frame, RDF.type, GMEOW.ReferenceFrame))
     result = run_shacl(bad)
@@ -120,6 +125,7 @@ def test_malformed_reference_frame_fails() -> None:
 
 
 def test_novel_realm_extensibility_guard_warns() -> None:
+    """A novel SpatialRealm without a ReferenceFrame triggers a warning."""
     bad = Graph()
     bad.add((EX.customRealm, RDF.type, GMEOW.SpatialRealm))
     result = run_shacl(bad)

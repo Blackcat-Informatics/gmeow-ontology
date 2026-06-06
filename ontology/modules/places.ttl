@@ -348,7 +348,7 @@ gmeow:referenceFrameWGS84
     rdfs:label "WGS 84 Geodetic Reference Frame"@en ;
     gmeow:frameRealm gmeow:spatialRealmTerrestrial ;
     gmeow:hasAxis gmeow:axisLatitude, gmeow:axisLongitude, gmeow:axisElevation ;
-    gmeow:dimensionCount 3 ;
+    gmeow:dimensionCount "3"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindGeodetic ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
@@ -358,7 +358,7 @@ gmeow:referenceFrameLocalGrid
     rdfs:label "Local Grid Cartesian Reference Frame"@en ;
     gmeow:frameRealm gmeow:spatialRealmIndoor ;
     gmeow:hasAxis gmeow:axisX, gmeow:axisY, gmeow:axisZ ;
-    gmeow:dimensionCount 3 ;
+    gmeow:dimensionCount "3"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindCartesian ;
     gmeow:requiresHost true ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
@@ -368,7 +368,7 @@ gmeow:referenceFrameVirtualPlatform
     rdfs:label "Virtual Platform Reference Frame"@en ;
     gmeow:frameRealm gmeow:spatialRealmVirtual ;
     gmeow:hasAxis gmeow:axisVirtualAddress ;
-    gmeow:dimensionCount 1 ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindGrid ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
@@ -378,7 +378,7 @@ gmeow:referenceFrameCelestialEquatorial
     rdfs:label "Celestial Equatorial Reference Frame"@en ;
     gmeow:frameRealm gmeow:spatialRealmCelestial ;
     gmeow:hasAxis gmeow:axisRightAscension, gmeow:axisDeclination ;
-    gmeow:dimensionCount 2 ;
+    gmeow:dimensionCount "2"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindPolar ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
@@ -388,14 +388,14 @@ gmeow:referenceFrameRobotBase
     rdfs:label "Robot Base Cartesian Reference Frame"@en ;
     gmeow:frameRealm gmeow:spatialRealmRobotic ;
     gmeow:hasAxis gmeow:axisX, gmeow:axisY, gmeow:axisZ ;
-    gmeow:dimensionCount 3 ;
+    gmeow:dimensionCount "3"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindCartesian ;
     gmeow:requiresHost true ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
 
 # Reference Frame Profile Properties
 gmeow:frameRealm
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:ReferenceFrame ;
     rdfs:range gmeow:SpatialRealm ;
     rdfs:label "frame realm"@en ;
@@ -419,7 +419,7 @@ gmeow:dimensionCount
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:frameKind
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:ReferenceFrame ;
     rdfs:range gmeow:FrameKind ;
     rdfs:label "frame kind"@en ;
@@ -459,7 +459,7 @@ gmeow:frameSolver
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:determinacyModel
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:ReferenceFrame ;
     rdfs:range gmeow:Determinacy ;
     rdfs:label "determinacy model"@en ;
@@ -539,6 +539,7 @@ gmeow:rcc8po
 gmeow:rcc8tpp
     a owl:ObjectProperty ;
     rdfs:subPropertyOf gmeow:containedInLocation ;
+    owl:inverseOf gmeow:rcc8tppi ;
     rdfs:domain gmeow:Location ;
     rdfs:range gmeow:Location ;
     rdfs:label "rcc8 tpp"@en ;
@@ -548,6 +549,7 @@ gmeow:rcc8tpp
 gmeow:rcc8ntpp
     a owl:ObjectProperty ;
     rdfs:subPropertyOf gmeow:containedInLocation ;
+    owl:inverseOf gmeow:rcc8ntppi ;
     rdfs:domain gmeow:Location ;
     rdfs:range gmeow:Location ;
     rdfs:label "rcc8 ntpp"@en ;
@@ -556,6 +558,7 @@ gmeow:rcc8ntpp
 
 gmeow:rcc8tppi
     a owl:ObjectProperty ;
+    owl:inverseOf gmeow:rcc8tpp ;
     rdfs:domain gmeow:Location ;
     rdfs:range gmeow:Location ;
     rdfs:label "rcc8 tppi"@en ;
@@ -564,6 +567,7 @@ gmeow:rcc8tppi
 
 gmeow:rcc8ntppi
     a owl:ObjectProperty ;
+    owl:inverseOf gmeow:rcc8ntpp ;
     rdfs:domain gmeow:Location ;
     rdfs:range gmeow:Location ;
     rdfs:label "rcc8 ntppi"@en ;
@@ -578,7 +582,10 @@ gmeow:rcc8eq
     skos:definition "RCC-8: Equal (EQ) — regions are identical."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-# Jointly Exhaustive and Pairwise Disjoint (JEPD) declaration
+# Pairwise-disjoint declaration of the RCC-8 base relations. The RCC-8 set is
+# conceptually Jointly Exhaustive and Pairwise Disjoint (JEPD), but OWL's
+# owl:AllDisjointProperties only encodes the pairwise disjointness; exhaustiveness
+# (that every region pair stands in exactly one of these relations) is not asserted.
 [] a owl:AllDisjointProperties ;
    owl:members (
        gmeow:rcc8dc
