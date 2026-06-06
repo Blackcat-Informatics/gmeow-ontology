@@ -176,3 +176,41 @@ request that edits this file. A design change that conflicts with a principle ei
 comply or ships *together with* the amending pull request — it is never merged in silent
 conflict. Principle numbers are stable identifiers: additions append; existing numbers are not
 reused or reshuffled casually, so "Principle N" stays meaningful across history.
+
+---
+
+## Proposed amendments — Location epic (#42)  ⟨DRAFT — NOT RATIFIED⟩
+
+> **Status: DRAFT proposals only.** Surfaced by the #42 Location-as-reference-frame epic as a forcing
+> function. The ten ratified principles above are unchanged. These are tabled for discussion and, if
+> adopted, will be folded into the numbered principles by this PR (Principle numbers append; none are
+> reshuffled). Do not cite these numbers as ratified until merged.
+
+**New principles (proposed):**
+
+- **P11 — Frame-relativity (value-in-a-reference-system).** Every measured or expressed value is relative to
+  an explicit reference system (a coordinate reference system, unit, currency, calendar+timescale, colourspace,
+  or language/register). Separate frame-independent *structure/topology* from frame-relative *value/geometry*;
+  a value asserted without its frame is ill-formed. *(From the Frame Profile + topology⟂geometry.)*
+- **P12 — Compute outside the logic (the solver boundary).** The OWL 2 DL core holds structure, relationships,
+  and canonical values only. Heavy computation — coordinate/datum transforms, RCC-8/Allen relation-algebra
+  composition, trajectory interpolation, n-dimensional vector operations, calendar/scale conversion, SLAM /
+  probabilistic updates — lives in an external solver layer aligned **by reference**, never materialised as
+  triples. *(Generalises the standpoint precedent "model the logic, project it losslessly"; preserves P8.)*
+
+**Extensions to existing principles (proposed):**
+
+- **P5 (+) — identity & coreference.** Identity is the stable entity/extent, independent of its names, labels,
+  occupants, or records; coreference is by reference (a hub such as Wikidata, `skos:exactMatch`), never an
+  `owl:sameAs` merge of contested claims.
+- **P9 (+) — the unified observation stance + determinacy.** Every value is an *attributed, dated,
+  confidence-weighted, vantage-relative observation/claim* (measurement ≡ standpoint ≡ observation), never
+  ground truth; and *ontic indeterminacy* (`Determinacy`: crisp/vague/fuzzy/probabilistic/disputed) is
+  represented explicitly and distinctly from *epistemic* confidence.
+- **P10 (+) — disclosure control by projection.** "Suppression, never erasure" generalises: suppression,
+  privacy-redaction, and generalization-to-coarser are one mechanism — withhold or coarsen a value through the
+  projection layer under a trigger (`displayable false` / supersession / access-consent), never by deletion.
+
+**Method notes (guidance, not principles):** the *Profile pattern* (a closed descriptor schema + open values +
+self-description — the four-clocks, the Frame Profile, the Temporal Profile); and *flat-first / reify-on-demand*
+(a flat shortcut paired with a reified relator when statement-level metadata is needed).
