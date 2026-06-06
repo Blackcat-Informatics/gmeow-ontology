@@ -28,16 +28,15 @@ Cite them by number in issues and PRs.
 
 - **Statement-level provenance & confidence.** RDF 1.2 / RDF\*-first: every fact is an
   attributed, confidence-weighted, time-scoped claim, downcast losslessly to OWL axiom
-  annotations for reasoners (§ [RDF 1.2](#rdf-12--rdf-the-canonical-statement-level-model)).
+  annotations for reasoners ([Principles 2–3](./CONSTITUTION.md); see *RDF 1.2* below).
 - **Contested facts without a winner.** Disputed facts are recorded as coexisting,
   standpoint-indexed claims — never collapsed to a preferred, ranked, or latest value
-  (§ [Standpoints](#standpoints-contested-facts-that-coexist-no-winner)).
+  ([`docs/standpoints.md`](./docs/standpoints.md)).
 - **Identity, naming & display safety.** Names and identity are reified, co-equal and
   self-asserted — no `primaryName`/`preferredGender`, deadnames suppressed-not-deleted, and a
   7-axis orthogonality matrix (pronouns ⟂ honorifics ⟂ gender identity ⟂ expression ⟂ sex
   ⟂ sexual ⟂ romantic orientation) **enforced by tests**
-  (§ [Names](#names-first-class-multi-culture-inclusive),
-  § [Gender & sexuality](#gender--sexuality-orthogonal-self-asserted-inclusive)).
+  ([`docs/names-mapping.md`](./docs/names-mapping.md), [`docs/identity-mapping.md`](./docs/identity-mapping.md)).
 
 > **Status.** GMEOW is built **incrementally, one slice of digital existence at a time** — and
 > the foundation is now broad. **24 modules** are modelled, aligned, and reasoned: identity
@@ -47,11 +46,17 @@ Cite them by number in issues and PRs.
 > (places, temporal, events), and the epistemics spine (provenance, standpoint). The reasoning
 > stack is in place — axiomatized doctrine (disjointness, relator mediation, kinship/containment
 > property chains), the [OWL-infers / SHACL-validates split](./docs/reasoning.md) with
-> entailment-based competency tests, and a gUFO↔BFO foundational bridge. Planned slices are
-> tracked as issues — calendar, notes, finance, employment, images, tagging, AI/RAG. Each slice
-> adds canonical terms, SSSOM alignment tables, projections, and a vendored fixture, and
-> `make coverage` reports how much GMEOW covers and what gaps remain. The full toolchain
-> (validate → reason → mappings → coverage → build → docs → publish) runs green at every step.
+> entailment-based competency tests, and a gUFO↔BFO foundational bridge. Planned work is tracked
+> as issues: new domain slices (calendar, notes, finance, employment, images, tagging, an
+> AI / RAG claim-provenance layer), broad-consumption tooling (developer schemas, LPG / Croissant /
+> RO-Crate exports, a maximal DOI strategy), and the current major thrust — the **Location as a
+> universal reference-frame** epic, which surfaces cross-cutting foundations (observation as a
+> *claim-from-a-vantage*, frame-relativity, determinacy ⟂ confidence, privacy/consent by
+> projection, and the self-describing *Profile* meta-pattern) that the in-progress Constitution
+> amendments (Principles 11–12) underpin. Each slice adds canonical terms, SSSOM alignment tables,
+> projections, and a vendored fixture, and `make coverage` reports how much GMEOW covers and what
+> gaps remain. The full toolchain (validate → reason → mappings → coverage → build → docs →
+> publish) runs green at every step.
 
 ## Quick start
 

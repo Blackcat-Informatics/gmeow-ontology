@@ -27,7 +27,7 @@ queryable, inference-friendly graph instead of a pile of disconnected silos.
 ## The problems
 
 Looking at a single real person's public linked-data — which already touches
-~20 vocabularies — the modelling problem resolves into seven concrete challenges:
+~20 vocabularies — the modelling problem resolves into nine concrete challenges:
 
 1. **Vocabulary fragmentation (N ways to say one thing).** A person is
    `foaf:Person` *and* `schema:Person`; kinship is expressed in GEDCOM *and* REL
@@ -48,6 +48,13 @@ Looking at a single real person's public linked-data — which already touches
 7. **Reasoning over the union.** To *use* the unified graph — to infer that three
    vocabularies' "person" terms denote one thing — you need a coherent ontology and
    a reasoner, not just a bag of triples.
+8. **Contested facts (no single truth).** History, geopolitics, genealogy, policy,
+   research claims, and AI-generated claims are *disputed* — the same fact carries rival
+   values that different parties each hold. A flat model gives it one slot two parties
+   must fight over.
+9. **Self-determination and display safety.** Identity, naming, gender and orientation are
+   self-asserted, change over time, and carry real-world risk if mishandled — a deadname
+   must never leak, and "primary"/"preferred" privileging is itself a harm.
 
 ## The solution
 
@@ -76,15 +83,43 @@ GMEOW answers each challenge with a deliberate architectural choice:
 - **Reasoning-centric and FAIR-published.** OWL 2 DL, checked by ELK (fast) and
   HermiT (sound + complete) on every build; published with content negotiation,
   VoID/DCAT, a DOI, and submitted to the LOD Cloud.
+- **Contested facts as coexisting standpoints — no winner.** A disputed fact is recorded
+  as several `gmeow:accordingTo`-indexed claims that coexist, none privileged — *whose
+  frame* (the standpoint) held apart from *which source* recorded it and *how sure* we are.
+  There is no `preferredRank`/`primary*` — refused by a SHACL shape, a statement-DSL lint,
+  and a term-absence test — so the reasoned graph stays consistent while the disagreement is
+  preserved. *(Addresses contested facts.)* See [`standpoints.md`](./standpoints.md).
+- **Reified, self-asserted identity with display safety.** Names and identity facets are
+  co-equal and self-asserted — no `primaryName`/`preferredGender`; orthogonal axes
+  (pronouns, honorifics, gender identity/expression, sex, sexual/romantic orientation) are
+  *test-enforced* not to infer one another; a superseded label (a deadname, a former
+  gender) is kept with `gmeow:displayable false` — retained, **never displayed, never
+  deleted**. *(Addresses self-determination and display safety.)*
+- **Frame-relativity — values carry their reference system.** A coordinate, date, price or
+  name is meaningless without its frame (a CRS, a calendar + timescale, a currency, a
+  register); GMEOW makes the frame explicit and first-class, separating frame-independent
+  *structure* from frame-relative *value* ([Principle 11](../CONSTITUTION.md)), with heavy
+  conversion computed in an external solver, never asserted ([Principle 12](../CONSTITUTION.md)).
+  *(Addresses lossless capture and cross-system coreference; in progress — the Location
+  reference-frame epic.)*
 
 ## How it grows: slices
 
 GMEOW is built **incrementally, one slice of digital existence at a time**. Each
 slice adds canonical terms in a module, alignment tables to that domain's surface
-vocabularies, and a vendored fixture; the `coverage` tool then measures exactly how
-much of the slice GMEOW covers and lists the remaining gaps. The first slice is
-**entities + contacts**; planned next are **email → documents → temporal events →
-calendar → notes → projects → …**.
+vocabularies, projections, and a vendored fixture; the `coverage` tool then measures
+exactly how much of the slice GMEOW covers and lists the remaining gaps.
+
+**Built so far** — the identity, naming, language, gender/sexuality, contact, email,
+account, genealogy, organization, document, source, software, expertise, agreement,
+rights, place, temporal, event, provenance, and standpoint modules, plus the reasoning
+spine (axiomatized doctrine, the OWL+SHACL split, the gUFO↔BFO foundational bridge).
+**Planned, tracked as issues** — calendar, notes, finance, employment, images, tagging,
+and an AI / RAG claim-provenance layer; broad-consumption tooling (developer schemas,
+property-graph and ML-dataset exports, a maximal DOI strategy); and the
+**Location-as-universal-reference-frame** epic, which generalises into cross-cutting
+foundations: observation (claim-from-a-vantage), frame-relativity, determinacy,
+privacy/consent, and the self-describing *Profile* meta-pattern.
 
 Because coverage is measured against real data, "have we modelled digital existence
 yet?" stops being a vibe and becomes a number with an explicit, shrinking gap list.
