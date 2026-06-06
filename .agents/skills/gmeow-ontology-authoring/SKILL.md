@@ -12,7 +12,7 @@ This skill guides the agent in modifying, compiling, and validating GMEOW ontolo
 ## Guidelines
 
 1. **Constitutional Alignment**:
-   - Every design decision must align with [CONSTITUTION.md](file:///home/paudley/Active/gmeow-ontology-agents/CONSTITUTION.md).
+   - Every design decision must align with [CONSTITUTION.md](../../../CONSTITUTION.md).
    - Cite Constitution Principles (e.g. "Principle 4") in your pull requests and commits.
 2. **One Canonical Source (Principle 4)**:
    - **Mappings**: NEVER edit files under `mappings/` or `projections/` by hand. Edit files inside `mapping-dsl/` and run `make compile-mappings`.
