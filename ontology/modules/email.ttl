@@ -154,10 +154,11 @@ gmeow:deliversToAccount
 
 gmeow:partOfThread
     a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:partOf ;
     rdfs:domain gmeow:Message ;
     rdfs:range gmeow:Thread ;
     rdfs:label "part of thread"@en ;
-    skos:definition "Relates a message to the thread (conversation) it belongs to."@en ;
+    skos:definition "Relates a message to the thread (conversation) it belongs to. A conversation-thread specialization of the universal gmeow:partOf spine."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:inReplyTo
@@ -198,15 +199,16 @@ gmeow:hasHeader
 
 gmeow:hasBodyPart
     a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasPart ;
     rdfs:domain gmeow:Message ;
     rdfs:range gmeow:BodyPart ;
     rdfs:label "has body part"@en ;
-    skos:definition "Relates a message to a MIME part of its body."@en ;
+    skos:definition "Relates a message to a MIME part of its body. A MIME-structure specialization of the universal gmeow:hasPart spine."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasAttachment
     a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:hasBodyPart ;
+    rdfs:subPropertyOf gmeow:hasBodyPart, gmeow:hasPart ;
     rdfs:domain gmeow:Message ;
     rdfs:range gmeow:Attachment ;
     rdfs:label "has attachment"@en ;

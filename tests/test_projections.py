@@ -88,6 +88,21 @@ def test_schema_org_projection() -> None:
     _assert_no_gmeow_leakage(g)
 
 
+def test_schema_org_projects_explicit_generic_mereology() -> None:
+    src = load_merged_graph(include_imports=False)
+    part = URIRef("https://example.org/part")
+    whole = URIRef("https://example.org/whole")
+    component = URIRef("https://example.org/component")
+    composite = URIRef("https://example.org/composite")
+    src.add((part, URIRef(GMEOW + "partOf"), whole))
+    src.add((composite, URIRef(GMEOW + "hasPart"), component))
+
+    g = project_graph("schema-org", src)
+    assert (part, URIRef(SCHEMA + "isPartOf"), whole) in g
+    assert (composite, URIRef(SCHEMA + "hasPart"), component) in g
+    _assert_no_gmeow_leakage(g)
+
+
 def test_languages_projection() -> None:
     g = project_graph("schema-org", _source())
     # Language → schema:Language; ProgrammingLanguage → schema:ComputerLanguage.

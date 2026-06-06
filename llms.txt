@@ -209,7 +209,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:connectsTo [gmeow:Location → gmeow:Location]: Relates a location to another location it connects to.
 - gmeow:constraintLogic [gmeow:LogicalConstraint → gmeow:ConstraintLogic] (functional): The boolean operator combining a logical constraint's members — one of the gmeow:ConstraintLogic values (odrl:and / or / xone / andSequence). Functional.
 - gmeow:constraintOperator [gmeow:AtomicConstraint → gmeow:ConstraintOperator] (functional): The comparison operator of an atomic constraint — one of the gmeow:ConstraintOperator values (odrl:operator). Functional.
-- gmeow:containedInLocation [gmeow:Location → gmeow:Location]: Relates a location to a larger location that contains it; transitive.
+- gmeow:containedInLocation [gmeow:Location → gmeow:Location]: Relates a location to a larger location that contains it; transitive. A spatial/topological specialization of the universal gmeow:partOf spine.
 - gmeow:containedInPlace [gmeow:Place → gmeow:Place]: Relates a place to a larger place that geographically contains it; transitive. Chains the nested granularity (room ⊂ building ⊂ city ⊂ region ⊂ country), each level a first-class place.
 - gmeow:contains [gmeow:Event → gmeow:Event]: Allen CONTAINS: this event's extent strictly contains the related event's extent; the transitive inverse of gmeow:during. A TEMPORAL relation only — not spatial (gmeow:containedInPlace) nor mereological (gmeow:hasSubEvent). (= time:intervalContains; TimeML INCLUDES; TEO contains.)
 - gmeow:contentDigest [gmeow:Source → rdfs:Literal]: A content hash of the source's bytes (e.g. "blake3:…") — the reliable carrier identity (two imports of the same bytes are the same source, regardless of mtime or path). Not functional: a source may carry digests under several algorithms.
@@ -262,7 +262,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasAuthenticationResult [gmeow:Message → gmeow:AuthenticationResult]: Relates a message to an authentication check performed on it.
 - gmeow:hasAuthor [gmeow:CreativeWork → gmeow:Agent]: Relates a creative work to an agent chiefly responsible for creating its intellectual content.
 - gmeow:hasAxis [gmeow:ReferenceFrame → gmeow:Axis]: Relates a reference frame to one of its coordinate axes.
-- gmeow:hasBodyPart [gmeow:Message → gmeow:BodyPart]: Relates a message to a MIME part of its body.
+- gmeow:hasBodyPart [gmeow:Message → gmeow:BodyPart]: Relates a message to a MIME part of its body. A MIME-structure specialization of the universal gmeow:hasPart spine.
 - gmeow:hasChild [gmeow:Person → gmeow:Person]: Relates a person to a child; the inverse of hasParent.
 - gmeow:hasContactPoint [gmeow:Agent → gmeow:ContactPoint]: Relates an agent to a means of contacting it.
 - gmeow:hasCoordinateMatrix [gmeow:Axis → rdfs:Literal]: Specifies a transformation or projection matrix associated with a coordinate axis.
@@ -282,9 +282,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasMet [gmeow:Agent → gmeow:Agent]: Records that two agents have met; symmetric. The occasion/period is carried with gmeow:validFrom/validUntil on the statement.
 - gmeow:hasMother [gmeow:Person → gmeow:Person]: Relates a person to a female parent.
 - gmeow:hasName [gmeow:Person → gmeow:PersonName]: Relates a person to a structured, typed PersonName they bear; the person-scoped specialization of gmeow:hasAppellation. Non-functional — a person bears many co-equal names.
-- gmeow:hasNamePart [gmeow:Appellation → gmeow:NamePart]: Relates an appellation to one of its reified, typed parts. Non-functional — a name has many parts.
+- gmeow:hasNamePart [gmeow:Appellation → gmeow:NamePart]: Relates an appellation to one of its reified, typed parts. Non-functional — a name has many parts. A specialized information-object component relation under the universal gmeow:hasPart spine.
 - gmeow:hasOccupation [gmeow:Person → gmeow:Occupation]: Relates a person to an occupation they hold or have held.
 - gmeow:hasParent [gmeow:Person → gmeow:Person]: Relates a person to a parent (any kind: biological, adoptive, step, or foster).
+- gmeow:hasPart: Universal whole-to-part inverse of gmeow:partOf. Transitive and intentionally broad; specialized component and containment properties remain the authoritative source for domain-specific meaning.
 - gmeow:hasParticipant [gmeow:Event → gmeow:Agent]: An agent that took part in an event — the flat 80%-case shortcut. Non-functional. Promote to a gmeow:Participation node when the role, period, confidence, or evidence of the participation must be recorded.
 - gmeow:hasPartner [gmeow:CoupleRelationship → gmeow:Person]: Relates a couple relationship to one of its two partners.
 - gmeow:hasParty [gmeow:Agreement → gmeow:Agent]: Relates an agreement to an agent that is bound by it.
@@ -374,7 +375,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:overlaps [gmeow:Event → gmeow:Event]: Allen OVERLAPS: this event begins before, and ends during, the related event (their extents partially overlap). NOT transitive. Inverse of gmeow:overlappedBy. (= time:intervalOverlaps; TEO overlaps.)
 - gmeow:parentFrame [gmeow:ReferenceFrame → gmeow:ReferenceFrame] (functional): Relates a reference frame to its parent frame in a hierarchy.
 - gmeow:partExpansion [gmeow:NamePart → rdfs:Literal]: The expanded form of an abbreviated part — e.g. the full word a South-Indian (Tamil) initial stands for.
-- gmeow:partOfThread [gmeow:Message → gmeow:Thread]: Relates a message to the thread (conversation) it belongs to.
+- gmeow:partOf: Universal part-to-whole relation: relates any GMEOW thing to a larger whole it is part of. Transitive and intentionally broad; use specialized subproperties such as gmeow:containedInLocation, gmeow:subOrganizationOf, gmeow:subEventOf, gmeow:partOfThread or module-specific component properties when the kind of parthood matters. No domain/range is asserted so event, location, information-object and endurant parthood all remain possible in OWL 2 DL.
+- gmeow:partOfThread [gmeow:Message → gmeow:Thread]: Relates a message to the thread (conversation) it belongs to. A conversation-thread specialization of the universal gmeow:partOf spine.
 - gmeow:partOrder [gmeow:NamePart → xsd:nonNegativeInteger] (functional): The 0-based position of a part within its appellation's surface order, as actually written in its culture. Records observed order WITHOUT implying a given-before-family default — East-Asian family-first is simply order 0 = surname.
 - gmeow:partText [gmeow:NamePart → rdfs:Literal]: The string value of a name part. Language-/script-tag the literal where applicable.
 - gmeow:participationEvent [gmeow:Participation → gmeow:Event] (functional): The event a participation is part of (functional — one event per participation).
@@ -463,8 +465,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:storageService [gmeow:StorageLocation → rdfs:Literal]: The service or system hosting a storage location (e.g. "Google Drive", "AWS S3", "local").
 - gmeow:storedIn [gmeow:Entity → gmeow:StorageLocation]: Relates a digital object (e.g. a document or import source) to the storage location where its bytes reside — the structured form of a source's location.
 - gmeow:streetAddress [gmeow:PostalAddress → rdfs:Literal]: The street address line (number and thoroughfare) of a postal address.
-- gmeow:subEventOf [gmeow:Event → gmeow:Event]: Relates an event to a larger event it is part of — a talk within a session within a conference. Transitive: a part of a part is a part (CIDOC-CRM P9 consists of). Non-simple, so kept out of all cardinality axioms.
-- gmeow:subOrganizationOf [gmeow:Organization → gmeow:Organization]: Relates an organization to a larger organization it is part of — a department or division within a company, a team within a department. Transitive (a team is part of the company through its division). A department is thus a first-class gmeow:Organization, and a gmeow:Membership may target it directly. The 'department' field is the sub-organization a person's membership is in.
+- gmeow:subEventOf [gmeow:Event → gmeow:Event]: Relates an event to a larger event it is part of — a talk within a session within a conference. Transitive: a part of a part is a part (CIDOC-CRM P9 consists of). A specialization of the universal gmeow:partOf spine. Non-simple, so kept out of all cardinality axioms.
+- gmeow:subOrganizationOf [gmeow:Organization → gmeow:Organization]: Relates an organization to a larger organization it is part of — a department or division within a company, a team within a department. Transitive (a team is part of the company through its division). A specialization of the universal gmeow:partOf spine. A department is thus a first-class gmeow:Organization, and a gmeow:Membership may target it directly. The 'department' field is the sub-organization a person's membership is in.
 - gmeow:subject [gmeow:Message → rdfs:Literal]: The subject line of a message (RFC 5322 Subject).
 - gmeow:supersedes [gmeow:LanguageVersion → gmeow:LanguageVersion]: Relates a language version to the prior version it supersedes. Non-functional (a version may consolidate several). Orders a lineage's versions WITHOUT implying the prior is invalid — older versions remain first-class and usable.
 - gmeow:telephone [gmeow:Agent → rdfs:Literal]: A telephone number at which an agent can be reached.

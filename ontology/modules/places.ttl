@@ -123,6 +123,7 @@ gmeow:storedIn
 
 gmeow:containedInPlace
     a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:subPropertyOf gmeow:containedInLocation, gmeow:partOf ;
     rdfs:domain gmeow:Place ;
     rdfs:range gmeow:Place ;
     rdfs:label "contained in place"@en ;
@@ -486,10 +487,11 @@ gmeow:hasCoordinateMatrix
 # Universal Topology Relations
 gmeow:containedInLocation
     a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:subPropertyOf gmeow:partOf ;
     rdfs:domain gmeow:Location ;
     rdfs:range gmeow:Location ;
     rdfs:label "contained in location"@en ;
-    skos:definition "Relates a location to a larger location that contains it; transitive."@en ;
+    skos:definition "Relates a location to a larger location that contains it; transitive. A spatial/topological specialization of the universal gmeow:partOf spine."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:adjacentTo
@@ -507,9 +509,6 @@ gmeow:connectsTo
     rdfs:label "connects to"@en ;
     skos:definition "Relates a location to another location it connects to."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-# Subproperty axioms
-gmeow:containedInPlace rdfs:subPropertyOf gmeow:containedInLocation .
 
 # RCC-8 JEPD Relations
 gmeow:rcc8dc
@@ -538,7 +537,7 @@ gmeow:rcc8po
 
 gmeow:rcc8tpp
     a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:containedInLocation ;
+    rdfs:subPropertyOf gmeow:containedInLocation, gmeow:partOf ;
     owl:inverseOf gmeow:rcc8tppi ;
     rdfs:domain gmeow:Location ;
     rdfs:range gmeow:Location ;
@@ -548,7 +547,7 @@ gmeow:rcc8tpp
 
 gmeow:rcc8ntpp
     a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:containedInLocation ;
+    rdfs:subPropertyOf gmeow:containedInLocation, gmeow:partOf ;
     owl:inverseOf gmeow:rcc8ntppi ;
     rdfs:domain gmeow:Location ;
     rdfs:range gmeow:Location ;
@@ -558,6 +557,7 @@ gmeow:rcc8ntpp
 
 gmeow:rcc8tppi
     a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasPart ;
     owl:inverseOf gmeow:rcc8tpp ;
     rdfs:domain gmeow:Location ;
     rdfs:range gmeow:Location ;
@@ -567,6 +567,7 @@ gmeow:rcc8tppi
 
 gmeow:rcc8ntppi
     a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasPart ;
     owl:inverseOf gmeow:rcc8ntpp ;
     rdfs:domain gmeow:Location ;
     rdfs:range gmeow:Location ;
