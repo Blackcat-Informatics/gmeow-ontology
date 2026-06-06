@@ -265,6 +265,15 @@
             edoal:measure 7e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnSelectExonym ] ],
         [ a align:Cell ;
+            rdfs:label "displayable PlaceName without purpose → schema:name"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasPlaceName ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:name ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayName ] ],
+        [ a align:Cell ;
             rdfs:label "displayable endonym PlaceName → schema:name"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:hasPlaceName ] ;

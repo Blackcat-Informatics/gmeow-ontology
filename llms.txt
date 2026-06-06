@@ -17,6 +17,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:AtomicConstraint (⊑ gmeow:Constraint): A single ODRL constraint comparison: a gmeow:leftOperand (the dimension tested), a gmeow:constraintOperator (the comparison), and a gmeow:rightOperand (the value). E.g. leftOperand dateTime, operator lteq, rightOperand 2030-01-01 — 'valid until 2030'.
 - gmeow:Attachment (⊑ gmeow:BodyPart): A non-inline body part presented as an attached file. An attachment may also be a gmeow:Document or gmeow:MediaObject (the two are not disjoint), and its text extraction or summary is a derived object linked by gmeow:wasDerivedFrom.
 - gmeow:AuthenticationResult (⊑ gmeow:InformationObject): The outcome of an email authentication check (RFC 8601 Authentication-Results) — a method (DKIM, SPF, DMARC, ARC), a verdict, and the verifying server.
+- gmeow:Axis (⊑ gmeow:Entity, gufo:Object): A coordinate axis or dimension of a reference frame (e.g. X, Y, Z, latitude, longitude, elevation, time).
 - gmeow:BiologicalParentChild (⊑ gmeow:ParentChildRelationship): A parent-child relationship by biological descent.
 - gmeow:BodyPart (⊑ gmeow:InformationObject): A MIME part of a message's body, with a media type and content.
 - gmeow:Certification (⊑ gufo:Relator): A reified attestation that a cryptographic key belongs to a given identity, made by a certifying agent (a PGP key-signature / Web-of-Trust certification). Its validity window is carried with gmeow:validFrom/validUntil; revocation sets validUntil.
@@ -36,6 +37,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:CryptographicSignature (⊑ gmeow:InformationObject): A cryptographic signature over a message or its headers, asserting origin and integrity.
 - gmeow:DKIMSignature (⊑ gmeow:CryptographicSignature): A DomainKeys Identified Mail signature (RFC 6376) over selected headers and the body.
 - gmeow:Dataset (⊑ gmeow:CreativeWork): A collection of data published as a unit.
+- gmeow:Determinacy (⊑ gufo:QualityValue): The model of boundary determinacy or certainty for a location or geometry (e.g. crisp, fuzzy, vague, probabilistic).
 - gmeow:Document (⊑ gmeow:CreativeWork): A bounded textual or digital document — a file, record, or report.
 - gmeow:Duration (⊑ gmeow:Entity): A length of time as a quantity, independent of when it occurs — the running time of an event, a gap, a recurrence period. Carries an xsd:duration via gmeow:durationValue. (= time:Duration / time:TemporalDuration, schema:Duration, ISO-TimeML TIMEX3 type=DURATION, TEO Duration.)
 - gmeow:Duty (⊑ gmeow:Rule): A rule that obliges the discharge of a gmeow:RightsAction (e.g. attribute, share-alike, obtain-consent) as a condition of a permission (odrl:Duty / odrl:obligation; CC REL cc:requires).
@@ -49,6 +51,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:Filename (⊑ gmeow:Appellation): An appellation borne by a digital file — a stem and an extension. The extension CLAIMS a content type (gmeow:claimedMediaType) which may disagree with the type detected from the bytes (gmeow:detectedMediaType); the disagreement is recorded as coexisting claims with confidence, never reasoned into a contradiction.
 - gmeow:FormalLanguage (⊑ gmeow:Language): A grammar-defined language with a machine modality and no human native speakers — programming, markup, query, logic, schema, and configuration languages. A thin structural split from gmeow:Language (the sociolinguistic facets — endonym/exonym, co-mingled scripts, native-speaker status — do not apply), complemented by the gmeow:languageOrigin value for fine-grained classification.
 - gmeow:FosterParentChild (⊑ gmeow:ParentChildRelationship): A parent-child relationship through fostering.
+- gmeow:FrameKind (⊑ gufo:QualityValue): The structural type of a reference frame (e.g. geodetic, Cartesian, polar, grid, narrative).
 - gmeow:Gender (⊑ gufo:QualityValue): A gender a person may identify with — a VALUE, never a gmeow:Person subclass. The set is open and culturally diverse; a gender not among the seed individuals is a FRESH gmeow:Gender individual carrying rdfs:label, not a new class. Pointed at by gmeow:genderValue.
 - gmeow:GenderExpression (⊑ gmeow:IdentityFacet): A person's SELF-ASSERTED gender expression — how they present (a gmeow:GenderExpressionStyle value via gmeow:expressionValue). A distinct axis from gender identity: expression is never inferred from identity (or vice versa), nor from sex or address.
 - gmeow:GenderExpressionStyle (⊑ gufo:QualityValue): A style of gender expression — a VALUE pointed at by gmeow:expressionValue, never a subclass. Open: a style not seeded here is a fresh individual with rdfs:label.
@@ -79,6 +82,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:LicenseFamily (⊑ gufo:QualityValue): The family of a licence — public-domain, Creative Commons, permissive, copyleft, proprietary, or dual. An OPEN value vocabulary; the ontology-side reflection of the config.py license classification, not a duplicate of it.
 - gmeow:LifeEvent (⊑ gmeow:Event): An event in the life of a person or family — a birth, death, marriage, christening, name change, and so on — to which sources and confidence can be attached. A thin, person-scoped phase of gmeow:Event (NOT a type taxonomy): the specific kind is a gmeow:eventType value (gmeow:eventTypeBirth, …). The seam joining the names module to the event spine: gmeow:conferredByEvent ranges over it.
 - gmeow:Location (⊑ gmeow:Entity, gufo:Object): A locus where an entity can be situated, reside, or occur — a geographic place, an online (virtual) location, or a digital storage location.
+- gmeow:LocationState (⊑ gmeow:Entity, gufo:Object): The state of a moving entity at a specific point or period in time, including its location, velocity, and orientation.
 - gmeow:LogicalConstraint (⊑ gmeow:Constraint): A boolean combination of constraints under a gmeow:constraintLogic operator (odrl:and / odrl:or / odrl:xone / odrl:andSequence) over its gmeow:logicConstraintMember constraints — the ODRL LogicalConstraint, modelling the deontic constraint logic.
 - gmeow:Mailbox (⊑ gmeow:InformationObject): A named container of messages within an account — a folder, JMAP mailbox, or Gmail label.
 - gmeow:MailboxResidence (⊑ gmeow:TimeScopedRelation): The reified, time-scoped fact that a message resided in a mailbox/label over an interval (membership is time-varying — messages move between folders and labels).
@@ -118,6 +122,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:Prohibition (⊑ gmeow:Rule): A rule that forbids the exercise of a gmeow:RightsAction over the governed asset (odrl:Prohibition).
 - gmeow:PronounSet (⊑ gmeow:InformationObject): A set of third-person pronouns a person goes by, in the five English forms (subject, object, possessive determiner, possessive pronoun, reflexive). Sex/gender INDEPENDENT and contextual. A known set is one of the gmeow:PronounSet value individuals; any other set is expressed by filling the five form properties on a fresh PronounSet instance.
 - gmeow:RecurrenceRule (⊑ gmeow:InformationObject): A rule by which a gmeow:EventSeries repeats — weekly, every-first-Monday, annually. Carries an RFC 5545 RRULE string via gmeow:recurrenceRuleText. (= ISO-TimeML TIMEX3 type=SET with freq/quant, iCalendar RRULE, schema:Schedule, TEO periodic time interval.)
+- gmeow:ReferenceFrame (⊑ gmeow:Entity, gufo:Object): A reference system (such as a coordinate system, datum, grid, or platform space) relative to which locations, coordinates, or measurements are expressed.
 - gmeow:RelayHop (⊑ gufo:Event): One hop in a message's delivery path, recorded by a Received header: a relaying server, the host it received from, a server timestamp, and the protocol used.
 - gmeow:Repository (⊑ gmeow:InformationObject): A version-control repository holding the source code of a software project.
 - gmeow:RightsAction (⊑ gufo:QualityValue): The kind of action a rights rule regulates — a VALUE, never a rule subclass. The set is open (ODRL's action vocabulary + CC REL); an action not among the seed individuals is a FRESH gmeow:RightsAction individual carrying rdfs:label. Pointed at by gmeow:ruleAction.
@@ -136,6 +141,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:SoftwareAgent (⊑ gmeow:Agent): A software process or autonomous program that acts on behalf of a person or organization.
 - gmeow:SoftwareProject (⊑ gmeow:CreativeWork): A software project: a body of source code developed and released as a unit, with repositories, releases, and contributors.
 - gmeow:Source (⊑ gmeow:InformationObject): A source from which evidence is drawn: a record, certificate, register, archive entry, or publication.
+- gmeow:SpatialCoordinates (⊑ gmeow:Entity, gufo:Object): A set of coordinate values representing a position in a specific coordinate reference frame.
+- gmeow:SpatialRealm (⊑ gufo:QualityValue): The physical, virtual, or conceptual domain of a reference frame (e.g. terrestrial, indoor, celestial, virtual).
 - gmeow:Standpoint (⊑ gmeow:Entity): A named perspective / frame within which claims are held true — a state's official position, a community's usage, an editorial or historiographic point of view. Minted only when the frame needs its own identity and labels; often a bare gmeow:Agent (a polity, an organization) suffices as the value of gmeow:accordingTo instead. Standpoints form a poset under gmeow:sharpens, topped by gmeow:universalStandpoint.
 - gmeow:StandpointModality (⊑ gufo:QualityValue): The belief value a standpoint assigns a proposition — a closed value vocabulary spanning the Standpoint-Logic □/◊ and the CRMinf belief value (true/false/probable/possible): gmeow:unequivocal, gmeow:probable, gmeow:conceivable, gmeow:refuted. Absence of a value is read as unequivocal.
 - gmeow:StandpointTenure (⊑ gmeow:TimeScopedRelation): The reified, time-scoped fact that a standpoint held a particular position over an interval — recognition granted in 2008 and withdrawn in 2030 is an opened-then-closed tenure, never a deletion (Principle 10). Use only when the adoption / withdrawal of the position is itself worth modelling; the common case is a bare gmeow:accordingTo annotation. Carries its standpoint-time interval via gmeow:duringInterval (temporal module).
@@ -152,6 +159,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:TimeScopedRelation (⊑ gufo:Situation): A reified relationship that holds only over a particular time interval — the base for residence, tenure, and membership-over-time situations.
 - gmeow:Trademark (⊑ gufo:Relator): The reified trademark right over a mark — binding the mark, its holder, the registration number and the ™/®/status value. Aligned (by reference) to schema:Brand, the WIPO trademark vocabulary and Wikidata.
 - gmeow:TrademarkStatus (⊑ gufo:QualityValue): The registration status of a trademark — a VALUE: unregistered (™), registered (®), pending, expired, or cancelled. Open vocabulary.
+- gmeow:Trajectory (⊑ gmeow:Entity, gufo:Object): A continuous path of motion representing the space-time history of a moving entity.
 - gmeow:TransliterationScheme (⊑ gufo:QualityValue): A named transliteration/romanization/transcription system (Hepburn, Pinyin, ISO 233, IPA, …). A value carried by gmeow:transliterationScheme; the major schemes are catalogued as FnO functions in the projection layer (projections/transforms.fno.ttl).
 - gmeow:TrustAssertion (⊑ gufo:Relator): A reified, perspectival assertion that one agent (the trustor) trusts another (the trustee), optionally as an introducer to a given depth — the OpenPGP owner-trust notion. Its validity window is carried with gmeow:validFrom/validUntil.
 - gmeow:VirtualLocation (⊑ gmeow:Location): A non-geographic location reachable online — a video-conference room, chat space, or metaverse room. Has an access locator and platform rather than coordinates.
@@ -172,6 +180,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:addressLocality [gmeow:PostalAddress → rdfs:Literal]: The locality (city or town) of a postal address.
 - gmeow:addressPlace [gmeow:PostalAddress → gmeow:Place]: The geographic place a postal address denotes (typically the premises/building) — the seam from the as-written address to the resolved place hierarchy, its coordinates/geometry, and its external identifiers.
 - gmeow:addressRegion [gmeow:PostalAddress → rdfs:Literal]: The region (state, province, or territory) of a postal address.
+- gmeow:adjacentTo [gmeow:Location → gmeow:Location]: Relates a location to another location it is adjacent to.
 - gmeow:after [gmeow:Event → gmeow:Event]: Allen AFTER: this event begins strictly after the related event ends; the transitive inverse of gmeow:before. (= time:intervalAfter; TimeML AFTER; TEO after.)
 - gmeow:asWKT [gmeow:Geometry → rdfs:Literal]: A Well-Known Text (WKT) serialization of a geometry. The range is rdfs:Literal (not geo:wktLiteral) to stay within the OWL 2 DL datatype map; data may still tag the literal ^^geo:wktLiteral, and the alignment to geo:asWKT preserves GeoSPARQL semantics for spatial engines.
 - gmeow:assertedAt [? → xsd:dateTime]: The instant an agent observed or asserted the annotated claim (e.g. an email Date header or a vCard REV) — a witness that the fact held at that instant. Distinct from validity (validFrom/validUntil) and from a source's carrier time.
@@ -197,11 +206,14 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:conferredByEvent [gmeow:Appellation → gmeow:LifeEvent]: The life event that conferred or changed an appellation — a gmeow:LifeEvent carrying a gmeow:eventType such as gmeow:eventTypeChristening, gmeow:eventTypeNameChange, gmeow:eventTypeMarriage (a married name), or gmeow:eventTypeAdoption. Non-functional. The seam joining the names module to the events module's event spine.
 - gmeow:confidence: Confidence in a claim, in the closed interval [0,1], attached to the statement it qualifies.
 - gmeow:conflictStrategy [gmeow:RightsStatement → gmeow:ConflictStrategy] (functional): How a rights statement resolves a permission/prohibition conflict over the same action (odrl:conflict): gmeow:conflictPerm (permission wins), gmeow:conflictProhibit (prohibition wins), gmeow:conflictInvalid (the policy is void). Functional.
+- gmeow:connectsTo [gmeow:Location → gmeow:Location]: Relates a location to another location it connects to.
 - gmeow:constraintLogic [gmeow:LogicalConstraint → gmeow:ConstraintLogic] (functional): The boolean operator combining a logical constraint's members — one of the gmeow:ConstraintLogic values (odrl:and / or / xone / andSequence). Functional.
 - gmeow:constraintOperator [gmeow:AtomicConstraint → gmeow:ConstraintOperator] (functional): The comparison operator of an atomic constraint — one of the gmeow:ConstraintOperator values (odrl:operator). Functional.
+- gmeow:containedInLocation [gmeow:Location → gmeow:Location]: Relates a location to a larger location that contains it; transitive.
 - gmeow:containedInPlace [gmeow:Place → gmeow:Place]: Relates a place to a larger place that geographically contains it; transitive. Chains the nested granularity (room ⊂ building ⊂ city ⊂ region ⊂ country), each level a first-class place.
 - gmeow:contains [gmeow:Event → gmeow:Event]: Allen CONTAINS: this event's extent strictly contains the related event's extent; the transitive inverse of gmeow:during. A TEMPORAL relation only — not spatial (gmeow:containedInPlace) nor mereological (gmeow:hasSubEvent). (= time:intervalContains; TimeML INCLUDES; TEO contains.)
 - gmeow:contentDigest [gmeow:Source → rdfs:Literal]: A content hash of the source's bytes (e.g. "blake3:…") — the reliable carrier identity (two imports of the same bytes are the same source, regardless of mtime or path). Not functional: a source may carry digests under several algorithms.
+- gmeow:coordinateFrame [gmeow:SpatialCoordinates → gmeow:ReferenceFrame] (functional): Relates a set of coordinates to the reference frame they are expressed in.
 - gmeow:copyrightHolder [gmeow:Copyright → gmeow:Agent]: The agent that holds a copyright (schema:copyrightHolder; dcterms:rightsHolder). A specialisation of gmeow:wasAttributedTo — the canonical rights-holder attribution. Non-functional: joint copyright has several co-equal holders.
 - gmeow:copyrightNotice [gmeow:Copyright → rdfs:Literal] (functional): The human-readable copyright notice (schema:copyrightNotice), e.g. "© 2026 Blackcat Informatics Inc."
 - gmeow:copyrightStatus [gmeow:Copyright → gmeow:CopyrightStatus] (functional): The copyright status of a work — one of the gmeow:CopyrightStatus values (in-copyright / public-domain / no-known-copyright / not-evaluated), aligned to RightsStatements.org and PREMIS. Functional.
@@ -213,7 +225,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:description [gmeow:Entity → rdfs:Literal]: A free-text note or description about an entity — the unstructured NOTE field (a biography, a remark, an annotation). Genuinely flat: unlike names, dates or roles, a note has no structure to reify. Distinct from skos:definition, which documents ontology TERMS rather than instances. Language-tag the literal where applicable; non-functional.
 - gmeow:designGoal [gmeow:Language → rdfs:Literal]: The stated design goal/purpose of an engineered or constructed language (Lojban's syntactic unambiguity, Ithkuil's cognitive precision, an IAL's ease of learning). A literal; non-functional.
 - gmeow:detectedMediaType [gmeow:InformationObject → rdfs:Literal]: The MIME media type DETECTED from the bytes/magic of an information object (the observed type). May disagree with a filename's gmeow:claimedMediaType — a mismatch is recorded, not reasoned into a contradiction. Non-functional.
+- gmeow:determinacyModel [gmeow:ReferenceFrame → gmeow:Determinacy] (functional): Relates a reference frame to its default determinacy model.
 - gmeow:developer [gmeow:SoftwareProject → gmeow:Agent]: Relates a software project to an agent that develops it.
+- gmeow:dimensionCount [gmeow:ReferenceFrame → xsd:nonNegativeInteger] (functional): The number of dimensions spanned by a reference frame.
 - gmeow:displayable [? → xsd:boolean]: Whether a name or identity facet may be shown in interfaces and reports. The ONLY display control in the model — across naming (gmeow:Appellation) and identity (gmeow:IdentityFacet: gender/orientation), deliberately no preferred/primary marker (display selection is locale-relative and symmetric). It is intentionally domain-free so it applies to both. Superseded names (especially deadnames) and superseded gender/orientation labels set this false; consumers MUST honour false and never surface the string. NOT functional: in a multi-source merge, sources may disagree, and those claims must coexist rather than force a global inconsistency — the cautious value (false) wins at the projection layer. Cardinality is enforced by SHACL on data, not by the logical core.
 - gmeow:durationValue [gmeow:Duration → xsd:duration] (functional): The length of a gmeow:Duration as an xsd:duration literal (ISO 8601, e.g. P1Y2M / PT3H). DL-clean; the TEO hasNormalizedDuration 0Y0M0W0D0H0m0s string is a projection target.
 - gmeow:during [gmeow:Event → gmeow:Event]: Allen DURING: this event's extent falls strictly within the related event's extent (both endpoints interior). Transitive. Inverse of gmeow:contains. Distinct from gmeow:subEventOf (mereological part-of) and gmeow:containedInPlace (spatial). (= time:intervalDuring; TimeML IS_INCLUDED; TEO during.)
@@ -235,6 +249,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:fingerprint [gmeow:CryptographicKey → rdfs:Literal]: A fingerprint (hash) identifying a key. Not functional: different sources may report differing or differently-formatted fingerprints for the same key.
 - gmeow:finishedBy [gmeow:Event → gmeow:Event]: Allen FINISHED-BY: inverse of gmeow:finishes. (= time:intervalFinishedBy; TimeML ENDED_BY; TEO finishedBy.)
 - gmeow:finishes [gmeow:Event → gmeow:Event]: Allen FINISHES: this event and the related event end together, and this one began later (it is a final sub-span). NOT transitive. Inverse of gmeow:finishedBy. (= time:intervalFinishes; TimeML ENDS; TEO finishes.)
+- gmeow:frameKind [gmeow:ReferenceFrame → gmeow:FrameKind] (functional): Relates a reference frame to its structural frame kind.
+- gmeow:frameRealm [gmeow:ReferenceFrame → gmeow:SpatialRealm] (functional): Relates a reference frame to the spatial realm it describes.
+- gmeow:frameSolver [gmeow:ReferenceFrame → rdfs:Literal]: Identifies the external solver or transformation method to resolve coordinates in this frame.
 - gmeow:from [gmeow:EmailMessage → gmeow:EmailAddress]: The author address of a message (RFC 5322 From).
 - gmeow:fullName [gmeow:Appellation → rdfs:Literal]: The complete surface form of an appellation as a single string, in the natural order of its culture (language-/script-tag the literal, e.g. "山田太郎"@ja, "Yamada Tarō"@ja-Latn). Authoritative for display. Non-functional: spellings/transliterations from different sources coexist.
 - gmeow:genderValue [gmeow:GenderIdentity → gmeow:Gender] (functional): The gmeow:Gender value a gender-identity facet asserts (functional PER FACET — one value each; multiplicity is expressed by multiple facets). The value is a gmeow:Gender individual: a predefined one, or — when none fits — a fresh individual carrying rdfs:label (the custom-PronounSet idiom). The single path to the gender value; there is deliberately no flat datatype shortcut.
@@ -244,9 +261,11 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasAttachment [gmeow:Message → gmeow:Attachment]: Relates a message to one of its attachments.
 - gmeow:hasAuthenticationResult [gmeow:Message → gmeow:AuthenticationResult]: Relates a message to an authentication check performed on it.
 - gmeow:hasAuthor [gmeow:CreativeWork → gmeow:Agent]: Relates a creative work to an agent chiefly responsible for creating its intellectual content.
+- gmeow:hasAxis [gmeow:ReferenceFrame → gmeow:Axis]: Relates a reference frame to one of its coordinate axes.
 - gmeow:hasBodyPart [gmeow:Message → gmeow:BodyPart]: Relates a message to a MIME part of its body.
 - gmeow:hasChild [gmeow:Person → gmeow:Person]: Relates a person to a child; the inverse of hasParent.
 - gmeow:hasContactPoint [gmeow:Agent → gmeow:ContactPoint]: Relates an agent to a means of contacting it.
+- gmeow:hasCoordinateMatrix [gmeow:Axis → rdfs:Literal]: Specifies a transformation or projection matrix associated with a coordinate axis.
 - gmeow:hasCoordinates [gmeow:Place → gmeow:GeoCoordinates]: Relates a place to its geographic point coordinates.
 - gmeow:hasCopyright [gmeow:Entity → gmeow:Copyright]: Relates a work to its reified copyright.
 - gmeow:hasDescendant [gmeow:Person → gmeow:Person]: Relates a person to a descendant — a child, a child's child, and so on; the transitive inverse of gmeow:hasAncestor. Derived by the reasoner (gmeow:hasChild is a sub-property), never asserted directly.
@@ -353,6 +372,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:occurrenceOfSeries [gmeow:Event → gmeow:EventSeries]: Relates a concrete event occurrence to the series that issued it; the inverse of gmeow:seriesOccurrence.
 - gmeow:overlappedBy [gmeow:Event → gmeow:Event]: Allen OVERLAPPED-BY: inverse of gmeow:overlaps. (= time:intervalOverlappedBy; TEO overlappedBy.)
 - gmeow:overlaps [gmeow:Event → gmeow:Event]: Allen OVERLAPS: this event begins before, and ends during, the related event (their extents partially overlap). NOT transitive. Inverse of gmeow:overlappedBy. (= time:intervalOverlaps; TEO overlaps.)
+- gmeow:parentFrame [gmeow:ReferenceFrame → gmeow:ReferenceFrame] (functional): Relates a reference frame to its parent frame in a hierarchy.
 - gmeow:partExpansion [gmeow:NamePart → rdfs:Literal]: The expanded form of an abbreviated part — e.g. the full word a South-Indian (Tamil) initial stands for.
 - gmeow:partOfThread [gmeow:Message → gmeow:Thread]: Relates a message to the thread (conversation) it belongs to.
 - gmeow:partOrder [gmeow:NamePart → xsd:nonNegativeInteger] (functional): The 0-based position of a part within its appellation's surface order, as actually written in its culture. Records observed order WITHOUT implying a given-before-family default — East-Asian family-first is simply order 0 = surname.
@@ -377,6 +397,14 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:pronounPossessiveDeterminer [gmeow:PronounSet → rdfs:Literal] (functional): The possessive determiner form of a pronoun set, e.g. "her", "their", "xyr".
 - gmeow:pronounReflexive [gmeow:PronounSet → rdfs:Literal] (functional): The reflexive form of a pronoun set, e.g. "herself", "themself", "xemself".
 - gmeow:pronounSubject [gmeow:PronounSet → rdfs:Literal] (functional): The subject (nominative) form of a pronoun set, e.g. "she", "they", "xe".
+- gmeow:rcc8dc [gmeow:Location → gmeow:Location]: RCC-8: Disconnected (DC) — regions are disjoint and do not share any point.
+- gmeow:rcc8ec [gmeow:Location → gmeow:Location]: RCC-8: Externally Connected (EC) — regions share only boundary points.
+- gmeow:rcc8eq [gmeow:Location → gmeow:Location]: RCC-8: Equal (EQ) — regions are identical.
+- gmeow:rcc8ntpp [gmeow:Location → gmeow:Location]: RCC-8: Non-Tangential Proper Part (NTPP) — region is a proper part of another, entirely within its interior.
+- gmeow:rcc8ntppi [gmeow:Location → gmeow:Location]: RCC-8: Non-Tangential Proper Part Inverse (NTPPi) — inverse of NTPP.
+- gmeow:rcc8po [gmeow:Location → gmeow:Location]: RCC-8: Partial Overlap (PO) — regions overlap but neither is part of the other.
+- gmeow:rcc8tpp [gmeow:Location → gmeow:Location]: RCC-8: Tangential Proper Part (TPP) — region is a proper part of another, sharing part of its boundary.
+- gmeow:rcc8tppi [gmeow:Location → gmeow:Location]: RCC-8: Tangential Proper Part Inverse (TPPi) — inverse of TPP.
 - gmeow:receivedAt [gmeow:Message → xsd:dateTime]: When a message was received by the storing system (JMAP receivedAt / Gmail internalDate).
 - gmeow:recordedNoLaterThan [? → xsd:dateTime]: A DERIVED upper bound (terminus ante quem) on when the annotated claim was committed to a record — typically taken from the modification time of its source carrier (gmeow:sourceModifiedAt) when no stronger observation time is known. Carries low gmeow:confidence; it is neither valid-time nor a point observation. Populate it in the importer/query layer, not by OWL inference.
 - gmeow:recurrenceRuleText [gmeow:RecurrenceRule → xsd:string] (functional): The recurrence rule as an RFC 5545 RRULE string (e.g. FREQ=WEEKLY;BYDAY=MO). Projected directly to iCalendar RRULE; a SET-typed TIMEX3 in ISO-TimeML.
@@ -391,6 +419,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:relayFrom [gmeow:RelayHop → rdfs:Literal] (functional): The host a relay hop received the message from.
 - gmeow:relayProtocol [gmeow:RelayHop → rdfs:Literal] (functional): The protocol used for a relay hop (e.g. ESMTP, ESMTPS).
 - gmeow:replyTo [gmeow:EmailMessage → gmeow:EmailAddress]: An address to which replies should be sent (RFC 5322 Reply-To).
+- gmeow:requiresHost [gmeow:ReferenceFrame → xsd:boolean] (functional): Asserts whether a reference frame requires a hosting entity to exist.
 - gmeow:residenceMailbox [gmeow:MailboxResidence → gmeow:Mailbox] (functional): The mailbox a mailbox-residence concerns.
 - gmeow:residentMessage [gmeow:MailboxResidence → gmeow:Message] (functional): The message a mailbox-residence concerns.
 - gmeow:residesIn [gmeow:Message → gmeow:Mailbox]: Relates a message to a mailbox/label it currently resides in. Time-varying residence is reified as gmeow:MailboxResidence; on this convenience property the period may be carried with gmeow:validFrom/validUntil.
@@ -450,6 +479,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:trademarkHolder [gmeow:Trademark → gmeow:Agent]: The agent that holds a trademark (the proprietor). A specialisation of gmeow:wasAttributedTo. Non-functional: a mark may be jointly held.
 - gmeow:trademarkMark [gmeow:Trademark → gmeow:Mark] (functional): The mark a trademark protects. Functional.
 - gmeow:trademarkStatus [gmeow:Trademark → gmeow:TrademarkStatus] (functional): The status of a trademark — one of the gmeow:TrademarkStatus values (unregistered ™ / registered ® / pending / expired / cancelled). Functional.
+- gmeow:transformsTo [gmeow:ReferenceFrame → gmeow:ReferenceFrame]: Relates a reference frame to another frame it can be mathematically transformed to.
 - gmeow:transliterationScheme [gmeow:Appellation → gmeow:TransliterationScheme]: The named transliteration/romanization system that produced an appellation's gmeow:romanization (Hepburn vs Kunrei for Japanese; Pinyin vs Wade-Giles for Mandarin). Records HOW the romanization was derived. Non-functional. Domain gmeow:Appellation retrofits the names module; the scheme individuals are catalogued as FnO functions in the projection layer.
 - gmeow:trustLevel [gmeow:TrustAssertion → rdfs:Literal] (functional): The degree of owner-trust expressed: ultimate, full, marginal, or none.
 - gmeow:trustee [gmeow:TrustAssertion → gmeow:Agent] (functional): The agent that is trusted by the trustor in a trust-assertion.
@@ -532,6 +562,15 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:aspectPerfective (a gmeow:GrammaticalAspect): ISO-TimeML aspect PERFECTIVE.
 - gmeow:aspectPerfectiveProgressive (a gmeow:GrammaticalAspect): ISO-TimeML aspect PERFECTIVE_PROGRESSIVE.
 - gmeow:aspectProgressive (a gmeow:GrammaticalAspect): ISO-TimeML aspect PROGRESSIVE.
+- gmeow:axisDeclination (a gmeow:Axis): declination
+- gmeow:axisElevation (a gmeow:Axis): elevation
+- gmeow:axisLatitude (a gmeow:Axis): latitude
+- gmeow:axisLongitude (a gmeow:Axis): longitude
+- gmeow:axisRightAscension (a gmeow:Axis): right ascension
+- gmeow:axisVirtualAddress (a gmeow:Axis): virtual address axis
+- gmeow:axisX (a gmeow:Axis): X axis
+- gmeow:axisY (a gmeow:Axis): Y axis
+- gmeow:axisZ (a gmeow:Axis): Z axis
 - gmeow:cefrA1 (a gmeow:ProficiencyLevel): CEFR A1
 - gmeow:cefrA2 (a gmeow:ProficiencyLevel): CEFR A2
 - gmeow:cefrB1 (a gmeow:ProficiencyLevel): CEFR B1
@@ -555,6 +594,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:copyrightStatusNotEvaluated (a gmeow:CopyrightStatus): The copyright status has not been evaluated (RightsStatements.org CNE).
 - gmeow:copyrightStatusPublicDomain (a gmeow:CopyrightStatus): The work is in the public domain (the CC public-domain mark; RightsStatements.org NoC-related).
 - gmeow:copyrightStatusUndetermined (a gmeow:CopyrightStatus): Copyright undetermined (RightsStatements.org UND).
+- gmeow:determinacyCrisp (a gmeow:Determinacy): crisp
+- gmeow:determinacyFuzzy (a gmeow:Determinacy): fuzzy
+- gmeow:determinacyProbabilistic (a gmeow:Determinacy): probabilistic
+- gmeow:determinacyVague (a gmeow:Determinacy): vague
 - gmeow:directionBoustrophedon (a gmeow:TextDirection): boustrophedon
 - gmeow:directionContextual (a gmeow:TextDirection): contextual / bidirectional
 - gmeow:directionLtr (a gmeow:TextDirection): left-to-right
@@ -596,6 +639,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:expressionFluid (a gmeow:GenderExpressionStyle): fluid
 - gmeow:expressionMasculine (a gmeow:GenderExpressionStyle): masculine
 - gmeow:expressionNeutral (a gmeow:GenderExpressionStyle): neutral
+- gmeow:frameKindCartesian (a gmeow:FrameKind): cartesian
+- gmeow:frameKindGeodetic (a gmeow:FrameKind): geodetic
+- gmeow:frameKindGrid (a gmeow:FrameKind): grid
+- gmeow:frameKindPolar (a gmeow:FrameKind): polar
 - gmeow:genderAgender (a gmeow:Gender): agender
 - gmeow:genderBigender (a gmeow:Gender): bigender
 - gmeow:genderDemiboy (a gmeow:Gender): demiboy
@@ -827,6 +874,11 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:pronounZeHir (a gmeow:PronounSet): ze/hir
 - gmeow:pronounZeZir (a gmeow:PronounSet): ze/zir
 - gmeow:pronounZheZher (a gmeow:PronounSet): zhe/zher
+- gmeow:referenceFrameCelestialEquatorial (a gmeow:ReferenceFrame): Celestial Equatorial Reference Frame
+- gmeow:referenceFrameLocalGrid (a gmeow:ReferenceFrame): Local Grid Cartesian Reference Frame
+- gmeow:referenceFrameRobotBase (a gmeow:ReferenceFrame): Robot Base Cartesian Reference Frame
+- gmeow:referenceFrameVirtualPlatform (a gmeow:ReferenceFrame): Virtual Platform Reference Frame
+- gmeow:referenceFrameWGS84 (a gmeow:ReferenceFrame): WGS 84 Geodetic Reference Frame
 - gmeow:refuted (a gmeow:StandpointModality): □¬_S — settled false according to the standpoint: the standpoint DENIES the proposition (CRMinf belief value 'false'). Distinct from silence (no claim) and from low gmeow:confidence — an explicit, recorded denial. The proposition is carried as the subject of the denial, never asserted as a fact of the universal standpoint.
 - gmeow:registerCasual (a gmeow:NameRegister): casual
 - gmeow:registerFormal (a gmeow:NameRegister): formal
@@ -886,6 +938,11 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:scriptRolePrimary (a gmeow:ScriptRole): primary
 - gmeow:scriptRoleSyllabicGrammar (a gmeow:ScriptRole): syllabic grammar / inflection
 - gmeow:scriptRoleTransliteration (a gmeow:ScriptRole): transliteration / romanization
+- gmeow:spatialRealmCelestial (a gmeow:SpatialRealm): celestial / astronomical
+- gmeow:spatialRealmIndoor (a gmeow:SpatialRealm): indoor
+- gmeow:spatialRealmRobotic (a gmeow:SpatialRealm): robotic
+- gmeow:spatialRealmTerrestrial (a gmeow:SpatialRealm): terrestrial
+- gmeow:spatialRealmVirtual (a gmeow:SpatialRealm): virtual / network
 - gmeow:statusConstructedActive (a gmeow:LanguageStatus): constructed — actively used
 - gmeow:statusDormant (a gmeow:LanguageStatus): dormant
 - gmeow:statusEmerging (a gmeow:LanguageStatus): emerging

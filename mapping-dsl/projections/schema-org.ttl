@@ -58,7 +58,7 @@ gmeow:mapSchemaPlaceName a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:name ; gmeow:relation "<=" ;
         gmeow:transform gmeow:fnSelectEndonym ; gmeow:confidence 0.8 ;
-        gmeow:lossyDrop "projection frame = endonym-preferred; co-equal exonyms emitted as schema:alternateName; historical/superseded and competing-standpoint names dropped" ] .
+        gmeow:lossyDrop "projection frame = endonym-preferred; co-equal exonyms projected as schema:alternateName; non-displayable/superseded and competing-standpoint names dropped" ] .
 
 gmeow:mapSchemaPlaceAltName a gmeow:ProjectionMapping ;
     rdfs:label "displayable exonym PlaceName → schema:alternateName"@en ;
@@ -73,7 +73,22 @@ gmeow:mapSchemaPlaceAltName a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:alternateName ; gmeow:relation "<=" ;
         gmeow:transform gmeow:fnSelectExonym ; gmeow:confidence 0.7 ;
-        gmeow:lossyDrop "which exonym applies is locale-relative; historical/superseded names dropped" ] .
+        gmeow:lossyDrop "exonym selection is locale-relative" ] .
+
+gmeow:mapSchemaPlaceGenericName a gmeow:ProjectionMapping ;
+    rdfs:label "displayable PlaceName without purpose → schema:name"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ; gmeow:value "name" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasPlaceName ; gmeow:objectVar "pn" ]
+            [ gmeow:subjectVar "pn" ; gmeow:predicate gmeow:fullName ; gmeow:objectVar "name" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "pn" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:excludeWhen [ gmeow:subjectVar "pn" ; gmeow:predicate gmeow:namePurpose ; gmeow:objectVar "anyPurpose" ] ;
+        gmeow:edoalSource gmeow:hasPlaceName ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:name ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnSelectDisplayName ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "competing-standpoint names and names with specific purposes dropped" ] .
 
 gmeow:mapSchemaVirtualLocation a gmeow:ProjectionMapping ;
     rdfs:label "VirtualLocation → schema:VirtualLocation"@en ;
