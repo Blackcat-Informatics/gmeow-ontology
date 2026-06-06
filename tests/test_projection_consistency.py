@@ -7,7 +7,7 @@ AI reviewers. These gates check the artifacts AGAINST each other — they reprod
 as deterministic checks, the two classes of bug found in review:
 
 * an ``fno:Parameter`` typed inconsistently with its predicate's ``rdfs:range``
-  (e.g. ``fno:predicate gmeow:eventDate`` declared ``fno:type gmeow:Birth``);
+  (e.g. ``fno:predicate gmeow:eventTime`` declared with a mismatched ``fno:type``);
 * a CONSTRUCT executor emitting a downcast its EDOAL spec never declares.
 """
 

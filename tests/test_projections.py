@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import RDF, Graph, Literal, URIRef
+from rdflib import RDF, XSD, Graph, Literal, URIRef
 
 from gmeow_tools.config import FIXTURES_DIR, PROJECTIONS_DIR
 from gmeow_tools.graph import load_merged_graph
@@ -120,8 +120,10 @@ def test_contact_fields_projection() -> None:
     assert Literal("Sammy", lang="en") in set(
         g.objects(sam, URIRef(SCHEMA + "alternateName"))
     )
-    # birthDate from the Birth event; jobTitle from the Membership Role.
-    assert (sam, URIRef(SCHEMA + "birthDate"), Literal("1990-04-12")) in g
+    # birthDate from the birth event, reached by traversing the principal
+    # Participation (#41); the event's instant is a DL-clean xsd:dateTime.
+    _birth = Literal("1990-04-12T00:00:00Z", datatype=XSD.dateTime)
+    assert (sam, URIRef(SCHEMA + "birthDate"), _birth) in g
     title = Literal("Principal Engineer", lang="en")
     assert (sam, URIRef(SCHEMA + "jobTitle"), title) in g
     # department from subOrganizationOf (inverse, parent→child).
@@ -139,7 +141,11 @@ def test_contact_fields_vcard_and_foaf() -> None:
     gv = project_graph("vcard", _source())
     vnicks = set(gv.objects(sam, URIRef(VCARD + "nickname")))
     assert Literal("Sammy", lang="en") in vnicks
-    assert (sam, URIRef(VCARD + "bday"), Literal("1990-04-12")) in gv
+    assert (
+        sam,
+        URIRef(VCARD + "bday"),
+        Literal("1990-04-12T00:00:00Z", datatype=XSD.dateTime),
+    ) in gv
     assert Literal("Principal Engineer", lang="en") in set(
         gv.objects(sam, URIRef(VCARD + "title"))
     )

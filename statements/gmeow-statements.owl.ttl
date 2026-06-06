@@ -7,7 +7,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-alice-birthdate> a owl:Axiom ;
-    owl:annotatedProperty gmeow:eventDate ;
+    owl:annotatedProperty gmeow:eventTime ;
     owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/birth-alice> ;
     owl:annotatedTarget "1990-05-01T00:00:00+00:00"^^xsd:dateTime ;
     gmeow:assertedAt "2021-03-14T00:00:00+00:00"^^xsd:dateTime ;
@@ -59,7 +59,7 @@
 
 <https://blackcatinformatics.ca/gmeow/examples/alice> gmeow:knowsLanguage <https://blackcatinformatics.ca/gmeow/examples/lang-toki-pona> .
 
-<https://blackcatinformatics.ca/gmeow/examples/birth-alice> gmeow:eventDate "1990-05-01T00:00:00+00:00"^^xsd:dateTime .
+<https://blackcatinformatics.ca/gmeow/examples/birth-alice> gmeow:eventTime "1990-05-01T00:00:00+00:00"^^xsd:dateTime .
 
 <https://blackcatinformatics.ca/gmeow/examples/gi-alice> gmeow:genderValue gmeow:genderWoman .
 

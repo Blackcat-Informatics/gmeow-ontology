@@ -1,0 +1,328 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/events>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Events Module"@en ;
+    rdfs:comment """The universal event slice: a temporal occurrence in which entities participate IN ROLES, over POSSIBLY FUZZY time, at POSSIBLY SEVERAL locations, asserted by POSSIBLY CONFLICTING sources. Supersets schema.org Event, CIDOC-CRM E5/E7, OWL-Time, PROV-O Activity, iCalendar VEVENT, LODE, SEM and Wikidata by reference.
+
+DOCTRINE (the no-mess rules).
+  * Type is a VALUE, not a class: gmeow:Event is one class; the kind is gmeow:eventType (an open value vocabulary of gmeow:EventType individuals), mirroring placeType / Gender / Language. No event-type subclass taxonomy (Principle 9 — no overtyping).
+  * Role is a VALUE on a relator, not a subproperty: participation is reified as gmeow:Participation (the NameUsage / IdentityFacet idiom), and the role is a gmeow:ParticipantRole value — never a hasWitness-style subproperty.
+  * Four orthogonal axes, no inferential bridge: eventType ⟂ participationRole ⟂ temporal ⟂ location.
+  * Flat-first, reify on demand: a flat gmeow:hasParticipant covers the 80% case; promote to a gmeow:Participation when role / period / confidence / evidence is needed (the hasMet / InterpersonalRelationship duality).
+  * Co-equal conflicting claims coexist: no primary date / canonical occurrence; competing dates, types and roles are confidence-weighted, standpoint-indexed statements (consume the standpoint module, #43), never one ground truth. Corrections use gmeow:displayable false, never deletion (Principle 10).
+  * DL-clean time (Principle 3): base-triple datatypes are xsd:dateTime, never xsd:date; fuzzy / approximate time is carried by gmeow:earliestStart / gmeow:latestEnd bounds + a gmeow:temporalPrecision value, not a free-text date.
+
+This module ABSORBS the former genealogy event hierarchy (Principle 6 — refactor forward): the ~30 gmeow:LifeEvent subclasses became gmeow:eventType value individuals and the hasPrincipal / hasWitness / hasOfficiant subproperties became gmeow:ParticipantRole values."""@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# The universal occurrence. gmeow:Activity (provenance) and gmeow:LifeEvent
+# (below) re-parent onto it, so Event is the genuine top occurrence:
+# Activity ⊑ Event ⊑ gufo:Event and LifeEvent ⊑ Event.
+# --------------------------------------------------------------------------- #
+
+gmeow:Event
+    a owl:Class, gufo:EventType ;
+    rdfs:subClassOf gufo:Event ;
+    rdfs:label "Event"@en ;
+    skos:definition "A temporal occurrence in which entities participate in roles, over possibly fuzzy time, at possibly several locations, asserted by possibly conflicting sources. The universal event of the model: gmeow:Activity (provenance) and gmeow:LifeEvent re-parent onto it. The kind of occurrence is a gmeow:eventType value, never a subclass."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:LifeEvent
+    a owl:Class, gufo:EventType ;
+    rdfs:subClassOf gmeow:Event ;
+    rdfs:label "Life Event"@en ;
+    skos:definition "An event in the life of a person or family — a birth, death, marriage, christening, name change, and so on — to which sources and confidence can be attached. A thin, person-scoped phase of gmeow:Event (NOT a type taxonomy): the specific kind is a gmeow:eventType value (gmeow:eventTypeBirth, …). The seam joining the names module to the event spine: gmeow:conferredByEvent ranges over it."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Event type — an OPEN value vocabulary (gufo:QualityValue), not a subclass
+# taxonomy. The seed individuals absorb the former genealogy LifeEvent subclasses;
+# an unforeseen kind is a fresh gmeow:EventType individual carrying rdfs:label,
+# never a new class. gmeow:eventType is NON-FUNCTIONAL: one occurrence may be both
+# a marriage and a religious rite.
+# --------------------------------------------------------------------------- #
+
+gmeow:EventType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Event Type"@en ;
+    skos:definition "The kind of an event — a VALUE, never a gmeow:Event subclass. The set is open; a kind not among the seed individuals is a FRESH gmeow:EventType individual carrying rdfs:label, not a new class. Pointed at by gmeow:eventType (non-functional)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eventType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:EventType ;
+    rdfs:label "event type"@en ;
+    skos:definition "The kind(s) of an event, drawn from the open gmeow:EventType value vocabulary. Non-functional: an occurrence may carry several types (a wedding that is also a religious rite), and competing standpoint-indexed type claims coexist rather than contradict."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Seed event types — absorbed from the former genealogy LifeEvent subclasses
+# (seeded in turn from BIO event classes and GEDCOM X fact types).
+gmeow:eventTypeBirth          a gmeow:EventType ; rdfs:label "birth"@en ;          skos:definition "The event of a person being born."@en .
+gmeow:eventTypeDeath          a gmeow:EventType ; rdfs:label "death"@en ;          skos:definition "The event of a person's death."@en .
+gmeow:eventTypeBurial         a gmeow:EventType ; rdfs:label "burial"@en ;         skos:definition "The burial of a deceased person."@en .
+gmeow:eventTypeCremation      a gmeow:EventType ; rdfs:label "cremation"@en ;      skos:definition "The cremation of a deceased person."@en .
+gmeow:eventTypeFuneral        a gmeow:EventType ; rdfs:label "funeral"@en ;        skos:definition "A funeral or memorial service."@en .
+gmeow:eventTypeBaptism        a gmeow:EventType ; rdfs:label "baptism"@en ;        skos:definition "A baptism."@en .
+gmeow:eventTypeChristening    a gmeow:EventType ; rdfs:label "christening"@en ;    skos:definition "A christening or naming ceremony."@en .
+gmeow:eventTypeConfirmation   a gmeow:EventType ; rdfs:label "confirmation"@en ;   skos:definition "A religious confirmation."@en .
+gmeow:eventTypeBarMitzvah     a gmeow:EventType ; rdfs:label "bar mitzvah"@en ;    skos:definition "A bar mitzvah."@en .
+gmeow:eventTypeBatMitzvah     a gmeow:EventType ; rdfs:label "bat mitzvah"@en ;    skos:definition "A bat mitzvah."@en .
+gmeow:eventTypeFirstCommunion a gmeow:EventType ; rdfs:label "first communion"@en ; skos:definition "A first communion."@en .
+gmeow:eventTypeAdoption       a gmeow:EventType ; rdfs:label "adoption"@en ;       skos:definition "The adoption of a person."@en .
+gmeow:eventTypeMarriage       a gmeow:EventType ; rdfs:label "marriage"@en ;       skos:definition "The event of two persons entering into marriage."@en .
+gmeow:eventTypeDivorce        a gmeow:EventType ; rdfs:label "divorce"@en ;        skos:definition "The legal dissolution of a marriage."@en .
+gmeow:eventTypeAnnulment      a gmeow:EventType ; rdfs:label "annulment"@en ;      skos:definition "The annulment of a marriage."@en .
+gmeow:eventTypeEngagement     a gmeow:EventType ; rdfs:label "engagement"@en ;     skos:definition "A betrothal or engagement to marry."@en .
+gmeow:eventTypeSeparation     a gmeow:EventType ; rdfs:label "separation"@en ;     skos:definition "A legal or informal marital separation."@en .
+gmeow:eventTypeImmigration    a gmeow:EventType ; rdfs:label "immigration"@en ;    skos:definition "A person's immigration into a country."@en .
+gmeow:eventTypeEmigration     a gmeow:EventType ; rdfs:label "emigration"@en ;     skos:definition "A person's emigration from a country."@en .
+gmeow:eventTypeNaturalization a gmeow:EventType ; rdfs:label "naturalization"@en ; skos:definition "The grant of citizenship by naturalization."@en .
+gmeow:eventTypeResidence      a gmeow:EventType ; rdfs:label "residence"@en ;      skos:definition "A person's residence at a place over a period."@en .
+gmeow:eventTypeCensus         a gmeow:EventType ; rdfs:label "census"@en ;         skos:definition "A person's enumeration in a census."@en .
+gmeow:eventTypeGraduation     a gmeow:EventType ; rdfs:label "graduation"@en ;     skos:definition "Graduation from an educational program."@en .
+gmeow:eventTypeMilitaryService a gmeow:EventType ; rdfs:label "military service"@en ; skos:definition "A period of military service."@en .
+gmeow:eventTypeWill           a gmeow:EventType ; rdfs:label "will"@en ;           skos:definition "The making of a will."@en .
+gmeow:eventTypeProbate        a gmeow:EventType ; rdfs:label "probate"@en ;        skos:definition "The probate of an estate."@en .
+gmeow:eventTypeRetirement     a gmeow:EventType ; rdfs:label "retirement"@en ;     skos:definition "Retirement from working life."@en .
+gmeow:eventTypeNameChange     a gmeow:EventType ; rdfs:label "name change"@en ;    skos:definition "A formal change of name."@en .
+gmeow:eventTypeOrdination     a gmeow:EventType ; rdfs:label "ordination"@en ;     skos:definition "Ordination into religious office."@en .
+
+# --------------------------------------------------------------------------- #
+# Participant role — an OPEN value vocabulary. Generalizes the former genealogy
+# hasPrincipal / hasWitness / hasOfficiant subproperties into role values borne
+# on a gmeow:Participation relator.
+# --------------------------------------------------------------------------- #
+
+gmeow:ParticipantRole
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Participant Role"@en ;
+    skos:definition "The role an entity plays in an event — a VALUE, never a participation subproperty. The set is open; a role not among the seeds is a FRESH gmeow:ParticipantRole individual with rdfs:label. Carried by gmeow:participationRole on a gmeow:Participation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:roleParticipantPrincipal a gmeow:ParticipantRole ; rdfs:label "principal / subject"@en ; skos:definition "The entity an event is principally about (e.g. the child in a birth, the deceased in a death). Generalizes the former gmeow:hasPrincipal."@en .
+gmeow:roleOrganizer            a gmeow:ParticipantRole ; rdfs:label "organizer"@en ;          skos:definition "An agent that organized or convened the event."@en .
+gmeow:roleAttendee             a gmeow:ParticipantRole ; rdfs:label "attendee"@en ;           skos:definition "An agent who attended the event."@en .
+gmeow:rolePerformer            a gmeow:ParticipantRole ; rdfs:label "performer"@en ;          skos:definition "An agent who performed at the event."@en .
+gmeow:roleOfficiant            a gmeow:ParticipantRole ; rdfs:label "officiant"@en ;          skos:definition "A person who officiated at the event. Generalizes the former gmeow:hasOfficiant."@en .
+gmeow:roleWitness              a gmeow:ParticipantRole ; rdfs:label "witness"@en ;            skos:definition "A person who witnessed the event. Generalizes the former gmeow:hasWitness."@en .
+gmeow:roleVictim               a gmeow:ParticipantRole ; rdfs:label "victim"@en ;             skos:definition "An entity harmed by the event — distinct from, and never inferred from, any other role."@en .
+gmeow:roleAgent                a gmeow:ParticipantRole ; rdfs:label "agent"@en ;              skos:definition "An agent that carried out or caused the event (the active party)."@en .
+gmeow:roleBeneficiary          a gmeow:ParticipantRole ; rdfs:label "beneficiary"@en ;        skos:definition "An entity that benefited from the event."@en .
+
+# --------------------------------------------------------------------------- #
+# Temporal precision — an OPEN value vocabulary for the granularity of an event's
+# dating. Lets fuzzy / approximate dates be modelled honestly instead of as a
+# free-text string (the former gmeow:eventDate).
+# --------------------------------------------------------------------------- #
+
+gmeow:TemporalPrecision
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Temporal Precision"@en ;
+    skos:definition "The granularity to which an event's time is known — day, month, year, decade, or circa. A value carried by gmeow:temporalPrecision; pairs with gmeow:earliestStart / gmeow:latestEnd to express a fuzzy date without abandoning DL-clean xsd:dateTime base triples."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:precisionDay    a gmeow:TemporalPrecision ; rdfs:label "day"@en ;    skos:definition "The event's time is known to the day."@en .
+gmeow:precisionMonth  a gmeow:TemporalPrecision ; rdfs:label "month"@en ;  skos:definition "The event's time is known to the month."@en .
+gmeow:precisionYear   a gmeow:TemporalPrecision ; rdfs:label "year"@en ;   skos:definition "The event's time is known to the year."@en .
+gmeow:precisionDecade a gmeow:TemporalPrecision ; rdfs:label "decade"@en ; skos:definition "The event's time is known only to the decade."@en .
+gmeow:precisionCirca  a gmeow:TemporalPrecision ; rdfs:label "circa"@en ;  skos:definition "The event's time is approximate (circa) — bounded by gmeow:earliestStart / gmeow:latestEnd."@en .
+
+# --------------------------------------------------------------------------- #
+# Participation — the centerpiece relator (the NameUsage / IdentityFacet idiom):
+# a reified, time-scoped, evidence-bearing fact that an entity took part in an
+# event in a role. Reify on demand; the flat shortcut is gmeow:hasParticipant.
+# Carries gmeow:confidence / gmeow:displayable / gmeow:wasAttributedTo (defined
+# cross-cuttingly) and standpoint indexing via gmeow:accordingTo.
+# --------------------------------------------------------------------------- #
+
+gmeow:Participation
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Participation"@en ;
+    skos:definition "A reified participation of an entity in an event, in a role, over a period, on some evidence — the same relator idiom as gmeow:NameUsage. Mint one Participation per (event, participant, role) tuple when role / period / confidence / evidence must be recorded; the 80% case uses the flat gmeow:hasParticipant. Perspectival and co-equal: a disputed role is several standpoint-indexed Participations that coexist, none privileged; a withdrawn one is kept with gmeow:displayable false, never deleted."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:participationEvent
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Participation ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "participation event"@en ;
+    skos:definition "The event a participation is part of (functional — one event per participation)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:participationParticipant
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Participation ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "participation participant"@en ;
+    skos:definition "The entity that took part in the event in this participation. Range is gmeow:Entity (not only Agent) to admit non-agent participants — a document signed, a place visited. Non-functional: a joint role may be borne by several participants."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:participationRole
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Participation ;
+    rdfs:range gmeow:ParticipantRole ;
+    rdfs:label "participation role"@en ;
+    skos:definition "The role the participant played, a gmeow:ParticipantRole value (functional per participation — one role each; multiple roles are multiple Participations). Generalizes the former hasPrincipal / hasWitness / hasOfficiant subproperties."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:participationInterval
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Participation ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "participation interval"@en ;
+    skos:definition "The time interval over which the participation held. (A relator carries its period this way — matching usageInterval / relationshipInterval — rather than via duringInterval.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Flat shortcut (the 80% case). Promote to gmeow:Participation when role / period
+# / confidence / evidence is needed — the hasMet / InterpersonalRelationship
+# duality. Period / role / confidence on the flat form ride RDF-star annotations.
+# --------------------------------------------------------------------------- #
+
+gmeow:hasParticipant
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "has participant"@en ;
+    skos:definition "An agent that took part in an event — the flat 80%-case shortcut. Non-functional. Promote to a gmeow:Participation node when the role, period, confidence, or evidence of the participation must be recorded."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Temporal placement. Base-triple datatypes are xsd:dateTime, never xsd:date
+# (Principle 3). A crisp known interval uses gmeow:eventInterval (→ TimeInterval);
+# a point event uses gmeow:eventTime; a FUZZY date uses gmeow:earliestStart /
+# gmeow:latestEnd bounds + a gmeow:temporalPrecision value. The four clocks
+# (validFrom/validUntil/assertedAt/recordedNoLaterThan, temporal module) annotate
+# the dating statement.
+# --------------------------------------------------------------------------- #
+
+gmeow:eventInterval
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "event interval"@en ;
+    skos:definition "The crisp, known time interval over which an event occurred (reuses the temporal module's gmeow:TimeInterval). For a point-like occurrence use gmeow:eventTime; for an approximate date use gmeow:earliestStart / gmeow:latestEnd + gmeow:temporalPrecision."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eventTime
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "event time"@en ;
+    skos:definition "The instant at which a point-like event occurred (xsd:dateTime — DL-clean, never xsd:date). Replaces the former free-text gmeow:eventDate. Non-functional: competing standpoint-indexed dates coexist as confidence-weighted statements."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:earliestStart
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "earliest start"@en ;
+    skos:definition "The earliest instant at which an event could have started — the lower bound of a fuzzy / approximate date (xsd:dateTime). Pairs with gmeow:latestEnd and a gmeow:temporalPrecision value to model uncertainty without abandoning DL-clean base triples."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:latestEnd
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "latest end"@en ;
+    skos:definition "The latest instant by which an event must have ended — the upper bound of a fuzzy / approximate date (xsd:dateTime). Pairs with gmeow:earliestStart and a gmeow:temporalPrecision value."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:temporalPrecision
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:TemporalPrecision ;
+    rdfs:label "temporal precision"@en ;
+    skos:definition "The granularity to which an event's time is known — a gmeow:TemporalPrecision value (day / month / year / decade / circa). Makes the determinacy of a date explicit instead of pretending every date is to-the-day."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Location. An event occurs at one or more locations — geographic OR virtual
+# (reuses the locations module's gmeow:Location). Replaces genealogy's eventPlace.
+# --------------------------------------------------------------------------- #
+
+gmeow:eventLocation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "event location"@en ;
+    skos:definition "A location at which an event occurred — a geographic gmeow:Place or a gmeow:VirtualLocation (range is the gmeow:Location superset). Non-functional: an event may span several locations, and competing standpoint-indexed locations coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Event mereology — decomposition into sub-events (conference → session → talk).
+# Transitive (hence non-simple): deliberately kept out of every cardinality /
+# functional axiom to preserve OWL 2 DL regularity (cf. gmeow:hasAncestor).
+# --------------------------------------------------------------------------- #
+
+gmeow:subEventOf
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "sub-event of"@en ;
+    skos:definition "Relates an event to a larger event it is part of — a talk within a session within a conference. Transitive: a part of a part is a part (CIDOC-CRM P9 consists of). Non-simple, so kept out of all cardinality axioms."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasSubEvent
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    owl:inverseOf gmeow:subEventOf ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "has sub-event"@en ;
+    skos:definition "Relates an event to a constituent sub-event; the transitive inverse of gmeow:subEventOf."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Event series — a recurrence / schedule that ISSUES concrete event occurrences
+# (planned-vs-actual). The recurrence rule is projected to iCalendar RRULE, not
+# authored as core clutter.
+# --------------------------------------------------------------------------- #
+
+gmeow:EventSeries
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Event Series"@en ;
+    skos:definition "A recurrence or schedule that issues a series of concrete gmeow:Event occurrences — a weekly standup, an annual conference. Distinct from any one occurrence; the recurrence rule is a projection concern (iCalendar RRULE), not a core property."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:seriesOccurrence
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:EventSeries ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "series occurrence"@en ;
+    skos:definition "Relates an event series to one of the concrete event occurrences it issues."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:occurrenceOfSeries
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:seriesOccurrence ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:EventSeries ;
+    rdfs:label "occurrence of series"@en ;
+    skos:definition "Relates a concrete event occurrence to the series that issued it; the inverse of gmeow:seriesOccurrence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# AXIOMATIZED DOCTRINE (#38) — relator mediation. A participation mediates at
+# least its event and its participant (EL someValuesFrom, open-world); the
+# closed-world "exactly one event, at least one participant" cardinality is
+# SHACL's (gmeow:ParticipationHasPlayersShape, #39). Mirrors gmeow:NameUsage and
+# gmeow:ParentChildRelationship.
+# =========================================================================== #
+
+gmeow:Participation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:participationEvent ; owl:someValuesFrom gmeow:Event ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:participationParticipant ; owl:someValuesFrom gmeow:Entity ] .

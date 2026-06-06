@@ -44,13 +44,13 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
         gmeow:genderValue  gmeow:genderWoman .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-alice-birthdate>
-        rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/birth-alice> gmeow:eventDate "1990-05-01T00:00:00+00:00"^^xsd:dateTime )>>;
+        rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/birth-alice> gmeow:eventTime "1990-05-01T00:00:00+00:00"^^xsd:dateTime )>>;
         gmeow:assertedAt  "2021-03-14T00:00:00+00:00"^^xsd:dateTime;
         gmeow:confidence  0.9;
         gmeow:mappedFrom  <https://blackcatinformatics.ca/gmeow/examples/src-civil-register> .
 
 <https://blackcatinformatics.ca/gmeow/examples/birth-alice>
-        gmeow:eventDate  "1990-05-01T00:00:00+00:00"^^xsd:dateTime .
+        gmeow:eventTime  "1990-05-01T00:00:00+00:00"^^xsd:dateTime .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-crimea-in-ukraine-per-un>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/crimea> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/ukraine> )>>;

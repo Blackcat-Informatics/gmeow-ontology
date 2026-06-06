@@ -134,7 +134,7 @@ gmeow:objectVar a owl:DatatypeProperty ;
     skos:definition "The object variable name of a pattern atom."@en .
 gmeow:objectValue a owl:ObjectProperty ;
     rdfs:label "object value"@en ;
-    skos:definition "A fixed IRI/value-individual on the object side of a pattern atom (e.g. gmeow:Birth, gmeow:namePartGiven)."@en .
+    skos:definition "A fixed IRI/value-individual on the object side of a pattern atom (e.g. gmeow:eventTypeBirth, gmeow:namePartGiven)."@en .
 gmeow:objectLiteral a owl:DatatypeProperty ;
     rdfs:label "object literal"@en ;
     skos:definition "A fixed literal on the object side of a pattern atom (e.g. the boolean false in a displayable check)."@en .
@@ -217,7 +217,7 @@ gmeow:edoalSource a owl:ObjectProperty ;
     skos:definition "The salient GMEOW term to use as the EDOAL align:entity1 (e.g. gmeow:fullName for a displayable-name rename). An authored override; when omitted and gmeow:edoalPath is not set, and there is no value->class map, the binding emits no EDOAL cell (a pure structural / SSSOM-backed projection)."@en .
 gmeow:edoalPath a owl:DatatypeProperty ;
     rdfs:label "derive EDOAL relation path"@en ;
-    skos:definition "When true, the EDOAL align:entity1 is DERIVED as the relation path from the pattern's anchor to its value, expressed with edoal:compose + edoal:inverse (e.g. a Birth-event traversal becomes compose(inverse(hasPrincipal), eventDate)). For multi-hop relator/event traversals — makes the EDOAL genuinely declarative rather than a bare class + opaque transform."@en .
+    skos:definition "When true, the EDOAL align:entity1 is DERIVED as the relation path from the pattern's anchor to its value, expressed with edoal:compose + edoal:inverse (e.g. a birth-event traversal becomes a compose over the principal Participation: inverse(participationParticipant), participationEvent, eventTime). For multi-hop relator/event traversals — makes the EDOAL genuinely declarative rather than a bare class + opaque transform."@en .
 gmeow:edoalSourceKind a owl:DatatypeProperty ;
     rdfs:label "EDOAL entity1 kind"@en ;
     skos:definition "Whether the EDOAL entity1 is a \"class\" or a \"relation\" (default \"relation\")."@en .
@@ -441,8 +441,8 @@ gmeow:fnNicknameName a gmeow:ProjectionFunction ;
 
 gmeow:fnBirthEventToDate a gmeow:ProjectionFunction ;
     rdfs:label "Birth life-event → schema:birthDate"@en ;
-    dcterms:description "Extracts a person's birth date by traversing the reified event model: a gmeow:Birth (gmeow:hasPrincipal ?person) with a gmeow:eventDate yields ?person schema:birthDate. GMEOW models birth as an event (with place, sources, confidence); this downcasts the event's date to the flat schema:birthDate / vCard BDAY field."@en ;
-    gmeow:fnInput gmeow:eventDate ;
+    dcterms:description "Extracts a person's birth date by traversing the reified event model: an event with gmeow:eventType gmeow:eventTypeBirth, whose principal Participation (gmeow:participationRole gmeow:roleParticipantPrincipal, gmeow:participationParticipant ?person) and gmeow:eventTime yield ?person schema:birthDate. GMEOW models birth as an event (with place, sources, confidence, participant roles); this downcasts the event's instant to the flat schema:birthDate / vCard BDAY field."@en ;
+    gmeow:fnInput gmeow:eventTime ;
     gmeow:fnOutput gmeow:projectedBirthDate ; gmeow:fnOutputType rdfs:Literal .
 
 gmeow:fnMembershipToJobTitle a gmeow:ProjectionFunction ;

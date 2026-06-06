@@ -278,13 +278,16 @@ gmeow:mapSchemaBirthDate a gmeow:ProjectionMapping ;
     gmeow:hasMappingPattern [
         gmeow:anchor "person" ; gmeow:value "bdate" ;
         gmeow:atom (
-            [ gmeow:subjectVar "birth" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Birth ]
-            [ gmeow:subjectVar "birth" ; gmeow:predicate gmeow:hasPrincipal ; gmeow:objectVar "person" ]
-            [ gmeow:subjectVar "birth" ; gmeow:predicate gmeow:eventDate ; gmeow:objectVar "bdate" ] ) ;
+            [ gmeow:subjectVar "birth" ; gmeow:predicate gmeow:eventType ; gmeow:objectValue gmeow:eventTypeBirth ]
+            [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:participationEvent ; gmeow:objectVar "birth" ]
+            [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:participationRole ; gmeow:objectValue gmeow:roleParticipantPrincipal ]
+            [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:participationParticipant ; gmeow:objectVar "person" ]
+            [ gmeow:subjectVar "birth" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "bdate" ] ) ;
         gmeow:edoalPath true ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:birthDate ; gmeow:relation "<=" ;
-        gmeow:transform gmeow:fnBirthEventToDate ; gmeow:confidence 0.95 ] .
+        gmeow:transform gmeow:fnBirthEventToDate ; gmeow:confidence 0.95 ;
+        gmeow:lossyDrop "the birth Participation (role, period, confidence, standpoint) and fuzzy-date bounds are dropped; only the principal's birth instant survives as schema:birthDate" ] .
 
 gmeow:mapSchemaJobTitle a gmeow:ProjectionMapping ;
     rdfs:label "Membership Role → schema:jobTitle"@en ;

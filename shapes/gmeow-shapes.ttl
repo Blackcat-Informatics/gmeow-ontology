@@ -373,3 +373,67 @@ gmeow:WithdrawnStandpointSuppressionShape
             }
         """ ;
     ] .
+
+# --------------------------------------------------------------------------- #
+# Events module (#41). Closed-world well-formedness for the universal event +
+# its Participation relator; the standpoint coexistence / no-preferred-claim
+# guards (StandpointCoexistenceShape, NoPreferredClaimShape) are generic and
+# already cover contested eventType / participationRole claims.
+# --------------------------------------------------------------------------- #
+
+# A Participation must mediate exactly one event and at least one participant —
+# the closed-world counterpart of the EL someValuesFrom mediation axiom in
+# events.ttl (mirrors gmeow:NameUsageShape).
+gmeow:ParticipationHasPlayersShape
+    a sh:NodeShape ;
+    rdfs:label "Participation well-formedness shape" ;
+    sh:targetClass gmeow:Participation ;
+    sh:property [
+        sh:path gmeow:participationEvent ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Participation must be part of exactly one event (gmeow:participationEvent)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:participationParticipant ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Participation must have at least one participant (gmeow:participationParticipant)." ;
+    ] .
+
+# An event should carry at least a type or some temporal placement — otherwise it
+# is an unanchored occurrence. Warning (a stub event may be fleshed out later).
+gmeow:EventHasTypeOrTimeShape
+    a sh:NodeShape ;
+    rdfs:label "Event has type or time shape" ;
+    sh:targetClass gmeow:Event ;
+    sh:severity sh:Warning ;
+    sh:or (
+        [ sh:path gmeow:eventType ; sh:minCount 1 ]
+        [ sh:path gmeow:eventTime ; sh:minCount 1 ]
+        [ sh:path gmeow:eventInterval ; sh:minCount 1 ]
+        [ sh:path gmeow:earliestStart ; sh:minCount 1 ]
+    ) ;
+    sh:message "An event should carry at least a gmeow:eventType or a temporal placement (gmeow:eventTime / eventInterval / earliestStart)." .
+
+# Suppression, never erasure (Principle 10): a superseded participation claim — a
+# corrected participant, role, or date carried on a Participation that has ended
+# (gmeow:validUntil) — should set gmeow:displayable false rather than be deleted.
+# The events sibling of SupersededFacetSuppressionShape. Warning (a source may lag).
+gmeow:CorrectedEventSuppressionShape
+    a sh:NodeShape ;
+    rdfs:label "Corrected / superseded participation suppression shape" ;
+    sh:targetClass gmeow:Participation ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        sh:message "A superseded participation (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/validUntil> ?until .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
+                }
+            }
+        """ ;
+    ] .

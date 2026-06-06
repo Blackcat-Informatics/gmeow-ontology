@@ -54,7 +54,7 @@ verified). Also runs in `gmeow build`.
 | **relator flatten** | `LanguageProficiency` (agent×lang×level) → `schema:knowsLanguage` (lossy) | `fnProficiencyToKnownLanguage` |
 | **value→property by sub-value** | `honorific` (+ position) → `schema:honorificPrefix`/`Suffix` | `fnHonorificToAffix` |
 | **structured→flat field** | nickname-purpose `PersonName` → `foaf:nick` / `vcard:nickname` / `schema:alternateName` | `fnNicknameName` |
-| | `Birth` event `eventDate` → `schema:birthDate` / vCard `BDAY` | `fnBirthEventToDate` |
+| | birth event (`eventType` birth) `eventTime`, via the principal `Participation` → `schema:birthDate` / vCard `BDAY` | `fnBirthEventToDate` |
 | | `Membership` `Role` → `schema:jobTitle` / vCard `TITLE` | `fnMembershipToJobTitle` |
 | | `hasWebPage` → `schema:url` / `foaf:homepage` / `vcard:hasURL` | `fnWebPageToUrl` |
 | | `subOrganizationOf` → `schema:department` | `fnSubOrgToDepartment` |
@@ -140,8 +140,10 @@ DSL is ready for a much richer future ontology, not just today's):
 
 - **EDOAL** — a multi-hop traversal sets `gmeow:edoalPath true` and its
   `align:entity1` is **derived as a real relation path** with `edoal:compose` +
-  `edoal:inverse` (a Birth-event date becomes
-  `compose(inverse(hasPrincipal), eventDate)`), so the alignment is genuinely
+  `edoal:inverse` (a birth-event date, reached through the principal
+  `gmeow:Participation`, becomes
+  `compose(inverse(participationParticipant), participationEvent, eventTime)`),
+  so the alignment is genuinely
   declarative rather than a bare class + opaque transform. Each cell also carries
   `edoal:measure` (confidence).
 - **FnO** — each function declares **how it executes**: an `fno:Implementation`
@@ -186,9 +188,11 @@ gmeow:mapSchemaBirthDate a gmeow:ProjectionMapping ;
     gmeow:hasMappingPattern [
         gmeow:anchor "person" ; gmeow:value "bdate" ;
         gmeow:atom (
-            [ gmeow:subjectVar "birth" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Birth ]
-            [ gmeow:subjectVar "birth" ; gmeow:predicate gmeow:hasPrincipal ; gmeow:objectVar "person" ]
-            [ gmeow:subjectVar "birth" ; gmeow:predicate gmeow:eventDate ; gmeow:objectVar "bdate" ] ) ;
+            [ gmeow:subjectVar "birth" ; gmeow:predicate gmeow:eventType ; gmeow:objectValue gmeow:eventTypeBirth ]
+            [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:participationEvent ; gmeow:objectVar "birth" ]
+            [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:participationRole ; gmeow:objectValue gmeow:roleParticipantPrincipal ]
+            [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:participationParticipant ; gmeow:objectVar "person" ]
+            [ gmeow:subjectVar "birth" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "bdate" ] ) ;
         gmeow:edoalPath true ] ;                         # entity1 ← derived compose/inverse path
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:birthDate ;

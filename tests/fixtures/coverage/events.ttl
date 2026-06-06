@@ -1,0 +1,214 @@
+# Coverage slice (#41): the universal events facility. Exercises every new term —
+# gmeow:Event / LifeEvent, the gmeow:eventType + gmeow:ParticipantRole +
+# gmeow:TemporalPrecision value vocabularies, the gmeow:Participation relator and
+# its players, the flat gmeow:hasParticipant shortcut, structured + fuzzy time,
+# gmeow:eventLocation, sub-event mereology, gmeow:EventSeries, and the standpoint
+# axis (gmeow:accordingTo) on contested event-type / date claims that COEXIST.
+# Native GMEOW terms only (plus the standpoint reification idiom), so the slice
+# adds no new external-vocabulary gaps and is SHACL-clean.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/events/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --------------------------------------------------------------------------- #
+# A multi-participant, sub-event'd wedding — reified Participations in roles.
+# --------------------------------------------------------------------------- #
+
+ex:wedding a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeMarriage ;
+    gmeow:eventInterval ex:weddingInterval ;
+    gmeow:eventLocation ex:chapel ;
+    gmeow:hasParticipant ex:alex , ex:blair ;        # flat 80%-case shortcut
+    gmeow:hasSubEvent ex:reception .
+
+ex:weddingInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2015-06-20T14:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime   "2015-06-20T15:00:00Z"^^xsd:dateTime .
+
+ex:chapel a gmeow:Place ; gmeow:placeType gmeow:placeTypeBuilding .
+
+# Reified participations: the two principals, the officiant, a witness.
+ex:partAlex a gmeow:Participation ;
+    gmeow:participationEvent ex:wedding ;
+    gmeow:participationParticipant ex:alex ;
+    gmeow:participationRole gmeow:roleParticipantPrincipal ;
+    gmeow:participationInterval ex:weddingInterval ;
+    gmeow:confidence 1.0 .
+
+ex:partBlair a gmeow:Participation ;
+    gmeow:participationEvent ex:wedding ;
+    gmeow:participationParticipant ex:blair ;
+    gmeow:participationRole gmeow:roleParticipantPrincipal .
+
+ex:partOfficiant a gmeow:Participation ;
+    gmeow:participationEvent ex:wedding ;
+    gmeow:participationParticipant ex:rev ;
+    gmeow:participationRole gmeow:roleOfficiant .
+
+ex:partWitness a gmeow:Participation ;
+    gmeow:participationEvent ex:wedding ;
+    gmeow:participationParticipant ex:casey ;
+    gmeow:participationRole gmeow:roleWitness .
+
+# A sub-event (the reception) with its own participants and roles.
+ex:reception a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeMarriage ;
+    gmeow:subEventOf ex:wedding ;
+    gmeow:eventTime "2015-06-20T17:00:00Z"^^xsd:dateTime ;
+    gmeow:eventLocation ex:hall .
+
+ex:hall a gmeow:Place ; gmeow:placeType gmeow:placeTypeRoom .
+
+ex:partOrganizer a gmeow:Participation ;
+    gmeow:participationEvent ex:reception ;
+    gmeow:participationParticipant ex:casey ;
+    gmeow:participationRole gmeow:roleOrganizer .
+
+ex:partAttendee a gmeow:Participation ;
+    gmeow:participationEvent ex:reception ;
+    gmeow:participationParticipant ex:dana ;
+    gmeow:participationRole gmeow:roleAttendee .
+
+ex:partPerformer a gmeow:Participation ;
+    gmeow:participationEvent ex:reception ;
+    gmeow:participationParticipant ex:band ;
+    gmeow:participationRole gmeow:rolePerformer .
+
+# A superseded participation claim — a mistaken attendee, corrected by SUPPRESSION
+# (gmeow:displayable false), never deletion (Principle 10). validUntil closes it.
+ex:partMistaken a gmeow:Participation ;
+    gmeow:participationEvent ex:reception ;
+    gmeow:participationParticipant ex:erin ;
+    gmeow:participationRole gmeow:roleAttendee ;
+    gmeow:validUntil "2015-07-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:displayable false .
+
+# --------------------------------------------------------------------------- #
+# A refactored Birth — a person-scoped LifeEvent with an eventType value and the
+# principal expressed through a Participation, the instant through eventTime.
+# --------------------------------------------------------------------------- #
+
+ex:alexBirth a gmeow:LifeEvent ;
+    gmeow:eventType gmeow:eventTypeBirth ;
+    gmeow:eventTime "1988-04-12T00:00:00Z"^^xsd:dateTime ;
+    gmeow:eventLocation ex:hospital .
+
+ex:hospital a gmeow:Place ; gmeow:placeType gmeow:placeTypeBuilding .
+
+ex:partAlexBorn a gmeow:Participation ;
+    gmeow:participationEvent ex:alexBirth ;
+    gmeow:participationParticipant ex:alex ;
+    gmeow:participationRole gmeow:roleParticipantPrincipal ;
+    gmeow:wasAttributedTo ex:civilRegister .
+
+# --------------------------------------------------------------------------- #
+# A fuzzy-dated historical event — circa bounds + a temporalPrecision value, with
+# a victim/agent/beneficiary cast, instead of a single to-the-day date.
+# --------------------------------------------------------------------------- #
+
+ex:siege a gmeow:Event ;
+    gmeow:eventType ex:eventTypeSiege ;          # a freshly minted open-vocab type
+    gmeow:earliestStart "1453-04-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:latestEnd     "1453-05-31T00:00:00Z"^^xsd:dateTime ;
+    gmeow:temporalPrecision gmeow:precisionCirca ;
+    gmeow:eventLocation ex:city .
+
+# An unforeseen event type is a FRESH value individual, never a new class.
+ex:eventTypeSiege a gmeow:EventType ; rdfs:label "siege"@en .
+
+ex:city a gmeow:Place ; gmeow:placeType gmeow:placeTypeCity .
+
+ex:partAttacker a gmeow:Participation ;
+    gmeow:participationEvent ex:siege ;
+    gmeow:participationParticipant ex:armyA ;
+    gmeow:participationRole gmeow:roleAgent .
+
+ex:partDefender a gmeow:Participation ;
+    gmeow:participationEvent ex:siege ;
+    gmeow:participationParticipant ex:armyB ;
+    gmeow:participationRole gmeow:roleVictim .
+
+ex:partBeneficiary a gmeow:Participation ;
+    gmeow:participationEvent ex:siege ;
+    gmeow:participationParticipant ex:empire ;
+    gmeow:participationRole gmeow:roleBeneficiary .
+
+# A precision value spread (cover the remaining TemporalPrecision individuals).
+ex:dayEvent   a gmeow:Event ; gmeow:eventType gmeow:eventTypeCensus ;
+    gmeow:eventTime "1901-03-31T00:00:00Z"^^xsd:dateTime ; gmeow:temporalPrecision gmeow:precisionDay .
+ex:monthEvent a gmeow:Event ; gmeow:eventType gmeow:eventTypeImmigration ;
+    gmeow:eventTime "1923-09-01T00:00:00Z"^^xsd:dateTime ; gmeow:temporalPrecision gmeow:precisionMonth .
+ex:yearEvent  a gmeow:Event ; gmeow:eventType gmeow:eventTypeGraduation ;
+    gmeow:eventTime "1947-01-01T00:00:00Z"^^xsd:dateTime ; gmeow:temporalPrecision gmeow:precisionYear .
+ex:decadeEvent a gmeow:Event ; gmeow:eventType gmeow:eventTypeResidence ;
+    gmeow:earliestStart "1960-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:latestEnd     "1969-12-31T00:00:00Z"^^xsd:dateTime ;
+    gmeow:temporalPrecision gmeow:precisionDecade .
+
+# --------------------------------------------------------------------------- #
+# An event series that ISSUES concrete occurrences (planned-vs-actual).
+# --------------------------------------------------------------------------- #
+
+ex:standup a gmeow:EventSeries ;
+    gmeow:seriesOccurrence ex:standup1 , ex:standup2 .
+
+ex:standup1 a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ;
+    gmeow:eventTime "2024-01-08T09:00:00Z"^^xsd:dateTime ;
+    gmeow:occurrenceOfSeries ex:standup .
+ex:standup2 a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ;
+    gmeow:eventTime "2024-01-15T09:00:00Z"^^xsd:dateTime ;
+    gmeow:occurrenceOfSeries ex:standup .
+
+ex:eventTypeMeeting a gmeow:EventType ; rdfs:label "meeting"@en .
+
+# --------------------------------------------------------------------------- #
+# CONTESTED FACTS — standpoint-indexed, coexisting, NO winner (consume #43).
+# The framing of a historical event is itself disputed: one standpoint frames it
+# as a genocide, another as an armed clash. Both base eventType triples are
+# asserted; each is standpoint-indexed via gmeow:accordingTo on a reified axiom;
+# neither is privileged (no preferredRank / primaryClaim). A third standpoint
+# REFUTES the genocide framing — an explicit denial, not silence.
+# --------------------------------------------------------------------------- #
+
+ex:standpoint-A a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-B a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-hist a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+ex:eventTypeGenocide   a gmeow:EventType ; rdfs:label "genocide"@en .
+ex:eventTypeArmedClash a gmeow:EventType ; rdfs:label "armed clash"@en .
+
+# Both type claims coexist on the one event; neither is the model's ground truth.
+ex:disputedEvent gmeow:eventType ex:eventTypeGenocide , ex:eventTypeArmedClash .
+
+ex:claimGenocide a owl:Axiom ;
+    owl:annotatedSource   ex:disputedEvent ;
+    owl:annotatedProperty gmeow:eventType ;
+    owl:annotatedTarget   ex:eventTypeGenocide ;
+    gmeow:accordingTo ex:standpoint-A ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    gmeow:confidence 0.8 .
+
+ex:claimArmedClash a owl:Axiom ;
+    owl:annotatedSource   ex:disputedEvent ;
+    owl:annotatedProperty gmeow:eventType ;
+    owl:annotatedTarget   ex:eventTypeArmedClash ;
+    gmeow:accordingTo ex:standpoint-B ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    gmeow:confidence 0.7 .
+
+# A present-day historiographic standpoint REFUTES the genocide framing — recorded
+# as a denial (refuted modality), never as a deletion of the other claims.
+ex:claimGenocideRefuted a owl:Axiom ;
+    owl:annotatedSource   ex:disputedEvent ;
+    owl:annotatedProperty gmeow:eventType ;
+    owl:annotatedTarget   ex:eventTypeGenocide ;
+    gmeow:accordingTo ex:standpoint-hist ;
+    gmeow:standpointModality gmeow:refuted ;
+    gmeow:confidence 0.6 .
+
+# A contested DATE on the same event — two coexisting, standpoint-indexed instants.
+ex:disputedEvent gmeow:eventTime "1894-01-01T00:00:00Z"^^xsd:dateTime ,
+                                 "1896-01-01T00:00:00Z"^^xsd:dateTime .

@@ -23,8 +23,9 @@
             align:entity1 [ a edoal:Relation ;
                     edoal:compose ( [ a edoal:Relation ;
                                 edoal:inverse [ a edoal:Relation ;
-                                        edoal:uri gmeow:hasPrincipal ] ] [ a edoal:Relation ;
-                                edoal:uri gmeow:eventDate ] ) ] ;
+                                        edoal:uri gmeow:participationParticipant ] ] [ a edoal:Relation ;
+                                edoal:uri gmeow:participationEvent ] [ a edoal:Relation ;
+                                edoal:uri gmeow:eventTime ] ) ] ;
             align:entity2 [ a edoal:Property ;
                     edoal:uri vcard:bday ] ;
             align:relation "<=" ;

@@ -7,8 +7,8 @@ verify each artifact in isolation; these checks verify them *against each other*
 
 * :func:`fno_type_mismatches` — an ``fno:Parameter``/``fno:Output`` whose
   ``fno:predicate`` is a GMEOW property with a declared ``rdfs:range`` must declare
-  an ``fno:type`` equal to that range. (Catches e.g. ``fno:predicate gmeow:eventDate``
-  — range ``rdfs:Literal`` — declared with ``fno:type gmeow:Birth``.)
+  an ``fno:type`` equal to that range. (Catches e.g. ``fno:predicate gmeow:eventTime``
+  — range ``xsd:dateTime`` — declared with a mismatched ``fno:type``.)
 * :func:`fno_reference_integrity` — every FnO function an EDOAL cell invokes via
   ``edoal:transformation`` must be a defined ``fno:Function``.
 * :func:`projection_spec_drift` — for each profile, every target-vocabulary term a

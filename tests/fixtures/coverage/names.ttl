@@ -107,7 +107,7 @@ ex:alexFormer a gmeow:PersonName ;
     gmeow:displayable false ;
     gmeow:conferredByEvent ex:alexNameChange .
 
-ex:alexNameChange a gmeow:NameChange .
+ex:alexNameChange a gmeow:LifeEvent ; gmeow:eventType gmeow:eventTypeNameChange .
 
 # A custom pronoun set, expressed by filling the five forms (sex/gender-independent).
 ex:faeSet a gmeow:PronounSet ;

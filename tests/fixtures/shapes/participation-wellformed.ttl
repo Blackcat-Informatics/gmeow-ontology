@@ -1,0 +1,26 @@
+# Well-formed Participation fixture (#41). Every subject satisfies the events SHACL
+# shapes: a Participation mediates exactly one event and at least one participant;
+# the event carries a type; a superseded participation is suppressed (displayable
+# false), so even the warning-level shape stays clean. `run_shacl` MUST conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:birth a gmeow:LifeEvent ;
+    gmeow:eventType gmeow:eventTypeBirth ;
+    gmeow:eventTime "1990-04-12T00:00:00Z"^^xsd:dateTime .
+
+ex:bornPart a gmeow:Participation ;
+    gmeow:participationEvent ex:birth ;
+    gmeow:participationParticipant ex:sam ;
+    gmeow:participationRole gmeow:roleParticipantPrincipal .
+
+# A superseded (corrected) participation, suppressed not deleted (Principle 10) —
+# carries gmeow:displayable false, so CorrectedEventSuppressionShape stays clean.
+ex:correctedPart a gmeow:Participation ;
+    gmeow:participationEvent ex:birth ;
+    gmeow:participationParticipant ex:wrongMidwife ;
+    gmeow:participationRole gmeow:roleWitness ;
+    gmeow:validUntil "1991-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:displayable false .

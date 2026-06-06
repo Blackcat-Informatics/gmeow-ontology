@@ -292,14 +292,6 @@ gmeow:eqClasses033 a gmeow:TermEquivalence ;
     gmeow:confidence 1.0 ;
     gmeow:sssomFile "gmeow-classes.sssom.tsv" .
 
-gmeow:eqClasses034 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Marriage ;
-    gmeow:alignPredicate owl:equivalentClass ;
-    gmeow:alignObject gedcom:Marriage ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
-
 gmeow:eqClasses035 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:Place ;
     gmeow:alignPredicate owl:equivalentClass ;
