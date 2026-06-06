@@ -186,6 +186,25 @@ ex:faeSet a gmeow:PronounSet ;
     gmeow:pronounReflexive "faerself" .
 ```
 
+The seeded `gmeow:PronounSet` anchors are a **maximal, source-cited inventory** of 21
+stably-declinable English sets (she/her, he/him, they/them, it/its; Spivak ey/em and
+Elverson e/em; ze/hir, ze/zir, xe/xem, fae/faer, ae/aer, ve/ver, vi/vir, per/per, ne/nem,
+thon, co/cos, hu/hum, ki/kin, zhe/zher, generic one) — declensions **verified against the
+[pronouns.page](https://en.pronouns.page) structured database** — plus three non-specifying
+values that carry no forms by design: `pronounAny`, `pronounAsk`, and the explicit
+**`pronounNameOnly`** ("use my name (no pronouns)") nounself stance. The anchors are not a
+fence: mint a fresh `PronounSet` filling the five forms for anything unseeded. The full
+inventory and sourcing live in [`identity-mapping.md`](./identity-mapping.md#pronoun-set-inventory-the-address-axis).
+
+**Linkage & projection.** `gmeow:PronounSet` / `gmeow:hasPronounSet` `closeMatch` Wikidata's
+*personal pronoun set* `wd:Q65067284` / *personal pronoun* `wdt:P6553` (verified live; Wikidata's
+2025 RfC calls for full-declension sets, aligning with GMEOW's five-form English model). The
+projection layer renders a set's **full five-form declension** as one slash-joined string
+(`"she/her/her/hers/herself"`) for the **vCard 4 PRONOUNS** property (RFC 9554) via
+`fnPronounSetToText`, emitted on the `vcardx:pronouns` extension term (the W3C vCard RDF ontology
+has no pronoun predicate). PRONOUNS is free text, so the declension is carried **losslessly** —
+no compact `"she/her"` flatten; only period/standpoint and the non-specifying values are dropped.
+
 Honorifics carry `gmeow:honorificPosition` (prefix `Dr Smith` vs suffix
 `Tanaka-san`) and `gmeow:honorificClass`; gender-neutral (`Mx`) and non-Western
 (`-san`, `Sri`, `Sayyid`) honorifics are first-class.

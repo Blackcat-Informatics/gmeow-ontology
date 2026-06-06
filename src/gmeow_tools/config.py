@@ -206,6 +206,11 @@ PREFIXES: dict[str, str] = {
     "schema": "https://schema.org/",
     "gedcom": "http://www.w3.org/2000/10/swap/pim/gedcom#",
     "vcard": "http://www.w3.org/2006/vcard/ns#",
+    # vCard 4 RFC-9554 extension terms (PRONOUNS, …) that the W3C vCard RDF
+    # ontology — based on RFC 6350 — never minted an IRI for. Deliberately a
+    # vCard-extension namespace OUTSIDE the gmeow/ term space, so the projection
+    # neither fabricates a vcard: term nor leaks a GMEOW term into a pure profile.
+    "vcardx": "https://blackcatinformatics.ca/vcard-ext/",
     "geo": "http://www.opengis.net/ont/geosparql#",
     "wgs84": "http://www.w3.org/2003/01/geo/wgs84_pos#",
     "tgn": "http://vocab.getty.edu/tgn/",

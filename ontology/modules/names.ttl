@@ -548,6 +548,15 @@ gmeow:honorificSama a gmeow:Honorific ; rdfs:label "-sama"@en ;
     gmeow:honorificClass gmeow:honorificClassSocial .
 
 # --- Pronoun sets — sex/gender INDEPENDENT; custom sets fill the five forms -- #
+# Canonical ANCHOR inventory of stably-declinable English pronoun sets (each with
+# all five forms). The list is an exhaustive set of anchors, NOT a fence: a set not
+# seeded here is expressed by minting a fresh gmeow:PronounSet filling the five
+# forms (see test_custom_pronoun_set_has_five_forms). Declensions verified against
+# the pronouns.page / Pronoun Dressing Room structured database (en.pronouns.page,
+# the five morphemes pronoun_subject/object/possessive_determiner/possessive_pronoun/
+# reflexive) and cross-checked with pronouns.within.lgbt; cf. docs/identity-mapping.md
+# for the full sourcing note. The set aligns (where a target exists) to Wikidata's
+# 'personal pronoun set' (wd:Q65067284) in mapping-dsl/equivalences/names.ttl.
 
 gmeow:pronounSheHer a gmeow:PronounSet ; rdfs:label "she/her"@en ;
     gmeow:pronounSubject "she" ; gmeow:pronounObject "her" ;
@@ -573,12 +582,71 @@ gmeow:pronounZeHir a gmeow:PronounSet ; rdfs:label "ze/hir"@en ;
     gmeow:pronounSubject "ze" ; gmeow:pronounObject "hir" ;
     gmeow:pronounPossessiveDeterminer "hir" ; gmeow:pronounPossessive "hirs" ;
     gmeow:pronounReflexive "hirself" .
-gmeow:pronounEyEm a gmeow:PronounSet ; rdfs:label "ey/em"@en ;
+gmeow:pronounEyEm a gmeow:PronounSet ; rdfs:label "ey/em (Elverson)"@en ;
     gmeow:pronounSubject "ey" ; gmeow:pronounObject "em" ;
     gmeow:pronounPossessiveDeterminer "eir" ; gmeow:pronounPossessive "eirs" ;
     gmeow:pronounReflexive "emself" .
+gmeow:pronounEEm a gmeow:PronounSet ; rdfs:label "e/em (Spivak)"@en ;
+    gmeow:pronounSubject "e" ; gmeow:pronounObject "em" ;
+    gmeow:pronounPossessiveDeterminer "eir" ; gmeow:pronounPossessive "eirs" ;
+    gmeow:pronounReflexive "emself" .
+gmeow:pronounZeZir a gmeow:PronounSet ; rdfs:label "ze/zir"@en ;
+    gmeow:pronounSubject "ze" ; gmeow:pronounObject "zir" ;
+    gmeow:pronounPossessiveDeterminer "zir" ; gmeow:pronounPossessive "zirs" ;
+    gmeow:pronounReflexive "zirself" .
+gmeow:pronounFaeFaer a gmeow:PronounSet ; rdfs:label "fae/faer"@en ;
+    gmeow:pronounSubject "fae" ; gmeow:pronounObject "faer" ;
+    gmeow:pronounPossessiveDeterminer "faer" ; gmeow:pronounPossessive "faers" ;
+    gmeow:pronounReflexive "faerself" .
+gmeow:pronounAeAer a gmeow:PronounSet ; rdfs:label "ae/aer"@en ;
+    gmeow:pronounSubject "ae" ; gmeow:pronounObject "aer" ;
+    gmeow:pronounPossessiveDeterminer "aer" ; gmeow:pronounPossessive "aers" ;
+    gmeow:pronounReflexive "aerself" .
+gmeow:pronounVeVer a gmeow:PronounSet ; rdfs:label "ve/ver"@en ;
+    gmeow:pronounSubject "ve" ; gmeow:pronounObject "ver" ;
+    gmeow:pronounPossessiveDeterminer "vis" ; gmeow:pronounPossessive "vis" ;
+    gmeow:pronounReflexive "verself" .
+gmeow:pronounViVir a gmeow:PronounSet ; rdfs:label "vi/vir"@en ;
+    gmeow:pronounSubject "vi" ; gmeow:pronounObject "vir" ;
+    gmeow:pronounPossessiveDeterminer "vis" ; gmeow:pronounPossessive "virs" ;
+    gmeow:pronounReflexive "virself" .
+gmeow:pronounPerPer a gmeow:PronounSet ; rdfs:label "per/per"@en ;
+    gmeow:pronounSubject "per" ; gmeow:pronounObject "per" ;
+    gmeow:pronounPossessiveDeterminer "per" ; gmeow:pronounPossessive "pers" ;
+    gmeow:pronounReflexive "perself" .
+gmeow:pronounNeNem a gmeow:PronounSet ; rdfs:label "ne/nem"@en ;
+    gmeow:pronounSubject "ne" ; gmeow:pronounObject "nem" ;
+    gmeow:pronounPossessiveDeterminer "nir" ; gmeow:pronounPossessive "nirs" ;
+    gmeow:pronounReflexive "nemself" .
+gmeow:pronounThonThon a gmeow:PronounSet ; rdfs:label "thon/thon"@en ;
+    gmeow:pronounSubject "thon" ; gmeow:pronounObject "thon" ;
+    gmeow:pronounPossessiveDeterminer "thons" ; gmeow:pronounPossessive "thon's" ;
+    gmeow:pronounReflexive "thonself" .
+gmeow:pronounCoCos a gmeow:PronounSet ; rdfs:label "co/cos"@en ;
+    gmeow:pronounSubject "co" ; gmeow:pronounObject "co" ;
+    gmeow:pronounPossessiveDeterminer "cos" ; gmeow:pronounPossessive "co's" ;
+    gmeow:pronounReflexive "coself" .
+gmeow:pronounHuHum a gmeow:PronounSet ; rdfs:label "hu/hum"@en ;
+    gmeow:pronounSubject "hu" ; gmeow:pronounObject "hum" ;
+    gmeow:pronounPossessiveDeterminer "hus" ; gmeow:pronounPossessive "hus" ;
+    gmeow:pronounReflexive "huself" .
+gmeow:pronounKiKin a gmeow:PronounSet ; rdfs:label "ki/kin"@en ;
+    gmeow:pronounSubject "ki" ; gmeow:pronounObject "kin" ;
+    gmeow:pronounPossessiveDeterminer "kins" ; gmeow:pronounPossessive "kins" ;
+    gmeow:pronounReflexive "kinself" .
+gmeow:pronounZheZher a gmeow:PronounSet ; rdfs:label "zhe/zher"@en ;
+    gmeow:pronounSubject "zhe" ; gmeow:pronounObject "zher" ;
+    gmeow:pronounPossessiveDeterminer "zher" ; gmeow:pronounPossessive "zhers" ;
+    gmeow:pronounReflexive "zherself" .
+gmeow:pronounOneOne a gmeow:PronounSet ; rdfs:label "one/one (generic)"@en ;
+    gmeow:pronounSubject "one" ; gmeow:pronounObject "one" ;
+    gmeow:pronounPossessiveDeterminer "one's" ; gmeow:pronounPossessive "one's" ;
+    gmeow:pronounReflexive "oneself" .
+# Non-specifying values — no five forms by design (they assert a stance, not a set).
 gmeow:pronounAny a gmeow:PronounSet ; rdfs:label "any pronouns"@en .
 gmeow:pronounAsk a gmeow:PronounSet ; rdfs:label "ask me"@en .
+gmeow:pronounNameOnly a gmeow:PronounSet ; rdfs:label "use my name (no pronouns)"@en ;
+    skos:scopeNote "Nounself / name-in-place-of-pronoun: the person prefers their name be used rather than any third-person pronoun. Distinct from pronounAny (any set is acceptable) and pronounAsk (ask first). Carries no five forms by design — it asserts the ABSENCE of a pronoun set, not a particular one."@en .
 
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE (#38) — relator mediation for the NameUsage relator.

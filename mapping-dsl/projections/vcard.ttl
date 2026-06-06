@@ -1,7 +1,10 @@
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix vcard:  <http://www.w3.org/2006/vcard/ns#> .
+# vCard 4 RFC-9554 extension terms (PRONOUNS) — no W3C-vCard-RDF predicate exists;
+# namespaced outside gmeow/ so a pure profile never leaks a GMEOW term.
+@prefix vcardx: <https://blackcatinformatics.ca/vcard-ext/> .
 
 # Projection mappings: GMEOW → vCard-RDF. Address components → vcard:Address (+ a
 # composed vcard:label); displayable full name → vcard:fn; given/family parts → a
@@ -158,6 +161,30 @@ gmeow:mapVcardNote a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:description ] ;
     gmeow:hasBinding [
         gmeow:profile "vcard" ; gmeow:toPredicate vcard:note ; gmeow:relation "<=" ; gmeow:confidence 0.8 ] .
+
+gmeow:mapVcardPronouns a gmeow:ProjectionMapping ;
+    rdfs:label "PronounSet five forms → vCard PRONOUNS display text (RFC 9554 extension)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "pronouns" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:hasPronounSet ; gmeow:objectVar "ps" ]
+            [ gmeow:subjectVar "ps" ; gmeow:predicate gmeow:pronounSubject ; gmeow:objectVar "psubj" ]
+            [ gmeow:subjectVar "ps" ; gmeow:predicate gmeow:pronounObject ; gmeow:objectVar "pobj" ]
+            [ gmeow:subjectVar "ps" ; gmeow:predicate gmeow:pronounPossessiveDeterminer ; gmeow:objectVar "pdet" ]
+            [ gmeow:subjectVar "ps" ; gmeow:predicate gmeow:pronounPossessive ; gmeow:objectVar "ppos" ]
+            [ gmeow:subjectVar "ps" ; gmeow:predicate gmeow:pronounReflexive ; gmeow:objectVar "prefl" ] ) ;
+        # The FULL five-form declension (subject/object/possessive-determiner/
+        # possessive/reflexive, e.g. she/her/her/hers/herself, xe/xem/xyr/xyrs/xemself):
+        # free-text PRONOUNS can hold it losslessly, so GMEOW does not flatten it.
+        gmeow:bind [ gmeow:bindVar "pronouns" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                [ gmeow:exprVar "psubj" ] "/" [ gmeow:exprVar "pobj" ] "/" [ gmeow:exprVar "pdet" ]
+                "/" [ gmeow:exprVar "ppos" ] "/" [ gmeow:exprVar "prefl" ] ) ] ] ;
+        gmeow:edoalSource gmeow:hasPronounSet ] ;
+    gmeow:hasBinding [
+        gmeow:profile "vcard" ; gmeow:toPredicate vcardx:pronouns ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnPronounSetToText ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the five declined forms are preserved in full (lossless for the declension); only the non-specifying values (any/ask/name-only, which carry no forms) and any period or standpoint are not represented" ] .
 
 gmeow:mapVcardUrl a gmeow:ProjectionMapping ;
     rdfs:label "hasWebPage → vcard:hasURL (the WebPage IRI)"@en ;
