@@ -45,6 +45,36 @@ gmeow:mapSchemaPlaceType a gmeow:ProjectionMapping ;
             [ gmeow:whenValue gmeow:placeTypeAdministrativeArea ; gmeow:toClass schema:AdministrativeArea ]
             [ gmeow:whenValue gmeow:placeTypeRegion ; gmeow:toClass schema:AdministrativeArea ] ) ] .
 
+gmeow:mapSchemaPlaceName a gmeow:ProjectionMapping ;
+    rdfs:label "displayable endonym PlaceName → schema:name"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ; gmeow:value "endo" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasPlaceName ; gmeow:objectVar "pn" ]
+            [ gmeow:subjectVar "pn" ; gmeow:predicate gmeow:namePurpose ; gmeow:objectValue gmeow:namePurposeEndonym ]
+            [ gmeow:subjectVar "pn" ; gmeow:predicate gmeow:fullName ; gmeow:objectVar "endo" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "pn" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:hasPlaceName ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:name ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnSelectEndonym ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "projection frame = endonym-preferred; co-equal exonyms emitted as schema:alternateName; historical/superseded and competing-standpoint names dropped" ] .
+
+gmeow:mapSchemaPlaceAltName a gmeow:ProjectionMapping ;
+    rdfs:label "displayable exonym PlaceName → schema:alternateName"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ; gmeow:value "exo" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasPlaceName ; gmeow:objectVar "pnx" ]
+            [ gmeow:subjectVar "pnx" ; gmeow:predicate gmeow:namePurpose ; gmeow:objectValue gmeow:namePurposeExonym ]
+            [ gmeow:subjectVar "pnx" ; gmeow:predicate gmeow:fullName ; gmeow:objectVar "exo" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "pnx" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:hasPlaceName ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:alternateName ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnSelectExonym ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "which exonym applies is locale-relative; historical/superseded names dropped" ] .
+
 gmeow:mapSchemaVirtualLocation a gmeow:ProjectionMapping ;
     rdfs:label "VirtualLocation → schema:VirtualLocation"@en ;
     gmeow:hasMappingPattern [

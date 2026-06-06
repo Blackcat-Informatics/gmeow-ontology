@@ -5,13 +5,28 @@
 # exercising every term: the context-dependent "Aunt Genny" vs "Mrs Smith"
 # NameUsage relator; a chosen name with a suppressed deadname; a custom pronoun
 # set; a Spanish double surname; an Arabic ism/nasab/nisba decomposition; a
-# mononym; and a Filename whose extension claims a type the bytes contradict.
+# mononym; a Filename whose extension claims a type the bytes contradict; and a
+# place with co-equal endonym/exonym toponyms whose name-usages are INFERRED to be
+# gmeow:PlaceNaming. Language is always a first-class gmeow:Language (never a
+# literal tag): gmeow:nameLanguage points at a Language individual.
 # No RDF-star (the coverage parser can't read << >>); temporality/provenance use
 # the reified path (NameUsage + TimeInterval, wasAttributedTo).
 
 @prefix ex:     <https://example.org/names/> .
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
 @prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+# --- First-class languages (gmeow:nameLanguage is an object property → Language) #
+# Registry-INDEPENDENT: the IRI is identity, gmeow:languageCode is an OPTIONAL tag.
+
+ex:langEn  a gmeow:Language ; gmeow:languageCode "en" .
+ex:langZh  a gmeow:Language ; gmeow:languageCode "zh" .
+ex:langEs  a gmeow:Language ; gmeow:languageCode "es" .
+ex:langKo  a gmeow:Language ; gmeow:languageCode "ko" .
+ex:langBan a gmeow:Language ; gmeow:languageCode "ban" .
+ex:langLa  a gmeow:Language ; gmeow:languageCode "la" .
+ex:langDe  a gmeow:Language ; gmeow:languageCode "de" .
+ex:langId  a gmeow:Language ; gmeow:languageCode "id" .
 
 # --- Co-equal multilingual names (anti-colonial centrepiece) ---------------- #
 
@@ -23,7 +38,7 @@ ex:patrick a gmeow:Person ;
 # Latin-script name — co-equal, NOT canonical.
 ex:nameLatin a gmeow:PersonName ;
     gmeow:fullName "Patrick Colm Audley"@en ;
-    gmeow:nameLanguage "en" ;
+    gmeow:nameLanguage ex:langEn ;
     gmeow:nameScript "Latn" ;
     gmeow:namePurpose gmeow:namePurposeLegal ;
     gmeow:displayable true ;
@@ -38,11 +53,11 @@ ex:plSurname a gmeow:NamePart ;
     gmeow:namePartType gmeow:namePartSurname ; gmeow:partText "Audley" ; gmeow:partOrder 2 .
 
 # Mandarin name — a CO-EQUAL full name: family-first (姓 欧 → 名 德理), chosen and
-# meaningful, NOT a romanization or alternateName of the Latin name. The pinyin
+# meaningful, NOT a romanization or alternate of the Latin name. The pinyin
 # is the romanization of THIS name only.
 ex:nameHan a gmeow:PersonName ;
     gmeow:fullName "欧德理"@zh-Hans ;
-    gmeow:nameLanguage "zh" ;
+    gmeow:nameLanguage ex:langZh ;
     gmeow:nameScript "Hani" ;
     gmeow:romanization "Ōu Délǐ"@zh-Latn ;
     gmeow:namePurpose gmeow:namePurposeChosen ;
@@ -119,7 +134,7 @@ ex:faeSet a gmeow:PronounSet ;
 
 ex:jose a gmeow:Person ; gmeow:hasName ex:joseName .
 ex:joseName a gmeow:PersonName ;
-    gmeow:fullName "José García Pérez"@es ; gmeow:nameLanguage "es" ;
+    gmeow:fullName "José García Pérez"@es ; gmeow:nameLanguage ex:langEs ;
     gmeow:hasNamePart ex:joseGiven , ex:josePat , ex:joseMat .
 ex:joseGiven a gmeow:NamePart ;
     gmeow:namePartType gmeow:namePartGiven ; gmeow:partText "José"@es ; gmeow:partOrder 0 .
@@ -145,7 +160,7 @@ ex:akNisba a gmeow:NamePart ;
 
 ex:lin a gmeow:Person ; gmeow:hasName ex:linName .
 ex:linName a gmeow:PersonName ;
-    gmeow:fullName "林文豪"@zh-Hans ; gmeow:nameLanguage "zh" ; gmeow:nameScript "Hani" ;
+    gmeow:fullName "林文豪"@zh-Hans ; gmeow:nameLanguage ex:langZh ; gmeow:nameScript "Hani" ;
     gmeow:romanization "Lín Wénháo"@zh-Latn ;
     gmeow:hasNamePart ex:linSurname , ex:linGen , ex:linGiven .
 ex:linSurname a gmeow:NamePart ;
@@ -160,7 +175,7 @@ ex:linGiven a gmeow:NamePart ;
 
 ex:kim a gmeow:Person ; gmeow:hasName ex:kimName .
 ex:kimName a gmeow:PersonName ;
-    gmeow:fullName "김민준"@ko ; gmeow:nameLanguage "ko" ; gmeow:nameScript "Hang" ;
+    gmeow:fullName "김민준"@ko ; gmeow:nameLanguage ex:langKo ; gmeow:nameScript "Hang" ;
     gmeow:hasNamePart ex:kimSurname , ex:kimGiven , ex:kimClan .
 ex:kimSurname a gmeow:NamePart ;
     gmeow:namePartType gmeow:namePartSurname ; gmeow:partText "김"@ko ; gmeow:partOrder 0 .
@@ -174,7 +189,7 @@ ex:kimClan a gmeow:NamePart ;
 
 ex:wayan a gmeow:Person ; gmeow:hasName ex:wayanName .
 ex:wayanName a gmeow:PersonName ;
-    gmeow:fullName "Wayan Sukerta"@ban ; gmeow:nameLanguage "ban" ;
+    gmeow:fullName "Wayan Sukerta"@ban ; gmeow:nameLanguage ex:langBan ;
     gmeow:hasNamePart ex:wayanBirth , ex:wayanGiven .
 ex:wayanBirth a gmeow:NamePart ;
     gmeow:namePartType gmeow:namePartBirthOrderName ; gmeow:partText "Wayan"@ban ; gmeow:partOrder 0 ;
@@ -186,7 +201,7 @@ ex:wayanGiven a gmeow:NamePart ;
 
 ex:scipio a gmeow:Person ; gmeow:hasName ex:scipioName .
 ex:scipioName a gmeow:PersonName ;
-    gmeow:fullName "Publius Cornelius Scipio Africanus"@la ; gmeow:nameLanguage "la" ;
+    gmeow:fullName "Publius Cornelius Scipio Africanus"@la ; gmeow:nameLanguage ex:langLa ;
     gmeow:hasNamePart ex:scPrae , ex:scNomen , ex:scCognomen , ex:scAgnomen .
 ex:scPrae a gmeow:NamePart ;
     gmeow:namePartType gmeow:namePartPraenomen ; gmeow:partText "Publius"@la ; gmeow:partOrder 0 .
@@ -201,7 +216,7 @@ ex:scAgnomen a gmeow:NamePart ;
 
 ex:hans a gmeow:Person ; gmeow:hasName ex:hansName .
 ex:hansName a gmeow:PersonName ;
-    gmeow:fullName "Müllers Hans"@de ; gmeow:nameLanguage "de" ;
+    gmeow:fullName "Müllers Hans"@de ; gmeow:nameLanguage ex:langDe ;
     gmeow:hasNamePart ex:hansHouse , ex:hansGiven .
 ex:hansHouse a gmeow:NamePart ;
     gmeow:namePartType gmeow:namePartHouseName ; gmeow:partText "Müllers"@de ; gmeow:partOrder 0 ;
@@ -211,7 +226,7 @@ ex:hansGiven a gmeow:NamePart ;
 
 ex:ibuSari a gmeow:Person ; gmeow:hasName ex:ibuSariName .
 ex:ibuSariName a gmeow:PersonName ;
-    gmeow:fullName "Ibu Sari"@id ; gmeow:nameLanguage "id" ;
+    gmeow:fullName "Ibu Sari"@id ; gmeow:nameLanguage ex:langId ;
     gmeow:hasNamePart ex:teknonymPart .
 ex:teknonymPart a gmeow:NamePart ;
     gmeow:namePartType gmeow:namePartTeknonym ; gmeow:partText "Ibu Sari"@id ; gmeow:partOrder 0 ;
@@ -255,9 +270,45 @@ ex:invStem a gmeow:NamePart ;
 ex:invExt a gmeow:NamePart ;
     gmeow:namePartType gmeow:namePartExtension ; gmeow:partText "pdf" ; gmeow:partOrder 1 .
 
-# --- Non-person appellations ------------------------------------------------ #
+# --- Organization appellation ----------------------------------------------- #
 
 ex:orgName a gmeow:OrganizationName ;
     gmeow:fullName "Blackcat Informatics Inc."@en ; gmeow:namePurpose gmeow:namePurposeLegal .
-ex:munich a gmeow:PlaceName ;
-    gmeow:fullName "München"@de ; gmeow:nameLanguage "de" ; gmeow:nameScript "Latn" .
+
+# --- Place naming: co-equal endonym/exonym toponyms + inferred PlaceNaming --- #
+# A name-usage whose usageNamed is a gmeow:Place is INFERRED to be a
+# gmeow:PlaceNaming (≡ NameUsage ⊓ ∃usageNamed.Place) — the reasoner classifies it;
+# nothing is asserted. The names are CO-EQUAL (no primary); the historical name is
+# suppressed (displayable false), not deleted. hasPlaceName replaces the retired
+# flat alternateName literal.
+
+ex:munichCity a gmeow:Place ;
+    gmeow:hasPlaceName ex:munichEndonym , ex:munichExonym , ex:munichHistorical .
+
+ex:munichEndonym a gmeow:PlaceName ;
+    gmeow:fullName "München"@de ; gmeow:nameLanguage ex:langDe ; gmeow:nameScript "Latn" ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ; gmeow:displayable true .
+ex:munichExonym a gmeow:PlaceName ;
+    gmeow:fullName "Munich"@en ; gmeow:nameLanguage ex:langEn ; gmeow:nameScript "Latn" ;
+    gmeow:namePurpose gmeow:namePurposeExonym ; gmeow:displayable true .
+ex:munichHistorical a gmeow:PlaceName ;
+    gmeow:fullName "Munichen"@la ; gmeow:nameLanguage ex:langLa ;
+    gmeow:namePurpose gmeow:namePurposeSuperseded ; gmeow:displayable false .
+
+# Endonym usage — sanctioned by a toponymic authority (gmeow:usageAuthority).
+ex:munichEndonymUsage a gmeow:NameUsage ;
+    gmeow:usageNamed ex:munichCity ;
+    gmeow:usageAppellation ex:munichEndonym ;
+    gmeow:usageRegister gmeow:registerFormal ;
+    gmeow:usageAuthority ex:bavarianAuthority ;
+    gmeow:usageAudience ex:germanSpeakers .
+# Exonym usage — same place, co-equal English name, different audience.
+ex:munichExonymUsage a gmeow:NameUsage ;
+    gmeow:usageNamed ex:munichCity ;
+    gmeow:usageAppellation ex:munichExonym ;
+    gmeow:usageRegister gmeow:registerFormal ;
+    gmeow:usageAudience ex:englishSpeakers .
+
+ex:bavarianAuthority a gmeow:Organization .
+ex:germanSpeakers a gmeow:Group .
+ex:englishSpeakers a gmeow:Group .

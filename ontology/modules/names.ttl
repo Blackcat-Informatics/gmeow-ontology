@@ -44,7 +44,7 @@ gmeow:PlaceName
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Appellation ;
     rdfs:label "Place Name"@en ;
-    skos:definition "An appellation (toponym) borne by a geographic place — possibly endonym/exonym, multilingual, or historical (held over a period via gmeow:NameUsage). The first-class counterpart of the flat gmeow:alternateName used for gazetteer matching."@en ;
+    skos:definition "An appellation (toponym) borne by a geographic place via gmeow:hasPlaceName — possibly endonym/exonym (gmeow:namePurpose), multilingual, or historical (held over a period via a gmeow:NameUsage / inferred gmeow:PlaceNaming). The structured, first-class replacement for the retired flat gmeow:alternateName literal, used for gazetteer matching and co-equal multilingual/historical naming."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:OrganizationName
@@ -139,6 +139,35 @@ gmeow:usageInterval
     skos:definition "The time interval over which a name-usage held. (A relator carries its period this way — matching contacts' relationshipInterval — rather than via duringInterval.)"@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:usageAuthority
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NameUsage ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "usage authority"@en ;
+    skos:definition "The naming / toponymic authority behind a name-usage — the gmeow:Agent (a national mapping agency, a standards body, an indigenous community, or a self-asserting individual) that confers or sanctions the appellation in this use. NON-FUNCTIONAL: joint or competing authorities coexist with no privileged claimant (anti-colonial, Principle 9), each attributable and confidence-weighted. (Introduced as namingAuthority by issue #105; named usageAuthority for usage* consistency.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# PlaceNaming — a DEFINED specialization of NameUsage (Principle 6: reuse the
+# relator, do not mint a parallel one). Any name-usage that names a gmeow:Place
+# is INFERRED to be a gmeow:PlaceNaming; this is the first owl:equivalentClass
+# defined class in the ontology (EL-safe: a named class ⊓ one someValuesFrom).
+# --------------------------------------------------------------------------- #
+
+gmeow:PlaceNaming
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:NameUsage ;
+    owl:equivalentClass [
+        a owl:Class ;
+        owl:intersectionOf (
+            gmeow:NameUsage
+            [ a owl:Restriction ; owl:onProperty gmeow:usageNamed ; owl:someValuesFrom gmeow:Place ]
+        )
+    ] ;
+    rdfs:label "Place Naming"@en ;
+    skos:definition "A DEFINED specialization of gmeow:NameUsage whose named entity is a gmeow:Place — a time/audience/register-scoped use of a toponym. Defined, NOT asserted: any NameUsage that names a Place is inferred to be a PlaceNaming (≡ gmeow:NameUsage ⊓ ∃gmeow:usageNamed.gmeow:Place), so place-naming reuses the NameUsage relator instead of minting a parallel relator (Principle 6, greenfield/no-redundancy). The reified counterpart of CIDOC-CRM's time-spanned crm:E48 Place Name / crm:E41 Appellation. Competing and historical place names coexist as co-equal PlaceNamings with no primary; superseded ones set gmeow:displayable false (Principle 10). The toponymic authority is gmeow:usageAuthority; the name's language is gmeow:nameLanguage on the bound gmeow:PlaceName (reached via gmeow:usageAppellation)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 # --------------------------------------------------------------------------- #
 # Bearing a name + structured parts.
 # gmeow:hasAppellation is the universal bearing property; gmeow:hasName is its
@@ -162,6 +191,15 @@ gmeow:hasName
     rdfs:range gmeow:PersonName ;
     rdfs:label "has name"@en ;
     skos:definition "Relates a person to a structured, typed PersonName they bear; the person-scoped specialization of gmeow:hasAppellation. Non-functional — a person bears many co-equal names."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasPlaceName
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasAppellation ;
+    rdfs:domain gmeow:Place ;
+    rdfs:range gmeow:PlaceName ;
+    rdfs:label "has place name"@en ;
+    skos:definition "Relates a geographic gmeow:Place to a structured gmeow:PlaceName (toponym) it bears; the place-scoped specialization of gmeow:hasAppellation, mirroring gmeow:hasName for persons. Non-functional — a place bears many co-equal names (endonym/exonym, multilingual, historical); none is primary, and superseded ones set gmeow:displayable false. The structured, first-class replacement for the retired flat gmeow:alternateName literal."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasNamePart
@@ -220,11 +258,11 @@ gmeow:fullName
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:nameLanguage
-    a owl:DatatypeProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Appellation ;
-    rdfs:range rdfs:Literal ;
+    rdfs:range gmeow:Language ;
     rdfs:label "name language"@en ;
-    skos:definition "The BCP-47 language tag of an appellation (e.g. \"ja\", \"zh\", \"ar\", \"ta\"). Drives locale-relative, symmetric display selection — never a ranking of one name above another."@en ;
+    skos:definition "The first-class gmeow:Language an appellation's surface form is in. Language is ALWAYS a first-class gmeow:Language (registry-INDEPENDENT, self-minted IRI) — never a bare BCP-47 literal; codes (e.g. \"ja\", \"zh\") live on the Language via gmeow:languageCode, so a code-less conlang or AI-minted language names co-equally. FUNCTIONAL — exactly one language per appellation: co-equal multilingual names are modelled as SEPARATE co-equal gmeow:Appellation instances (one per language), never by multi-tagging a single name (that is what keeps naming anti-colonial and symmetric). Drives locale-relative, symmetric display selection — never a ranking of one name above another. The script the form is written in is gmeow:nameScript (bridging to a first-class gmeow:WritingSystem)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:nameScript
@@ -445,6 +483,10 @@ gmeow:namePurposeOnlineHandle a gmeow:NamePurpose ; rdfs:label "online handle / 
 gmeow:namePurposeCeremonial   a gmeow:NamePurpose ; rdfs:label "ceremonial name"@en .
 gmeow:namePurposeSuperseded   a gmeow:NamePurpose ; rdfs:label "superseded / former name"@en .
 gmeow:namePurposeDeadname     a gmeow:NamePurpose ; rdfs:label "deadname (historical, do-not-display)"@en .
+# Toponymic purposes — co-equal (no privileged claimant): a place's endonym and
+# exonym are different-purpose, equally-valid names, not a preferred-vs-alternate pair.
+gmeow:namePurposeEndonym      a gmeow:NamePurpose ; rdfs:label "endonym (name used by a place's own inhabitants / a language's own speakers)"@en .
+gmeow:namePurposeExonym       a gmeow:NamePurpose ; rdfs:label "exonym (name used by outsiders / in another language)"@en .
 
 # --- Name register — the social register of a USAGE ------------------------- #
 

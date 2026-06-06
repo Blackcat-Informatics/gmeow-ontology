@@ -25,8 +25,10 @@ subclasses and homogeneous kinds as value vocabularies:
    `geo:sfWithin`, `gn:parentFeature`, `wdt:P131`, `dcterms:isPartOf`,
    `schema:containedInPlace`.
 4. **Round-trip fidelity** — full vCard `ADR`/`GEO`/`TZ` (table below).
-5. **Names & timezone** — `gmeow:alternateName` (multilingual, for gazetteer
-   matching) and `gmeow:timezone` (IANA, also feeds the calendar slice).
+5. **Names & timezone** — co-equal `gmeow:PlaceName` toponyms borne via
+   `gmeow:hasPlaceName` (multilingual / endonym / exonym / historical, for gazetteer
+   matching; the names module, issue #105 — the structured replacement for the retired
+   flat `gmeow:alternateName`) and `gmeow:timezone` (IANA, also feeds the calendar slice).
 
 ## Address: surface literals ↔ resolved QID-bearing places
 

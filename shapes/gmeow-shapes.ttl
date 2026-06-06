@@ -201,6 +201,27 @@ gmeow:NameUsageShape
         sh:message "A NameUsage must use exactly one appellation (gmeow:usageAppellation)." ;
     ] .
 
+# A name-usage that names a gmeow:Place is an inferred gmeow:PlaceNaming
+# (≡ NameUsage ⊓ ∃usageNamed.Place). Its appellation SHOULD be a gmeow:PlaceName.
+# Warning, not Violation, and expressed over the data (not the inferred type) so it
+# fires without OWL classification: open-world, a source may type the name later.
+gmeow:PlaceNamingAppellationShape
+    a sh:NodeShape ;
+    rdfs:label "PlaceNaming appellation-kind shape" ;
+    sh:targetClass gmeow:NameUsage ;
+    sh:sparql [
+        sh:severity sh:Warning ;
+        sh:message "A name-usage that names a gmeow:Place (an inferred gmeow:PlaceNaming) should bind a gmeow:PlaceName via gmeow:usageAppellation." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this gmeow:usageNamed ?place .
+                ?place a gmeow:Place .
+                $this gmeow:usageAppellation ?app .
+                FILTER NOT EXISTS { ?app a gmeow:PlaceName }
+            }
+        """ ;
+    ] .
+
 # --------------------------------------------------------------------------- #
 # (b) Suppression / display contract (CONSTITUTION P10 — suppression, never
 # erasure). The IdentityFacet sibling of DeadnameSuppressionShape: a facet that

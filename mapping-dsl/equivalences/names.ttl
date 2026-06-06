@@ -9,6 +9,9 @@
 @prefix gx: <http://gedcomx.org/> .
 @prefix wdt: <http://www.wikidata.org/prop/direct/> .
 @prefix wd: <http://www.wikidata.org/entity/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix gn: <http://www.geonames.org/ontology#> .
+@prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
 
 # Term equivalences for the names domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-names.sssom.tsv by `gmeow compile-mappings`.
@@ -289,4 +292,82 @@ gmeow:eqNames033 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
     gmeow:comment "Wikidata 'pronoun' — broader grammatical category; a hint, not an equivalence" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+# Place naming (issue #105). A place's toponyms are co-equal gmeow:PlaceName
+# appellations borne via gmeow:hasPlaceName; the time/audience/authority-scoped use
+# is the DEFINED gmeow:PlaceNaming (≡ NameUsage ⊓ ∃usageNamed.Place). gmeow:PlaceName
+# is CIDOC-CRM's E48 Place Name; the relator itself, like gmeow:NameUsage, has no
+# clean external class (Principle 5 — bridge honestly, do not force one).
+
+gmeow:eqNames034 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:PlaceName ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:E48_Place_Name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "CIDOC-CRM E48 Place Name — the appellation borne by a place (CRM's E53 Place)" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames035 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasPlaceName ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject gn:name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "GeoNames gn:name — lossy: gn:name links a feature to a name LITERAL, gmeow:hasPlaceName to a structured PlaceName object" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames036 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasPlaceName ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject schema:name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "schema:name — downcast: a place's structured name objects flatten to the schema:name literal in projection (non-selected names → schema:alternateName)" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+# nameLanguage now points at a first-class gmeow:Language (was a BCP-47 literal).
+gmeow:eqNames037 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:nameLanguage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:language ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames038 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:nameLanguage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:inLanguage ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames039 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:nameLanguage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P407 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "Wikidata 'language of work or name' (P407) — verified live against the Wikidata API" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+# Endonym / exonym name purposes — co-equal toponym kinds (no privileged claimant).
+gmeow:eqNames040 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePurposeEndonym ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1266782 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'endonym' (Q1266782) — verified live against the Wikidata API" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames041 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:namePurposeExonym ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q81639 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'exonym' (Q81639) — verified live against the Wikidata API" ;
     gmeow:sssomFile "gmeow-names.sssom.tsv" .
