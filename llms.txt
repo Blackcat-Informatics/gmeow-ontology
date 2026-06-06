@@ -60,6 +60,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:Geometry (⊑ gmeow:Entity, gufo:Object): The spatial extent of a place — a point, line, or polygon — carrying a Well-Known Text (WKT) serialization for shapes richer than a single point (the GeoSPARQL geo:Geometry superset).
 - gmeow:GrammaticalAspect (⊑ gufo:QualityValue): The grammatical aspect of an event mention in text — a VALUE vocabulary for ISO-TimeML interoperability (perfective / progressive / perfective-progressive / none).
 - gmeow:GrammaticalTense (⊑ gufo:QualityValue): The grammatical tense of an event mention in text — a VALUE vocabulary for ISO-TimeML interoperability (past / present / future / none). Describes the linguistic realization, not the occurrence.
+- gmeow:GranularityLevel (⊑ gufo:QualityValue): A level of detail / resolution at which a value is expressed — a point on an open, ordered, domain-general axis (spatial: point ≺ address ≺ city ≺ region ≺ country; temporal: day ≺ month ≺ year ≺ decade ≺ century). The explicit facet behind 'no silent precision', and the axis that gmeow:coarsenTo generalizes along. Levels are individuals (never per-level subclasses), ordered by gmeow:coarserThan and aligned to external resolution vocabularies (OWL-Time time:TemporalUnit, ISO 19112 LocationType) by skos:exactMatch.
 - gmeow:Group (⊑ gmeow:Entity, gufo:Collection): A collection of agents treated as a unit without the formal structure of an organization.
 - gmeow:Honorific (⊑ gufo:QualityValue): A title or form of address (Mr, Mx, Dr, -san, Sri, Sayyid, …). A value, not a subclass. Each carries a gmeow:honorificPosition (prefix/suffix) and, where applicable, a gmeow:honorificClass.
 - gmeow:HonorificClass (⊑ gufo:QualityValue): The domain of an honorific (academic, clerical, noble, military, judicial, social).
@@ -201,6 +202,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:certifier [gmeow:Certification → gmeow:Agent] (functional): The agent that made a certification.
 - gmeow:citesSource [gmeow:Citation → gmeow:Source] (functional): Relates a citation to the source it points into.
 - gmeow:claimedMediaType [gmeow:Filename → rdfs:Literal]: The MIME media type CLAIMED by a filename's extension (e.g. ".pdf" → "application/pdf"). A claim by the name, which may disagree with gmeow:detectedMediaType. Non-functional.
+- gmeow:coarsenTo [? → gmeow:GranularityLevel]: Disclosure control: marks a value/relator so that at projection time it is generalized to no finer than the named gmeow:GranularityLevel — a coarser ancestor is emitted instead of the precise value (e.g. an enclosing city rather than exact coordinates), never by deletion. The generalization sibling of gmeow:displayable false (withhold); together they are the single 'withhold or coarsen under a trigger' mechanism of CONSTITUTION P10. Domain-free, like gmeow:displayable. The coarse value is obtained by walking gmeow:generalizesVia (default gmeow:partOf); any geometry/geomask computation stays in the solver layer (P12). When both apply, displayable false (withhold) wins over coarsen.
+- gmeow:coarserThan [gmeow:GranularityLevel → gmeow:GranularityLevel]: Orders the granularity axis: relates a granularity level to a finer level it generalizes (country gmeow:coarserThan city). Transitive; the partial order that makes 'at or above a target level' well-defined for coarsening, and mirrors skos:broader between the levels.
 - gmeow:coincidesWith [gmeow:Event → gmeow:Event]: Allen EQUALS: this event and the related event share the same temporal extent (co-temporal). Symmetric and transitive. Asserts TEMPORAL simultaneity only, never identity of the events themselves. (= time:intervalEquals; TimeML SIMULTANEOUS; TEO equal.)
 - gmeow:conditionsOfAccess [gmeow:Entity → rdfs:Literal]: Human-readable conditions under which the asset may be accessed (schema:conditionsOfAccess), e.g. "on-site access only".
 - gmeow:conferredByEvent [gmeow:Appellation → gmeow:LifeEvent]: The life event that conferred or changed an appellation — a gmeow:LifeEvent carrying a gmeow:eventType such as gmeow:eventTypeChristening, gmeow:eventTypeNameChange, gmeow:eventTypeMarriage (a married name), or gmeow:eventTypeAdoption. Non-functional. The seam joining the names module to the events module's event spine.
@@ -255,6 +258,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:from [gmeow:EmailMessage → gmeow:EmailAddress]: The author address of a message (RFC 5322 From).
 - gmeow:fullName [gmeow:Appellation → rdfs:Literal]: The complete surface form of an appellation as a single string, in the natural order of its culture (language-/script-tag the literal, e.g. "山田太郎"@ja, "Yamada Tarō"@ja-Latn). Authoritative for display. Non-functional: spellings/transliterations from different sources coexist.
 - gmeow:genderValue [gmeow:GenderIdentity → gmeow:Gender] (functional): The gmeow:Gender value a gender-identity facet asserts (functional PER FACET — one value each; multiplicity is expressed by multiple facets). The value is a gmeow:Gender individual: a predefined one, or — when none fits — a fresh individual carrying rdfs:label (the custom-PronounSet idiom). The single path to the gender value; there is deliberately no flat datatype shortcut.
+- gmeow:generalizesVia: Projection-compiler guidance naming the transitive part/whole property to walk when coarsening a value (e.g. gmeow:containedInPlace for places). Defaults to gmeow:partOf when absent. An annotation property — it directs generalization without imposing logical semantics, keeping the core OWL 2 DL.
 - gmeow:hasAgreement [gmeow:Agent → gmeow:Agreement]: Relates an agent to an agreement it is party to. The party-ship period is carried with gmeow:validFrom/validUntil on this statement; the agreement's own term/effective dates live on the gmeow:Agreement individual (no double-modelling).
 - gmeow:hasAncestor [gmeow:Person → gmeow:Person]: Relates a person to an ancestor — a parent, a parent's parent, and so on. Transitive: an ancestor of an ancestor is an ancestor. gmeow:hasParent (hence gmeow:hasMother / hasFather) is a sub-property, so ancestry is DERIVED from parentage by the reasoner and is never asserted directly.
 - gmeow:hasAppellation [gmeow:Entity → gmeow:Appellation]: Relates an entity to an appellation (name-object) it bears. The universal name-bearing property; gmeow:hasName is the person-scoped specialization. Non-functional — entities bear many co-equal names; a bearing's period is carried with gmeow:validFrom/validUntil on the statement, or reified as a gmeow:NameUsage when audience/register/evidence must be borne.
@@ -275,6 +279,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasGenderExpression [gmeow:Person → gmeow:GenderExpression]: Relates a person to a self-asserted gender-expression facet. Non-functional and contextual. MUST NOT be inferred from gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics.
 - gmeow:hasGenderIdentity [gmeow:Person → gmeow:GenderIdentity]: Relates a person to a self-asserted gender-identity facet they hold. Non-functional and contextual — a person bears many co-equal identities; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasPronounSet, gmeow:honorific, gmeow:hasGenderExpression or gmeow:sexAssignedAtBirth.
 - gmeow:hasGeometry [gmeow:Place → gmeow:Geometry]: Relates a place to its spatial geometry (point, line, or polygon).
+- gmeow:hasGranularity [? → gmeow:GranularityLevel]: Relates a value, place, period, coordinate or measurement to its own resolution level — the explicit 'no silent precision' facet, queryable independently of any disclosure control. Domain-free. NOT functional: in a multi-source merge sources may state different resolutions, and those claims coexist rather than force the reasoner to collapse distinct levels.
 - gmeow:hasHeader [gmeow:Message → gmeow:MessageHeader]: Relates a message to one of its RFC 5322 headers.
 - gmeow:hasKeyword [gmeow:Message → gmeow:MessageKeyword]: Relates a message to a flag/keyword applied to it.
 - gmeow:hasLicense [gmeow:Entity → gmeow:License]: Relates an entity (a work, dataset, software project, …) to a licence granting rights in it (dcterms:license; schema:license). Named gmeow:hasLicense — gmeow:license is reserved for the mapping-DSL set-license datatype property.
@@ -656,6 +661,16 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:genderQuestioning (a gmeow:Gender): questioning
 - gmeow:genderTwoSpirit (a gmeow:Gender): Two-Spirit
 - gmeow:genderWoman (a gmeow:Gender): woman
+- gmeow:granularityAddress (a gmeow:GranularityLevel): address level
+- gmeow:granularityCentury (a gmeow:GranularityLevel): century level
+- gmeow:granularityCity (a gmeow:GranularityLevel): city level
+- gmeow:granularityCountry (a gmeow:GranularityLevel): country level
+- gmeow:granularityDay (a gmeow:GranularityLevel): day level
+- gmeow:granularityDecade (a gmeow:GranularityLevel): decade level
+- gmeow:granularityMonth (a gmeow:GranularityLevel): month level
+- gmeow:granularityPoint (a gmeow:GranularityLevel): point / exact coordinate level
+- gmeow:granularityRegion (a gmeow:GranularityLevel): region level
+- gmeow:granularityYear (a gmeow:GranularityLevel): year level
 - gmeow:honorificClassAcademic (a gmeow:HonorificClass): academic
 - gmeow:honorificClassClerical (a gmeow:HonorificClass): clerical
 - gmeow:honorificClassJudicial (a gmeow:HonorificClass): judicial

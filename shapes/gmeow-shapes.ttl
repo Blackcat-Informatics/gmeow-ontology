@@ -743,3 +743,28 @@ gmeow:NovelRealmExtensibilityShape
             }
         """ ;
     ] .
+
+# Disclosure control by generalization (#72, P10) + granularity axis (#79).
+# coarsenTo and hasGranularity are domain-free, so target their subjects directly:
+# whatever carries them, the value must be a gmeow:GranularityLevel.
+gmeow:CoarsenToShape
+    a sh:NodeShape ;
+    rdfs:label "coarsenTo disclosure-control well-formedness shape" ;
+    sh:targetSubjectsOf gmeow:coarsenTo ;
+    sh:property [
+        sh:path gmeow:coarsenTo ;
+        sh:class gmeow:GranularityLevel ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:coarsenTo must point at a gmeow:GranularityLevel — the coarsest level the value may be disclosed at." ;
+    ] .
+
+gmeow:HasGranularityShape
+    a sh:NodeShape ;
+    rdfs:label "hasGranularity facet well-formedness shape" ;
+    sh:targetSubjectsOf gmeow:hasGranularity ;
+    sh:property [
+        sh:path gmeow:hasGranularity ;
+        sh:class gmeow:GranularityLevel ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:hasGranularity must point at a gmeow:GranularityLevel — the value's own resolution level." ;
+    ] .

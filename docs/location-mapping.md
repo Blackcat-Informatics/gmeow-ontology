@@ -94,6 +94,33 @@ CONSTRUCT {
 
 Then `geof:within` / `geof:distance` and topological `geo:sfWithin` work natively.
 
+## Privacy by generalization: coarsening coordinates (#72 / #79)
+
+A place may declare the coarsest level at which its location should be disclosed:
+
+```turtle
+ex:secretLab a gmeow:Place ;
+    gmeow:containedInPlace ex:metropolis ;     # … ⊂ city ⊂ region ⊂ country
+    gmeow:hasCoordinates ex:secretCoords ;     # the precise point (retained, never deleted)
+    gmeow:coarsenTo gmeow:granularityCity .     # disclose no finer than city
+
+ex:metropolis a gmeow:Place ;
+    gmeow:hasGranularity gmeow:granularityCity ;
+    gmeow:hasCoordinates ex:metroCoords .       # the city's representative point
+```
+
+At projection time the precise point is **suppressed** and the enclosing ancestor at
+the target `gmeow:GranularityLevel` (reached along the `gmeow:containedInPlace+`
+mereology spine) is emitted instead — *a coarser region rather than exact coordinates,
+never deletion* (CONSTITUTION P10). This is the **coarsen** half of the unified
+disclosure-control mechanism; `gmeow:displayable false` is the **withhold** half.
+`gmeow:GranularityLevel` is an ordered axis (`gmeow:coarserThan`) aligned by reference
+to OWL-Time `time:TemporalUnit` (temporal) and `gmeow:placeType` / ISO 19112
+LocationType (spatial); the operation aligns to `dpv:Generalisation`. Heavier geomasking
+/ k-anonymity stays in the solver layer (P12). The GeoSPARQL and schema.org projections
+both honour it (`mapGeoPointCoarsened`, `mapSchemaPlaceCoordsCoarsened`); the
+access/consent *trigger* on the same control is PRIV-GEN (#73).
+
 ## Place-type values vs the `schema:Country ⊑ Place` alignment
 
 GMEOW's own discriminator is the **`placeType` value** (`placeTypeCountry`). The

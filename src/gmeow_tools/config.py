@@ -217,6 +217,7 @@ PREFIXES: dict[str, str] = {
     "gvp": "http://vocab.getty.edu/ontology#",
     "bibo": "http://purl.org/ontology/bibo/",
     "bibframe": "http://id.loc.gov/ontologies/bibframe/",
+    "dpv": "https://w3id.org/dpv#",
     "sioc": "http://rdfs.org/sioc/ns#",
     "mads": "http://www.loc.gov/mads/rdf/v1#",
     "esco": "http://data.europa.eu/esco/model#",

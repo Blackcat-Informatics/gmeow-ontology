@@ -59,11 +59,54 @@ gmeow:mapGeoPoint a gmeow:ProjectionMapping ;
                     [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "lat" ] ) ]
                     ")" ) ]
                 geo:wktLiteral ) ] ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:coarsenTo ; gmeow:objectVar "anyLvl" ] ;
         gmeow:edoalSource gmeow:GeoCoordinates ; gmeow:edoalSourceKind "class" ] ;
     gmeow:hasBinding [
         gmeow:profile "geosparql" ; gmeow:relation "<=" ;
         gmeow:edoalTarget geo:Geometry ; gmeow:edoalTargetKind "class" ;
         gmeow:transform gmeow:fnLatLongToWktPoint ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "place" ; gmeow:tPred geo:hasGeometry ; gmeow:tObj "ptGeom" ]
+            [ gmeow:tSubj "ptGeom" ; gmeow:tPred rdf:type ; gmeow:tObjValue geo:Geometry ]
+            [ gmeow:tSubj "ptGeom" ; gmeow:tPred geo:asWKT ; gmeow:tObj "pointWkt" ] ) ] .
+
+# Disclosure control by generalization (#72, CONSTITUTION P10): when a place carries
+# gmeow:coarsenTo a target level, emit the coordinates of the enclosing ancestor at
+# that level (reached by gmeow:containedInPlace+) INSTEAD of the precise point — the
+# complementary branch to mapGeoPoint (which is suppressed under the same trigger).
+# A coarser region rather than exact coordinates, never deletion.
+gmeow:mapGeoPointCoarsened a gmeow:ProjectionMapping ;
+    rdfs:label "coarsenTo → enclosing-region WKT POINT (privacy generalization)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:coarsenTo ; gmeow:objectVar "lvl" ]
+            [ gmeow:subjectVar "place" ; gmeow:path [ a gmeow:OneOrMorePath ; gmeow:pathStep gmeow:containedInPlace ] ; gmeow:objectVar "coarse" ]
+            [ gmeow:subjectVar "coarse" ; gmeow:predicate gmeow:hasGranularity ; gmeow:objectVar "lvl" ]
+            [ gmeow:subjectVar "coarse" ; gmeow:predicate gmeow:hasCoordinates ; gmeow:objectVar "c" ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:latitude ; gmeow:objectVar "lat" ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:longitude ; gmeow:objectVar "lon" ] ) ;
+        gmeow:mint [ gmeow:bindVar "ptGeom" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "place" ] ) ]
+                    "-geom-coarsened" ) ] ) ] ] ;
+        gmeow:bind [ gmeow:bindVar "pointWkt" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opStrDatatype ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    "POINT("
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "lon" ] ) ]
+                    " "
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "lat" ] ) ]
+                    ")" ) ]
+                geo:wktLiteral ) ] ] ;
+        gmeow:edoalSource gmeow:coarsenTo ; gmeow:edoalSourceKind "relation" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "geosparql" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget geo:Geometry ; gmeow:edoalTargetKind "class" ;
+        gmeow:transform gmeow:fnCoarsenToGranularity ;
+        gmeow:lossyDrop "precise coordinates coarsened to the enclosing region at gmeow:coarsenTo level (privacy generalization, P10)" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "place" ; gmeow:tPred geo:hasGeometry ; gmeow:tObj "ptGeom" ]
             [ gmeow:tSubj "ptGeom" ; gmeow:tPred rdf:type ; gmeow:tObjValue geo:Geometry ]

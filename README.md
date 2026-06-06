@@ -51,8 +51,10 @@ Cite them by number in issues and PRs.
 > AI / RAG claim-provenance layer), broad-consumption tooling (developer schemas, LPG / Croissant /
 > RO-Crate exports, a maximal DOI strategy), and the current major thrust — the **Location as a
 > universal reference-frame** epic, which surfaces cross-cutting foundations (observation as a
-> *claim-from-a-vantage*, frame-relativity, determinacy ⟂ confidence, privacy/consent by
-> projection, and the self-describing *Profile* meta-pattern) that the in-progress Constitution
+> *claim-from-a-vantage*, frame-relativity, determinacy ⟂ confidence, disclosure control by
+> projection — one mechanism that **withholds *or* coarsens** a value under a trigger
+> (suppression, privacy/consent redaction, and a universal **granularity / level-of-detail
+> axis**), never by deletion — and the self-describing *Profile* meta-pattern) that the in-progress Constitution
 > amendments (Principles 11–12) underpin. Each slice adds canonical terms, SSSOM alignment tables,
 > projections, and a vendored fixture, and `make coverage` reports how much GMEOW covers and what
 > gaps remain. The full toolchain (validate → reason → mappings → coverage → build → docs →

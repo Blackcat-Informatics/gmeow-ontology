@@ -9,6 +9,14 @@
     rdfs:label "GMEOW → geosparql (EDOAL)"@en ;
     align:level "2EDOAL" ;
     align:map [ a align:Cell ;
+            rdfs:label "coarsenTo → enclosing-region WKT POINT (privacy generalization)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:coarsenTo ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri geo:Geometry ] ;
+            align:relation "<=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnCoarsenToGranularity ] ],
+        [ a align:Cell ;
             rdfs:label "latitude + longitude → geo:Geometry with WKT POINT"@en ;
             align:entity1 [ a edoal:Class ;
                     edoal:uri gmeow:GeoCoordinates ] ;

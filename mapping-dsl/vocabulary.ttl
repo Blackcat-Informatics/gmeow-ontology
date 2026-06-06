@@ -394,6 +394,12 @@ gmeow:fnLatLongToWktPoint a gmeow:ProjectionFunction ;
     gmeow:fnInput gmeow:latitude , gmeow:longitude ;
     gmeow:fnOutput geo:asWKT ; gmeow:fnOutputType geo:wktLiteral .
 
+gmeow:fnCoarsenToGranularity a gmeow:ProjectionFunction ;
+    rdfs:label "coarsen coordinates to the enclosing region (generalization, P10)"@en ;
+    dcterms:description "Disclosure control by generalization (#72, CONSTITUTION P10): when a place carries gmeow:coarsenTo a target gmeow:GranularityLevel, emit the coordinates of the enclosing ancestor at that level (reached by gmeow:containedInPlace) INSTEAD of the place's precise point — a coarser region rather than exact coordinates, never deletion. Aligns by reference to dpv:Generalisation. Heavier geomasking / k-anonymity stays in the solver layer (P12); this transform selects the ancestor and re-emits its WKT POINT."@en ;
+    gmeow:fnInput gmeow:coarsenTo , gmeow:latitude , gmeow:longitude ;
+    gmeow:fnOutput geo:asWKT ; gmeow:fnOutputType geo:wktLiteral .
+
 gmeow:fnRetagWkt a gmeow:ProjectionFunction ;
     rdfs:label "retag WKT literal as geo:wktLiteral"@en ;
     dcterms:description "Re-tags a gmeow:asWKT value (range rdfs:Literal, for OWL 2 DL safety) with the geo:wktLiteral datatype so GeoSPARQL spatial engines recognise it."@en ;

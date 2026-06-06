@@ -5,6 +5,7 @@
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix time:    <http://www.w3.org/2006/time#> .
 
 <https://blackcatinformatics.ca/gmeow/modules/temporal>
     a owl:Ontology ;
@@ -92,3 +93,18 @@ gmeow:recordedNoLaterThan
     rdfs:label "recorded no later than"@en ;
     skos:definition "A DERIVED upper bound (terminus ante quem) on when the annotated claim was committed to a record — typically taken from the modification time of its source carrier (gmeow:sourceModifiedAt) when no stronger observation time is known. Carries low gmeow:confidence; it is neither valid-time nor a point observation. Populate it in the importer/query layer, not by OWL inference."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Seeds for GranularityLevel — the temporal resolution axis (#79; class in core).
+# Ordered coarse→fine by gmeow:coarserThan (transitive). Aligned BY REFERENCE to
+# OWL-Time's open time:TemporalUnit members (skos:exactMatch) — the resolution of a
+# time position in OWL-Time is its time:unitType; this is the GMEOW counterpart.
+gmeow:granularityCentury a gmeow:GranularityLevel ; rdfs:label "century level"@en ;
+    gmeow:coarserThan gmeow:granularityDecade ; skos:exactMatch time:unitCentury .
+gmeow:granularityDecade  a gmeow:GranularityLevel ; rdfs:label "decade level"@en ;
+    gmeow:coarserThan gmeow:granularityYear ; skos:exactMatch time:unitDecade .
+gmeow:granularityYear    a gmeow:GranularityLevel ; rdfs:label "year level"@en ;
+    gmeow:coarserThan gmeow:granularityMonth ; skos:exactMatch time:unitYear .
+gmeow:granularityMonth   a gmeow:GranularityLevel ; rdfs:label "month level"@en ;
+    gmeow:coarserThan gmeow:granularityDay ; skos:exactMatch time:unitMonth .
+gmeow:granularityDay     a gmeow:GranularityLevel ; rdfs:label "day level"@en ;
+    skos:exactMatch time:unitDay .
