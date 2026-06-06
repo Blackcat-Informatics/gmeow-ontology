@@ -44,7 +44,9 @@ _FNO_FILES = ("functions.fno.ttl", "transforms.fno.ttl")
 #: Each projection profile and the target-vocabulary prefixes it emits.
 _PROFILE_TARGETS: dict[str, tuple[str, ...]] = {
     "schema-org": ("schema",),
-    "vcard": ("vcard",),
+    # vcardx: the RFC-9554 extension namespace (PRONOUNS) — checked alongside
+    # vcard: so the new vcardx:* output stays under CONSTRUCT↔EDOAL↔SSSOM drift.
+    "vcard": ("vcard", "vcardx"),
     "foaf": ("foaf", "wgs84"),
     "geosparql": ("geo",),
     "ical": ("ical",),

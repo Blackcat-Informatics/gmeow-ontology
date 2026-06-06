@@ -169,15 +169,20 @@ gmeow:mapVcardPronouns a gmeow:ProjectionMapping ;
         gmeow:atom (
             [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:hasPronounSet ; gmeow:objectVar "ps" ]
             [ gmeow:subjectVar "ps" ; gmeow:predicate gmeow:pronounSubject ; gmeow:objectVar "psubj" ]
-            [ gmeow:subjectVar "ps" ; gmeow:predicate gmeow:pronounObject ; gmeow:objectVar "pobj" ] ) ;
+            [ gmeow:subjectVar "ps" ; gmeow:predicate gmeow:pronounObject ; gmeow:objectVar "pobj" ]
+            [ gmeow:subjectVar "ps" ; gmeow:predicate gmeow:pronounPossessiveDeterminer ; gmeow:objectVar "pdet" ] ) ;
+        # subject/object, but subject/possessive-determiner when subject == object so
+        # the compact form reads it/its, co/cos, thon/thons, one/one's — not it/it.
         gmeow:bind [ gmeow:bindVar "pronouns" ; gmeow:bindExpr
-            [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
-                [ gmeow:exprVar "psubj" ] "/" [ gmeow:exprVar "pobj" ] ) ] ] ;
+            [ gmeow:exprOp gmeow:opIf ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs ( [ gmeow:exprVar "psubj" ] [ gmeow:exprVar "pobj" ] ) ]
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs ( [ gmeow:exprVar "psubj" ] "/" [ gmeow:exprVar "pdet" ] ) ]
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs ( [ gmeow:exprVar "psubj" ] "/" [ gmeow:exprVar "pobj" ] ) ] ) ] ] ;
         gmeow:edoalSource gmeow:hasPronounSet ] ;
     gmeow:hasBinding [
         gmeow:profile "vcard" ; gmeow:toPredicate vcardx:pronouns ; gmeow:relation "<=" ;
         gmeow:transform gmeow:fnPronounSetToText ; gmeow:confidence 0.85 ;
-        gmeow:lossyDrop "five declined forms collapse to the subject/object compact string (possessive-determiner, possessive, reflexive dropped); non-specifying values (any/ask/name-only, carrying no forms) are not emitted; period and standpoint are dropped" ] .
+        gmeow:lossyDrop "the compact display keeps only subject/object (or subject/possessive-determiner when those coincide, e.g. it/its); the possessive pronoun and reflexive forms, the non-specifying values (any/ask/name-only carry no forms), and any period or standpoint are not represented" ] .
 
 gmeow:mapVcardUrl a gmeow:ProjectionMapping ;
     rdfs:label "hasWebPage → vcard:hasURL (the WebPage IRI)"@en ;

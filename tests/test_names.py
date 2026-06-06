@@ -120,7 +120,13 @@ def test_purpose_register_honorific_pronoun_are_value_vocabularies() -> None:
         ("Honorific", ("honorificMx", "honorificDr", "honorificSan")),
         (
             "PronounSet",
-            ("pronounSheHer", "pronounTheyThem", "pronounXeXem", "pronounFaeFaer", "pronounZeZir"),
+            (
+                "pronounSheHer",
+                "pronounTheyThem",
+                "pronounXeXem",
+                "pronounFaeFaer",
+                "pronounZeZir",
+            ),
         ),
     ):
         # PronounSet is a STRUCTURED information artifact (five pronoun forms), so it
@@ -208,9 +214,9 @@ def test_seeded_pronoun_sets_have_five_forms() -> None:
         assert (node, RDF.type, pronoun_set) in graph, f"{anchor} is not a PronounSet"
         assert graph.value(node, RDFS.label) is not None, f"{anchor} lacks a label"
         for form in forms:
-            assert (
-                graph.value(node, URIRef(GMEOW + form)) is not None
-            ), f"{anchor} is missing {form}"
+            assert graph.value(node, URIRef(GMEOW + form)) is not None, (
+                f"{anchor} is missing {form}"
+            )
 
 
 def test_pronoun_name_only_value_exists() -> None:

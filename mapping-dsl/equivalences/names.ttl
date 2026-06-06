@@ -17,7 +17,7 @@ gmeow:mapsetNames a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-names.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/names" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Name alignments for comprehensive, multi-culture interop — schema.org, vCard 4 (N components, nickname, fn), GEDCOM X (gx:) name parts, FOAF, and a few well-established Wikidata properties. Multi-cultural name-part KINDS (gmeow:NamePartType value individuals such as namePartGiven/namePartSurname) align closeMatch to the nearest external concept, following the places.ttl idiom; there are no flat given/family name properties — a 'First Last' rendering is produced by downcasting the structured gmeow:NamePart model in the projection layer (projections/*). The PronounSet CLASS and the hasPronounSet PROPERTY now align (closeMatch) to Wikidata's 'personal pronoun set' (Q65067284) and 'personal pronoun' (P6553) — verified live against the Wikidata API — whose Sept-2025 RfC independently converged on GMEOW's full five-form declension model; the per-set declensions, NameRegister, NameUsage and the inclusivity machinery (displayable, namePurposeChosen/Deadname) remain CANONICAL — no maintained external RDF vocabulary declines individual sets faithfully (the pronoun ANCHOR list is sourced from the pronouns.page structured database, cited in names.ttl + docs/identity-mapping.md). Co-equality of multilingual names is a structural stance, not an external mapping. Coreference of name INSTANCES is done in data, not here." .
+    gmeow:setComment "Name alignments for comprehensive, multi-culture interop — schema.org, vCard 4 (N components, nickname, fn), GEDCOM X (gx:) name parts, FOAF, and a few well-established Wikidata properties. Multi-cultural name-part KINDS (gmeow:NamePartType value individuals such as namePartGiven/namePartSurname) align closeMatch to the nearest external concept, following the places.ttl idiom; there are no flat given/family name properties — a 'First Last' rendering is produced by downcasting the structured gmeow:NamePart model in the projection layer (projections/*). The PronounSet CLASS and the hasPronounSet PROPERTY now align (closeMatch) to Wikidata's 'personal pronoun set' (Q65067284) and 'personal pronoun' (P6553) — verified live against the Wikidata API — whose Sept-2025 RfC calls for full-declension pronoun sets (each set's forms, not a single lexeme) — aligning with GMEOW's reified five-form English model; the per-set declensions, NameRegister, NameUsage and the inclusivity machinery (displayable, namePurposeChosen/Deadname) remain CANONICAL — no maintained external RDF vocabulary declines individual sets faithfully (the pronoun ANCHOR list is sourced from the pronouns.page structured database, cited in names.ttl + docs/identity-mapping.md). Co-equality of multilingual names is a structural stance, not an external mapping. Coreference of name INSTANCES is done in data, not here." .
 
 gmeow:eqNames001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:fullName ;
@@ -260,16 +260,17 @@ gmeow:eqNames030 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-names.sssom.tsv" .
 
 # Pronoun linkage — Wikidata's 'personal pronoun set' model (verified live against
-# the Wikidata API). closeMatch, not exactMatch: GMEOW carries the full five-form
-# declension, Wikidata's P6553 values are lexemes. broadMatch to the grammatical
-# 'pronoun' concept is a hint, never materialized by saturation.
+# the Wikidata API). closeMatch, not exactMatch: GMEOW carries the set's full
+# declension (five forms for English), Wikidata's P6553 values are lexemes.
+# broadMatch to the grammatical 'pronoun' concept is a hint, never materialized
+# by saturation.
 gmeow:eqNames031 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:PronounSet ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject wd:Q65067284 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Wikidata 'personal pronoun set' — third-person pronouns an individual wants used; its Sept-2025 RfC favours full five-form declension sets, converging on GMEOW's model" ;
+    gmeow:comment "Wikidata 'personal pronoun set' — third-person pronouns an individual wants used; its Sept-2025 RfC favours full-declension pronoun sets (modelling each set's forms, not a single lexeme), aligning with GMEOW's reified five-form English model" ;
     gmeow:sssomFile "gmeow-names.sssom.tsv" .
 
 gmeow:eqNames032 a gmeow:TermEquivalence ;

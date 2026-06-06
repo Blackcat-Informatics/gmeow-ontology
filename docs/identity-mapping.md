@@ -127,10 +127,10 @@ Wikipedia *English neopronouns*, and Conrod/Ackerman on pronoun morphology.
 **Linkage (SSSOM, in `mappings/gmeow-names.sssom.tsv`).** Verified live against the
 Wikidata API: `gmeow:PronounSet` → `wd:Q65067284` ("personal pronoun set"),
 `gmeow:hasPronounSet` → `wdt:P6553` ("personal pronoun"), both `closeMatch`; and a
-`broadMatch` to `wd:Q36224` ("pronoun"). Wikidata's Sept-2025 personal-pronoun RfC
-independently converged on GMEOW's full five-form declension model. The per-set
-declensions remain canonical — no maintained external RDF vocabulary declines individual
-sets faithfully.
+`broadMatch` to `wd:Q36224` ("pronoun"). Wikidata's Sept-2025 personal-pronoun RfC calls
+for **full-declension** pronoun sets (modelling each set's forms rather than a single
+lexeme) — aligning with GMEOW's reified five-form English model. The per-set declensions
+remain canonical — no maintained external RDF vocabulary declines individual sets faithfully.
 
 ## Projection
 

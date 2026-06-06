@@ -423,8 +423,8 @@ gmeow:fnHonorificToAffix a gmeow:ProjectionFunction ;
 
 gmeow:fnPronounSetToText a gmeow:ProjectionFunction ;
     rdfs:label "pronoun set five forms → compact display text (subject/object)"@en ;
-    dcterms:description "Flattens a gmeow:PronounSet's five declined forms to the conventional compact display string (subject form + '/' + object form, e.g. 'she/her', 'they/them', 'ze/zir') for emission as the vCard 4 PRONOUNS property (RFC 9554, free text), carried on the GMEOW-minted vcardx:pronouns extension term because the W3C vCard RDF ontology never minted a predicate for it. Lossy: the possessive-determiner, possessive and reflexive forms are dropped, as are the non-specifying values (pronounAny / pronounAsk / pronounNameOnly, which carry no forms)."@en ;
-    gmeow:fnInput gmeow:pronounSubject , gmeow:pronounObject ;
+    dcterms:description "Flattens a gmeow:PronounSet's five declined forms to the conventional compact display string (subject form + '/' + object form, e.g. 'she/her', 'they/them', 'ze/zir') for emission as the vCard 4 PRONOUNS property (RFC 9554, free text), carried on the GMEOW-minted vcardx:pronouns extension term because the W3C vCard RDF ontology never minted a predicate for it. When subject and object coincide it falls back to subject/possessive-determiner so the form reads it/its, co/cos, thon/thons, one/one's rather than it/it. Lossy: the possessive pronoun and reflexive forms are dropped, as are the non-specifying values (pronounAny / pronounAsk / pronounNameOnly, which carry no forms)."@en ;
+    gmeow:fnInput gmeow:pronounSubject , gmeow:pronounObject , gmeow:pronounPossessiveDeterminer ;
     gmeow:fnOutput gmeow:projectedPronouns ; gmeow:fnOutputType xsd:string .
 
 gmeow:fnComposeBcp47 a gmeow:ProjectionFunction ;

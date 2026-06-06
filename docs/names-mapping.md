@@ -198,7 +198,7 @@ inventory and sourcing live in [`identity-mapping.md`](./identity-mapping.md#pro
 
 **Linkage & projection.** `gmeow:PronounSet` / `gmeow:hasPronounSet` `closeMatch` Wikidata's
 *personal pronoun set* `wd:Q65067284` / *personal pronoun* `wdt:P6553` (verified live; Wikidata's
-2025 RfC converged on the five-form model). The projection layer flattens a set's five forms to
+2025 RfC calls for full-declension sets, aligning with GMEOW's five-form English model). The projection layer flattens a set's five forms to
 the compact `"she/her"` string for the **vCard 4 PRONOUNS** property (RFC 9554) via
 `fnPronounSetToText`, emitted on the `vcardx:pronouns` extension term (the W3C vCard RDF ontology
 has no pronoun predicate) — a documented lossy downcast.

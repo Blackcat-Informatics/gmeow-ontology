@@ -582,11 +582,11 @@ gmeow:pronounZeHir a gmeow:PronounSet ; rdfs:label "ze/hir"@en ;
     gmeow:pronounSubject "ze" ; gmeow:pronounObject "hir" ;
     gmeow:pronounPossessiveDeterminer "hir" ; gmeow:pronounPossessive "hirs" ;
     gmeow:pronounReflexive "hirself" .
-gmeow:pronounEyEm a gmeow:PronounSet ; rdfs:label "ey/em (Spivak)"@en ;
+gmeow:pronounEyEm a gmeow:PronounSet ; rdfs:label "ey/em (Elverson)"@en ;
     gmeow:pronounSubject "ey" ; gmeow:pronounObject "em" ;
     gmeow:pronounPossessiveDeterminer "eir" ; gmeow:pronounPossessive "eirs" ;
     gmeow:pronounReflexive "emself" .
-gmeow:pronounEEm a gmeow:PronounSet ; rdfs:label "e/em (Elverson)"@en ;
+gmeow:pronounEEm a gmeow:PronounSet ; rdfs:label "e/em (Spivak)"@en ;
     gmeow:pronounSubject "e" ; gmeow:pronounObject "em" ;
     gmeow:pronounPossessiveDeterminer "eir" ; gmeow:pronounPossessive "eirs" ;
     gmeow:pronounReflexive "emself" .
