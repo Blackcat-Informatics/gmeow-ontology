@@ -262,6 +262,32 @@ claims that coexist, none privileged** (full rationale in
   — each preserve every frame. There is deliberately **no** projection that selects
   one standpoint: collapsing a contested fact to a chosen frame is picking a winner.
 
+### Rights & IP: instance-level, machine-readable, temporally bound
+
+Most vocabularies record rights as a flat `license` URL or a `rights` string. GMEOW
+models the rights of *any* instance — a work, image, brand, dataset, software project —
+as a **reified, attributed, temporally-bound, machine-readable** facility, distinct from
+the build-time `LinkPolicy` that governs copying axioms *into* GMEOW (full rationale in
+[`docs/rights.md`](./docs/rights.md)):
+
+- **A licence *is* an agreement, a holder *is* an agent.** `gmeow:License ⊑
+  gmeow:Agreement` reuses `gmeow:hasParty`; `gmeow:copyrightHolder` / `trademarkHolder`
+  specialise `gmeow:wasAttributedTo` — no parallel models. A reified `gmeow:Copyright`,
+  `gmeow:Trademark` (mark × holder × registration × ™/®/status) and `gmeow:RightsStatement`
+  carry the structure; flat `gmeow:hasLicense` / `hasCopyright` covers the 80 % case.
+- **The deontic logic, not just the structure.** `gmeow:RightsStatement` is an
+  ODRL-superset policy: `gmeow:Permission` / `gmeow:Prohibition` / `gmeow:Duty` over the
+  **full ODRL action vocabulary**, the **constraint algebra** (atomic *dateTime ≤ 2036* /
+  *spatial = EU* + logical and/or/xone), conflict-resolution strategy and consequence/
+  remedy chaining. Licences are **temporally bound** (`validFrom`/`validUntil` + dateTime
+  constraints); claims carry **provenance/confidence/standpoint** (the RDF-1.2 layer);
+  expired rights are suppressed, never deleted.
+- **Maximal superset, by reference.** One canonical term per concept, aligned to **ODRL,
+  CC REL, Dublin Core, schema.org, SPDX, RightsStatements.org (all 12), PREMIS 3, W3C
+  Media Resources, WIPO/Wikidata** (every QID curl-validated) — and **projected** to pure
+  ODRL, CC REL, schema.org, Dublin Core and SPDX. IPROnto and MPEG-21 REL are bridged by
+  reference (no fabricated IRIs). Foundational: the Images and Employment blocks build on it.
+
 ## Publishing
 
 1. **DOI (CrossRef).** Blackcat Informatics mints the DOI as a CrossRef member (its own prefix).

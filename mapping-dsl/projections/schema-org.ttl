@@ -380,3 +380,97 @@ gmeow:mapSchemaFuzzyStart a gmeow:ProjectionMapping ;
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:startDate ; gmeow:relation "<=" ;
         gmeow:transform gmeow:fnFuzzyTimeToDate ; gmeow:confidence 0.7 ;
         gmeow:lossyDrop "the uncertainty band (gmeow:latestEnd) and the gmeow:temporalPrecision qualifier are dropped; only the earliest bound survives as a single schema:startDate" ] .
+
+# Rights / IP cluster (#21). The Copyright relator flattens to schema's flat
+# copyright* terms; hasLicense → schema:license; attributionText → schema:creditText;
+# Mark → schema:Brand; plus the access/licence-page/usage flags.
+
+gmeow:mapSchemaLicense a gmeow:ProjectionMapping ;
+    rdfs:label "hasLicense → schema:license"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "lic" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasLicense ; gmeow:objectVar "lic" ] ) ;
+        gmeow:edoalSource gmeow:hasLicense ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:license ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .
+
+gmeow:mapSchemaCopyrightHolder a gmeow:ProjectionMapping ;
+    rdfs:label "Copyright relator holder → schema:copyrightHolder (flatten)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cw" ; gmeow:value "holder" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "cw" ; gmeow:predicate gmeow:hasCopyright ; gmeow:objectVar "cr" ]
+            [ gmeow:subjectVar "cr" ; gmeow:predicate gmeow:copyrightHolder ; gmeow:objectVar "holder" ] ) ;
+        gmeow:edoalSource gmeow:copyrightHolder ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:copyrightHolder ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the Copyright relator (year, notice, status) collapses to a flat schema:copyrightHolder edge" ] .
+
+gmeow:mapSchemaCopyrightYear a gmeow:ProjectionMapping ;
+    rdfs:label "Copyright relator year → schema:copyrightYear (flatten)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cw" ; gmeow:value "yr" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "cw" ; gmeow:predicate gmeow:hasCopyright ; gmeow:objectVar "cr" ]
+            [ gmeow:subjectVar "cr" ; gmeow:predicate gmeow:copyrightYear ; gmeow:objectVar "yr" ] ) ;
+        gmeow:edoalSource gmeow:copyrightYear ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:copyrightYear ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the Copyright relator (holder, notice, status) collapses to a flat schema:copyrightYear edge" ] .
+
+gmeow:mapSchemaCopyrightNotice a gmeow:ProjectionMapping ;
+    rdfs:label "Copyright relator notice → schema:copyrightNotice (flatten)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cw" ; gmeow:value "notice" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "cw" ; gmeow:predicate gmeow:hasCopyright ; gmeow:objectVar "cr" ]
+            [ gmeow:subjectVar "cr" ; gmeow:predicate gmeow:copyrightNotice ; gmeow:objectVar "notice" ] ) ;
+        gmeow:edoalSource gmeow:copyrightNotice ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:copyrightNotice ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the structured Copyright relator (holder, year, status) collapses to a flat schema:copyrightNotice edge" ] .
+
+gmeow:mapSchemaCreditText a gmeow:ProjectionMapping ;
+    rdfs:label "attributionText → schema:creditText"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "credit" ;
+        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:attributionText ; gmeow:objectVar "credit" ] ) ;
+        gmeow:edoalSource gmeow:attributionText ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:creditText ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .
+
+gmeow:mapSchemaBrand a gmeow:ProjectionMapping ;
+    rdfs:label "Mark → schema:Brand"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "mark" ;
+        gmeow:atom ( [ gmeow:subjectVar "mark" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Mark ] ) ;
+        gmeow:edoalSource gmeow:Mark ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toClass schema:Brand ; gmeow:relation "<=" ; gmeow:confidence 0.8 ] .
+
+gmeow:mapSchemaIsAccessibleForFree a gmeow:ProjectionMapping ;
+    rdfs:label "isAccessibleForFree → schema:isAccessibleForFree"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "free" ;
+        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:isAccessibleForFree ; gmeow:objectVar "free" ] ) ;
+        gmeow:edoalSource gmeow:isAccessibleForFree ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:isAccessibleForFree ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapSchemaAcquireLicensePage a gmeow:ProjectionMapping ;
+    rdfs:label "acquireLicensePage → schema:acquireLicensePage"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "alp" ;
+        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:acquireLicensePage ; gmeow:objectVar "alp" ] ) ;
+        gmeow:edoalSource gmeow:acquireLicensePage ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:acquireLicensePage ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapSchemaUsageInfo a gmeow:ProjectionMapping ;
+    rdfs:label "usageInfo → schema:usageInfo"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "ui" ;
+        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:usageInfo ; gmeow:objectVar "ui" ] ) ;
+        gmeow:edoalSource gmeow:usageInfo ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:usageInfo ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapSchemaConditionsOfAccess a gmeow:ProjectionMapping ;
+    rdfs:label "conditionsOfAccess → schema:conditionsOfAccess"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "coa" ;
+        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:conditionsOfAccess ; gmeow:objectVar "coa" ] ) ;
+        gmeow:edoalSource gmeow:conditionsOfAccess ] ;
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:conditionsOfAccess ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .

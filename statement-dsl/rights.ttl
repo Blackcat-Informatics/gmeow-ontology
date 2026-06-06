@@ -1,0 +1,82 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/rights/> .
+
+# =============================================================================
+# Statement-metadata cells for the rights / IP facility (#21). Rights claims are
+# rarely ground truth — a copyright holder is asserted by a source, a licence is
+# sometimes machine-inferred, a contested mark is claimed by rival parties. Each
+# gmeow:StatementMetadata cell carries that provenance / confidence / standpoint on
+# the rights base triple, RDF-1.2-first (Principle 2). Compiled by
+# `gmeow compile-statements` to statements/gmeow.rdf12.ttl (+ the OWL downcast),
+# verified mutually lossless.
+# =============================================================================
+
+# 1. A copyright-holder claim read FROM a source register, confidence 0.85 — not
+#    asserted as ground truth, but attributed and confidence-weighted.
+ex:claim-photo-copyright-holder a gmeow:StatementMetadata ;
+    rdfs:label "Photo's copyright holder — from a rights register, confidence 0.85"@en ;
+    gmeow:reifier    ex:claim-photo-copyright-holder ;
+    gmeow:qSubject   ex:photo-copyright ;
+    gmeow:qPredicate gmeow:copyrightHolder ;
+    gmeow:qObject    ex:jane ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-03-01T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:mappedFrom ; gmeow:annValue ex:src-rights-register ] .
+
+# 2. A MACHINE-INFERRED SPDX licence id (a scanner classified the repository),
+#    recorded AS an inference — confidence 0.7, attributed to the classifier
+#    (Principle 9: a derived value is never ground truth). qObjectLiteral is an
+#    xsd:string (an OWL 2 datatype) so the OWL downcast stays OWL 2 DL.
+ex:claim-repo-spdx a gmeow:StatementMetadata ;
+    rdfs:label "Repository SPDX licence id — license-scanner inferred, confidence 0.7"@en ;
+    gmeow:reifier        ex:claim-repo-spdx ;
+    gmeow:qSubject       ex:repo-license ;
+    gmeow:qPredicate     gmeow:spdxLicenseId ;
+    gmeow:qObjectLiteral "Apache-2.0" ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence      ; gmeow:annValue 0.7 ] ,
+        [ gmeow:annProperty gmeow:importanceLevel ; gmeow:annValue 2 ] ,
+        [ gmeow:annProperty gmeow:mappedFrom      ; gmeow:annValue ex:agent-license-scanner ] .
+
+# 3. A CONTESTED trademark holder — two rival parties each claim the mark, indexed
+#    by gmeow:accordingTo (the standpoint axis, #43). The claims COEXIST; neither is
+#    privileged (Principle 9 — no single slot to win).
+ex:claim-mark-holder-acme a gmeow:StatementMetadata ;
+    rdfs:label "Mark held by Acme — according to the Acme standpoint"@en ;
+    gmeow:reifier    ex:claim-mark-holder-acme ;
+    gmeow:qSubject   ex:contested-trademark ;
+    gmeow:qPredicate gmeow:trademarkHolder ;
+    gmeow:qObject    ex:acme ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:accordingTo ; gmeow:annValue ex:standpoint-acme ] ,
+        [ gmeow:annProperty gmeow:confidence  ; gmeow:annValue 0.6 ] .
+
+ex:claim-mark-holder-omega a gmeow:StatementMetadata ;
+    rdfs:label "Mark held by Omega — according to the Omega standpoint"@en ;
+    gmeow:reifier    ex:claim-mark-holder-omega ;
+    gmeow:qSubject   ex:contested-trademark ;
+    gmeow:qPredicate gmeow:trademarkHolder ;
+    gmeow:qObject    ex:omega ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:accordingTo ; gmeow:annValue ex:standpoint-omega ] ,
+        [ gmeow:annProperty gmeow:confidence  ; gmeow:annValue 0.6 ] .
+
+# 4. A TIME-BOUND licence grant WITH provenance — the licence holds only over an
+#    interval (validFrom/validUntil) and is attributed to the deed that recorded it
+#    with a confidence. Temporal binding + provenance on a rights base triple, the
+#    canonical RDF-1.2 way (Principles 2 & 9).
+ex:claim-photo-license a gmeow:StatementMetadata ;
+    rdfs:label "Photo licensed CC BY 4.0 — per the licence deed, valid 2026–2036, confidence 0.95"@en ;
+    gmeow:reifier    ex:claim-photo-license ;
+    gmeow:qSubject   ex:photo ;
+    gmeow:qPredicate gmeow:hasLicense ;
+    gmeow:qObject    ex:cc-by-4 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.95 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-01-01T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:validFrom  ; gmeow:annValue "2026-01-01T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:validUntil ; gmeow:annValue "2036-01-01T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:mappedFrom ; gmeow:annValue ex:src-license-deed ] .

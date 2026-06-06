@@ -1,0 +1,102 @@
+# Coverage + projection fixture for the rights / IP / trademark / licensing
+# facility (#21). Exercises every new term on a well-formed example: a photograph
+# with a reified copyright, a CC-BY-4.0 licence (with SPDX id + family), a
+# machine-readable rights statement (permission / prohibition / duty over rights
+# actions), and a trademarked brand. Drives tests/test_rights.py's ODRL / CC REL /
+# schema.org projection round-trips and the coverage harness.
+
+@prefix ex:    <https://example.org/rights/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The agents ------------------------------------------------------------- #
+ex:jane  a gmeow:Person ; rdfs:label "Jane Doe"@en .
+ex:acme  a gmeow:Organization ; rdfs:label "Acme Inc."@en .
+
+# --- A photograph and its flat rights edges --------------------------------- #
+ex:photo a gmeow:MediaObject ;
+    rdfs:label "A photograph"@en ;
+    gmeow:hasCopyright       ex:photo-copyright ;
+    gmeow:hasLicense         ex:cc-by-4 ;
+    gmeow:hasRightsStatement ex:photo-rights ;
+    gmeow:attributionText    "Photo by Jane Doe / CC BY 4.0" ;
+    gmeow:attributionUrl     "https://example.org/jane"^^xsd:anyURI ;
+    gmeow:isAccessibleForFree true ;
+    gmeow:conditionsOfAccess "Free online; high-resolution master on request." ;
+    gmeow:acquireLicensePage "https://example.org/license/photo"^^xsd:anyURI ;
+    gmeow:usageInfo          "Free for any use with attribution." .
+
+# --- The reified copyright -------------------------------------------------- #
+ex:photo-copyright a gmeow:Copyright ;
+    gmeow:copyrightWork   ex:photo ;
+    gmeow:copyrightHolder ex:jane ;
+    gmeow:copyrightYear   "2026"^^xsd:gYear ;
+    gmeow:copyrightNotice "© 2026 Jane Doe" ;
+    gmeow:copyrightStatus gmeow:copyrightStatusInCopyright .
+
+# --- The licence (an agreement) --------------------------------------------- #
+# A licence is temporally bound (validFrom / validUntil) and carries SPDX detail.
+ex:cc-by-4 a gmeow:License ;
+    rdfs:label "CC BY 4.0"@en ;
+    gmeow:licensor      ex:jane ;
+    gmeow:licensedWork  ex:photo ;
+    gmeow:licenseFamily gmeow:licenseFamilyCC ;
+    gmeow:spdxLicenseId "CC-BY-4.0" ;
+    gmeow:spdxLicenseName "Creative Commons Attribution 4.0 International" ;
+    gmeow:isOsiApproved false ;
+    gmeow:licenseText "Creative Commons Attribution 4.0 International Public License …" ;
+    gmeow:validFrom     "2026-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:validUntil    "2036-01-01T00:00:00Z"^^xsd:dateTime .
+
+# --- The machine-readable rights statement (the ODRL-superset policy) -------- #
+ex:photo-rights a gmeow:RightsStatement ;
+    gmeow:statementAbout ex:photo ;
+    gmeow:rightsType     gmeow:rightsTypeCopyright ;
+    gmeow:conflictStrategy gmeow:conflictProhibit ;
+    gmeow:hasPermission  ex:perm-reproduce ;
+    gmeow:hasProhibition ex:proh-commercial ;
+    gmeow:hasDuty        ex:duty-attribute .
+
+# A permission conditioned by a temporal constraint (valid until 2036) — the ODRL
+# constraint algebra; the licence's temporal bound expressed deontically.
+ex:perm-reproduce a gmeow:Permission ;
+    gmeow:ruleAction gmeow:actionReproduce ;
+    gmeow:ruleAssignee ex:acme ;
+    gmeow:ruleConstraint ex:until-2036 .
+
+ex:until-2036 a gmeow:AtomicConstraint ;
+    gmeow:leftOperand gmeow:leftOpDateTime ;
+    gmeow:constraintOperator gmeow:operatorLteq ;
+    gmeow:rightOperand "2036-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:proh-commercial a gmeow:Prohibition ;
+    gmeow:ruleAction gmeow:actionCommercialize ;
+    gmeow:ruleConsequence ex:duty-compensate .
+
+ex:duty-compensate a gmeow:Duty ;
+    gmeow:ruleAction gmeow:actionCompensate .
+
+# A logical constraint (AND of two atomic constraints) — the deontic logic.
+ex:eu-and-noncommercial a gmeow:LogicalConstraint ;
+    gmeow:constraintLogic gmeow:logicAnd ;
+    gmeow:logicConstraintMember ex:until-2036 , ex:spatial-eu .
+
+ex:spatial-eu a gmeow:AtomicConstraint ;
+    gmeow:leftOperand gmeow:leftOpSpatial ;
+    gmeow:constraintOperator gmeow:operatorEq ;
+    gmeow:rightOperand "EU" .
+
+ex:duty-attribute a gmeow:Duty ;
+    gmeow:ruleAction gmeow:actionAttribute .
+
+# --- A trademarked brand ---------------------------------------------------- #
+ex:acme-mark a gmeow:Mark ;
+    rdfs:label "ACME"@en ;
+    gmeow:markText "ACME" .
+
+ex:acme-tm a gmeow:Trademark ;
+    gmeow:trademarkMark   ex:acme-mark ;
+    gmeow:trademarkHolder ex:acme ;
+    gmeow:registrationNumber "TMA123456" ;
+    gmeow:trademarkStatus gmeow:trademarkStatusRegistered .

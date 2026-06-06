@@ -57,6 +57,13 @@ def test_competency_works_query() -> None:
         assert NAMESPACE + term in terms
 
 
+def test_competency_rights_query() -> None:
+    terms = _query_terms("rights.rq")
+    # The abstract rule and the ODRL deontic trio (rights facility, #21).
+    for term in ("Rule", "Permission", "Prohibition", "Duty"):
+        assert NAMESPACE + term in terms
+
+
 def test_competency_kinship_query() -> None:
     terms = _query_terms("kinship.rq")
     for term in ("hasParent", "hasChild", "hasSpouse", "hasSibling"):

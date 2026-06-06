@@ -51,6 +51,14 @@ _PROFILE_TARGETS: dict[str, tuple[str, ...]] = {
     "geosparql": ("geo",),
     "ical": ("ical",),
     "owl-time": ("time",),
+    # Rights module (#21): the structural ODRL policy + CC REL licence projections.
+    # Their target terms are declared in the SSSOM linkage layer (the structural
+    # templateAtoms cells emit no EDOAL cell), so the drift check confirms every
+    # emitted odrl:/cc: term is aligned by reference.
+    "odrl": ("odrl",),
+    "cc": ("cc",),
+    "dcterms": ("dcterms",),
+    "spdx": ("spdx",),
 }
 
 #: Target terms a compose/decompose transform legitimately MINTS — intermediate
