@@ -32,12 +32,13 @@ EDOAL = Namespace(PREFIXES["edoal"])
 def test_dsl_parses() -> None:
     dsl = load_dsl()
     # Every SSSOM data row became a TermEquivalence cell (incl. the 7 gUFO↔BFO
-    # foundational-spine cells, issue #40).
-    assert len(dsl.equivalences) == 359
+    # foundational-spine cells, issue #40, and the 13 standpoint cells — PROV-O x3,
+    # nanopub, CRMinf x3, Wikidata x2, schema.org, Web Annotation, DnS x2, #43).
+    assert len(dsl.equivalences) == 372
     # 14 projection transforms declared.
     assert len(dsl.functions) == 14
-    # One MappingSet per TSV (incl. gmeow-foundational.sssom.tsv).
-    assert len(dsl.mapping_sets) == 13
+    # One MappingSet per TSV (incl. gmeow-foundational + gmeow-standpoint).
+    assert len(dsl.mapping_sets) == 14
     # Projection cells across all four profiles.
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}

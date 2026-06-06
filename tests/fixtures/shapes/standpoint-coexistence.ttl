@@ -1,0 +1,42 @@
+# Coexistence fixture (#43) — the centerpiece. Two CONTRADICTORY standpoint-indexed
+# claims over the same subject/predicate (Crimea contained in Russia per the RU
+# standpoint; in Ukraine per the UA/UN standpoint), in the OWL-downcast reified
+# form (owl:Axiom + annotatedSource/Property/Target + gmeow:accordingTo). Both base
+# triples are asserted and both are RETAINED; NEITHER is privileged (no
+# preferredRank/primary* selector). A third, uncontested claim has no accordingTo
+# (it is held by the universal standpoint). run_shacl must report NO violation —
+# coexistence is explicitly permitted (Principle 9).
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:crimea gmeow:containedInPlace ex:russia , ex:ukraine .
+ex:kyiv   gmeow:containedInPlace ex:ukraine .
+
+ex:standpoint-ru a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-un a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+ex:ax-ru a owl:Axiom ;
+    owl:annotatedSource   ex:crimea ;
+    owl:annotatedProperty gmeow:containedInPlace ;
+    owl:annotatedTarget   ex:russia ;
+    gmeow:accordingTo ex:standpoint-ru ;
+    gmeow:confidence 0.9 ;
+    gmeow:validFrom "2014-03-18T00:00:00Z"^^xsd:dateTime .
+
+ex:ax-un a owl:Axiom ;
+    owl:annotatedSource   ex:crimea ;
+    owl:annotatedProperty gmeow:containedInPlace ;
+    owl:annotatedTarget   ex:ukraine ;
+    gmeow:accordingTo ex:standpoint-un ;
+    gmeow:confidence 0.9 ;
+    gmeow:validFrom "1991-12-01T00:00:00Z"^^xsd:dateTime .
+
+# Uncontested — no accordingTo, so held by the universal standpoint.
+ex:ax-kyiv a owl:Axiom ;
+    owl:annotatedSource   ex:kyiv ;
+    owl:annotatedProperty gmeow:containedInPlace ;
+    owl:annotatedTarget   ex:ukraine ;
+    gmeow:confidence 1.0 .

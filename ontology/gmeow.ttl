@@ -53,4 +53,5 @@
         <https://blackcatinformatics.ca/gmeow/modules/email> ,
         <https://blackcatinformatics.ca/gmeow/modules/messaging-trust> ,
         <https://blackcatinformatics.ca/gmeow/modules/trust> ,
-        <https://blackcatinformatics.ca/gmeow/modules/provenance> .
+        <https://blackcatinformatics.ca/gmeow/modules/provenance> ,
+        <https://blackcatinformatics.ca/gmeow/modules/standpoint> .

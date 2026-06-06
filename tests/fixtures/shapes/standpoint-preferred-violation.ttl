@@ -1,0 +1,12 @@
+# Preferred/primary-claim VIOLATION fixture (#43). A claim that tries to crown a
+# single winner via a gmeow:primaryStandpoint selector — exactly the single slot
+# the edit war is fought over. gmeow:NoPreferredClaimShape must fire sh:Violation
+# (Principle 9: standpoint-indexed claims are co-equal, no single slot to win).
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+ex:crimea gmeow:containedInPlace ex:russia , ex:ukraine ;
+    gmeow:primaryStandpoint ex:standpoint-ru .
+
+ex:standpoint-ru a gmeow:Standpoint .

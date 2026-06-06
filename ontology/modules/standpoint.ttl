@@ -1,0 +1,136 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/standpoint>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Standpoint Module"@en ;
+    rdfs:comment """Cross-cutting foundational facility (a peer of the temporal module): the standpoint axis — *according to whom* a statement is held true. It lands in the statement/provenance layer and is consumed by every slice that records contested facts (events, locations, genealogy, organizations, trust, naming).
+
+DOCTRINE.
+  * Three orthogonal axes, no inferential bridge: gmeow:accordingTo (whose frame) ⟂ gmeow:wasAttributedTo (which source recorded it) ⟂ gmeow:confidence (how sure we are).
+  * Two clocks kept apart: fact-time (gmeow:validFrom / gmeow:validUntil — when the claimed fact holds) ⟂ standpoint-time (when the standpoint held the position — light via validFrom/Until on the statement, heavy via a reified gmeow:StandpointTenure).
+  * No single slot to win (CONSTITUTION Principle 9): a contested fact is several standpoint-indexed claims that coexist; there is no preferredRank / primary* selector.
+  * Suppression, never erasure (Principle 10): a withdrawn claim or a closed tenure sets gmeow:displayable false; it is retained, not deleted.
+  * DL-clean by construction (Principle 3): the standpoint axis is an owl:AnnotationProperty, so the generated OWL downcast stays OWL 2 DL.
+
+FORMAL GROUNDING. The facility realises Standpoint Logic (Gómez Álvarez & Rudolph): gmeow:accordingTo is the axiom-level standpoint label (cf. Standpoint-OWL 2 standpointLabel); gmeow:standpointModality unequivocal / conceivable are the □_S / ◊_S operators; gmeow:sharpens is the standpoint ⊆ / precisification relation; gmeow:universalStandpoint is the universal standpoint *. See docs/standpoints.md."""@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# The standpoint axis (lightweight, default) — an annotation property so the
+# generated OWL downcast stays OWL 2 DL (Principle 3).
+# --------------------------------------------------------------------------- #
+
+gmeow:accordingTo
+    a owl:AnnotationProperty ;
+    rdfs:label "according to"@en ;
+    skos:definition "The standpoint / frame within which the annotated statement is asserted true — *according to whom*. DISTINCT from gmeow:wasAttributedTo (which source RECORDED the claim) and gmeow:confidence (how sure we are); a claim may carry all three with no inferential bridge among them. Its value is a gmeow:Agent (a polity, community, or organization IRI) or a gmeow:Standpoint individual (a frame that needs its own identity). Standpoint-TIME — when the frame held this position — rides gmeow:validFrom / gmeow:validUntil on the same statement in the light case, or a reified gmeow:StandpointTenure when the adoption / withdrawal is itself the fact of interest. The range is intentionally open. An unindexed statement is held according to gmeow:universalStandpoint (the uncontested global facts)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Modality — the Standpoint-Logic box / diamond (□_S / ◊_S). Optional; an
+# absent modality is read as unequivocal. Orthogonal to confidence: confidence
+# is how sure WE are; modality is how settled the STANDPOINT itself holds it.
+# --------------------------------------------------------------------------- #
+
+gmeow:standpointModality
+    a owl:AnnotationProperty ;
+    rdfs:range gmeow:StandpointModality ;
+    rdfs:label "standpoint modality"@en ;
+    skos:definition "The belief value a standpoint assigns the annotated proposition — *how* the standpoint holds it, not merely *that* it holds it. This single axis is at least as expressive as BOTH the Standpoint-Logic modal operators (□_S / ◊_S) AND the CRMinf belief value (true / false / probable / possible): gmeow:unequivocal (□, settled true), gmeow:probable (likely true), gmeow:conceivable (◊, possible), gmeow:refuted (□¬, settled false — the standpoint DENIES the proposition). Optional; ABSENT is read as unequivocal. Orthogonal to gmeow:confidence (our certainty about the standpoint's stance) and gmeow:accordingTo (whose frame). Refutation is what lets GMEOW distinguish a standpoint's explicit denial from its silence — the neutral-stance ambiguity flat models cannot resolve."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:StandpointModality
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Standpoint Modality"@en ;
+    skos:definition "The belief value a standpoint assigns a proposition — a closed value vocabulary spanning the Standpoint-Logic □/◊ and the CRMinf belief value (true/false/probable/possible): gmeow:unequivocal, gmeow:probable, gmeow:conceivable, gmeow:refuted. Absence of a value is read as unequivocal."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:unequivocal
+    a gmeow:StandpointModality ;
+    rdfs:label "unequivocal (□, true)"@en ;
+    skos:definition "□_S — settled / necessary true according to the standpoint: the proposition holds in every precisification the standpoint admits (CRMinf belief value 'true'). The default when no gmeow:standpointModality is given."@en .
+
+gmeow:probable
+    a gmeow:StandpointModality ;
+    rdfs:label "probable"@en ;
+    skos:definition "Likely true according to the standpoint — held more strongly than merely possible, but short of settled (CRMinf belief value 'probable')."@en .
+
+gmeow:conceivable
+    a gmeow:StandpointModality ;
+    rdfs:label "conceivable (◊, possible)"@en ;
+    skos:definition "◊_S — possible according to the standpoint: the proposition holds in some precisification the standpoint admits, but is not settled (CRMinf belief value 'possible')."@en .
+
+gmeow:refuted
+    a gmeow:StandpointModality ;
+    rdfs:label "refuted (□¬, false)"@en ;
+    skos:definition "□¬_S — settled false according to the standpoint: the standpoint DENIES the proposition (CRMinf belief value 'false'). Distinct from silence (no claim) and from low gmeow:confidence — an explicit, recorded denial. The proposition is carried as the subject of the denial, never asserted as a fact of the universal standpoint."@en .
+
+# --------------------------------------------------------------------------- #
+# The standpoint as a first-class frame, and the standpoint poset.
+# --------------------------------------------------------------------------- #
+
+gmeow:Standpoint
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Standpoint"@en ;
+    skos:definition "A named perspective / frame within which claims are held true — a state's official position, a community's usage, an editorial or historiographic point of view. Minted only when the frame needs its own identity and labels; often a bare gmeow:Agent (a polity, an organization) suffices as the value of gmeow:accordingTo instead. Standpoints form a poset under gmeow:sharpens, topped by gmeow:universalStandpoint."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sharpens
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:domain gmeow:Standpoint ;
+    rdfs:range gmeow:Standpoint ;
+    rdfs:label "sharpens"@en ;
+    skos:definition "S1 sharpens S2: every precisification S1 admits is also admitted by S2, so S1 is the more specific frame (the standpoint ⊆ / refinement relation of Standpoint Logic; CKR's coverage relation). Transitive. Every standpoint sharpens gmeow:universalStandpoint."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:universalStandpoint
+    a gmeow:Standpoint ;
+    rdfs:label "universal standpoint (*)"@en ;
+    skos:definition "The universal standpoint * — the top of the poset, admitting every precisification: the uncontested global facts every standpoint shares. A statement with no gmeow:accordingTo is held according to the universal standpoint; every standpoint gmeow:sharpens it."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# The heavy form — a reified standpoint tenure, for when the change of position
+# itself is the fact of interest (recognition granted, then withdrawn). Mirrors
+# gmeow:AddressTenure: a gufo:Situation-based time-scoped relation that carries
+# its interval via gmeow:duringInterval (temporal module). Flat-first, reify on
+# demand (Principle 4).
+# --------------------------------------------------------------------------- #
+
+gmeow:StandpointTenure
+    a owl:Class, gufo:SituationType ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    rdfs:label "Standpoint Tenure"@en ;
+    skos:definition "The reified, time-scoped fact that a standpoint held a particular position over an interval — recognition granted in 2008 and withdrawn in 2030 is an opened-then-closed tenure, never a deletion (Principle 10). Use only when the adoption / withdrawal of the position is itself worth modelling; the common case is a bare gmeow:accordingTo annotation. Carries its standpoint-time interval via gmeow:duringInterval (temporal module)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:tenureStandpoint
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:StandpointTenure ;
+    rdfs:range gmeow:Standpoint ;
+    rdfs:label "tenure standpoint"@en ;
+    skos:definition "The standpoint whose position a standpoint-tenure records."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:tenurePosition
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:StandpointTenure ;
+    rdfs:label "tenure position"@en ;
+    skos:definition "The standpoint-indexed claim the tenure says the standpoint held over its interval — a reified statement (a gmeow:StatementMetadata cell in the statement DSL). The range is intentionally left open: the statement-DSL spec layer is not part of the reasoned import closure, so asserting it as rdfs:range would dangle in the merged graph."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# AXIOMATIZED DOCTRINE (#38) — relator / situation mediation. A standpoint
+# tenure mediates at least one standpoint (EL someValuesFrom, open-world);
+# closed-world "exactly one" is SHACL's (gmeow:StandpointTenureShape).
+# =========================================================================== #
+
+gmeow:StandpointTenure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureStandpoint ; owl:someValuesFrom gmeow:Standpoint ] .

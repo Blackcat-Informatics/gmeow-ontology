@@ -22,6 +22,33 @@
     gmeow:confidence 0.98 ;
     gmeow:validFrom "2019-06-01"^^xsd:date .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-crimea-in-russia-per-ru> a owl:Axiom ;
+    owl:annotatedProperty gmeow:containedInPlace ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/crimea> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/russia> ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-ru> ;
+    gmeow:confidence 0.9 ;
+    gmeow:mappedFrom <https://blackcatinformatics.ca/gmeow/examples/src-ru-decree> ;
+    gmeow:validFrom "2014-03-18T00:00:00+00:00"^^xsd:dateTime .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-crimea-in-ukraine-per-un> a owl:Axiom ;
+    owl:annotatedProperty gmeow:containedInPlace ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/crimea> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/ukraine> ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-un> ;
+    gmeow:confidence 0.9 ;
+    gmeow:validFrom "1991-12-01T00:00:00+00:00"^^xsd:dateTime .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-territory-1850-per-2025-historiography> a owl:Axiom ;
+    owl:annotatedProperty gmeow:containedInPlace ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/territory-x> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/polity-y> ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-2025-historiography> ;
+    gmeow:assertedAt "2025-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:standpointModality gmeow:conceivable ;
+    gmeow:validFrom "1850-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:validUntil "1860-12-31T00:00:00+00:00"^^xsd:dateTime .
+
 <https://blackcatinformatics.ca/gmeow/reifier/48dcc08cba7412ad99d7a65cc9d0db751589d0a2> a owl:Axiom ;
     owl:annotatedProperty gmeow:knowsLanguage ;
     owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/alice> ;
@@ -35,3 +62,8 @@
 <https://blackcatinformatics.ca/gmeow/examples/birth-alice> gmeow:eventDate "1990-05-01T00:00:00+00:00"^^xsd:dateTime .
 
 <https://blackcatinformatics.ca/gmeow/examples/gi-alice> gmeow:genderValue gmeow:genderWoman .
+
+<https://blackcatinformatics.ca/gmeow/examples/territory-x> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/polity-y> .
+
+<https://blackcatinformatics.ca/gmeow/examples/crimea> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/russia>,
+        <https://blackcatinformatics.ca/gmeow/examples/ukraine> .

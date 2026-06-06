@@ -229,6 +229,34 @@ sexuality as **reified, self-asserted, co-equal facets** on a shared
   source. Displayable gender projects to `schema:gender`/`foaf:gender`; suppressed
   labels never leak, and orientation is a documented lossy drop.
 
+### Standpoints: contested facts that coexist, no winner
+
+A flat model gives a disputed fact **one slot** two parties must both own — so they
+edit-war over it. GMEOW records a contested fact as **several standpoint-indexed
+claims that coexist, none privileged** (full rationale in
+[`docs/standpoints.md`](./docs/standpoints.md)):
+
+- **Three orthogonal axes.** `gmeow:accordingTo` (*whose frame* — the standpoint) is
+  held apart from `gmeow:wasAttributedTo` (*which source* recorded it) and
+  `gmeow:confidence` (*how sure* we are); a neutral source can record a partisan
+  claim. The axis is an annotation property, so the OWL downcast stays OWL 2 DL.
+- **Two clocks.** Fact-time (`validFrom`/`validUntil`, when the fact holds) is kept
+  distinct from standpoint-time (a `gmeow:StandpointTenure`, when the frame held the
+  position — recognition granted then withdrawn, suppressed not deleted).
+- **No single slot to win.** There is no `preferredRank`/`primary*` — refused three
+  ways (a SHACL shape, a statement-DSL lint, and a term-absence test). Crimea
+  contained-in Russia *and* Ukraine coexist, neither privileged, and the reasoned
+  graph stays consistent.
+- **At least as expressive as CRMinf, formally grounded, projected losslessly.** The
+  facility realises **Standpoint Logic** (`gmeow:standpointModality` spans □/◊ *and*
+  the CRMinf belief value true/probable/possible/**false**, so a standpoint's *denial*
+  is first-class; `gmeow:sharpens` = the standpoint poset; `gmeow:universalStandpoint`
+  = the universal `*`). Five projections — **Standpoint-OWL 2** (`standpointLabel`,
+  for a standpoint reasoner), **CRMinf** (the CIDOC-CRM argumentation/belief model),
+  **PROV-O** (qualified attribution), **W3C Web Annotation**, and **schema.org Claim**
+  — each preserve every frame. There is deliberately **no** projection that selects
+  one standpoint: collapsing a contested fact to a chosen frame is picking a winner.
+
 ## Publishing
 
 1. **DOI (CrossRef).** Blackcat Informatics mints the DOI as a CrossRef member (its own prefix).

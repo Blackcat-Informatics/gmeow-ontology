@@ -1,0 +1,55 @@
+# Coverage slice (#43): the standpoint / contested-claims facility. Exercises every
+# new term — the standpoint axis (gmeow:accordingTo) on reified statements, the
+# modality (□/◊), the standpoint poset (gmeow:sharpens → gmeow:universalStandpoint),
+# and the reified gmeow:StandpointTenure with suppression-not-erasure. Native GMEOW
+# terms only, so the slice adds no new external-vocabulary gaps.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/standpoint/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# Two co-equal standpoints, each sharpening the universal standpoint.
+ex:standpoint-ru a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-un a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# A contested fact: both base triples asserted, each standpoint-indexed, neither
+# privileged. accordingTo ⟂ confidence; one claim records its modal force.
+ex:crimea gmeow:containedInPlace ex:russia , ex:ukraine .
+
+ex:ax-ru a owl:Axiom ;
+    owl:annotatedSource   ex:crimea ;
+    owl:annotatedProperty gmeow:containedInPlace ;
+    owl:annotatedTarget   ex:russia ;
+    gmeow:accordingTo ex:standpoint-ru ;
+    gmeow:standpointModality gmeow:conceivable ;
+    gmeow:confidence 0.9 .
+
+ex:ax-un a owl:Axiom ;
+    owl:annotatedSource   ex:crimea ;
+    owl:annotatedProperty gmeow:containedInPlace ;
+    owl:annotatedTarget   ex:ukraine ;
+    gmeow:accordingTo ex:standpoint-un ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    gmeow:confidence 0.9 .
+
+# A third standpoint that DENIES the proposition outright (belief value false) —
+# the CRMinf-parity case: explicit refutation, not mere silence.
+ex:standpoint-intl-law a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+ex:ax-deny a owl:Axiom ;
+    owl:annotatedSource   ex:crimea ;
+    owl:annotatedProperty gmeow:containedInPlace ;
+    owl:annotatedTarget   ex:russia ;
+    gmeow:accordingTo ex:standpoint-intl-law ;
+    gmeow:standpointModality gmeow:refuted ;
+    gmeow:confidence 0.95 .
+
+# A reified standpoint tenure whose position was withdrawn (closed interval) —
+# suppressed, never deleted (Principle 10).
+ex:recognition a gmeow:StandpointTenure ;
+    gmeow:tenureStandpoint ex:standpoint-un ;
+    gmeow:duringInterval [ a gmeow:TimeInterval ;
+        gmeow:startedAtTime "2008-02-17T00:00:00Z"^^xsd:dateTime ;
+        gmeow:endedAtTime   "2030-01-01T00:00:00Z"^^xsd:dateTime ] ;
+    gmeow:displayable false .

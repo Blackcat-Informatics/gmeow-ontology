@@ -19,6 +19,7 @@ isomorphism, TSV/SPARQL by bytes), reporting any drift without writing.
 
 from __future__ import annotations
 
+import re
 import shutil
 import tempfile
 from collections.abc import Sequence
@@ -773,9 +774,308 @@ def _templates(cell: ProjectionCell, b: ProfileBinding) -> list[str]:
 def _prefix_block(text: str) -> str:
     lines = []
     for prefix, ns in PREFIXES.items():
-        if f"{prefix}:" in text:
+        # Word-boundary match so a prefix is not falsely detected inside another
+        # token — e.g. "ps:" must not match the "ps:" inside "https://…".
+        if re.search(rf"(?<![A-Za-z0-9]){re.escape(prefix)}:", text):
             lines.append(f"PREFIX {prefix}: <{ns}>")
     return "\n".join(lines)
+
+
+#: The Standpoint-OWL 2 projection — re-expresses the standpoint axis as the
+#: tool-compatible standpointLabel encoding (cl-tud/standpoint-owl2). The tool
+#: matches any annotation property ending in ``#standpointLabel`` and reads a
+#: structured ``<standpointAxiom><Box|Diamond><Standpoint name="…"/></…>`` string;
+#: GMEOW's own ontology IRI yields ``…/gmeow#standpointLabel`` by that convention.
+#:
+#: This is the ONLY standpoint projection, and it is deliberately LOSSLESS: it
+#: preserves every standpoint. There is no winner-selecting / frame-collapsing
+#: projection — choosing one standpoint in a down-projection would re-create the
+#: single winning slot the facility exists to abolish (Principle 9: no single slot
+#: to win). A flat, perspectiveless format simply cannot carry "according to whom".
+_STANDPOINT_OWL2_QUERY = "queries/projections/standpoint-owl2.rq"
+_STANDPOINT_LABEL_IRI = f"{ONTOLOGY_IRI}#standpointLabel"
+
+
+def emit_standpoint_owl2_sparql() -> str:
+    """Render the lossless Standpoint-OWL 2 projection (the superset downcast, #43).
+
+    Re-expresses every reified statement's ``gmeow:accordingTo`` +
+    ``gmeow:standpointModality`` as a ``standpointLabel`` annotation in the exact
+    syntax the cl-tud/standpoint-owl2 translator consumes — ``Box`` for unequivocal
+    (□, the default), ``Diamond`` for conceivable (◊), the standpoint IRI as the
+    ``Standpoint name`` (``*`` for the universal standpoint or an unindexed claim).
+    A standpoint-aware reasoner can then run per-standpoint and cross-standpoint
+    consistency over GMEOW's *full* multi-perspective KB. It is LOSSLESS by design —
+    every standpoint is preserved, NONE is selected; collapsing to one frame would
+    pick a winner (Principle 9). Fixed transformation, so this emitter is the
+    canonical source (P4); the ``.rq`` is generated, never hand-edited.
+    """
+    label_concat = (
+        "    BIND(CONCAT("
+        '"<standpointAxiom><", ?op, '
+        '"><Standpoint name=\\"", ?spName, '
+        '"\\"/></", ?op, '
+        '"></standpointAxiom>") AS ?label)\n'
+    )
+    sp_name = (
+        "    BIND(IF(!BOUND(?sp) || ?sp = gmeow:universalStandpoint, "
+        '"*", STR(?sp)) AS ?spName)\n'
+    )
+    modality = (
+        "    BIND(IF(BOUND(?mod) && (?mod = gmeow:conceivable "
+        "|| ?mod = gmeow:probable), "
+        '"Diamond", "Box") AS ?op)\n'
+    )
+    # A refuted claim is the standpoint DENYING the proposition; the standpointLabel
+    # encoding labels an ASSERTED axiom, so a denial cannot be expressed here without
+    # asserting what S rejects. Refutations are carried losslessly by the CRMinf
+    # projection (J5 holds to be 'false'); they are excluded here.
+    refuted_filter = "    FILTER(!BOUND(?mod) || ?mod != gmeow:refuted)\n"
+    body = (
+        "CONSTRUCT {\n"
+        "    ?ax a owl:Axiom ;\n"
+        "        owl:annotatedSource ?s ;\n"
+        "        owl:annotatedProperty ?p ;\n"
+        "        owl:annotatedTarget ?o ;\n"
+        f"        <{_STANDPOINT_LABEL_IRI}> ?label .\n"
+        "    ?s ?p ?o .\n"
+        "}\n"
+        "WHERE {\n"
+        "    ?ax a owl:Axiom ;\n"
+        "        owl:annotatedSource ?s ;\n"
+        "        owl:annotatedProperty ?p ;\n"
+        "        owl:annotatedTarget ?o .\n"
+        "    OPTIONAL { ?ax gmeow:accordingTo ?sp }\n"
+        "    OPTIONAL { ?ax gmeow:standpointModality ?mod }\n"
+        f"{refuted_filter}{sp_name}{modality}{label_concat}"
+        "}\n"
+    )
+    header = (
+        "# Projection: GMEOW → Standpoint-OWL 2 (standpointLabel). "
+        f"{_GENERATED_BANNER}\n"
+        "# Lossless multi-perspective downcast: re-expresses gmeow:accordingTo +\n"
+        "# gmeow:standpointModality as the cl-tud/standpoint-owl2 standpointLabel\n"
+        "# encoding (Box=□ settled, Diamond=◊ possible/probable, name=* universal).\n"
+        "# Refuted (denied) claims are excluded — carried by standpoint-crminf.rq.\n"
+    )
+    return f"{header}{_prefix_block(body)}\n\n{body}"
+
+
+#: The CRMinf projection — re-expresses the standpoint axis as the CIDOC-CRM
+#: Argumentation/belief model (I1 Argumentation / I2 Belief / I4 Proposition Set /
+#: J5 holds to be a belief value). This carries the FULL belief-value space
+#: (true/probable/possible/false), so a standpoint's DENIAL is first-class — the
+#: parity that makes GMEOW at least as expressive as CRMinf.
+_STANDPOINT_CRMINF_QUERY = "queries/projections/standpoint-crminf.rq"
+
+
+def emit_standpoint_crminf_sparql() -> str:
+    """Render the lossless CRMinf (CIDOC-CRM Argumentation) projection (#43).
+
+    Each reified statement becomes an ``I1 Argumentation`` carried out by the
+    standpoint (the universal standpoint when unindexed), which ``J2 concluded
+    that`` an ``I2 Belief`` ``J4 that`` an ``I4 Proposition Set``; the proposition
+    set ``J5 holds to be`` a belief value derived from gmeow:standpointModality —
+    ``true`` (unequivocal), ``probable``, ``possible`` (conceivable), or ``false``
+    (refuted). Because the value is explicit, a DENIAL is carried faithfully and the
+    proposition is never asserted as a fact — GMEOW is thereby at least as expressive
+    as CRMinf. Fixed transformation; the ``.rq`` is generated, never hand-edited.
+    """
+    holder = "    BIND(COALESCE(?sp, gmeow:universalStandpoint) AS ?holder)\n"
+    value = (
+        '    BIND(IF(!BOUND(?mod), "true",'
+        ' IF(?mod = gmeow:refuted, "false",'
+        ' IF(?mod = gmeow:conceivable, "possible",'
+        ' IF(?mod = gmeow:probable, "probable", "true")))) AS ?value)\n'
+    )
+    prop_text = '    BIND(CONCAT(STR(?s), " ", STR(?p), " ", STR(?o)) AS ?propText)\n'
+    mint = (
+        '    BIND(IRI(CONCAT(STR(?ax), "/argumentation")) AS ?arg)\n'
+        '    BIND(IRI(CONCAT(STR(?ax), "/belief")) AS ?belief)\n'
+        '    BIND(IRI(CONCAT(STR(?ax), "/proposition")) AS ?prop)\n'
+    )
+    body = (
+        "CONSTRUCT {\n"
+        "    ?arg a crminf:I1_Argumentation ;\n"
+        "        crm:P14_carried_out_by ?holder ;\n"
+        "        crminf:J2_concluded_that ?belief .\n"
+        "    ?belief a crminf:I2_Belief ;\n"
+        "        crminf:J4_that ?prop .\n"
+        "    ?prop a crminf:I4_Proposition_Set ;\n"
+        "        crm:P67_refers_to ?s ;\n"
+        "        rdf:value ?propText ;\n"
+        "        crminf:J5_holds_to_be ?value .\n"
+        "}\n"
+        "WHERE {\n"
+        "    ?ax a owl:Axiom ;\n"
+        "        owl:annotatedSource ?s ;\n"
+        "        owl:annotatedProperty ?p ;\n"
+        "        owl:annotatedTarget ?o .\n"
+        "    OPTIONAL { ?ax gmeow:accordingTo ?sp }\n"
+        "    OPTIONAL { ?ax gmeow:standpointModality ?mod }\n"
+        f"{holder}{value}{prop_text}{mint}"
+        "}\n"
+    )
+    header = (
+        "# Projection: GMEOW → CRMinf (CIDOC-CRM Argumentation). "
+        f"{_GENERATED_BANNER}\n"
+        "# Lossless belief projection: each standpoint-indexed statement becomes an\n"
+        "# I1 Argumentation (carried out by the standpoint) concluding an I2 Belief\n"
+        "# J4 that an I4 Proposition Set J5 holds to be true/probable/possible/false.\n"
+        "# The explicit belief value carries DENIAL faithfully (≥ CRMinf); the\n"
+        "# proposition is referred to, never asserted as fact.\n"
+    )
+    return f"{header}{_prefix_block(body)}\n\n{body}"
+
+
+#: The PROV-O projection — each standpoint-indexed claim becomes a prov:Entity
+#: attributed (prov:qualifiedAttribution) to its standpoint agent. Perspective-
+#: preserving (every standpoint retained, none privileged), lossy on the belief
+#: value / confidence (carried by the CRMinf + OWL 2 projections).
+_STANDPOINT_PROV_QUERY = "queries/projections/standpoint-prov.rq"
+
+
+def emit_standpoint_prov_sparql() -> str:
+    """Render the PROV-O qualified-attribution projection (#43).
+
+    Each reified statement becomes a ``prov:Entity`` (its proposition kept reified,
+    never asserted) ``prov:wasAttributedTo`` its standpoint agent, with a
+    ``prov:qualifiedAttribution`` node naming the ``prov:agent`` — the standpoint
+    (the universal standpoint when unindexed). Every standpoint is retained and
+    NONE is privileged; it is lossy only on the belief value (gmeow:standpointModality)
+    and confidence, which the CRMinf / Standpoint-OWL 2 projections carry. Fixed
+    transformation; the ``.rq`` is generated, never hand-edited.
+    """
+    holder = "    BIND(COALESCE(?sp, gmeow:universalStandpoint) AS ?holder)\n"
+    mint = '    BIND(IRI(CONCAT(STR(?ax), "/attribution")) AS ?attr)\n'
+    body = (
+        "CONSTRUCT {\n"
+        "    ?ax a prov:Entity ;\n"
+        "        owl:annotatedSource ?s ;\n"
+        "        owl:annotatedProperty ?p ;\n"
+        "        owl:annotatedTarget ?o ;\n"
+        "        prov:wasAttributedTo ?holder ;\n"
+        "        prov:qualifiedAttribution ?attr .\n"
+        "    ?attr a prov:Attribution ;\n"
+        "        prov:agent ?holder .\n"
+        "    ?holder a prov:Agent .\n"
+        "}\n"
+        "WHERE {\n"
+        "    ?ax a owl:Axiom ;\n"
+        "        owl:annotatedSource ?s ;\n"
+        "        owl:annotatedProperty ?p ;\n"
+        "        owl:annotatedTarget ?o .\n"
+        "    OPTIONAL { ?ax gmeow:accordingTo ?sp }\n"
+        f"{holder}{mint}"
+        "}\n"
+    )
+    header = (
+        "# Projection: GMEOW → PROV-O (qualified attribution). "
+        f"{_GENERATED_BANNER}\n"
+        "# Perspective-preserving provenance: each reified claim is a prov:Entity\n"
+        "# attributed to its standpoint agent (prov:qualifiedAttribution). Every\n"
+        "# standpoint retained, none privileged; lossy-drop: belief value (modality)\n"
+        "# and confidence dropped — carried by standpoint-crminf.rq / -owl2.rq.\n"
+    )
+    return f"{header}{_prefix_block(body)}\n\n{body}"
+
+
+#: The Web Annotation (OA) projection — each standpoint-indexed claim becomes an
+#: oa:Annotation: body = the quoted statement, target = its subject, creator = the
+#: standpoint. Perspective-preserving, lossy on the belief value / confidence.
+_STANDPOINT_OA_QUERY = "queries/projections/standpoint-oa.rq"
+
+
+def emit_standpoint_oa_sparql() -> str:
+    """Render the W3C Web Annotation (OA) projection (#43).
+
+    Each reified statement becomes an ``oa:Annotation`` whose ``oa:hasBody`` is the
+    (still-reified, never-asserted) quoted statement, whose ``oa:hasTarget`` is the
+    statement's subject, and whose ``dcterms:creator`` is the standpoint (the
+    universal standpoint when unindexed), ``oa:motivatedBy oa:describing``. Every
+    standpoint is retained and none is privileged; lossy only on the belief value
+    (gmeow:standpointModality) and confidence. Fixed transformation; generated.
+    """
+    holder = "    BIND(COALESCE(?sp, gmeow:universalStandpoint) AS ?holder)\n"
+    mint = '    BIND(IRI(CONCAT(STR(?ax), "/annotation")) AS ?ann)\n'
+    body = (
+        "CONSTRUCT {\n"
+        "    ?ann a oa:Annotation ;\n"
+        "        oa:hasTarget ?s ;\n"
+        "        oa:hasBody ?ax ;\n"
+        "        oa:motivatedBy oa:describing ;\n"
+        "        dcterms:creator ?holder .\n"
+        "    ?ax owl:annotatedSource ?s ;\n"
+        "        owl:annotatedProperty ?p ;\n"
+        "        owl:annotatedTarget ?o .\n"
+        "}\n"
+        "WHERE {\n"
+        "    ?ax a owl:Axiom ;\n"
+        "        owl:annotatedSource ?s ;\n"
+        "        owl:annotatedProperty ?p ;\n"
+        "        owl:annotatedTarget ?o .\n"
+        "    OPTIONAL { ?ax gmeow:accordingTo ?sp }\n"
+        f"{holder}{mint}"
+        "}\n"
+    )
+    header = (
+        "# Projection: GMEOW → W3C Web Annotation (oa). "
+        f"{_GENERATED_BANNER}\n"
+        "# Perspective-preserving: each reified claim is an oa:Annotation (body = the\n"
+        "# quoted statement, target = its subject, creator = the standpoint). Every\n"
+        "# standpoint retained, none privileged; lossy-drop: belief value (modality)\n"
+        "# and confidence dropped — carried by standpoint-crminf.rq / -owl2.rq.\n"
+    )
+    return f"{header}{_prefix_block(body)}\n\n{body}"
+
+
+#: The schema.org projection — each (non-denied) standpoint-indexed claim becomes a
+#: schema:Claim authored by its standpoint, for the web / fact-check ecosystem. A
+#: refuted (denied) claim is excluded (schema:author would misread denial as
+#: authorship); denials are carried by the CRMinf projection.
+_STANDPOINT_SCHEMA_QUERY = "queries/projections/standpoint-schema.rq"
+
+
+def emit_standpoint_schema_sparql() -> str:
+    """Render the schema.org Claim projection (#43).
+
+    Each reified statement (other than a ``refuted`` denial) becomes a
+    ``schema:Claim`` whose ``schema:author`` is the standpoint (the universal
+    standpoint when unindexed) and whose ``schema:text`` is the rendered proposition
+    — never the asserted base triple. Per-standpoint claims coexist (no single
+    ``schema:ClaimReview`` verdict, the false-credibility GMEOW refuses). Denials are
+    excluded — `schema:author` would misread them as authorship — and carried by the
+    CRMinf projection instead. Perspective-preserving, lossy on the belief value.
+    """
+    refuted_filter = "    FILTER(!BOUND(?mod) || ?mod != gmeow:refuted)\n"
+    holder = "    BIND(COALESCE(?sp, gmeow:universalStandpoint) AS ?holder)\n"
+    prop_text = '    BIND(CONCAT(STR(?s), " ", STR(?p), " ", STR(?o)) AS ?propText)\n'
+    mint = '    BIND(IRI(CONCAT(STR(?ax), "/claim")) AS ?claim)\n'
+    body = (
+        "CONSTRUCT {\n"
+        "    ?claim a schema:Claim ;\n"
+        "        schema:author ?holder ;\n"
+        "        schema:text ?propText .\n"
+        "}\n"
+        "WHERE {\n"
+        "    ?ax a owl:Axiom ;\n"
+        "        owl:annotatedSource ?s ;\n"
+        "        owl:annotatedProperty ?p ;\n"
+        "        owl:annotatedTarget ?o .\n"
+        "    OPTIONAL { ?ax gmeow:accordingTo ?sp }\n"
+        "    OPTIONAL { ?ax gmeow:standpointModality ?mod }\n"
+        f"{refuted_filter}{holder}{prop_text}{mint}"
+        "}\n"
+    )
+    header = (
+        "# Projection: GMEOW → schema.org Claim. "
+        f"{_GENERATED_BANNER}\n"
+        "# Web / fact-check ecosystem: each (non-denied) claim is a schema:Claim\n"
+        "# authored by its standpoint; per-standpoint claims coexist (no single\n"
+        "# ClaimReview verdict). Refuted/denied claims excluded (carried by\n"
+        "# standpoint-crminf.rq); lossy-drop: belief value (modality) + confidence.\n"
+    )
+    return f"{header}{_prefix_block(body)}\n\n{body}"
 
 
 def emit_sparql(dsl: Dsl, profile: str) -> str:
@@ -832,6 +1132,11 @@ def _artifacts(
     for profile in _PROFILES:
         rdf_graphs[f"projections/{profile}.edoal.ttl"] = emit_edoal(dsl, profile)
         sparql_texts[f"queries/projections/{profile}.rq"] = emit_sparql(dsl, profile)
+    sparql_texts[_STANDPOINT_OWL2_QUERY] = emit_standpoint_owl2_sparql()
+    sparql_texts[_STANDPOINT_CRMINF_QUERY] = emit_standpoint_crminf_sparql()
+    sparql_texts[_STANDPOINT_PROV_QUERY] = emit_standpoint_prov_sparql()
+    sparql_texts[_STANDPOINT_OA_QUERY] = emit_standpoint_oa_sparql()
+    sparql_texts[_STANDPOINT_SCHEMA_QUERY] = emit_standpoint_schema_sparql()
     sssom_texts = {f"mappings/{file}": text for file, text in emit_sssom(dsl).items()}
     return rdf_graphs, sparql_texts, sssom_texts
 
@@ -884,6 +1189,11 @@ def _committed_paths() -> dict[str, Path]:
         paths[f"queries/projections/{profile}.rq"] = (
             PROJECTION_QUERY_DIR / f"{profile}.rq"
         )
+    paths[_STANDPOINT_OWL2_QUERY] = PROJECTION_QUERY_DIR / "standpoint-owl2.rq"
+    paths[_STANDPOINT_CRMINF_QUERY] = PROJECTION_QUERY_DIR / "standpoint-crminf.rq"
+    paths[_STANDPOINT_PROV_QUERY] = PROJECTION_QUERY_DIR / "standpoint-prov.rq"
+    paths[_STANDPOINT_OA_QUERY] = PROJECTION_QUERY_DIR / "standpoint-oa.rq"
+    paths[_STANDPOINT_SCHEMA_QUERY] = PROJECTION_QUERY_DIR / "standpoint-schema.rq"
     return paths
 
 

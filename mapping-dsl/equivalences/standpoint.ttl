@@ -1,0 +1,165 @@
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv:   <https://w3id.org/semapv/vocab/> .
+@prefix prov:     <http://www.w3.org/ns/prov#> .
+@prefix np:       <http://www.nanopub.org/nschema#> .
+@prefix crminf:   <http://www.ics.forth.gr/isl/CRMinf/> .
+@prefix wikibase: <http://wikiba.se/ontology#> .
+@prefix wd:       <http://www.wikidata.org/entity/> .
+@prefix schema:   <https://schema.org/> .
+@prefix oa:       <http://www.w3.org/ns/oa#> .
+@prefix dul:      <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#> .
+
+# Term equivalences for the standpoint / contested-claims facility (#43) — GMEOW
+# authoring source. Compiled to mappings/gmeow-standpoint.sssom.tsv by
+# `gmeow compile-mappings`. All alignments are BY REFERENCE (Principle 5); GMEOW
+# never imports an external axiom. The facility realises the formal Standpoint
+# Logic line (Gómez Álvarez & Rudolph), which validates and grounds GMEOW's design.
+# See docs/standpoints.md and docs/standpoint-mapping.md.
+
+gmeow:mapsetStandpoint a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/standpoint" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Standpoint / contested-claims alignments (#43). FORMAL GROUNDING: gmeow:accordingTo is the axiom-level standpoint label of Standpoint Logic (Gómez Álvarez & Rudolph — Standpoint EL, IJCAI 2023; Standpoint-OWL 2, arXiv:2305.00559; Monodic-S5 over OWL 2 DL, KR 2025); gmeow:standpointModality unequivocal/conceivable are the box/diamond operators; gmeow:sharpens is the standpoint subset/precisification relation; gmeow:universalStandpoint is the universal standpoint *. The Standpoint-OWL 2 standpointLabel encoding is GENERATED as a lossless projection (queries/projections/standpoint-owl2.rq) — Box=□ unequivocal, Diamond=◊ conceivable, name=* universal — so an off-the-shelf standpoint reasoner (cl-tud/standpoint-owl2 → HermiT) can run per-/cross-standpoint consistency over GMEOW's full multi-perspective graph. ORTHOGONALITY: gmeow:accordingTo (whose frame) is distinct from prov:wasAttributedTo (which source recorded it — relatedMatch only, never closeMatch) and gmeow:confidence (how sure we are). NANOPUBLICATIONS: gmeow:StatementMetadata reuses the nanopublication assertion/provenance split and adds the temporal standpoint axis. TRANSCENDENCE: GMEOW supersets the event-centric Attributions model (arXiv:2503.03563) — its stated limitations of static viewpoints (no time) and neutral-stance ambiguity are met by gmeow:StandpointTenure (standpoint-time) and the three orthogonal axes; GMEOW is View-Preserving (no forced propagation), so the aggregate/constituent representation paradox cannot arise. CRMinf PARITY: GMEOW is at least as expressive as the CIDOC-CRM Argumentation model — the reified statement is an I4 Proposition Set, a StandpointTenure is a (temporal) I2 Belief, the standpoint is the actor of an I1 Argumentation, and gmeow:standpointModality spans the J5-holds-to-be belief value (true/probable/possible/false), so a denial is first-class, not just an absence. It is GENERATED as a lossless projection (queries/projections/standpoint-crminf.rq). A standpoint-indexed claim is also a PROV-O entity attributed to its standpoint agent, a W3C Web Annotation (body/target/creator), and a DOLCE+DnS Situation read from the standpoint's Description — projected, respectively, by standpoint-prov.rq and standpoint-oa.rq. It relates conceptually (no clean GMEOW-term row, or no stable RDF namespace, to align) to: CKR contexts (GMEOW factors time/place into its own modules, keeping only the perspective axis here); MVP-OWL multi-viewpoint classes; ClaiMaker source-anchored claims; the NdFluents/4dFluents family of contextualization mechanisms (GMEOW's RDF-1.2 reification is the benchmarked-best such mechanism); the Argument Interchange Format (AIF: I-nodes for the claims, CA-nodes for the conflicts between coexisting standpoints); and SPAR CiTO citation functions (cito:disputes/supports/refutes) — which GMEOW realises structurally as coexisting, modality-valued claims rather than as inter-entity edges." ;
+    gmeow:setTrailer "# REFUSED (Principle 9 — no single slot to win): standpoint-indexed claims are co-equal; GMEOW has no preferred/primary claim.\n# gmeow:accordingTo  ✗ REFUSED  wikibase:rank / wikibase:PreferredRank — a preferred rank re-creates the single winner that IS the object of the edit war. GMEOW keeps Wikidata references/qualifiers as relatedMatch targets but never adopts rank." .
+
+# Source attribution — distinct from the standpoint frame (a neutral source can
+# record a partisan claim), so a loose relatedMatch, never closeMatch.
+gmeow:eqStandpoint001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:accordingTo ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject prov:wasAttributedTo ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.4 ;
+    gmeow:comment "standpoint (whose frame the claim holds in) is distinct from source attribution (which agent recorded it); only a loose relatedMatch" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+# Nanopublications — GMEOW's reified statement reuses the assertion/provenance
+# split and adds the standpoint + temporal axes.
+gmeow:eqStandpoint002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:StatementMetadata ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject np:Nanopublication ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "a reified statement-with-provenance is a nanopublication minus the persistent identifier; GMEOW adds the standpoint axis and the four clocks" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+# CRMinf — the CIDOC-CRM Argumentation/belief model: who holds which proposition
+# true, over what time. Its I2 Belief is itself temporal, mirroring GMEOW's
+# standpoint-time (the StandpointTenure). The reified statement IS a proposition
+# set held as a belief.
+gmeow:eqStandpoint003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:StatementMetadata ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crminf:I4_Proposition_Set ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "the reified base triple is the proposition set a belief is about (CRMinf J4 that)" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+gmeow:eqStandpoint004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:StandpointTenure ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crminf:I2_Belief ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "a standpoint holding a position over an interval is a temporal belief (CRMinf I2 Belief is a subclass of E2 Temporal Entity — the same standpoint-time)" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+# Wikidata's reified statement model — keep its statement node + the supported-by
+# qualifier as alignment targets; the rank family is REFUSED (see the trailer).
+gmeow:eqStandpoint005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:StatementMetadata ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wikibase:Statement ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "GMEOW's reifier is Wikidata's statement node — but with no rank (Principle 9)" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+gmeow:eqStandpoint006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:accordingTo ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:P3680 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "Wikidata 'statement supported by' (P3680) names who backs a statement — GMEOW's standpoint frame; its inverse 'statement disputed by' (P1310) is, in GMEOW, simply another coexisting standpoint-indexed claim" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+# schema.org — a standpoint-indexed claim is the thing a schema:Claim names (and a
+# schema:ClaimReview's verdict is just one standpoint's claim, never a winner).
+gmeow:eqStandpoint007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:StatementMetadata ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject schema:Claim ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.4 ;
+    gmeow:comment "a reified, standpoint-indexed claim corresponds to schema:Claim; GMEOW refuses the single-verdict false-credibility of ClaimReview" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+# The belief-value axis — at least as expressive as CRMinf: J5 holds to be assigns
+# a proposition set its belief value (true/false/probable/possible), exactly the
+# gmeow:standpointModality value space (unequivocal/refuted/probable/conceivable).
+gmeow:eqStandpoint008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:standpointModality ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crminf:J5_holds_to_be ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "the standpoint's belief value over the proposition — GMEOW's modality (unequivocal/probable/conceivable/refuted) spans CRMinf's true/probable/possible/false" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+# PROV-O — a standpoint-indexed claim is a provenance entity attributed to its
+# standpoint agent (projected as a qualified attribution, queries/.../standpoint-prov.rq).
+gmeow:eqStandpoint009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:StatementMetadata ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject prov:Entity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.4 ;
+    gmeow:comment "a reified claim is a prov:Entity attributed (prov:qualifiedAttribution) to its standpoint agent" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+gmeow:eqStandpoint010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Standpoint ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject prov:Agent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.4 ;
+    gmeow:comment "a standpoint is often (not always) a prov:Agent — the bearer of an attribution; relatedMatch because a frame need not be an actor" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+# W3C Web Annotation — a reified, attributed assertion is an annotation: the quoted
+# triple is the body, its subject the target, the standpoint the creator.
+gmeow:eqStandpoint011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:StatementMetadata ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject oa:Annotation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.4 ;
+    gmeow:comment "a standpoint-indexed claim corresponds to an oa:Annotation (body = the quoted triple, target = its subject, creator = the standpoint)" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+# DOLCE+DnS (Descriptions & Situations) — a standpoint is a description (a
+# conceptualization/perspective); the claim it frames is the situation it satisfies.
+gmeow:eqStandpoint012 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Standpoint ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject dul:Description ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.4 ;
+    gmeow:comment "a standpoint is a DnS Description — a conceptualization/perspective from which states of affairs are read" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+gmeow:eqStandpoint013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:StatementMetadata ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject dul:Situation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.35 ;
+    gmeow:comment "the standpoint-indexed claim is the DnS Situation that satisfies the standpoint's Description" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
