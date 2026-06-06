@@ -118,7 +118,10 @@ def test_purpose_register_honorific_pronoun_are_value_vocabularies() -> None:
         ("NamePurpose", ("namePurposeLegal", "namePurposeChosen")),
         ("NameRegister", ("registerFormal", "registerIntimate")),
         ("Honorific", ("honorificMx", "honorificDr", "honorificSan")),
-        ("PronounSet", ("pronounSheHer", "pronounTheyThem", "pronounXeXem")),
+        (
+            "PronounSet",
+            ("pronounSheHer", "pronounTheyThem", "pronounXeXem", "pronounFaeFaer", "pronounZeZir"),
+        ),
     ):
         # PronounSet is a STRUCTURED information artifact (five pronoun forms), so it
         # stays an InformationObject; the flat value vocabularies are abstract value
@@ -154,6 +157,77 @@ def test_custom_pronoun_set_has_five_forms() -> None:
         "pronounReflexive",
     ):
         assert graph.value(they, URIRef(GMEOW + form)) is not None
+
+
+#: The maximal source-cited anchor inventory of stably-declinable English pronoun
+#: sets (declensions verified against the pronouns.page structured database). Each
+#: MUST carry all five functional forms; the seed list is anchors, not a fence.
+_DECLINABLE_PRONOUN_ANCHORS = (
+    "pronounSheHer",
+    "pronounHeHim",
+    "pronounTheyThem",
+    "pronounItIts",
+    "pronounXeXem",
+    "pronounZeHir",
+    "pronounEyEm",
+    "pronounEEm",
+    "pronounZeZir",
+    "pronounFaeFaer",
+    "pronounAeAer",
+    "pronounVeVer",
+    "pronounViVir",
+    "pronounPerPer",
+    "pronounNeNem",
+    "pronounThonThon",
+    "pronounCoCos",
+    "pronounHuHum",
+    "pronounKiKin",
+    "pronounZheZher",
+    "pronounOneOne",
+)
+
+#: Non-specifying values — they assert a stance, not a declension, so they carry no
+#: five forms by design (mirrors the existing pronounAny / pronounAsk anchors).
+_NON_SPECIFYING_PRONOUNS = ("pronounAny", "pronounAsk", "pronounNameOnly")
+
+
+def test_seeded_pronoun_sets_have_five_forms() -> None:
+    """Every declinable anchor is a PronounSet filling ALL five forms (maximal,
+    source-cited coverage — issue #46)."""
+    graph = _graph()
+    forms = (
+        "pronounSubject",
+        "pronounObject",
+        "pronounPossessiveDeterminer",
+        "pronounPossessive",
+        "pronounReflexive",
+    )
+    pronoun_set = URIRef(GMEOW + "PronounSet")
+    for anchor in _DECLINABLE_PRONOUN_ANCHORS:
+        node = URIRef(GMEOW + anchor)
+        assert (node, RDF.type, pronoun_set) in graph, f"{anchor} is not a PronounSet"
+        assert graph.value(node, RDFS.label) is not None, f"{anchor} lacks a label"
+        for form in forms:
+            assert (
+                graph.value(node, URIRef(GMEOW + form)) is not None
+            ), f"{anchor} is missing {form}"
+
+
+def test_pronoun_name_only_value_exists() -> None:
+    """An explicit no-pronouns / name-only value exists, distinct from any/ask and
+    carrying no five forms by design (issue #46, acceptance 2)."""
+    graph = _graph()
+    name_only = URIRef(GMEOW + "pronounNameOnly")
+    assert (name_only, RDF.type, URIRef(GMEOW + "PronounSet")) in graph
+    assert graph.value(name_only, RDFS.label) is not None
+    # Distinct individuals — not collapsed onto pronounAny / pronounAsk.
+    assert name_only != URIRef(GMEOW + "pronounAny")
+    assert name_only != URIRef(GMEOW + "pronounAsk")
+    # No declined forms (it asserts the ABSENCE of a pronoun set).
+    for value in _NON_SPECIFYING_PRONOUNS:
+        node = URIRef(GMEOW + value)
+        assert (node, RDF.type, URIRef(GMEOW + "PronounSet")) in graph
+        assert graph.value(node, URIRef(GMEOW + "pronounSubject")) is None
 
 
 def test_pronouns_and_honorifics_are_address_value_facets() -> None:

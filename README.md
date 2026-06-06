@@ -176,6 +176,11 @@ non-standard in deliberate, useful ways (full rationale in
 - **Contextual & temporal.** "Aunt Genny" (family) vs "Mrs Smith" (students) coexist via
   `NameUsage`; name changes, and deadnames are recorded yet suppressed from display.
 - **Pronouns & honorifics** are first-class, contextual, and **independent of sex/gender**.
+  Pronoun sets are a **maximal, source-cited anchor inventory** (21 stably-declinable English
+  sets — she/her … fae/faer, ze/zir, thon, xe/xem, …; declensions verified against
+  [pronouns.page](https://en.pronouns.page)) plus an explicit **name-only / no-pronouns** value,
+  with open minting for anything unseeded. They link to Wikidata's *personal pronoun set*
+  (`wd:Q65067284`/`wdt:P6553`) and **project** to the vCard 4 PRONOUNS property (RFC 9554).
 
 ### Languages: registry-independent, conlang- & AI-ready
 

@@ -76,6 +76,13 @@ gmeow:fnProficiencyToKnownLanguage a fno:Function ;
     fno:expects ( gmeow:paramProficiencyLanguage ) ;
     fno:returns ( gmeow:outProficiencyToKnownLanguage ) .
 
+gmeow:fnPronounSetToText a fno:Function ;
+    rdfs:label "pronoun set five forms → compact display text (subject/object)"@en ;
+    dcterms:description "Flattens a gmeow:PronounSet's five declined forms to the conventional compact display string (subject form + '/' + object form, e.g. 'she/her', 'they/them', 'ze/zir') for emission as the vCard 4 PRONOUNS property (RFC 9554, free text), carried on the GMEOW-minted vcardx:pronouns extension term because the W3C vCard RDF ontology never minted a predicate for it. Lossy: the possessive-determiner, possessive and reflexive forms are dropped, as are the non-specifying values (pronounAny / pronounAsk / pronounNameOnly, which carry no forms)."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> ;
+    fno:expects ( gmeow:paramPronounSubject gmeow:paramPronounObject ) ;
+    fno:returns ( gmeow:outPronounSetToText ) .
+
 gmeow:fnRetagWkt a fno:Function ;
     rdfs:label "retag WKT literal as geo:wktLiteral"@en ;
     dcterms:description "Re-tags a gmeow:asWKT value (range rdfs:Literal, for OWL 2 DL safety) with the geo:wktLiteral datatype so GeoSPARQL spatial engines recognise it."@en ;
@@ -154,6 +161,10 @@ gmeow:outProficiencyToKnownLanguage a fno:Output ;
     fno:predicate gmeow:projectedKnownLanguage ;
     fno:type gmeow:Language .
 
+gmeow:outPronounSetToText a fno:Output ;
+    fno:predicate gmeow:projectedPronouns ;
+    fno:type xsd:string .
+
 gmeow:outRetagWkt a fno:Output ;
     fno:predicate geo:asWKT ;
     fno:type geo:wktLiteral .
@@ -231,6 +242,16 @@ gmeow:paramProficiencyLanguage a fno:Parameter ;
     fno:predicate gmeow:proficiencyLanguage ;
     fno:required true ;
     fno:type gmeow:Language .
+
+gmeow:paramPronounObject a fno:Parameter ;
+    fno:predicate gmeow:pronounObject ;
+    fno:required true ;
+    fno:type rdfs:Literal .
+
+gmeow:paramPronounSubject a fno:Parameter ;
+    fno:predicate gmeow:pronounSubject ;
+    fno:required true ;
+    fno:type rdfs:Literal .
 
 gmeow:paramScriptCode a fno:Parameter ;
     fno:predicate gmeow:scriptCode ;
@@ -628,6 +649,23 @@ gmeow:implSchemaOrg a fno:Implementation ;
             rdfs:label "fnProficiencyToKnownLanguage output ↦ ?known"@en ;
             fnom:functionOutput gmeow:outProficiencyToKnownLanguage ;
             fnom:implementationProperty "known" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "fnPronounSetToText → vcard (FnO mapping)"@en ;
+    fno:function gmeow:fnPronounSetToText ;
+    fno:implementation gmeow:implVcard ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramPronounObject ↦ ?pobj"@en ;
+            fnom:functionParameter gmeow:paramPronounObject ;
+            fnom:implementationProperty "pobj" ],
+        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramPronounSubject ↦ ?psubj"@en ;
+            fnom:functionParameter gmeow:paramPronounSubject ;
+            fnom:implementationProperty "psubj" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnPronounSetToText output ↦ ?pronouns"@en ;
+            fnom:functionOutput gmeow:outPronounSetToText ;
+            fnom:implementationProperty "pronouns" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnRetagWkt → geosparql (FnO mapping)"@en ;

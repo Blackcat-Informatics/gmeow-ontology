@@ -5,6 +5,7 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix vcardx: <https://blackcatinformatics.ca/vcard-ext/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/projections/vcard> a align:Alignment ;
@@ -57,6 +58,15 @@
                     edoal:uri vcard:note ] ;
             align:relation "<=" ;
             edoal:measure 8e-01 ],
+        [ a align:Cell ;
+            rdfs:label "PronounSet five forms → vCard PRONOUNS display text (RFC 9554 extension)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasPronounSet ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri vcardx:pronouns ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnPronounSetToText ] ],
         [ a align:Cell ;
             rdfs:label "Membership Role → vcard:title"@en ;
             align:entity1 [ a edoal:Relation ;

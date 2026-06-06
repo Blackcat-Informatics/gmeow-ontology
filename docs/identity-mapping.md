@@ -100,6 +100,38 @@ source are mapped; the vocabularies are open and extend there).
 The reified, self-asserted, co-equal `IdentityFacet` machinery is **canonical** — no
 maintained external RDF vocabulary models it faithfully.
 
+## Pronoun set inventory (the address axis)
+
+Pronouns are **address, not identity** (they live in `names`, attached via
+`gmeow:hasPronounSet` / `NameUsage`), but the canonical anchor list is documented here
+because identity readers look for it. A `gmeow:PronounSet` carries five functional forms
+(`pronounSubject` / `pronounObject` / `pronounPossessiveDeterminer` / `pronounPossessive`
+/ `pronounReflexive`); the seeds are **anchors, not a fence** — a set not seeded is a
+fresh `PronounSet` filling the five forms.
+
+The maximal seeded inventory (each five-form, declensions **verified against the
+[pronouns.page](https://en.pronouns.page) / Pronoun Dressing Room structured database**
+and cross-checked with [pronouns.within.lgbt](https://pronouns.within.lgbt)):
+
+- she/her, he/him, they/them (singular), it/its
+- Spivak ey/em and Elverson e/em; ze/hir and ze/zir; xe/xem; fae/faer; ae/aer
+- ve/ver, vi/vir, per/per, ne/nem, thon/thon, co/cos, hu/hum, ki/kin, zhe/zher
+- generic one/one
+- non-specifying (no forms by design): **pronounAny** ("any pronouns"), **pronounAsk**
+  ("ask me"), and **pronounNameOnly** ("use my name (no pronouns)") — the nounself /
+  name-in-place-of-pronoun stance, distinct from any/ask.
+
+Source list and five-form declension correctness follow pronouns.page, MyPronouns.org,
+Wikipedia *English neopronouns*, and Conrod/Ackerman on pronoun morphology.
+
+**Linkage (SSSOM, in `mappings/gmeow-names.sssom.tsv`).** Verified live against the
+Wikidata API: `gmeow:PronounSet` → `wd:Q65067284` ("personal pronoun set"),
+`gmeow:hasPronounSet` → `wdt:P6553` ("personal pronoun"), both `closeMatch`; and a
+`broadMatch` to `wd:Q36224` ("pronoun"). Wikidata's Sept-2025 personal-pronoun RfC
+independently converged on GMEOW's full five-form declension model. The per-set
+declensions remain canonical — no maintained external RDF vocabulary declines individual
+sets faithfully.
+
 ## Projection
 
 `gmeow project` downgrades GMEOW to consumer profiles via the EDOAL/FnO stack. For
@@ -107,6 +139,16 @@ gender, `fnSelectDisplayableGender` emits a **displayable** gender identity's va
 label as `schema:gender` / `foaf:gender`; a `gmeow:displayable false` label is
 **never emitted** — the same suppression contract as a deadname. Orientation and
 sex-assigned-at-birth are **documented lossy drops** (no standard target term).
+
+For **pronouns**, `fnPronounSetToText` flattens a `PronounSet`'s five forms to the
+conventional compact string (subject/object, e.g. `"they/them"`) for the **vCard 4
+PRONOUNS** property (RFC 9554). Because the W3C vCard RDF ontology — based on RFC 6350 —
+never minted a predicate for it, GMEOW emits it on a clearly-namespaced extension term,
+`vcardx:pronouns` (`https://blackcatinformatics.ca/vcard-ext/`, deliberately **outside**
+the `gmeow/` term space so a pure profile never leaks a GMEOW term, and never a fabricated
+`vcard:` term either). **Lossy drops** (declared on the cell): the
+possessive-determiner / possessive / reflexive forms, the non-specifying values
+(any/ask/name-only carry no forms and are not emitted), and period/standpoint.
 
 ## What's deliberately non-standard (and why)
 
