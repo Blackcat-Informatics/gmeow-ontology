@@ -79,6 +79,12 @@ def test_schema_org_projection() -> None:
         URIRef(SCHEMA + "honorificPrefix"),
         Literal("Mx", lang="en"),
     ) in g
+    # place name without purpose fallback projection (issue #109 nit #1)
+    assert (
+        URIRef(LOC + "westbourne112"),
+        URIRef(SCHEMA + "name"),
+        Literal("112 Westbourne Road", lang="en"),
+    ) in g
     _assert_no_gmeow_leakage(g)
 
 
