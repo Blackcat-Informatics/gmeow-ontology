@@ -270,20 +270,26 @@ gmeow:eventLocation
 
 gmeow:subEventOf
     a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:subPropertyOf gmeow:partOf ;
     rdfs:domain gmeow:Event ;
     rdfs:range gmeow:Event ;
     rdfs:label "sub-event of"@en ;
-    skos:definition "Relates an event to a larger event it is part of — a talk within a session within a conference. Transitive: a part of a part is a part (CIDOC-CRM P9 consists of). Non-simple, so kept out of all cardinality axioms."@en ;
+    skos:definition "Relates an event to a larger event it is part of — a talk within a session within a conference. Transitive: a part of a part is a part (CIDOC-CRM P9 consists of). A specialization of the universal gmeow:partOf spine. Non-simple, so kept out of all cardinality axioms."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasSubEvent
     a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:subPropertyOf gmeow:hasPart ;
     owl:inverseOf gmeow:subEventOf ;
     rdfs:domain gmeow:Event ;
     rdfs:range gmeow:Event ;
     rdfs:label "has sub-event"@en ;
     skos:definition "Relates an event to a constituent sub-event; the transitive inverse of gmeow:subEventOf."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# If an event occurs at a location, it also occurs at every containing location.
+# This deliberately uses spatial containment, not generic gmeow:partOf.
+gmeow:eventLocation owl:propertyChainAxiom ( gmeow:eventLocation gmeow:containedInLocation ) .
 
 # --------------------------------------------------------------------------- #
 # Event series — a recurrence / schedule that ISSUES concrete event occurrences

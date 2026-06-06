@@ -183,6 +183,42 @@ def test_location_aligned_across_geo_vocabularies() -> None:
     ) in graph
 
 
+def test_universal_mereology_aligned_across_foundational_and_web_vocabularies() -> None:
+    graph = _graph()
+    part = URIRef(GMEOW + "partOf")
+    has_part = URIRef(GMEOW + "hasPart")
+    expected = {
+        (part, SKOS.closeMatch, URIRef("http://purl.obolibrary.org/obo/BFO_0000050")),
+        (
+            has_part,
+            SKOS.closeMatch,
+            URIRef("http://purl.obolibrary.org/obo/BFO_0000051"),
+        ),
+        (part, SKOS.closeMatch, URIRef("http://purl.org/nemo/gufo#isComponentOf")),
+        (
+            part,
+            SKOS.closeMatch,
+            URIRef("http://purl.org/nemo/gufo#TemporaryParthoodSituation"),
+        ),
+        (part, SKOS.closeMatch, URIRef("https://schema.org/isPartOf")),
+        (has_part, SKOS.closeMatch, URIRef("https://schema.org/hasPart")),
+        (part, SKOS.closeMatch, URIRef("http://purl.org/dc/terms/isPartOf")),
+        (has_part, SKOS.closeMatch, URIRef("http://purl.org/dc/terms/hasPart")),
+        (
+            part,
+            SKOS.closeMatch,
+            URIRef("http://www.cidoc-crm.org/cidoc-crm/P46i_forms_part_of"),
+        ),
+        (
+            has_part,
+            SKOS.closeMatch,
+            URIRef("http://www.cidoc-crm.org/cidoc-crm/P46_is_composed_of"),
+        ),
+    }
+    for triple in expected:
+        assert triple in graph
+
+
 def test_geo_authority_targets_are_import_ok() -> None:
     # Getty TGN/GVP (ODC-BY) and WGS84 (W3C) are link-and-copy-permitted.
     for key in ("tgn", "wgs84", "gvp"):

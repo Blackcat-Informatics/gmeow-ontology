@@ -84,6 +84,7 @@ class Atom:
 
     subject_var: str
     predicate: URIRef | None = None
+    predicate_var: str | None = None
     path: str | None = None  # pre-rendered SPARQL property path
     path_alts: tuple[URIRef, ...] = ()  # alternatives, when path is a top-level AltPath
     object_var: str | None = None
@@ -389,6 +390,7 @@ def _atom(graph: Graph, node: Node) -> Atom:
     if subj is None:
         raise CompileError(f"atom {node!r} missing subjectVar/tSubj")
     predicate = graph.value(node, GM.predicate) or graph.value(node, GM.tPred)
+    predicate_var = graph.value(node, GM.predicateVar)
     path_node = graph.value(node, GM.path)
     obj_var = graph.value(node, GM.objectVar) or graph.value(node, GM.tObj)
     obj_value = graph.value(node, GM.objectValue) or graph.value(node, GM.tObjValue)
@@ -396,6 +398,7 @@ def _atom(graph: Graph, node: Node) -> Atom:
     return Atom(
         subject_var=str(subj),
         predicate=_uri(predicate),
+        predicate_var=str(predicate_var) if predicate_var is not None else None,
         path=_render_path(graph, path_node) if path_node is not None else None,
         path_alts=_alt_members(graph, path_node),
         object_var=str(obj_var) if obj_var is not None else None,
