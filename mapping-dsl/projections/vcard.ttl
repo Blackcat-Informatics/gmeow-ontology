@@ -123,13 +123,16 @@ gmeow:mapVcardBday a gmeow:ProjectionMapping ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "bdate" ;
         gmeow:atom (
-            [ gmeow:subjectVar "b" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Birth ]
-            [ gmeow:subjectVar "b" ; gmeow:predicate gmeow:hasPrincipal ; gmeow:objectVar "ent" ]
-            [ gmeow:subjectVar "b" ; gmeow:predicate gmeow:eventDate ; gmeow:objectVar "bdate" ] ) ;
+            [ gmeow:subjectVar "b" ; gmeow:predicate gmeow:eventType ; gmeow:objectValue gmeow:eventTypeBirth ]
+            [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:participationEvent ; gmeow:objectVar "b" ]
+            [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:participationRole ; gmeow:objectValue gmeow:roleParticipantPrincipal ]
+            [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:participationParticipant ; gmeow:objectVar "ent" ]
+            [ gmeow:subjectVar "b" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "bdate" ] ) ;
         gmeow:edoalPath true ] ;
     gmeow:hasBinding [
         gmeow:profile "vcard" ; gmeow:toPredicate vcard:bday ; gmeow:relation "<=" ;
-        gmeow:transform gmeow:fnBirthEventToDate ; gmeow:confidence 0.95 ] .
+        gmeow:transform gmeow:fnBirthEventToDate ; gmeow:confidence 0.95 ;
+        gmeow:lossyDrop "the birth Participation (role, period, confidence, standpoint) and fuzzy-date bounds are dropped; only the principal's birth instant survives as vcard:bday" ] .
 
 gmeow:mapVcardTitle a gmeow:ProjectionMapping ;
     rdfs:label "Membership Role → vcard:title"@en ;

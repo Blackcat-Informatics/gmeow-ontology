@@ -34,15 +34,21 @@ PROFILES: dict[str, Profile] = {
     "geosparql": Profile("geosparql", ("geo",)),
     "vcard": Profile("vcard", ("vcard",)),
     "foaf": Profile("foaf", ("foaf", "wgs84")),
+    "ical": Profile("ical", ("ical",)),
+    "owl-time": Profile("owl-time", ("time",)),
 }
 
-#: Worked-example inputs (locations + naming + languages + identity + contacts).
+#: Worked-example inputs (locations + naming + languages + identity + contacts +
+#: events). The events slice drives the schema.org event-role + iCalendar VEVENT
+#: projections; its contested-fact variant is excluded so the published examples
+#: stay neutral.
 _EXAMPLE_FIXTURES = (
     "places.ttl",
     "names.ttl",
     "languages.ttl",
     "identity.ttl",
     "contact-fields.ttl",
+    "events.ttl",
 )
 
 

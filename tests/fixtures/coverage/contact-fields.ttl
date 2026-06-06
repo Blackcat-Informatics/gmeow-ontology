@@ -7,6 +7,7 @@
 
 @prefix ex:     <https://example.org/cf/> .
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
 
 ex:sam a gmeow:Person ;
     gmeow:description "Backend engineer; enjoys ontologies and strong tea."@en ;
@@ -25,8 +26,17 @@ ex:samNick a gmeow:PersonName ;
     gmeow:fullName "Sammy"@en ; gmeow:namePurpose gmeow:namePurposeNickname ;
     gmeow:displayable true .
 
-# Birth date = the eventDate of a Birth life-event.
-ex:samBirth a gmeow:Birth ; gmeow:hasPrincipal ex:sam ; gmeow:eventDate "1990-04-12" .
+# Birth = a life event (gmeow:eventType birth); the person being born is the
+# PRINCIPAL participant via a reified gmeow:Participation; the instant is the
+# event's gmeow:eventTime (xsd:dateTime — DL-clean). The schema.org/vcard
+# projection traverses this Participation down to a flat birthDate / BDAY.
+ex:samBirth a gmeow:LifeEvent ;
+    gmeow:eventType gmeow:eventTypeBirth ;
+    gmeow:eventTime "1990-04-12T00:00:00Z"^^xsd:dateTime .
+ex:samBirthParticipation a gmeow:Participation ;
+    gmeow:participationEvent ex:samBirth ;
+    gmeow:participationRole gmeow:roleParticipantPrincipal ;
+    gmeow:participationParticipant ex:sam .
 
 # Job title = a Role played in a Membership (the relator now links its member + org).
 ex:samMembership a gmeow:Membership ;

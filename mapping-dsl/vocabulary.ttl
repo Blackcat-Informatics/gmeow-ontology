@@ -134,7 +134,7 @@ gmeow:objectVar a owl:DatatypeProperty ;
     skos:definition "The object variable name of a pattern atom."@en .
 gmeow:objectValue a owl:ObjectProperty ;
     rdfs:label "object value"@en ;
-    skos:definition "A fixed IRI/value-individual on the object side of a pattern atom (e.g. gmeow:Birth, gmeow:namePartGiven)."@en .
+    skos:definition "A fixed IRI/value-individual on the object side of a pattern atom (e.g. gmeow:eventTypeBirth, gmeow:namePartGiven)."@en .
 gmeow:objectLiteral a owl:DatatypeProperty ;
     rdfs:label "object literal"@en ;
     skos:definition "A fixed literal on the object side of a pattern atom (e.g. the boolean false in a displayable check)."@en .
@@ -217,7 +217,7 @@ gmeow:edoalSource a owl:ObjectProperty ;
     skos:definition "The salient GMEOW term to use as the EDOAL align:entity1 (e.g. gmeow:fullName for a displayable-name rename). An authored override; when omitted and gmeow:edoalPath is not set, and there is no value->class map, the binding emits no EDOAL cell (a pure structural / SSSOM-backed projection)."@en .
 gmeow:edoalPath a owl:DatatypeProperty ;
     rdfs:label "derive EDOAL relation path"@en ;
-    skos:definition "When true, the EDOAL align:entity1 is DERIVED as the relation path from the pattern's anchor to its value, expressed with edoal:compose + edoal:inverse (e.g. a Birth-event traversal becomes compose(inverse(hasPrincipal), eventDate)). For multi-hop relator/event traversals — makes the EDOAL genuinely declarative rather than a bare class + opaque transform."@en .
+    skos:definition "When true, the EDOAL align:entity1 is DERIVED as the relation path from the pattern's anchor to its value, expressed with edoal:compose + edoal:inverse (e.g. a birth-event traversal becomes a compose over the principal Participation: inverse(participationParticipant), participationEvent, eventTime). For multi-hop relator/event traversals — makes the EDOAL genuinely declarative rather than a bare class + opaque transform."@en .
 gmeow:edoalSourceKind a owl:DatatypeProperty ;
     rdfs:label "EDOAL entity1 kind"@en ;
     skos:definition "Whether the EDOAL entity1 is a \"class\" or a \"relation\" (default \"relation\")."@en .
@@ -441,8 +441,8 @@ gmeow:fnNicknameName a gmeow:ProjectionFunction ;
 
 gmeow:fnBirthEventToDate a gmeow:ProjectionFunction ;
     rdfs:label "Birth life-event → schema:birthDate"@en ;
-    dcterms:description "Extracts a person's birth date by traversing the reified event model: a gmeow:Birth (gmeow:hasPrincipal ?person) with a gmeow:eventDate yields ?person schema:birthDate. GMEOW models birth as an event (with place, sources, confidence); this downcasts the event's date to the flat schema:birthDate / vCard BDAY field."@en ;
-    gmeow:fnInput gmeow:eventDate ;
+    dcterms:description "Extracts a person's birth date by traversing the reified event model: an event with gmeow:eventType gmeow:eventTypeBirth, whose principal Participation (gmeow:participationRole gmeow:roleParticipantPrincipal, gmeow:participationParticipant ?person) and gmeow:eventTime yield ?person schema:birthDate. GMEOW models birth as an event (with place, sources, confidence, participant roles); this downcasts the event's instant to the flat schema:birthDate / vCard BDAY field."@en ;
+    gmeow:fnInput gmeow:eventTime ;
     gmeow:fnOutput gmeow:projectedBirthDate ; gmeow:fnOutputType rdfs:Literal .
 
 gmeow:fnMembershipToJobTitle a gmeow:ProjectionFunction ;
@@ -462,3 +462,27 @@ gmeow:fnWebPageToUrl a gmeow:ProjectionFunction ;
     dcterms:description "Projects an entity's structured web presence: gmeow:hasWebPage points to a first-class gmeow:WebPage whose IRI is its URL, emitted as schema:url / foaf:homepage on the entity. Downcasts the structured page resource to the flat URL field."@en ;
     gmeow:fnInput gmeow:hasWebPage ;
     gmeow:fnOutput gmeow:projectedUrl ; gmeow:fnOutputType xsd:anyURI .
+
+gmeow:fnParticipationToEventRole a gmeow:ProjectionFunction ;
+    rdfs:label "Participation → schema event-role edge"@en ;
+    dcterms:description "Downcasts a reified gmeow:Participation to a flat schema.org event-role edge: the event gains schema:attendee / schema:performer / schema:organizer pointing at the participant, keyed by the participation's gmeow:ParticipantRole. The Participation's period, confidence, evidence and standpoint, and the open role space beyond the three schema roles, are dropped — the flat edge is lossy by design."@en ;
+    gmeow:fnInput gmeow:participationParticipant ;
+    gmeow:fnOutput gmeow:projectedEventRole ; gmeow:fnOutputType gmeow:Entity .
+
+gmeow:fnFuzzyTimeToDate a gmeow:ProjectionFunction ;
+    rdfs:label "fuzzy event bounds → schema:startDate"@en ;
+    dcterms:description "Downcasts an approximate (circa) event date to a single schema:startDate: the gmeow:earliestStart lower bound is emitted, while the gmeow:latestEnd upper bound and the gmeow:temporalPrecision qualifier are dropped — the uncertainty band collapses to one instant."@en ;
+    gmeow:fnInput gmeow:earliestStart ;
+    gmeow:fnOutput gmeow:projectedFuzzyDate ; gmeow:fnOutputType rdfs:Literal .
+
+gmeow:fnEventTypeToSummary a gmeow:ProjectionFunction ;
+    rdfs:label "event type label → iCalendar SUMMARY"@en ;
+    dcterms:description "Downcasts an event's open gmeow:eventType vocabulary to a single human-readable iCalendar SUMMARY: the rdfs:label of a gmeow:EventType value is emitted as ical:summary. The full multi-type richness collapses to one title string."@en ;
+    gmeow:fnInput gmeow:eventType ;
+    gmeow:fnOutput gmeow:projectedSummary ; gmeow:fnOutputType rdfs:Literal .
+
+gmeow:fnParticipantToAttendee a gmeow:ProjectionFunction ;
+    rdfs:label "hasParticipant → iCalendar ATTENDEE"@en ;
+    dcterms:description "Downcasts the flat gmeow:hasParticipant shortcut to a bare iCalendar ATTENDEE edge: the participant agent is emitted as ical:attendee on the event. Any reified Participation's role, period, confidence and standpoint are dropped — iCal's ATTENDEE carries none of them."@en ;
+    gmeow:fnInput gmeow:hasParticipant ;
+    gmeow:fnOutput gmeow:projectedAttendee ; gmeow:fnOutputType gmeow:Agent .

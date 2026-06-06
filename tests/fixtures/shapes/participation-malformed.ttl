@@ -1,0 +1,20 @@
+# Malformed Participation fixture (#41). Each subject carries exactly ONE
+# deliberate violation of the events SHACL shapes in shapes/gmeow-shapes.ttl, so a
+# test can pin each shape. `run_shacl` over this graph MUST NOT conform (the first
+# two are sh:Violation). Keep OUT of tests/fixtures/coverage/ (intentionally broken).
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# (a) ParticipationHasPlayersShape — a Participation with NO event (minCount 1).
+ex:badNoEvent a gmeow:Participation ;
+    gmeow:participationParticipant ex:someone ;
+    gmeow:participationRole gmeow:roleWitness .
+
+# (b) ParticipationHasPlayersShape — a Participation with NO participant (minCount 1).
+ex:badNoParticipant a gmeow:Participation ;
+    gmeow:participationEvent ex:someEvent ;
+    gmeow:participationRole gmeow:roleWitness .
+
+ex:someEvent a gmeow:Event ; gmeow:eventType gmeow:eventTypeMarriage .

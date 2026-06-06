@@ -1,0 +1,9 @@
+# TQL — Allen ordering closure. Every transitively-ordered (earlier, later) event
+# pair, computed with a SPARQL 1.1 property path over gmeow:before — no
+# materializing reasoner needed (the path IS the transitive temporal inference).
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?earlier ?later WHERE {
+    ?earlier gmeow:before+ ?later .
+}
+ORDER BY ?earlier ?later

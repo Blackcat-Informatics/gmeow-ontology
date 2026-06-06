@@ -14,6 +14,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/modules/accounts" uri="ontology/modules/accounts.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/documents" uri="ontology/modules/documents.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/software" uri="ontology/modules/software.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/events" uri="ontology/modules/events.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/genealogy" uri="ontology/modules/genealogy.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/names" uri="ontology/modules/names.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/gender" uri="ontology/modules/gender.ttl"/>
