@@ -401,7 +401,12 @@ def _nav_edges(pattern: MappingPattern) -> list[tuple[str, str, Atom]]:
     """Navigation edges (subjVar, objVar, atom): atoms relating two variables."""
     edges: list[tuple[str, str, Atom]] = []
     for atom in _flatten_atoms(pattern.atoms):
-        has_pred = atom.predicate is not None or atom.path is not None or atom.path_alts
+        has_pred = (
+            atom.predicate is not None
+            or atom.predicate_var is not None
+            or atom.path is not None
+            or atom.path_alts
+        )
         if atom.object_var is not None and has_pred:
             edges.append((atom.subject_var, atom.object_var, atom))
     return edges
@@ -451,7 +456,9 @@ def _edoal_relation_step(graph: Graph, atom: Atom, forward: bool) -> BNode:
     else:  # an opaque seq/zero-or-more path — degrade to a commented relation node
         base = BNode()
         graph.add((base, RDF.type, EDOAL.Relation))
-        graph.add((base, RDFS.comment, Literal(atom.path or "path")))
+        graph.add(
+            (base, RDFS.comment, Literal(atom.path or atom.predicate_var or "path"))
+        )
     if forward:
         return base
     inverse = BNode()
@@ -730,6 +737,8 @@ def _atom_triple(atom: Atom, var_map: dict[str, str] | None = None) -> str:
     subj = f"?{subj_var}"
     if atom.path is not None:
         pred = atom.path
+    elif atom.predicate_var is not None:
+        pred = f"?{atom.predicate_var}"
     elif atom.predicate == RDF.type and atom.object_value is not None:
         pred = "a"
     elif atom.predicate is not None:

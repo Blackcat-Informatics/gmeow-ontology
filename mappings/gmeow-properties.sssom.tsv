@@ -65,7 +65,7 @@ gmeow:name	skos:closeMatch	vcard:fn		semapv:ManualMappingCuration	0.9
 gmeow:partOf	skos:closeMatch	bfo:BFO_0000050	part of	semapv:ManualMappingCuration	0.85	BFO continuant/occurrent parthood is the OBO hub; GMEOW partOf is a broader universal spine across modules
 gmeow:partOf	skos:closeMatch	crm:P46i_forms_part_of		semapv:ManualMappingCuration	0.75	CIDOC CRM P46 inverse forms part of — physical/conceptual object parthood; narrower than GMEOW universal partOf
 gmeow:partOf	skos:closeMatch	dcterms:isPartOf		semapv:ManualMappingCuration	0.75	
-gmeow:partOf	skos:closeMatch	gufo:TemporaryParthoodSituation		semapv:ManualMappingCuration	0.5	gUFO's reified temporary-parthood pattern is the reference model for mutable endurant parthood; GMEOW's generic property remains the flat shortcut
+gmeow:partOf	skos:closeMatch	gufo:TemporaryParthoodSituation		semapv:ManualMappingCuration	0.5	Intentional cross-category closeMatch: gUFO's TemporaryParthoodSituation class is the reified reference pattern for mutable endurant parthood; GMEOW partOf remains the flat property shortcut, not an OWL property equivalence
 gmeow:partOf	skos:closeMatch	gufo:isCollectionMemberOf		semapv:ManualMappingCuration	0.55	gUFO collection membership is intransitive member-to-collection parthood; a narrower case of the GMEOW universal spine
 gmeow:partOf	skos:closeMatch	gufo:isComponentOf		semapv:ManualMappingCuration	0.65	gUFO component parthood is endurant/component-specific and not generally transitive; GMEOW partOf is broader
 gmeow:partOf	skos:closeMatch	gufo:isSubCollectionOf		semapv:ManualMappingCuration	0.6	gUFO subcollection parthood is collection-specific; GMEOW partOf is the broader cross-module spine

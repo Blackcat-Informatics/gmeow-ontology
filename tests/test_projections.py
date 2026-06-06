@@ -94,12 +94,20 @@ def test_schema_org_projects_explicit_generic_mereology() -> None:
     whole = URIRef("https://example.org/whole")
     component = URIRef("https://example.org/component")
     composite = URIRef("https://example.org/composite")
+    room = URIRef("https://example.org/room")
+    building = URIRef("https://example.org/building")
+    message = URIRef("https://example.org/message")
+    body = URIRef("https://example.org/body")
     src.add((part, URIRef(GMEOW + "partOf"), whole))
     src.add((composite, URIRef(GMEOW + "hasPart"), component))
+    src.add((room, URIRef(GMEOW + "containedInPlace"), building))
+    src.add((message, URIRef(GMEOW + "hasBodyPart"), body))
 
     g = project_graph("schema-org", src)
     assert (part, URIRef(SCHEMA + "isPartOf"), whole) in g
     assert (composite, URIRef(SCHEMA + "hasPart"), component) in g
+    assert (room, URIRef(SCHEMA + "isPartOf"), building) in g
+    assert (message, URIRef(SCHEMA + "hasPart"), body) in g
     _assert_no_gmeow_leakage(g)
 
 

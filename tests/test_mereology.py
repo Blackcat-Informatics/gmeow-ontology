@@ -34,8 +34,8 @@ def test_universal_part_properties_are_broad_transitive_inverses() -> None:
         assert (prop, RDF.type, OWL.ObjectProperty) in g
         assert (prop, RDF.type, OWL.TransitiveProperty) in g
         assert (prop, RDF.type, OWL.FunctionalProperty) not in g
-        assert (prop, RDFS.domain, None) not in g
-        assert (prop, RDFS.range, None) not in g
+        assert not list(g.objects(prop, RDFS.domain))
+        assert not list(g.objects(prop, RDFS.range))
 
     assert (GM.partOf, OWL.inverseOf, GM.hasPart) in g
     assert (GM.hasPart, OWL.inverseOf, GM.partOf) in g

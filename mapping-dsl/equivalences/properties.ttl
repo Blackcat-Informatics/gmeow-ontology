@@ -416,7 +416,7 @@ gmeow:eqProperties048 a gmeow:TermEquivalence ;
     gmeow:alignObject gufo:TemporaryParthoodSituation ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "gUFO's reified temporary-parthood pattern is the reference model for mutable endurant parthood; GMEOW's generic property remains the flat shortcut" ;
+    gmeow:comment "Intentional cross-category closeMatch: gUFO's TemporaryParthoodSituation class is the reified reference pattern for mutable endurant parthood; GMEOW partOf remains the flat property shortcut, not an OWL property equivalence" ;
     gmeow:sssomFile "gmeow-properties.sssom.tsv" .
 
 gmeow:eqProperties049 a gmeow:TermEquivalence ;

@@ -77,10 +77,12 @@ WHERE {
         }
     }
     UNION {
-        ?part gmeow:partOf ?whole .
+        ?part ?partPredicate ?whole .
+        ?partPredicate rdfs:subPropertyOf* gmeow:partOf .
     }
     UNION {
-        ?whole gmeow:hasPart ?part .
+        ?whole ?hasPartPredicate ?part .
+        ?hasPartPredicate rdfs:subPropertyOf* gmeow:hasPart .
     }
     UNION {
         ?place gmeow:placeType ?pt .

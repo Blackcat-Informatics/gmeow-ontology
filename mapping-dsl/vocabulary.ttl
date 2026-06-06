@@ -126,6 +126,9 @@ gmeow:subjectVar a owl:DatatypeProperty ;
 gmeow:predicate a owl:ObjectProperty ;
     rdfs:label "atom predicate"@en ;
     skos:definition "The predicate IRI of a pattern atom (mutually exclusive with gmeow:path)."@en .
+gmeow:predicateVar a owl:DatatypeProperty ;
+    rdfs:label "atom predicate variable"@en ;
+    skos:definition "The predicate variable name of a pattern atom, used when the predicate itself must be constrained by another atom."@en .
 gmeow:path a owl:ObjectProperty ;
     rdfs:label "atom property path"@en ;
     skos:definition "A structured SPARQL property path (AltPath / SeqPath / ZeroOrMorePath) for a pattern atom whose predicate is not a single IRI."@en .
