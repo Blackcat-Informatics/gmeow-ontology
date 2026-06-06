@@ -252,6 +252,345 @@ gmeow:timezone
     skos:definition "An IANA time-zone identifier for a location (e.g. \"America/Edmonton\"). Non-functional: a large place may span several zones."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+# --------------------------------------------------------------------------- #
+# Reference Frame Profile & Coordinate System Framework (#65)
+# --------------------------------------------------------------------------- #
+
+gmeow:ReferenceFrame
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Reference Frame"@en ;
+    skos:definition "A reference system (such as a coordinate system, datum, grid, or platform space) relative to which locations, coordinates, or measurements are expressed."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Axis
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Axis"@en ;
+    skos:definition "A coordinate axis or dimension of a reference frame (e.g. X, Y, Z, latitude, longitude, elevation, time)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:SpatialCoordinates
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Spatial Coordinates"@en ;
+    skos:definition "A set of coordinate values representing a position in a specific coordinate reference frame."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:SpatialRealm
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Spatial Realm"@en ;
+    skos:definition "The physical, virtual, or conceptual domain of a reference frame (e.g. terrestrial, indoor, celestial, virtual)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:FrameKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Frame Kind"@en ;
+    skos:definition "The structural type of a reference frame (e.g. geodetic, Cartesian, polar, grid, narrative)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Determinacy
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Determinacy"@en ;
+    skos:definition "The model of boundary determinacy or certainty for a location or geometry (e.g. crisp, fuzzy, vague, probabilistic)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:LocationState
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Location State"@en ;
+    skos:definition "The state of a moving entity at a specific point or period in time, including its location, velocity, and orientation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Trajectory
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Trajectory"@en ;
+    skos:definition "A continuous path of motion representing the space-time history of a moving entity."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Seeds for Spatial Realm
+gmeow:spatialRealmTerrestrial a gmeow:SpatialRealm ; rdfs:label "terrestrial"@en .
+gmeow:spatialRealmIndoor     a gmeow:SpatialRealm ; rdfs:label "indoor"@en .
+gmeow:spatialRealmVirtual    a gmeow:SpatialRealm ; rdfs:label "virtual / network"@en .
+gmeow:spatialRealmCelestial  a gmeow:SpatialRealm ; rdfs:label "celestial / astronomical"@en .
+gmeow:spatialRealmRobotic    a gmeow:SpatialRealm ; rdfs:label "robotic"@en .
+
+# Seeds for Frame Kind
+gmeow:frameKindGeodetic      a gmeow:FrameKind ; rdfs:label "geodetic"@en .
+gmeow:frameKindCartesian     a gmeow:FrameKind ; rdfs:label "cartesian"@en .
+gmeow:frameKindPolar         a gmeow:FrameKind ; rdfs:label "polar"@en .
+gmeow:frameKindGrid          a gmeow:FrameKind ; rdfs:label "grid"@en .
+
+# Seeds for Determinacy
+gmeow:determinacyCrisp       a gmeow:Determinacy ; rdfs:label "crisp"@en .
+gmeow:determinacyFuzzy       a gmeow:Determinacy ; rdfs:label "fuzzy"@en .
+gmeow:determinacyVague       a gmeow:Determinacy ; rdfs:label "vague"@en .
+gmeow:determinacyProbabilistic a gmeow:Determinacy ; rdfs:label "probabilistic"@en .
+
+# Axes individuals
+gmeow:axisLatitude         a gmeow:Axis ; rdfs:label "latitude"@en .
+gmeow:axisLongitude        a gmeow:Axis ; rdfs:label "longitude"@en .
+gmeow:axisElevation        a gmeow:Axis ; rdfs:label "elevation"@en .
+gmeow:axisX                a gmeow:Axis ; rdfs:label "X axis"@en .
+gmeow:axisY                a gmeow:Axis ; rdfs:label "Y axis"@en .
+gmeow:axisZ                a gmeow:Axis ; rdfs:label "Z axis"@en .
+gmeow:axisVirtualAddress   a gmeow:Axis ; rdfs:label "virtual address axis"@en .
+gmeow:axisRightAscension   a gmeow:Axis ; rdfs:label "right ascension"@en .
+gmeow:axisDeclination      a gmeow:Axis ; rdfs:label "declination"@en .
+
+# Default Reference Frames for the seed realms
+gmeow:referenceFrameWGS84
+    a gmeow:ReferenceFrame ;
+    rdfs:label "WGS 84 Geodetic Reference Frame"@en ;
+    gmeow:frameRealm gmeow:spatialRealmTerrestrial ;
+    gmeow:hasAxis gmeow:axisLatitude, gmeow:axisLongitude, gmeow:axisElevation ;
+    gmeow:dimensionCount 3 ;
+    gmeow:frameKind gmeow:frameKindGeodetic ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameLocalGrid
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Local Grid Cartesian Reference Frame"@en ;
+    gmeow:frameRealm gmeow:spatialRealmIndoor ;
+    gmeow:hasAxis gmeow:axisX, gmeow:axisY, gmeow:axisZ ;
+    gmeow:dimensionCount 3 ;
+    gmeow:frameKind gmeow:frameKindCartesian ;
+    gmeow:requiresHost true ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameVirtualPlatform
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Virtual Platform Reference Frame"@en ;
+    gmeow:frameRealm gmeow:spatialRealmVirtual ;
+    gmeow:hasAxis gmeow:axisVirtualAddress ;
+    gmeow:dimensionCount 1 ;
+    gmeow:frameKind gmeow:frameKindGrid ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameCelestialEquatorial
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Celestial Equatorial Reference Frame"@en ;
+    gmeow:frameRealm gmeow:spatialRealmCelestial ;
+    gmeow:hasAxis gmeow:axisRightAscension, gmeow:axisDeclination ;
+    gmeow:dimensionCount 2 ;
+    gmeow:frameKind gmeow:frameKindPolar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameRobotBase
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Robot Base Cartesian Reference Frame"@en ;
+    gmeow:frameRealm gmeow:spatialRealmRobotic ;
+    gmeow:hasAxis gmeow:axisX, gmeow:axisY, gmeow:axisZ ;
+    gmeow:dimensionCount 3 ;
+    gmeow:frameKind gmeow:frameKindCartesian ;
+    gmeow:requiresHost true ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+# Reference Frame Profile Properties
+gmeow:frameRealm
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ReferenceFrame ;
+    rdfs:range gmeow:SpatialRealm ;
+    rdfs:label "frame realm"@en ;
+    skos:definition "Relates a reference frame to the spatial realm it describes."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasAxis
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ReferenceFrame ;
+    rdfs:range gmeow:Axis ;
+    rdfs:label "has axis"@en ;
+    skos:definition "Relates a reference frame to one of its coordinate axes."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:dimensionCount
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ReferenceFrame ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "dimension count"@en ;
+    skos:definition "The number of dimensions spanned by a reference frame."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:frameKind
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ReferenceFrame ;
+    rdfs:range gmeow:FrameKind ;
+    rdfs:label "frame kind"@en ;
+    skos:definition "Relates a reference frame to its structural frame kind."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:requiresHost
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ReferenceFrame ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "requires host"@en ;
+    skos:definition "Asserts whether a reference frame requires a hosting entity to exist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:parentFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ReferenceFrame ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "parent frame"@en ;
+    skos:definition "Relates a reference frame to its parent frame in a hierarchy."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:transformsTo
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ReferenceFrame ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "transforms to"@en ;
+    skos:definition "Relates a reference frame to another frame it can be mathematically transformed to."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:frameSolver
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ReferenceFrame ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "frame solver"@en ;
+    skos:definition "Identifies the external solver or transformation method to resolve coordinates in this frame."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:determinacyModel
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ReferenceFrame ;
+    rdfs:range gmeow:Determinacy ;
+    rdfs:label "determinacy model"@en ;
+    skos:definition "Relates a reference frame to its default determinacy model."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Coordinate Properties
+gmeow:coordinateFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:SpatialCoordinates ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "coordinate frame"@en ;
+    skos:definition "Relates a set of coordinates to the reference frame they are expressed in."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasCoordinateMatrix
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Axis ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "has coordinate matrix"@en ;
+    skos:definition "Specifies a transformation or projection matrix associated with a coordinate axis."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Universal Topology Relations
+gmeow:containedInLocation
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:domain gmeow:Location ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "contained in location"@en ;
+    skos:definition "Relates a location to a larger location that contains it; transitive."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:adjacentTo
+    a owl:ObjectProperty, owl:SymmetricProperty ;
+    rdfs:domain gmeow:Location ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "adjacent to"@en ;
+    skos:definition "Relates a location to another location it is adjacent to."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:connectsTo
+    a owl:ObjectProperty, owl:SymmetricProperty ;
+    rdfs:domain gmeow:Location ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "connects to"@en ;
+    skos:definition "Relates a location to another location it connects to."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Subproperty axioms
+gmeow:containedInPlace rdfs:subPropertyOf gmeow:containedInLocation .
+
+# RCC-8 JEPD Relations
+gmeow:rcc8dc
+    a owl:ObjectProperty, owl:SymmetricProperty ;
+    rdfs:domain gmeow:Location ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "rcc8 dc"@en ;
+    skos:definition "RCC-8: Disconnected (DC) — regions are disjoint and do not share any point."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:rcc8ec
+    a owl:ObjectProperty, owl:SymmetricProperty ;
+    rdfs:domain gmeow:Location ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "rcc8 ec"@en ;
+    skos:definition "RCC-8: Externally Connected (EC) — regions share only boundary points."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:rcc8po
+    a owl:ObjectProperty, owl:SymmetricProperty ;
+    rdfs:domain gmeow:Location ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "rcc8 po"@en ;
+    skos:definition "RCC-8: Partial Overlap (PO) — regions overlap but neither is part of the other."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:rcc8tpp
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:containedInLocation ;
+    rdfs:domain gmeow:Location ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "rcc8 tpp"@en ;
+    skos:definition "RCC-8: Tangential Proper Part (TPP) — region is a proper part of another, sharing part of its boundary."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:rcc8ntpp
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:containedInLocation ;
+    rdfs:domain gmeow:Location ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "rcc8 ntpp"@en ;
+    skos:definition "RCC-8: Non-Tangential Proper Part (NTPP) — region is a proper part of another, entirely within its interior."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:rcc8tppi
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Location ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "rcc8 tppi"@en ;
+    skos:definition "RCC-8: Tangential Proper Part Inverse (TPPi) — inverse of TPP."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:rcc8ntppi
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Location ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "rcc8 ntppi"@en ;
+    skos:definition "RCC-8: Non-Tangential Proper Part Inverse (NTPPi) — inverse of NTPP."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:rcc8eq
+    a owl:ObjectProperty, owl:SymmetricProperty ;
+    rdfs:domain gmeow:Location ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "rcc8 eq"@en ;
+    skos:definition "RCC-8: Equal (EQ) — regions are identical."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Jointly Exhaustive and Pairwise Disjoint (JEPD) declaration
+[] a owl:AllDisjointProperties ;
+   owl:members (
+       gmeow:rcc8dc
+       gmeow:rcc8ec
+       gmeow:rcc8po
+       gmeow:rcc8tpp
+       gmeow:rcc8ntpp
+       gmeow:rcc8tppi
+       gmeow:rcc8ntppi
+       gmeow:rcc8eq
+   ) .
+
 # Multilingual / historical place names are NOT a flat literal: a place bears
 # co-equal gmeow:PlaceName appellations via gmeow:hasPlaceName (names module),
 # their endonym/exonym purpose, language frame and toponymic authority carried by
@@ -268,10 +607,11 @@ gmeow:timezone
 # Location propagates through geographic containment: a thing located AT a place
 # is located at every place that CONTAINS it (a desk in a room is in the
 # building, the city, the country). Expressed as the EL property chain
-# locatedAt ∘ containedInPlace ⊑ locatedAt. gmeow:containedInPlace is already
+# locatedAt ∘ containedInLocation ⊑ locatedAt. gmeow:containedInLocation is already
 # transitive (room ⊂ city is derived), so the two compose. This is the regular
-# R ∘ S ⊑ R form (containedInPlace ≺ locatedAt); locatedAt thereby becomes
+# R ∘ S ⊑ R form (containedInLocation ≺ locatedAt); locatedAt thereby becomes
 # non-simple and is kept out of all cardinality axioms, preserving OWL 2 DL.
 # =========================================================================== #
 
-gmeow:locatedAt owl:propertyChainAxiom ( gmeow:locatedAt gmeow:containedInPlace ) .
+gmeow:locatedAt owl:propertyChainAxiom ( gmeow:locatedAt gmeow:containedInLocation ) .
+

@@ -112,3 +112,25 @@ gmeow:storageService "Google Drive"`. A physical disk sets `gmeow:physicalPlace`
 to the room it sits in — a `StorageLocation` composed with a `Place`.
 `VirtualLocation` (a meeting URL) is what the calendar slice will use for online
 events, alongside geographic `Place`s.
+
+## Reference Frame Profiles & Extensibility (Principle 11)
+
+Every spatial measurement or coordinate tuple is relative to a reference system. GMEOW models this relative geometry by separating frame-independent structure (topology) from frame-relative values (geometry) through **Reference Frame Profiles**:
+
+- **`gmeow:ReferenceFrame`** describes coordinate reference systems (CRS), grids, datums, or local platform coordinates.
+- Each reference frame declares its parameters via descriptors:
+  - **`gmeow:frameRealm`** (e.g. terrestrial, indoor, celestial, virtual).
+  - **`gmeow:hasAxis`** points to its coordinate axes (`gmeow:Axis`).
+  - **`gmeow:dimensionCount`** (e.g. `3` for 3D).
+  - **`gmeow:frameKind`** (e.g. geodetic, Cartesian, polar).
+  - **`gmeow:requiresHost`** (boolean indicating if the frame depends on a physical host).
+  - **`gmeow:determinacyModel`** (e.g. crisp, fuzzy, vague).
+  - **`gmeow:parentFrame`** & **`gmeow:transformsTo`** define coordinate hierarchical nesting and mathematical transformation targets.
+  - **`gmeow:frameSolver`** points to external software packages or solvers responsible for coordinate updates (Principle 12).
+
+### Authoring Guidance: Adding a Novel Spatial Realm
+
+To introduce a new domain (e.g. robotic configuration space, narrated fictional settings, or astronomical coordinates) without modifying the core ontology classes:
+1. **Declare the Spatial Realm**: Create a new individual of type `gmeow:SpatialRealm` (e.g., `ex:narrativeRealm`).
+2. **Define a Reference Frame Profile**: Declare a `gmeow:ReferenceFrame` instance with complete profile descriptors (axes, dimension count, kind, determinacy) and set its `gmeow:frameRealm` to your spatial realm individual.
+3. **Align by Reference**: Add external vocabulary mappings in your domain-specific mapping DSL file (e.g. using `skos:closeMatch` or `skos:relatedMatch` to standard terms), leaving core class definitions untouched.

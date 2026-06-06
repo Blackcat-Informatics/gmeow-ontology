@@ -3,6 +3,7 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 # SHACL shapes for the GMEOW vocabulary. The SPARQL target restricts each shape
 # to GMEOW-namespaced terms so imported gUFO/peer-schema terms are not flagged.
@@ -636,6 +637,91 @@ gmeow:InternalLanguageTagShape
                 $this ?p ?value .
                 FILTER (STRSTARTS(STR(?p), "https://blackcatinformatics.ca/gmeow/"))
                 FILTER (isLiteral(?value) && lang(?value) != "" && !regex(lang(?value), "^x-gmeow-[a-z0-9\\\\-]+$", "i"))
+            }
+        """ ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Reference Frame Profile & Novel Realm SHACL Shapes (#65)
+# --------------------------------------------------------------------------- #
+
+gmeow:FrameProfileShape
+    a sh:NodeShape ;
+    rdfs:label "Reference Frame Profile Shape" ;
+    sh:targetClass gmeow:ReferenceFrame ;
+    sh:property [
+        sh:path gmeow:frameRealm ;
+        sh:minCount 1 ;
+        sh:class gmeow:SpatialRealm ;
+        sh:severity sh:Violation ;
+        sh:message "A reference frame must declare its spatial realm." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:hasAxis ;
+        sh:minCount 1 ;
+        sh:class gmeow:Axis ;
+        sh:severity sh:Violation ;
+        sh:message "A reference frame must have at least one coordinate axis." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:dimensionCount ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:severity sh:Violation ;
+        sh:message "A reference frame must declare exactly one dimension count." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:frameKind ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:FrameKind ;
+        sh:severity sh:Violation ;
+        sh:message "A reference frame must declare its frame kind." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:requiresHost ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:severity sh:Violation ;
+        sh:message "A reference frame must declare whether it requires a host." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:parentFrame ;
+        sh:maxCount 1 ;
+        sh:class gmeow:ReferenceFrame ;
+        sh:severity sh:Violation ;
+        sh:message "A reference frame may have at most one parent frame." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:transformsTo ;
+        sh:class gmeow:ReferenceFrame ;
+        sh:severity sh:Violation ;
+        sh:message "A reference frame transformation target must be another reference frame." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:determinacyModel ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:Determinacy ;
+        sh:severity sh:Violation ;
+        sh:message "A reference frame must declare its determinacy model." ;
+    ] .
+
+gmeow:NovelRealmExtensibilityShape
+    a sh:NodeShape ;
+    rdfs:label "Novel realm extensibility shape" ;
+    sh:targetClass gmeow:SpatialRealm ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        sh:message "Every defined SpatialRealm must be referenced by at least one ReferenceFrame profile." ;
+        sh:select """
+            SELECT $this WHERE {
+                FILTER NOT EXISTS {
+                    ?frame a <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ;
+                           <https://blackcatinformatics.ca/gmeow/frameRealm> $this .
+                }
             }
         """ ;
     ] .

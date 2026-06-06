@@ -12,6 +12,8 @@
 @prefix gn: <http://www.geonames.org/ontology#> .
 @prefix wd: <http://www.wikidata.org/entity/> .
 @prefix wdt: <http://www.wikidata.org/prop/direct/> .
+@prefix bfo: <http://purl.obolibrary.org/obo/> .
+@prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
 
 # Term equivalences for the places domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-places.sssom.tsv by `gmeow compile-mappings`.
@@ -372,4 +374,31 @@ gmeow:eqPlaces046 a gmeow:TermEquivalence ;
     gmeow:alignObject schema:sameAs ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces047 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Location ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:E53_Place ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "Place" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces048 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Location ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000029 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "site" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces049 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Location ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000006 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "spatial region" ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" .

@@ -88,3 +88,43 @@ def test_internal_language_tag_shape_is_case_insensitive() -> None:
     ok = Graph()
     ok.add((EX.name, GMEOW.fullName, Literal("Japanese", lang="x-GMEOW-Japanese")))
     assert run_shacl(ok).ok
+
+
+def test_wellformed_reference_frame_passes() -> None:
+    ok = Graph()
+    ok.add((EX.frame, RDF.type, GMEOW.ReferenceFrame))
+    ok.add((EX.frame, GMEOW.frameRealm, GMEOW.spatialRealmTerrestrial))
+    ok.add((EX.frame, GMEOW.hasAxis, EX.axisX))
+    ok.add((EX.frame, GMEOW.dimensionCount, Literal(3)))
+    ok.add((EX.frame, GMEOW.frameKind, GMEOW.frameKindCartesian))
+    ok.add((EX.frame, GMEOW.requiresHost, Literal(False)))
+    ok.add((EX.frame, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
+
+    ok.add((GMEOW.spatialRealmTerrestrial, RDF.type, GMEOW.SpatialRealm))
+    ok.add((EX.axisX, RDF.type, GMEOW.Axis))
+    ok.add((GMEOW.frameKindCartesian, RDF.type, GMEOW.FrameKind))
+    ok.add((GMEOW.determinacyCrisp, RDF.type, GMEOW.Determinacy))
+
+    result = run_shacl(ok)
+    assert result.ok, "\n".join(result.errors)
+
+
+def test_malformed_reference_frame_fails() -> None:
+    bad = Graph()
+    bad.add((EX.frame, RDF.type, GMEOW.ReferenceFrame))
+    result = run_shacl(bad)
+    assert not result.ok
+    errors = "\n".join(result.errors)
+    assert "declare its spatial realm" in errors
+    assert "have at least one coordinate axis" in errors
+
+
+def test_novel_realm_extensibility_guard_warns() -> None:
+    bad = Graph()
+    bad.add((EX.customRealm, RDF.type, GMEOW.SpatialRealm))
+    result = run_shacl(bad)
+    assert result.ok  # Warning only, so validation passes
+    assert any(
+        "must be referenced by at least one ReferenceFrame" in w
+        for w in result.warnings
+    )

@@ -151,3 +151,183 @@ def test_coordinate_props_nonfunctional() -> None:
         ) not in graph
     # elevation is a decimal.
     assert (URIRef(GMEOW + "elevation"), RDFS.range, XSD.decimal) in graph
+
+
+def test_location_superset_core() -> None:
+    graph = _graph()
+
+    # 1. New classes
+    for cls in (
+        "ReferenceFrame",
+        "Axis",
+        "SpatialCoordinates",
+        "SpatialRealm",
+        "FrameKind",
+        "Determinacy",
+        "LocationState",
+        "Trajectory",
+    ):
+        ref = URIRef(GMEOW + cls)
+        assert (ref, RDF.type, OWL.Class) in graph
+
+    # 2. Value scaffold individuals
+    for ind in (
+        "spatialRealmTerrestrial",
+        "spatialRealmIndoor",
+        "spatialRealmVirtual",
+        "spatialRealmCelestial",
+        "spatialRealmRobotic",
+    ):
+        assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "SpatialRealm")) in graph
+    for ind in (
+        "frameKindGeodetic",
+        "frameKindCartesian",
+        "frameKindPolar",
+        "frameKindGrid",
+    ):
+        assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "FrameKind")) in graph
+    for ind in (
+        "determinacyCrisp",
+        "determinacyFuzzy",
+        "determinacyVague",
+        "determinacyProbabilistic",
+    ):
+        assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "Determinacy")) in graph
+
+    # 3. New Properties domain & range
+    assert (
+        URIRef(GMEOW + "frameRealm"),
+        RDFS.domain,
+        URIRef(GMEOW + "ReferenceFrame"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "frameRealm"),
+        RDFS.range,
+        URIRef(GMEOW + "SpatialRealm"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasAxis"),
+        RDFS.domain,
+        URIRef(GMEOW + "ReferenceFrame"),
+    ) in graph
+    assert (URIRef(GMEOW + "hasAxis"), RDFS.range, URIRef(GMEOW + "Axis")) in graph
+    assert (
+        URIRef(GMEOW + "dimensionCount"),
+        RDFS.domain,
+        URIRef(GMEOW + "ReferenceFrame"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "dimensionCount"),
+        RDFS.range,
+        XSD.nonNegativeInteger,
+    ) in graph
+    assert (URIRef(GMEOW + "dimensionCount"), RDF.type, OWL.FunctionalProperty) in graph
+    assert (
+        URIRef(GMEOW + "frameKind"),
+        RDFS.domain,
+        URIRef(GMEOW + "ReferenceFrame"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "frameKind"),
+        RDFS.range,
+        URIRef(GMEOW + "FrameKind"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "requiresHost"),
+        RDFS.domain,
+        URIRef(GMEOW + "ReferenceFrame"),
+    ) in graph
+    assert (URIRef(GMEOW + "requiresHost"), RDFS.range, XSD.boolean) in graph
+    assert (URIRef(GMEOW + "requiresHost"), RDF.type, OWL.FunctionalProperty) in graph
+    assert (
+        URIRef(GMEOW + "parentFrame"),
+        RDFS.domain,
+        URIRef(GMEOW + "ReferenceFrame"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "parentFrame"),
+        RDFS.range,
+        URIRef(GMEOW + "ReferenceFrame"),
+    ) in graph
+    assert (URIRef(GMEOW + "parentFrame"), RDF.type, OWL.FunctionalProperty) in graph
+    assert (
+        URIRef(GMEOW + "transformsTo"),
+        RDFS.domain,
+        URIRef(GMEOW + "ReferenceFrame"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "transformsTo"),
+        RDFS.range,
+        URIRef(GMEOW + "ReferenceFrame"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "frameSolver"),
+        RDFS.domain,
+        URIRef(GMEOW + "ReferenceFrame"),
+    ) in graph
+    assert (URIRef(GMEOW + "frameSolver"), RDFS.range, RDFS.Literal) in graph
+    assert (
+        URIRef(GMEOW + "determinacyModel"),
+        RDFS.domain,
+        URIRef(GMEOW + "ReferenceFrame"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "determinacyModel"),
+        RDFS.range,
+        URIRef(GMEOW + "Determinacy"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "coordinateFrame"),
+        RDFS.domain,
+        URIRef(GMEOW + "SpatialCoordinates"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "coordinateFrame"),
+        RDFS.range,
+        URIRef(GMEOW + "ReferenceFrame"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "coordinateFrame"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasCoordinateMatrix"),
+        RDFS.domain,
+        URIRef(GMEOW + "Axis"),
+    ) in graph
+    assert (URIRef(GMEOW + "hasCoordinateMatrix"), RDFS.range, RDFS.Literal) in graph
+
+    # 4. Topology relations
+    assert (
+        URIRef(GMEOW + "containedInLocation"),
+        RDF.type,
+        OWL.TransitiveProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "containedInPlace"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "containedInLocation"),
+    ) in graph
+    assert (URIRef(GMEOW + "adjacentTo"), RDF.type, OWL.SymmetricProperty) in graph
+    assert (URIRef(GMEOW + "connectsTo"), RDF.type, OWL.SymmetricProperty) in graph
+
+    # 5. locatedAt property chain axiom
+    chain = list(graph.objects(URIRef(GMEOW + "locatedAt"), OWL.propertyChainAxiom))
+    assert len(chain) > 0
+
+    # 6. RCC-8 JEPD disjoint properties
+    all_disjoint = list(graph.subjects(RDF.type, OWL.AllDisjointProperties))
+    assert len(all_disjoint) > 0
+
+    # 7. RCC-8 subproperties
+    assert (
+        URIRef(GMEOW + "rcc8tpp"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "containedInLocation"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "rcc8ntpp"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "containedInLocation"),
+    ) in graph

@@ -369,10 +369,6 @@ gmeow:outNicknameName a fno:Output ;
     fno:predicate gmeow:projectedNick ;
     fno:type rdfs:Literal .
 
-gmeow:outSelectDisplayName a fno:Output ;
-    fno:predicate gmeow:projectedName ;
-    fno:type rdfs:Literal .
-
 gmeow:outWebPageToUrl a fno:Output ;
     fno:predicate gmeow:projectedUrl ;
     fno:type xsd:anyURI .
@@ -400,6 +396,10 @@ gmeow:paramHasWebPage a fno:Parameter ;
 gmeow:outParticipationToEventRole a fno:Output ;
     fno:predicate gmeow:projectedEventRole ;
     fno:type gmeow:Entity .
+
+gmeow:outSelectDisplayName a fno:Output ;
+    fno:predicate gmeow:projectedName ;
+    fno:type rdfs:Literal .
 
 gmeow:paramParticipationParticipant a fno:Parameter ;
     fno:predicate gmeow:participationParticipant ;
@@ -758,7 +758,11 @@ gmeow:implSchemaOrg a fno:Implementation ;
     fno:returnMapping [ a fnom:DefaultReturnMapping ;
             rdfs:label "fnSelectDisplayName output ↦ ?dispName"@en ;
             fnom:functionOutput gmeow:outSelectDisplayName ;
-            fnom:implementationProperty "dispName" ] .
+            fnom:implementationProperty "dispName" ],
+        [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnSelectDisplayName output ↦ ?name"@en ;
+            fnom:functionOutput gmeow:outSelectDisplayName ;
+            fnom:implementationProperty "name" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnSelectDisplayName → vcard (FnO mapping)"@en ;
