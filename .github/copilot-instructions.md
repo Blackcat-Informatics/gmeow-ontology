@@ -1,0 +1,11 @@
+# GitHub Copilot Instructions
+
+When suggesting code completions or generating templates in this repository, always align with the rules below:
+
+1. Refer to [AGENTS.md](file:///home/paudley/Active/gmeow-ontology-agents/AGENTS.md) in the project root for the list of available `make` targets (e.g., `make check`, `make compile-mappings`, `make compile-statements`).
+2. Strictly follow the twelve principles in [CONSTITUTION.md](file:///home/paudley/Active/gmeow-ontology-agents/CONSTITUTION.md).
+3. Do not suggest editing generated files. In particular:
+   - Do not edit files under `mappings/` or `projections/` directly; edit files under `mapping-dsl/` instead.
+   - Do not edit files under `statements/` directly; edit files under `statement-dsl/` instead.
+4. Ensure all ontology classes, properties, and instances use the correct camelCase or PascalCase formatting as established in existing Turtle (`.ttl`) files in `ontology/modules/`.
+5. Ensure Python code complies with the ruff auto-formatter rules and targets the dependencies defined in `pyproject.toml` using `uv`.
