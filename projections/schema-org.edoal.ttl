@@ -11,51 +11,26 @@
     rdfs:label "GMEOW → schema-org (EDOAL)"@en ;
     align:level "2EDOAL" ;
     align:map [ a align:Cell ;
-            rdfs:label "gmeow:Place [gmeow:placeTypeCountry] → schema:Country"@en ;
-            align:entity1 [ a edoal:Class ;
-                    edoal:and ( [ a edoal:Class ;
-                                edoal:uri gmeow:Place ] [ a edoal:AttributeValueRestriction ;
-                                edoal:comparator edoal:equals ;
-                                edoal:onAttribute [ a edoal:Relation ;
-                                        edoal:uri gmeow:placeType ] ;
-                                edoal:value [ edoal:uri gmeow:placeTypeCountry ] ] ) ] ;
-            align:entity2 [ a edoal:Class ;
-                    edoal:uri schema:Country ] ;
-            align:relation "=" ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnPlaceTypeToClass ] ],
-        [ a align:Cell ;
-            rdfs:label "gmeow:ProgrammingLanguage → schema:ComputerLanguage"@en ;
-            align:entity1 [ a edoal:Class ;
-                    edoal:uri gmeow:ProgrammingLanguage ] ;
-            align:entity2 [ a edoal:Class ;
-                    edoal:uri schema:ComputerLanguage ] ;
-            align:relation "=" ],
-        [ a align:Cell ;
-            rdfs:label "LanguageProficiency relator → schema:knowsLanguage (flatten, lossy)"@en ;
+            rdfs:label "languageCode (+ co-mingled scriptCode) → schema:alternateName (BCP-47)"@en ;
             align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:knowsLanguage ] ;
+                    edoal:uri gmeow:languageCode ] ;
             align:entity2 [ a edoal:Property ;
-                    edoal:uri schema:knowsLanguage ] ;
+                    edoal:uri schema:alternateName ] ;
             align:relation "<=" ;
             edoal:measure 8e-01 ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnProficiencyToKnownLanguage ] ],
+            edoal:transformation [ rdfs:seeAlso gmeow:fnComposeBcp47 ] ],
         [ a align:Cell ;
-            rdfs:label "displayable fullName → schema:name"@en ;
+            rdfs:label "Birth life-event date → schema:birthDate"@en ;
             align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:fullName ] ;
+                    edoal:compose ( [ a edoal:Relation ;
+                                edoal:inverse [ a edoal:Relation ;
+                                        edoal:uri gmeow:hasPrincipal ] ] [ a edoal:Relation ;
+                                edoal:uri gmeow:eventDate ] ) ] ;
             align:entity2 [ a edoal:Property ;
-                    edoal:uri schema:name ] ;
+                    edoal:uri schema:birthDate ] ;
             align:relation "<=" ;
-            edoal:measure 9e-01 ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayName ] ],
-        [ a align:Cell ;
-            rdfs:label "Honorific (prefix position) → schema:honorificPrefix"@en ;
-            align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:honorific ] ;
-            align:entity2 [ a edoal:Property ;
-                    edoal:uri schema:honorificPrefix ] ;
-            align:relation "<=" ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnHonorificToAffix ] ],
+            edoal:measure 9.5e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnBirthEventToDate ] ],
         [ a align:Cell ;
             rdfs:label "subOrganizationOf → schema:department (inverse, parent→child)"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -67,14 +42,6 @@
             edoal:measure 1e+00 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnSubOrgToDepartment ] ],
         [ a align:Cell ;
-            rdfs:label "Honorific (suffix position) → schema:honorificSuffix"@en ;
-            align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:honorific ] ;
-            align:entity2 [ a edoal:Property ;
-                    edoal:uri schema:honorificSuffix ] ;
-            align:relation "<=" ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnHonorificToAffix ] ],
-        [ a align:Cell ;
             rdfs:label "gmeow:description → schema:description"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:description ] ;
@@ -83,18 +50,30 @@
             align:relation "=" ;
             edoal:measure 1e+00 ],
         [ a align:Cell ;
-            rdfs:label "gmeow:Place [gmeow:placeTypeRegion] → schema:AdministrativeArea"@en ;
-            align:entity1 [ a edoal:Class ;
-                    edoal:and ( [ a edoal:Class ;
-                                edoal:uri gmeow:Place ] [ a edoal:AttributeValueRestriction ;
-                                edoal:comparator edoal:equals ;
-                                edoal:onAttribute [ a edoal:Relation ;
-                                        edoal:uri gmeow:placeType ] ;
-                                edoal:value [ edoal:uri gmeow:placeTypeRegion ] ] ) ] ;
-            align:entity2 [ a edoal:Class ;
-                    edoal:uri schema:AdministrativeArea ] ;
-            align:relation "=" ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnPlaceTypeToClass ] ],
+            rdfs:label "displayable GenderIdentity value → schema:gender (lossy)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasGenderIdentity ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:gender ] ;
+            align:relation "<=" ;
+            edoal:measure 6e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayableGender ] ],
+        [ a align:Cell ;
+            rdfs:label "Honorific (prefix position) → schema:honorificPrefix"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:honorific ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:honorificPrefix ] ;
+            align:relation "<=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnHonorificToAffix ] ],
+        [ a align:Cell ;
+            rdfs:label "Honorific (suffix position) → schema:honorificSuffix"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:honorific ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:honorificSuffix ] ;
+            align:relation "<=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnHonorificToAffix ] ],
         [ a align:Cell ;
             rdfs:label "Membership Role → schema:jobTitle"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -111,14 +90,52 @@
             edoal:measure 9e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnMembershipToJobTitle ] ],
         [ a align:Cell ;
-            rdfs:label "displayable GenderIdentity value → schema:gender (lossy)"@en ;
+            rdfs:label "LanguageProficiency relator → schema:knowsLanguage (flatten, lossy)"@en ;
             align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:hasGenderIdentity ] ;
+                    edoal:uri gmeow:knowsLanguage ] ;
             align:entity2 [ a edoal:Property ;
-                    edoal:uri schema:gender ] ;
+                    edoal:uri schema:knowsLanguage ] ;
             align:relation "<=" ;
-            edoal:measure 6e-01 ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayableGender ] ],
+            edoal:measure 8e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnProficiencyToKnownLanguage ] ],
+        [ a align:Cell ;
+            rdfs:label "gmeow:Language → schema:Language"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:Language ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:Language ] ;
+            align:relation "=" ],
+        [ a align:Cell ;
+            rdfs:label "displayable fullName → schema:name"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:fullName ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:name ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayName ] ],
+        [ a align:Cell ;
+            rdfs:label "nickname-purpose PersonName → schema:alternateName (downcast)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasName ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:alternateName ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnNicknameName ] ],
+        [ a align:Cell ;
+            rdfs:label "gmeow:Place [gmeow:placeTypeCountry] → schema:Country"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:and ( [ a edoal:Class ;
+                                edoal:uri gmeow:Place ] [ a edoal:AttributeValueRestriction ;
+                                edoal:comparator edoal:equals ;
+                                edoal:onAttribute [ a edoal:Relation ;
+                                        edoal:uri gmeow:placeType ] ;
+                                edoal:value [ edoal:uri gmeow:placeTypeCountry ] ] ) ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:Country ] ;
+            align:relation "=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnPlaceTypeToClass ] ],
         [ a align:Cell ;
             rdfs:label "gmeow:Place [gmeow:placeTypeCity] → schema:City"@en ;
             align:entity1 [ a edoal:Class ;
@@ -133,22 +150,6 @@
             align:relation "=" ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnPlaceTypeToClass ] ],
         [ a align:Cell ;
-            rdfs:label "languageCode (+ co-mingled scriptCode) → schema:alternateName (BCP-47)"@en ;
-            align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:languageCode ] ;
-            align:entity2 [ a edoal:Property ;
-                    edoal:uri schema:alternateName ] ;
-            align:relation "<=" ;
-            edoal:measure 8e-01 ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnComposeBcp47 ] ],
-        [ a align:Cell ;
-            rdfs:label "gmeow:Language → schema:Language"@en ;
-            align:entity1 [ a edoal:Class ;
-                    edoal:uri gmeow:Language ] ;
-            align:entity2 [ a edoal:Class ;
-                    edoal:uri schema:Language ] ;
-            align:relation "=" ],
-        [ a align:Cell ;
             rdfs:label "gmeow:Place [gmeow:placeTypeAdministrativeArea] → schema:AdministrativeArea"@en ;
             align:entity1 [ a edoal:Class ;
                     edoal:and ( [ a edoal:Class ;
@@ -162,26 +163,25 @@
             align:relation "=" ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnPlaceTypeToClass ] ],
         [ a align:Cell ;
-            rdfs:label "Birth life-event date → schema:birthDate"@en ;
-            align:entity1 [ a edoal:Relation ;
-                    edoal:compose ( [ a edoal:Relation ;
-                                edoal:inverse [ a edoal:Relation ;
-                                        edoal:uri gmeow:hasPrincipal ] ] [ a edoal:Relation ;
-                                edoal:uri gmeow:eventDate ] ) ] ;
-            align:entity2 [ a edoal:Property ;
-                    edoal:uri schema:birthDate ] ;
-            align:relation "<=" ;
-            edoal:measure 9.5e-01 ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnBirthEventToDate ] ],
+            rdfs:label "gmeow:Place [gmeow:placeTypeRegion] → schema:AdministrativeArea"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:and ( [ a edoal:Class ;
+                                edoal:uri gmeow:Place ] [ a edoal:AttributeValueRestriction ;
+                                edoal:comparator edoal:equals ;
+                                edoal:onAttribute [ a edoal:Relation ;
+                                        edoal:uri gmeow:placeType ] ;
+                                edoal:value [ edoal:uri gmeow:placeTypeRegion ] ] ) ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:AdministrativeArea ] ;
+            align:relation "=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnPlaceTypeToClass ] ],
         [ a align:Cell ;
-            rdfs:label "nickname-purpose PersonName → schema:alternateName (downcast)"@en ;
-            align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:hasName ] ;
-            align:entity2 [ a edoal:Property ;
-                    edoal:uri schema:alternateName ] ;
-            align:relation "<=" ;
-            edoal:measure 9e-01 ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnNicknameName ] ],
+            rdfs:label "gmeow:ProgrammingLanguage → schema:ComputerLanguage"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:ProgrammingLanguage ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:ComputerLanguage ] ;
+            align:relation "=" ],
         [ a align:Cell ;
             rdfs:label "hasWebPage → schema:url (the WebPage IRI)"@en ;
             align:entity1 [ a edoal:Relation ;

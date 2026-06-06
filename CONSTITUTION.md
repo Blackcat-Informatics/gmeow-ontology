@@ -77,9 +77,13 @@ The mapping compiler. *Tested by:* `gmeow compile-mappings --check`, projection 
 Data already published in FOAF, schema.org, vCard, GEDCOM, DOAP, PROV-O, ORG, and Wikidata is
 covered *by reference*, not by rewriting. Rich interlinking ships out of the box. Asserting a
 link copies nothing; copying axioms in is license-gated and a reference-only source is refused.
+This applies **recursively to the foundational spine**: gUFO is bridged by reference to BFO 2020
+(ISO/IEC 21838-2) — link-only, never imported — so even GMEOW's upper-ontology grounding is
+interoperable without inheriting anyone's axioms.
 
 *Embodied in:* [`docs/RATIONALE.md`](./docs/RATIONALE.md) § The solution; `mapping-dsl/`,
-`mappings/*.sssom.tsv`.
+`mappings/*.sssom.tsv`; the foundational bridge
+[`docs/foundational-bridging.md`](./docs/foundational-bridging.md).
 
 ## 6. Greenfield — get it right, not compatible
 

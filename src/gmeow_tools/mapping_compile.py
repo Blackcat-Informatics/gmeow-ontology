@@ -84,13 +84,20 @@ _GENERATED_BANNER = (
 # --------------------------------------------------------------------------- #
 
 
+def _local(iri: URIRef) -> str:
+    """The local name of an IRI (after the last ``#`` or ``/``)."""
+    text = str(iri)
+    cut = max(text.rfind("#"), text.rfind("/"))
+    return text[cut + 1 :] if cut >= 0 else text
+
+
 def _param_iri(predicate: URIRef) -> URIRef:
-    local = str(predicate).rsplit("/", 1)[-1].rsplit("#", 1)[-1]
+    local = _local(predicate)
     return URIRef(GM + "param" + local[:1].upper() + local[1:])
 
 
 def _output_iri(fn: URIRef) -> URIRef:
-    local = str(fn).rsplit("/", 1)[-1].rsplit("#", 1)[-1]
+    local = _local(fn)
     stem = local[2:] if local.startswith("fn") else local
     return URIRef(GM + "out" + stem)
 
@@ -211,6 +218,20 @@ def _output_var(cell: ProjectionCell) -> str | None:
     return None
 
 
+def _stable_bnode(label: str) -> BNode:
+    """A blank node with a deterministic, meaningful id.
+
+    Issue #36: rdflib's Turtle serializer orders blank nodes by their id, and a
+    default ``BNode()`` id carries a per-process random component — so the emitted
+    cell/mapping order (hence the committed artifact) varied run to run. Minting the
+    id from the node's own content makes it stable across processes *and*
+    self-documenting, while keeping EDOAL's anonymous-cell convention (the id drives
+    ordering; the node still serializes inline as ``[ … ]`` with its ``rdfs:label``).
+    """
+    safe = "".join(c if c.isalnum() else "_" for c in label)
+    return BNode(f"n_{safe}")
+
+
 def _emit_fnom(
     graph: Graph,
     dsl: Dsl,
@@ -258,20 +279,48 @@ def _emit_fnom(
                 if out_var is not None:
                     out_vars.add(out_var)
 
-            mapping = BNode()
+            fn_local = _local(fn_iri)
+            mapping = _stable_bnode(f"mapping-{fn_local}-{profile}")
             graph.add((mapping, RDF.type, FNO.Mapping))
+            # Label from the *neutral* function local name + profile — never
+            # ``fn.label``, which may embed one profile's target term (e.g.
+            # "… → schema:birthDate") and mislead when the function is reused
+            # across profiles (vCard/FOAF).
+            graph.add(
+                (
+                    mapping,
+                    RDFS.label,
+                    Literal(f"{fn_local} → {profile} (FnO mapping)", lang="en"),
+                )
+            )
             graph.add((mapping, FNO.function, fn_iri))
             graph.add((mapping, FNO.implementation, impl))
             for param in sorted(param_vars, key=str):
                 for var in sorted(param_vars[param]):
-                    pmap = BNode()
+                    pmap = _stable_bnode(
+                        f"param-{fn_local}-{profile}-{_local(param)}-{var}"
+                    )
                     graph.add((pmap, RDF.type, FNOM.PropertyParameterMapping))
+                    graph.add(
+                        (
+                            pmap,
+                            RDFS.label,
+                            Literal(f"{_local(param)} ↦ ?{var}", lang="en"),
+                        )
+                    )
                     graph.add((pmap, FNOM.functionParameter, param))
                     graph.add((pmap, FNOM.implementationProperty, Literal(var)))
                     graph.add((mapping, FNO.parameterMapping, pmap))
             for var in sorted(out_vars):
-                rmap = BNode()
+                rmap = _stable_bnode(f"return-{fn_local}-{profile}-{var}")
                 graph.add((rmap, RDF.type, FNOM.DefaultReturnMapping))
+                graph.add(
+                    (
+                        rmap,
+                        RDFS.label,
+                        Literal(f"{fn_local} output ↦ ?{var}", lang="en"),
+                    )
+                )
                 graph.add((rmap, FNOM.functionOutput, out_node))
                 graph.add((rmap, FNOM.implementationProperty, Literal(var)))
                 graph.add((mapping, FNO.returnMapping, rmap))
@@ -446,8 +495,10 @@ def _edoal_cells(graph: Graph, cell: ProjectionCell, b: ProfileBinding) -> list[
     pattern = cell.pattern
     cells: list[BNode] = []
 
-    def _cell(entity1: Node, entity2: Node, label: str) -> BNode:
-        node = BNode()
+    def _cell(entity1: Node, entity2: Node, label: str, key: str) -> BNode:
+        # Deterministic, meaningful blank-node id (issue #36) — keyed on the source
+        # projection cell, the profile, and a fan-out key so it is unique and stable.
+        node = _stable_bnode(f"cell-{b.profile}-{_local(cell.iri)}-{key}")
         graph.add((node, RDF.type, ALIGN.Cell))
         graph.add((node, RDFS.label, Literal(label, lang="en")))
         graph.add((node, ALIGN.entity1, entity1))
@@ -464,7 +515,7 @@ def _edoal_cells(graph: Graph, cell: ProjectionCell, b: ProfileBinding) -> list[
     if b.value_class_map:
         if pattern.edoal_source is None:
             raise CompileError(f"{cell.iri}: value-class map needs edoalSource")
-        for vc in b.value_class_map:
+        for i, vc in enumerate(b.value_class_map):
             entity1 = _edoal_restriction(
                 graph, pattern.edoal_source, _attr_of(pattern), vc.when_value
             )
@@ -475,6 +526,7 @@ def _edoal_cells(graph: Graph, cell: ProjectionCell, b: ProfileBinding) -> list[
                     entity2,
                     f"{curie(pattern.edoal_source)} "
                     f"[{curie(vc.when_value)}] → {curie(vc.to_class)}",
+                    key=f"{i}-{_local(vc.to_class)}",
                 )
             )
         return cells
@@ -495,7 +547,9 @@ def _edoal_cells(graph: Graph, cell: ProjectionCell, b: ProfileBinding) -> list[
     if target is None:
         return cells
     target_entity = _edoal_entity(graph, target, target_kind)
-    cells.append(_cell(source, target_entity, cell.label or f"→ {curie(target)}"))
+    cells.append(
+        _cell(source, target_entity, cell.label or f"→ {curie(target)}", key="0")
+    )
     return cells
 
 
