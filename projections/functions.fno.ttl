@@ -27,6 +27,20 @@ gmeow:fnComposeBcp47 a fno:Function ;
     fno:expects ( gmeow:paramLanguageCode gmeow:paramScriptCode ) ;
     fno:returns ( gmeow:outComposeBcp47 ) .
 
+gmeow:fnEventTypeToSummary a fno:Function ;
+    rdfs:label "event type label → iCalendar SUMMARY"@en ;
+    dcterms:description "Downcasts an event's open gmeow:eventType vocabulary to a single human-readable iCalendar SUMMARY: the rdfs:label of a gmeow:EventType value is emitted as ical:summary. The full multi-type richness collapses to one title string."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/ical.rq> ;
+    fno:expects ( gmeow:paramEventType ) ;
+    fno:returns ( gmeow:outEventTypeToSummary ) .
+
+gmeow:fnFuzzyTimeToDate a fno:Function ;
+    rdfs:label "fuzzy event bounds → schema:startDate"@en ;
+    dcterms:description "Downcasts an approximate (circa) event date to a single schema:startDate: the gmeow:earliestStart lower bound is emitted, while the gmeow:latestEnd upper bound and the gmeow:temporalPrecision qualifier are dropped — the uncertainty band collapses to one instant."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    fno:expects ( gmeow:paramEarliestStart ) ;
+    fno:returns ( gmeow:outFuzzyTimeToDate ) .
+
 gmeow:fnHonorificToAffix a fno:Function ;
     rdfs:label "honorific value → prefix/suffix literal"@en ;
     dcterms:description "Maps a gmeow:Honorific value to a target honorific-prefix or honorific-suffix string according to its gmeow:honorificPosition (e.g. honorificDr → schema:honorificPrefix \"Dr\"; honorificSan → a suffix)."@en ;
@@ -40,6 +54,20 @@ gmeow:fnLatLongToWktPoint a fno:Function ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> ;
     fno:expects ( gmeow:paramLatitude gmeow:paramLongitude ) ;
     fno:returns ( gmeow:outLatLongToWktPoint ) .
+
+gmeow:fnParticipantToAttendee a fno:Function ;
+    rdfs:label "hasParticipant → iCalendar ATTENDEE"@en ;
+    dcterms:description "Downcasts the flat gmeow:hasParticipant shortcut to a bare iCalendar ATTENDEE edge: the participant agent is emitted as ical:attendee on the event. Any reified Participation's role, period, confidence and standpoint are dropped — iCal's ATTENDEE carries none of them."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/ical.rq> ;
+    fno:expects ( gmeow:paramHasParticipant ) ;
+    fno:returns ( gmeow:outParticipantToAttendee ) .
+
+gmeow:fnParticipationToEventRole a fno:Function ;
+    rdfs:label "Participation → schema event-role edge"@en ;
+    dcterms:description "Downcasts a reified gmeow:Participation to a flat schema.org event-role edge: the event gains schema:attendee / schema:performer / schema:organizer pointing at the participant, keyed by the participation's gmeow:ParticipantRole. The Participation's period, confidence, evidence and standpoint, and the open role space beyond the three schema roles, are dropped — the flat edge is lossy by design."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    fno:expects ( gmeow:paramParticipationParticipant ) ;
+    fno:returns ( gmeow:outParticipationToEventRole ) .
 
 gmeow:fnPlaceTypeToClass a fno:Function ;
     rdfs:label "place-type value → target class"@en ;
@@ -94,6 +122,10 @@ gmeow:implGeosparql a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> .
 
+gmeow:implIcal a fno:Implementation ;
+    dcterms:format "application/sparql-query" ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/ical.rq> .
+
 gmeow:outComposeAddress a fno:Output ;
     fno:predicate gmeow:projectedAddress ;
     fno:type xsd:string .
@@ -102,9 +134,21 @@ gmeow:outComposeBcp47 a fno:Output ;
     fno:predicate gmeow:projectedLanguageTag ;
     fno:type xsd:string .
 
+gmeow:outEventTypeToSummary a fno:Output ;
+    fno:predicate gmeow:projectedSummary ;
+    fno:type rdfs:Literal .
+
+gmeow:outFuzzyTimeToDate a fno:Output ;
+    fno:predicate gmeow:projectedFuzzyDate ;
+    fno:type rdfs:Literal .
+
 gmeow:outLatLongToWktPoint a fno:Output ;
     fno:predicate geo:asWKT ;
     fno:type geo:wktLiteral .
+
+gmeow:outParticipantToAttendee a fno:Output ;
+    fno:predicate gmeow:projectedAttendee ;
+    fno:type gmeow:Agent .
 
 gmeow:outPlaceTypeToClass a fno:Output ;
     fno:predicate gmeow:projectedType ;
@@ -141,6 +185,21 @@ gmeow:paramCountryCode a fno:Parameter ;
     fno:predicate gmeow:countryCode ;
     fno:required false ;
     fno:type rdfs:Literal .
+
+gmeow:paramEarliestStart a fno:Parameter ;
+    fno:predicate gmeow:earliestStart ;
+    fno:required true ;
+    fno:type xsd:dateTime .
+
+gmeow:paramEventType a fno:Parameter ;
+    fno:predicate gmeow:eventType ;
+    fno:required true ;
+    fno:type gmeow:EventType .
+
+gmeow:paramHasParticipant a fno:Parameter ;
+    fno:predicate gmeow:hasParticipant ;
+    fno:required true ;
+    fno:type gmeow:Agent .
 
 gmeow:paramHonorific a fno:Parameter ;
     fno:predicate gmeow:honorific ;
@@ -252,6 +311,10 @@ gmeow:outNicknameName a fno:Output ;
     fno:predicate gmeow:projectedNick ;
     fno:type rdfs:Literal .
 
+gmeow:outParticipationToEventRole a fno:Output ;
+    fno:predicate gmeow:projectedEventRole ;
+    fno:type gmeow:Agent .
+
 gmeow:outSelectDisplayName a fno:Output ;
     fno:predicate gmeow:projectedName ;
     fno:type rdfs:Literal .
@@ -274,6 +337,11 @@ gmeow:paramHasWebPage a fno:Parameter ;
     fno:predicate gmeow:hasWebPage ;
     fno:required true ;
     fno:type gmeow:WebPage .
+
+gmeow:paramParticipationParticipant a fno:Parameter ;
+    fno:predicate gmeow:participationParticipant ;
+    fno:required true ;
+    fno:type gmeow:Entity .
 
 gmeow:implVcard a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
@@ -354,6 +422,32 @@ gmeow:implSchemaOrg a fno:Implementation ;
             rdfs:label "fnComposeBcp47 output ↦ ?bcp47"@en ;
             fnom:functionOutput gmeow:outComposeBcp47 ;
             fnom:implementationProperty "bcp47" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "fnEventTypeToSummary → ical (FnO mapping)"@en ;
+    fno:function gmeow:fnEventTypeToSummary ;
+    fno:implementation gmeow:implIcal ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramEventType ↦ ?et"@en ;
+            fnom:functionParameter gmeow:paramEventType ;
+            fnom:implementationProperty "et" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnEventTypeToSummary output ↦ ?summary"@en ;
+            fnom:functionOutput gmeow:outEventTypeToSummary ;
+            fnom:implementationProperty "summary" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "fnFuzzyTimeToDate → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnFuzzyTimeToDate ;
+    fno:implementation gmeow:implSchemaOrg ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramEarliestStart ↦ ?start"@en ;
+            fnom:functionParameter gmeow:paramEarliestStart ;
+            fnom:implementationProperty "start" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnFuzzyTimeToDate output ↦ ?start"@en ;
+            fnom:functionOutput gmeow:outFuzzyTimeToDate ;
+            fnom:implementationProperty "start" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnHonorificToAffix → schema-org (FnO mapping)"@en ;
@@ -453,6 +547,48 @@ gmeow:implSchemaOrg a fno:Implementation ;
             rdfs:label "fnNicknameName output ↦ ?nick"@en ;
             fnom:functionOutput gmeow:outNicknameName ;
             fnom:implementationProperty "nick" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "fnParticipantToAttendee → ical (FnO mapping)"@en ;
+    fno:function gmeow:fnParticipantToAttendee ;
+    fno:implementation gmeow:implIcal ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramHasParticipant ↦ ?att"@en ;
+            fnom:functionParameter gmeow:paramHasParticipant ;
+            fnom:implementationProperty "att" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnParticipantToAttendee output ↦ ?att"@en ;
+            fnom:functionOutput gmeow:outParticipantToAttendee ;
+            fnom:implementationProperty "att" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "fnParticipationToEventRole → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnParticipationToEventRole ;
+    fno:implementation gmeow:implSchemaOrg ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramParticipationParticipant ↦ ?attendee"@en ;
+            fnom:functionParameter gmeow:paramParticipationParticipant ;
+            fnom:implementationProperty "attendee" ],
+        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramParticipationParticipant ↦ ?organizer"@en ;
+            fnom:functionParameter gmeow:paramParticipationParticipant ;
+            fnom:implementationProperty "organizer" ],
+        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramParticipationParticipant ↦ ?performer"@en ;
+            fnom:functionParameter gmeow:paramParticipationParticipant ;
+            fnom:implementationProperty "performer" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnParticipationToEventRole output ↦ ?attendee"@en ;
+            fnom:functionOutput gmeow:outParticipationToEventRole ;
+            fnom:implementationProperty "attendee" ],
+        [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnParticipationToEventRole output ↦ ?organizer"@en ;
+            fnom:functionOutput gmeow:outParticipationToEventRole ;
+            fnom:implementationProperty "organizer" ],
+        [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnParticipationToEventRole output ↦ ?performer"@en ;
+            fnom:functionOutput gmeow:outParticipationToEventRole ;
+            fnom:implementationProperty "performer" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnPlaceTypeToClass → schema-org (FnO mapping)"@en ;

@@ -461,7 +461,7 @@ def project(
         "", help="GMEOW data file to project (default: the worked-example fixtures)."
     ),
 ) -> None:
-    """Project GMEOW data to a pure schema.org / GeoSPARQL / vCard / FOAF profile.
+    """Project GMEOW data to a pure schema.org/GeoSPARQL/vCard/FOAF/iCal profile.
 
     The FnO/EDOAL specs under projections/ describe the transformations; this runs
     their executable SPARQL CONSTRUCT form (pure-Python rdflib). Lossy by design.

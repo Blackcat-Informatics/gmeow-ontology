@@ -34,12 +34,12 @@ def test_dsl_parses() -> None:
     # Every SSSOM data row became a TermEquivalence cell (incl. the 7 gUFO↔BFO
     # foundational-spine cells, issue #40, and the 13 standpoint cells — PROV-O x3,
     # nanopub, CRMinf x3, Wikidata x2, schema.org, Web Annotation, DnS x2, #43).
-    assert len(dsl.equivalences) == 375
-    # 14 projection transforms declared.
-    assert len(dsl.functions) == 14
+    assert len(dsl.equivalences) == 412
+    # 18 projection transforms declared.
+    assert len(dsl.functions) == 18
     # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint, gmeow-events).
     assert len(dsl.mapping_sets) == 15
-    # Projection cells across all four profiles.
+    # Projection cells across all five profiles (schema-org/vcard/foaf/geosparql/ical).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}
     assert profiles == set(_PROFILES)
@@ -292,8 +292,8 @@ def test_fno_emits_fnom_implementation_mapping() -> None:
     """Each function declares its SPARQL implementation via fno:/fnom: vocabulary."""
     graph = emit_fno(load_dsl(), load_merged_graph(include_imports=False))
     assert (
-        len(set(graph.subjects(RDF.type, FNO.Implementation))) == 4
-    )  # one per profile
+        len(set(graph.subjects(RDF.type, FNO.Implementation))) == 5
+    )  # one per profile (schema-org / vcard / foaf / geosparql / ical)
     bound = False
     for mapping in graph.subjects(RDF.type, FNO.Mapping):
         if graph.value(mapping, FNO.function) != GM.fnComposeBcp47:

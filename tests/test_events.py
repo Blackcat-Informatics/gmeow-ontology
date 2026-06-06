@@ -281,7 +281,7 @@ def test_malformed_participation_is_flagged() -> None:
 def test_contested_event_claims_coexist_and_validate() -> None:
     """Two contradictory standpoint-indexed eventType claims (genocide vs armed
     clash) load, SHACL-pass, and are BOTH retained — neither is the ground truth."""
-    g = Graph().parse(COVERAGE_FIXTURES / "events.ttl", format="turtle")
+    g = Graph().parse(COVERAGE_FIXTURES / "events-contested.ttl", format="turtle")
     result = run_shacl(g)
     assert result.ok, "\n".join(result.errors)
     types = set(g.objects(EX_EVENTS.disputedEvent, GM.eventType))
@@ -308,3 +308,78 @@ def test_no_preferred_or_primary_event_term() -> None:
         for pt in prop_types:
             assert (node, RDF.type, pt) not in g, f"{banned} must not exist"
         assert (node, RDF.type, OWL.Class) not in g
+
+
+# --------------------------------------------------------------------------- #
+# Projections — the reified, multi-modal event downcasts to flat consumer forms.
+# schema.org event roles + the iCalendar VEVENT profile (maximally projected).
+# --------------------------------------------------------------------------- #
+
+SCHEMA = Namespace("https://schema.org/")
+ICAL = Namespace("http://www.w3.org/2002/12/cal/icaltzd#")
+
+
+def _events_projected(profile: str) -> Graph:
+    """The events worked-example fixture projected to a target profile."""
+    from gmeow_tools.projections import project_graph
+
+    src = load_merged_graph(include_imports=False)
+    src.parse(COVERAGE_FIXTURES / "events.ttl", format="turtle")
+    return project_graph(profile, src)
+
+
+def test_schema_role_projection_keys_by_role() -> None:
+    """The reified Participation downcasts to the role-keyed flat schema.org edges —
+    each role lands on its own predicate, not all three together."""
+    out = _events_projected("schema-org")
+    assert EX_EVENTS.casey in set(out.objects(EX_EVENTS.reception, SCHEMA.organizer))
+    assert EX_EVENTS.band in set(out.objects(EX_EVENTS.reception, SCHEMA.performer))
+    assert EX_EVENTS.dana in set(out.objects(EX_EVENTS.reception, SCHEMA.attendee))
+    # Roles don't bleed across predicates: the organizer is not also an attendee.
+    assert EX_EVENTS.casey not in set(out.objects(EX_EVENTS.reception, SCHEMA.attendee))
+
+
+def test_schema_role_projection_suppresses_withdrawn_participation() -> None:
+    """A superseded participation (gmeow:displayable false) is NOT projected — the
+    flat downcast honours suppression-not-erasure (Principle 10)."""
+    out = _events_projected("schema-org")
+    # ex:erin's attendee participation is displayable false → must be dropped.
+    assert EX_EVENTS.erin not in set(out.objects(EX_EVENTS.reception, SCHEMA.attendee))
+
+
+def test_schema_fuzzy_time_projects_earliest_bound() -> None:
+    out = _events_projected("schema-org")
+    starts = set(out.objects(EX_EVENTS.siege, SCHEMA.startDate))
+    assert any(str(s).startswith("1453-04-01") for s in starts)
+
+
+def test_ical_vevent_interval_has_start_end_and_location() -> None:
+    """A crisp-interval event projects to a VEVENT with DTSTART/DTEND + LOCATION."""
+    out = _events_projected("ical")
+    assert (EX_EVENTS.wedding, RDF.type, ICAL.Vevent) in out
+    assert set(out.objects(EX_EVENTS.wedding, ICAL.dtstart))
+    assert set(out.objects(EX_EVENTS.wedding, ICAL.dtend))
+    assert EX_EVENTS.chapel in set(out.objects(EX_EVENTS.wedding, ICAL.location))
+
+
+def test_ical_vevent_point_has_start_only() -> None:
+    out = _events_projected("ical")
+    assert (EX_EVENTS.reception, RDF.type, ICAL.Vevent) in out
+    assert set(out.objects(EX_EVENTS.reception, ICAL.dtstart))
+    assert not set(out.objects(EX_EVENTS.reception, ICAL.dtend))
+
+
+def test_ical_vevent_fuzzy_spans_the_bounds() -> None:
+    """A circa-dated event becomes a VEVENT spanning earliestStart→latestEnd."""
+    out = _events_projected("ical")
+    starts = {str(o) for o in out.objects(EX_EVENTS.siege, ICAL.dtstart)}
+    ends = {str(o) for o in out.objects(EX_EVENTS.siege, ICAL.dtend)}
+    assert any(s.startswith("1453-04-01") for s in starts)
+    assert any(e.startswith("1453-05-31") for e in ends)
+
+
+def test_ical_summary_is_the_event_type_label() -> None:
+    """The open eventType vocabulary collapses to a human-readable SUMMARY label."""
+    out = _events_projected("ical")
+    summaries = {str(o) for o in out.objects(EX_EVENTS.wedding, ICAL.summary)}
+    assert "marriage" in summaries

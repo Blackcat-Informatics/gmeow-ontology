@@ -11,6 +11,18 @@
     rdfs:label "GMEOW → schema-org (EDOAL)"@en ;
     align:level "2EDOAL" ;
     align:map [ a align:Cell ;
+            rdfs:label "Participation (attendee role) → schema:attendee"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:compose ( [ a edoal:Relation ;
+                                edoal:inverse [ a edoal:Relation ;
+                                        edoal:uri gmeow:participationEvent ] ] [ a edoal:Relation ;
+                                edoal:uri gmeow:participationParticipant ] ) ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:attendee ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnParticipationToEventRole ] ],
+        [ a align:Cell ;
             rdfs:label "languageCode (+ co-mingled scriptCode) → schema:alternateName (BCP-47)"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:languageCode ] ;
@@ -50,6 +62,15 @@
                     edoal:uri schema:description ] ;
             align:relation "=" ;
             edoal:measure 1e+00 ],
+        [ a align:Cell ;
+            rdfs:label "Fuzzy event bounds → schema:startDate"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:earliestStart ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:startDate ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnFuzzyTimeToDate ] ],
         [ a align:Cell ;
             rdfs:label "displayable GenderIdentity value → schema:gender (lossy)"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -124,6 +145,30 @@
             align:relation "<=" ;
             edoal:measure 9e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnNicknameName ] ],
+        [ a align:Cell ;
+            rdfs:label "Participation (organizer role) → schema:organizer"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:compose ( [ a edoal:Relation ;
+                                edoal:inverse [ a edoal:Relation ;
+                                        edoal:uri gmeow:participationEvent ] ] [ a edoal:Relation ;
+                                edoal:uri gmeow:participationParticipant ] ) ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:organizer ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnParticipationToEventRole ] ],
+        [ a align:Cell ;
+            rdfs:label "Participation (performer role) → schema:performer"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:compose ( [ a edoal:Relation ;
+                                edoal:inverse [ a edoal:Relation ;
+                                        edoal:uri gmeow:participationEvent ] ] [ a edoal:Relation ;
+                                edoal:uri gmeow:participationParticipant ] ) ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:performer ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnParticipationToEventRole ] ],
         [ a align:Cell ;
             rdfs:label "gmeow:Place [gmeow:placeTypeCountry] → schema:Country"@en ;
             align:entity1 [ a edoal:Class ;

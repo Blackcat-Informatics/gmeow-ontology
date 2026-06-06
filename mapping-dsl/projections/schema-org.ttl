@@ -314,3 +314,69 @@ gmeow:mapSchemaDepartment a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:department ; gmeow:relation "<=" ;
         gmeow:transform gmeow:fnSubOrgToDepartment ; gmeow:confidence 1.0 ] .
+
+# Reified Participation → the flat schema.org event-role edges, keyed by role
+# value. The relator's period / confidence / evidence / standpoint and the open
+# role space beyond these three collapse to a bare event→agent edge (lossy).
+
+# Each role projection uses a DISTINCT anchor + value variable so its CONSTRUCT
+# template fires only for its own WHERE branch (shared output variables would make
+# one match emit all three role predicates).
+
+gmeow:mapSchemaAttendee a gmeow:ProjectionMapping ;
+    rdfs:label "Participation (attendee role) → schema:attendee"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "attEvent" ; gmeow:value "attendee" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "pAtt" ; gmeow:predicate gmeow:participationEvent ; gmeow:objectVar "attEvent" ]
+            [ gmeow:subjectVar "pAtt" ; gmeow:predicate gmeow:participationRole ; gmeow:objectValue gmeow:roleAttendee ]
+            [ gmeow:subjectVar "pAtt" ; gmeow:predicate gmeow:participationParticipant ; gmeow:objectVar "attendee" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "pAtt" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:attendee ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnParticipationToEventRole ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the Participation's period / confidence / evidence / standpoint collapse to a flat schema:attendee edge" ] .
+
+gmeow:mapSchemaPerformer a gmeow:ProjectionMapping ;
+    rdfs:label "Participation (performer role) → schema:performer"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "perfEvent" ; gmeow:value "performer" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "pPerf" ; gmeow:predicate gmeow:participationEvent ; gmeow:objectVar "perfEvent" ]
+            [ gmeow:subjectVar "pPerf" ; gmeow:predicate gmeow:participationRole ; gmeow:objectValue gmeow:rolePerformer ]
+            [ gmeow:subjectVar "pPerf" ; gmeow:predicate gmeow:participationParticipant ; gmeow:objectVar "performer" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "pPerf" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:performer ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnParticipationToEventRole ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the Participation's period / confidence / evidence / standpoint collapse to a flat schema:performer edge" ] .
+
+gmeow:mapSchemaOrganizer a gmeow:ProjectionMapping ;
+    rdfs:label "Participation (organizer role) → schema:organizer"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "orgEvent" ; gmeow:value "organizer" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "pOrg" ; gmeow:predicate gmeow:participationEvent ; gmeow:objectVar "orgEvent" ]
+            [ gmeow:subjectVar "pOrg" ; gmeow:predicate gmeow:participationRole ; gmeow:objectValue gmeow:roleOrganizer ]
+            [ gmeow:subjectVar "pOrg" ; gmeow:predicate gmeow:participationParticipant ; gmeow:objectVar "organizer" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "pOrg" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:organizer ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnParticipationToEventRole ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the Participation's period / confidence / evidence / standpoint collapse to a flat schema:organizer edge" ] .
+
+# An approximate (circa) event date → a single schema:startDate. The latestEnd
+# upper bound and the temporalPrecision qualifier are dropped (the band collapses).
+gmeow:mapSchemaFuzzyStart a gmeow:ProjectionMapping ;
+    rdfs:label "Fuzzy event bounds → schema:startDate"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "event" ; gmeow:value "start" ;
+        gmeow:atom ( [ gmeow:subjectVar "event" ; gmeow:predicate gmeow:earliestStart ; gmeow:objectVar "start" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:startDate ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnFuzzyTimeToDate ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "the uncertainty band (gmeow:latestEnd) and the gmeow:temporalPrecision qualifier are dropped; only the earliest bound survives as a single schema:startDate" ] .

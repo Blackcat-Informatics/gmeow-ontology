@@ -39,7 +39,7 @@ gmeow project --profile schema-org  # one profile
 gmeow project --data mydata.ttl     # project your own GMEOW data
 ```
 
-Outputs `dist/gmeow-example-{schema-org,geosparql,vcard,foaf}.ttl` (round-trip
+Outputs `dist/gmeow-example-{schema-org,geosparql,vcard,foaf,ical}.ttl` (round-trip
 verified). Also runs in `gmeow build`.
 
 ## Transformation types (worked on locations + naming + languages)
@@ -80,6 +80,7 @@ different use of FnO: it declares Hepburn / Pinyin / ISO 233 / IPA / translate a
 - **GeoSPARQL** — geometry only: `geo:Feature` + WKT (retagged), lat/long→POINT, `geo:sfWithin`. Drops names, addresses, types.
 - **vCard** — contact-card fit: `vcard:Address` components, `vcard:fn`, `vcard:given-name`/`family-name`. Drops the nested place hierarchy + QIDs, geometry.
 - **FOAF** — lowest common denominator: place+coords → `wgs84:SpatialThing`, `foaf:name`, `foaf:based_near`. Drops nearly all structure.
+- **iCalendar** — calendar fit: a `gmeow:Event` → `ical:Vevent` with `ical:dtstart`/`dtend` (from the crisp interval, the point `eventTime`, or the fuzzy `earliestStart`/`latestEnd` bounds), `ical:summary` (the event-type label), `ical:location`, and `ical:attendee` (the flat participants). Drops the reified `Participation` roles/periods/confidence/standpoint, the open type vocabulary beyond one summary label, `temporalPrecision`, the sub-event tree, and `EventSeries` recurrence.
 
 ## Naming: the co-equality + deadname contract (honoured by every profile)
 

@@ -13,7 +13,7 @@ from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.mapping_compile import compile_all, emit_edoal, emit_fno
 from gmeow_tools.mapping_dsl import load_dsl
 
-_PROFILES = ("schema-org", "foaf", "vcard", "geosparql")
+_PROFILES = ("schema-org", "foaf", "vcard", "geosparql", "ical")
 
 
 def test_committed_artifacts_match_dsl() -> None:

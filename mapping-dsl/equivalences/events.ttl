@@ -520,3 +520,355 @@ gmeow:eqEvents054 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
     gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+# Remaining GEDCOM X fact types (restoring full parity: every event-type value
+# that GEDCOM X names is aligned, as the pre-#41 genealogy model had them).
+gmeow:eqEvents055 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeBurial ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Burial ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents056 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeCremation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Cremation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents057 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeFuneral ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Funeral ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents058 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeBaptism ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Baptism ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents059 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeConfirmation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Confirmation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents060 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeBarMitzvah ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:BarMitzvah ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents061 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeBatMitzvah ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:BatMitzvah ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents062 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeFirstCommunion ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:FirstCommunion ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents063 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeAdoption ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Adoption ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents064 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeMarriage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Marriage ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents065 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeDivorce ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Divorce ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents066 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeAnnulment ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Annulment ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents067 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeEngagement ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Engagement ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents068 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeSeparation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Separation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents069 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeImmigration ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Immigration ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents070 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeEmigration ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Emigration ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents071 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeNaturalization ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Naturalization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents072 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeResidence ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Residence ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents073 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeCensus ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Census ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents074 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeGraduation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Graduation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents075 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeMilitaryService ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:MilitaryService ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents076 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeWill ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Will ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents077 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeProbate ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Probate ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents078 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeRetirement ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Retirement ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents079 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeOrdination ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gx:Ordination ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GEDCOM X fact type" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Participant-role values → schema.org's flat event-role properties + CIDOC. Same
+# value↔property idiom as the BIO role alignments above; these feed the
+# fnParticipationToAttendee projection's role→predicate switch.
+# --------------------------------------------------------------------------- #
+
+gmeow:eqEvents080 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:roleOrganizer ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:organizer ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "organizer-role value ↔ schema:organizer property" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents081 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:rolePerformer ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:performer ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "performer-role value ↔ schema:performer property" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents082 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:roleAttendee ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:attendee ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "attendee-role value ↔ schema:attendee property" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Remaining structural property alignments — the event-type and role predicates.
+# --------------------------------------------------------------------------- #
+
+gmeow:eqEvents083 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventType ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sem:eventType ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "SEM eventType — the event→kind property" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents084 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventType ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject schema:additionalType ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "schema:additionalType carries a type beyond the rdf:type (the flat projection target for eventType)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents085 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:participationRole ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crm:P14.1_in_the_role_of ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "CIDOC P14.1 in the role of — the role a participant played" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents086 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:participationInterval ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject sem:hasTimeStamp ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.45 ;
+    gmeow:comment "the period over which a participation held" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# iCalendar (RFC 5545 RDF) — the calendar-interchange projection targets. An
+# event is a VEVENT; its interval/point endpoints are DTSTART/DTEND, its location
+# the LOCATION, its participants ATTENDEEs. Projection-grade (single time/place),
+# so closeMatch on the structural props, relatedMatch on the lossy reshape.
+# --------------------------------------------------------------------------- #
+
+gmeow:eqEvents087 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTime ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject ical:dtstart ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "a point event's instant ↔ iCalendar DTSTART" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents088 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventInterval ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject ical:dtstart ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "the crisp interval's endpoints become DTSTART/DTEND (a reshape, not a rename)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents089 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventLocation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject ical:location ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "iCalendar LOCATION (GMEOW keeps a first-class place; iCal flattens to a label)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents090 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasParticipant ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject ical:attendee ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "the flat participant shortcut ↔ iCalendar ATTENDEE" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents091 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventType ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject ical:summary ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.4 ;
+    gmeow:comment "the event-type label is downcast to a human-readable iCalendar SUMMARY" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .

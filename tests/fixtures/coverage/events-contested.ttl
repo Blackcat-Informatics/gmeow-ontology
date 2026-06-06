@@ -1,0 +1,55 @@
+# Coverage slice (#41 ⨯ #43): CONTESTED event facts — standpoint-indexed,
+# coexisting, NO winner. Kept separate from the clean events worked example so the
+# published worked-example projections (dist/gmeow-example-*) stay neutral while the
+# standpoint-coexistence machinery is still exercised for coverage + the events
+# tests. The framing of a historical event is itself disputed: one standpoint frames
+# it as a genocide, another as an armed clash; both base eventType triples are
+# asserted, each standpoint-indexed via gmeow:accordingTo on a reified axiom; neither
+# is privileged (no preferredRank / primaryClaim). A third standpoint REFUTES the
+# genocide framing — an explicit denial, not silence. Native GMEOW terms only.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/events/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:standpoint-A a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-B a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-hist a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+ex:eventTypeGenocide   a gmeow:EventType ; rdfs:label "genocide"@en .
+ex:eventTypeArmedClash a gmeow:EventType ; rdfs:label "armed clash"@en .
+
+# Both type claims coexist on the one event; neither is the model's ground truth.
+ex:disputedEvent gmeow:eventType ex:eventTypeGenocide , ex:eventTypeArmedClash .
+
+ex:claimGenocide a owl:Axiom ;
+    owl:annotatedSource   ex:disputedEvent ;
+    owl:annotatedProperty gmeow:eventType ;
+    owl:annotatedTarget   ex:eventTypeGenocide ;
+    gmeow:accordingTo ex:standpoint-A ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    gmeow:confidence 0.8 .
+
+ex:claimArmedClash a owl:Axiom ;
+    owl:annotatedSource   ex:disputedEvent ;
+    owl:annotatedProperty gmeow:eventType ;
+    owl:annotatedTarget   ex:eventTypeArmedClash ;
+    gmeow:accordingTo ex:standpoint-B ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    gmeow:confidence 0.7 .
+
+# A present-day historiographic standpoint REFUTES the genocide framing — recorded
+# as a denial (refuted modality), never as a deletion of the other claims.
+ex:claimGenocideRefuted a owl:Axiom ;
+    owl:annotatedSource   ex:disputedEvent ;
+    owl:annotatedProperty gmeow:eventType ;
+    owl:annotatedTarget   ex:eventTypeGenocide ;
+    gmeow:accordingTo ex:standpoint-hist ;
+    gmeow:standpointModality gmeow:refuted ;
+    gmeow:confidence 0.6 .
+
+# A contested DATE on the same event — two coexisting, standpoint-indexed instants.
+ex:disputedEvent gmeow:eventTime "1894-01-01T00:00:00Z"^^xsd:dateTime ,
+                                 "1896-01-01T00:00:00Z"^^xsd:dateTime .
