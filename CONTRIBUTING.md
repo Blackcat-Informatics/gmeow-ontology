@@ -16,7 +16,7 @@ email <conduct@blackcatinformatics.ca>.
 
 ## Principles
 
-GMEOW is governed by [`CONSTITUTION.md`](CONSTITUTION.md) — ten normative principles every
+GMEOW is governed by [`CONSTITUTION.md`](CONSTITUTION.md) — twelve normative principles every
 design decision and pull request is measured against. Read it before proposing terms, mappings,
 or tooling changes, and cite the relevant principle(s) by number in issues and PRs.
 

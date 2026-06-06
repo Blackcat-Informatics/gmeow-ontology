@@ -39,8 +39,11 @@ gmeow project --profile schema-org  # one profile
 gmeow project --data mydata.ttl     # project your own GMEOW data
 ```
 
-Outputs `dist/gmeow-example-{schema-org,geosparql,vcard,foaf,ical,owl-time}.ttl` (round-trip
-verified). Also runs in `gmeow build`.
+Outputs a round-trip-verified `dist/gmeow-example-<profile>.ttl` for each profile that has a
+worked-example fixture (schema.org, GeoSPARQL, vCard, FOAF, iCalendar, OWL-Time today). The
+complete projection set — those plus ODRL, CC REL, Dublin Core, SPDX, and the five standpoint
+projections (CRMinf, Web Annotation, PROV-O, schema:Claim, Standpoint-OWL 2) — is generated as
+`queries/projections/*.rq` by `gmeow compile-mappings`. Also runs in `gmeow build`.
 
 ## Transformation types (worked on locations + naming + languages)
 

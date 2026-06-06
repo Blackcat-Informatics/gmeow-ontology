@@ -4,8 +4,9 @@ title: "GMEOW — Global Metadata and Entity Ontology for the Web"
 abstract: >-
   A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that
   unifies document metadata, entity descriptions, legal agreements, contacts and
-  person-centric data. Grounded in gUFO and aligned to FOAF, REL, DOAP, PROV-O,
-  schema.org and Wikidata.
+  person-centric data. Grounded in gUFO (bridged by reference to BFO 2020) and
+  aligned to many surface vocabularies — FOAF, schema.org, Wikidata, Dublin Core,
+  CIDOC-CRM, PROV-O, ODRL, SPDX, vCard, GeoSPARQL and OWL-Time among them.
 type: dataset
 authors:
   - name: "Blackcat Informatics Inc."
