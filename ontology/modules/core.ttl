@@ -78,3 +78,62 @@ gmeow:hasPart
     skos:definition "Universal whole-to-part inverse of gmeow:partOf. Transitive and intentionally broad; specialized component and containment properties remain the authoritative source for domain-specific meaning."@en ;
     skos:scopeNote "Generic has-part is a query/projection convenience, not a single privileged decomposition model. Consumers that need spatial, organizational, event or information-object semantics should use the corresponding specialized subproperty."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Granularity / level-of-detail — the universal resolution axis (#79).
+#
+# Every value has a resolution (a date known to the year; a place to the city).
+# Granularity is an explicit, queryable facet — "no silent precision" — and the
+# axis along which generalization (gmeow:coarsenTo, below) coarsens. Levels are an
+# OPEN, ORDERED value vocabulary (ordered by gmeow:coarserThan); per-domain level
+# individuals are seeded in their own modules (spatial in places, temporal in
+# temporal) and aligned by reference to external resolution vocabularies
+# (OWL-Time time:TemporalUnit, ISO 19112 LocationType) with skos:exactMatch.
+# --------------------------------------------------------------------------- #
+
+gmeow:GranularityLevel
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Granularity Level"@en ;
+    skos:definition "A level of detail / resolution at which a value is expressed — a point on an open, ordered, domain-general axis (spatial: point ≺ address ≺ city ≺ region ≺ country; temporal: day ≺ month ≺ year ≺ decade ≺ century). The explicit facet behind 'no silent precision', and the axis that gmeow:coarsenTo generalizes along. Levels are individuals (never per-level subclasses), ordered by gmeow:coarserThan and aligned to external resolution vocabularies (OWL-Time time:TemporalUnit, ISO 19112 LocationType) by skos:exactMatch."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:coarserThan
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:domain gmeow:GranularityLevel ;
+    rdfs:range gmeow:GranularityLevel ;
+    rdfs:label "coarser than"@en ;
+    skos:definition "Orders the granularity axis: relates a granularity level to a finer level it generalizes (country gmeow:coarserThan city). Transitive; the partial order that makes 'at or above a target level' well-defined for coarsening, and mirrors skos:broader between the levels."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasGranularity
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:GranularityLevel ;
+    rdfs:label "has granularity"@en ;
+    skos:definition "Relates a value, place, period, coordinate or measurement to its own resolution level — the explicit 'no silent precision' facet, queryable independently of any disclosure control. Domain-free. NOT functional: in a multi-source merge sources may state different resolutions, and those claims coexist rather than force the reasoner to collapse distinct levels."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Disclosure control by projection — the coarsen operation (#72, CONSTITUTION P10).
+#
+# Suppression (gmeow:displayable false → withhold) and generalization
+# (gmeow:coarsenTo → emit a coarser value) are one mechanism: withhold OR coarsen
+# a value at projection time under a trigger, never by deletion. Coarsening walks
+# the part/whole spine (gmeow:generalizesVia, default gmeow:partOf) up to the
+# target gmeow:GranularityLevel; any geometry/geomask math stays in the solver
+# layer (P12). The access/consent trigger is layered on this by the privacy
+# facility (#73), which reuses the same control with a consent guard.
+# --------------------------------------------------------------------------- #
+
+gmeow:coarsenTo
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:GranularityLevel ;
+    rdfs:label "coarsen to"@en ;
+    skos:definition "Disclosure control: marks a value/relator so that at projection time it is generalized to no finer than the named gmeow:GranularityLevel — a coarser ancestor is emitted instead of the precise value (e.g. an enclosing city rather than exact coordinates), never by deletion. The generalization sibling of gmeow:displayable false (withhold); together they are the single 'withhold or coarsen under a trigger' mechanism of CONSTITUTION P10. Domain-free, like gmeow:displayable. The coarse value is obtained by walking gmeow:generalizesVia (default gmeow:partOf); any geometry/geomask computation stays in the solver layer (P12). When both apply, displayable false (withhold) wins over coarsen."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:generalizesVia
+    a owl:AnnotationProperty ;
+    rdfs:label "generalizes via"@en ;
+    skos:definition "Projection-compiler guidance naming the transitive part/whole property to walk when coarsening a value (e.g. gmeow:containedInPlace for places). Defaults to gmeow:partOf when absent. An annotation property — it directs generalization without imposing logical semantics, keeping the core OWL 2 DL."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

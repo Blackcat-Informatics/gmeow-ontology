@@ -182,11 +182,13 @@ expired right), or **access/consent** (privacy: a sensitive value — a person's
 health — is redacted by *generalisation*, e.g. publishing a coarser region rather than exact
 coordinates). Erasure is never the tool; the projection is.
 
-*Embodied in:* `gmeow:displayable`, `fnSelectDisplayName`; [`docs/projections.md`](./docs/projections.md);
+*Embodied in:* `gmeow:displayable`, `fnSelectDisplayName` (withhold); `gmeow:coarsenTo` +
+the `gmeow:GranularityLevel` axis, `fnCoarsenToGranularity` (coarsen — #72/#79, aligned to
+`dpv:Generalisation`); [`docs/projections.md`](./docs/projections.md);
 [`docs/identity-mapping.md`](./docs/identity-mapping.md);
 [`docs/standpoints.md`](./docs/standpoints.md) (a withdrawn standpoint / closed
 `gmeow:StandpointTenure` is suppressed, not deleted). *Tested by:* the projection
-suppression tests; `tests/test_standpoint.py`.
+suppression tests; `tests/test_suppress_gen.py`; `tests/test_standpoint.py`.
 
 ## 11. Frame-relativity — values live in an explicit reference system
 

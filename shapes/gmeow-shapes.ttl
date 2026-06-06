@@ -743,3 +743,47 @@ gmeow:NovelRealmExtensibilityShape
             }
         """ ;
     ] .
+
+# Disclosure control by generalization (#72, P10) + granularity axis (#79).
+# coarsenTo and hasGranularity are domain-free, so target their subjects directly:
+# whatever carries them, the value must be a gmeow:GranularityLevel.
+gmeow:CoarsenToShape
+    a sh:NodeShape ;
+    rdfs:label "coarsenTo disclosure-control well-formedness shape" ;
+    sh:targetSubjectsOf gmeow:coarsenTo ;
+    sh:property [
+        sh:path gmeow:coarsenTo ;
+        sh:class gmeow:GranularityLevel ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:coarsenTo must point at a single gmeow:GranularityLevel — the coarsest level the value may be disclosed at; multiple, possibly conflicting, markers are ill-formed." ;
+    ] ;
+    # Reachability (warning): coarsening replaces the precise value with an enclosing
+    # ancestor at the target level. If no gmeow:containedInPlace+ ancestor carries that
+    # gmeow:hasGranularity, the precise value is suppressed with nothing to put in its
+    # place — silent precision loss. Warn rather than fail (the ancestor may be supplied
+    # by a separate graph, or coarsening deferred to the solver).
+    sh:sparql [
+        sh:severity sh:Warning ;
+        sh:message "A gmeow:coarsenTo target level is not reachable: no gmeow:containedInPlace+ ancestor carries a matching gmeow:hasGranularity, so the value would be suppressed with no coarser replacement." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/coarsenTo> ?lvl .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/containedInPlace>+ ?ancestor .
+                    ?ancestor <https://blackcatinformatics.ca/gmeow/hasGranularity> ?lvl .
+                }
+            }
+        """ ;
+    ] .
+
+gmeow:HasGranularityShape
+    a sh:NodeShape ;
+    rdfs:label "hasGranularity facet well-formedness shape" ;
+    sh:targetSubjectsOf gmeow:hasGranularity ;
+    sh:property [
+        sh:path gmeow:hasGranularity ;
+        sh:class gmeow:GranularityLevel ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:hasGranularity must point at a gmeow:GranularityLevel — the value's own resolution level." ;
+    ] .

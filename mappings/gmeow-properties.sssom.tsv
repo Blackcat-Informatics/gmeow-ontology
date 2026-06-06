@@ -11,6 +11,7 @@
 #   crm: http://www.cidoc-crm.org/cidoc-crm/
 #   dcterms: http://purl.org/dc/terms/
 #   doap: http://usefulinc.com/ns/doap#
+#   dpv: https://w3id.org/dpv#
 #   foaf: http://xmlns.com/foaf/0.1/
 #   gmeow: https://blackcatinformatics.ca/gmeow/
 #   gufo: http://purl.org/nemo/gufo#
@@ -24,6 +25,8 @@
 #   vcard: http://www.w3.org/2006/vcard/ns#
 subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
 gmeow:accountName	owl:equivalentProperty	foaf:accountName		semapv:ManualMappingCuration	1.0	
+gmeow:coarsenTo	skos:closeMatch	dpv:Generalisation		semapv:ManualMappingCuration	0.8	DPV Generalisation (reduce granularity/precision by grouping or rounding) — the privacy-technique counterpart of the gmeow:coarsenTo projection-time directive; the seam to PRIV-GEN (#73)
+gmeow:coarserThan	skos:closeMatch	skos:broader		semapv:ManualMappingCuration	0.8	SKOS broader — the generic hierarchical-order counterpart of the granularity-level ordering gmeow:coarserThan
 gmeow:containedInPlace	owl:equivalentProperty	schema:containedInPlace		semapv:ManualMappingCuration	1.0	
 gmeow:datePublished	owl:equivalentProperty	schema:datePublished		semapv:ManualMappingCuration	1.0	
 gmeow:description	owl:equivalentProperty	schema:description		semapv:ManualMappingCuration	1.0	

@@ -213,6 +213,17 @@ Key authoring choices, each a single field on the pattern or binding:
   plus EDOAL `AttributeValueRestriction` cells.
 - **suppression** (`gmeow:suppressWhen`) — the displayable/deadname contract, a
   `FILTER NOT EXISTS`.
+- **generalization / coarsening** (`gmeow:coarsenTo`, #72/#79) — the *other* half of
+  disclosure control by projection (CONSTITUTION P10): a value marked
+  `gmeow:coarsenTo <GranularityLevel>` is emitted at a **coarser** level rather than
+  withheld. Authored as a pair of complementary cells — the precise value guarded by
+  `suppressWhen` on `coarsenTo`, and a coarsen cell that walks `gmeow:containedInPlace+`
+  (the mereology spine) to the enclosing ancestor at the target level and emits *its*
+  value. "A coarser region rather than exact coordinates, never deletion." Worked in
+  the GeoSPARQL (`mapGeoPointCoarsened`) and schema.org (`mapSchemaPlaceCoordsCoarsened`)
+  projections; aligned by reference to `dpv:Generalisation`. Heavier geomasking /
+  k-anonymity stays in the solver layer (P12). The access/consent *trigger* on this
+  same control is PRIV-GEN (#73).
 - **composed/derived values** (`gmeow:bind` / `gmeow:mint`) — a closed expression
   algebra (`gmeow:opConcat`, `opIf`, `opStrDatatype`, `opStrLang`, … — never raw
   SPARQL); multi-triple outputs use `gmeow:templateAtoms`.

@@ -281,6 +281,13 @@
             edoal:measure 7e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnSelectExonym ] ],
         [ a align:Cell ;
+            rdfs:label "coarsenTo → enclosing-region schema:geo (privacy generalization)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:coarsenTo ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:GeoCoordinates ] ;
+            align:relation "<=" ],
+        [ a align:Cell ;
             rdfs:label "displayable PlaceName without purpose → schema:name"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:hasPlaceName ] ;

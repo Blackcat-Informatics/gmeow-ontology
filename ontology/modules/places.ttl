@@ -332,6 +332,20 @@ gmeow:determinacyFuzzy       a gmeow:Determinacy ; rdfs:label "fuzzy"@en .
 gmeow:determinacyVague       a gmeow:Determinacy ; rdfs:label "vague"@en .
 gmeow:determinacyProbabilistic a gmeow:Determinacy ; rdfs:label "probabilistic"@en .
 
+# Seeds for GranularityLevel — the spatial resolution axis (#79; class in core).
+# Ordered coarse→fine by gmeow:coarserThan (transitive, so country is coarser than
+# every finer level). Aligned by reference to gmeow:placeType (the place kind at
+# that level) and, through it, to ISO 19112 LocationType / gazetteer tiers.
+gmeow:granularityCountry a gmeow:GranularityLevel ; rdfs:label "country level"@en ;
+    gmeow:coarserThan gmeow:granularityRegion ; skos:closeMatch gmeow:placeTypeCountry .
+gmeow:granularityRegion  a gmeow:GranularityLevel ; rdfs:label "region level"@en ;
+    gmeow:coarserThan gmeow:granularityCity ; skos:closeMatch gmeow:placeTypeRegion .
+gmeow:granularityCity    a gmeow:GranularityLevel ; rdfs:label "city level"@en ;
+    gmeow:coarserThan gmeow:granularityAddress ; skos:closeMatch gmeow:placeTypeCity .
+gmeow:granularityAddress a gmeow:GranularityLevel ; rdfs:label "address level"@en ;
+    gmeow:coarserThan gmeow:granularityPoint ; skos:closeMatch gmeow:placeTypePremises .
+gmeow:granularityPoint   a gmeow:GranularityLevel ; rdfs:label "point / exact coordinate level"@en .
+
 # Axes individuals
 gmeow:axisLatitude         a gmeow:Axis ; rdfs:label "latitude"@en .
 gmeow:axisLongitude        a gmeow:Axis ; rdfs:label "longitude"@en .
