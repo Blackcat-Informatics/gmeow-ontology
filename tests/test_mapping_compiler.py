@@ -250,6 +250,16 @@ def test_edoal_traversal_uses_compose_inverse() -> None:
     )
 
 
+def test_edoal_has_no_orphan_relation_nodes() -> None:
+    """Template-only mappings must not leave unattached relation bnodes."""
+    graph = emit_edoal(load_dsl(), "vcard")
+
+    for relation in graph.subjects(RDF.type, EDOAL.Relation):
+        assert list(graph.subjects(None, relation)), (
+            f"orphan EDOAL relation node for {graph.value(relation, EDOAL.uri)}"
+        )
+
+
 def test_render_expr_extensions() -> None:
     from rdflib import Literal
 

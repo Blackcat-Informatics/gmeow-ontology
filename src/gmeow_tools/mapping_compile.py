@@ -546,6 +546,10 @@ def _edoal_cells(graph: Graph, cell: ProjectionCell, b: ProfileBinding) -> list[
 
     # entity1: a derived relation path (compose/inverse) when opted in; else the
     # authored salient term; else no cell (structural / SSSOM-backed projection).
+    target, target_kind = _edoal_target(b)
+    if target is None:
+        return cells
+
     source: Node | None
     if pattern.edoal_path:
         source = _edoal_path(graph, pattern)
@@ -556,9 +560,6 @@ def _edoal_cells(graph: Graph, cell: ProjectionCell, b: ProfileBinding) -> list[
     else:
         return cells
 
-    target, target_kind = _edoal_target(b)
-    if target is None:
-        return cells
     target_entity = _edoal_entity(graph, target, target_kind)
     cells.append(
         _cell(source, target_entity, cell.label or f"→ {curie(target)}", key="0")
@@ -781,11 +782,12 @@ def _branch(cell: ProjectionCell, b: ProfileBinding) -> str:
     val = p.value
     retag_lines = []
     bind_expr = None
+    flat_atoms = _flatten_atoms(p.atoms)
     if p.edoal_source == GM.fullName:
         parent_var = None
-        for a in p.atoms:
-            if getattr(a, "predicate", None) == GM.fullName:
-                parent_var = getattr(a, "subject_var", None)
+        for a in flat_atoms:
+            if a.predicate == GM.fullName:
+                parent_var = a.subject_var
                 break
         if parent_var:
             retag_lines.extend(
@@ -807,26 +809,23 @@ def _branch(cell: ProjectionCell, b: ProfileBinding) -> str:
             )
     elif p.edoal_source in (GM.partText, GM.partExpansion, GM.romanization):
         np_var = None
-        for a in p.atoms:
-            if getattr(a, "predicate", None) in (
+        for a in flat_atoms:
+            if a.predicate in (
                 GM.partText,
                 GM.partExpansion,
                 GM.romanization,
             ):
-                np_var = getattr(a, "subject_var", None)
+                np_var = a.subject_var
                 break
         app_var = None
-        for a in p.atoms:
-            if (
-                getattr(a, "predicate", None) == GM.hasNamePart
-                and getattr(a, "object_var", None) == np_var
-            ):
-                app_var = getattr(a, "subject_var", None)
+        for a in flat_atoms:
+            if a.predicate == GM.hasNamePart and a.object_var == np_var:
+                app_var = a.subject_var
                 break
         if not app_var and np_var:
-            for a in p.atoms:
-                if getattr(a, "object_var", None) == np_var:
-                    app_var = getattr(a, "subject_var", None)
+            for a in flat_atoms:
+                if a.object_var == np_var:
+                    app_var = a.subject_var
                     break
         if app_var and np_var:
             retag_lines.extend(

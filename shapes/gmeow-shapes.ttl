@@ -635,7 +635,7 @@ gmeow:InternalLanguageTagShape
             WHERE {
                 $this ?p ?value .
                 FILTER (STRSTARTS(STR(?p), "https://blackcatinformatics.ca/gmeow/"))
-                FILTER (isLiteral(?value) && lang(?value) != "" && !regex(lang(?value), "^x-gmeow-[a-z0-9\\\\-]+$"))
+                FILTER (isLiteral(?value) && lang(?value) != "" && !regex(lang(?value), "^x-gmeow-[a-z0-9\\\\-]+$", "i"))
             }
         """ ;
     ] .

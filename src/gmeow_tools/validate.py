@@ -102,7 +102,7 @@ def structural_lint(graph: Graph) -> ValidationResult:
     # use the GMEOW-internal 'x-gmeow-' prefix.
     import re
 
-    x_gmeow_pattern = re.compile(r"^x-gmeow-[a-z0-9\-]+$")
+    x_gmeow_pattern = re.compile(r"^x-gmeow-[a-z0-9\-]+$", re.IGNORECASE)
     for s, p, o in graph:
         if (
             str(p).startswith(NAMESPACE)
