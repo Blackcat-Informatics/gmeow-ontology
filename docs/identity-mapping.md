@@ -140,15 +140,18 @@ label as `schema:gender` / `foaf:gender`; a `gmeow:displayable false` label is
 **never emitted** — the same suppression contract as a deadname. Orientation and
 sex-assigned-at-birth are **documented lossy drops** (no standard target term).
 
-For **pronouns**, `fnPronounSetToText` flattens a `PronounSet`'s five forms to the
-conventional compact string (subject/object, e.g. `"they/them"`) for the **vCard 4
-PRONOUNS** property (RFC 9554). Because the W3C vCard RDF ontology — based on RFC 6350 —
-never minted a predicate for it, GMEOW emits it on a clearly-namespaced extension term,
-`vcardx:pronouns` (`https://blackcatinformatics.ca/vcard-ext/`, deliberately **outside**
-the `gmeow/` term space so a pure profile never leaks a GMEOW term, and never a fabricated
-`vcard:` term either). **Lossy drops** (declared on the cell): the
-possessive-determiner / possessive / reflexive forms, the non-specifying values
-(any/ask/name-only carry no forms and are not emitted), and period/standpoint.
+For **pronouns**, `fnPronounSetToText` renders a `PronounSet`'s **full five-form
+declension** as one slash-joined string (subject/object/possessive-determiner/possessive/
+reflexive, e.g. `"she/her/her/hers/herself"`, `"xe/xem/xyr/xyrs/xemself"`) for the **vCard 4
+PRONOUNS** property (RFC 9554). Because PRONOUNS is **free text it carries the whole
+declension losslessly** — GMEOW deliberately does *not* flatten to a compact `"she/her"`,
+since the field can hold (and a consumer can reconstruct) every form. Because the W3C vCard
+RDF ontology — based on RFC 6350 — never minted a predicate for it, GMEOW emits it on a
+clearly-namespaced extension term, `vcardx:pronouns`
+(`https://blackcatinformatics.ca/vcard-ext/`, deliberately **outside** the `gmeow/` term
+space so a pure profile never leaks a GMEOW term, and never a fabricated `vcard:` term
+either). The only parts **not represented** (declared on the cell): the non-specifying
+values (any/ask/name-only carry no forms and are not emitted), and any period/standpoint.
 
 ## What's deliberately non-standard (and why)
 

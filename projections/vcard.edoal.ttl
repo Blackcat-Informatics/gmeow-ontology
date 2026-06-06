@@ -65,7 +65,7 @@
             align:entity2 [ a edoal:Property ;
                     edoal:uri vcardx:pronouns ] ;
             align:relation "<=" ;
-            edoal:measure 8.5e-01 ;
+            edoal:measure 9e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnPronounSetToText ] ],
         [ a align:Cell ;
             rdfs:label "Membership Role → vcard:title"@en ;

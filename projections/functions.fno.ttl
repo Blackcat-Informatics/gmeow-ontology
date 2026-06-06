@@ -77,10 +77,10 @@ gmeow:fnProficiencyToKnownLanguage a fno:Function ;
     fno:returns ( gmeow:outProficiencyToKnownLanguage ) .
 
 gmeow:fnPronounSetToText a fno:Function ;
-    rdfs:label "pronoun set five forms → compact display text (subject/object)"@en ;
-    dcterms:description "Flattens a gmeow:PronounSet's five declined forms to the conventional compact display string (subject form + '/' + object form, e.g. 'she/her', 'they/them', 'ze/zir') for emission as the vCard 4 PRONOUNS property (RFC 9554, free text), carried on the GMEOW-minted vcardx:pronouns extension term because the W3C vCard RDF ontology never minted a predicate for it. When subject and object coincide it falls back to subject/possessive-determiner so the form reads it/its, co/cos, thon/thons, one/one's rather than it/it. Lossy: the possessive pronoun and reflexive forms are dropped, as are the non-specifying values (pronounAny / pronounAsk / pronounNameOnly, which carry no forms)."@en ;
+    rdfs:label "pronoun set → full five-form declension text"@en ;
+    dcterms:description "Renders a gmeow:PronounSet's full five-form declension as a single slash-joined string (subject/object/possessive-determiner/possessive/reflexive, e.g. 'she/her/her/hers/herself', 'xe/xem/xyr/xyrs/xemself') for emission as the vCard 4 PRONOUNS property (RFC 9554, free text), carried on the GMEOW-minted vcardx:pronouns extension term because the W3C vCard RDF ontology never minted a predicate for it. Because PRONOUNS is free text it carries the whole declension LOSSLESSLY — no form is dropped, and a consumer can reconstruct the full set. The only non-representable parts are the non-specifying values (pronounAny / pronounAsk / pronounNameOnly, which carry no forms) and any period / standpoint on the assertion."@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> ;
-    fno:expects ( gmeow:paramPronounSubject gmeow:paramPronounObject gmeow:paramPronounPossessiveDeterminer ) ;
+    fno:expects ( gmeow:paramPronounSubject gmeow:paramPronounObject gmeow:paramPronounPossessiveDeterminer gmeow:paramPronounPossessive gmeow:paramPronounReflexive ) ;
     fno:returns ( gmeow:outPronounSetToText ) .
 
 gmeow:fnRetagWkt a fno:Function ;
@@ -248,8 +248,18 @@ gmeow:paramPronounObject a fno:Parameter ;
     fno:required true ;
     fno:type rdfs:Literal .
 
+gmeow:paramPronounPossessive a fno:Parameter ;
+    fno:predicate gmeow:pronounPossessive ;
+    fno:required true ;
+    fno:type rdfs:Literal .
+
 gmeow:paramPronounPossessiveDeterminer a fno:Parameter ;
     fno:predicate gmeow:pronounPossessiveDeterminer ;
+    fno:required true ;
+    fno:type rdfs:Literal .
+
+gmeow:paramPronounReflexive a fno:Parameter ;
+    fno:predicate gmeow:pronounReflexive ;
     fno:required true ;
     fno:type rdfs:Literal .
 
@@ -667,6 +677,14 @@ gmeow:implSchemaOrg a fno:Implementation ;
             rdfs:label "paramPronounPossessiveDeterminer ↦ ?pdet"@en ;
             fnom:functionParameter gmeow:paramPronounPossessiveDeterminer ;
             fnom:implementationProperty "pdet" ],
+        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramPronounPossessive ↦ ?ppos"@en ;
+            fnom:functionParameter gmeow:paramPronounPossessive ;
+            fnom:implementationProperty "ppos" ],
+        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramPronounReflexive ↦ ?prefl"@en ;
+            fnom:functionParameter gmeow:paramPronounReflexive ;
+            fnom:implementationProperty "prefl" ],
         [ a fnom:PropertyParameterMapping ;
             rdfs:label "paramPronounSubject ↦ ?psubj"@en ;
             fnom:functionParameter gmeow:paramPronounSubject ;
