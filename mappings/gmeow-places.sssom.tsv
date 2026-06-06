@@ -27,9 +27,6 @@ gmeow:addressLocality	skos:closeMatch	vcard:locality	semapv:ManualMappingCuratio
 gmeow:addressPlace	skos:closeMatch	schema:address	semapv:ManualMappingCuration	0.7	
 gmeow:addressRegion	owl:equivalentProperty	schema:addressRegion	semapv:ManualMappingCuration	1.0	
 gmeow:addressRegion	skos:closeMatch	vcard:region	semapv:ManualMappingCuration	0.9	
-gmeow:alternateName	owl:equivalentProperty	schema:alternateName	semapv:ManualMappingCuration	1.0	
-gmeow:alternateName	skos:closeMatch	gn:alternateName	semapv:ManualMappingCuration	0.9	
-gmeow:alternateName	skos:closeMatch	skos:altLabel	semapv:ManualMappingCuration	0.9	
 gmeow:asWKT	skos:closeMatch	geo:asWKT	semapv:ManualMappingCuration	0.9	
 gmeow:authorityLink	skos:closeMatch	schema:sameAs	semapv:ManualMappingCuration	0.7	
 gmeow:containedInPlace	skos:closeMatch	dcterms:isPartOf	semapv:ManualMappingCuration	0.7	

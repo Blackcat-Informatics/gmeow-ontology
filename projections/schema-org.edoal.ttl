@@ -242,6 +242,24 @@
             edoal:measure 9e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnParticipationToEventRole ] ],
         [ a align:Cell ;
+            rdfs:label "displayable exonym PlaceName → schema:alternateName"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasPlaceName ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:alternateName ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnSelectExonym ] ],
+        [ a align:Cell ;
+            rdfs:label "displayable endonym PlaceName → schema:name"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasPlaceName ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:name ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnSelectEndonym ] ],
+        [ a align:Cell ;
             rdfs:label "gmeow:Place [gmeow:placeTypeCountry] → schema:Country"@en ;
             align:entity1 [ a edoal:Class ;
                     edoal:and ( [ a edoal:Class ;

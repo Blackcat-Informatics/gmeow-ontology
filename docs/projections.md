@@ -54,6 +54,8 @@ projections (CRMinf, Web Annotation, PROV-O, schema:Claim, Standpoint-OWL 2) —
 | **multi-property combine** | `latitude` + `longitude` → `POINT(lon lat)^^geo:wktLiteral` | `fnLatLongToWktPoint` |
 | | `languageCode` + `scriptCode` → BCP-47 `ja-Hani` (`schema:alternateName`) | `fnComposeBcp47` |
 | **compose / select** | displayable `fullName` → `schema:name`/`vcard:fn`/`foaf:name` | `fnSelectDisplayName` |
+| | displayable endonym `PlaceName` → `schema:name` (frame choice, not a primary) | `fnSelectEndonym` |
+| | displayable exonym `PlaceName` → `schema:alternateName` | `fnSelectExonym` |
 | **relator flatten** | `LanguageProficiency` (agent×lang×level) → `schema:knowsLanguage` (lossy) | `fnProficiencyToKnownLanguage` |
 | **value→property by sub-value** | `honorific` (+ position) → `schema:honorificPrefix`/`Suffix` | `fnHonorificToAffix` |
 | **structured→flat field** | nickname-purpose `PersonName` → `foaf:nick` / `vcard:nickname` / `schema:alternateName` | `fnNicknameName` |

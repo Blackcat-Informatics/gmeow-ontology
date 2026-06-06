@@ -16,3 +16,6 @@ htmlcov/
 # Editor/OS noise
 .DS_Store
 *.swp
+.antigravitycli
+.codex
+.claude

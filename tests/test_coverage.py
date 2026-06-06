@@ -112,8 +112,18 @@ def test_names_slice_covered() -> None:
         "PronounSet",
     ):
         assert GMEOW + cls in report.covered_classes
-    # The co-equality machinery routes through these predicates.
-    for prop in ("hasName", "fullName", "namePurpose", "usageAppellation"):
+    # The co-equality machinery routes through these predicates; place naming
+    # (issue #105) adds hasPlaceName + the usageAuthority facet, and nameLanguage
+    # now links a first-class gmeow:Language.
+    for prop in (
+        "hasName",
+        "fullName",
+        "namePurpose",
+        "usageAppellation",
+        "hasPlaceName",
+        "usageAuthority",
+        "nameLanguage",
+    ):
         assert GMEOW + prop in report.covered_predicates
 
 
