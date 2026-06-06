@@ -25,40 +25,55 @@ This skill guides the agent in modifying, compiling, and validating GMEOW ontolo
 - **Edit Ontology Core**:
   Ontology modules are located under `ontology/modules/`. Modify Turtle files directly there.
   After making modifications, run syntax validation:
+
   ```bash
   make validate
   ```
+
 - **Edit Mappings**:
   1. Open and edit files in `mapping-dsl/`.
   2. Compile the DSL to target artifacts:
+
      ```bash
      make compile-mappings
      ```
+
   3. Validate Wikidata syntax and links:
+
      ```bash
      make wikidata
      ```
+
 - **Edit Statement Provenance**:
   1. Open and edit files in `statement-dsl/`.
   2. Compile statement-level metadata:
+
      ```bash
      make compile-statements
      ```
+
 - **Run Ontology Reasoning**:
   - Run fast ELK reasoner:
+
     ```bash
     make reason
     ```
+
   - Run full HermiT reasoner (gated for releases):
+
     ```bash
     make reason-hermit
     ```
+
   - If reasoning fails, explain unsatisfiable classes:
+
     ```bash
     make explain
     ```
+
 - **Run Negative Verification**:
   Ensure logical constraints are met by running closed-world negative checks:
+
   ```bash
   make verify
   ```

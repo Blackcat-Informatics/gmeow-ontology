@@ -5,6 +5,8 @@
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
+@prefix lime:    <http://www.w3.org/ns/lemon/lime#> .
 
 <https://blackcatinformatics.ca/gmeow/modules/languages>
     a owl:Ontology ;
@@ -103,6 +105,22 @@ gmeow:languageStatus
     skos:definition "The vitality status of a language (a gmeow:LanguageStatus value). Non-functional: source classifications coexist; period carried with gmeow:validFrom/validUntil on the statement."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:languageTag
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Language ;
+    rdfs:range xsd:string ;
+    rdfs:label "language tag"@en ;
+    skos:definition "The internal private-use BCP-47 language tag (e.g., 'x-gmeow-japanese') used for @lang annotations on string literals representing this language."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:bcp47Tag
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Language ;
+    rdfs:range xsd:language ;
+    rdfs:label "BCP-47 tag"@en ;
+    skos:definition "An OPTIONAL external BCP-47 language tag used only when projecting GMEOW's internal private-use literals into vocabularies that require standard language-tag literals. Non-functional because a language may expose several valid BCP-47 tags across script, region, or variant contexts; broad registry alignments such as ISO 639-3 codes and Glottocodes remain gmeow:languageCode values."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:languageCode
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Language ;
@@ -110,6 +128,7 @@ gmeow:languageCode
     rdfs:label "language code"@en ;
     skos:definition "An OPTIONAL registry code for a language (a BCP-47 tag \"ja\", an ISO 639-3 code \"jpn\", a Glottocode). A see-also alignment value, NEVER identity — a code-less conlang or AI-language is fully first-class. Authoritative identity is the self-minted IRI; assert registry coreference with skos:exactMatch and gmeow:authorityLink. Non-functional (a language carries codes in several registries)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 
 gmeow:designGoal
     a owl:DatatypeProperty ;

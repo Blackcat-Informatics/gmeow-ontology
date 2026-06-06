@@ -123,6 +123,10 @@ TARGET_SOURCES: dict[str, TargetSource] = {
     # ontology bridged at the class level (issue #40), so its snapshot is the
     # class-fact shape, not the property-axiom shape.
     "bfo": TargetSource("bfo", "http://purl.obolibrary.org/obo/bfo.owl", "xml"),
+    "ontolex": TargetSource(
+        "ontolex", "https://www.w3.org/ns/lemon/ontolex.owl", "xml"
+    ),
+    "lime": TargetSource("lime", "https://www.w3.org/ns/lemon/lime.owl", "xml"),
 }
 
 _USER_AGENT = "gmeow-tools/0.1 (ontology alignment-direction validator)"

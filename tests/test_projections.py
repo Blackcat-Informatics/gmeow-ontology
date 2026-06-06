@@ -224,6 +224,42 @@ def test_gender_projection_displayable_and_suppressed() -> None:
         _assert_no_gmeow_leakage(g)
 
 
+def test_ontolex_projection() -> None:
+    g = project_graph("ontolex", _source())
+    ontolex_entry = URIRef("http://www.w3.org/ns/lemon/ontolex#LexicalEntry")
+    ontolex_form = URIRef("http://www.w3.org/ns/lemon/ontolex#Form")
+    ontolex_lexical_form = URIRef("http://www.w3.org/ns/lemon/ontolex#lexicalForm")
+    ontolex_written_rep = URIRef("http://www.w3.org/ns/lemon/ontolex#writtenRep")
+    lime_language = URIRef("http://www.w3.org/ns/lemon/lime#language")
+
+    # 1. ex:nameLatin should be an ontolex:LexicalEntry.
+    name_latin = URIRef(NAMES + "nameLatin")
+    assert (name_latin, RDF.type, ontolex_entry) in g
+
+    # 2. ex:nameLatin should have an ontolex:lexicalForm ontolex:Form.
+    forms = list(g.objects(name_latin, ontolex_lexical_form))
+    assert len(forms) == 1
+    form = forms[0]
+    assert form == URIRef(str(name_latin) + "-form")
+    assert (form, RDF.type, ontolex_form) in g
+
+    # 3. Form should have ontolex:writtenRep with retagged language tag ("en").
+    assert (form, ontolex_written_rep, Literal("Patrick Colm Audley", lang="en")) in g
+
+    # 4. ex:nameLatin should have lime:language as the external BCP-47 tag literal.
+    assert (name_latin, lime_language, Literal("en", datatype=XSD.language)) in g
+
+    # 5. ex:nameHan should project with Hans script code (e.g. "zh-Hans").
+    name_han = URIRef(NAMES + "nameHan")
+    assert (name_han, RDF.type, ontolex_entry) in g
+    han_forms = list(g.objects(name_han, ontolex_lexical_form))
+    assert len(han_forms) == 1
+    han_form = han_forms[0]
+    assert (han_form, ontolex_written_rep, Literal("欧德理", lang="zh-Hans")) in g
+
+    _assert_no_gmeow_leakage(g)
+
+
 def test_project_examples_round_trip(tmp_path: Path) -> None:
     written = project_examples(dist_dir=tmp_path)
     assert {p.name for p in written} == {

@@ -19,14 +19,14 @@
 # --- First-class languages (gmeow:nameLanguage is an object property → Language) #
 # Registry-INDEPENDENT: the IRI is identity, gmeow:languageCode is an OPTIONAL tag.
 
-ex:langEn  a gmeow:Language ; gmeow:languageCode "en" .
-ex:langZh  a gmeow:Language ; gmeow:languageCode "zh" .
-ex:langEs  a gmeow:Language ; gmeow:languageCode "es" .
-ex:langKo  a gmeow:Language ; gmeow:languageCode "ko" .
-ex:langBan a gmeow:Language ; gmeow:languageCode "ban" .
-ex:langLa  a gmeow:Language ; gmeow:languageCode "la" .
-ex:langDe  a gmeow:Language ; gmeow:languageCode "de" .
-ex:langId  a gmeow:Language ; gmeow:languageCode "id" .
+ex:langEn  a gmeow:Language ; gmeow:languageTag "x-gmeow-english" ; gmeow:bcp47Tag "en"^^xsd:language ; gmeow:languageCode "en" .
+ex:langZh  a gmeow:Language ; gmeow:languageTag "x-gmeow-chinese" ; gmeow:bcp47Tag "zh"^^xsd:language ; gmeow:languageCode "zh" .
+ex:langEs  a gmeow:Language ; gmeow:languageTag "x-gmeow-spanish" ; gmeow:bcp47Tag "es"^^xsd:language ; gmeow:languageCode "es" .
+ex:langKo  a gmeow:Language ; gmeow:languageTag "x-gmeow-korean" ; gmeow:bcp47Tag "ko"^^xsd:language ; gmeow:languageCode "ko" .
+ex:langBan a gmeow:Language ; gmeow:languageTag "x-gmeow-balinese" ; gmeow:bcp47Tag "ban"^^xsd:language ; gmeow:languageCode "ban" .
+ex:langLa  a gmeow:Language ; gmeow:languageTag "x-gmeow-latin" ; gmeow:bcp47Tag "la"^^xsd:language ; gmeow:languageCode "la" .
+ex:langDe  a gmeow:Language ; gmeow:languageTag "x-gmeow-german" ; gmeow:bcp47Tag "de"^^xsd:language ; gmeow:languageCode "de" .
+ex:langId  a gmeow:Language ; gmeow:languageTag "x-gmeow-indonesian" ; gmeow:bcp47Tag "id"^^xsd:language ; gmeow:languageCode "id" .
 
 # --- Co-equal multilingual names (anti-colonial centrepiece) ---------------- #
 
@@ -37,9 +37,8 @@ ex:patrick a gmeow:Person ;
 
 # Latin-script name — co-equal, NOT canonical.
 ex:nameLatin a gmeow:PersonName ;
-    gmeow:fullName "Patrick Colm Audley"@en ;
+    gmeow:fullName "Patrick Colm Audley"@x-gmeow-english ;
     gmeow:nameLanguage ex:langEn ;
-    gmeow:nameScript "Latn" ;
     gmeow:namePurpose gmeow:namePurposeLegal ;
     gmeow:displayable true ;
     gmeow:hasNamePart ex:plGiven , ex:plMiddle , ex:plSurname ;
@@ -56,19 +55,19 @@ ex:plSurname a gmeow:NamePart ;
 # meaningful, NOT a romanization or alternate of the Latin name. The pinyin
 # is the romanization of THIS name only.
 ex:nameHan a gmeow:PersonName ;
-    gmeow:fullName "欧德理"@zh-Hans ;
+    gmeow:fullName "欧德理"@x-gmeow-chinese ;
     gmeow:nameLanguage ex:langZh ;
-    gmeow:nameScript "Hani" ;
-    gmeow:romanization "Ōu Délǐ"@zh-Latn ;
+    gmeow:nameScript "Hans" ;
+    gmeow:romanization "Ōu Délǐ"@x-gmeow-chinese-latn ;
     gmeow:namePurpose gmeow:namePurposeChosen ;
     gmeow:displayable true ;
     gmeow:hasNamePart ex:hanSurname , ex:hanGiven ;
     gmeow:wasAttributedTo ex:patrick .
 
 ex:hanSurname a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartSurname ; gmeow:partText "欧"@zh-Hans ; gmeow:partOrder 0 .
+    gmeow:namePartType gmeow:namePartSurname ; gmeow:partText "欧"@x-gmeow-chinese ; gmeow:partOrder 0 .
 ex:hanGiven a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartGiven ; gmeow:partText "德理"@zh-Hans ; gmeow:partOrder 1 .
+    gmeow:namePartType gmeow:namePartGiven ; gmeow:partText "德理"@x-gmeow-chinese ; gmeow:partOrder 1 .
 
 # --- Context-dependent naming: "Mrs Smith" (students) vs "Aunt Genny" (family) #
 
@@ -77,11 +76,11 @@ ex:genny a gmeow:Person ;
     gmeow:honorific gmeow:honorificMrs .
 
 ex:gennyLegal a gmeow:PersonName ;
-    gmeow:fullName "Genevieve Smith"@en ; gmeow:namePurpose gmeow:namePurposeLegal ; gmeow:displayable true .
+    gmeow:fullName "Genevieve Smith"@x-gmeow-english ; gmeow:namePurpose gmeow:namePurposeLegal ; gmeow:displayable true .
 ex:gennyMrs a gmeow:PersonName ;
-    gmeow:fullName "Mrs Smith"@en ; gmeow:namePurpose gmeow:namePurposeProfessional ; gmeow:displayable true .
+    gmeow:fullName "Mrs Smith"@x-gmeow-english ; gmeow:namePurpose gmeow:namePurposeProfessional ; gmeow:displayable true .
 ex:gennyAunt a gmeow:PersonName ;
-    gmeow:fullName "Aunt Genny"@en ; gmeow:namePurpose gmeow:namePurposeNickname ; gmeow:displayable true .
+    gmeow:fullName "Aunt Genny"@x-gmeow-english ; gmeow:namePurpose gmeow:namePurposeNickname ; gmeow:displayable true .
 
 ex:usageStudents a gmeow:NameUsage ;
     gmeow:usageNamed ex:genny ;
@@ -111,13 +110,23 @@ ex:alex a gmeow:Person ;
     gmeow:honorific gmeow:honorificMx .
 
 ex:alexChosen a gmeow:PersonName ;
-    gmeow:fullName "Alex Rivera"@en ;
-    gmeow:namePurpose gmeow:namePurposeChosen ;
+    gmeow:fullName "Alex Rivera"@x-gmeow-english ;
+    gmeow:namePurpose gmeow:namePurposeLegal ;
     gmeow:displayable true ;
-    gmeow:wasAttributedTo ex:alex .
+    gmeow:hasNamePart ex:arGiven , ex:arSurname .
+
+ex:arGiven a gmeow:NamePart ;
+    gmeow:namePartType gmeow:namePartGiven ;
+    gmeow:partText "Alex"@x-gmeow-english ;
+    gmeow:partOrder 0 .
+
+ex:arSurname a gmeow:NamePart ;
+    gmeow:namePartType gmeow:namePartFamily ;
+    gmeow:partText "Rivera"@x-gmeow-english ;
+    gmeow:partOrder 1 .
 
 ex:alexFormer a gmeow:PersonName ;
-    gmeow:fullName "[suppressed former name]"@en ;
+    gmeow:fullName "[suppressed former name]"@x-gmeow-english ;
     gmeow:namePurpose gmeow:namePurposeDeadname ;
     gmeow:displayable false ;
     gmeow:conferredByEvent ex:alexNameChange .
@@ -134,20 +143,20 @@ ex:faeSet a gmeow:PronounSet ;
 
 ex:jose a gmeow:Person ; gmeow:hasName ex:joseName .
 ex:joseName a gmeow:PersonName ;
-    gmeow:fullName "José García Pérez"@es ; gmeow:nameLanguage ex:langEs ;
+    gmeow:fullName "José García Pérez"@x-gmeow-spanish ; gmeow:nameLanguage ex:langEs ;
     gmeow:hasNamePart ex:joseGiven , ex:josePat , ex:joseMat .
 ex:joseGiven a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartGiven ; gmeow:partText "José"@es ; gmeow:partOrder 0 .
+    gmeow:namePartType gmeow:namePartGiven ; gmeow:partText "José"@x-gmeow-spanish ; gmeow:partOrder 0 .
 ex:josePat a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartPaternalSurname ; gmeow:partText "García"@es ; gmeow:partOrder 1 .
+    gmeow:namePartType gmeow:namePartPaternalSurname ; gmeow:partText "García"@x-gmeow-spanish ; gmeow:partOrder 1 .
 ex:joseMat a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartMaternalSurname ; gmeow:partText "Pérez"@es ; gmeow:partOrder 2 .
+    gmeow:namePartType gmeow:namePartMaternalSurname ; gmeow:partText "Pérez"@x-gmeow-spanish ; gmeow:partOrder 2 .
 
 # --- Arabic ism / nasab / nisba decomposition ------------------------------- #
 
 ex:alkhwarizmi a gmeow:Person ; gmeow:hasName ex:akName .
 ex:akName a gmeow:PersonName ;
-    gmeow:fullName "Muhammad ibn Musa al-Khwarizmi"@en ;
+    gmeow:fullName "Muhammad ibn Musa al-Khwarizmi"@x-gmeow-english ;
     gmeow:hasNamePart ex:akIsm , ex:akNasab , ex:akNisba .
 ex:akIsm a gmeow:NamePart ;
     gmeow:namePartType gmeow:namePartIsm ; gmeow:partText "Muhammad" ; gmeow:partOrder 0 .
@@ -160,83 +169,83 @@ ex:akNisba a gmeow:NamePart ;
 
 ex:lin a gmeow:Person ; gmeow:hasName ex:linName .
 ex:linName a gmeow:PersonName ;
-    gmeow:fullName "林文豪"@zh-Hans ; gmeow:nameLanguage ex:langZh ; gmeow:nameScript "Hani" ;
-    gmeow:romanization "Lín Wénháo"@zh-Latn ;
+    gmeow:fullName "林文豪"@x-gmeow-chinese ; gmeow:nameLanguage ex:langZh ; gmeow:nameScript "Hans" ;
+    gmeow:romanization "Lín Wénháo"@x-gmeow-chinese-latn ;
     gmeow:hasNamePart ex:linSurname , ex:linGen , ex:linGiven .
 ex:linSurname a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartSurname ; gmeow:partText "林"@zh-Hans ; gmeow:partOrder 0 .
+    gmeow:namePartType gmeow:namePartSurname ; gmeow:partText "林"@x-gmeow-chinese ; gmeow:partOrder 0 .
 ex:linGen a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartGenerationName ; gmeow:partText "文"@zh-Hans ; gmeow:partOrder 1 ;
+    gmeow:namePartType gmeow:namePartGenerationName ; gmeow:partText "文"@x-gmeow-chinese ; gmeow:partOrder 1 ;
     gmeow:partExpansion "generation marker shared by same-generation kin" .
 ex:linGiven a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartGiven ; gmeow:partText "豪"@zh-Hans ; gmeow:partOrder 2 .
+    gmeow:namePartType gmeow:namePartGiven ; gmeow:partText "豪"@x-gmeow-chinese ; gmeow:partOrder 2 .
 
 # --- Korean clan name (bon-gwan) — not in the rendered surface order -------- #
 
 ex:kim a gmeow:Person ; gmeow:hasName ex:kimName .
 ex:kimName a gmeow:PersonName ;
-    gmeow:fullName "김민준"@ko ; gmeow:nameLanguage ex:langKo ; gmeow:nameScript "Hang" ;
+    gmeow:fullName "김민준"@x-gmeow-korean ; gmeow:nameLanguage ex:langKo ; gmeow:nameScript "Hang" ;
     gmeow:hasNamePart ex:kimSurname , ex:kimGiven , ex:kimClan .
 ex:kimSurname a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartSurname ; gmeow:partText "김"@ko ; gmeow:partOrder 0 .
+    gmeow:namePartType gmeow:namePartSurname ; gmeow:partText "김"@x-gmeow-korean ; gmeow:partOrder 0 .
 ex:kimGiven a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartGiven ; gmeow:partText "민준"@ko ; gmeow:partOrder 1 .
+    gmeow:namePartType gmeow:namePartGiven ; gmeow:partText "민준"@x-gmeow-korean ; gmeow:partOrder 1 .
 ex:kimClan a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartClanName ; gmeow:partText "김해"@ko ;
+    gmeow:namePartType gmeow:namePartClanName ; gmeow:partText "김해"@x-gmeow-korean ;
     gmeow:partExpansion "Gimhae (clan seat / bon-gwan)" .
 
 # --- Balinese birth-order name ---------------------------------------------- #
 
 ex:wayan a gmeow:Person ; gmeow:hasName ex:wayanName .
 ex:wayanName a gmeow:PersonName ;
-    gmeow:fullName "Wayan Sukerta"@ban ; gmeow:nameLanguage ex:langBan ;
+    gmeow:fullName "Wayan Sukerta"@x-gmeow-balinese ; gmeow:nameLanguage ex:langBan ;
     gmeow:hasNamePart ex:wayanBirth , ex:wayanGiven .
 ex:wayanBirth a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartBirthOrderName ; gmeow:partText "Wayan"@ban ; gmeow:partOrder 0 ;
+    gmeow:namePartType gmeow:namePartBirthOrderName ; gmeow:partText "Wayan"@x-gmeow-balinese ; gmeow:partOrder 0 ;
     gmeow:partExpansion "first-born" .
 ex:wayanGiven a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartGiven ; gmeow:partText "Sukerta"@ban ; gmeow:partOrder 1 .
+    gmeow:namePartType gmeow:namePartGiven ; gmeow:partText "Sukerta"@x-gmeow-balinese ; gmeow:partOrder 1 .
 
 # --- Roman tria/quattuor nomina (historical genealogy) ---------------------- #
 
 ex:scipio a gmeow:Person ; gmeow:hasName ex:scipioName .
 ex:scipioName a gmeow:PersonName ;
-    gmeow:fullName "Publius Cornelius Scipio Africanus"@la ; gmeow:nameLanguage ex:langLa ;
+    gmeow:fullName "Publius Cornelius Scipio Africanus"@x-gmeow-latin ; gmeow:nameLanguage ex:langLa ;
     gmeow:hasNamePart ex:scPrae , ex:scNomen , ex:scCognomen , ex:scAgnomen .
 ex:scPrae a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartPraenomen ; gmeow:partText "Publius"@la ; gmeow:partOrder 0 .
+    gmeow:namePartType gmeow:namePartPraenomen ; gmeow:partText "Publius"@x-gmeow-latin ; gmeow:partOrder 0 .
 ex:scNomen a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartNomen ; gmeow:partText "Cornelius"@la ; gmeow:partOrder 1 .
+    gmeow:namePartType gmeow:namePartNomen ; gmeow:partText "Cornelius"@x-gmeow-latin ; gmeow:partOrder 1 .
 ex:scCognomen a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartCognomen ; gmeow:partText "Scipio"@la ; gmeow:partOrder 2 .
+    gmeow:namePartType gmeow:namePartCognomen ; gmeow:partText "Scipio"@x-gmeow-latin ; gmeow:partOrder 2 .
 ex:scAgnomen a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartAgnomen ; gmeow:partText "Africanus"@la ; gmeow:partOrder 3 .
+    gmeow:namePartType gmeow:namePartAgnomen ; gmeow:partText "Africanus"@x-gmeow-latin ; gmeow:partOrder 3 .
 
 # --- House/estate name (Germanic Hofname) + a teknonym --------------------- #
 
 ex:hans a gmeow:Person ; gmeow:hasName ex:hansName .
 ex:hansName a gmeow:PersonName ;
-    gmeow:fullName "Müllers Hans"@de ; gmeow:nameLanguage ex:langDe ;
+    gmeow:fullName "Müllers Hans"@x-gmeow-german ; gmeow:nameLanguage ex:langDe ;
     gmeow:hasNamePart ex:hansHouse , ex:hansGiven .
 ex:hansHouse a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartHouseName ; gmeow:partText "Müllers"@de ; gmeow:partOrder 0 ;
+    gmeow:namePartType gmeow:namePartHouseName ; gmeow:partText "Müllers"@x-gmeow-german ; gmeow:partOrder 0 ;
     gmeow:partExpansion "of the Müller farm" .
 ex:hansGiven a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartGiven ; gmeow:partText "Hans"@de ; gmeow:partOrder 1 .
+    gmeow:namePartType gmeow:namePartGiven ; gmeow:partText "Hans"@x-gmeow-german ; gmeow:partOrder 1 .
 
 ex:ibuSari a gmeow:Person ; gmeow:hasName ex:ibuSariName .
 ex:ibuSariName a gmeow:PersonName ;
-    gmeow:fullName "Ibu Sari"@id ; gmeow:nameLanguage ex:langId ;
+    gmeow:fullName "Ibu Sari"@x-gmeow-indonesian ; gmeow:nameLanguage ex:langId ;
     gmeow:hasNamePart ex:teknonymPart .
 ex:teknonymPart a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartTeknonym ; gmeow:partText "Ibu Sari"@id ; gmeow:partOrder 0 ;
+    gmeow:namePartType gmeow:namePartTeknonym ; gmeow:partText "Ibu Sari"@x-gmeow-indonesian ; gmeow:partOrder 0 ;
     gmeow:partExpansion "mother of Sari" .
 
 # --- Mononym (no surname required) ------------------------------------------ #
 
 ex:plato a gmeow:Person ; gmeow:hasName ex:platoName .
 ex:platoName a gmeow:PersonName ;
-    gmeow:fullName "Plato"@en ; gmeow:hasNamePart ex:platoMono .
+    gmeow:fullName "Plato"@x-gmeow-english ; gmeow:hasNamePart ex:platoMono .
 ex:platoMono a gmeow:NamePart ;
     gmeow:namePartType gmeow:namePartMononym ; gmeow:partText "Plato" ; gmeow:partOrder 0 .
 
@@ -246,7 +255,7 @@ ex:platoMono a gmeow:NamePart ;
 
 ex:charles a gmeow:Person ; gmeow:hasName ex:charlesName .
 ex:charlesName a gmeow:PersonName ;
-    gmeow:fullName "Charles Beaumont Sr. III"@en ;
+    gmeow:fullName "Charles Beaumont Sr. III"@x-gmeow-english ;
     gmeow:hasNamePart ex:cbGiven , ex:cbSurname , ex:cbSenior , ex:cbThird .
 ex:cbGiven a gmeow:NamePart ;
     gmeow:namePartType gmeow:namePartGiven ; gmeow:partText "Charles" ; gmeow:partOrder 0 .
@@ -273,7 +282,7 @@ ex:invExt a gmeow:NamePart ;
 # --- Organization appellation ----------------------------------------------- #
 
 ex:orgName a gmeow:OrganizationName ;
-    gmeow:fullName "Blackcat Informatics Inc."@en ; gmeow:namePurpose gmeow:namePurposeLegal .
+    gmeow:fullName "Blackcat Informatics Inc."@x-gmeow-english ; gmeow:namePurpose gmeow:namePurposeLegal .
 
 # --- Place naming: co-equal endonym/exonym toponyms + inferred PlaceNaming --- #
 # A name-usage whose usageNamed is a gmeow:Place is INFERRED to be a
@@ -286,13 +295,13 @@ ex:munichCity a gmeow:Place ;
     gmeow:hasPlaceName ex:munichEndonym , ex:munichExonym , ex:munichHistorical .
 
 ex:munichEndonym a gmeow:PlaceName ;
-    gmeow:fullName "München"@de ; gmeow:nameLanguage ex:langDe ; gmeow:nameScript "Latn" ;
+    gmeow:fullName "München"@x-gmeow-german ; gmeow:nameLanguage ex:langDe ; gmeow:nameScript "Latn" ;
     gmeow:namePurpose gmeow:namePurposeEndonym ; gmeow:displayable true .
 ex:munichExonym a gmeow:PlaceName ;
-    gmeow:fullName "Munich"@en ; gmeow:nameLanguage ex:langEn ; gmeow:nameScript "Latn" ;
+    gmeow:fullName "Munich"@x-gmeow-english ; gmeow:nameLanguage ex:langEn ; gmeow:nameScript "Latn" ;
     gmeow:namePurpose gmeow:namePurposeExonym ; gmeow:displayable true .
 ex:munichHistorical a gmeow:PlaceName ;
-    gmeow:fullName "Munichen"@la ; gmeow:nameLanguage ex:langLa ;
+    gmeow:fullName "Munichen"@x-gmeow-latin ; gmeow:nameLanguage ex:langLa ;
     gmeow:namePurpose gmeow:namePurposeSuperseded ; gmeow:displayable false .
 
 # Endonym usage — sanctioned by a toponymic authority (gmeow:usageAuthority).

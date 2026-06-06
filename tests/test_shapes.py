@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import RDF, Graph, Namespace
+from rdflib import RDF, Graph, Literal, Namespace
 
 from gmeow_tools.validate import run_shacl
 
@@ -80,4 +80,11 @@ def test_wellformed_facet_cardinality_passes() -> None:
     ok = Graph()
     ok.add((EX.f, RDF.type, GMEOW.GenderIdentity))
     ok.add((EX.f, GMEOW.genderValue, GMEOW.genderNonBinary))
+    assert run_shacl(ok).ok
+
+
+def test_internal_language_tag_shape_is_case_insensitive() -> None:
+    """BCP-47 private-use tags are case-insensitive in SHACL too."""
+    ok = Graph()
+    ok.add((EX.name, GMEOW.fullName, Literal("Japanese", lang="x-GMEOW-Japanese")))
     assert run_shacl(ok).ok

@@ -1,0 +1,262 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+
+<https://blackcatinformatics.ca/gmeow/imports/languages-reference>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Languages Reference Catalog"@en ;
+    rdfs:comment "Standard natural and programming languages for GMEOW reuse, pre-seeding internal tags, appellations, and alignments."@en .
+
+# =========================================================================== #
+# Writing Systems (Scripts)
+# =========================================================================== #
+
+gmeow:wsLatin a gmeow:WritingSystem ;
+    rdfs:label "Latin writing system"@en ;
+    skos:definition "The Latin alphabet script used for English, German, Spanish, French, and romanizations."@en ;
+    gmeow:scriptCode "Latn" ;
+    gmeow:writingSystemType gmeow:wsTypeAlphabet ;
+    gmeow:textDirection gmeow:directionLtr .
+
+gmeow:wsHan a gmeow:WritingSystem ;
+    rdfs:label "Han writing system"@en ;
+    skos:definition "The logographic Chinese character writing system used for Chinese and Japanese Kanji."@en ;
+    gmeow:scriptCode "Hani" ;
+    gmeow:writingSystemType gmeow:wsTypeLogographic .
+
+gmeow:wsHiragana a gmeow:WritingSystem ;
+    rdfs:label "Hiragana writing system"@en ;
+    skos:definition "The Japanese hiragana syllabary."@en ;
+    gmeow:scriptCode "Hira" ;
+    gmeow:writingSystemType gmeow:wsTypeSyllabary .
+
+gmeow:wsKatakana a gmeow:WritingSystem ;
+    rdfs:label "Katakana writing system"@en ;
+    skos:definition "The Japanese katakana syllabary."@en ;
+    gmeow:scriptCode "Kana" ;
+    gmeow:writingSystemType gmeow:wsTypeSyllabary .
+
+gmeow:wsHangul a gmeow:WritingSystem ;
+    rdfs:label "Hangul writing system"@en ;
+    skos:definition "The Korean featural alphabet script."@en ;
+    gmeow:scriptCode "Hang" ;
+    gmeow:writingSystemType gmeow:wsTypeFeatural .
+
+# =========================================================================== #
+# Natural Languages
+# =========================================================================== #
+
+gmeow:langEnglish a gmeow:Language ;
+    rdfs:label "English"@en ;
+    skos:definition "A West Germanic language originating in England, now a global lingua franca."@en ;
+    gmeow:languageTag "x-gmeow-english" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "en" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appEnglishGlossonym ;
+    skos:exactMatch wd:Q1860 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/eng> .
+
+gmeow:appEnglishGlossonym a gmeow:Appellation ;
+    gmeow:fullName "English"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langGerman a gmeow:Language ;
+    rdfs:label "German"@en ;
+    skos:definition "A West Germanic language mainly spoken in Central Europe."@en ;
+    gmeow:languageTag "x-gmeow-german" ;
+    gmeow:bcp47Tag "de"^^xsd:language ;
+    gmeow:languageCode "de" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appGermanEndonym , gmeow:appGermanExonym ;
+    skos:exactMatch wd:Q188 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/deu> .
+
+gmeow:appGermanEndonym a gmeow:Appellation ;
+    gmeow:fullName "Deutsch"@x-gmeow-german ;
+    gmeow:nameLanguage gmeow:langGerman ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appGermanExonym a gmeow:Appellation ;
+    gmeow:fullName "German"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langSpanish a gmeow:Language ;
+    rdfs:label "Spanish"@en ;
+    skos:definition "A Romance language originating in the Iberian Peninsula, now spoken globally."@en ;
+    gmeow:languageTag "x-gmeow-spanish" ;
+    gmeow:bcp47Tag "es"^^xsd:language ;
+    gmeow:languageCode "es" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appSpanishEndonym , gmeow:appSpanishExonym ;
+    skos:exactMatch wd:Q1321 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/spa> .
+
+gmeow:appSpanishEndonym a gmeow:Appellation ;
+    gmeow:fullName "Español"@x-gmeow-spanish ;
+    gmeow:nameLanguage gmeow:langSpanish ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appSpanishExonym a gmeow:Appellation ;
+    gmeow:fullName "Spanish"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langJapanese a gmeow:Language ;
+    rdfs:label "Japanese"@en ;
+    skos:definition "A Japonic language spoken primarily in Japan."@en ;
+    gmeow:languageTag "x-gmeow-japanese" ;
+    gmeow:bcp47Tag "ja"^^xsd:language ;
+    gmeow:languageCode "ja" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsHan , gmeow:wsHiragana , gmeow:wsKatakana , gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appJapaneseEndonym , gmeow:appJapaneseExonym ;
+    skos:exactMatch wd:Q5287 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/jpn> .
+
+gmeow:appJapaneseEndonym a gmeow:Appellation ;
+    gmeow:fullName "日本語"@x-gmeow-japanese ;
+    gmeow:nameLanguage gmeow:langJapanese ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appJapaneseExonym a gmeow:Appellation ;
+    gmeow:fullName "Japanese"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langChinese a gmeow:Language ;
+    rdfs:label "Chinese"@en ;
+    skos:definition "A branch of Sino-Tibetan languages spoken primarily in China."@en ;
+    gmeow:languageTag "x-gmeow-chinese" ;
+    gmeow:bcp47Tag "zh"^^xsd:language ;
+    gmeow:languageCode "zh" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsHan ;
+    gmeow:hasAppellation gmeow:appChineseEndonym , gmeow:appChineseExonym ;
+    skos:exactMatch wd:Q7850 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/zho> .
+
+gmeow:appChineseEndonym a gmeow:Appellation ;
+    gmeow:fullName "中文"@x-gmeow-chinese ;
+    gmeow:nameLanguage gmeow:langChinese ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appChineseExonym a gmeow:Appellation ;
+    gmeow:fullName "Chinese"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+gmeow:langFrench a gmeow:Language ;
+    rdfs:label "French"@en ;
+    skos:definition "A Romance language spoken primarily in France and parts of Europe, Africa, and North America."@en ;
+    gmeow:languageTag "x-gmeow-french" ;
+    gmeow:bcp47Tag "fr"^^xsd:language ;
+    gmeow:languageCode "fr" ;
+    gmeow:languageOrigin gmeow:originNatural ;
+    gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appFrenchEndonym , gmeow:appFrenchExonym ;
+    skos:exactMatch wd:Q150 ;
+    skos:exactMatch <http://lexvo.org/id/iso639-3/fra> .
+
+gmeow:appFrenchEndonym a gmeow:Appellation ;
+    gmeow:fullName "Français"@x-gmeow-french ;
+    gmeow:nameLanguage gmeow:langFrench ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+gmeow:appFrenchExonym a gmeow:Appellation ;
+    gmeow:fullName "French"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+# =========================================================================== #
+# Programming & Formal Languages
+# =========================================================================== #
+
+gmeow:langPython a gmeow:ProgrammingLanguage ;
+    rdfs:label "Python"@en ;
+    skos:definition "An interpreted, high-level, general-purpose programming language."@en ;
+    gmeow:languageTag "x-gmeow-python" ;
+    gmeow:languageCode "py" ;
+    gmeow:languageOrigin gmeow:originProgramming ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appPythonGlossonym ;
+    skos:exactMatch wd:Q28865 .
+
+gmeow:appPythonGlossonym a gmeow:Appellation ;
+    gmeow:fullName "Python"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langRust a gmeow:ProgrammingLanguage ;
+    rdfs:label "Rust"@en ;
+    skos:definition "A multi-paradigm, systems programming language designed for performance and safety."@en ;
+    gmeow:languageTag "x-gmeow-rust" ;
+    gmeow:languageCode "rs" ;
+    gmeow:languageOrigin gmeow:originProgramming ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appRustGlossonym ;
+    skos:exactMatch wd:Q575650 .
+
+gmeow:appRustGlossonym a gmeow:Appellation ;
+    gmeow:fullName "Rust"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .
+
+gmeow:langJavaScript a gmeow:ProgrammingLanguage ;
+    rdfs:label "JavaScript"@en ;
+    skos:definition "A high-level, interpreted programming language conforming to ECMAScript."@en ;
+    gmeow:languageTag "x-gmeow-javascript" ;
+    gmeow:languageCode "js" ;
+    gmeow:languageOrigin gmeow:originProgramming ;
+    gmeow:languageModality gmeow:modalityMachine ;
+    gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:usesWritingSystem gmeow:wsLatin ;
+    gmeow:hasAppellation gmeow:appJavaScriptGlossonym ;
+    skos:exactMatch wd:Q2005 .
+
+gmeow:appJavaScriptGlossonym a gmeow:Appellation ;
+    gmeow:fullName "JavaScript"@x-gmeow-english ;
+    gmeow:nameLanguage gmeow:langEnglish ;
+    gmeow:namePurpose gmeow:namePurposeGlossonym ;
+    gmeow:displayable true .

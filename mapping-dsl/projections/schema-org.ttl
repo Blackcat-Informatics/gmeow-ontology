@@ -138,7 +138,8 @@ gmeow:mapSchemaGivenName a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:hasNamePart ; gmeow:objectVar "np" ]
             [ gmeow:subjectVar "np" ; gmeow:predicate gmeow:namePartType ; gmeow:objectValue gmeow:namePartGiven ]
             [ gmeow:subjectVar "np" ; gmeow:predicate gmeow:partText ; gmeow:objectVar "given" ] ) ;
-        gmeow:suppressWhen [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:partText ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:givenName ; gmeow:relation "<=" ] .
 
@@ -153,7 +154,8 @@ gmeow:mapSchemaFamilyName a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:hasNamePart ; gmeow:objectVar "np" ]
             [ gmeow:subjectVar "np" ; gmeow:predicate gmeow:namePartType ; gmeow:objectValue gmeow:namePartSurname ]
             [ gmeow:subjectVar "np" ; gmeow:predicate gmeow:partText ; gmeow:objectVar "family" ] ) ;
-        gmeow:suppressWhen [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:partText ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:familyName ; gmeow:relation "<=" ] .
 

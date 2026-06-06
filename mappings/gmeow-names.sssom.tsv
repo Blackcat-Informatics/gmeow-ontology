@@ -12,6 +12,9 @@
 #   gmeow: https://blackcatinformatics.ca/gmeow/
 #   gn: http://www.geonames.org/ontology#
 #   gx: http://gedcomx.org/
+#   lime: http://www.w3.org/ns/lemon/lime#
+#   ontolex: http://www.w3.org/ns/lemon/ontolex#
+#   rdfs: http://www.w3.org/2000/01/rdf-schema#
 #   schema: https://schema.org/
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
@@ -19,11 +22,13 @@
 #   wd: http://www.wikidata.org/entity/
 #   wdt: http://www.wikidata.org/prop/direct/
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:Appellation	rdfs:subClassOf	ontolex:LexicalEntry	semapv:ManualMappingCuration	0.9	GMEOW Appellation subclasses OntoLex LexicalEntry
 gmeow:PersonName	skos:closeMatch	gx:Name	semapv:ManualMappingCuration	0.8	
 gmeow:PlaceName	skos:closeMatch	crm:E48_Place_Name	semapv:ManualMappingCuration	0.85	CIDOC-CRM E48 Place Name — the appellation borne by a place (CRM's E53 Place)
 gmeow:PronounSet	skos:broadMatch	wd:Q36224	semapv:ManualMappingCuration	0.5	Wikidata 'pronoun' — broader grammatical category; a hint, not an equivalence
 gmeow:PronounSet	skos:closeMatch	wd:Q65067284	semapv:ManualMappingCuration	0.9	Wikidata 'personal pronoun set' — third-person pronouns an individual wants used; its Sept-2025 RfC favours full-declension pronoun sets (modelling each set's forms, not a single lexeme), aligning with GMEOW's reified five-form English model
 gmeow:fullName	skos:closeMatch	foaf:name	semapv:ManualMappingCuration	0.8	
+gmeow:fullName	skos:closeMatch	ontolex:writtenRep	semapv:ManualMappingCuration	0.85	GMEOW fullName close-matches OntoLex writtenRep
 gmeow:fullName	skos:closeMatch	schema:name	semapv:ManualMappingCuration	0.8	
 gmeow:fullName	skos:closeMatch	vcard:fn	semapv:ManualMappingCuration	0.9	
 gmeow:fullName	skos:closeMatch	wdt:P1559	semapv:ManualMappingCuration	0.7	
@@ -34,6 +39,7 @@ gmeow:hasPronounSet	skos:closeMatch	wdt:P6553	semapv:ManualMappingCuration	0.85	
 gmeow:honorific	skos:closeMatch	schema:honorificPrefix	semapv:ManualMappingCuration	0.7	
 gmeow:honorific	skos:closeMatch	wdt:P511	semapv:ManualMappingCuration	0.8	
 gmeow:nameLanguage	skos:closeMatch	dcterms:language	semapv:ManualMappingCuration	0.8	
+gmeow:nameLanguage	skos:closeMatch	lime:language	semapv:ManualMappingCuration	0.95	GMEOW nameLanguage close-matches LIME language
 gmeow:nameLanguage	skos:closeMatch	schema:inLanguage	semapv:ManualMappingCuration	0.75	
 gmeow:nameLanguage	skos:closeMatch	wdt:P407	semapv:ManualMappingCuration	0.75	Wikidata 'language of work or name' (P407) — verified live against the Wikidata API
 gmeow:namePartGiven	skos:closeMatch	foaf:givenName	semapv:ManualMappingCuration	0.8	

@@ -1,0 +1,93 @@
+@prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ontolex:canonicalForm a owl:FunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:domain ontolex:LexicalEntry ;
+    rdfs:range ontolex:Form .
+
+ontolex:concept a owl:ObjectProperty ;
+    rdfs:range ontolex:LexicalConcept ;
+    owl:inverseOf ontolex:isConceptOf .
+
+ontolex:isDenotedBy a owl:ObjectProperty ;
+    rdfs:domain rdfs:Resource ;
+    rdfs:range ontolex:LexicalEntry ;
+    owl:inverseOf ontolex:denotes .
+
+ontolex:isEvokedBy a owl:ObjectProperty ;
+    rdfs:domain ontolex:LexicalConcept ;
+    rdfs:range ontolex:LexicalEntry ;
+    owl:inverseOf ontolex:evokes .
+
+ontolex:isLexicalizedSenseOf a owl:ObjectProperty ;
+    rdfs:domain ontolex:LexicalSense ;
+    rdfs:range ontolex:LexicalConcept ;
+    owl:inverseOf ontolex:lexicalizedSense .
+
+ontolex:isReferenceOf a owl:InverseFunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:domain rdfs:Resource ;
+    rdfs:range [ ] ;
+    owl:inverseOf ontolex:reference .
+
+ontolex:lexicalForm a owl:ObjectProperty ;
+    rdfs:domain ontolex:LexicalEntry ;
+    rdfs:range ontolex:Form .
+
+ontolex:morphologicalPattern a owl:ObjectProperty ;
+    rdfs:domain ontolex:LexicalEntry .
+
+ontolex:otherForm a owl:ObjectProperty ;
+    rdfs:domain ontolex:LexicalEntry ;
+    rdfs:range ontolex:Form .
+
+ontolex:phoneticRep a owl:DatatypeProperty ;
+    rdfs:domain ontolex:Form ;
+    rdfs:range rdf:langString .
+
+ontolex:representation a owl:DatatypeProperty ;
+    rdfs:domain ontolex:Form ;
+    rdfs:range rdf:langString .
+
+ontolex:sense a owl:InverseFunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:domain ontolex:LexicalEntry ;
+    rdfs:range ontolex:LexicalSense ;
+    owl:inverseOf ontolex:isSenseOf .
+
+ontolex:usage a owl:ObjectProperty ;
+    rdfs:domain ontolex:LexicalSense ;
+    rdfs:range rdfs:Resource .
+
+ontolex:writtenRep a owl:DatatypeProperty ;
+    rdfs:domain ontolex:Form ;
+    rdfs:range rdf:langString .
+
+ontolex:denotes a owl:ObjectProperty ;
+    rdfs:domain ontolex:LexicalEntry ;
+    rdfs:range rdfs:Resource .
+
+ontolex:evokes a owl:ObjectProperty ;
+    rdfs:domain ontolex:LexicalEntry ;
+    rdfs:range ontolex:LexicalConcept .
+
+ontolex:isConceptOf a owl:ObjectProperty ;
+    rdfs:domain ontolex:LexicalConcept .
+
+ontolex:isSenseOf a owl:FunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:domain ontolex:LexicalSense ;
+    rdfs:range ontolex:LexicalEntry .
+
+ontolex:lexicalizedSense a owl:ObjectProperty ;
+    rdfs:domain ontolex:LexicalConcept ;
+    rdfs:range ontolex:LexicalSense .
+
+ontolex:reference a owl:FunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range rdfs:Resource .
+

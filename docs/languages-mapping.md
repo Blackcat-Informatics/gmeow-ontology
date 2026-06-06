@@ -25,17 +25,30 @@ Glottolog, Wikidata — are **optional alignments** (`gmeow:languageCode`,
 conlang or AI-language is therefore a **fully first-class, co-equal** language.
 `tests/test_languages.py` enforces that nothing requires a code.
 
+To isolate the GMEOW graph from registry changes and support code-less conlangs, **all internal literals must use private-use BCP-47 tags (e.g. `@x-gmeow-english`)** for any GMEOW-namespaced property. The language entity's `gmeow:languageTag` functional property links the entity to its internal tag.
+
 ```turtle
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://example.org/lang/> .
 
+# First-class language individuals define their private-use tags:
+ex:english a gmeow:Language ;
+    gmeow:languageTag "x-gmeow-english" ;
+    gmeow:languageCode "en" .
+
 ex:ithkuil a gmeow:Language ;                          # NO languageCode — and that's fine
+    gmeow:languageTag "x-gmeow-ithkuil" ;
     gmeow:languageOrigin gmeow:originConstructedEngineered ;
     gmeow:designGoal "Maximal cognitive precision with minimal ambiguity." ;
     gmeow:wasAttributedTo ex:quijada ;                 # a human creator…
-    gmeow:hasAppellation [ gmeow:fullName "Ithkuil"@en ; gmeow:namePurpose gmeow:namePurposeGlossonym ] .
+    gmeow:hasAppellation [
+        gmeow:fullName "Ithkuil"@x-gmeow-english ;
+        gmeow:nameLanguage ex:english ;
+        gmeow:namePurpose gmeow:namePurposeGlossonym
+    ] .
 
 ex:aiLang a gmeow:Language ;
+    gmeow:languageTag "x-gmeow-ailang" ;
     gmeow:languageOrigin gmeow:originAiGenerated ;
     gmeow:wasAttributedTo ex:modelAgent .              # …or a gmeow:SoftwareAgent
 ```
@@ -130,7 +143,7 @@ the system that produced it** via `gmeow:transliterationScheme`, and each scheme
 links to its FnO function.
 
 ```turtle
-ex:yamadaName gmeow:romanization "Yamada Tarō"@ja-Latn ;
+ex:yamadaName gmeow:romanization "Yamada Tarō"@x-gmeow-japanese-latn ;
     gmeow:transliterationScheme gmeow:schemeHepburn .   # records HOW, not just WHAT
 ```
 

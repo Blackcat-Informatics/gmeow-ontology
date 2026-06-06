@@ -12,13 +12,16 @@
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
 @prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
 @prefix wd:     <http://www.wikidata.org/entity/> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
 
 # --- (a) Japanese: four co-equal, co-mingled writing systems ---------------- #
 
 ex:japanese a gmeow:Language ;
+    gmeow:languageTag "x-gmeow-japanese" ;
     gmeow:languageOrigin gmeow:originNatural ;
     gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
     gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:bcp47Tag "ja"^^xsd:language ;
     gmeow:languageCode "ja" ;
     skos:exactMatch wd:Q5287 ;
     gmeow:usesWritingSystem ex:wsHan , ex:wsHiragana , ex:wsKatakana , ex:wsRomaji ;
@@ -48,17 +51,17 @@ ex:wsuJaRomaji a gmeow:WritingSystemUsage ;
     gmeow:scriptRole gmeow:scriptRoleTransliteration .
 
 ex:jaEndonym a gmeow:Appellation ;
-    gmeow:fullName "日本語"@ja ; gmeow:nameLanguage ex:japanese ; gmeow:nameScript "Hani" ;
+    gmeow:fullName "日本語"@x-gmeow-japanese ; gmeow:nameLanguage ex:japanese ; gmeow:nameScript "Hani" ;
     gmeow:namePurpose gmeow:namePurposeEndonym .
 ex:jaExonym a gmeow:Appellation ;
-    gmeow:fullName "Japanese"@en ; gmeow:nameLanguage ex:english ;
+    gmeow:fullName "Japanese"@x-gmeow-english ; gmeow:nameLanguage ex:english ;
     gmeow:namePurpose gmeow:namePurposeExonym .
 
 # names↔languages bridge: a romanization that names HOW it was produced (Hepburn).
 ex:yamada a gmeow:Person ; gmeow:hasName ex:yamadaName ; gmeow:knowsLanguage ex:japanese .
 ex:yamadaName a gmeow:PersonName ;
-    gmeow:fullName "山田太郎"@ja ; gmeow:nameLanguage ex:japanese ; gmeow:nameScript "Hani" ;
-    gmeow:romanization "Yamada Tarō"@ja-Latn ;
+    gmeow:fullName "山田太郎"@x-gmeow-japanese ; gmeow:nameLanguage ex:japanese ; gmeow:nameScript "Hani" ;
+    gmeow:romanization "Yamada Tarō"@x-gmeow-japanese-latn ;
     gmeow:transliterationScheme gmeow:schemeHepburn .
 
 # --- (b) Ithkuil: engineered, code-less, versioned, bespoke non-linear script  #
@@ -73,9 +76,9 @@ ex:ithkuil a gmeow:Language ;
     gmeow:hasAppellation ex:ithkuilName .
 # NB: NO gmeow:languageCode — a code-less conlang is fully first-class.
 ex:ithkuilName a gmeow:Appellation ;
-    gmeow:fullName "Ithkuil"@en ; gmeow:namePurpose gmeow:namePurposeGlossonym .
-ex:quijada a gmeow:Person ; gmeow:hasName ex:quijadaName .
-ex:quijadaName a gmeow:PersonName ; gmeow:fullName "John Quijada"@en .
+    gmeow:fullName "Ithkuil"@x-gmeow-english ; gmeow:namePurpose gmeow:namePurposeGlossonym .
+ex:quijada a gmeow:Person ; gmeow:hasName ex:quijadaName.
+ex:quijadaName a gmeow:PersonName ; gmeow:fullName "John Quijada"@x-gmeow-english .
 # Bespoke, non-linear morpho-script — NO scriptCode (no ISO 15924 registration).
 ex:wsIthkuil a gmeow:WritingSystem ;
     gmeow:writingSystemType gmeow:wsTypeNonLinear ; gmeow:textDirection gmeow:directionNonLinear .
@@ -104,29 +107,33 @@ ex:asl a gmeow:Language ;
     gmeow:languageOrigin gmeow:originNatural ;
     gmeow:languageModality gmeow:modalitySigned ;
     gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:bcp47Tag "ase"^^xsd:language ;
     gmeow:languageCode "ase" ;
     gmeow:hasAppellation ex:aslName .
 ex:aslName a gmeow:Appellation ;
-    gmeow:fullName "American Sign Language"@en ; gmeow:namePurpose gmeow:namePurposeExonym .
+    gmeow:fullName "American Sign Language"@x-gmeow-english ; gmeow:namePurpose gmeow:namePurposeExonym .
 
 # --- (e) Python: programming language bridging software.ttl ------------------ #
 
 ex:python a gmeow:ProgrammingLanguage ;
+    gmeow:languageTag "x-gmeow-python" ;
     gmeow:languageOrigin gmeow:originProgramming ;
     gmeow:languageModality gmeow:modalityMachine ;
     gmeow:languageCode "py" ;
     gmeow:hasAppellation ex:pythonName .
 ex:pythonName a gmeow:Appellation ;
-    gmeow:fullName "Python"@en ; gmeow:namePurpose gmeow:namePurposeGlossonym .
+    gmeow:fullName "Python"@x-gmeow-english ; gmeow:namePurpose gmeow:namePurposeGlossonym .
 ex:someProject a gmeow:SoftwareProject ;
     gmeow:writtenInLanguage ex:python .
 
 # --- (f) German + English: endonym/exonym + leveled per-skill proficiency ---- #
 
 ex:german a gmeow:Language ;
+    gmeow:languageTag "x-gmeow-german" ;
     gmeow:languageOrigin gmeow:originNatural ;
     gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
     gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:bcp47Tag "de"^^xsd:language ;
     gmeow:languageCode "de" ;
     gmeow:usesWritingSystem ex:wsLatin ;
     gmeow:hasAppellation ex:deEndonym , ex:deExonym .
@@ -134,21 +141,22 @@ ex:wsLatin a gmeow:WritingSystem ;
     gmeow:scriptCode "Latn" ; gmeow:writingSystemType gmeow:wsTypeAlphabet ;
     gmeow:textDirection gmeow:directionLtr .
 ex:deEndonym a gmeow:Appellation ;
-    gmeow:fullName "Deutsch"@de ; gmeow:nameLanguage ex:german ; gmeow:namePurpose gmeow:namePurposeEndonym .
+    gmeow:fullName "Deutsch"@x-gmeow-german ; gmeow:nameLanguage ex:german ; gmeow:namePurpose gmeow:namePurposeEndonym .
 ex:deExonym a gmeow:Appellation ;
-    gmeow:fullName "German"@en ; gmeow:nameLanguage ex:english ; gmeow:namePurpose gmeow:namePurposeExonym .
+    gmeow:fullName "German"@x-gmeow-english ; gmeow:nameLanguage ex:english ; gmeow:namePurpose gmeow:namePurposeExonym .
 
 ex:english a gmeow:Language ;
-    gmeow:languageOrigin gmeow:originNatural ; gmeow:languageCode "en" ;
+    gmeow:languageTag "x-gmeow-english" ;
+    gmeow:languageOrigin gmeow:originNatural ; gmeow:bcp47Tag "en"^^xsd:language ; gmeow:languageCode "en" ;
     gmeow:hasAppellation ex:enName .
 ex:enName a gmeow:Appellation ;
-    gmeow:fullName "English"@en ; gmeow:namePurpose gmeow:namePurposeExonym .
+    gmeow:fullName "English"@x-gmeow-english ; gmeow:namePurpose gmeow:namePurposeExonym .
 
 ex:learner a gmeow:Person ;
     gmeow:hasName ex:learnerName ;
     gmeow:nativeLanguage ex:english ;
     gmeow:knowsLanguage ex:german .
-ex:learnerName a gmeow:PersonName ; gmeow:fullName "Sam Lee"@en .
+ex:learnerName a gmeow:PersonName ; gmeow:fullName "Sam Lee"@x-gmeow-english .
 
 # Per-skill proficiency: native overall (English), CEFR B2 writing + C1 speaking (German).
 ex:profEnNative a gmeow:LanguageProficiency ;

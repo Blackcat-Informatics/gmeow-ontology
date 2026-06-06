@@ -39,8 +39,8 @@ def test_dsl_parses() -> None:
     # dcterms, schema.org, SPDX, PREMIS, RightsStatements.org, ma-ont, Wikidata).
     # Issue #105 place naming: +8 names cells (PlaceName→CIDOC E48, hasPlaceName,
     # nameLanguage→dcterms/schema/P407, endonym/exonym) and -3 retired places
-    # alternateName cells, net +5.
-    assert len(dsl.equivalences) == 681
+    # alternateName cells, net +5. OntoLex-Lemon: +3, net +8.
+    assert len(dsl.equivalences) == 684
     # 21 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105).
     assert len(dsl.functions) == 21
@@ -250,6 +250,16 @@ def test_edoal_traversal_uses_compose_inverse() -> None:
     )
 
 
+def test_edoal_has_no_orphan_relation_nodes() -> None:
+    """Template-only mappings must not leave unattached relation bnodes."""
+    graph = emit_edoal(load_dsl(), "vcard")
+
+    for relation in graph.subjects(RDF.type, EDOAL.Relation):
+        assert list(graph.subjects(None, relation)), (
+            f"orphan EDOAL relation node for {graph.value(relation, EDOAL.uri)}"
+        )
+
+
 def test_render_expr_extensions() -> None:
     from rdflib import Literal
 
@@ -270,6 +280,15 @@ def test_render_expr_extensions() -> None:
         == "(?x IN (gmeow:a))"
     )
     assert render_expr(Expr(op=GM.opNot, args=(Expr(var="b"),))) == "(!?b)"
+
+
+def test_retagging_uses_dedicated_bcp47_tag() -> None:
+    """Retagging must not treat every registry languageCode as a BCP-47 tag."""
+    ontolex = emit_sparql(load_dsl(), "ontolex")
+
+    assert "gmeow:bcp47Tag ?_extTag" in ontolex
+    assert "gmeow:languageCode ?_ext" not in ontolex
+    assert "lime:language ?langTag" in ontolex
 
 
 def test_render_path_extensions() -> None:

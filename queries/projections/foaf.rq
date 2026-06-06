@@ -9,7 +9,7 @@ CONSTRUCT {
     ?place a wgs84:SpatialThing .
     ?place wgs84:lat ?lat .
     ?place wgs84:long ?lon .
-    ?ent foaf:name ?dispName .
+    ?ent foaf:name ?_final_dispName .
     ?ent foaf:gender ?genderLabel .
     ?ent foaf:nick ?nick .
     ?ent foaf:homepage ?wp .
@@ -26,6 +26,14 @@ WHERE {
         ?ent gmeow:hasAppellation|gmeow:hasName ?app .
         ?app gmeow:fullName ?dispName .
         FILTER NOT EXISTS { ?app gmeow:displayable false . }
+        OPTIONAL {
+            ?app gmeow:nameLanguage ?_lang .
+            ?_lang gmeow:languageTag ?_intTag .
+            FILTER(isLiteral(?dispName) && LANG(?dispName) = ?_intTag)
+            ?_lang gmeow:bcp47Tag ?_extTag .
+            OPTIONAL { ?app gmeow:nameScript ?_sc . }
+        }
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?dispName), IF(BOUND(?_sc), CONCAT(STR(?_extTag), '-', ?_sc), STR(?_extTag))), ?dispName) AS ?_final_dispName )
     }
     UNION {
         ?ent gmeow:hasGenderIdentity ?gi .

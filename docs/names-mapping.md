@@ -72,16 +72,26 @@ Binding rules, enforced by `tests/test_names.py`:
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://example.org/names/> .
 
+# --- Languages ---
+ex:langEn a gmeow:Language ; gmeow:languageTag "x-gmeow-english" ; gmeow:languageCode "en" .
+ex:langZh a gmeow:Language ; gmeow:languageTag "x-gmeow-chinese" ; gmeow:languageCode "zh" .
+
+# --- Person and Names ---
 ex:patrick a gmeow:Person ; gmeow:hasName ex:nameLatin , ex:nameHan .   # co-equal
 
 ex:nameLatin a gmeow:PersonName ;
-    gmeow:fullName "Patrick Colm Audley"@en ; gmeow:nameLanguage "en" ;
-    gmeow:namePurpose gmeow:namePurposeLegal ; gmeow:wasAttributedTo ex:patrick .
+    gmeow:fullName "Patrick Colm Audley"@x-gmeow-english ;
+    gmeow:nameLanguage ex:langEn ;
+    gmeow:namePurpose gmeow:namePurposeLegal ;
+    gmeow:wasAttributedTo ex:patrick .
 
 ex:nameHan a gmeow:PersonName ;
-    gmeow:fullName "欧德理"@zh-Hans ; gmeow:nameLanguage "zh" ; gmeow:nameScript "Hani" ;
-    gmeow:romanization "Ōu Délǐ"@zh-Latn ;          # romanization of THIS name only
-    gmeow:namePurpose gmeow:namePurposeChosen ; gmeow:wasAttributedTo ex:patrick .
+    gmeow:fullName "欧德理"@x-gmeow-chinese ;
+    gmeow:nameLanguage ex:langZh ;
+    gmeow:nameScript "Hans" ;
+    gmeow:romanization "Ōu Délǐ"@x-gmeow-chinese-latn ;  # romanization of THIS name only
+    gmeow:namePurpose gmeow:namePurposeChosen ;
+    gmeow:wasAttributedTo ex:patrick .
 ```
 
 > **Multilingualism is a separate, forthcoming building block.** This module is
@@ -129,8 +139,8 @@ binds the parts:
 
 ```turtle
 ex:genny a gmeow:Person ; gmeow:hasName ex:gennyMrs , ex:gennyAunt .
-ex:gennyMrs  a gmeow:PersonName ; gmeow:fullName "Mrs Smith"@en .
-ex:gennyAunt a gmeow:PersonName ; gmeow:fullName "Aunt Genny"@en .
+ex:gennyMrs  a gmeow:PersonName ; gmeow:fullName "Mrs Smith"@x-gmeow-english .
+ex:gennyAunt a gmeow:PersonName ; gmeow:fullName "Aunt Genny"@x-gmeow-english .
 
 ex:usageStudents a gmeow:NameUsage ;          # formal, toward an audience
     gmeow:usageNamed ex:genny ; gmeow:usageAppellation ex:gennyMrs ;
@@ -156,7 +166,7 @@ co-equal `PersonName`, link the cause to the events module's event spine
 ```turtle
 ex:alex a gmeow:Person ; gmeow:hasName ex:alexChosen , ex:alexFormer .
 ex:alexChosen a gmeow:PersonName ;
-    gmeow:fullName "Alex Rivera"@en ; gmeow:namePurpose gmeow:namePurposeChosen ;
+    gmeow:fullName "Alex Rivera"@x-gmeow-english ; gmeow:namePurpose gmeow:namePurposeChosen ;
     gmeow:displayable true ; gmeow:wasAttributedTo ex:alex .
 ex:alexFormer a gmeow:PersonName ;
     gmeow:namePurpose gmeow:namePurposeDeadname ;

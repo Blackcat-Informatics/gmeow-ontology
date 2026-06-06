@@ -250,6 +250,8 @@ PREFIXES: dict[str, str] = {
     # Languages (the ISO 639 hub is Lexvo; Glottolog for genealogy/languoids)
     "lexvo": "http://lexvo.org/id/",
     "glottolog": "https://glottolog.org/resource/languoid/id/",
+    "ontolex": "http://www.w3.org/ns/lemon/ontolex#",
+    "lime": "http://www.w3.org/ns/lemon/lime#",
 }
 
 # --------------------------------------------------------------------------- #
@@ -454,4 +456,8 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "glottolog": AlignmentTarget(
         "Glottolog", PREFIXES["glottolog"], "CC-BY-4.0", "concept_scheme"
     ),
+    "ontolex": AlignmentTarget(
+        "OntoLex-Lemon", PREFIXES["ontolex"], "W3C-Document", "schema"
+    ),
+    "lime": AlignmentTarget("LIME", PREFIXES["lime"], "W3C-Document", "schema"),
 }
