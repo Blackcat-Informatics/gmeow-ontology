@@ -1,0 +1,201 @@
+# Worked example + coverage slice (#41): the universal events facility. Exercises
+# every new term — gmeow:Event / LifeEvent, the gmeow:eventType + gmeow:ParticipantRole
+# + gmeow:TemporalPrecision value vocabularies, the gmeow:Participation relator and
+# its players, the flat gmeow:hasParticipant shortcut, structured + fuzzy time,
+# gmeow:eventLocation, sub-event mereology, and gmeow:EventSeries. This is also a
+# worked-example input (projects to schema.org event roles + the iCalendar VEVENT
+# profile in dist/gmeow-example-*), so it is kept neutral; the standpoint-indexed
+# CONTESTED-fact cases live in events-contested.ttl. Native GMEOW terms only, SHACL-clean.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/events/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --------------------------------------------------------------------------- #
+# A multi-participant, sub-event'd wedding — reified Participations in roles.
+# --------------------------------------------------------------------------- #
+
+ex:wedding a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeMarriage ;
+    gmeow:eventInterval ex:weddingInterval ;
+    gmeow:eventLocation ex:chapel ;
+    gmeow:hasParticipant ex:alex , ex:blair ;        # flat 80%-case shortcut
+    gmeow:hasSubEvent ex:reception .
+
+ex:weddingInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2015-06-20T14:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime   "2015-06-20T15:00:00Z"^^xsd:dateTime .
+
+ex:chapel a gmeow:Place ; gmeow:placeType gmeow:placeTypeBuilding .
+
+# Reified participations: the two principals, the officiant, a witness.
+ex:partAlex a gmeow:Participation ;
+    gmeow:participationEvent ex:wedding ;
+    gmeow:participationParticipant ex:alex ;
+    gmeow:participationRole gmeow:roleParticipantPrincipal ;
+    gmeow:participationInterval ex:weddingInterval ;
+    gmeow:confidence 1.0 .
+
+ex:partBlair a gmeow:Participation ;
+    gmeow:participationEvent ex:wedding ;
+    gmeow:participationParticipant ex:blair ;
+    gmeow:participationRole gmeow:roleParticipantPrincipal .
+
+ex:partOfficiant a gmeow:Participation ;
+    gmeow:participationEvent ex:wedding ;
+    gmeow:participationParticipant ex:rev ;
+    gmeow:participationRole gmeow:roleOfficiant .
+
+ex:partWitness a gmeow:Participation ;
+    gmeow:participationEvent ex:wedding ;
+    gmeow:participationParticipant ex:casey ;
+    gmeow:participationRole gmeow:roleWitness .
+
+# A sub-event (the reception) with its own participants and roles.
+ex:reception a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeMarriage ;
+    gmeow:subEventOf ex:wedding ;
+    gmeow:eventTime "2015-06-20T17:00:00Z"^^xsd:dateTime ;
+    gmeow:eventLocation ex:hall .
+
+ex:hall a gmeow:Place ; gmeow:placeType gmeow:placeTypeRoom .
+
+ex:partOrganizer a gmeow:Participation ;
+    gmeow:participationEvent ex:reception ;
+    gmeow:participationParticipant ex:casey ;
+    gmeow:participationRole gmeow:roleOrganizer .
+
+ex:partAttendee a gmeow:Participation ;
+    gmeow:participationEvent ex:reception ;
+    gmeow:participationParticipant ex:dana ;
+    gmeow:participationRole gmeow:roleAttendee .
+
+ex:partPerformer a gmeow:Participation ;
+    gmeow:participationEvent ex:reception ;
+    gmeow:participationParticipant ex:band ;
+    gmeow:participationRole gmeow:rolePerformer .
+
+# A superseded participation claim — a mistaken attendee, corrected by SUPPRESSION
+# (gmeow:displayable false), never deletion (Principle 10). validUntil closes it.
+ex:partMistaken a gmeow:Participation ;
+    gmeow:participationEvent ex:reception ;
+    gmeow:participationParticipant ex:erin ;
+    gmeow:participationRole gmeow:roleAttendee ;
+    gmeow:validUntil "2015-07-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:displayable false .
+
+# --------------------------------------------------------------------------- #
+# A refactored Birth — a person-scoped LifeEvent with an eventType value and the
+# principal expressed through a Participation, the instant through eventTime.
+# --------------------------------------------------------------------------- #
+
+ex:alexBirth a gmeow:LifeEvent ;
+    gmeow:eventType gmeow:eventTypeBirth ;
+    gmeow:eventTime "1988-04-12T00:00:00Z"^^xsd:dateTime ;
+    gmeow:eventLocation ex:hospital .
+
+ex:hospital a gmeow:Place ; gmeow:placeType gmeow:placeTypeBuilding .
+
+ex:partAlexBorn a gmeow:Participation ;
+    gmeow:participationEvent ex:alexBirth ;
+    gmeow:participationParticipant ex:alex ;
+    gmeow:participationRole gmeow:roleParticipantPrincipal ;
+    gmeow:wasAttributedTo ex:civilRegister .
+
+# --------------------------------------------------------------------------- #
+# A fuzzy-dated historical event — circa bounds + a temporalPrecision value, with
+# a victim/agent/beneficiary cast, instead of a single to-the-day date.
+# --------------------------------------------------------------------------- #
+
+ex:siege a gmeow:Event ;
+    gmeow:eventType ex:eventTypeSiege ;          # a freshly minted open-vocab type
+    gmeow:earliestStart "1453-04-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:latestEnd     "1453-05-31T00:00:00Z"^^xsd:dateTime ;
+    gmeow:temporalPrecision gmeow:precisionCirca ;
+    gmeow:eventLocation ex:city .
+
+# An unforeseen event type is a FRESH value individual, never a new class.
+ex:eventTypeSiege a gmeow:EventType ; rdfs:label "siege"@en .
+
+ex:city a gmeow:Place ; gmeow:placeType gmeow:placeTypeCity .
+
+ex:partAttacker a gmeow:Participation ;
+    gmeow:participationEvent ex:siege ;
+    gmeow:participationParticipant ex:armyA ;
+    gmeow:participationRole gmeow:roleAgent .
+
+ex:partDefender a gmeow:Participation ;
+    gmeow:participationEvent ex:siege ;
+    gmeow:participationParticipant ex:armyB ;
+    gmeow:participationRole gmeow:roleVictim .
+
+ex:partBeneficiary a gmeow:Participation ;
+    gmeow:participationEvent ex:siege ;
+    gmeow:participationParticipant ex:empire ;
+    gmeow:participationRole gmeow:roleBeneficiary .
+
+# A precision value spread (cover the remaining TemporalPrecision individuals).
+ex:dayEvent   a gmeow:Event ; gmeow:eventType gmeow:eventTypeCensus ;
+    gmeow:eventTime "1901-03-31T00:00:00Z"^^xsd:dateTime ; gmeow:temporalPrecision gmeow:precisionDay .
+ex:monthEvent a gmeow:Event ; gmeow:eventType gmeow:eventTypeImmigration ;
+    gmeow:eventTime "1923-09-01T00:00:00Z"^^xsd:dateTime ; gmeow:temporalPrecision gmeow:precisionMonth .
+ex:yearEvent  a gmeow:Event ; gmeow:eventType gmeow:eventTypeGraduation ;
+    gmeow:eventTime "1947-01-01T00:00:00Z"^^xsd:dateTime ; gmeow:temporalPrecision gmeow:precisionYear .
+ex:decadeEvent a gmeow:Event ; gmeow:eventType gmeow:eventTypeResidence ;
+    gmeow:earliestStart "1960-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:latestEnd     "1969-12-31T00:00:00Z"^^xsd:dateTime ;
+    gmeow:temporalPrecision gmeow:precisionDecade .
+
+# --------------------------------------------------------------------------- #
+# An event series that ISSUES concrete occurrences (planned-vs-actual).
+# --------------------------------------------------------------------------- #
+
+ex:standup a gmeow:EventSeries ;
+    gmeow:seriesOccurrence ex:standup1 , ex:standup2 .
+
+ex:standup1 a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ;
+    gmeow:eventTime "2024-01-08T09:00:00Z"^^xsd:dateTime ;
+    gmeow:occurrenceOfSeries ex:standup .
+ex:standup2 a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ;
+    gmeow:eventTime "2024-01-15T09:00:00Z"^^xsd:dateTime ;
+    gmeow:occurrenceOfSeries ex:standup .
+
+ex:eventTypeMeeting a gmeow:EventType ; rdfs:label "meeting"@en .
+
+# --------------------------------------------------------------------------- #
+# TEMPORAL RELATIONS (Allen) + Duration + recurrence + tense/aspect — exercises
+# the temporal-deepening layer (#41 ⨯ OWL-Time/TEO/ISO-TimeML). A qualitative
+# ordering chain (transitivity), the contact relations, a duration, an RFC-5545
+# recurrence on the standup series, and the ISO-TimeML linguistic attributes.
+# --------------------------------------------------------------------------- #
+
+# A qualitative ordering chain (no datetimes needed): dawn → noon → dusk. The
+# transitive closure dawn gmeow:before dusk is ENTAILED, not asserted.
+ex:dawn a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:before ex:noon .
+ex:noon a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:before ex:dusk .
+ex:dusk a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting .
+
+# The other Allen relations, exercised once each (inverses are entailed).
+ex:talk    a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:during ex:conference .
+ex:conference a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:contains ex:keynote .
+ex:keynote a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting .
+ex:setup   a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:meets ex:conference .
+ex:rehearsal a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:overlaps ex:conference .
+ex:opening a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:starts ex:conference .
+ex:closing a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:finishes ex:conference .
+ex:webcast a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:coincidesWith ex:keynote .
+
+# A duration on an event (ISO 8601 / xsd:duration).
+ex:wedding gmeow:hasDuration ex:weddingLength .
+ex:weddingLength a gmeow:Duration ; gmeow:durationValue "PT1H"^^xsd:duration .
+
+# The standup series repeats weekly (RFC 5545 RRULE → projects to iCalendar).
+ex:standup gmeow:hasRecurrenceRule ex:standupRule .
+ex:standupRule a gmeow:RecurrenceRule ; gmeow:recurrenceRuleText "FREQ=WEEKLY;BYDAY=MO" .
+
+# ISO-TimeML linguistic attributes on a textual event mention (annotation-layer).
+ex:reportedClash a gmeow:Event ;
+    gmeow:eventType ex:eventTypeMeeting ;
+    gmeow:eventTense gmeow:tensePast ;
+    gmeow:eventAspect gmeow:aspectPerfective .

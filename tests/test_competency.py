@@ -65,8 +65,15 @@ def test_competency_kinship_query() -> None:
 
 def test_competency_life_events_query() -> None:
     terms = _query_terms("life-events.rq")
-    # A comprehensive genealogy slice models many life-event types.
-    for term in ("Birth", "Death", "Marriage", "Burial", "Census", "Adoption"):
+    # Life-event kinds are now eventType VALUE individuals (#41), not subclasses.
+    for term in (
+        "eventTypeBirth",
+        "eventTypeDeath",
+        "eventTypeMarriage",
+        "eventTypeBurial",
+        "eventTypeCensus",
+        "eventTypeAdoption",
+    ):
         assert NAMESPACE + term in terms
     assert len(terms) >= 25
 

@@ -4,7 +4,7 @@
 # mapping_tool: gmeow compile-mappings
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Genealogy alignments — events to BIO + GEDCOM X fact types; kinship to Wikidata; legacy W3C gedcom predicates for coverage. Supersedes the unmaintained SWAP gedcom as the canonical model.
+# comment: Genealogy alignments — kinship relationships and convenience properties to BIO / GEDCOM X / Wikidata / REL; legacy W3C gedcom predicates for coverage. Life-EVENT alignments (event types, dates, places, participant roles) live in the events mapset (gmeow-events.sssom.tsv), since life events are now the universal events module's concern. Supersedes the unmaintained SWAP gedcom as the canonical model.
 # curie_map:
 #   bio: http://purl.org/vocab/bio/0.1/
 #   gedcom: http://www.w3.org/2000/10/swap/pim/gedcom#
@@ -12,68 +12,21 @@
 #   gn: http://www.geonames.org/ontology#
 #   gx: http://gedcomx.org/
 #   gxv: http://gedcomx.org/v1/
-#   owl: http://www.w3.org/2002/07/owl#
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
 #   wdt: http://www.wikidata.org/prop/direct/
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
-gmeow:Adoption	owl:equivalentClass	bio:Adoption	semapv:ManualMappingCuration	1.0	
-gmeow:Adoption	skos:closeMatch	gx:Adoption	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
 gmeow:AdoptiveParentChild	skos:closeMatch	gx:AdoptiveParent	semapv:ManualMappingCuration	0.9	
-gmeow:Annulment	owl:equivalentClass	bio:Annulment	semapv:ManualMappingCuration	1.0	
-gmeow:Annulment	skos:closeMatch	gx:Annulment	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:Baptism	owl:equivalentClass	bio:Baptism	semapv:ManualMappingCuration	1.0	
-gmeow:Baptism	skos:closeMatch	gx:Baptism	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:BarMitzvah	skos:closeMatch	gx:BarMitzvah	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:BatMitzvah	skos:closeMatch	gx:BatMitzvah	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
 gmeow:BiologicalParentChild	skos:closeMatch	gx:BiologicalParent	semapv:ManualMappingCuration	0.9	
-gmeow:Birth	owl:equivalentClass	bio:Birth	semapv:ManualMappingCuration	1.0	
-gmeow:Birth	skos:closeMatch	gx:Birth	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:Burial	owl:equivalentClass	bio:Burial	semapv:ManualMappingCuration	1.0	
-gmeow:Burial	skos:closeMatch	gx:Burial	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:Census	skos:closeMatch	gx:Census	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:Christening	skos:closeMatch	gx:Christening	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
 gmeow:Citation	skos:closeMatch	gxv:SourceReference	semapv:ManualMappingCuration	0.85	
-gmeow:Confirmation	skos:closeMatch	gx:Confirmation	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
 gmeow:CoupleRelationship	skos:closeMatch	gx:Couple	semapv:ManualMappingCuration	0.95	
-gmeow:Cremation	owl:equivalentClass	bio:Cremation	semapv:ManualMappingCuration	1.0	
-gmeow:Cremation	skos:closeMatch	gx:Cremation	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:Death	owl:equivalentClass	bio:Death	semapv:ManualMappingCuration	1.0	
-gmeow:Death	skos:closeMatch	gx:Death	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:Divorce	owl:equivalentClass	bio:Divorce	semapv:ManualMappingCuration	1.0	
-gmeow:Divorce	skos:closeMatch	gx:Divorce	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:Emigration	skos:closeMatch	gx:Emigration	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:Engagement	skos:closeMatch	gx:Engagement	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:FirstCommunion	skos:closeMatch	gx:FirstCommunion	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
 gmeow:FosterParentChild	skos:closeMatch	gx:FosterParent	semapv:ManualMappingCuration	0.9	
-gmeow:Funeral	owl:equivalentClass	bio:Funeral	semapv:ManualMappingCuration	1.0	
-gmeow:Funeral	skos:closeMatch	gx:Funeral	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:Graduation	owl:equivalentClass	bio:Graduation	semapv:ManualMappingCuration	1.0	
-gmeow:Graduation	skos:closeMatch	gx:Graduation	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:Immigration	skos:closeMatch	gx:Immigration	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:Marriage	owl:equivalentClass	bio:Marriage	semapv:ManualMappingCuration	1.0	
-gmeow:Marriage	skos:closeMatch	gx:Marriage	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:MilitaryService	skos:closeMatch	gx:MilitaryService	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:NameChange	owl:equivalentClass	bio:NameChange	semapv:ManualMappingCuration	1.0	
-gmeow:Naturalization	owl:equivalentClass	bio:Naturalization	semapv:ManualMappingCuration	1.0	
-gmeow:Naturalization	skos:closeMatch	gx:Naturalization	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:Ordination	owl:equivalentClass	bio:Ordination	semapv:ManualMappingCuration	1.0	
-gmeow:Ordination	skos:closeMatch	gx:Ordination	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
 gmeow:ParentChildRelationship	skos:closeMatch	gx:ParentChild	semapv:ManualMappingCuration	0.95	
 gmeow:Person	skos:closeMatch	gxv:Person	semapv:ManualMappingCuration	0.9	
 gmeow:PersonName	skos:closeMatch	gxv:Name	semapv:ManualMappingCuration	0.9	
 gmeow:Place	skos:closeMatch	gn:Feature	semapv:ManualMappingCuration	0.7	GeoNames feature
-gmeow:Probate	skos:closeMatch	gx:Probate	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:Residence	skos:closeMatch	gx:Residence	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:Retirement	skos:closeMatch	gx:Retirement	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:Separation	skos:closeMatch	gx:Separation	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
 gmeow:Source	skos:closeMatch	gxv:SourceDescription	semapv:ManualMappingCuration	0.85	
 gmeow:StepParentChild	skos:closeMatch	gx:StepParent	semapv:ManualMappingCuration	0.9	
-gmeow:Will	skos:closeMatch	gx:Will	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
-gmeow:eventDate	skos:closeMatch	bio:date	semapv:ManualMappingCuration	0.9	
-gmeow:eventDate	skos:closeMatch	gedcom:date	semapv:ManualMappingCuration	0.8	legacy W3C gedcom
-gmeow:eventPlace	skos:closeMatch	bio:place	semapv:ManualMappingCuration	0.9	
-gmeow:eventPlace	skos:closeMatch	gedcom:place	semapv:ManualMappingCuration	0.8	legacy W3C gedcom
 gmeow:hasChild	skos:closeMatch	bio:child	semapv:ManualMappingCuration	0.9	
 gmeow:hasChild	skos:closeMatch	gedcom:child	semapv:ManualMappingCuration	0.8	legacy W3C gedcom
 gmeow:hasChild	skos:closeMatch	wdt:P40	semapv:ManualMappingCuration	0.95	child
@@ -81,12 +34,8 @@ gmeow:hasFather	skos:closeMatch	bio:father	semapv:ManualMappingCuration	0.9
 gmeow:hasFather	skos:closeMatch	wdt:P22	semapv:ManualMappingCuration	0.95	father
 gmeow:hasMother	skos:closeMatch	bio:mother	semapv:ManualMappingCuration	0.9	
 gmeow:hasMother	skos:closeMatch	wdt:P25	semapv:ManualMappingCuration	0.95	mother
-gmeow:hasOfficiant	skos:closeMatch	bio:officiator	semapv:ManualMappingCuration	0.9	
 gmeow:hasParent	skos:closeMatch	wdt:P8810	semapv:ManualMappingCuration	0.9	parent (gender-neutral)
-gmeow:hasParticipant	skos:closeMatch	bio:agent	semapv:ManualMappingCuration	0.85	
 gmeow:hasPartner	skos:closeMatch	gedcom:husband	semapv:ManualMappingCuration	0.7	legacy W3C gedcom couple role
 gmeow:hasPartner	skos:closeMatch	gedcom:wife	semapv:ManualMappingCuration	0.7	legacy W3C gedcom couple role
-gmeow:hasPrincipal	skos:closeMatch	bio:principal	semapv:ManualMappingCuration	0.9	
 gmeow:hasSibling	skos:closeMatch	wdt:P3373	semapv:ManualMappingCuration	0.95	sibling
 gmeow:hasSpouse	skos:closeMatch	wdt:P26	semapv:ManualMappingCuration	0.95	spouse
-gmeow:hasWitness	skos:closeMatch	bio:witness	semapv:ManualMappingCuration	0.9	

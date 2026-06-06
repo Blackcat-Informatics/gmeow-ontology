@@ -1,0 +1,15 @@
+# TQL — the event timeline. Every event with an effective START instant (the point
+# eventTime, else the crisp interval start, else the fuzzy earliestStart), ordered.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?event ?start WHERE {
+    ?event rdf:type/rdfs:subClassOf* gmeow:Event .
+    OPTIONAL { ?event gmeow:eventTime ?t . }
+    OPTIONAL { ?event gmeow:eventInterval/gmeow:startedAtTime ?is . }
+    OPTIONAL { ?event gmeow:earliestStart ?es . }
+    BIND(COALESCE(?t, ?is, ?es) AS ?start)
+    FILTER(BOUND(?start))
+}
+ORDER BY ?start ?event

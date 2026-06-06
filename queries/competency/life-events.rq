@@ -1,10 +1,12 @@
-# Competency question: "What life events does GMEOW's genealogy model cover?"
-# Expected: LifeEvent and its subclasses (Birth, Death, Marriage, Burial, Census, …).
+# Competency question: "What life-event types does GMEOW cover?"
+# Expected: the open gmeow:EventType value vocabulary (eventTypeBirth, …Death,
+# …Marriage, …Burial, …Census, …). Life events are no longer a subclass taxonomy:
+# the kind of an event is a VALUE (gmeow:eventType), absorbed from the former
+# genealogy LifeEvent subclasses into the universal events module (#41).
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-SELECT ?event WHERE {
-    ?event rdfs:subClassOf* gmeow:LifeEvent .
+SELECT ?eventType WHERE {
+    ?eventType a gmeow:EventType .
 }
-ORDER BY ?event
+ORDER BY ?eventType

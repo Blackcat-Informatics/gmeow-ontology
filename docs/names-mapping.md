@@ -148,8 +148,9 @@ ex:usageFamily a gmeow:NameUsage ;            # intimate, scoped to a relationsh
 ## Temporal change & inclusive transition
 
 Names change; former names may be deadnames. Model each life-stage name as its own
-co-equal `PersonName`, link the cause to genealogy's event spine
-(`gmeow:conferredByEvent` → `gmeow:NameChange` / `gmeow:Marriage`), and use the
+co-equal `PersonName`, link the cause to the events module's event spine
+(`gmeow:conferredByEvent` → a `gmeow:LifeEvent` with `gmeow:eventType`
+`gmeow:eventTypeNameChange` / `gmeow:eventTypeMarriage`), and use the
 **only** display control — `gmeow:displayable` — to suppress a deadname:
 
 ```turtle

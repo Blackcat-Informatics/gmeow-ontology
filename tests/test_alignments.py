@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from rdflib import Graph, URIRef
-from rdflib.namespace import OWL
+from rdflib.namespace import OWL, SKOS
 
 from gmeow_tools.config import ALIGNMENT_TARGETS, LinkPolicy
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
@@ -42,11 +42,12 @@ def test_kinship_property_alignment() -> None:
     ) in graph
 
 
-def test_genealogy_events_aligned_to_bio() -> None:
+def test_event_types_aligned_to_bio() -> None:
+    # Event types are now value individuals (#41) → value↔class skos:closeMatch.
     graph = _graph()
     assert (
-        URIRef(GMEOW + "Birth"),
-        OWL.equivalentClass,
+        URIRef(GMEOW + "eventTypeBirth"),
+        SKOS.closeMatch,
         URIRef("http://purl.org/vocab/bio/0.1/Birth"),
     ) in graph
 

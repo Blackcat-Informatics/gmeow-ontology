@@ -264,7 +264,7 @@ gmeow:conferredByEvent
     rdfs:domain gmeow:Appellation ;
     rdfs:range gmeow:LifeEvent ;
     rdfs:label "conferred by event"@en ;
-    skos:definition "The life event that conferred or changed an appellation — a gmeow:Christening, gmeow:NameChange, gmeow:Marriage (a married name), or gmeow:Adoption. Non-functional. The seam joining the names module to genealogy's event spine."@en ;
+    skos:definition "The life event that conferred or changed an appellation — a gmeow:LifeEvent carrying a gmeow:eventType such as gmeow:eventTypeChristening, gmeow:eventTypeNameChange, gmeow:eventTypeMarriage (a married name), or gmeow:eventTypeAdoption. Non-functional. The seam joining the names module to the events module's event spine."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #

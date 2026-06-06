@@ -40,7 +40,6 @@ gmeow:Document	owl:equivalentClass	schema:DigitalDocument	semapv:ManualMappingCu
 gmeow:Family	owl:equivalentClass	gedcom:Family	semapv:ManualMappingCuration	1.0	
 gmeow:GeoCoordinates	owl:equivalentClass	schema:GeoCoordinates	semapv:ManualMappingCuration	1.0	
 gmeow:Group	owl:equivalentClass	foaf:Group	semapv:ManualMappingCuration	0.95	
-gmeow:Marriage	owl:equivalentClass	gedcom:Marriage	semapv:ManualMappingCuration	1.0	
 gmeow:MediaObject	owl:equivalentClass	schema:MediaObject	semapv:ManualMappingCuration	1.0	
 gmeow:Membership	owl:equivalentClass	org:Membership	semapv:ManualMappingCuration	1.0	
 gmeow:Occupation	owl:equivalentClass	schema:Occupation	semapv:ManualMappingCuration	1.0	

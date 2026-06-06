@@ -122,6 +122,63 @@ def verify(
 
 
 @app.command()
+def temporal(
+    query: str = typer.Argument(..., help="TQL query name (e.g. timeline)."),
+    data: str | None = typer.Option(None, help="Instance-data file (Turtle)."),
+    focus: str | None = typer.Option(None, help="Focus event IRI."),
+    window_start: str | None = typer.Option(None, help="Window start dateTime."),
+    window_end: str | None = typer.Option(None, help="Window end dateTime."),
+    valid_at: str | None = typer.Option(None, help="Valid-time instant."),
+    as_of: str | None = typer.Option(None, help="Observation cutoff."),
+) -> None:
+    """Run a TQL (Temporal Query Language) query over the events model.
+
+    A query algebra in standard SPARQL 1.1: Allen-relation closures, the event
+    timeline, interval overlap, and the bitemporal four-clocks query. Parameters
+    are bound safely (rdflib initBindings), never interpolated.
+    """
+    from rdflib import Literal, URIRef
+    from rdflib.namespace import XSD
+    from rdflib.util import guess_format
+
+    from gmeow_tools.graph import load_merged_graph
+    from gmeow_tools.temporal_query import TEMPORAL_QUERIES, run_temporal_query
+
+    if query not in TEMPORAL_QUERIES:
+        listing = "\n".join(
+            f"  {q.name:<20} {q.summary}" for q in TEMPORAL_QUERIES.values()
+        )
+        raise _fail(f"unknown TQL query {query!r}. Available:\n{listing}")
+
+    source = load_merged_graph(include_imports=False)
+    if data is not None:
+        source.parse(data, format=guess_format(data) or "turtle")
+
+    def _dt(value: str) -> Literal:
+        return Literal(value, datatype=XSD.dateTime)
+
+    bindings: dict[str, object] = {}
+    if focus is not None:
+        bindings["focus"] = URIRef(focus)
+    if window_start is not None:
+        bindings["windowStart"] = _dt(window_start)
+    if window_end is not None:
+        bindings["windowEnd"] = _dt(window_end)
+    if valid_at is not None:
+        bindings["validAt"] = _dt(valid_at)
+    if as_of is not None:
+        bindings["asOf"] = _dt(as_of)
+
+    try:
+        rows = run_temporal_query(query, source, bindings or None)  # type: ignore[arg-type]
+    except ValueError as exc:
+        raise _fail(str(exc)) from exc
+    for row in rows:
+        console.print(" ".join(str(v) for v in row))
+    console.print(f"[green]✓ {query}: {len(rows)} row(s)[/green]")
+
+
+@app.command()
 def extract(
     target: str = typer.Option(..., help="Alignment target key (license-checked)."),
 ) -> None:
@@ -455,13 +512,14 @@ def export() -> None:
 @app.command()
 def project(
     profile: str = typer.Option(
-        "all", help="Target profile: all|schema-org|geosparql|vcard|foaf."
+        "all",
+        help="Target profile: all|schema-org|geosparql|vcard|foaf|ical|owl-time.",
     ),
     data: str = typer.Option(
         "", help="GMEOW data file to project (default: the worked-example fixtures)."
     ),
 ) -> None:
-    """Project GMEOW data to a pure schema.org / GeoSPARQL / vCard / FOAF profile.
+    """Project GMEOW to a pure schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profile.
 
     The FnO/EDOAL specs under projections/ describe the transformations; this runs
     their executable SPARQL CONSTRUCT form (pure-Python rdflib). Lossy by design.

@@ -58,7 +58,7 @@ ex:claim-alice-birthdate a gmeow:StatementMetadata ;
     rdfs:label "Alice's birth-event date — from civil register, confidence 0.9"@en ;
     gmeow:reifier        ex:claim-alice-birthdate ;
     gmeow:qSubject       ex:birth-alice ;
-    gmeow:qPredicate     gmeow:eventDate ;
+    gmeow:qPredicate     gmeow:eventTime ;
     gmeow:qObjectLiteral "1990-05-01T00:00:00Z"^^xsd:dateTime ;
     gmeow:annotation
         [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.9 ] ,

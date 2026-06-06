@@ -1,0 +1,20 @@
+# TQL — events overlapping a time window. Parameters: ?windowStart, ?windowEnd
+# (xsd:dateTime). An event's effective extent (point / crisp interval / fuzzy
+# bounds) overlaps the window iff it starts no later than the window ends AND ends
+# no earlier than the window begins.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?event WHERE {
+    ?event rdf:type/rdfs:subClassOf* gmeow:Event .
+    OPTIONAL { ?event gmeow:eventTime ?t . }
+    OPTIONAL { ?event gmeow:eventInterval/gmeow:startedAtTime ?is . }
+    OPTIONAL { ?event gmeow:eventInterval/gmeow:endedAtTime ?ie . }
+    OPTIONAL { ?event gmeow:earliestStart ?es . }
+    OPTIONAL { ?event gmeow:latestEnd ?le . }
+    BIND(COALESCE(?t, ?is, ?es) AS ?start)
+    BIND(COALESCE(?ie, ?le, ?t, ?is, ?es) AS ?end)
+    FILTER(BOUND(?start) && ?start <= ?windowEnd && ?end >= ?windowStart)
+}
+ORDER BY ?event

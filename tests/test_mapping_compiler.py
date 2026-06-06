@@ -34,12 +34,12 @@ def test_dsl_parses() -> None:
     # Every SSSOM data row became a TermEquivalence cell (incl. the 7 gUFO↔BFO
     # foundational-spine cells, issue #40, and the 13 standpoint cells — PROV-O x3,
     # nanopub, CRMinf x3, Wikidata x2, schema.org, Web Annotation, DnS x2, #43).
-    assert len(dsl.equivalences) == 372
-    # 14 projection transforms declared.
-    assert len(dsl.functions) == 14
-    # One MappingSet per TSV (incl. gmeow-foundational + gmeow-standpoint).
-    assert len(dsl.mapping_sets) == 14
-    # Projection cells across all four profiles.
+    assert len(dsl.equivalences) == 448
+    # 18 projection transforms declared.
+    assert len(dsl.functions) == 18
+    # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint, gmeow-events).
+    assert len(dsl.mapping_sets) == 15
+    # Projection cells across all six profiles (incl. ical + owl-time).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}
     assert profiles == set(_PROFILES)
@@ -50,15 +50,15 @@ def test_fno_type_derived_from_ontology_range() -> None:
     dsl = load_dsl()
     onto = load_merged_graph(include_imports=False)
     fno = emit_fno(dsl, onto)
-    # The eventDate parameter must carry exactly the ontology range of eventDate.
-    expected = onto.value(GM.eventDate, RDFS.range)
+    # The eventTime parameter must carry exactly the ontology range of eventTime.
+    expected = onto.value(GM.eventTime, RDFS.range)
     assert expected is not None
     for param in fno.subjects(RDF.type, FNO.Parameter):
-        if fno.value(param, FNO.predicate) == GM.eventDate:
+        if fno.value(param, FNO.predicate) == GM.eventTime:
             assert fno.value(param, FNO.type) == expected
             break
     else:  # pragma: no cover
-        pytest.fail("no parameter bound to gmeow:eventDate was emitted")
+        pytest.fail("no parameter bound to gmeow:eventTime was emitted")
 
 
 def test_emitted_fno_satisfies_type_invariant(tmp_path: Path) -> None:
@@ -223,14 +223,16 @@ def test_edoal_traversal_uses_compose_inverse() -> None:
             sub_org = cell
     assert birth is not None and sub_org is not None
 
-    # Birth: compose( inverse(hasPrincipal), eventDate )
+    # Birth: compose( inverse(participationParticipant), participationEvent, eventTime )
+    # — the reified-Participation traversal that replaced the flat hasPrincipal (#41).
     compose = graph.value(graph.value(birth, ALIGN.entity1), EDOAL.compose)
     assert compose is not None
     steps = list(Collection(graph, compose))
-    assert len(steps) == 2
+    assert len(steps) == 3
     inv = graph.value(steps[0], EDOAL.inverse)
-    assert graph.value(inv, EDOAL.uri) == GM.hasPrincipal
-    assert graph.value(steps[1], EDOAL.uri) == GM.eventDate
+    assert graph.value(inv, EDOAL.uri) == GM.participationParticipant
+    assert graph.value(steps[1], EDOAL.uri) == GM.participationEvent
+    assert graph.value(steps[2], EDOAL.uri) == GM.eventTime
 
     # subOrganizationOf: a bare inverse (single step, no compose)
     e1 = graph.value(sub_org, ALIGN.entity1)
@@ -290,8 +292,8 @@ def test_fno_emits_fnom_implementation_mapping() -> None:
     """Each function declares its SPARQL implementation via fno:/fnom: vocabulary."""
     graph = emit_fno(load_dsl(), load_merged_graph(include_imports=False))
     assert (
-        len(set(graph.subjects(RDF.type, FNO.Implementation))) == 4
-    )  # one per profile
+        len(set(graph.subjects(RDF.type, FNO.Implementation))) == 5
+    )  # one per profile WITH transforms (owl-time is pure templateAtoms — none)
     bound = False
     for mapping in graph.subjects(RDF.type, FNO.Mapping):
         if graph.value(mapping, FNO.function) != GM.fnComposeBcp47:

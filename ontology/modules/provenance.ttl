@@ -14,7 +14,7 @@
 
 gmeow:Activity
     a owl:Class, gufo:EventType ;
-    rdfs:subClassOf gufo:Event ;
+    rdfs:subClassOf gmeow:Event ;
     rdfs:label "Activity"@en ;
     skos:definition "Something that occurs over a period of time and acts upon or with entities — creating, transforming, using, or attributing them."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

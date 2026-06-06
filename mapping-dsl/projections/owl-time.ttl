@@ -1,0 +1,131 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix time:  <http://www.w3.org/2006/time#> .
+
+# Projection mappings: GMEOW events → pure OWL-Time interval relations (W3C Time
+# Ontology). Compiled to projections/owl-time.edoal.ttl + queries/projections/
+# owl-time.rq by `gmeow compile-mappings`. The 13 Allen relations GMEOW carries
+# between gmeow:Event occurrences are emitted as OWL-Time's interval* relations — an
+# OWL-Time-aware reasoner then treats the events as their temporal extents
+# (time:ProperInterval) and runs interval-algebra inference. Lossy: the events'
+# participation lattice, types, locations and standpoints are dropped; only the
+# qualitative temporal ordering survives. Each mapping uses DISTINCT variable names
+# so its CONSTRUCT template fires only for its own WHERE branch.
+
+gmeow:mapTimeBefore a gmeow:ProjectionMapping ;
+    rdfs:label "before → time:intervalBefore"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "beforeA" ;
+        gmeow:atom ( [ gmeow:subjectVar "beforeA" ; gmeow:predicate gmeow:before ; gmeow:objectVar "beforeB" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "owl-time" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "beforeA" ; gmeow:tPred time:intervalBefore ; gmeow:tObj "beforeB" ] ) ] .
+
+gmeow:mapTimeAfter a gmeow:ProjectionMapping ;
+    rdfs:label "after → time:intervalAfter"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "afterA" ;
+        gmeow:atom ( [ gmeow:subjectVar "afterA" ; gmeow:predicate gmeow:after ; gmeow:objectVar "afterB" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "owl-time" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "afterA" ; gmeow:tPred time:intervalAfter ; gmeow:tObj "afterB" ] ) ] .
+
+gmeow:mapTimeMeets a gmeow:ProjectionMapping ;
+    rdfs:label "meets → time:intervalMeets"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "meetsA" ;
+        gmeow:atom ( [ gmeow:subjectVar "meetsA" ; gmeow:predicate gmeow:meets ; gmeow:objectVar "meetsB" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "owl-time" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "meetsA" ; gmeow:tPred time:intervalMeets ; gmeow:tObj "meetsB" ] ) ] .
+
+gmeow:mapTimeMetBy a gmeow:ProjectionMapping ;
+    rdfs:label "metBy → time:intervalMetBy"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "metByA" ;
+        gmeow:atom ( [ gmeow:subjectVar "metByA" ; gmeow:predicate gmeow:metBy ; gmeow:objectVar "metByB" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "owl-time" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "metByA" ; gmeow:tPred time:intervalMetBy ; gmeow:tObj "metByB" ] ) ] .
+
+gmeow:mapTimeOverlaps a gmeow:ProjectionMapping ;
+    rdfs:label "overlaps → time:intervalOverlaps"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "overlapsA" ;
+        gmeow:atom ( [ gmeow:subjectVar "overlapsA" ; gmeow:predicate gmeow:overlaps ; gmeow:objectVar "overlapsB" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "owl-time" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "overlapsA" ; gmeow:tPred time:intervalOverlaps ; gmeow:tObj "overlapsB" ] ) ] .
+
+gmeow:mapTimeOverlappedBy a gmeow:ProjectionMapping ;
+    rdfs:label "overlappedBy → time:intervalOverlappedBy"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "overlappedByA" ;
+        gmeow:atom ( [ gmeow:subjectVar "overlappedByA" ; gmeow:predicate gmeow:overlappedBy ; gmeow:objectVar "overlappedByB" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "owl-time" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "overlappedByA" ; gmeow:tPred time:intervalOverlappedBy ; gmeow:tObj "overlappedByB" ] ) ] .
+
+gmeow:mapTimeStarts a gmeow:ProjectionMapping ;
+    rdfs:label "starts → time:intervalStarts"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "startsA" ;
+        gmeow:atom ( [ gmeow:subjectVar "startsA" ; gmeow:predicate gmeow:starts ; gmeow:objectVar "startsB" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "owl-time" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "startsA" ; gmeow:tPred time:intervalStarts ; gmeow:tObj "startsB" ] ) ] .
+
+gmeow:mapTimeStartedBy a gmeow:ProjectionMapping ;
+    rdfs:label "startedBy → time:intervalStartedBy"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "startedByA" ;
+        gmeow:atom ( [ gmeow:subjectVar "startedByA" ; gmeow:predicate gmeow:startedBy ; gmeow:objectVar "startedByB" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "owl-time" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "startedByA" ; gmeow:tPred time:intervalStartedBy ; gmeow:tObj "startedByB" ] ) ] .
+
+gmeow:mapTimeDuring a gmeow:ProjectionMapping ;
+    rdfs:label "during → time:intervalDuring"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "duringA" ;
+        gmeow:atom ( [ gmeow:subjectVar "duringA" ; gmeow:predicate gmeow:during ; gmeow:objectVar "duringB" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "owl-time" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "duringA" ; gmeow:tPred time:intervalDuring ; gmeow:tObj "duringB" ] ) ] .
+
+gmeow:mapTimeContains a gmeow:ProjectionMapping ;
+    rdfs:label "contains → time:intervalContains"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "containsA" ;
+        gmeow:atom ( [ gmeow:subjectVar "containsA" ; gmeow:predicate gmeow:contains ; gmeow:objectVar "containsB" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "owl-time" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "containsA" ; gmeow:tPred time:intervalContains ; gmeow:tObj "containsB" ] ) ] .
+
+gmeow:mapTimeFinishes a gmeow:ProjectionMapping ;
+    rdfs:label "finishes → time:intervalFinishes"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "finishesA" ;
+        gmeow:atom ( [ gmeow:subjectVar "finishesA" ; gmeow:predicate gmeow:finishes ; gmeow:objectVar "finishesB" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "owl-time" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "finishesA" ; gmeow:tPred time:intervalFinishes ; gmeow:tObj "finishesB" ] ) ] .
+
+gmeow:mapTimeFinishedBy a gmeow:ProjectionMapping ;
+    rdfs:label "finishedBy → time:intervalFinishedBy"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "finishedByA" ;
+        gmeow:atom ( [ gmeow:subjectVar "finishedByA" ; gmeow:predicate gmeow:finishedBy ; gmeow:objectVar "finishedByB" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "owl-time" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "finishedByA" ; gmeow:tPred time:intervalFinishedBy ; gmeow:tObj "finishedByB" ] ) ] .
+
+gmeow:mapTimeCoincidesWith a gmeow:ProjectionMapping ;
+    rdfs:label "coincidesWith → time:intervalEquals"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "coincidesWithA" ;
+        gmeow:atom ( [ gmeow:subjectVar "coincidesWithA" ; gmeow:predicate gmeow:coincidesWith ; gmeow:objectVar "coincidesWithB" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "owl-time" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "coincidesWithA" ; gmeow:tPred time:intervalEquals ; gmeow:tObj "coincidesWithB" ] ) ] .
