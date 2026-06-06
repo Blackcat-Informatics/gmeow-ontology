@@ -364,3 +364,6 @@ trademark notice are in [`NOTICE`](./NOTICE).
 `uv` for deps, `ruff` (format + lint) and `mypy --strict`, Google-style docstrings,
 `pathlib.Path` everywhere, the Makefile as the canonical task runner. Missing required tools
 fail loudly; the license guard and Wikidata validator error rather than silently degrade.
+
+**AI and Agentic Development.** This ontology and its toolchain are developed and maintained with the assistance of AI coding agents (such as Google Antigravity and Claude Code). Workspace-specific rules and skills ([`AGENTS.md`](./AGENTS.md)) are defined to ensure agents strictly adhere to GMEOW's Constitution and compile pipelines.
+
