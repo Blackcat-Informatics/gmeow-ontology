@@ -6,8 +6,11 @@
 # mapping_date: 2026-06-03
 # comment: Name alignments for comprehensive, multi-culture interop — schema.org, vCard 4 (N components, nickname, fn), GEDCOM X (gx:) name parts, FOAF, and a few well-established Wikidata properties. Multi-cultural name-part KINDS (gmeow:NamePartType value individuals such as namePartGiven/namePartSurname) align closeMatch to the nearest external concept, following the places.ttl idiom; there are no flat given/family name properties — a 'First Last' rendering is produced by downcasting the structured gmeow:NamePart model in the projection layer (projections/*). The PronounSet CLASS and the hasPronounSet PROPERTY now align (closeMatch) to Wikidata's 'personal pronoun set' (Q65067284) and 'personal pronoun' (P6553) — verified live against the Wikidata API — whose Sept-2025 RfC calls for full-declension pronoun sets (each set's forms, not a single lexeme) — aligning with GMEOW's reified five-form English model; the per-set declensions, NameRegister, NameUsage and the inclusivity machinery (displayable, namePurposeChosen/Deadname) remain CANONICAL — no maintained external RDF vocabulary declines individual sets faithfully (the pronoun ANCHOR list is sourced from the pronouns.page structured database, cited in names.ttl + docs/identity-mapping.md). Co-equality of multilingual names is a structural stance, not an external mapping. Coreference of name INSTANCES is done in data, not here.
 # curie_map:
+#   crm: http://www.cidoc-crm.org/cidoc-crm/
+#   dcterms: http://purl.org/dc/terms/
 #   foaf: http://xmlns.com/foaf/0.1/
 #   gmeow: https://blackcatinformatics.ca/gmeow/
+#   gn: http://www.geonames.org/ontology#
 #   gx: http://gedcomx.org/
 #   schema: https://schema.org/
 #   semapv: https://w3id.org/semapv/vocab/
@@ -17,6 +20,7 @@
 #   wdt: http://www.wikidata.org/prop/direct/
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:PersonName	skos:closeMatch	gx:Name	semapv:ManualMappingCuration	0.8	
+gmeow:PlaceName	skos:closeMatch	crm:E48_Place_Name	semapv:ManualMappingCuration	0.85	CIDOC-CRM E48 Place Name — the appellation borne by a place (CRM's E53 Place)
 gmeow:PronounSet	skos:broadMatch	wd:Q36224	semapv:ManualMappingCuration	0.5	Wikidata 'pronoun' — broader grammatical category; a hint, not an equivalence
 gmeow:PronounSet	skos:closeMatch	wd:Q65067284	semapv:ManualMappingCuration	0.9	Wikidata 'personal pronoun set' — third-person pronouns an individual wants used; its Sept-2025 RfC favours full-declension pronoun sets (modelling each set's forms, not a single lexeme), aligning with GMEOW's reified five-form English model
 gmeow:fullName	skos:closeMatch	foaf:name	semapv:ManualMappingCuration	0.8	
@@ -24,9 +28,14 @@ gmeow:fullName	skos:closeMatch	schema:name	semapv:ManualMappingCuration	0.8
 gmeow:fullName	skos:closeMatch	vcard:fn	semapv:ManualMappingCuration	0.9	
 gmeow:fullName	skos:closeMatch	wdt:P1559	semapv:ManualMappingCuration	0.7	
 gmeow:hasNamePart	skos:closeMatch	gx:nameForm	semapv:ManualMappingCuration	0.6	
+gmeow:hasPlaceName	skos:broadMatch	gn:name	semapv:ManualMappingCuration	0.6	GeoNames gn:name — lossy: gn:name links a feature to a name LITERAL, gmeow:hasPlaceName to a structured PlaceName object
+gmeow:hasPlaceName	skos:broadMatch	schema:name	semapv:ManualMappingCuration	0.5	schema:name — downcast: a place's structured name objects flatten to the schema:name literal in projection (non-selected names → schema:alternateName)
 gmeow:hasPronounSet	skos:closeMatch	wdt:P6553	semapv:ManualMappingCuration	0.85	Wikidata 'personal pronoun' property (P6553); lossy — its values are lexemes, GMEOW's range is the full five-form PronounSet
 gmeow:honorific	skos:closeMatch	schema:honorificPrefix	semapv:ManualMappingCuration	0.7	
 gmeow:honorific	skos:closeMatch	wdt:P511	semapv:ManualMappingCuration	0.8	
+gmeow:nameLanguage	skos:closeMatch	dcterms:language	semapv:ManualMappingCuration	0.8	
+gmeow:nameLanguage	skos:closeMatch	schema:inLanguage	semapv:ManualMappingCuration	0.75	
+gmeow:nameLanguage	skos:closeMatch	wdt:P407	semapv:ManualMappingCuration	0.75	Wikidata 'language of work or name' (P407) — verified live against the Wikidata API
 gmeow:namePartGiven	skos:closeMatch	foaf:givenName	semapv:ManualMappingCuration	0.8	
 gmeow:namePartGiven	skos:closeMatch	gx:Given	semapv:ManualMappingCuration	0.8	
 gmeow:namePartGiven	skos:closeMatch	schema:givenName	semapv:ManualMappingCuration	0.8	
@@ -48,4 +57,6 @@ gmeow:namePartSurname	skos:closeMatch	schema:familyName	semapv:ManualMappingCura
 gmeow:namePartSurname	skos:closeMatch	vcard:family-name	semapv:ManualMappingCuration	0.8	
 gmeow:namePartSurname	skos:closeMatch	wdt:P734	semapv:ManualMappingCuration	0.7	
 gmeow:namePurposeBirth	skos:closeMatch	wdt:P1477	semapv:ManualMappingCuration	0.8	
+gmeow:namePurposeEndonym	skos:closeMatch	wd:Q1266782	semapv:ManualMappingCuration	0.9	Wikidata 'endonym' (Q1266782) — verified live against the Wikidata API
+gmeow:namePurposeExonym	skos:closeMatch	wd:Q81639	semapv:ManualMappingCuration	0.9	Wikidata 'exonym' (Q81639) — verified live against the Wikidata API
 gmeow:namePurposePenStage	skos:closeMatch	wdt:P742	semapv:ManualMappingCuration	0.8	

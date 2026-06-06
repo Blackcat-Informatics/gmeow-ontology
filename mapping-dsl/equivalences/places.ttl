@@ -358,29 +358,13 @@ gmeow:eqPlaces042 a gmeow:TermEquivalence ;
     gmeow:confidence 0.9 ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" .
 
-gmeow:eqPlaces043 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:alternateName ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject schema:alternateName ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
-
-gmeow:eqPlaces044 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:alternateName ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject skos:altLabel ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
-
-gmeow:eqPlaces045 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:alternateName ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gn:alternateName ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+# gmeow:alternateName was RETIRED (issue #105, Principle 6): a place's multilingual
+# /historical names are now co-equal gmeow:PlaceName appellations borne via
+# gmeow:hasPlaceName (names mapset — aligned to CIDOC E48 Place Name, GeoNames
+# gn:name, schema:name). The former flat-literal "alternate" senses
+# (schema:alternateName, skos:altLabel, gn:alternateName) are emitted in the
+# PROJECTION layer as the downcast of NON-selected place names — deliberately NOT
+# term-level equivalences, because GMEOW recognises no primary-vs-alternate ranking.
 
 gmeow:eqPlaces046 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:authorityLink ;

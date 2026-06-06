@@ -18,9 +18,27 @@
 ex:canada a gmeow:Place ;
     gmeow:placeType gmeow:placeTypeCountry ;
     gmeow:timezone "America/Edmonton" ;
-    gmeow:alternateName "Kanada"@de ;
+    gmeow:hasPlaceName ex:canadaEn , ex:canadaDe ;
     gmeow:authorityLink wd:Q16 ;
     skos:exactMatch wd:Q16 .
+
+# Co-equal toponyms via gmeow:hasPlaceName (the retired flat alternateName's
+# structured replacement). A NameUsage naming a Place is inferred gmeow:PlaceNaming.
+ex:canadaEn a gmeow:PlaceName ;
+    gmeow:fullName "Canada"@en ; gmeow:nameLanguage ex:langEn ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ; gmeow:displayable true .
+ex:canadaDe a gmeow:PlaceName ;
+    gmeow:fullName "Kanada"@de ; gmeow:nameLanguage ex:langDe ;
+    gmeow:namePurpose gmeow:namePurposeExonym ; gmeow:displayable true .
+ex:canadaNamingDe a gmeow:NameUsage ;
+    gmeow:usageNamed ex:canada ;
+    gmeow:usageAppellation ex:canadaDe ;
+    gmeow:usageRegister gmeow:registerFormal ;
+    gmeow:usageAuthority ex:germanCartography .
+
+ex:germanCartography a gmeow:Organization .
+ex:langEn a gmeow:Language ; gmeow:languageCode "en" .
+ex:langDe a gmeow:Language ; gmeow:languageCode "de" .
 
 ex:alberta a gmeow:Place ;
     gmeow:placeType gmeow:placeTypeRegion ;
@@ -37,7 +55,11 @@ ex:westbourne112 a gmeow:Place ;
     gmeow:containedInPlace ex:spruceGrove ;
     gmeow:hasCoordinates ex:wbCoords ;
     gmeow:hasGeometry ex:wbGeo ;
-    gmeow:alternateName "112 Westbourne Road"@en .
+    gmeow:hasPlaceName ex:wb112Name .
+
+ex:wb112Name a gmeow:PlaceName ;
+    gmeow:fullName "112 Westbourne Road"@en ; gmeow:nameLanguage ex:langEn ;
+    gmeow:displayable true .
 
 ex:homeOffice a gmeow:Place ;
     gmeow:placeType gmeow:placeTypeRoom ;

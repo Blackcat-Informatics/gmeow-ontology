@@ -37,9 +37,13 @@ def test_dsl_parses() -> None:
     # the 3 pronoun-set Wikidata cells, #46, and the maximal rights + rights-Wikidata
     # cells, #21 — ODRL action/constraint/operator/conflict vocabularies, CC REL,
     # dcterms, schema.org, SPDX, PREMIS, RightsStatements.org, ma-ont, Wikidata).
-    assert len(dsl.equivalences) == 676
-    # 19 projection transforms declared (incl. fnPronounSetToText, #46).
-    assert len(dsl.functions) == 19
+    # Issue #105 place naming: +8 names cells (PlaceName→CIDOC E48, hasPlaceName,
+    # nameLanguage→dcterms/schema/P407, endonym/exonym) and -3 retired places
+    # alternateName cells, net +5.
+    assert len(dsl.equivalences) == 681
+    # 21 projection transforms declared (incl. fnPronounSetToText #46,
+    # fnSelectEndonym + fnSelectExonym #105).
+    assert len(dsl.functions) == 21
     # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint, gmeow-events,
     # gmeow-rights).
     assert len(dsl.mapping_sets) == 16

@@ -409,6 +409,18 @@ gmeow:fnSelectDisplayName a gmeow:ProjectionFunction ;
     gmeow:fnInput gmeow:hasAppellation ;
     gmeow:fnOutput gmeow:projectedName ; gmeow:fnOutputType rdfs:Literal .
 
+gmeow:fnSelectEndonym a gmeow:ProjectionFunction ;
+    rdfs:label "select displayable endonym place name → schema:name"@en ;
+    dcterms:description "Returns the gmeow:fullName of a place's gmeow:PlaceName whose gmeow:namePurpose is gmeow:namePurposeEndonym and which is not gmeow:displayable false — the locale-internal toponym, emitted as schema:name. A projection FRAME choice (endonym-preferred), NOT a primary-name assertion in the canonical model: co-equal exonyms are emitted as schema:alternateName (gmeow:fnSelectExonym), and historical/superseded and competing-standpoint names are dropped."@en ;
+    gmeow:fnInput gmeow:hasPlaceName ;
+    gmeow:fnOutput gmeow:projectedEndonym ; gmeow:fnOutputType rdfs:Literal .
+
+gmeow:fnSelectExonym a gmeow:ProjectionFunction ;
+    rdfs:label "select displayable exonym place name → schema:alternateName"@en ;
+    dcterms:description "Returns the gmeow:fullName of a place's gmeow:PlaceName whose gmeow:namePurpose is gmeow:namePurposeExonym and which is not gmeow:displayable false — a name used from outside, emitted as schema:alternateName alongside the endonym selected as schema:name (gmeow:fnSelectEndonym). Lossy: which exonym applies is locale-relative (there may be one per language), and historical/superseded names are dropped."@en ;
+    gmeow:fnInput gmeow:hasPlaceName ;
+    gmeow:fnOutput gmeow:projectedExonym ; gmeow:fnOutputType rdfs:Literal .
+
 gmeow:fnSelectDisplayableGender a gmeow:ProjectionFunction ;
     rdfs:label "select displayable gender identity → gender label"@en ;
     dcterms:description "Returns the rdfs:label of a person's displayable gmeow:GenderIdentity value for emission as schema:gender / foaf:gender. A gmeow:displayable false facet is NEVER emitted — the same suppression contract as a deadname. Lossy and directional: schema.org/FOAF conflate sex and gender, and orientation + sex-assigned-at-birth have no target term, so they are dropped."@en ;

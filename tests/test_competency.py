@@ -17,7 +17,7 @@ from __future__ import annotations
 from functools import lru_cache
 
 import owlrl
-from rdflib import Graph, Namespace
+from rdflib import RDF, Graph, Namespace
 from rdflib.query import ResultRow
 
 from gmeow_tools.config import COMPETENCY_DIR, NAMESPACE, ONTOLOGY_DIR, QC_DIR
@@ -207,6 +207,12 @@ def test_competency_pronoun_sets_query() -> None:
         assert NAMESPACE + term in terms
 
 
+def test_competency_place_namings_query() -> None:
+    terms = _query_terms("place-namings.rq")
+    # PlaceNaming is the defined place-scoped subclass of NameUsage (issue #105).
+    assert NAMESPACE + "PlaceNaming" in terms
+
+
 def test_competency_language_origins_query() -> None:
     terms = _query_terms("language-origins.rq")
     for term in (
@@ -268,6 +274,42 @@ def test_competency_ancestry_is_answered_only_by_reasoning() -> None:
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(reasoned)
     assert grandparent in reasoned
     assert bool(reasoned.query(ask))
+
+
+def test_place_naming_is_entailed_not_asserted() -> None:
+    """The PlaceNaming DEFINED class (≡ NameUsage ⊓ ∃usageNamed.Place, issue #105).
+
+    A name-usage that names a gmeow:Place is CLASSIFIED as a gmeow:PlaceNaming by
+    the reasoner — the type is entailed, authored nowhere (Principle 6: place-naming
+    reuses the NameUsage relator instead of minting a parallel one; Principle 8:
+    reasoning-centric). This is the first owl:equivalentClass defined class in the
+    ontology; the test contrasts the asserted and reasoned graphs on the same A-Box
+    to prove the classification is absent before reasoning and present after.
+    """
+    asserted = load_merged_graph(include_imports=False)
+    asserted.add((EX.usage, RDF.type, GMEOW.NameUsage))
+    asserted.add((EX.usage, GMEOW.usageNamed, EX.place))
+    asserted.add((EX.place, RDF.type, GMEOW.Place))
+    asserted.add((EX.usage, GMEOW.usageAppellation, EX.toponym))
+    asserted.add((EX.toponym, RDF.type, GMEOW.PlaceName))
+
+    classified = (EX.usage, RDF.type, GMEOW.PlaceNaming)
+    # Absent in the asserted graph (nothing types it a PlaceNaming)...
+    assert classified not in asserted
+
+    # ...present once the equivalentClass definition is materialized.
+    reasoned = Graph()
+    reasoned += asserted
+    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(reasoned)
+    assert classified in reasoned
+    # And a name-usage that does NOT name a Place is NOT classified as a PlaceNaming.
+    asserted.add((EX.personUsage, RDF.type, GMEOW.NameUsage))
+    asserted.add((EX.personUsage, GMEOW.usageNamed, EX.person))
+    asserted.add((EX.person, RDF.type, GMEOW.Person))
+    other = Graph()
+    other += asserted
+    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(other)
+    assert (EX.personUsage, RDF.type, GMEOW.PlaceNaming) not in other
 
 
 def test_qc_missing_definitions_is_empty() -> None:

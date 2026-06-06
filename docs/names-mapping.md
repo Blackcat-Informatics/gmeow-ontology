@@ -250,8 +250,44 @@ by `gmeow:namePartType` on a `gmeow:NamePart` resource — *not* a predicate:
 
 The only flat name term retained is `gmeow:name` — the simple `rdfs:label` tier for
 entities that don't need the full naming apparatus (it carries no precedence over
-an entity's other names). `gmeow:alternateName` (places module) remains for
-gazetteer matching.
+an entity's other names).
+
+## Place naming — `hasPlaceName`, `PlaceNaming`, endonym/exonym (issue #105)
+
+A place's names are not a flat literal. A `gmeow:Place` bears co-equal
+`gmeow:PlaceName` toponyms via **`gmeow:hasPlaceName`** (the place-scoped
+specialization of `gmeow:hasAppellation`, mirroring `gmeow:hasName` for persons) —
+the structured replacement for the **retired** flat `gmeow:alternateName` literal
+(Principle 6, greenfield). Each `PlaceName` carries its own first-class
+`gmeow:nameLanguage` (a `gmeow:Language`, never a bare tag) and an optional
+`gmeow:namePurpose` of **`namePurposeEndonym`** (the name a place's own inhabitants
+use) or **`namePurposeExonym`** (the name outsiders use) — co-equal, never a
+preferred-vs-alternate pair. So *München* (endonym, German) and *Munich* (exonym,
+English) are co-equal names of one place; a superseded historical name sets
+`gmeow:displayable false`, never deleted (Principle 10).
+
+The time/audience/authority-scoped *use* of a toponym reuses the existing
+`gmeow:NameUsage` relator: **`gmeow:PlaceNaming` is a DEFINED class**,
+`≡ gmeow:NameUsage ⊓ ∃gmeow:usageNamed.gmeow:Place` — the first `owl:equivalentClass`
+in GMEOW. A name-usage that names a `Place` is *classified* as a `PlaceNaming` by the
+reasoner (entailed, authored nowhere — see the `place-namings` competency query and
+the entailment test), so no parallel place-naming relator is minted. Such a usage may
+carry **`gmeow:usageAuthority`** (the toponymic / naming authority — a national
+mapping agency, a standards body, an indigenous community), which is non-functional so
+joint or competing authorities coexist with no privileged claimant (Principle 9).
+
+| GMEOW | External alignment |
+|---|---|
+| `gmeow:PlaceName` | `crm:E48_Place_Name` (CIDOC-CRM) |
+| `gmeow:hasPlaceName` | `gn:name`, `schema:name` (broad, downcast) |
+| `gmeow:nameLanguage` | `dcterms:language`, `schema:inLanguage`, `wdt:P407` |
+| `gmeow:namePurposeEndonym` | `wd:Q1266782` (endonym) |
+| `gmeow:namePurposeExonym` | `wd:Q81639` (exonym) |
+
+**Projection (schema.org).** `fnSelectEndonym` emits the displayable endonym as
+`schema:name` (a projection *frame* choice, not a canonical primary), and
+`fnSelectExonym` emits exonyms as `schema:alternateName`; historical/superseded and
+competing-standpoint names are dropped (documented lossy drops).
 
 ## What's deliberately non-standard (and why)
 

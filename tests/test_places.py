@@ -37,6 +37,22 @@ def test_location_umbrella_and_structural_subclasses() -> None:
         ) in graph
 
 
+def test_alternate_name_retired() -> None:
+    """Greenfield (Principle 6, issue #105): the flat gmeow:alternateName literal was
+    retired in favour of co-equal gmeow:PlaceName appellations borne via
+    gmeow:hasPlaceName (names module). It must not exist as any property."""
+    graph = _graph()
+    alt = URIRef(GMEOW + "alternateName")
+    assert (alt, RDF.type, OWL.DatatypeProperty) not in graph
+    assert (alt, RDF.type, OWL.ObjectProperty) not in graph
+    # The structured replacement bears a PlaceName on a Place.
+    assert (
+        URIRef(GMEOW + "hasPlaceName"),
+        RDFS.range,
+        URIRef(GMEOW + "PlaceName"),
+    ) in graph
+
+
 def test_place_kind_is_value_not_subclass() -> None:
     graph = _graph()
     assert (

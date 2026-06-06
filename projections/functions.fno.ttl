@@ -90,6 +90,20 @@ gmeow:fnRetagWkt a fno:Function ;
     fno:expects ( gmeow:paramAsWKT ) ;
     fno:returns ( gmeow:outRetagWkt ) .
 
+gmeow:fnSelectEndonym a fno:Function ;
+    rdfs:label "select displayable endonym place name → schema:name"@en ;
+    dcterms:description "Returns the gmeow:fullName of a place's gmeow:PlaceName whose gmeow:namePurpose is gmeow:namePurposeEndonym and which is not gmeow:displayable false — the locale-internal toponym, emitted as schema:name. A projection FRAME choice (endonym-preferred), NOT a primary-name assertion in the canonical model: co-equal exonyms are emitted as schema:alternateName (gmeow:fnSelectExonym), and historical/superseded and competing-standpoint names are dropped."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    fno:expects ( gmeow:paramHasPlaceName ) ;
+    fno:returns ( gmeow:outSelectEndonym ) .
+
+gmeow:fnSelectExonym a fno:Function ;
+    rdfs:label "select displayable exonym place name → schema:alternateName"@en ;
+    dcterms:description "Returns the gmeow:fullName of a place's gmeow:PlaceName whose gmeow:namePurpose is gmeow:namePurposeExonym and which is not gmeow:displayable false — a name used from outside, emitted as schema:alternateName alongside the endonym selected as schema:name (gmeow:fnSelectEndonym). Lossy: which exonym applies is locale-relative (there may be one per language), and historical/superseded names are dropped."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    fno:expects ( gmeow:paramHasPlaceName ) ;
+    fno:returns ( gmeow:outSelectExonym ) .
+
 gmeow:fnSubOrgToDepartment a fno:Function ;
     rdfs:label "subOrganizationOf → schema:department"@en ;
     dcterms:description "Projects org hierarchy: a gmeow:Organization that is gmeow:subOrganizationOf a parent is emitted as the parent's schema:department (parent→child, the inverse direction). The department is a first-class sub-organization in GMEOW."@en ;
@@ -168,6 +182,14 @@ gmeow:outPronounSetToText a fno:Output ;
 gmeow:outRetagWkt a fno:Output ;
     fno:predicate geo:asWKT ;
     fno:type geo:wktLiteral .
+
+gmeow:outSelectEndonym a fno:Output ;
+    fno:predicate gmeow:projectedEndonym ;
+    fno:type rdfs:Literal .
+
+gmeow:outSelectExonym a fno:Output ;
+    fno:predicate gmeow:projectedExonym ;
+    fno:type rdfs:Literal .
 
 gmeow:outSubOrgToDepartment a fno:Output ;
     fno:predicate gmeow:projectedDepartment ;
@@ -364,6 +386,11 @@ gmeow:paramHasName a fno:Parameter ;
     fno:predicate gmeow:hasName ;
     fno:required true ;
     fno:type gmeow:PersonName .
+
+gmeow:paramHasPlaceName a fno:Parameter ;
+    fno:predicate gmeow:hasPlaceName ;
+    fno:required true ;
+    fno:type gmeow:PlaceName .
 
 gmeow:paramHasWebPage a fno:Parameter ;
     fno:predicate gmeow:hasWebPage ;
@@ -771,6 +798,32 @@ gmeow:implSchemaOrg a fno:Implementation ;
             rdfs:label "fnSelectDisplayableGender output ↦ ?genderLabel"@en ;
             fnom:functionOutput gmeow:outSelectDisplayableGender ;
             fnom:implementationProperty "genderLabel" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "fnSelectEndonym → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnSelectEndonym ;
+    fno:implementation gmeow:implSchemaOrg ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramHasPlaceName ↦ ?pn"@en ;
+            fnom:functionParameter gmeow:paramHasPlaceName ;
+            fnom:implementationProperty "pn" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnSelectEndonym output ↦ ?endo"@en ;
+            fnom:functionOutput gmeow:outSelectEndonym ;
+            fnom:implementationProperty "endo" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "fnSelectExonym → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnSelectExonym ;
+    fno:implementation gmeow:implSchemaOrg ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramHasPlaceName ↦ ?pnx"@en ;
+            fnom:functionParameter gmeow:paramHasPlaceName ;
+            fnom:implementationProperty "pnx" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnSelectExonym output ↦ ?exo"@en ;
+            fnom:functionOutput gmeow:outSelectExonym ;
+            fnom:implementationProperty "exo" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnSubOrgToDepartment → schema-org (FnO mapping)"@en ;

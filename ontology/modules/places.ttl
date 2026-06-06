@@ -252,13 +252,11 @@ gmeow:timezone
     skos:definition "An IANA time-zone identifier for a location (e.g. \"America/Edmonton\"). Non-functional: a large place may span several zones."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:alternateName
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Entity ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "alternate name"@en ;
-    skos:definition "An alternative or multilingual name for an entity (e.g. a place's name in another language, \"München\" / \"Munich\") — used for gazetteer name-matching. Language-tag the literal where applicable."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+# Multilingual / historical place names are NOT a flat literal: a place bears
+# co-equal gmeow:PlaceName appellations via gmeow:hasPlaceName (names module),
+# their endonym/exonym purpose, language frame and toponymic authority carried by
+# the inferred gmeow:PlaceNaming (≡ NameUsage ⊓ ∃usageNamed.Place). The former
+# flat gmeow:alternateName literal was retired in favour of that model (Principle 6).
 
 # Future: gmeow:adjacentTo (symmetric place topology) and time-varying place
 # facts (renames, boundary/jurisdiction changes) reified over the temporal

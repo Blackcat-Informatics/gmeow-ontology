@@ -11,6 +11,7 @@ preferred/primary/canonical-name term (co-equality is structural).
 from __future__ import annotations
 
 from rdflib import OWL, RDF, RDFS, Graph, URIRef
+from rdflib.collection import Collection
 from rdflib.namespace import XSD
 
 from gmeow_tools.graph import load_merged_graph
@@ -79,6 +80,78 @@ def test_hasname_subproperty_of_hasappellation() -> None:
         RDFS.range,
         URIRef(GMEOW + "PersonName"),
     ) in graph
+
+
+def test_has_place_name_subproperty_of_hasappellation() -> None:
+    """hasPlaceName is the place-scoped specialization of hasAppellation (issue #105),
+    mirroring hasName for persons; it replaced the retired flat alternateName."""
+    graph = _graph()
+    hpn = URIRef(GMEOW + "hasPlaceName")
+    assert (hpn, RDF.type, OWL.ObjectProperty) in graph
+    assert (hpn, RDFS.subPropertyOf, URIRef(GMEOW + "hasAppellation")) in graph
+    assert (hpn, RDFS.domain, URIRef(GMEOW + "Place")) in graph
+    assert (hpn, RDFS.range, URIRef(GMEOW + "PlaceName")) in graph
+
+
+def test_place_naming_is_defined_class() -> None:
+    """PlaceNaming reuses the NameUsage relator as a DEFINED class
+    (≡ NameUsage ⊓ ∃usageNamed.Place) — Principle 6, no parallel relator. This is
+    the first owl:equivalentClass defined class in the ontology; the reasoner
+    classifies a place-naming, nothing asserts it (see the entailment QC query)."""
+    graph = _graph()
+    pn = URIRef(GMEOW + "PlaceNaming")
+    assert (pn, RDF.type, OWL.Class) in graph
+    assert (pn, RDFS.subClassOf, URIRef(GMEOW + "NameUsage")) in graph
+    found = False
+    for eq in graph.objects(pn, OWL.equivalentClass):
+        inter = graph.value(eq, OWL.intersectionOf)
+        if inter is None:
+            continue
+        members = list(Collection(graph, inter))
+        has_nameusage = URIRef(GMEOW + "NameUsage") in members
+        has_place_restriction = any(
+            (m, OWL.onProperty, URIRef(GMEOW + "usageNamed")) in graph
+            and (m, OWL.someValuesFrom, URIRef(GMEOW + "Place")) in graph
+            for m in members
+        )
+        if has_nameusage and has_place_restriction:
+            found = True
+    assert found, "PlaceNaming ≡ NameUsage ⊓ ∃usageNamed.Place must be defined"
+
+
+def test_usage_authority_is_nonfunctional_to_agent() -> None:
+    """usageAuthority — a name-usage's toponymic / naming authority. NON-functional:
+    joint or competing authorities coexist with no privileged claimant (Principle 9)."""
+    graph = _graph()
+    ua = URIRef(GMEOW + "usageAuthority")
+    assert (ua, RDF.type, OWL.ObjectProperty) in graph
+    assert (ua, RDF.type, OWL.FunctionalProperty) not in graph
+    assert (ua, RDFS.domain, URIRef(GMEOW + "NameUsage")) in graph
+    assert (ua, RDFS.range, URIRef(GMEOW + "Agent")) in graph
+
+
+def test_name_language_is_object_property_to_first_class_language() -> None:
+    """Language is ALWAYS a first-class gmeow:Language, never a bare literal tag.
+    nameLanguage is FUNCTIONAL — one language per appellation: co-equal multilingual
+    names are separate co-equal Appellations, not one name multi-tagged (issue #105)."""
+    graph = _graph()
+    nl = URIRef(GMEOW + "nameLanguage")
+    assert (nl, RDF.type, OWL.ObjectProperty) in graph
+    assert (nl, RDF.type, OWL.DatatypeProperty) not in graph
+    assert (nl, RDF.type, OWL.FunctionalProperty) in graph
+    assert (nl, RDFS.range, URIRef(GMEOW + "Language")) in graph
+
+
+def test_endonym_exonym_are_name_purpose_values() -> None:
+    """Endonym/exonym are CO-EQUAL toponym purposes (value individuals), not a
+    preferred-vs-alternate pair (issue #105, Principle 9)."""
+    graph = _graph()
+    for ind in ("namePurposeEndonym", "namePurposeExonym"):
+        assert (
+            URIRef(GMEOW + ind),
+            RDF.type,
+            URIRef(GMEOW + "NamePurpose"),
+        ) in graph
 
 
 def test_name_part_kinds_are_values_not_subclasses() -> None:
