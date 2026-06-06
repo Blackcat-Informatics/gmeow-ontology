@@ -1,0 +1,89 @@
+@prefix lime: <http://www.w3.org/ns/lemon/lime#> .
+@prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+lime:avgAmbiguity a owl:DatatypeProperty ;
+    rdfs:domain lime:ConceptualizationSet ;
+    rdfs:range xsd:decimal .
+
+lime:avgNumOfLexicalizations a owl:DatatypeProperty ;
+    rdfs:domain lime:LexicalizationSet ;
+    rdfs:range xsd:decimal .
+
+lime:avgNumOfLinks a owl:DatatypeProperty ;
+    rdfs:domain lime:LexicalLinkset ;
+    rdfs:range xsd:decimal .
+
+lime:avgSynonymy a owl:DatatypeProperty ;
+    rdfs:domain lime:ConceptualizationSet ;
+    rdfs:range xsd:decimal .
+
+lime:concepts a owl:DatatypeProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range xsd:integer .
+
+lime:conceptualDataset a owl:ObjectProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range ontolex:ConceptSet .
+
+lime:conceptualizations a owl:DatatypeProperty ;
+    rdfs:domain lime:ConceptualizationSet ;
+    rdfs:range xsd:integer .
+
+lime:entry a owl:ObjectProperty ;
+    rdfs:domain lime:Lexicon ;
+    rdfs:range ontolex:LexicalEntry .
+
+lime:language a owl:DatatypeProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range xsd:language .
+
+lime:lexicalEntries a owl:DatatypeProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range xsd:integer .
+
+lime:lexicalizationModel a owl:ObjectProperty ;
+    rdfs:domain lime:LexicalizationSet .
+
+lime:lexicalizations a owl:DatatypeProperty ;
+    rdfs:domain lime:LexicalizationSet ;
+    rdfs:range xsd:integer .
+
+lime:lexiconDataset a owl:FunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range lime:Lexicon .
+
+lime:linguisticCatalog a owl:ObjectProperty ;
+    rdfs:domain lime:Lexicon ;
+    rdfs:range <http://purl.org/vocommons/voaf#Vocabulary> .
+
+lime:links a owl:DatatypeProperty ;
+    rdfs:domain lime:LexicalLinkset ;
+    rdfs:range xsd:integer .
+
+lime:partition a owl:ObjectProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range [ ] .
+
+lime:percentage a owl:DatatypeProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range xsd:decimal .
+
+lime:referenceDataset a owl:FunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range void:Dataset .
+
+lime:references a owl:DatatypeProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range xsd:integer .
+
+lime:resourceType a owl:FunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:domain [ ] ;
+    rdfs:range rdfs:Class .
+

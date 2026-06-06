@@ -7,7 +7,7 @@
 GMEOW is a **reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary**
 that unifies document metadata, entity descriptions, legal agreements, contacts and
 person-centric data — a "super" FOAF + REL + DOAP + GEDCOM + PROV-O. It is grounded in
-**gUFO** and aligned to FOAF, REL, DOAP, PROV-O, ORG, schema.org and **Wikidata**.
+**gUFO** and aligned to FOAF, REL, DOAP, PROV-O, ORG, schema.org, OntoLex-Lemon and **Wikidata**.
 
 **Why does this exist?** GMEOW unifies the sprawl of overlapping vocabularies used to
 record a person's or organization's *digital existence*. See [`docs/RATIONALE.md`](./docs/RATIONALE.md)
@@ -207,20 +207,20 @@ non-standard in deliberate, useful ways (full rationale in
   sets — she/her … fae/faer, ze/zir, thon, xe/xem, …; declensions verified against
   [pronouns.page](https://en.pronouns.page)) plus an explicit **name-only / no-pronouns** value,
   with open minting for anything unseeded. They link to Wikidata's *personal pronoun set*
-  (`wd:Q65067284`/`wdt:P6553`) and **project** to the vCard 4 PRONOUNS property (RFC 9554).
+  (`wd:Q65067284`/`wdt:P6553`) and **project** to the vCard 4 PRONOUNS property (RFC 9554). Appellations subclass OntoLex-Lemon `ontolex:LexicalEntry` (`gmeow:fullName` close-matches `ontolex:writtenRep`), projecting to OntoLex Form/writtenRep structures.
 
 ### Languages: registry-independent, conlang- & AI-ready
 
 Most vocabularies treat a language as an opaque tag (`inLanguage "ja"`) — *a language **is**
-its ISO/BCP-47 code*. GMEOW inverts that: a **`gmeow:Language` has a self-minted IRI**, and
-registry codes are optional alignments, never identity (full rationale in
-[`docs/languages-mapping.md`](./docs/languages-mapping.md)):
+its ISO/BCP-47 code*. GMEOW inverts that: a **`gmeow:Language` has a self-minted IRI**,
+registry codes are optional alignments (never identity), and **internal string literals use private-use BCP-47 tags (e.g., `@x-gmeow-japanese`)** to isolate GMEOW graphs from external registries. Standard BCP-47 tags are reconstructed on-demand during down-projection. Full rationale is in
+[`docs/languages-mapping.md`](./docs/languages-mapping.md):
 
 - **Registry-independent.** A code-less conlang (**Ithkuil**), a fast-versioning AI-minted
   interlingua, an under-coded sign/minority language, and a programming language are all
   **co-equal first-class languages**. BCP-47/ISO/Glottolog/Wikidata attach *when they exist*,
-  as `gmeow:authorityLink`/`skos:exactMatch` — and the BCP-47 tag is **reconstructed on demand**
-  by the projection layer (`ja`+`Hani` → `ja-Hani`).
+  as `gmeow:authorityLink`/`skos:exactMatch` — and standard BCP-47 tags are **reconstructed on demand**
+  by the projection layer (`ja`+`Hani` → `ja-Hani`). Properties like `gmeow:nameLanguage` close-match LIME's metadata property `lime:language` to map first-class language objects to standard tags on demand.
 - **Co-mingled writing systems.** A language uses many co-equal scripts at once: Japanese
   interleaves kanji, hiragana, katakana and rōmaji, each in a distinct *role*, via the reified
   `gmeow:WritingSystemUsage` relator (which also models script changes over time). Bespoke and
@@ -366,4 +366,3 @@ trademark notice are in [`NOTICE`](./NOTICE).
 fail loudly; the license guard and Wikidata validator error rather than silently degrade.
 
 **AI and Agentic Development.** This ontology and its toolchain are developed and maintained with the assistance of AI coding agents (such as Google Antigravity and Claude Code). Workspace-specific rules and skills ([`AGENTS.md`](./AGENTS.md)) are defined to ensure agents strictly adhere to GMEOW's Constitution and compile pipelines.
-

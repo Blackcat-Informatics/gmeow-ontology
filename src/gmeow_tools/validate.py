@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from rdflib import RDF, RDFS, Graph, URIRef
+from rdflib import RDF, RDFS, Graph, Literal, URIRef
 from rdflib.namespace import OWL, SKOS
 
 from gmeow_tools.config import NAMESPACE, SHAPES_FILE
@@ -97,6 +97,26 @@ def structural_lint(graph: Graph) -> ValidationResult:
                 result.errors.append(
                     f"dangling {predicate} target (undeclared GMEOW term): {target}"
                 )
+
+    # Ensure all language-tagged string literals on GMEOW properties
+    # use the GMEOW-internal 'x-gmeow-' prefix.
+    import re
+
+    x_gmeow_pattern = re.compile(r"^x-gmeow-[a-z0-9\-]+$", re.IGNORECASE)
+    for s, p, o in graph:
+        if (
+            str(p).startswith(NAMESPACE)
+            and isinstance(o, Literal)
+            and o.language
+            and not x_gmeow_pattern.match(o.language)
+        ):
+            msg = (
+                f"literal {o!r} (on subject {s}, predicate {p}) carries "
+                f"external or invalid language tag '{o.language}'; "
+                f"GMEOW internal data must use the private-use 'x-gmeow-' prefix."
+            )
+            result.errors.append(msg)
+
     return result
 
 

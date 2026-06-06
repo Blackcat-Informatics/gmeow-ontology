@@ -5,6 +5,8 @@
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
+@prefix lime:    <http://www.w3.org/ns/lemon/lime#> .
 
 <https://blackcatinformatics.ca/gmeow/modules/names>
     a owl:Ontology ;
@@ -19,9 +21,12 @@
 # register, period) lives on gmeow:NameUsage, not here.
 # --------------------------------------------------------------------------- #
 
+ontolex:LexicalEntry a owl:Class .
+lime:language a owl:DatatypeProperty .
+
 gmeow:Appellation
     a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:subClassOf gmeow:InformationObject, ontolex:LexicalEntry ;
     rdfs:label "Appellation"@en ;
     skos:definition "A name as an information object borne by an entity — a person's name, a filename, a place name, an organization name. It carries the surface form (gmeow:fullName) and the structured parts (gmeow:hasNamePart); who uses it, toward whom, in what register and over what period is carried by gmeow:NameUsage. The universal superclass reconciling the scattered naming terms. Multiple appellations on one entity are CO-EQUAL — none is canonical or 'primary'."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -259,6 +264,7 @@ gmeow:fullName
 
 gmeow:nameLanguage
     a owl:ObjectProperty, owl:FunctionalProperty ;
+    skos:closeMatch lime:language ;
     rdfs:domain gmeow:Appellation ;
     rdfs:range gmeow:Language ;
     rdfs:label "name language"@en ;

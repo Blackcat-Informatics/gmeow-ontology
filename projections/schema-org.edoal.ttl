@@ -119,6 +119,13 @@
             align:relation "=" ;
             edoal:measure 1e+00 ],
         [ a align:Cell ;
+            rdfs:label "family-name part → schema:familyName"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:partText ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:familyName ] ;
+            align:relation "<=" ],
+        [ a align:Cell ;
             rdfs:label "Fuzzy event bounds → schema:startDate"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:earliestStart ] ;
@@ -136,6 +143,13 @@
             align:relation "<=" ;
             edoal:measure 6e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayableGender ] ],
+        [ a align:Cell ;
+            rdfs:label "given-name part → schema:givenName"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:partText ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:givenName ] ;
+            align:relation "<=" ],
         [ a align:Cell ;
             rdfs:label "Honorific (prefix position) → schema:honorificPrefix"@en ;
             align:entity1 [ a edoal:Relation ;

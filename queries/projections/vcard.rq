@@ -14,15 +14,15 @@ CONSTRUCT {
     ?addr vcard:postal-code ?pcode .
     ?addr vcard:country-name ?ccode .
     ?addr vcard:label ?label .
-    ?ent vcard:fn ?dispName .
+    ?ent vcard:fn ?_final_dispName .
     ?ent vcard:hasName ?vname .
     ?vname a vcard:Name .
-    ?vname vcard:given-name ?given .
-    ?vname vcard:family-name ?family .
+    ?vname vcard:given-name ?_final_given .
+    ?vname vcard:family-name ?_final_family .
     ?ent vcard:nickname ?nick .
     ?ent vcard:bday ?bdate .
     ?ent vcard:title ?title .
-    ?ent vcard:note ?desc .
+    ?ent vcard:note ?_final_desc .
     ?ent vcardx:pronouns ?pronouns .
     ?ent vcard:hasURL ?wp .
 }
@@ -41,6 +41,14 @@ WHERE {
         ?ent gmeow:hasAppellation|gmeow:hasName ?app .
         ?app gmeow:fullName ?dispName .
         FILTER NOT EXISTS { ?app gmeow:displayable false . }
+        OPTIONAL {
+            ?app gmeow:nameLanguage ?_lang .
+            ?_lang gmeow:languageTag ?_intTag .
+            FILTER(isLiteral(?dispName) && LANG(?dispName) = ?_intTag)
+            ?_lang gmeow:bcp47Tag ?_extTag .
+            OPTIONAL { ?app gmeow:nameScript ?_sc . }
+        }
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?dispName), IF(BOUND(?_sc), CONCAT(STR(?_extTag), '-', ?_sc), STR(?_extTag))), ?dispName) AS ?_final_dispName )
     }
     UNION {
         ?ent gmeow:hasAppellation|gmeow:hasName ?app .
@@ -49,6 +57,14 @@ WHERE {
         ?np gmeow:partText ?given .
         BIND ( IRI(CONCAT(STR(?ent), "-vcardname")) AS ?vname )
         FILTER NOT EXISTS { ?app gmeow:displayable false . }
+        OPTIONAL {
+            ?app gmeow:nameLanguage ?_lang .
+            ?_lang gmeow:languageTag ?_intTag .
+            FILTER(isLiteral(?given) && LANG(?given) = ?_intTag)
+            ?_lang gmeow:bcp47Tag ?_extTag .
+            OPTIONAL { ?app gmeow:nameScript ?_sc . }
+        }
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?given), IF(BOUND(?_sc), CONCAT(STR(?_extTag), '-', ?_sc), STR(?_extTag))), ?given) AS ?_final_given )
     }
     UNION {
         ?ent gmeow:hasAppellation|gmeow:hasName ?app .
@@ -57,6 +73,14 @@ WHERE {
         ?np gmeow:partText ?family .
         BIND ( IRI(CONCAT(STR(?ent), "-vcardname")) AS ?vname )
         FILTER NOT EXISTS { ?app gmeow:displayable false . }
+        OPTIONAL {
+            ?app gmeow:nameLanguage ?_lang .
+            ?_lang gmeow:languageTag ?_intTag .
+            FILTER(isLiteral(?family) && LANG(?family) = ?_intTag)
+            ?_lang gmeow:bcp47Tag ?_extTag .
+            OPTIONAL { ?app gmeow:nameScript ?_sc . }
+        }
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?family), IF(BOUND(?_sc), CONCAT(STR(?_extTag), '-', ?_sc), STR(?_extTag))), ?family) AS ?_final_family )
     }
     UNION {
         ?ent gmeow:hasName ?nn .
@@ -79,6 +103,12 @@ WHERE {
     }
     UNION {
         ?ent gmeow:description ?desc .
+        OPTIONAL {
+            ?_lang gmeow:languageTag ?_intTag .
+            FILTER(isLiteral(?desc) && LANG(?desc) = ?_intTag)
+            ?_lang gmeow:bcp47Tag ?_extTag .
+        }
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?desc), STR(?_extTag)), ?desc) AS ?_final_desc )
     }
     UNION {
         ?ent gmeow:hasPronounSet ?ps .

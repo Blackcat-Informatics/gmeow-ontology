@@ -17,27 +17,38 @@ This skill guides the agent in running common development task runner commands.
 ## Actionable Instructions
 
 - **Synchronize Environment**:
+
   ```bash
   make install
   ```
+
 - **Code Formatting ( Ruff )**:
+
   ```bash
   make fmt
   ```
+
 - **Linting & Typing**:
+
   ```bash
   make lint
   ```
+
 - **Run Unit and Competency Tests**:
+
   ```bash
   make test
   ```
+
 - **Run Full Gate Check**:
   Always run the full quality gate check before proposing a commit or submitting a pull request:
+
   ```bash
   make check
   ```
+
 - **Clean Generated Artifacts**:
+
   ```bash
   make clean
   ```

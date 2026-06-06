@@ -41,3 +41,31 @@ def test_structural_lint_clean_for_well_formed_term() -> None:
     graph.add((good, RDFS.isDefinedBy, URIRef(NAMESPACE)))
 
     assert structural_lint(graph).ok
+
+
+def test_structural_lint_accepts_mixed_case_private_language_tag() -> None:
+    graph = Graph()
+    graph.add(
+        (
+            URIRef("https://example.org/name"),
+            URIRef(NAMESPACE + "fullName"),
+            Literal("Japanese", lang="x-GMEOW-Japanese"),
+        )
+    )
+
+    assert structural_lint(graph).ok
+
+
+def test_structural_lint_rejects_external_language_tag_on_gmeow_property() -> None:
+    graph = Graph()
+    graph.add(
+        (
+            URIRef("https://example.org/name"),
+            URIRef(NAMESPACE + "fullName"),
+            Literal("Japanese", lang="ja"),
+        )
+    )
+
+    result = structural_lint(graph)
+    assert not result.ok
+    assert any("external or invalid language tag" in err for err in result.errors)
