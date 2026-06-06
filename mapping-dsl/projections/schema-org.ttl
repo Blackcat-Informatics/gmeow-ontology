@@ -8,27 +8,72 @@
 # `gmeow compile-mappings`.
 
 gmeow:mapSchemaPlace a gmeow:ProjectionMapping ;
-    rdfs:label "Place → schema:Place (+ containment, coordinates)"@en ;
+    rdfs:label "Place → schema:Place (+ containment)"@en ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ;
         gmeow:atom (
             [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
-            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:containedInPlace ; gmeow:objectVar "parent" ; gmeow:optional true ]
-            [ gmeow:optionalGroup (
-                [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasCoordinates ; gmeow:objectVar "coords" ]
-                [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:latitude ; gmeow:objectVar "lat" ] ) ]
-                [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:longitude ; gmeow:objectVar "lon" ] ) ]
-                [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:elevation ; gmeow:objectVar "elev" ] ) ] ) ] ) ] ;
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:containedInPlace ; gmeow:objectVar "parent" ; gmeow:optional true ] ) ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:relation "<=" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "place" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:Place ]
-            [ gmeow:tSubj "place" ; gmeow:tPred schema:containedInPlace ; gmeow:tObj "parent" ]
+            [ gmeow:tSubj "place" ; gmeow:tPred schema:containedInPlace ; gmeow:tObj "parent" ] ) ] .
+
+# Place coordinates → schema:geo. Split from mapSchemaPlace so coordinates can be
+# coarsened independently (#72, P10): the precise point is SUPPRESSED when the place
+# carries gmeow:coarsenTo, and mapSchemaPlaceCoordsCoarsened emits the enclosing
+# region's coordinates instead. For a place without the marker, output is unchanged.
+gmeow:mapSchemaPlaceCoords a gmeow:ProjectionMapping ;
+    rdfs:label "Place coordinates → schema:geo (suppressed under coarsenTo)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasCoordinates ; gmeow:objectVar "coords" ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:latitude ; gmeow:objectVar "lat" ] ) ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:longitude ; gmeow:objectVar "lon" ] ) ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:elevation ; gmeow:objectVar "elev" ] ) ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:coarsenTo ; gmeow:objectVar "anyLvl" ] ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
             [ gmeow:tSubj "place" ; gmeow:tPred schema:geo ; gmeow:tObj "coords" ]
             [ gmeow:tSubj "coords" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:GeoCoordinates ]
             [ gmeow:tSubj "coords" ; gmeow:tPred schema:latitude ; gmeow:tObj "lat" ]
             [ gmeow:tSubj "coords" ; gmeow:tPred schema:longitude ; gmeow:tObj "lon" ]
             [ gmeow:tSubj "coords" ; gmeow:tPred schema:elevation ; gmeow:tObj "elev" ] ) ] .
+
+gmeow:mapSchemaPlaceCoordsCoarsened a gmeow:ProjectionMapping ;
+    rdfs:label "coarsenTo → enclosing-region schema:geo (privacy generalization)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:coarsenTo ; gmeow:objectVar "lvl" ]
+            [ gmeow:subjectVar "place" ; gmeow:path [ a gmeow:OneOrMorePath ; gmeow:pathStep gmeow:containedInPlace ] ; gmeow:objectVar "coarse" ]
+            [ gmeow:subjectVar "coarse" ; gmeow:predicate gmeow:hasGranularity ; gmeow:objectVar "lvl" ]
+            [ gmeow:subjectVar "coarse" ; gmeow:predicate gmeow:hasCoordinates ; gmeow:objectVar "ccoords" ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "ccoords" ; gmeow:predicate gmeow:latitude ; gmeow:objectVar "lat" ] ) ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "ccoords" ; gmeow:predicate gmeow:longitude ; gmeow:objectVar "lon" ] ) ] ) ;
+        # Mint a FRESH GeoCoordinates node for the marked place — never alias the
+        # ancestor's own ccoords node, which would drag along its other coordinate
+        # properties (e.g. schema:elevation) and conflate the two places' geo.
+        gmeow:mint [ gmeow:bindVar "coarseGeo" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "place" ] ) ]
+                    "-geo-coarsened" ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:coarsenTo ; gmeow:edoalSourceKind "relation" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget schema:GeoCoordinates ; gmeow:edoalTargetKind "class" ;
+        gmeow:lossyDrop "precise coordinates coarsened to the enclosing region at gmeow:coarsenTo level (privacy generalization, P10)" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "place" ; gmeow:tPred schema:geo ; gmeow:tObj "coarseGeo" ]
+            [ gmeow:tSubj "coarseGeo" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:GeoCoordinates ]
+            [ gmeow:tSubj "coarseGeo" ; gmeow:tPred schema:latitude ; gmeow:tObj "lat" ]
+            [ gmeow:tSubj "coarseGeo" ; gmeow:tPred schema:longitude ; gmeow:tObj "lon" ] ) ] .
 
 gmeow:mapSchemaPartOf a gmeow:ProjectionMapping ;
     rdfs:label "generic partOf → schema:isPartOf"@en ;
