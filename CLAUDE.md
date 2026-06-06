@@ -1,6 +1,6 @@
 # Claude Code Instructions (CLAUDE.md)
 
-Refer to [AGENTS.md](file:///home/paudley/Active/gmeow-ontology-agents/AGENTS.md) in the project root for the canonical tech stack, workflow guidelines, and the strict ontological principles defined in [CONSTITUTION.md](file:///home/paudley/Active/gmeow-ontology-agents/CONSTITUTION.md).
+Refer to [AGENTS.md](./AGENTS.md) in the project root for the canonical tech stack, workflow guidelines, and the strict ontological principles defined in [CONSTITUTION.md](./CONSTITUTION.md).
 
 ## Build and Validation Commands
 * Install environment: `make install`

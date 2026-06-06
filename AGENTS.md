@@ -11,12 +11,12 @@ Welcome, AI Agent! This file is your behavioral contract and instruction manual 
 
 GMEOW is a **reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary** that unifies document metadata, entity descriptions, legal agreements, contacts, and person-centric data.
 
-Every design decision, code modification, and schema change is governed by the twelve principles of the [CONSTITUTION.md](file:///home/paudley/Active/gmeow-ontology-agents/CONSTITUTION.md). Cite these principles by number (e.g., `"Principle 4"`) in your commit messages, pull requests, and discussions.
+Every design decision, code modification, and schema change is governed by the twelve principles of the [CONSTITUTION.md](./CONSTITUTION.md). Cite these principles by number (e.g., `"Principle 4"`) in your commit messages, pull requests, and discussions.
 
 ### Critical Ontological Rules
 *   **One Canonical Source (Principle 4)**: Do not hand-edit generated files. Any change must be made in the canonical source files.
-    *   **Mappings**: Authored in [mapping-dsl/](file:///home/paudley/Active/gmeow-ontology-agents/mapping-dsl/) -> compiled to `mappings/`, `projections/`, etc.
-    *   **Statements**: Authored in [statement-dsl/](file:///home/paudley/Active/gmeow-ontology-agents/statement-dsl/) -> compiled to `statements/`.
+    *   **Mappings**: Authored in [mapping-dsl/](./mapping-dsl/) -> compiled to `mappings/`, `projections/`, etc.
+    *   **Statements**: Authored in [statement-dsl/](./statement-dsl/) -> compiled to `statements/`.
 *   **RDF 1.2 / RDF\*-first (Principles 2 & 3)**: Statement-level metadata (provenance, confidence, temporal scope) is authored as native RDF 1.2 / RDF\* in the statement DSL. The logical core stays OWL 2 DL.
 *   **Co-equal & Non-privileged (Principles 9 & 10)**: There is no `primaryName`, `preferredGender`, or single-winner preference. A contested fact is represented as coexisting standpoint-indexed claims. A superseded label/deadname is suppressed using `gmeow:displayable false` rather than deleted.
 
@@ -40,12 +40,14 @@ make compile-mappings # Compile mapping-dsl/ to mappings/ and projections/ (run 
 make compile-statements # Compile statement-dsl/ to statements/ (run after changing statement DSL)
 make compile-check   # Validate that committed projection artifacts match mapping-dsl/
 make statements-check # Validate that committed statement artifacts match statement-dsl/
+make wikidata        # Validate Wikidata QID/PID syntax in the mappings (offline)
 ```
 
 ### Reasoning & Negative Tests
 ```bash
 make reason          # Check ELK consistency (Docker ROBOT)
 make reason-hermit   # Full complete consistency check with HermiT (Docker)
+make explain         # Explain any unsatisfiable classes (HermiT, Docker)
 make verify          # Run reasoned-graph negative tests (SPARQL QC over queries/verify/)
 ```
 
@@ -61,13 +63,13 @@ make check           # Run FULL gate: lint, validate, compilation check, reason,
 
 ## 3. How the Compilers Work
 
-The Makefile is only a task runner. The actual compiler and validation logic lives in [src/gmeow_tools/](file:///home/paudley/Active/gmeow-ontology-agents/src/gmeow_tools/), and the `gmeow` CLI is a thin orchestration layer over focused Python modules.
+The Makefile is only a task runner. The actual compiler and validation logic lives in [src/gmeow_tools/](./src/gmeow_tools/), and the `gmeow` CLI is a thin orchestration layer over focused Python modules.
 
 ### Mapping Compiler
 
-`make compile-mappings` runs `uv run gmeow compile-mappings`, implemented by [src/gmeow_tools/mapping_dsl.py](file:///home/paudley/Active/gmeow-ontology-agents/src/gmeow_tools/mapping_dsl.py) and [src/gmeow_tools/mapping_compile.py](file:///home/paudley/Active/gmeow-ontology-agents/src/gmeow_tools/mapping_compile.py).
+`make compile-mappings` runs `uv run gmeow compile-mappings`, implemented by [src/gmeow_tools/mapping_dsl.py](./src/gmeow_tools/mapping_dsl.py) and [src/gmeow_tools/mapping_compile.py](./src/gmeow_tools/mapping_compile.py).
 
-*   **Canonical input**: all Turtle files under [mapping-dsl/](file:///home/paudley/Active/gmeow-ontology-agents/mapping-dsl/), plus the DSL vocabulary in [mapping-dsl/vocabulary.ttl](file:///home/paudley/Active/gmeow-ontology-agents/mapping-dsl/vocabulary.ttl).
+*   **Canonical input**: all Turtle files under [mapping-dsl/](./mapping-dsl/), plus the DSL vocabulary in [mapping-dsl/vocabulary.ttl](./mapping-dsl/vocabulary.ttl).
 *   **Generated outputs**:
     *   `mappings/*.sssom.tsv` — SSSOM term-equivalence rows.
     *   `projections/*.edoal.ttl` — EDOAL alignment cells.
@@ -86,9 +88,9 @@ Do not patch a generated SSSOM, EDOAL, FnO, or projection query file directly to
 
 ### Statement Compiler
 
-`make compile-statements` runs `uv run gmeow compile-statements`, implemented by [src/gmeow_tools/statement_dsl.py](file:///home/paudley/Active/gmeow-ontology-agents/src/gmeow_tools/statement_dsl.py) and [src/gmeow_tools/statement_compile.py](file:///home/paudley/Active/gmeow-ontology-agents/src/gmeow_tools/statement_compile.py).
+`make compile-statements` runs `uv run gmeow compile-statements`, implemented by [src/gmeow_tools/statement_dsl.py](./src/gmeow_tools/statement_dsl.py) and [src/gmeow_tools/statement_compile.py](./src/gmeow_tools/statement_compile.py).
 
-*   **Canonical input**: all Turtle files under [statement-dsl/](file:///home/paudley/Active/gmeow-ontology-agents/statement-dsl/), plus the DSL vocabulary in [statement-dsl/vocabulary.ttl](file:///home/paudley/Active/gmeow-ontology-agents/statement-dsl/vocabulary.ttl).
+*   **Canonical input**: all Turtle files under [statement-dsl/](./statement-dsl/), plus the DSL vocabulary in [statement-dsl/vocabulary.ttl](./statement-dsl/vocabulary.ttl).
 *   **Generated outputs**:
     *   `statements/gmeow.rdf12.ttl` — RDF 1.2 / RDF* lead artifact, emitted through Apache Jena because rdflib cannot yet parse/write native RDF 1.2 triple-term Turtle.
     *   `statements/gmeow-statements.owl.ttl` — OWL 2 axiom-annotation downcast consumed by OWL 2 DL reasoners.
@@ -108,9 +110,9 @@ Generated files contain a `GENERATED by ... DO NOT EDIT` banner where practical.
 
 ### Vocabulary Index (llms.txt)
 
-This project automatically generates a single-file, flat index of all classes, properties, and individuals (with CURIEs, parent classes, and definitions) at [dist/llms.txt](file:///home/paudley/Active/gmeow-ontology-agents/dist/llms.txt) when running `make export`. 
+This project automatically generates a single-file, flat index of all classes, properties, and individuals (with CURIEs, parent classes, and definitions) at [dist/llms.txt](./dist/llms.txt) when running `make export`. 
 
-If you are an agent trying to look up terms, resolve definitions, or discover vocabulary details, you can ingest [dist/llms.txt](file:///home/paudley/Active/gmeow-ontology-agents/dist/llms.txt) to get a clean, context-efficient overview of the entire ontology.
+If you are an agent trying to look up terms, resolve definitions, or discover vocabulary details, you can ingest [dist/llms.txt](./dist/llms.txt) to get a clean, context-efficient overview of the entire ontology.
 
 ---
 
