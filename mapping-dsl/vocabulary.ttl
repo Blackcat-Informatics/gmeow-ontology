@@ -421,6 +421,12 @@ gmeow:fnHonorificToAffix a gmeow:ProjectionFunction ;
     gmeow:fnInput gmeow:honorific ;
     gmeow:fnOutput gmeow:projectedAffix ; gmeow:fnOutputType xsd:string .
 
+gmeow:fnPronounSetToText a gmeow:ProjectionFunction ;
+    rdfs:label "pronoun set → full five-form declension text"@en ;
+    dcterms:description "Renders a gmeow:PronounSet's full five-form declension as a single slash-joined string (subject/object/possessive-determiner/possessive/reflexive, e.g. 'she/her/her/hers/herself', 'xe/xem/xyr/xyrs/xemself') for emission as the vCard 4 PRONOUNS property (RFC 9554, free text), carried on the GMEOW-minted vcardx:pronouns extension term because the W3C vCard RDF ontology never minted a predicate for it. Because PRONOUNS is free text it carries the whole declension LOSSLESSLY — no form is dropped, and a consumer can reconstruct the full set. The only non-representable parts are the non-specifying values (pronounAny / pronounAsk / pronounNameOnly, which carry no forms) and any period / standpoint on the assertion."@en ;
+    gmeow:fnInput gmeow:pronounSubject , gmeow:pronounObject , gmeow:pronounPossessiveDeterminer , gmeow:pronounPossessive , gmeow:pronounReflexive ;
+    gmeow:fnOutput gmeow:projectedPronouns ; gmeow:fnOutputType xsd:string .
+
 gmeow:fnComposeBcp47 a gmeow:ProjectionFunction ;
     rdfs:label "compose BCP-47 language tag"@en ;
     dcterms:description "Composes a BCP-47 language tag from a language's gmeow:languageCode and a co-mingled writing system's gmeow:scriptCode (\"ja\" + \"Hani\" → \"ja-Hani\"). The registry tag GMEOW refuses as identity, reconstructed on demand for schema.org consumers and emitted as schema:alternateName. A language with several scripts yields several tags."@en ;
