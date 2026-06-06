@@ -401,4 +401,3 @@ gmeow:eqNames044 a gmeow:TermEquivalence ;
     gmeow:confidence 0.85 ;
     gmeow:comment "GMEOW fullName close-matches OntoLex writtenRep" ;
     gmeow:sssomFile "gmeow-names.sssom.tsv" .
-

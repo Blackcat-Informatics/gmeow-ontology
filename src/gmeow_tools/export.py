@@ -163,7 +163,7 @@ def _describe_node(graph: Graph, node: object) -> str:
             elements = []
             curr = union_list
             while curr and curr != RDF.nil:
-                if not isinstance(curr, (URIRef, BNode)):
+                if not isinstance(curr, URIRef | BNode):
                     break
                 first = graph.value(curr, RDF.first)
                 if first:
@@ -176,7 +176,7 @@ def _describe_node(graph: Graph, node: object) -> str:
             elements = []
             curr = intersection_list
             while curr and curr != RDF.nil:
-                if not isinstance(curr, (URIRef, BNode)):
+                if not isinstance(curr, URIRef | BNode):
                     break
                 first = graph.value(curr, RDF.first)
                 if first:
