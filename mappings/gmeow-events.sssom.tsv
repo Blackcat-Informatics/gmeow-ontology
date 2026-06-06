@@ -49,7 +49,9 @@ gmeow:contains	skos:relatedMatch	time:intervalContains	semapv:ManualMappingCurat
 gmeow:during	skos:closeMatch	teo:during	semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
 gmeow:during	skos:relatedMatch	time:intervalDuring	semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
 gmeow:earliestStart	skos:relatedMatch	crm:P82a_begin_of_the_begin	semapv:ManualMappingCuration	0.6	fuzzy lower bound ≈ CIDOC E52 begin-of-the-begin
+gmeow:earliestStart	skos:relatedMatch	ical:dtstart	semapv:ManualMappingCuration	0.5	the fuzzy lower bound becomes the VEVENT DTSTART
 gmeow:eventInterval	skos:relatedMatch	crm:P4_has_time-span	semapv:ManualMappingCuration	0.55	the crisp interval of an event ≈ CIDOC P4 has time-span (E52)
+gmeow:eventInterval	skos:relatedMatch	ical:dtend	semapv:ManualMappingCuration	0.55	the crisp interval's end becomes the VEVENT DTEND
 gmeow:eventInterval	skos:relatedMatch	ical:dtstart	semapv:ManualMappingCuration	0.55	the crisp interval's endpoints become DTSTART/DTEND (a reshape, not a rename)
 gmeow:eventInterval	skos:relatedMatch	time:hasTime	semapv:ManualMappingCuration	0.55	OWL-Time hasTime — grounds the interval; GMEOW keeps base datatypes DL-clean (xsd:dateTime)
 gmeow:eventLocation	skos:closeMatch	bio:place	semapv:ManualMappingCuration	0.8	BIO life-event place — replaces the former gmeow:eventPlace
@@ -125,6 +127,7 @@ gmeow:hasRecurrenceRule	skos:relatedMatch	schema:eventSchedule	semapv:ManualMapp
 gmeow:hasSubEvent	skos:closeMatch	crm:P9_consists_of	semapv:ManualMappingCuration	0.8	CIDOC P9 consists of — event mereology
 gmeow:hasSubEvent	skos:closeMatch	schema:subEvent	semapv:ManualMappingCuration	0.85	
 gmeow:latestEnd	skos:relatedMatch	crm:P82b_end_of_the_end	semapv:ManualMappingCuration	0.6	fuzzy upper bound ≈ CIDOC E52 end-of-the-end
+gmeow:latestEnd	skos:relatedMatch	ical:dtend	semapv:ManualMappingCuration	0.5	the fuzzy upper bound becomes the VEVENT DTEND
 gmeow:meets	skos:closeMatch	teo:meets	semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
 gmeow:meets	skos:relatedMatch	time:intervalMeets	semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
 gmeow:metBy	skos:closeMatch	teo:metBy	semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation

@@ -62,13 +62,6 @@ gmeow:fnParticipantToAttendee a fno:Function ;
     fno:expects ( gmeow:paramHasParticipant ) ;
     fno:returns ( gmeow:outParticipantToAttendee ) .
 
-gmeow:fnParticipationToEventRole a fno:Function ;
-    rdfs:label "Participation → schema event-role edge"@en ;
-    dcterms:description "Downcasts a reified gmeow:Participation to a flat schema.org event-role edge: the event gains schema:attendee / schema:performer / schema:organizer pointing at the participant, keyed by the participation's gmeow:ParticipantRole. The Participation's period, confidence, evidence and standpoint, and the open role space beyond the three schema roles, are dropped — the flat edge is lossy by design."@en ;
-    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
-    fno:expects ( gmeow:paramParticipationParticipant ) ;
-    fno:returns ( gmeow:outParticipationToEventRole ) .
-
 gmeow:fnPlaceTypeToClass a fno:Function ;
     rdfs:label "place-type value → target class"@en ;
     dcterms:description "Maps a gmeow:placeType value individual (e.g. placeTypeCountry) to the target vocabulary class to assert via rdf:type (e.g. schema:Country). The conditional retyping; place types without a target class are dropped."@en ;
@@ -111,6 +104,13 @@ gmeow:fnMembershipToJobTitle a fno:Function ;
     fno:expects ( gmeow:paramHasRole ) ;
     fno:returns ( gmeow:outMembershipToJobTitle ) .
 
+gmeow:fnParticipationToEventRole a fno:Function ;
+    rdfs:label "Participation → schema event-role edge"@en ;
+    dcterms:description "Downcasts a reified gmeow:Participation to a flat schema.org event-role edge: the event gains schema:attendee / schema:performer / schema:organizer pointing at the participant, keyed by the participation's gmeow:ParticipantRole. The Participation's period, confidence, evidence and standpoint, and the open role space beyond the three schema roles, are dropped — the flat edge is lossy by design."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/ical.rq> ;
+    fno:expects ( gmeow:paramParticipationParticipant ) ;
+    fno:returns ( gmeow:outParticipationToEventRole ) .
+
 gmeow:fnSelectDisplayableGender a fno:Function ;
     rdfs:label "select displayable gender identity → gender label"@en ;
     dcterms:description "Returns the rdfs:label of a person's displayable gmeow:GenderIdentity value for emission as schema:gender / foaf:gender. A gmeow:displayable false facet is NEVER emitted — the same suppression contract as a deadname. Lossy and directional: schema.org/FOAF conflate sex and gender, and orientation + sex-assigned-at-birth have no target term, so they are dropped."@en ;
@@ -121,10 +121,6 @@ gmeow:fnSelectDisplayableGender a fno:Function ;
 gmeow:implGeosparql a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> .
-
-gmeow:implIcal a fno:Implementation ;
-    dcterms:format "application/sparql-query" ;
-    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/ical.rq> .
 
 gmeow:outComposeAddress a fno:Output ;
     fno:predicate gmeow:projectedAddress ;
@@ -272,6 +268,10 @@ gmeow:fnWebPageToUrl a fno:Function ;
     fno:expects ( gmeow:paramHasWebPage ) ;
     fno:returns ( gmeow:outWebPageToUrl ) .
 
+gmeow:implIcal a fno:Implementation ;
+    dcterms:format "application/sparql-query" ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/ical.rq> .
+
 gmeow:outBirthEventToDate a fno:Output ;
     fno:predicate gmeow:projectedBirthDate ;
     fno:type rdfs:Literal .
@@ -311,10 +311,6 @@ gmeow:outNicknameName a fno:Output ;
     fno:predicate gmeow:projectedNick ;
     fno:type rdfs:Literal .
 
-gmeow:outParticipationToEventRole a fno:Output ;
-    fno:predicate gmeow:projectedEventRole ;
-    fno:type gmeow:Agent .
-
 gmeow:outSelectDisplayName a fno:Output ;
     fno:predicate gmeow:projectedName ;
     fno:type rdfs:Literal .
@@ -337,6 +333,10 @@ gmeow:paramHasWebPage a fno:Parameter ;
     fno:predicate gmeow:hasWebPage ;
     fno:required true ;
     fno:type gmeow:WebPage .
+
+gmeow:outParticipationToEventRole a fno:Output ;
+    fno:predicate gmeow:projectedEventRole ;
+    fno:type gmeow:Entity .
 
 gmeow:paramParticipationParticipant a fno:Parameter ;
     fno:predicate gmeow:participationParticipant ;
@@ -559,6 +559,19 @@ gmeow:implSchemaOrg a fno:Implementation ;
     fno:returnMapping [ a fnom:DefaultReturnMapping ;
             rdfs:label "fnParticipantToAttendee output ↦ ?att"@en ;
             fnom:functionOutput gmeow:outParticipantToAttendee ;
+            fnom:implementationProperty "att" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "fnParticipationToEventRole → ical (FnO mapping)"@en ;
+    fno:function gmeow:fnParticipationToEventRole ;
+    fno:implementation gmeow:implIcal ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramParticipationParticipant ↦ ?att"@en ;
+            fnom:functionParameter gmeow:paramParticipationParticipant ;
+            fnom:implementationProperty "att" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnParticipationToEventRole output ↦ ?att"@en ;
+            fnom:functionOutput gmeow:outParticipationToEventRole ;
             fnom:implementationProperty "att" ] .
 
 [] a fno:Mapping ;

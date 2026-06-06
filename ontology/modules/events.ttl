@@ -171,11 +171,11 @@ gmeow:participationParticipant
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:participationRole
-    a owl:ObjectProperty, owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Participation ;
     rdfs:range gmeow:ParticipantRole ;
     rdfs:label "participation role"@en ;
-    skos:definition "The role the participant played, a gmeow:ParticipantRole value (functional per participation — one role each; multiple roles are multiple Participations). Generalizes the former hasPrincipal / hasWitness / hasOfficiant subproperties."@en ;
+    skos:definition "The role(s) the participant played, drawn from the open gmeow:ParticipantRole value vocabulary. NON-FUNCTIONAL — mirroring gmeow:eventType: a participation may bear several roles, and competing standpoint-indexed role claims coexist (accordingTo) rather than contradict (Principle 9). Generalizes the former hasPrincipal / hasWitness / hasOfficiant subproperties."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:participationInterval

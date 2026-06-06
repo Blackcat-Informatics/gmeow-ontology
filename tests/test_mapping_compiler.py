@@ -34,7 +34,7 @@ def test_dsl_parses() -> None:
     # Every SSSOM data row became a TermEquivalence cell (incl. the 7 gUFO↔BFO
     # foundational-spine cells, issue #40, and the 13 standpoint cells — PROV-O x3,
     # nanopub, CRMinf x3, Wikidata x2, schema.org, Web Annotation, DnS x2, #43).
-    assert len(dsl.equivalences) == 445
+    assert len(dsl.equivalences) == 448
     # 18 projection transforms declared.
     assert len(dsl.functions) == 18
     # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint, gmeow-events).

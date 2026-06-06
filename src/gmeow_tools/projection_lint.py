@@ -47,6 +47,8 @@ _PROFILE_TARGETS: dict[str, tuple[str, ...]] = {
     "vcard": ("vcard",),
     "foaf": ("foaf", "wgs84"),
     "geosparql": ("geo",),
+    "ical": ("ical",),
+    "owl-time": ("time",),
 }
 
 #: Target terms a compose/decompose transform legitimately MINTS — intermediate

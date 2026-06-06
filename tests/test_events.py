@@ -110,6 +110,12 @@ def test_former_event_types_are_individuals_not_classes() -> None:
         value = URIRef(GMEOW + "eventType" + local)
         assert (value, RDF.type, GM.EventType) in g, f"eventType{local} must be a value"
         assert (value, RDF.type, OWL.Class) not in g
+    # Structural lock: LifeEvent must have ZERO GMEOW subclasses (the taxonomy is
+    # gone for good) — catches ANY accidental re-introduction, not just the known list.
+    sub = {
+        s for s in g.subjects(RDFS.subClassOf, GM.LifeEvent) if str(s).startswith(GMEOW)
+    }
+    assert sub == set(), f"gmeow:LifeEvent must have no subclasses; found {sub}"
 
 
 def test_former_role_subproperties_are_gone_and_are_values_now() -> None:
@@ -235,15 +241,17 @@ def test_participant_role_vocabulary_seeded() -> None:
 
 
 def test_temporal_precision_vocabulary_seeded() -> None:
+    # An OPEN value vocabulary — assert the seeds are PRESENT (superset), never that
+    # the set is closed, so a future seed (or a data-minted value) doesn't break it.
     g = _graph()
     members = set(g.subjects(RDF.type, GM.TemporalPrecision))
-    assert members == {
+    assert {
         GM.precisionDay,
         GM.precisionMonth,
         GM.precisionYear,
         GM.precisionDecade,
         GM.precisionCirca,
-    }
+    } <= members
 
 
 def test_subevent_mereology_is_transitive() -> None:

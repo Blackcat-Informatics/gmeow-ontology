@@ -22,10 +22,15 @@ WHERE {
     UNION {
         ?event gmeow:eventTime ?start .
         OPTIONAL { ?event gmeow:eventLocation ?loc . }
+        FILTER NOT EXISTS { ?event gmeow:eventInterval ?ivAny . }
+        FILTER NOT EXISTS { ?event gmeow:earliestStart ?esAny . }
     }
     UNION {
         ?event gmeow:earliestStart ?start .
         OPTIONAL { ?event gmeow:latestEnd ?end . }
+        OPTIONAL { ?event gmeow:eventLocation ?loc . }
+        FILTER NOT EXISTS { ?event gmeow:eventInterval ?ivAny . }
+        FILTER NOT EXISTS { ?event gmeow:eventTime ?etAny . }
     }
     UNION {
         ?event gmeow:eventType ?et .
@@ -33,5 +38,10 @@ WHERE {
     }
     UNION {
         ?event gmeow:hasParticipant ?att .
+    }
+    UNION {
+        ?p gmeow:participationEvent ?event .
+        ?p gmeow:participationParticipant ?att .
+        FILTER NOT EXISTS { ?p gmeow:displayable false . }
     }
 }

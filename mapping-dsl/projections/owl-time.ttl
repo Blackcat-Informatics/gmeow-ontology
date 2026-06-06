@@ -129,4 +129,3 @@ gmeow:mapTimeCoincidesWith a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "owl-time" ; gmeow:relation "<=" ;
         gmeow:templateAtoms ( [ gmeow:tSubj "coincidesWithA" ; gmeow:tPred time:intervalEquals ; gmeow:tObj "coincidesWithB" ] ) ] .
-

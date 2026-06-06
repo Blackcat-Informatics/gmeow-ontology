@@ -11,12 +11,17 @@ SELECT ?subject ?predicate ?object ?standpoint WHERE {
         owl:annotatedSource   ?subject ;
         owl:annotatedProperty ?predicate ;
         owl:annotatedTarget   ?object .
-    OPTIONAL { ?ax gmeow:validFrom   ?vf . }
-    OPTIONAL { ?ax gmeow:validUntil  ?vu . }
-    OPTIONAL { ?ax gmeow:assertedAt  ?aa . }
-    OPTIONAL { ?ax gmeow:accordingTo ?standpoint . }
+    OPTIONAL { ?ax gmeow:validFrom           ?vf . }
+    OPTIONAL { ?ax gmeow:validUntil          ?vu . }
+    OPTIONAL { ?ax gmeow:assertedAt          ?aa . }
+    OPTIONAL { ?ax gmeow:recordedNoLaterThan ?rnlt . }
+    OPTIONAL { ?ax gmeow:accordingTo         ?standpoint . }
+    # Observation cutoff: prefer assertedAt; fall back to the derived
+    # recordedNoLaterThan bound (the four-clocks terminus ante quem). A claim with
+    # NEITHER has an unknown observation time and is kept (open-world).
+    BIND(COALESCE(?aa, ?rnlt) AS ?observed)
     FILTER(!BOUND(?vf) || ?vf <= ?validAt)
     FILTER(!BOUND(?vu) || ?vu >= ?validAt)
-    FILTER(!BOUND(?aa) || ?aa <= ?asOf)
+    FILTER(!BOUND(?observed) || ?observed <= ?asOf)
 }
 ORDER BY ?subject ?predicate

@@ -414,8 +414,9 @@ gmeow:EventHasTypeOrTimeShape
         [ sh:path gmeow:eventTime ; sh:minCount 1 ]
         [ sh:path gmeow:eventInterval ; sh:minCount 1 ]
         [ sh:path gmeow:earliestStart ; sh:minCount 1 ]
+        [ sh:path gmeow:latestEnd ; sh:minCount 1 ]
     ) ;
-    sh:message "An event should carry at least a gmeow:eventType or a temporal placement (gmeow:eventTime / eventInterval / earliestStart)." .
+    sh:message "An event should carry at least a gmeow:eventType or a temporal placement (gmeow:eventTime / eventInterval / earliestStart / latestEnd)." .
 
 # Suppression, never erasure (Principle 10): a superseded participation claim — a
 # corrected participant, role, or date carried on a Participation that has ended

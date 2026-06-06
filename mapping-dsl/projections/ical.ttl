@@ -28,14 +28,19 @@ gmeow:mapIcalVeventInterval a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "event" ; gmeow:tPred ical:dtend ; gmeow:tObj "end" ]
             [ gmeow:tSubj "event" ; gmeow:tPred ical:location ; gmeow:tObj "loc" ] ) ] .
 
-# A point event → VEVENT with a single DTSTART (the instant).
+# A point event → VEVENT with a single DTSTART (the instant). Precedence interval >
+# point > fuzzy: this branch is EXCLUDED when the event also carries an interval or
+# fuzzy bounds, so exactly one VEVENT time branch fires per event (a valid VEVENT
+# has one DTSTART/DTEND).
 gmeow:mapIcalVeventPoint a gmeow:ProjectionMapping ;
     rdfs:label "Event + point time → iCalendar VEVENT (DTSTART)"@en ;
     gmeow:hasMappingPattern [
         gmeow:anchor "event" ;
         gmeow:atom (
             [ gmeow:subjectVar "event" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "start" ]
-            [ gmeow:subjectVar "event" ; gmeow:predicate gmeow:eventLocation ; gmeow:objectVar "loc" ; gmeow:optional true ] ) ] ;
+            [ gmeow:subjectVar "event" ; gmeow:predicate gmeow:eventLocation ; gmeow:objectVar "loc" ; gmeow:optional true ] ) ;
+        gmeow:excludeWhen [ gmeow:subjectVar "event" ; gmeow:predicate gmeow:eventInterval ; gmeow:objectVar "ivAny" ] ;
+        gmeow:excludeWhen [ gmeow:subjectVar "event" ; gmeow:predicate gmeow:earliestStart ; gmeow:objectVar "esAny" ] ] ;
     gmeow:hasBinding [
         gmeow:profile "ical" ; gmeow:relation "<=" ;
         gmeow:templateAtoms (
@@ -44,20 +49,25 @@ gmeow:mapIcalVeventPoint a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "event" ; gmeow:tPred ical:location ; gmeow:tObj "loc" ] ) ] .
 
 # A fuzzy (circa) event → VEVENT spanning the earliest/latest bounds; the
-# gmeow:temporalPrecision qualifier is dropped (iCal cannot carry it).
+# gmeow:temporalPrecision qualifier is dropped (iCal cannot carry it). Excluded when
+# the event also carries a crisp interval or point time (lowest precedence).
 gmeow:mapIcalVeventFuzzy a gmeow:ProjectionMapping ;
     rdfs:label "Fuzzy event bounds → iCalendar VEVENT (DTSTART/DTEND)"@en ;
     gmeow:hasMappingPattern [
         gmeow:anchor "event" ;
         gmeow:atom (
             [ gmeow:subjectVar "event" ; gmeow:predicate gmeow:earliestStart ; gmeow:objectVar "start" ]
-            [ gmeow:subjectVar "event" ; gmeow:predicate gmeow:latestEnd ; gmeow:objectVar "end" ; gmeow:optional true ] ) ] ;
+            [ gmeow:subjectVar "event" ; gmeow:predicate gmeow:latestEnd ; gmeow:objectVar "end" ; gmeow:optional true ]
+            [ gmeow:subjectVar "event" ; gmeow:predicate gmeow:eventLocation ; gmeow:objectVar "loc" ; gmeow:optional true ] ) ;
+        gmeow:excludeWhen [ gmeow:subjectVar "event" ; gmeow:predicate gmeow:eventInterval ; gmeow:objectVar "ivAny" ] ;
+        gmeow:excludeWhen [ gmeow:subjectVar "event" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "etAny" ] ] ;
     gmeow:hasBinding [
         gmeow:profile "ical" ; gmeow:relation "<=" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "event" ; gmeow:tPred rdf:type ; gmeow:tObjValue ical:Vevent ]
             [ gmeow:tSubj "event" ; gmeow:tPred ical:dtstart ; gmeow:tObj "start" ]
-            [ gmeow:tSubj "event" ; gmeow:tPred ical:dtend ; gmeow:tObj "end" ] ) ] .
+            [ gmeow:tSubj "event" ; gmeow:tPred ical:dtend ; gmeow:tObj "end" ]
+            [ gmeow:tSubj "event" ; gmeow:tPred ical:location ; gmeow:tObj "loc" ] ) ] .
 
 # Event type label → SUMMARY (the human-readable title; the open type vocab
 # collapses to one label).
@@ -85,4 +95,22 @@ gmeow:mapIcalAttendee a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "ical" ; gmeow:toPredicate ical:attendee ; gmeow:relation "<=" ;
         gmeow:transform gmeow:fnParticipantToAttendee ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "role / period / confidence / standpoint of the participation are dropped; the participant becomes a bare ATTENDEE" ] .
+
+# Reified Participation → ATTENDEE (events whose participants are recorded only via
+# the gmeow:Participation relator, not the flat shortcut, still get ATTENDEEs). The
+# role/period/confidence/standpoint collapse; a superseded (displayable false)
+# participation is suppressed (Principle 10).
+gmeow:mapIcalAttendeeReified a gmeow:ProjectionMapping ;
+    rdfs:label "Participation participant → iCalendar ATTENDEE"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "event" ; gmeow:value "att" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:participationEvent ; gmeow:objectVar "event" ]
+            [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:participationParticipant ; gmeow:objectVar "att" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ical" ; gmeow:toPredicate ical:attendee ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnParticipationToEventRole ; gmeow:confidence 0.8 ;
         gmeow:lossyDrop "role / period / confidence / standpoint of the participation are dropped; the participant becomes a bare ATTENDEE" ] .

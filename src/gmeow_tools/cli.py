@@ -124,12 +124,12 @@ def verify(
 @app.command()
 def temporal(
     query: str = typer.Argument(..., help="TQL query name (e.g. timeline)."),
-    data: str = typer.Option(None, help="Instance-data file to query (Turtle)."),
-    focus: str = typer.Option(None, help="Focus event IRI (before/during-event)."),
-    window_start: str = typer.Option(None, help="Window start (overlapping-window)."),
-    window_end: str = typer.Option(None, help="Window end (overlapping-window)."),
-    valid_at: str = typer.Option(None, help="Valid-time instant (bitemporal)."),
-    as_of: str = typer.Option(None, help="Observation cutoff (bitemporal)."),
+    data: str | None = typer.Option(None, help="Instance-data file (Turtle)."),
+    focus: str | None = typer.Option(None, help="Focus event IRI."),
+    window_start: str | None = typer.Option(None, help="Window start dateTime."),
+    window_end: str | None = typer.Option(None, help="Window end dateTime."),
+    valid_at: str | None = typer.Option(None, help="Valid-time instant."),
+    as_of: str | None = typer.Option(None, help="Observation cutoff."),
 ) -> None:
     """Run a TQL (Temporal Query Language) query over the events model.
 
@@ -512,7 +512,8 @@ def export() -> None:
 @app.command()
 def project(
     profile: str = typer.Option(
-        "all", help="Target profile: all|schema-org|geosparql|vcard|foaf."
+        "all",
+        help="Target profile: all|schema-org|geosparql|vcard|foaf|ical|owl-time.",
     ),
     data: str = typer.Option(
         "", help="GMEOW data file to project (default: the worked-example fixtures)."

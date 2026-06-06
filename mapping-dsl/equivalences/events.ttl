@@ -1204,3 +1204,33 @@ gmeow:eqEvents124 a gmeow:TermEquivalence ;
 #   EVENT @aspect : PERFECTIVE/PROGRESSIVE/…→gmeow:GrammaticalAspect values
 #   EVENT @class  : OCCURRENCE/STATE/REPORTING/… → gmeow:eventType value vocabulary
 #     (GMEOW's open type vocab subsumes TimeML's seven fixed classes)
+
+# iCalendar DTEND — the upper endpoint of a VEVENT, projected from the crisp
+# interval's end or the fuzzy latestEnd bound (declares ical:dtend for the
+# projection drift lint; the projection itself is generated).
+gmeow:eqEvents125 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventInterval ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject ical:dtend ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "the crisp interval's end becomes the VEVENT DTEND" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents126 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:latestEnd ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject ical:dtend ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "the fuzzy upper bound becomes the VEVENT DTEND" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents127 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:earliestStart ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject ical:dtstart ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "the fuzzy lower bound becomes the VEVENT DTSTART" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .

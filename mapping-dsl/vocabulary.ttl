@@ -467,7 +467,7 @@ gmeow:fnParticipationToEventRole a gmeow:ProjectionFunction ;
     rdfs:label "Participation → schema event-role edge"@en ;
     dcterms:description "Downcasts a reified gmeow:Participation to a flat schema.org event-role edge: the event gains schema:attendee / schema:performer / schema:organizer pointing at the participant, keyed by the participation's gmeow:ParticipantRole. The Participation's period, confidence, evidence and standpoint, and the open role space beyond the three schema roles, are dropped — the flat edge is lossy by design."@en ;
     gmeow:fnInput gmeow:participationParticipant ;
-    gmeow:fnOutput gmeow:projectedEventRole ; gmeow:fnOutputType gmeow:Agent .
+    gmeow:fnOutput gmeow:projectedEventRole ; gmeow:fnOutputType gmeow:Entity .
 
 gmeow:fnFuzzyTimeToDate a gmeow:ProjectionFunction ;
     rdfs:label "fuzzy event bounds → schema:startDate"@en ;

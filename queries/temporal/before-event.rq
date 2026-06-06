@@ -15,7 +15,7 @@ SELECT DISTINCT ?event WHERE {
         OPTIONAL { ?event gmeow:eventTime ?xt . }
         OPTIONAL { ?event gmeow:eventInterval/gmeow:endedAtTime ?xie . }
         OPTIONAL { ?event gmeow:latestEnd ?xle . }
-        BIND(COALESCE(?xie, ?xle, ?xt) AS ?xend)
+        BIND(COALESCE(?xt, ?xie, ?xle) AS ?xend)
 
         OPTIONAL { ?focus gmeow:eventTime ?ft . }
         OPTIONAL { ?focus gmeow:eventInterval/gmeow:startedAtTime ?fis . }

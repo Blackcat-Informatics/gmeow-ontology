@@ -50,6 +50,23 @@ ex:claimGenocideRefuted a owl:Axiom ;
     gmeow:standpointModality gmeow:refuted ;
     gmeow:confidence 0.6 .
 
-# A contested DATE on the same event — two coexisting, standpoint-indexed instants.
+# A contested DATE on the same event — two coexisting instants, each STANDPOINT-
+# INDEXED (per #43 doctrine: a contested fact is standpoint-indexed, never bare).
+# Both base triples are asserted; each is attributed to a frame via gmeow:accordingTo
+# on a reified owl:Axiom, neither privileged.
 ex:disputedEvent gmeow:eventTime "1894-01-01T00:00:00Z"^^xsd:dateTime ,
                                  "1896-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:claimDate1894 a owl:Axiom ;
+    owl:annotatedSource   ex:disputedEvent ;
+    owl:annotatedProperty gmeow:eventTime ;
+    owl:annotatedTarget   "1894-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:accordingTo ex:standpoint-A ;
+    gmeow:confidence 0.7 .
+
+ex:claimDate1896 a owl:Axiom ;
+    owl:annotatedSource   ex:disputedEvent ;
+    owl:annotatedProperty gmeow:eventTime ;
+    owl:annotatedTarget   "1896-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:accordingTo ex:standpoint-B ;
+    gmeow:confidence 0.6 .

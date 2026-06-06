@@ -11,6 +11,18 @@
     rdfs:label "GMEOW → ical (EDOAL)"@en ;
     align:level "2EDOAL" ;
     align:map [ a align:Cell ;
+            rdfs:label "Participation participant → iCalendar ATTENDEE"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:compose ( [ a edoal:Relation ;
+                                edoal:inverse [ a edoal:Relation ;
+                                        edoal:uri gmeow:participationEvent ] ] [ a edoal:Relation ;
+                                edoal:uri gmeow:participationParticipant ] ) ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri ical:attendee ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnParticipationToEventRole ] ],
+        [ a align:Cell ;
             rdfs:label "hasParticipant → iCalendar ATTENDEE"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:hasParticipant ] ;
