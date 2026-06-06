@@ -708,6 +708,23 @@ gmeow:FrameProfileShape
         sh:class gmeow:Determinacy ;
         sh:severity sh:Violation ;
         sh:message "A reference frame must declare its determinacy model." ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A reference frame's dimension count must equal its number of coordinate axes." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/dimensionCount> ?dimensionCount .
+                {
+                    SELECT $this (COUNT(DISTINCT ?axis) AS ?axisCount)
+                    WHERE {
+                        $this <https://blackcatinformatics.ca/gmeow/hasAxis> ?axis .
+                    }
+                    GROUP BY $this
+                }
+                FILTER(?dimensionCount != ?axisCount)
+            }
+        """ ;
     ] .
 
 gmeow:NovelRealmExtensibilityShape

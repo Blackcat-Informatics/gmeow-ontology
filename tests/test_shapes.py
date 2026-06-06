@@ -98,7 +98,7 @@ def test_wellformed_reference_frame_passes() -> None:
     ok.add((EX.frame, GMEOW.frameRealm, GMEOW.spatialRealmTerrestrial))
     ok.add((EX.frame, GMEOW.hasAxis, EX.axisX))
     ok.add(
-        (EX.frame, GMEOW.dimensionCount, Literal(3, datatype=XSD.nonNegativeInteger))
+        (EX.frame, GMEOW.dimensionCount, Literal(1, datatype=XSD.nonNegativeInteger))
     )
     ok.add((EX.frame, GMEOW.frameKind, GMEOW.frameKindCartesian))
     ok.add((EX.frame, GMEOW.requiresHost, Literal(False)))
@@ -111,6 +111,29 @@ def test_wellformed_reference_frame_passes() -> None:
 
     result = run_shacl(ok)
     assert result.ok, "\n".join(result.errors)
+
+
+def test_reference_frame_axis_count_must_match_dimension_count() -> None:
+    """Frame profiles reject mismatched axis cardinality and dimension count."""
+    bad = Graph()
+    bad.add((EX.frame, RDF.type, GMEOW.ReferenceFrame))
+    bad.add((EX.frame, GMEOW.frameRealm, GMEOW.spatialRealmTerrestrial))
+    bad.add((EX.frame, GMEOW.hasAxis, EX.axisX))
+    bad.add(
+        (EX.frame, GMEOW.dimensionCount, Literal(3, datatype=XSD.nonNegativeInteger))
+    )
+    bad.add((EX.frame, GMEOW.frameKind, GMEOW.frameKindCartesian))
+    bad.add((EX.frame, GMEOW.requiresHost, Literal(False)))
+    bad.add((EX.frame, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
+
+    bad.add((GMEOW.spatialRealmTerrestrial, RDF.type, GMEOW.SpatialRealm))
+    bad.add((EX.axisX, RDF.type, GMEOW.Axis))
+    bad.add((GMEOW.frameKindCartesian, RDF.type, GMEOW.FrameKind))
+    bad.add((GMEOW.determinacyCrisp, RDF.type, GMEOW.Determinacy))
+
+    result = run_shacl(bad)
+    assert not result.ok
+    assert "dimension count must equal" in "\n".join(result.errors)
 
 
 def test_malformed_reference_frame_fails() -> None:

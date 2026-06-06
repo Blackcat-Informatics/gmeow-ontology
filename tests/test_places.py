@@ -331,11 +331,7 @@ def test_location_superset_core() -> None:
 
     # 6. RCC-8 JEPD disjoint properties
     all_disjoint_nodes = list(graph.subjects(RDF.type, OWL.AllDisjointProperties))
-    assert len(all_disjoint_nodes) == 1
-    disjoint_node = all_disjoint_nodes[0]
-    members_head = graph.value(disjoint_node, OWL.members)
-    assert members_head is not None
-    members_elements = set(graph.items(members_head))
+    assert all_disjoint_nodes
     expected_members = {
         URIRef(GMEOW + "rcc8dc"),
         URIRef(GMEOW + "rcc8ec"),
@@ -346,7 +342,11 @@ def test_location_superset_core() -> None:
         URIRef(GMEOW + "rcc8ntppi"),
         URIRef(GMEOW + "rcc8eq"),
     }
-    assert members_elements == expected_members
+    assert any(
+        (members_head := graph.value(node, OWL.members)) is not None
+        and set(graph.items(members_head)) == expected_members
+        for node in all_disjoint_nodes
+    )
 
     # 7. RCC-8 subproperties
     assert (

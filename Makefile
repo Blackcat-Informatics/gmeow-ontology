@@ -31,7 +31,7 @@ lint: ## Lint (ruff), type-check (mypy), and full repo-hygiene suite (pre-commit
 	# Symmetry with CI: CI's `lint` job runs the whole pre-commit suite
 	# (markdownlint, end-of-file-fixer, codespell, yamllint, shellcheck, …),
 	# so the local gate must too — otherwise those lanes only fail in CI.
-	uv run pre-commit run --all-files
+	uv run pre-commit run --all-files --show-diff-on-failure
 
 validate: ## Validate syntax, term annotations, and SHACL (pure Python).
 	uv run gmeow validate
