@@ -24,10 +24,14 @@ install: ## Sync the uv environment (runtime + dev deps).
 fmt: ## Auto-format with ruff.
 	uv run ruff format .
 
-lint: ## Lint (ruff) and type-check (mypy).
+lint: ## Lint (ruff), type-check (mypy), and full repo-hygiene suite (pre-commit).
 	uv run ruff check .
 	uv run ruff format --check .
 	uv run mypy
+	# Symmetry with CI: CI's `lint` job runs the whole pre-commit suite
+	# (markdownlint, end-of-file-fixer, codespell, yamllint, shellcheck, …),
+	# so the local gate must too — otherwise those lanes only fail in CI.
+	uv run pre-commit run --all-files
 
 validate: ## Validate syntax, term annotations, and SHACL (pure Python).
 	uv run gmeow validate

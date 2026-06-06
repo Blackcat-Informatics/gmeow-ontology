@@ -621,4 +621,3 @@ gmeow:rcc8eq
 # =========================================================================== #
 
 gmeow:locatedAt owl:propertyChainAxiom ( gmeow:locatedAt gmeow:containedInLocation ) .
-
