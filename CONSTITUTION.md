@@ -81,6 +81,14 @@ This applies **recursively to the foundational spine**: gUFO is bridged by refer
 (ISO/IEC 21838-2) — link-only, never imported — so even GMEOW's upper-ontology grounding is
 interoperable without inheriting anyone's axioms.
 
+**Identity & coreference (one thing, many records).** The same doctrine governs *instance*
+identity. A thing's identity is the **stable entity itself** — independent of the names, labels,
+occupants, or external records attached to it (a place persists across a renaming; an extent
+survives its building). Coreference to external records is asserted **by reference** —
+`gmeow:authorityLink` + `skos:exactMatch` / `skos:closeMatch`, with a hub (Wikidata) reaching the
+rest — never an `owl:sameAs` merge that would collapse contested or standpoint-indexed claims
+into one.
+
 *Embodied in:* [`docs/RATIONALE.md`](./docs/RATIONALE.md) § The solution; `mapping-dsl/`,
 `mappings/*.sssom.tsv`; the foundational bridge
 [`docs/foundational-bridging.md`](./docs/foundational-bridging.md).
@@ -144,6 +152,13 @@ that — attributed and confidence-weighted (Principles 2–3), never as ground 
 own assertion outranks any inference about it. This is also why a `gmeow:Language` may be
 AI-minted yet fully first-class, and why such provenance is always carried, never erased.
 
+**The unified observation stance.** This generalises: *every* value is an **attributed, dated,
+confidence-weighted, vantage-relative observation/claim**, never ground truth — a measurement, a
+standpoint-indexed claim, and a sensory perception are the **same reified construct** (a claim made
+*from a vantage*). And ontic **indeterminacy** is held distinct from epistemic confidence: a value
+may be inherently crisp, vague, fuzzy, probabilistic, or disputed (`gmeow:Determinacy`), and that is
+recorded explicitly rather than assumed away — distinct from *how sure we are* (`gmeow:confidence`).
+
 *Embodied in:* [`docs/names-mapping.md`](./docs/names-mapping.md),
 [`docs/languages-mapping.md`](./docs/languages-mapping.md),
 [`docs/identity-mapping.md`](./docs/identity-mapping.md),
@@ -160,11 +175,52 @@ Self-determination requires both honouring the current self-assertion *and* pres
 honest, auditable record. Suppression is a display contract enforced through projection
 (Principle 4): the data is retained, the leak is prevented.
 
+**Disclosure control by projection (the general mechanism).** Suppression is one case of a single
+mechanism: **withhold or coarsen a value through the projection layer under a trigger, never by
+deletion**. The trigger may be supersession (a deadname, a former gender, a withdrawn standpoint, an
+expired right), or **access/consent** (privacy: a sensitive value — a person's precise location,
+health — is redacted by *generalisation*, e.g. publishing a coarser region rather than exact
+coordinates). Erasure is never the tool; the projection is.
+
 *Embodied in:* `gmeow:displayable`, `fnSelectDisplayName`; [`docs/projections.md`](./docs/projections.md);
 [`docs/identity-mapping.md`](./docs/identity-mapping.md);
 [`docs/standpoints.md`](./docs/standpoints.md) (a withdrawn standpoint / closed
 `gmeow:StandpointTenure` is suppressed, not deleted). *Tested by:* the projection
 suppression tests; `tests/test_standpoint.py`.
+
+## 11. Frame-relativity — values live in an explicit reference system
+
+> **Every measured or expressed value is relative to an explicit reference system; separate
+> frame-independent structure (topology) from frame-relative value (geometry).**
+
+A coordinate, a date, a price, a mass, a colour, even a name are meaningless without the system
+they are read in — a coordinate reference system, a unit, a currency, a calendar + timescale, a
+colourspace, a language/register. GMEOW makes the frame **explicit and first-class** (a
+self-describing reference-frame *Profile*), keeps the relational **structure** (containment,
+adjacency, order) frame-independent, and treats the **value** (the coordinate tuple) as
+frame-relative; conversion between frames is a computation, not an assertion (Principle 12). A
+value asserted without its frame is ill-formed. This is also what makes the model *open*: a new
+realm or system is a new frame filling a fixed profile, never a change to the core.
+
+*Embodied in:* the Location reference-frame facility — the #42 epic (CORE / Frame Profile); the
+temporal scale + calendar layer. *(Lands with the locations epic.)*
+
+## 12. Compute outside the logic — the solver boundary
+
+> **The OWL 2 DL core holds structure, relationships, and canonical values; heavy computation
+> lives in an external solver layer aligned by reference, never materialised as triples.**
+
+The reasoned core stays decidable and small (Principle 8). Coordinate and datum transforms,
+RCC-8 / Allen relation-algebra composition, trajectory interpolation, n-dimensional vector
+operations, calendar/timescale conversion, and probabilistic / SLAM updates are **computed, not
+asserted** — performed by purpose-built engines (a GeoSPARQL/GIS engine, a transform solver, a
+vector store) the ontology points to **by reference**. GMEOW models the *logic* and projects it
+losslessly (the standpoint precedent — model it, don't collapse it); it never turns the
+triplestore into a calculator or bloats the TBox with derived geometry.
+
+*Embodied in:* the projection layer; the lossless standpoint projections; the solver boundary of
+the #42 locations epic. *Tested by:* the OWL 2 DL profile gate (ELK / HermiT) staying green as
+expressivity grows.
 
 ---
 
@@ -179,38 +235,16 @@ reused or reshuffled casually, so "Principle N" stays meaningful across history.
 
 ---
 
-## Proposed amendments — Location epic (#42)  ⟨DRAFT — NOT RATIFIED⟩
+## Recurring modelling patterns (non-normative)
 
-> **Status: DRAFT proposals only.** Surfaced by the #42 Location-as-reference-frame epic as a forcing
-> function. The ten ratified principles above are unchanged. These are tabled for discussion and, if
-> adopted, will be folded into the numbered principles by this PR (Principle numbers append; none are
-> reshuffled). Do not cite these numbers as ratified until merged.
+These are not principles but the reusable shapes the principles keep producing — named here so designs
+can cite them and stay consistent. They are guidance, not commitments.
 
-**New principles (proposed):**
-
-- **P11 — Frame-relativity (value-in-a-reference-system).** Every measured or expressed value is relative to
-  an explicit reference system (a coordinate reference system, unit, currency, calendar+timescale, colourspace,
-  or language/register). Separate frame-independent *structure/topology* from frame-relative *value/geometry*;
-  a value asserted without its frame is ill-formed. *(From the Frame Profile + topology⟂geometry.)*
-- **P12 — Compute outside the logic (the solver boundary).** The OWL 2 DL core holds structure, relationships,
-  and canonical values only. Heavy computation — coordinate/datum transforms, RCC-8/Allen relation-algebra
-  composition, trajectory interpolation, n-dimensional vector operations, calendar/scale conversion, SLAM /
-  probabilistic updates — lives in an external solver layer aligned **by reference**, never materialised as
-  triples. *(Generalises the standpoint precedent "model the logic, project it losslessly"; preserves P8.)*
-
-**Extensions to existing principles (proposed):**
-
-- **P5 (+) — identity & coreference.** Identity is the stable entity/extent, independent of its names, labels,
-  occupants, or records; coreference is by reference (a hub such as Wikidata, `skos:exactMatch`), never an
-  `owl:sameAs` merge of contested claims.
-- **P9 (+) — the unified observation stance + determinacy.** Every value is an *attributed, dated,
-  confidence-weighted, vantage-relative observation/claim* (measurement ≡ standpoint ≡ observation), never
-  ground truth; and *ontic indeterminacy* (`Determinacy`: crisp/vague/fuzzy/probabilistic/disputed) is
-  represented explicitly and distinctly from *epistemic* confidence.
-- **P10 (+) — disclosure control by projection.** "Suppression, never erasure" generalises: suppression,
-  privacy-redaction, and generalization-to-coarser are one mechanism — withhold or coarsen a value through the
-  projection layer under a trigger (`displayable false` / supersession / access-consent), never by deletion.
-
-**Method notes (guidance, not principles):** the *Profile pattern* (a closed descriptor schema + open values +
-self-description — the four-clocks, the Frame Profile, the Temporal Profile); and *flat-first / reify-on-demand*
-(a flat shortcut paired with a reified relator when statement-level metadata is needed).
+- **The Profile pattern** — model an open-but-structured facet as a *closed descriptor schema + open
+  values + self-description (reflection)*, so extensibility is by construction and a "novel-value" guard
+  can prove it. Seen in the four-clocks (temporal provenance), the reference-frame Profile (Principle 11),
+  and the temporal scale/calendar Profile.
+- **Flat-first, reify-on-demand** — pair a flat shortcut for the common case with a reified relator that
+  carries statement-level metadata when it is needed (`gmeow:hasLicense` ↔ `gmeow:License`;
+  `containedInPlace` ↔ a containment tenure; `hasParticipant` ↔ `Participation`). The flat form keeps the
+  80 % case simple; the relator is promoted only when period, role, confidence, or standpoint matters.

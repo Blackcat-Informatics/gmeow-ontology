@@ -14,9 +14,9 @@ record a person's or organization's *digital existence*. See [`docs/RATIONALE.md
 for the reason, the problems it solves, and the solution it offers.
 
 **Principles.** Every design decision and pull request is measured against
-[`CONSTITUTION.md`](./CONSTITUTION.md) — ten normative principles (RDF-1.2-first,
-one-canonical-source, maximal bridging, greenfield, verified-by-construction, …). Cite them by
-number in issues and PRs.
+[`CONSTITUTION.md`](./CONSTITUTION.md) — twelve normative principles (RDF-1.2-first,
+one-canonical-source, maximal bridging, greenfield, verified-by-construction, frame-relativity, …).
+Cite them by number in issues and PRs.
 
 - **Canonical IRI:** <https://blackcatinformatics.ca/gmeow> (slash namespace, term IRIs
   like `…/gmeow/Person`)
@@ -24,11 +24,33 @@ number in issues and PRs.
 - **Tooling license:** [Apache-2.0](./LICENSE) (dual-licensed — see [Licensing](#licensing))
 - **Copyright:** © 2026 Blackcat Informatics® Inc.
 
-> **Status.** GMEOW is built **incrementally, one slice of digital existence at a time**.
-> The first slice (**entities + contacts**) is modelled and aligned; planned next are
-> email → documents → temporal events → calendar → notes → projects → …. Each slice adds
-> canonical terms, SSSOM alignment tables, and a vendored fixture, and `make coverage`
-> reports how much of the slice GMEOW covers and what gaps remain. The full toolchain
+**Three things GMEOW does that others don't:**
+
+- **Statement-level provenance & confidence.** RDF 1.2 / RDF\*-first: every fact is an
+  attributed, confidence-weighted, time-scoped claim, downcast losslessly to OWL axiom
+  annotations for reasoners (§ [RDF 1.2](#rdf-12--rdf-the-canonical-statement-level-model)).
+- **Contested facts without a winner.** Disputed facts are recorded as coexisting,
+  standpoint-indexed claims — never collapsed to a preferred, ranked, or latest value
+  (§ [Standpoints](#standpoints-contested-facts-that-coexist-no-winner)).
+- **Identity, naming & display safety.** Names and identity are reified, co-equal and
+  self-asserted — no `primaryName`/`preferredGender`, deadnames suppressed-not-deleted, and a
+  7-axis orthogonality matrix (pronouns ⟂ honorifics ⟂ gender identity ⟂ expression ⟂ sex
+  ⟂ sexual ⟂ romantic orientation) **enforced by tests**
+  (§ [Names](#names-first-class-multi-culture-inclusive),
+  § [Gender & sexuality](#gender--sexuality-orthogonal-self-asserted-inclusive)).
+
+> **Status.** GMEOW is built **incrementally, one slice of digital existence at a time** — and
+> the foundation is now broad. **24 modules** are modelled, aligned, and reasoned: identity
+> (entities, names, gender, sexuality, languages), social & contact (genealogy, organization,
+> contacts, email, accounts), content & evidence (documents, sources, software), trust & crypto
+> (trust, messaging-trust), skills & legal (expertise, agreements, rights), place / time / events
+> (places, temporal, events), and the epistemics spine (provenance, standpoint). The reasoning
+> stack is in place — axiomatized doctrine (disjointness, relator mediation, kinship/containment
+> property chains), the [OWL-infers / SHACL-validates split](./docs/reasoning.md) with
+> entailment-based competency tests, and a gUFO↔BFO foundational bridge. Planned slices are
+> tracked as issues — calendar, notes, finance, employment, images, tagging, AI/RAG. Each slice
+> adds canonical terms, SSSOM alignment tables, projections, and a vendored fixture, and
+> `make coverage` reports how much GMEOW covers and what gaps remain. The full toolchain
 > (validate → reason → mappings → coverage → build → docs → publish) runs green at every step.
 
 ## Quick start
