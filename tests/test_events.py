@@ -317,6 +317,7 @@ def test_no_preferred_or_primary_event_term() -> None:
 
 SCHEMA = Namespace("https://schema.org/")
 ICAL = Namespace("http://www.w3.org/2002/12/cal/icaltzd#")
+TIME = Namespace("http://www.w3.org/2006/time#")
 
 
 def _events_projected(profile: str) -> Graph:
@@ -383,3 +384,82 @@ def test_ical_summary_is_the_event_type_label() -> None:
     out = _events_projected("ical")
     summaries = {str(o) for o in out.objects(EX_EVENTS.wedding, ICAL.summary)}
     assert "marriage" in summaries
+
+
+# --------------------------------------------------------------------------- #
+# Temporal relations — Allen's interval algebra over events (OWL-Time / TEO /
+# ISO-TimeML interop). DL-clean: transitive/symmetric, never in cardinality.
+# --------------------------------------------------------------------------- #
+
+# Allen relation → (inverse local name or None if symmetric, is-transitive).
+_ALLEN: dict[str, tuple[str | None, bool]] = {
+    "before": ("after", True),
+    "after": ("before", True),
+    "meets": ("metBy", False),
+    "metBy": ("meets", False),
+    "overlaps": ("overlappedBy", False),
+    "overlappedBy": ("overlaps", False),
+    "starts": ("startedBy", False),
+    "startedBy": ("starts", False),
+    "during": ("contains", True),
+    "contains": ("during", True),
+    "finishes": ("finishedBy", False),
+    "finishedBy": ("finishes", False),
+    "coincidesWith": (None, True),  # symmetric
+}
+
+
+def test_allen_relations_exist_on_events() -> None:
+    g = _graph()
+    for rel in _ALLEN:
+        node = URIRef(GMEOW + rel)
+        assert (node, RDF.type, OWL.ObjectProperty) in g, f"{rel} must exist"
+        assert (node, RDFS.domain, GM.Event) in g, f"{rel} domain Event"
+        assert (node, RDFS.range, GM.Event) in g, f"{rel} range Event"
+
+
+def test_allen_inverses_and_characters() -> None:
+    """before/after + during/contains are transitive; coincidesWith is symmetric +
+    transitive; the rest are inverse-only — and none is functional (DL regularity)."""
+    g = _graph()
+    for rel, (inverse, transitive) in _ALLEN.items():
+        node = URIRef(GMEOW + rel)
+        if transitive:
+            assert (node, RDF.type, OWL.TransitiveProperty) in g, f"{rel} transitive"
+        # Never functional/inverse-functional (non-simple ⇒ OWL 2 DL regularity).
+        assert (node, RDF.type, OWL.FunctionalProperty) not in g
+        if inverse is None:
+            assert (node, RDF.type, OWL.SymmetricProperty) in g, f"{rel} symmetric"
+        else:
+            inv = URIRef(GMEOW + inverse)
+            assert (node, OWL.inverseOf, inv) in g or (inv, OWL.inverseOf, node) in g
+
+
+def test_duration_and_recurrence_terms() -> None:
+    g = _graph()
+    assert (GM.Duration, RDF.type, OWL.Class) in g
+    assert (GM.durationValue, RDFS.range, XSD.duration) in g  # DL-clean xsd:duration
+    assert (GM.RecurrenceRule, RDFS.subClassOf, GM.InformationObject) in g
+    assert (GM.hasRecurrenceRule, RDFS.domain, GM.EventSeries) in g
+
+
+def test_timeml_tense_and_aspect_value_vocabs() -> None:
+    g = _graph()
+    tenses = set(g.subjects(RDF.type, GM.GrammaticalTense))
+    assert {GM.tensePast, GM.tensePresent, GM.tenseFuture, GM.tenseNone} <= tenses
+    aspects = set(g.subjects(RDF.type, GM.GrammaticalAspect))
+    assert {GM.aspectPerfective, GM.aspectProgressive, GM.aspectNone} <= aspects
+    # Tense/aspect are an annotation axis — never bridged to the temporal placement.
+    assert (GM.eventTense, RDFS.subPropertyOf, GM.eventTime) not in g
+    assert (GM.eventAspect, RDFS.subPropertyOf, GM.eventTime) not in g
+
+
+def test_owl_time_projection_emits_pure_interval_relations() -> None:
+    """The owl-time profile downcasts each Allen relation to OWL-Time's interval*
+    relation, 1:1 — and no relation bleeds across (distinct CONSTRUCT variables)."""
+    out = _events_projected("owl-time")
+    assert (EX_EVENTS.dawn, TIME.intervalBefore, EX_EVENTS.noon) in out
+    assert (EX_EVENTS.conference, TIME.intervalContains, EX_EVENTS.keynote) in out
+    # dawn→noon is ONLY intervalBefore, not all 13 relations (no var aliasing).
+    dawn_noon = {p for _, p, o in out if _ == EX_EVENTS.dawn and o == EX_EVENTS.noon}
+    assert dawn_noon == {TIME.intervalBefore}

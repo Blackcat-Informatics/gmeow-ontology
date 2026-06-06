@@ -7,6 +7,7 @@
 @prefix crm:    <http://www.cidoc-crm.org/cidoc-crm/> .
 @prefix prov:   <http://www.w3.org/ns/prov#> .
 @prefix time:   <http://www.w3.org/2006/time#> .
+@prefix teo:    <https://sbmi.uth.edu/bsdi/TEO_1.0.0.owl#> .
 @prefix lode:   <http://linkedevents.org/ontology/> .
 @prefix sem:    <http://semanticweb.cs.vu.nl/2009/11/sem/> .
 @prefix ical:   <http://www.w3.org/2002/12/cal/icaltzd#> .
@@ -27,11 +28,12 @@ gmeow:mapsetEvents a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-events.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/events" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment """Universal-event alignments (#41) — gmeow:Event + the gmeow:Participation relator + the open gmeow:eventType / gmeow:ParticipantRole / gmeow:TemporalPrecision value vocabularies, supersetting schema.org Event, CIDOC-CRM E5/E7, OWL-Time, PROV-O, iCalendar, LODE, SEM, BIO / GEDCOM X (the life-event types) and Wikidata BY REFERENCE.
+    gmeow:setComment """Universal-event alignments (#41) — gmeow:Event + the gmeow:Participation relator + the open gmeow:eventType / gmeow:ParticipantRole / gmeow:TemporalPrecision value vocabularies + the Allen temporal-relation algebra + Duration / RecurrenceRule, supersetting schema.org Event, CIDOC-CRM E5/E7, OWL-Time, the Time Event Ontology (TEO), ISO-TimeML (TLINK/TIMEX3/EVENT), PROV-O, iCalendar, LODE, SEM, BIO / GEDCOM X (the life-event types) and Wikidata BY REFERENCE.
         VALUE VOCABULARIES: eventType / participationRole individuals are gufo:QualityValue values, aligned to external classes, fact-types and role-properties with skos:closeMatch (a value-to-class/property correspondence), mirroring placeType. An unforeseen type/role is a fresh individual, never a new class or subproperty (Principle 9 — no overtyping, no role-subproperty proliferation).
         REIFIED PARTICIPATION: gmeow:Participation is the NameUsage relator idiom; it carries role / period / confidence / provenance / standpoint that schema.org's flat attendee/performer/organizer and OWL-Time's participation-free interval algebra cannot. The flat gmeow:hasParticipant covers the 80% case and projects to the flat targets.
+        TEMPORAL RELATIONS: the 13 Allen interval relations relate gmeow:Event occurrences directly (the ISO-TimeML TLINK / TEO event-event idiom), aligned to OWL-Time interval* (relatedMatch — OWL-Time relates the intervals) and TEO (closeMatch — TEO is BFO-grounded like GMEOW). ISO-TimeML is an XML scheme with no canonical RDF namespace, so its TLINK/TIMEX3/EVENT relType/type/tense/aspect STRING enums are documented as value correspondences (see the inline table), not IRI-aligned; its OWL realization IS OWL-Time, aligned here.
         CONTESTED FACTS: a disputed type, role, date or location is several coexisting gmeow:accordingTo-indexed claims (standpoint module, #43), never one slot to win; there is no preferredRank / primaryClaim.
-        CANONICAL (no faithful external term): gmeow:temporalPrecision, gmeow:earliestStart / latestEnd fuzzy bounds (related only to CRM E52 P82a/P82b begin/end-of bounds), and gmeow:EventSeries recurrence (projected to iCalendar RRULE, not aligned here).""" .
+        CANONICAL (no faithful external term): gmeow:temporalPrecision and gmeow:earliestStart / latestEnd fuzzy bounds (related only to CRM E52 P82a/P82b begin/end-of bounds and TEO hasApproximation).""" .
 
 # --------------------------------------------------------------------------- #
 # The universal event and its reified participation.
@@ -872,3 +874,333 @@ gmeow:eqEvents091 a gmeow:TermEquivalence ;
     gmeow:confidence 0.4 ;
     gmeow:comment "the event-type label is downcast to a human-readable iCalendar SUMMARY" ;
     gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+# =========================================================================== #
+# TEMPORAL RELATIONS — Allen's interval algebra (#41 temporal deepening).
+# Each gmeow event-event Allen relation aligns to OWL-Time's interval* relation
+# (relatedMatch — OWL-Time relates the INTERVALS, GMEOW the events that bear
+# them) and to the Time Event Ontology (TEO, closeMatch — TEO relates events
+# too, and is BFO-grounded like GMEOW). ISO-TimeML is an XML annotation standard
+# with no canonical RDF namespace, so its TLINK relType VALUES are documented as
+# a correspondence in each relation's skos:definition and below, not as IRI cells.
+# TEO terms use the published ontology IRI https://sbmi.uth.edu/bsdi/TEO_1.0.0.owl
+# (Li et al., JAMIA 2020); by-reference closeMatch, never imported.
+# =========================================================================== #
+
+gmeow:eqEvents092 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:before ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject time:intervalBefore ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "OWL-Time interval relation (over the events' temporal extents)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents093 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:before ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject teo:before ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Time Event Ontology (TEO) event-event Allen relation" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents094 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:after ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject time:intervalAfter ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "OWL-Time interval relation (over the events' temporal extents)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents095 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:after ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject teo:after ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Time Event Ontology (TEO) event-event Allen relation" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents096 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:meets ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject time:intervalMeets ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "OWL-Time interval relation (over the events' temporal extents)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents097 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:meets ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject teo:meets ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Time Event Ontology (TEO) event-event Allen relation" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents098 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:metBy ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject time:intervalMetBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "OWL-Time interval relation (over the events' temporal extents)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents099 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:metBy ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject teo:metBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Time Event Ontology (TEO) event-event Allen relation" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents100 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:overlaps ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject time:intervalOverlaps ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "OWL-Time interval relation (over the events' temporal extents)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents101 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:overlaps ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject teo:overlaps ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Time Event Ontology (TEO) event-event Allen relation" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents102 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:overlappedBy ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject time:intervalOverlappedBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "OWL-Time interval relation (over the events' temporal extents)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents103 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:overlappedBy ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject teo:overlappedBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Time Event Ontology (TEO) event-event Allen relation" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents104 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:starts ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject time:intervalStarts ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "OWL-Time interval relation (over the events' temporal extents)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents105 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:starts ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject teo:starts ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Time Event Ontology (TEO) event-event Allen relation" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents106 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:startedBy ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject time:intervalStartedBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "OWL-Time interval relation (over the events' temporal extents)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents107 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:startedBy ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject teo:startedBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Time Event Ontology (TEO) event-event Allen relation" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents108 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:during ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject time:intervalDuring ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "OWL-Time interval relation (over the events' temporal extents)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents109 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:during ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject teo:during ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Time Event Ontology (TEO) event-event Allen relation" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents110 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:contains ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject time:intervalContains ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "OWL-Time interval relation (over the events' temporal extents)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents111 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:contains ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject teo:contains ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Time Event Ontology (TEO) event-event Allen relation" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents112 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:finishes ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject time:intervalFinishes ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "OWL-Time interval relation (over the events' temporal extents)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents113 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:finishes ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject teo:finishes ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Time Event Ontology (TEO) event-event Allen relation" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents114 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:finishedBy ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject time:intervalFinishedBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "OWL-Time interval relation (over the events' temporal extents)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents115 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:finishedBy ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject teo:finishedBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Time Event Ontology (TEO) event-event Allen relation" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents116 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:coincidesWith ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject time:intervalEquals ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "OWL-Time interval relation (over the events' temporal extents)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents117 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:coincidesWith ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject teo:equal ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Time Event Ontology (TEO) event-event Allen relation" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Duration + recurrence — TIMEX3 DURATION / SET, OWL-Time Duration, schema.org,
+# TEO. Tense/aspect (ISO-TimeML EVENT attributes) have no RDF target and are
+# documented below as a value correspondence, not aligned by IRI.
+# --------------------------------------------------------------------------- #
+
+gmeow:eqEvents118 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Duration ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject time:Duration ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "OWL-Time Duration (a length of time)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents119 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Duration ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:Duration ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "schema:Duration (Quantity of time)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents120 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Duration ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject teo:Duration ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Time Event Ontology Duration" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents121 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasDuration ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject time:hasDuration ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "OWL-Time hasDuration (TemporalEntity → Duration; GMEOW scopes it to events)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents122 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasDuration ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:duration ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "schema:duration" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents123 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:RecurrenceRule ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:Schedule ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "schema:Schedule — a recurrence rule (≈ ISO-TimeML TIMEX3 type=SET, iCalendar RRULE)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents124 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasRecurrenceRule ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject schema:eventSchedule ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "schema:eventSchedule relates an event/series to its recurrence schedule" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+# ISO-TimeML (ISO 24617-1) correspondence — documented, not IRI-aligned, because
+# TimeML is an XML annotation scheme whose TLINK/ALINK relType and EVENT tense/aspect
+# are STRING enums, not RDF terms (its OWL realization is OWL-Time, aligned above):
+#   TLINK relType : BEFORE→gmeow:before  AFTER→gmeow:after  IBEFORE→gmeow:meets
+#     IAFTER→gmeow:metBy  INCLUDES→gmeow:contains  IS_INCLUDED→gmeow:during
+#     DURING→gmeow:during  SIMULTANEOUS/IDENTITY→gmeow:coincidesWith
+#     BEGINS→gmeow:starts  BEGUN_BY→gmeow:startedBy  ENDS→gmeow:finishes
+#     ENDED_BY→gmeow:finishedBy
+#   TIMEX3 @type  : DATE/TIME→gmeow:eventTime/eventInterval  DURATION→gmeow:Duration
+#     SET→gmeow:RecurrenceRule
+#   EVENT @tense  : PAST/PRESENT/FUTURE/NONE→gmeow:GrammaticalTense values
+#   EVENT @aspect : PERFECTIVE/PROGRESSIVE/…→gmeow:GrammaticalAspect values
+#   EVENT @class  : OCCURRENCE/STATE/REPORTING/… → gmeow:eventType value vocabulary
+#     (GMEOW's open type vocab subsumes TimeML's seven fixed classes)

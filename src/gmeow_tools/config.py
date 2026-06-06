@@ -78,6 +78,11 @@ QC_DIR = QUERIES_DIR / "qc"
 #: Reasoned-graph negative-test queries (ROBOT ``verify``; any returned row is a
 #: violation — the OBO QC pattern). Run over the reasoned merged ontology.
 VERIFY_DIR = QUERIES_DIR / "verify"
+#: The Temporal Query Language (TQL) toolkit — parameterized SPARQL 1.1 temporal
+#: queries (Allen-relation closures, timeline, overlap, bitemporal four-clocks)
+#: over the events model. A query algebra realized in standard SPARQL, not a
+#: bespoke engine (Principle 5: align to T-SPARQL/stSPARQL by reference).
+TEMPORAL_QUERY_DIR = QUERIES_DIR / "temporal"
 #: Per-profile projection CONSTRUCT queries (the FnO/EDOAL executors).
 PROJECTION_QUERY_DIR = QUERIES_DIR / "projections"
 #: FnO function catalog + EDOAL complex-alignment specs (consumable, not reasoned).
@@ -194,6 +199,7 @@ PREFIXES: dict[str, str] = {
     "oa": "http://www.w3.org/ns/oa#",
     "org": "http://www.w3.org/ns/org#",
     "time": "http://www.w3.org/2006/time#",
+    "teo": "https://sbmi.uth.edu/bsdi/TEO_1.0.0.owl#",
     "lode": "http://linkedevents.org/ontology/",
     "sem": "http://semanticweb.cs.vu.nl/2009/11/sem/",
     "ical": "http://www.w3.org/2002/12/cal/icaltzd#",

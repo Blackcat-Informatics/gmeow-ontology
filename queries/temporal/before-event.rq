@@ -1,0 +1,28 @@
+# TQL — events before a focus event. Parameter: ?focus (an event IRI). Combines the
+# qualitative Allen closure (gmeow:before+, no reasoner needed) with a quantitative
+# datetime test over EFFECTIVE bounds: an event qualifies if its effective end (point
+# time, else crisp interval end, else fuzzy latestEnd) is at or before the focus's
+# effective start (point time, else interval start, else fuzzy earliestStart).
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?event WHERE {
+    { ?event (gmeow:before|^gmeow:after)+ ?focus . }
+    UNION
+    {
+        ?event rdf:type/rdfs:subClassOf* gmeow:Event .
+        OPTIONAL { ?event gmeow:eventTime ?xt . }
+        OPTIONAL { ?event gmeow:eventInterval/gmeow:endedAtTime ?xie . }
+        OPTIONAL { ?event gmeow:latestEnd ?xle . }
+        BIND(COALESCE(?xie, ?xle, ?xt) AS ?xend)
+
+        OPTIONAL { ?focus gmeow:eventTime ?ft . }
+        OPTIONAL { ?focus gmeow:eventInterval/gmeow:startedAtTime ?fis . }
+        OPTIONAL { ?focus gmeow:earliestStart ?fes . }
+        BIND(COALESCE(?ft, ?fis, ?fes) AS ?fstart)
+
+        FILTER(?event != ?focus && BOUND(?xend) && BOUND(?fstart) && ?xend <= ?fstart)
+    }
+}
+ORDER BY ?event

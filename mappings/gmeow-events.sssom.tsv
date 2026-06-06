@@ -4,7 +4,7 @@
 # mapping_tool: gmeow compile-mappings
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Universal-event alignments (#41) — gmeow:Event + the gmeow:Participation relator + the open gmeow:eventType / gmeow:ParticipantRole / gmeow:TemporalPrecision value vocabularies, supersetting schema.org Event, CIDOC-CRM E5/E7, OWL-Time, PROV-O, iCalendar, LODE, SEM, BIO / GEDCOM X (the life-event types) and Wikidata BY REFERENCE. VALUE VOCABULARIES: eventType / participationRole individuals are gufo:QualityValue values, aligned to external classes, fact-types and role-properties with skos:closeMatch (a value-to-class/property correspondence), mirroring placeType. An unforeseen type/role is a fresh individual, never a new class or subproperty (Principle 9 — no overtyping, no role-subproperty proliferation). REIFIED PARTICIPATION: gmeow:Participation is the NameUsage relator idiom; it carries role / period / confidence / provenance / standpoint that schema.org's flat attendee/performer/organizer and OWL-Time's participation-free interval algebra cannot. The flat gmeow:hasParticipant covers the 80% case and projects to the flat targets. CONTESTED FACTS: a disputed type, role, date or location is several coexisting gmeow:accordingTo-indexed claims (standpoint module, #43), never one slot to win; there is no preferredRank / primaryClaim. CANONICAL (no faithful external term): gmeow:temporalPrecision, gmeow:earliestStart / latestEnd fuzzy bounds (related only to CRM E52 P82a/P82b begin/end-of bounds), and gmeow:EventSeries recurrence (projected to iCalendar RRULE, not aligned here).
+# comment: Universal-event alignments (#41) — gmeow:Event + the gmeow:Participation relator + the open gmeow:eventType / gmeow:ParticipantRole / gmeow:TemporalPrecision value vocabularies + the Allen temporal-relation algebra + Duration / RecurrenceRule, supersetting schema.org Event, CIDOC-CRM E5/E7, OWL-Time, the Time Event Ontology (TEO), ISO-TimeML (TLINK/TIMEX3/EVENT), PROV-O, iCalendar, LODE, SEM, BIO / GEDCOM X (the life-event types) and Wikidata BY REFERENCE. VALUE VOCABULARIES: eventType / participationRole individuals are gufo:QualityValue values, aligned to external classes, fact-types and role-properties with skos:closeMatch (a value-to-class/property correspondence), mirroring placeType. An unforeseen type/role is a fresh individual, never a new class or subproperty (Principle 9 — no overtyping, no role-subproperty proliferation). REIFIED PARTICIPATION: gmeow:Participation is the NameUsage relator idiom; it carries role / period / confidence / provenance / standpoint that schema.org's flat attendee/performer/organizer and OWL-Time's participation-free interval algebra cannot. The flat gmeow:hasParticipant covers the 80% case and projects to the flat targets. TEMPORAL RELATIONS: the 13 Allen interval relations relate gmeow:Event occurrences directly (the ISO-TimeML TLINK / TEO event-event idiom), aligned to OWL-Time interval* (relatedMatch — OWL-Time relates the intervals) and TEO (closeMatch — TEO is BFO-grounded like GMEOW). ISO-TimeML is an XML scheme with no canonical RDF namespace, so its TLINK/TIMEX3/EVENT relType/type/tense/aspect STRING enums are documented as value correspondences (see the inline table), not IRI-aligned; its OWL realization IS OWL-Time, aligned here. CONTESTED FACTS: a disputed type, role, date or location is several coexisting gmeow:accordingTo-indexed claims (standpoint module, #43), never one slot to win; there is no preferredRank / primaryClaim. CANONICAL (no faithful external term): gmeow:temporalPrecision and gmeow:earliestStart / latestEnd fuzzy bounds (related only to CRM E52 P82a/P82b begin/end-of bounds and TEO hasApproximation).
 # curie_map:
 #   bio: http://purl.org/vocab/bio/0.1/
 #   crm: http://www.cidoc-crm.org/cidoc-crm/
@@ -18,10 +18,14 @@
 #   sem: http://semanticweb.cs.vu.nl/2009/11/sem/
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
+#   teo: https://sbmi.uth.edu/bsdi/TEO_1.0.0.owl#
 #   time: http://www.w3.org/2006/time#
 #   wd: http://www.wikidata.org/entity/
 #   wdt: http://www.wikidata.org/prop/direct/
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:Duration	skos:closeMatch	schema:Duration	semapv:ManualMappingCuration	0.85	schema:Duration (Quantity of time)
+gmeow:Duration	skos:closeMatch	teo:Duration	semapv:ManualMappingCuration	0.85	Time Event Ontology Duration
+gmeow:Duration	skos:closeMatch	time:Duration	semapv:ManualMappingCuration	0.85	OWL-Time Duration (a length of time)
 gmeow:Event	skos:closeMatch	crm:E5_Event	semapv:ManualMappingCuration	0.9	CIDOC-CRM E5 Event — the time-span/place/event separation is adopted; the PC property-class verbosity is not
 gmeow:Event	skos:closeMatch	lode:Event	semapv:ManualMappingCuration	0.85	LODE (Linking Open Descriptions of Events)
 gmeow:Event	skos:closeMatch	schema:Event	semapv:ManualMappingCuration	0.9	schema:Event flattens participation to attendee/performer/organizer; GMEOW reifies it
@@ -33,6 +37,17 @@ gmeow:EventSeries	skos:closeMatch	schema:EventSeries	semapv:ManualMappingCuratio
 gmeow:ParticipantRole	skos:relatedMatch	sem:RoleType	semapv:ManualMappingCuration	0.55	the open role value vocabulary ≈ SEM role-type space
 gmeow:Participation	skos:closeMatch	prov:Association	semapv:ManualMappingCuration	0.6	a reified role-in-an-event is a prov:Association (qualifiedAssociation); GMEOW adds period/confidence/standpoint
 gmeow:Participation	skos:relatedMatch	sem:Role	semapv:ManualMappingCuration	0.5	SEM reifies a role-binding (sem:Role); GMEOW's Participation is the same idiom with full provenance
+gmeow:RecurrenceRule	skos:closeMatch	schema:Schedule	semapv:ManualMappingCuration	0.8	schema:Schedule — a recurrence rule (≈ ISO-TimeML TIMEX3 type=SET, iCalendar RRULE)
+gmeow:after	skos:closeMatch	teo:after	semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
+gmeow:after	skos:relatedMatch	time:intervalAfter	semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
+gmeow:before	skos:closeMatch	teo:before	semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
+gmeow:before	skos:relatedMatch	time:intervalBefore	semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
+gmeow:coincidesWith	skos:closeMatch	teo:equal	semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
+gmeow:coincidesWith	skos:relatedMatch	time:intervalEquals	semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
+gmeow:contains	skos:closeMatch	teo:contains	semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
+gmeow:contains	skos:relatedMatch	time:intervalContains	semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
+gmeow:during	skos:closeMatch	teo:during	semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
+gmeow:during	skos:relatedMatch	time:intervalDuring	semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
 gmeow:earliestStart	skos:relatedMatch	crm:P82a_begin_of_the_begin	semapv:ManualMappingCuration	0.6	fuzzy lower bound ≈ CIDOC E52 begin-of-the-begin
 gmeow:eventInterval	skos:relatedMatch	crm:P4_has_time-span	semapv:ManualMappingCuration	0.55	the crisp interval of an event ≈ CIDOC P4 has time-span (E52)
 gmeow:eventInterval	skos:relatedMatch	ical:dtstart	semapv:ManualMappingCuration	0.55	the crisp interval's endpoints become DTSTART/DTEND (a reshape, not a rename)
@@ -95,14 +110,29 @@ gmeow:eventTypeResidence	skos:closeMatch	gx:Residence	semapv:ManualMappingCurati
 gmeow:eventTypeRetirement	skos:closeMatch	gx:Retirement	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
 gmeow:eventTypeSeparation	skos:closeMatch	gx:Separation	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
 gmeow:eventTypeWill	skos:closeMatch	gx:Will	semapv:ManualMappingCuration	0.9	GEDCOM X fact type
+gmeow:finishedBy	skos:closeMatch	teo:finishedBy	semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
+gmeow:finishedBy	skos:relatedMatch	time:intervalFinishedBy	semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
+gmeow:finishes	skos:closeMatch	teo:finishes	semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
+gmeow:finishes	skos:relatedMatch	time:intervalFinishes	semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
+gmeow:hasDuration	skos:closeMatch	schema:duration	semapv:ManualMappingCuration	0.8	schema:duration
+gmeow:hasDuration	skos:relatedMatch	time:hasDuration	semapv:ManualMappingCuration	0.6	OWL-Time hasDuration (TemporalEntity → Duration; GMEOW scopes it to events)
 gmeow:hasParticipant	skos:closeMatch	bio:agent	semapv:ManualMappingCuration	0.8	BIO agent in a life event
 gmeow:hasParticipant	skos:closeMatch	crm:P11_had_participant	semapv:ManualMappingCuration	0.8	CIDOC-CRM P11 had participant
 gmeow:hasParticipant	skos:closeMatch	ical:attendee	semapv:ManualMappingCuration	0.75	the flat participant shortcut ↔ iCalendar ATTENDEE
 gmeow:hasParticipant	skos:closeMatch	lode:involvedAgent	semapv:ManualMappingCuration	0.85	the flat event-participant shortcut
 gmeow:hasParticipant	skos:closeMatch	sem:hasActor	semapv:ManualMappingCuration	0.85	SEM actor of an event
+gmeow:hasRecurrenceRule	skos:relatedMatch	schema:eventSchedule	semapv:ManualMappingCuration	0.6	schema:eventSchedule relates an event/series to its recurrence schedule
 gmeow:hasSubEvent	skos:closeMatch	crm:P9_consists_of	semapv:ManualMappingCuration	0.8	CIDOC P9 consists of — event mereology
 gmeow:hasSubEvent	skos:closeMatch	schema:subEvent	semapv:ManualMappingCuration	0.85	
 gmeow:latestEnd	skos:relatedMatch	crm:P82b_end_of_the_end	semapv:ManualMappingCuration	0.6	fuzzy upper bound ≈ CIDOC E52 end-of-the-end
+gmeow:meets	skos:closeMatch	teo:meets	semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
+gmeow:meets	skos:relatedMatch	time:intervalMeets	semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
+gmeow:metBy	skos:closeMatch	teo:metBy	semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
+gmeow:metBy	skos:relatedMatch	time:intervalMetBy	semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
+gmeow:overlappedBy	skos:closeMatch	teo:overlappedBy	semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
+gmeow:overlappedBy	skos:relatedMatch	time:intervalOverlappedBy	semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
+gmeow:overlaps	skos:closeMatch	teo:overlaps	semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
+gmeow:overlaps	skos:relatedMatch	time:intervalOverlaps	semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
 gmeow:participationInterval	skos:relatedMatch	sem:hasTimeStamp	semapv:ManualMappingCuration	0.45	the period over which a participation held
 gmeow:participationParticipant	skos:relatedMatch	prov:agent	semapv:ManualMappingCuration	0.5	the participant end of the reified Participation (prov:agent of a qualified association)
 gmeow:participationRole	skos:relatedMatch	crm:P14.1_in_the_role_of	semapv:ManualMappingCuration	0.55	CIDOC P14.1 in the role of — the role a participant played
@@ -112,4 +142,8 @@ gmeow:roleOrganizer	skos:closeMatch	schema:organizer	semapv:ManualMappingCuratio
 gmeow:roleParticipantPrincipal	skos:closeMatch	bio:principal	semapv:ManualMappingCuration	0.8	principal-role value ↔ BIO principal property — generalizes the former gmeow:hasPrincipal subproperty
 gmeow:rolePerformer	skos:closeMatch	schema:performer	semapv:ManualMappingCuration	0.85	performer-role value ↔ schema:performer property
 gmeow:roleWitness	skos:closeMatch	bio:witness	semapv:ManualMappingCuration	0.8	witness-role value ↔ BIO witness property — generalizes the former gmeow:hasWitness subproperty
+gmeow:startedBy	skos:closeMatch	teo:startedBy	semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
+gmeow:startedBy	skos:relatedMatch	time:intervalStartedBy	semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
+gmeow:starts	skos:closeMatch	teo:starts	semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
+gmeow:starts	skos:relatedMatch	time:intervalStarts	semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
 gmeow:subEventOf	skos:closeMatch	schema:superEvent	semapv:ManualMappingCuration	0.85	X subEventOf Y ↔ X schema:superEvent Y (the super event of X is Y)

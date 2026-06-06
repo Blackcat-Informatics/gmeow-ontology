@@ -326,3 +326,236 @@ gmeow:occurrenceOfSeries
 gmeow:Participation rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:participationEvent ; owl:someValuesFrom gmeow:Event ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:participationParticipant ; owl:someValuesFrom gmeow:Entity ] .
+
+# =========================================================================== #
+# TEMPORAL RELATIONS — Allen's interval algebra over events (#41 temporal
+# deepening). The qualitative ordering layer that OWL-Time, CIDOC-CRM, ISO-TimeML
+# (TLINK) and the Time Event Ontology (TEO) all build on, here related directly
+# between gmeow:Event occurrences (the TimeML TLINK / TEO event-event idiom) — the
+# event carries its own temporal extent (eventInterval / eventTime / fuzzy bounds),
+# so an Allen relation between two events is a relation between those extents.
+#
+# DL-clean axiomatization: before/after and during/contains are TRANSITIVE, and
+# coincidesWith is symmetric + transitive; meets/overlaps/starts/finishes are
+# inverse-only (they do not compose). Every relation is non-simple (transitive) or
+# symmetric, so all are deliberately kept OUT of cardinality/functional axioms,
+# preserving OWL 2 DL regularity (cf. gmeow:hasAncestor, gmeow:subEventOf). The full
+# Allen composition table is not expressible in OWL DL and is not asserted; a
+# reasoner derives the transitive closures that ARE sound.
+# =========================================================================== #
+
+gmeow:before
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "before"@en ;
+    skos:definition "Allen BEFORE: this event ends strictly before the related event begins (a gap between them). Transitive. Inverse of gmeow:after. (= time:intervalBefore over the events' extents; TimeML TLINK relType BEFORE; TEO before.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:after
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    owl:inverseOf gmeow:before ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "after"@en ;
+    skos:definition "Allen AFTER: this event begins strictly after the related event ends; the transitive inverse of gmeow:before. (= time:intervalAfter; TimeML AFTER; TEO after.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:meets
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:metBy ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "meets"@en ;
+    skos:definition "Allen MEETS: this event ends exactly when the related event begins (no gap, no overlap). NOT transitive. Inverse of gmeow:metBy. (= time:intervalMeets; TimeML IBEFORE / immediately-before; TEO meets.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:metBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "met by"@en ;
+    skos:definition "Allen MET-BY: this event begins exactly when the related event ends; inverse of gmeow:meets. (= time:intervalMetBy; TimeML IAFTER; TEO metBy.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:overlaps
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:overlappedBy ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "overlaps"@en ;
+    skos:definition "Allen OVERLAPS: this event begins before, and ends during, the related event (their extents partially overlap). NOT transitive. Inverse of gmeow:overlappedBy. (= time:intervalOverlaps; TEO overlaps.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:overlappedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "overlapped by"@en ;
+    skos:definition "Allen OVERLAPPED-BY: inverse of gmeow:overlaps. (= time:intervalOverlappedBy; TEO overlappedBy.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:starts
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:startedBy ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "starts"@en ;
+    skos:definition "Allen STARTS: this event and the related event begin together, and this one ends first (it is an initial sub-span). NOT transitive. Inverse of gmeow:startedBy. (= time:intervalStarts; TimeML BEGINS; TEO starts.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:startedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "started by"@en ;
+    skos:definition "Allen STARTED-BY: inverse of gmeow:starts. (= time:intervalStartedBy; TimeML BEGUN_BY; TEO startedBy.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:during
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    owl:inverseOf gmeow:contains ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "during"@en ;
+    skos:definition "Allen DURING: this event's extent falls strictly within the related event's extent (both endpoints interior). Transitive. Inverse of gmeow:contains. Distinct from gmeow:subEventOf (mereological part-of) and gmeow:containedInPlace (spatial). (= time:intervalDuring; TimeML IS_INCLUDED; TEO during.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:contains
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "temporally contains"@en ;
+    skos:definition "Allen CONTAINS: this event's extent strictly contains the related event's extent; the transitive inverse of gmeow:during. A TEMPORAL relation only — not spatial (gmeow:containedInPlace) nor mereological (gmeow:hasSubEvent). (= time:intervalContains; TimeML INCLUDES; TEO contains.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:finishes
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:finishedBy ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "finishes"@en ;
+    skos:definition "Allen FINISHES: this event and the related event end together, and this one began later (it is a final sub-span). NOT transitive. Inverse of gmeow:finishedBy. (= time:intervalFinishes; TimeML ENDS; TEO finishes.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:finishedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "finished by"@en ;
+    skos:definition "Allen FINISHED-BY: inverse of gmeow:finishes. (= time:intervalFinishedBy; TimeML ENDED_BY; TEO finishedBy.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:coincidesWith
+    a owl:ObjectProperty, owl:SymmetricProperty, owl:TransitiveProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "coincides with"@en ;
+    skos:definition "Allen EQUALS: this event and the related event share the same temporal extent (co-temporal). Symmetric and transitive. Asserts TEMPORAL simultaneity only, never identity of the events themselves. (= time:intervalEquals; TimeML SIMULTANEOUS; TEO equal.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Duration — a length of time (TIMEX3 type=DURATION; OWL-Time Duration; TEO
+# Duration). Distinct from an interval (which is anchored): a duration is a
+# quantity. xsd:duration keeps it DL-clean (Principle 3).
+# --------------------------------------------------------------------------- #
+
+gmeow:Duration
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Duration"@en ;
+    skos:definition "A length of time as a quantity, independent of when it occurs — the running time of an event, a gap, a recurrence period. Carries an xsd:duration via gmeow:durationValue. (= time:Duration / time:TemporalDuration, schema:Duration, ISO-TimeML TIMEX3 type=DURATION, TEO Duration.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasDuration
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Duration ;
+    rdfs:label "has duration"@en ;
+    skos:definition "Relates an event to its duration (a gmeow:Duration). Distinct from gmeow:eventInterval (which anchors the event in time); a duration is a length only."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:durationValue
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Duration ;
+    rdfs:range xsd:duration ;
+    rdfs:label "duration value"@en ;
+    skos:definition "The length of a gmeow:Duration as an xsd:duration literal (ISO 8601, e.g. P1Y2M / PT3H). DL-clean; the TEO hasNormalizedDuration 0Y0M0W0D0H0m0s string is a projection target."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Recurrence — a rule that an event series repeats by (TIMEX3 type=SET; iCalendar
+# RRULE; schema:Schedule; TEO periodic time interval / hasRepeatTimes). The rule
+# string is authored RFC-5545-style; richer structure is a projection concern.
+# --------------------------------------------------------------------------- #
+
+gmeow:RecurrenceRule
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Recurrence Rule"@en ;
+    skos:definition "A rule by which a gmeow:EventSeries repeats — weekly, every-first-Monday, annually. Carries an RFC 5545 RRULE string via gmeow:recurrenceRuleText. (= ISO-TimeML TIMEX3 type=SET with freq/quant, iCalendar RRULE, schema:Schedule, TEO periodic time interval.)"@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasRecurrenceRule
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:EventSeries ;
+    rdfs:range gmeow:RecurrenceRule ;
+    rdfs:label "has recurrence rule"@en ;
+    skos:definition "Relates an event series to the recurrence rule by which it repeats."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:recurrenceRuleText
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:RecurrenceRule ;
+    rdfs:range xsd:string ;
+    rdfs:label "recurrence rule text"@en ;
+    skos:definition "The recurrence rule as an RFC 5545 RRULE string (e.g. FREQ=WEEKLY;BYDAY=MO). Projected directly to iCalendar RRULE; a SET-typed TIMEX3 in ISO-TimeML."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Linguistic realization — TENSE and ASPECT of an event AS REALIZED IN TEXT
+# (ISO-TimeML EVENT attributes). Open value vocabularies, OPTIONAL and peripheral:
+# they describe a textual mention of an event, not the occurrence itself, and exist
+# for ISO-TimeML interoperability. Never inferred from, nor used to infer, the
+# event's actual temporal placement.
+# --------------------------------------------------------------------------- #
+
+gmeow:GrammaticalTense
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Grammatical Tense"@en ;
+    skos:definition "The grammatical tense of an event mention in text — a VALUE vocabulary for ISO-TimeML interoperability (past / present / future / none). Describes the linguistic realization, not the occurrence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:tensePast    a gmeow:GrammaticalTense ; rdfs:label "past"@en ;    skos:definition "ISO-TimeML tense PAST."@en .
+gmeow:tensePresent a gmeow:GrammaticalTense ; rdfs:label "present"@en ; skos:definition "ISO-TimeML tense PRESENT."@en .
+gmeow:tenseFuture  a gmeow:GrammaticalTense ; rdfs:label "future"@en ;  skos:definition "ISO-TimeML tense FUTURE."@en .
+gmeow:tenseNone    a gmeow:GrammaticalTense ; rdfs:label "none"@en ;    skos:definition "ISO-TimeML tense NONE (untensed / nominal mention)."@en .
+
+gmeow:eventTense
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:GrammaticalTense ;
+    rdfs:label "event tense"@en ;
+    skos:definition "The grammatical tense of a textual mention of the event (ISO-TimeML EVENT @tense). Annotation-layer only; MUST NOT be inferred from, or used to infer, the event's gmeow:eventTime / eventInterval."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:GrammaticalAspect
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Grammatical Aspect"@en ;
+    skos:definition "The grammatical aspect of an event mention in text — a VALUE vocabulary for ISO-TimeML interoperability (perfective / progressive / perfective-progressive / none)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:aspectPerfective   a gmeow:GrammaticalAspect ; rdfs:label "perfective"@en ;   skos:definition "ISO-TimeML aspect PERFECTIVE."@en .
+gmeow:aspectProgressive  a gmeow:GrammaticalAspect ; rdfs:label "progressive"@en ;  skos:definition "ISO-TimeML aspect PROGRESSIVE."@en .
+gmeow:aspectPerfectiveProgressive a gmeow:GrammaticalAspect ; rdfs:label "perfective-progressive"@en ; skos:definition "ISO-TimeML aspect PERFECTIVE_PROGRESSIVE."@en .
+gmeow:aspectNone         a gmeow:GrammaticalAspect ; rdfs:label "none"@en ;         skos:definition "ISO-TimeML aspect NONE."@en .
+
+gmeow:eventAspect
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:GrammaticalAspect ;
+    rdfs:label "event aspect"@en ;
+    skos:definition "The grammatical aspect of a textual mention of the event (ISO-TimeML EVENT @aspect). Annotation-layer only; orthogonal to the event's actual temporal placement."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

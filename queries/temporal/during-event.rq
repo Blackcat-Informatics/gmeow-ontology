@@ -1,0 +1,16 @@
+# TQL — events temporally within a focus event. Parameter: ?focus. Qualitative
+# Allen during-closure (gmeow:during+) unioned with quantitative interval
+# containment of a point event inside the focus's crisp interval.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT DISTINCT ?event WHERE {
+    { ?event (gmeow:during|^gmeow:contains)+ ?focus . }
+    UNION
+    {
+        ?focus gmeow:eventInterval ?iv .
+        ?iv gmeow:startedAtTime ?fs ; gmeow:endedAtTime ?fe .
+        ?event gmeow:eventTime ?et .
+        FILTER(?et > ?fs && ?et < ?fe)
+    }
+}
+ORDER BY ?event

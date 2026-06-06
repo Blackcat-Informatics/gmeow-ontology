@@ -162,3 +162,40 @@ ex:standup2 a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ;
     gmeow:occurrenceOfSeries ex:standup .
 
 ex:eventTypeMeeting a gmeow:EventType ; rdfs:label "meeting"@en .
+
+# --------------------------------------------------------------------------- #
+# TEMPORAL RELATIONS (Allen) + Duration + recurrence + tense/aspect — exercises
+# the temporal-deepening layer (#41 ⨯ OWL-Time/TEO/ISO-TimeML). A qualitative
+# ordering chain (transitivity), the contact relations, a duration, an RFC-5545
+# recurrence on the standup series, and the ISO-TimeML linguistic attributes.
+# --------------------------------------------------------------------------- #
+
+# A qualitative ordering chain (no datetimes needed): dawn → noon → dusk. The
+# transitive closure dawn gmeow:before dusk is ENTAILED, not asserted.
+ex:dawn a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:before ex:noon .
+ex:noon a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:before ex:dusk .
+ex:dusk a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting .
+
+# The other Allen relations, exercised once each (inverses are entailed).
+ex:talk    a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:during ex:conference .
+ex:conference a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:contains ex:keynote .
+ex:keynote a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting .
+ex:setup   a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:meets ex:conference .
+ex:rehearsal a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:overlaps ex:conference .
+ex:opening a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:starts ex:conference .
+ex:closing a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:finishes ex:conference .
+ex:webcast a gmeow:Event ; gmeow:eventType ex:eventTypeMeeting ; gmeow:coincidesWith ex:keynote .
+
+# A duration on an event (ISO 8601 / xsd:duration).
+ex:wedding gmeow:hasDuration ex:weddingLength .
+ex:weddingLength a gmeow:Duration ; gmeow:durationValue "PT1H"^^xsd:duration .
+
+# The standup series repeats weekly (RFC 5545 RRULE → projects to iCalendar).
+ex:standup gmeow:hasRecurrenceRule ex:standupRule .
+ex:standupRule a gmeow:RecurrenceRule ; gmeow:recurrenceRuleText "FREQ=WEEKLY;BYDAY=MO" .
+
+# ISO-TimeML linguistic attributes on a textual event mention (annotation-layer).
+ex:reportedClash a gmeow:Event ;
+    gmeow:eventType ex:eventTypeMeeting ;
+    gmeow:eventTense gmeow:tensePast ;
+    gmeow:eventAspect gmeow:aspectPerfective .

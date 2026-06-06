@@ -107,7 +107,7 @@ build: ## Build all serializations + JSON-LD context + apache.conf into dist/.
 export: ## Generate flattened exports (CSV/CSVW, Markdown, JSONL, llms.txt) into dist/.
 	uv run gmeow export
 
-project: compile-mappings ## Project GMEOW data to pure schema.org/GeoSPARQL/vCard/FOAF/iCal profiles (FnO/EDOAL).
+project: compile-mappings ## Project GMEOW data to pure schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profiles (FnO/EDOAL).
 	uv run gmeow project
 
 test: ## Run the test suite.

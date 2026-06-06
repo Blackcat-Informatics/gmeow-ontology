@@ -35,6 +35,7 @@ PROFILES: dict[str, Profile] = {
     "vcard": Profile("vcard", ("vcard",)),
     "foaf": Profile("foaf", ("foaf", "wgs84")),
     "ical": Profile("ical", ("ical",)),
+    "owl-time": Profile("owl-time", ("time",)),
 }
 
 #: Worked-example inputs (locations + naming + languages + identity + contacts +

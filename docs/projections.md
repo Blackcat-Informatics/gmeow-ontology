@@ -39,7 +39,7 @@ gmeow project --profile schema-org  # one profile
 gmeow project --data mydata.ttl     # project your own GMEOW data
 ```
 
-Outputs `dist/gmeow-example-{schema-org,geosparql,vcard,foaf,ical}.ttl` (round-trip
+Outputs `dist/gmeow-example-{schema-org,geosparql,vcard,foaf,ical,owl-time}.ttl` (round-trip
 verified). Also runs in `gmeow build`.
 
 ## Transformation types (worked on locations + naming + languages)
@@ -81,6 +81,7 @@ different use of FnO: it declares Hepburn / Pinyin / ISO 233 / IPA / translate a
 - **vCard** — contact-card fit: `vcard:Address` components, `vcard:fn`, `vcard:given-name`/`family-name`. Drops the nested place hierarchy + QIDs, geometry.
 - **FOAF** — lowest common denominator: place+coords → `wgs84:SpatialThing`, `foaf:name`, `foaf:based_near`. Drops nearly all structure.
 - **iCalendar** — calendar fit: a `gmeow:Event` → `ical:Vevent` with `ical:dtstart`/`dtend` (from the crisp interval, the point `eventTime`, or the fuzzy `earliestStart`/`latestEnd` bounds), `ical:summary` (the event-type label), `ical:location`, and `ical:attendee` (the flat participants). Drops the reified `Participation` roles/periods/confidence/standpoint, the open type vocabulary beyond one summary label, `temporalPrecision`, the sub-event tree, and `EventSeries` recurrence.
+- **OWL-Time** — temporal-relation fit: the 13 Allen relations between events (`gmeow:before`/`during`/`meets`/…) → OWL-Time's `time:interval*` relations 1:1, so an OWL-Time-aware reasoner runs interval-algebra inference over the result (the events are treated as their `time:ProperInterval` extents). Drops everything but the qualitative temporal ordering. See [TQL](temporal-queries.md).
 
 ## Naming: the co-equality + deadname contract (honoured by every profile)
 

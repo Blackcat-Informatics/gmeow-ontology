@@ -34,12 +34,12 @@ def test_dsl_parses() -> None:
     # Every SSSOM data row became a TermEquivalence cell (incl. the 7 gUFO↔BFO
     # foundational-spine cells, issue #40, and the 13 standpoint cells — PROV-O x3,
     # nanopub, CRMinf x3, Wikidata x2, schema.org, Web Annotation, DnS x2, #43).
-    assert len(dsl.equivalences) == 412
+    assert len(dsl.equivalences) == 445
     # 18 projection transforms declared.
     assert len(dsl.functions) == 18
     # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint, gmeow-events).
     assert len(dsl.mapping_sets) == 15
-    # Projection cells across all five profiles (schema-org/vcard/foaf/geosparql/ical).
+    # Projection cells across all six profiles (incl. ical + owl-time).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}
     assert profiles == set(_PROFILES)
@@ -293,7 +293,7 @@ def test_fno_emits_fnom_implementation_mapping() -> None:
     graph = emit_fno(load_dsl(), load_merged_graph(include_imports=False))
     assert (
         len(set(graph.subjects(RDF.type, FNO.Implementation))) == 5
-    )  # one per profile (schema-org / vcard / foaf / geosparql / ical)
+    )  # one per profile WITH transforms (owl-time is pure templateAtoms — none)
     bound = False
     for mapping in graph.subjects(RDF.type, FNO.Mapping):
         if graph.value(mapping, FNO.function) != GM.fnComposeBcp47:
