@@ -619,7 +619,11 @@ def _sssom_header(meta: MappingSet | None, prefixes: list[str]) -> list[str]:
     lines.append(f"# mapping_tool_version: {VERSION}")
     lines.append(f"# mapping_date: {RELEASE_DATE}")
     if meta is not None and meta.comment:
-        lines.append(f"# comment: {meta.comment}")
+        # Collapse any whitespace run (incl. the newlines of a multi-line Turtle
+        # """...""" source literal) to single spaces, so the comment stays on one
+        # SSSOM header line regardless of how it is wrapped in the DSL source.
+        comment = " ".join(meta.comment.split())
+        lines.append(f"# comment: {comment}")
     lines.append("# curie_map:")
     for prefix in prefixes:
         lines.append(f"#   {prefix}: {PREFIXES[prefix]}")
@@ -773,10 +777,12 @@ def _templates(cell: ProjectionCell, b: ProfileBinding) -> list[str]:
 
 def _prefix_block(text: str) -> str:
     lines = []
+    # Strip absolute IRIs (<...>) first so a prefix is never detected inside a URI
+    # path/segment (e.g. "ps:" inside "https://…" or "…/ps:foo"). Then require a
+    # token boundary that also excludes "_" (\w) so "foo_ps:" never matches "ps:".
+    search_text = re.sub(r"<[^>]*>", "", text)
     for prefix, ns in PREFIXES.items():
-        # Word-boundary match so a prefix is not falsely detected inside another
-        # token — e.g. "ps:" must not match the "ps:" inside "https://…".
-        if re.search(rf"(?<![A-Za-z0-9]){re.escape(prefix)}:", text):
+        if re.search(rf"(?<!\w){re.escape(prefix)}:", search_text):
             lines.append(f"PREFIX {prefix}: <{ns}>")
     return "\n".join(lines)
 
@@ -833,6 +839,9 @@ def emit_standpoint_owl2_sparql() -> str:
     refuted_filter = "    FILTER(!BOUND(?mod) || ?mod != gmeow:refuted)\n"
     body = (
         "CONSTRUCT {\n"
+        # Declare the standpointLabel annotation property so the projected graph is
+        # self-contained and DL-clean standalone (no undeclared-entity warnings).
+        f"    <{_STANDPOINT_LABEL_IRI}> a owl:AnnotationProperty .\n"
         "    ?ax a owl:Axiom ;\n"
         "        owl:annotatedSource ?s ;\n"
         "        owl:annotatedProperty ?p ;\n"

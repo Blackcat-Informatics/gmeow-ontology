@@ -7,6 +7,7 @@ PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 
 CONSTRUCT {
+    <https://blackcatinformatics.ca/gmeow#standpointLabel> a owl:AnnotationProperty .
     ?ax a owl:Axiom ;
         owl:annotatedSource ?s ;
         owl:annotatedProperty ?p ;
