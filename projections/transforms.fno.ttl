@@ -99,8 +99,8 @@ gmeow:fnTranslate
 
 # --- Shared parameters / outputs (declarative; no bound executor) ----------- #
 
-gmeow:pSourceText     a fno:Parameter ; fno:predicate gmeow:fullName ; fno:type rdfs:Literal ; fno:required true .
-gmeow:pTargetLanguage a fno:Parameter ; fno:predicate gmeow:targetLanguage ; fno:type gmeow:Language ; fno:required true .
-gmeow:oTransliterated a fno:Output ; fno:predicate gmeow:romanization ; fno:type rdfs:Literal .
-gmeow:oTranscribed    a fno:Output ; fno:predicate gmeow:projectedTranscription ; fno:type rdfs:Literal .
-gmeow:oTranslated     a fno:Output ; fno:predicate gmeow:projectedTranslation ; fno:type rdfs:Literal .
+gmeow:pSourceText      a fno:Parameter ; fno:predicate gmeow:fullName ; fno:type rdfs:Literal ; fno:required true .
+gmeow:pTargetLanguage  a fno:Parameter ; fno:predicate gmeow:targetLanguage ; fno:type gmeow:Language ; fno:required true .
+gmeow:oTransliterated  a fno:Output ; fno:predicate gmeow:romanization ; fno:type rdfs:Literal .
+gmeow:oTranscribed     a fno:Output ; fno:predicate gmeow:projectedTranscription ; fno:type rdfs:Literal .
+gmeow:oTranslated      a fno:Output ; fno:predicate gmeow:projectedTranslation ; fno:type rdfs:Literal .

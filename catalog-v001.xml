@@ -29,4 +29,5 @@
     <uri name="https://blackcatinformatics.ca/gmeow/modules/messaging-trust" uri="ontology/modules/messaging-trust.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/trust" uri="ontology/modules/trust.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/provenance" uri="ontology/modules/provenance.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/standpoint" uri="ontology/modules/standpoint.ttl"/>
 </catalog>

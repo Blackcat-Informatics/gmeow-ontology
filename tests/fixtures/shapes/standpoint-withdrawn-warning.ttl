@@ -1,0 +1,18 @@
+# Withdrawn-standpoint WARNING fixture (#43). A StandpointTenure whose interval has
+# ENDED (a withdrawn position) but is NOT suppressed (no gmeow:displayable false) —
+# this trips gmeow:WithdrawnStandpointSuppressionShape, which is sh:Warning severity
+# (Principle 10: suppression, never erasure; a source may lag the flag). The tenure
+# is otherwise well-formed (exactly one gmeow:tenureStandpoint) so NO Violation
+# fires. run_shacl must report a WARNING but still pass (result.ok is True).
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:un-recognition a gmeow:StandpointTenure ;
+    gmeow:tenureStandpoint ex:standpoint-un ;
+    gmeow:duringInterval [ a gmeow:TimeInterval ;
+        gmeow:startedAtTime "2008-02-17T00:00:00Z"^^xsd:dateTime ;
+        gmeow:endedAtTime   "2030-01-01T00:00:00Z"^^xsd:dateTime ] .
+
+ex:standpoint-un a gmeow:Standpoint .

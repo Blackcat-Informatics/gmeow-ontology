@@ -288,3 +288,88 @@ gmeow:IdentityAxisOrthogonalityShape
             }
         """ ;
     ] .
+
+# =========================================================================== #
+# Standpoint / contested-claims data shapes (#43). The OWL-infers / SHACL-
+# validates split applies: SHACL only ever REJECTS closed-world malformations,
+# so "contradictory standpoint claims are allowed" is NOT a shape — it is proven
+# by a passing positive fixture (tests/test_standpoint.py). The marker shape
+# below records that intent where a reader looks; it enforces nothing. All other
+# shapes here target INSTANCE DATA and stay dormant on the TBox term graph.
+# =========================================================================== #
+
+# (a) Coexistence is explicitly permitted — a documented NO-OP marker (no target,
+# no constraint). Contradictory gmeow:accordingTo-scoped claims over the same
+# subject/predicate are co-equal and must NOT be flagged; there is deliberately
+# no shape constraining their coexistence (Principle 9 — no single slot to win).
+gmeow:StandpointCoexistenceShape
+    a sh:NodeShape ;
+    rdfs:label "Standpoint coexistence marker (no-op)" ;
+    rdfs:comment "Documentation only — asserts and enforces nothing. Contradictory gmeow:accordingTo-scoped claims over the same subject/predicate are explicitly permitted and are NOT a violation (Principle 9). Coexistence is proven by the positive fixture in tests/test_standpoint.py, not by a SHACL constraint, because the OWL-infers / SHACL-validates split means SHACL only rejects malformations." .
+
+# (b) StandpointTenure well-formedness — closed-world cardinality. Mirrors
+# NameUsageShape; the OWL EL someValuesFrom in standpoint.ttl classifies, SHACL
+# enforces "exactly one standpoint".
+gmeow:StandpointTenureShape
+    a sh:NodeShape ;
+    rdfs:label "StandpointTenure well-formedness shape" ;
+    sh:targetClass gmeow:StandpointTenure ;
+    sh:property [
+        sh:path gmeow:tenureStandpoint ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A StandpointTenure must record exactly one standpoint (gmeow:tenureStandpoint)." ;
+    ] .
+
+# (c) No preferred / primary claim (Principle 9). Fires on any GMEOW-namespace
+# predicate whose local name begins with "primary" / "preferred" — the forward
+# guard against ever re-creating the single winning slot the edit war is fought
+# over (the data-graph twin of the statement-DSL no_preferred_rank lint and the
+# term-absence test). No such term exists today, so this is dormant.
+gmeow:NoPreferredClaimShape
+    a sh:NodeShape ;
+    rdfs:label "No preferred / primary claim shape" ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            SELECT ?this WHERE {
+                ?this ?p ?o .
+                FILTER(STRSTARTS(STR(?p), "https://blackcatinformatics.ca/gmeow/primary")
+                    || STRSTARTS(STR(?p), "https://blackcatinformatics.ca/gmeow/preferred"))
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "No claim may be marked preferred/primary; standpoint-indexed claims are co-equal — there is no single slot to win (Principle 9)." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this ?p ?o .
+                FILTER(STRSTARTS(STR(?p), "https://blackcatinformatics.ca/gmeow/primary")
+                    || STRSTARTS(STR(?p), "https://blackcatinformatics.ca/gmeow/preferred"))
+            }
+        """ ;
+    ] .
+
+# (d) Withdrawn-standpoint suppression (Principle 10 — suppression, never
+# erasure). The StandpointTenure sibling of SupersededFacetSuppressionShape: a
+# tenure whose interval has ended (a withdrawn position) should set
+# gmeow:displayable false rather than be deleted. Warning — a source may lag.
+gmeow:WithdrawnStandpointSuppressionShape
+    a sh:NodeShape ;
+    rdfs:label "Withdrawn standpoint suppression shape" ;
+    sh:targetClass gmeow:StandpointTenure ;
+    sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it (a source may lag the flag)
+    sh:sparql [
+        sh:message "A withdrawn standpoint (a StandpointTenure whose interval has ended) should set gmeow:displayable false — suppressed from display, never deleted." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/duringInterval> ?iv .
+                ?iv <https://blackcatinformatics.ca/gmeow/endedAtTime> ?end .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
+                }
+            }
+        """ ;
+    ] .

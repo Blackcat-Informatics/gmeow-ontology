@@ -16,6 +16,24 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/examples/alice>
         gmeow:knowsLanguage  <https://blackcatinformatics.ca/gmeow/examples/lang-toki-pona> .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-territory-1850-per-2025-historiography>
+        rdf:reifies               <<( <https://blackcatinformatics.ca/gmeow/examples/territory-x> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/polity-y> )>>;
+        gmeow:accordingTo         <https://blackcatinformatics.ca/gmeow/examples/standpoint-2025-historiography>;
+        gmeow:assertedAt          "2025-01-01T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:standpointModality  gmeow:conceivable;
+        gmeow:validFrom           "1850-01-01T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:validUntil          "1860-12-31T00:00:00+00:00"^^xsd:dateTime .
+
+<https://blackcatinformatics.ca/gmeow/examples/territory-x>
+        gmeow:containedInPlace  <https://blackcatinformatics.ca/gmeow/examples/polity-y> .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-crimea-in-russia-per-ru>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/crimea> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/russia> )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-ru>;
+        gmeow:confidence   0.9;
+        gmeow:mappedFrom   <https://blackcatinformatics.ca/gmeow/examples/src-ru-decree>;
+        gmeow:validFrom    "2014-03-18T00:00:00+00:00"^^xsd:dateTime .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-alice-gender-001>
         rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/gi-alice> gmeow:genderValue gmeow:genderWoman )>>;
         gmeow:assertedAt  "2019-06-01T00:00:00+00:00"^^xsd:dateTime;
@@ -33,3 +51,12 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 
 <https://blackcatinformatics.ca/gmeow/examples/birth-alice>
         gmeow:eventDate  "1990-05-01T00:00:00+00:00"^^xsd:dateTime .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-crimea-in-ukraine-per-un>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/crimea> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/ukraine> )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-un>;
+        gmeow:confidence   0.9;
+        gmeow:validFrom    "1991-12-01T00:00:00+00:00"^^xsd:dateTime .
+
+<https://blackcatinformatics.ca/gmeow/examples/crimea>
+        gmeow:containedInPlace  <https://blackcatinformatics.ca/gmeow/examples/russia> , <https://blackcatinformatics.ca/gmeow/examples/ukraine> .
