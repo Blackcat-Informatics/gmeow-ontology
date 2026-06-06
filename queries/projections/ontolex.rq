@@ -21,12 +21,12 @@ WHERE {
         BIND ( IRI(CONCAT(STR(?app), "-form")) AS ?form )
         FILTER NOT EXISTS { ?app gmeow:displayable false . }
         OPTIONAL {
-            ?app gmeow:nameLanguage ?_lang .
-            ?_lang gmeow:languageTag ?_intTag .
+            ?app gmeow:nameLanguage ?lang .
+            ?lang gmeow:languageTag ?_intTag .
             FILTER(isLiteral(?fullName) && LANG(?fullName) = ?_intTag)
-            ?_lang gmeow:bcp47Tag ?_extTag .
+            ?lang gmeow:bcp47Tag ?langTag .
             OPTIONAL { ?app gmeow:nameScript ?_sc . }
         }
-        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?fullName), IF(BOUND(?_sc), CONCAT(STR(?_extTag), '-', ?_sc), STR(?_extTag))), ?fullName) AS ?_final_fullName )
+        BIND ( IF(BOUND(?langTag), STRLANG(STR(?fullName), IF(BOUND(?_sc), CONCAT(STR(?langTag), '-', ?_sc), STR(?langTag))), ?fullName) AS ?_final_fullName )
     }
 }

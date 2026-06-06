@@ -790,21 +790,32 @@ def _branch(cell: ProjectionCell, b: ProfileBinding) -> str:
                 parent_var = a.subject_var
                 break
         if parent_var:
+            lang_var = "_lang"
+            for a in flat_atoms:
+                if a.predicate == GM.nameLanguage and a.subject_var == parent_var:
+                    lang_var = a.object_var or lang_var
+                    break
+            ext_tag_var = "_extTag"
+            for a in flat_atoms:
+                if a.predicate == GM.bcp47Tag and a.subject_var == lang_var:
+                    ext_tag_var = a.object_var or ext_tag_var
+                    break
             retag_lines.extend(
                 [
                     "OPTIONAL {",
-                    f"    ?{parent_var} gmeow:nameLanguage ?_lang .",
-                    "    ?_lang gmeow:languageTag ?_intTag .",
+                    f"    ?{parent_var} gmeow:nameLanguage ?{lang_var} .",
+                    f"    ?{lang_var} gmeow:languageTag ?_intTag .",
                     f"    FILTER(isLiteral(?{val}) && LANG(?{val}) = ?_intTag)",
-                    "    ?_lang gmeow:bcp47Tag ?_extTag .",
+                    f"    ?{lang_var} gmeow:bcp47Tag ?{ext_tag_var} .",
                     f"    OPTIONAL {{ ?{parent_var} gmeow:nameScript ?_sc . }}",
                     "}",
                 ]
             )
             bind_expr = (
-                f"IF(BOUND(?_extTag), "
+                f"IF(BOUND(?{ext_tag_var}), "
                 f"STRLANG(STR(?{val}), "
-                f"IF(BOUND(?_sc), CONCAT(STR(?_extTag), '-', ?_sc), STR(?_extTag))), "
+                f"IF(BOUND(?_sc), CONCAT(STR(?{ext_tag_var}), '-', ?_sc), "
+                f"STR(?{ext_tag_var}))), "
                 f"?{val})"
             )
     elif p.edoal_source in (GM.partText, GM.partExpansion, GM.romanization):
