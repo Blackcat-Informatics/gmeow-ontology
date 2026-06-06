@@ -30,6 +30,34 @@ gmeow:mapSchemaPlace a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "coords" ; gmeow:tPred schema:longitude ; gmeow:tObj "lon" ]
             [ gmeow:tSubj "coords" ; gmeow:tPred schema:elevation ; gmeow:tObj "elev" ] ) ] .
 
+gmeow:mapSchemaPartOf a gmeow:ProjectionMapping ;
+    rdfs:label "generic partOf → schema:isPartOf"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "part" ; gmeow:value "whole" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "part" ; gmeow:predicateVar "partPredicate" ; gmeow:objectVar "whole" ]
+            [ gmeow:subjectVar "partPredicate" ;
+              gmeow:path [ a gmeow:ZeroOrMorePath ; gmeow:pathStep rdfs:subPropertyOf ] ;
+              gmeow:objectValue gmeow:partOf ] ) ;
+        gmeow:edoalSource gmeow:partOf ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:isPartOf ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "the specialized GMEOW parthood subproperty, if any, is collapsed to generic schema:isPartOf" ] .
+
+gmeow:mapSchemaHasPart a gmeow:ProjectionMapping ;
+    rdfs:label "generic hasPart → schema:hasPart"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "whole" ; gmeow:value "part" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "whole" ; gmeow:predicateVar "hasPartPredicate" ; gmeow:objectVar "part" ]
+            [ gmeow:subjectVar "hasPartPredicate" ;
+              gmeow:path [ a gmeow:ZeroOrMorePath ; gmeow:pathStep rdfs:subPropertyOf ] ;
+              gmeow:objectValue gmeow:hasPart ] ) ;
+        gmeow:edoalSource gmeow:hasPart ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:hasPart ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "the specialized GMEOW whole-to-part subproperty, if any, is collapsed to generic schema:hasPart" ] .
+
 gmeow:mapSchemaPlaceType a gmeow:ProjectionMapping ;
     rdfs:label "Place placeType value → schema target class"@en ;
     gmeow:hasMappingPattern [

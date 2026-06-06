@@ -209,10 +209,11 @@ gmeow:hasPlaceName
 
 gmeow:hasNamePart
     a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasPart ;
     rdfs:domain gmeow:Appellation ;
     rdfs:range gmeow:NamePart ;
     rdfs:label "has name part"@en ;
-    skos:definition "Relates an appellation to one of its reified, typed parts. Non-functional — a name has many parts."@en ;
+    skos:definition "Relates an appellation to one of its reified, typed parts. Non-functional — a name has many parts. A specialized information-object component relation under the universal gmeow:hasPart spine."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:namePartType

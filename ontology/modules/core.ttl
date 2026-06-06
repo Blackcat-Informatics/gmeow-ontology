@@ -51,3 +51,30 @@ gmeow:InformationObject
     rdfs:label "Information Object"@en ;
     skos:definition "An entity whose nature is to carry information content: a document, dataset, software artifact, online account, or message. The shared parent of the document, software and account layers."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Universal mereology — the broad part/whole spine (#76).
+#
+# Domain-specific properties keep their exact meanings (geographic containment,
+# organizational departments, event decomposition, name parts, MIME parts, ...).
+# They specialize this universal transitive spine so generic consumers can ask
+# for parthood without collapsing those semantics. No domain/range is asserted
+# here: GMEOW part/whole spans endurants, information objects, locations and
+# occurrents, while narrower subproperties carry their own local typing.
+# --------------------------------------------------------------------------- #
+
+gmeow:partOf
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    owl:inverseOf gmeow:hasPart ;
+    rdfs:label "part of"@en ;
+    skos:definition "Universal part-to-whole relation: relates any GMEOW thing to a larger whole it is part of. Transitive and intentionally broad; use specialized subproperties such as gmeow:containedInLocation, gmeow:subOrganizationOf, gmeow:subEventOf, gmeow:partOfThread or module-specific component properties when the kind of parthood matters. No domain/range is asserted so event, location, information-object and endurant parthood all remain possible in OWL 2 DL."@en ;
+    skos:scopeNote "No cardinality, functionality, asymmetry or irreflexivity is asserted on this transitive property. Proper-part, direct-part and time-scoped mutable parthood must be modelled with narrower simple properties or relators when needed."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasPart
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    owl:inverseOf gmeow:partOf ;
+    rdfs:label "has part"@en ;
+    skos:definition "Universal whole-to-part inverse of gmeow:partOf. Transitive and intentionally broad; specialized component and containment properties remain the authoritative source for domain-specific meaning."@en ;
+    skos:scopeNote "Generic has-part is a query/projection convenience, not a single privileged decomposition model. Consumers that need spatial, organizational, event or information-object semantics should use the corresponding specialized subproperty."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

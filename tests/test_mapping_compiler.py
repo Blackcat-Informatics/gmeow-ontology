@@ -40,8 +40,9 @@ def test_dsl_parses() -> None:
     # Issue #105 place naming: +8 names cells (PlaceName→CIDOC E48, hasPlaceName,
     # nameLanguage→dcterms/schema/P407, endonym/exonym) and -3 retired places
     # alternateName cells, net +5. OntoLex-Lemon: +3, net +8. Issue #65 locations
-    # core: +3 Location alignments (CRM/BFO closeMatch).
-    assert len(dsl.equivalences) == 687
+    # core: +3 Location alignments (CRM/BFO closeMatch). Issue #76 universal
+    # mereology: +12 part/whole links (BFO, gUFO, schema.org, DCTERMS, CIDOC CRM).
+    assert len(dsl.equivalences) == 699
     # 21 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105).
     assert len(dsl.functions) == 21

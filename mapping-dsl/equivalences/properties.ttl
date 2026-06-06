@@ -12,6 +12,9 @@
 @prefix schema: <https://schema.org/> .
 @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
 @prefix bibo: <http://purl.org/ontology/bibo/> .
+@prefix bfo: <http://purl.obolibrary.org/obo/> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
 
 # Term equivalences for the properties domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-properties.sssom.tsv by `gmeow compile-mappings`.
@@ -358,4 +361,110 @@ gmeow:eqProperties042 a gmeow:TermEquivalence ;
     gmeow:alignObject schema:parentOrganization ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties043 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:partOf ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000050 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "part of" ;
+    gmeow:comment "BFO continuant/occurrent parthood is the OBO hub; GMEOW partOf is a broader universal spine across modules" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties044 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasPart ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bfo:BFO_0000051 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "has part" ;
+    gmeow:comment "BFO has-part is the OBO hub; GMEOW hasPart is broader and keeps specialized subproperties for precise semantics" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties045 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:partOf ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:isComponentOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.65 ;
+    gmeow:comment "gUFO component parthood is endurant/component-specific and not generally transitive; GMEOW partOf is broader" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties046 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:partOf ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:isCollectionMemberOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "gUFO collection membership is intransitive member-to-collection parthood; a narrower case of the GMEOW universal spine" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties047 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:partOf ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:isSubCollectionOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "gUFO subcollection parthood is collection-specific; GMEOW partOf is the broader cross-module spine" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties048 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:partOf ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:TemporaryParthoodSituation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "Intentional cross-category closeMatch: gUFO's TemporaryParthoodSituation class is the reified reference pattern for mutable endurant parthood; GMEOW partOf remains the flat property shortcut, not an OWL property equivalence" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties049 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:partOf ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:isPartOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties050 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasPart ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:hasPart ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties051 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:partOf ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:isPartOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties052 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasPart ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:hasPart ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties053 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:partOf ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:P46i_forms_part_of ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "CIDOC CRM P46 inverse forms part of — physical/conceptual object parthood; narrower than GMEOW universal partOf" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties054 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasPart ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:P46_is_composed_of ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "CIDOC CRM P46 is composed of — narrower than GMEOW universal hasPart" ;
     gmeow:sssomFile "gmeow-properties.sssom.tsv" .
