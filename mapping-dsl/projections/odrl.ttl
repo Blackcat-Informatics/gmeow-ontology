@@ -1,0 +1,155 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix odrl:  <http://www.w3.org/ns/odrl/2/> .
+
+# Projection mappings: GMEOW rights → a pure W3C ODRL 2.2 policy (the machine-
+# readable deontic target, #21). Compiled to projections/odrl.edoal.ttl +
+# queries/projections/odrl.rq by `gmeow compile-mappings`. The gmeow:RightsStatement
+# relator becomes an odrl:Set; its Permission / Prohibition / Duty rules become the
+# odrl:permission / odrl:prohibition / odrl:obligation rule trio, each carrying its
+# odrl:action (a gmeow:RightsAction value — exactMatch the odrl:action vocabulary in
+# the SSSOM layer), odrl:target (the governed asset) and odrl:assignee. A gmeow:License
+# becomes an odrl:Offer with its odrl:assigner. Every emitted odrl: term is declared in
+# mapping-dsl/equivalences/rights.ttl, so the no-drift gate verifies the projection.
+
+gmeow:mapOdrlPolicy a gmeow:ProjectionMapping ;
+    rdfs:label "RightsStatement → odrl:Set"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "rs" ;
+        gmeow:atom ( [ gmeow:subjectVar "rs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "rs" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Set ] ) ] .
+
+gmeow:mapOdrlPermission a gmeow:ProjectionMapping ;
+    rdfs:label "RightsStatement permission rule → odrl:permission"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "rs" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "rs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ]
+            [ gmeow:subjectVar "rs" ; gmeow:predicate gmeow:statementAbout ; gmeow:objectVar "asset" ]
+            [ gmeow:subjectVar "rs" ; gmeow:predicate gmeow:hasPermission ; gmeow:objectVar "perm" ]
+            [ gmeow:subjectVar "perm" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectVar "permAction" ]
+            [ gmeow:subjectVar "perm" ; gmeow:predicate gmeow:ruleAssignee ; gmeow:objectVar "permAssignee" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "rs" ; gmeow:tPred odrl:permission ; gmeow:tObj "perm" ]
+            [ gmeow:tSubj "perm" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Permission ]
+            [ gmeow:tSubj "perm" ; gmeow:tPred odrl:action ; gmeow:tObj "permAction" ]
+            [ gmeow:tSubj "perm" ; gmeow:tPred odrl:target ; gmeow:tObj "asset" ]
+            [ gmeow:tSubj "perm" ; gmeow:tPred odrl:assignee ; gmeow:tObj "permAssignee" ] ) ] .
+
+gmeow:mapOdrlProhibition a gmeow:ProjectionMapping ;
+    rdfs:label "RightsStatement prohibition rule → odrl:prohibition"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "rs" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "rs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ]
+            [ gmeow:subjectVar "rs" ; gmeow:predicate gmeow:statementAbout ; gmeow:objectVar "asset" ]
+            [ gmeow:subjectVar "rs" ; gmeow:predicate gmeow:hasProhibition ; gmeow:objectVar "proh" ]
+            [ gmeow:subjectVar "proh" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectVar "prohAction" ]
+            [ gmeow:subjectVar "proh" ; gmeow:predicate gmeow:ruleAssignee ; gmeow:objectVar "prohAssignee" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "rs" ; gmeow:tPred odrl:prohibition ; gmeow:tObj "proh" ]
+            [ gmeow:tSubj "proh" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Prohibition ]
+            [ gmeow:tSubj "proh" ; gmeow:tPred odrl:action ; gmeow:tObj "prohAction" ]
+            [ gmeow:tSubj "proh" ; gmeow:tPred odrl:target ; gmeow:tObj "asset" ]
+            [ gmeow:tSubj "proh" ; gmeow:tPred odrl:assignee ; gmeow:tObj "prohAssignee" ] ) ] .
+
+gmeow:mapOdrlDuty a gmeow:ProjectionMapping ;
+    rdfs:label "RightsStatement duty rule → odrl:obligation"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "rs" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "rs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ]
+            [ gmeow:subjectVar "rs" ; gmeow:predicate gmeow:statementAbout ; gmeow:objectVar "asset" ]
+            [ gmeow:subjectVar "rs" ; gmeow:predicate gmeow:hasDuty ; gmeow:objectVar "dutyR" ]
+            [ gmeow:subjectVar "dutyR" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectVar "dutyAction" ]
+            [ gmeow:subjectVar "dutyR" ; gmeow:predicate gmeow:ruleAssignee ; gmeow:objectVar "dutyAssignee" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "rs" ; gmeow:tPred odrl:obligation ; gmeow:tObj "dutyR" ]
+            [ gmeow:tSubj "dutyR" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Duty ]
+            [ gmeow:tSubj "dutyR" ; gmeow:tPred odrl:action ; gmeow:tObj "dutyAction" ]
+            [ gmeow:tSubj "dutyR" ; gmeow:tPred odrl:target ; gmeow:tObj "asset" ]
+            [ gmeow:tSubj "dutyR" ; gmeow:tPred odrl:assignee ; gmeow:tObj "dutyAssignee" ] ) ] .
+
+gmeow:mapOdrlOffer a gmeow:ProjectionMapping ;
+    rdfs:label "License → odrl:Offer (+ assigner, target)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "lic" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "lic" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:License ]
+            [ gmeow:subjectVar "lic" ; gmeow:predicate gmeow:licensor ; gmeow:objectVar "licensor" ; gmeow:optional true ]
+            [ gmeow:subjectVar "lic" ; gmeow:predicate gmeow:licensedWork ; gmeow:objectVar "lwork" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "the licence's gmeow:licenseFamily / validFrom / validUntil / spdxLicenseId are dropped; only the ODRL offer skeleton survives" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "lic" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Offer ]
+            [ gmeow:tSubj "lic" ; gmeow:tPred odrl:assigner ; gmeow:tObj "licensor" ]
+            [ gmeow:tSubj "lic" ; gmeow:tPred odrl:target ; gmeow:tObj "lwork" ] ) ] .
+
+# --- ODRL constraint algebra + deontic logic (#21) -------------------------- #
+
+gmeow:mapOdrlConstraint a gmeow:ProjectionMapping ;
+    rdfs:label "Atomic constraint on a rule → odrl:constraint"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "r" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "r" ; gmeow:predicate gmeow:ruleConstraint ; gmeow:objectVar "c" ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectVar "lo" ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:constraintOperator ; gmeow:objectVar "op" ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:rightOperand ; gmeow:objectVar "rv" ; gmeow:optional true ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:rightOperandReference ; gmeow:objectVar "rr" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "ODRL logical-constraint boolean operators (and/or/xone) are not emitted; atomic constraints project fully" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "r" ; gmeow:tPred odrl:constraint ; gmeow:tObj "c" ]
+            [ gmeow:tSubj "c" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Constraint ]
+            [ gmeow:tSubj "c" ; gmeow:tPred odrl:leftOperand ; gmeow:tObj "lo" ]
+            [ gmeow:tSubj "c" ; gmeow:tPred odrl:operator ; gmeow:tObj "op" ]
+            [ gmeow:tSubj "c" ; gmeow:tPred odrl:rightOperand ; gmeow:tObj "rv" ]
+            [ gmeow:tSubj "c" ; gmeow:tPred odrl:rightOperandReference ; gmeow:tObj "rr" ] ) ] .
+
+gmeow:mapOdrlConflict a gmeow:ProjectionMapping ;
+    rdfs:label "conflictStrategy → odrl:conflict"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "rs" ; gmeow:value "cs" ;
+        gmeow:atom ( [ gmeow:subjectVar "rs" ; gmeow:predicate gmeow:conflictStrategy ; gmeow:objectVar "cs" ] ) ;
+        gmeow:edoalSource gmeow:conflictStrategy ] ;
+    gmeow:hasBinding [ gmeow:profile "odrl" ; gmeow:toPredicate odrl:conflict ; gmeow:relation "<=" ; gmeow:confidence 0.8 ] .
+
+gmeow:mapOdrlConsequence a gmeow:ProjectionMapping ;
+    rdfs:label "ruleConsequence → odrl:consequence"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "r" ; gmeow:value "d" ;
+        gmeow:atom ( [ gmeow:subjectVar "r" ; gmeow:predicate gmeow:ruleConsequence ; gmeow:objectVar "d" ] ) ;
+        gmeow:edoalSource gmeow:ruleConsequence ] ;
+    gmeow:hasBinding [ gmeow:profile "odrl" ; gmeow:toPredicate odrl:consequence ; gmeow:relation "<=" ; gmeow:confidence 0.7 ] .
+
+gmeow:mapOdrlAsset a gmeow:ProjectionMapping ;
+    rdfs:label "governed asset → odrl:Asset"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "asset" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "rs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ]
+            [ gmeow:subjectVar "rs" ; gmeow:predicate gmeow:statementAbout ; gmeow:objectVar "asset" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "asset" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Asset ] ) ] .
+
+gmeow:mapOdrlParty a gmeow:ProjectionMapping ;
+    rdfs:label "rule assignee → odrl:Party"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "p" ;
+        gmeow:atom ( [ gmeow:subjectVar "anyrule" ; gmeow:predicate gmeow:ruleAssignee ; gmeow:objectVar "p" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "p" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Party ] ) ] .

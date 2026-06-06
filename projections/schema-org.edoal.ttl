@@ -11,6 +11,14 @@
     rdfs:label "GMEOW → schema-org (EDOAL)"@en ;
     align:level "2EDOAL" ;
     align:map [ a align:Cell ;
+            rdfs:label "acquireLicensePage → schema:acquireLicensePage"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:acquireLicensePage ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:acquireLicensePage ] ;
+            align:relation "=" ;
+            edoal:measure 9.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "Participation (attendee role) → schema:attendee"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:compose ( [ a edoal:Relation ;
@@ -44,6 +52,54 @@
             align:relation "<=" ;
             edoal:measure 9.5e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnBirthEventToDate ] ],
+        [ a align:Cell ;
+            rdfs:label "Mark → schema:Brand"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:Mark ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:Brand ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ],
+        [ a align:Cell ;
+            rdfs:label "conditionsOfAccess → schema:conditionsOfAccess"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:conditionsOfAccess ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:conditionsOfAccess ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "Copyright relator holder → schema:copyrightHolder (flatten)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:copyrightHolder ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:copyrightHolder ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "Copyright relator notice → schema:copyrightNotice (flatten)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:copyrightNotice ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:copyrightNotice ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "Copyright relator year → schema:copyrightYear (flatten)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:copyrightYear ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:copyrightYear ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "attributionText → schema:creditText"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:attributionText ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:creditText ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
         [ a align:Cell ;
             rdfs:label "subOrganizationOf → schema:department (inverse, parent→child)"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -97,6 +153,14 @@
             align:relation "<=" ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnHonorificToAffix ] ],
         [ a align:Cell ;
+            rdfs:label "isAccessibleForFree → schema:isAccessibleForFree"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:isAccessibleForFree ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:isAccessibleForFree ] ;
+            align:relation "=" ;
+            edoal:measure 9.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "Membership Role → schema:jobTitle"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:compose ( [ a edoal:Relation ;
@@ -127,6 +191,14 @@
             align:entity2 [ a edoal:Class ;
                     edoal:uri schema:Language ] ;
             align:relation "=" ],
+        [ a align:Cell ;
+            rdfs:label "hasLicense → schema:license"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasLicense ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:license ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
         [ a align:Cell ;
             rdfs:label "displayable fullName → schema:name"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -236,7 +308,15 @@
                     edoal:uri schema:url ] ;
             align:relation "<=" ;
             edoal:measure 8e-01 ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnWebPageToUrl ] ] ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnWebPageToUrl ] ],
+        [ a align:Cell ;
+            rdfs:label "usageInfo → schema:usageInfo"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:usageInfo ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:usageInfo ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ] ;
     align:onto1 [ a align:Ontology ;
             align:formalism [ align:name "GMEOW" ] ] ;
     align:onto2 [ a align:Ontology ;

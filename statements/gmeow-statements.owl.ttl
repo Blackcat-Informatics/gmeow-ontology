@@ -49,6 +49,46 @@
     gmeow:validFrom "1850-01-01T00:00:00+00:00"^^xsd:dateTime ;
     gmeow:validUntil "1860-12-31T00:00:00+00:00"^^xsd:dateTime .
 
+<https://blackcatinformatics.ca/gmeow/examples/rights/claim-mark-holder-acme> a owl:Axiom ;
+    owl:annotatedProperty gmeow:trademarkHolder ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/rights/contested-trademark> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/rights/acme> ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/rights/standpoint-acme> ;
+    gmeow:confidence 0.6 .
+
+<https://blackcatinformatics.ca/gmeow/examples/rights/claim-mark-holder-omega> a owl:Axiom ;
+    owl:annotatedProperty gmeow:trademarkHolder ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/rights/contested-trademark> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/rights/omega> ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/rights/standpoint-omega> ;
+    gmeow:confidence 0.6 .
+
+<https://blackcatinformatics.ca/gmeow/examples/rights/claim-photo-copyright-holder> a owl:Axiom ;
+    owl:annotatedProperty gmeow:copyrightHolder ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/rights/photo-copyright> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/rights/jane> ;
+    gmeow:assertedAt "2026-03-01T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.85 ;
+    gmeow:mappedFrom <https://blackcatinformatics.ca/gmeow/examples/rights/src-rights-register> .
+
+<https://blackcatinformatics.ca/gmeow/examples/rights/claim-photo-license> a owl:Axiom ;
+    owl:annotatedProperty gmeow:hasLicense ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/rights/photo> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/rights/cc-by-4> ;
+    gmeow:assertedAt "2026-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.95 ;
+    gmeow:mappedFrom <https://blackcatinformatics.ca/gmeow/examples/rights/src-license-deed> ;
+    gmeow:validFrom "2026-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:validUntil "2036-01-01T00:00:00+00:00"^^xsd:dateTime .
+
+<https://blackcatinformatics.ca/gmeow/examples/rights/claim-repo-spdx> a owl:Axiom ;
+    owl:annotatedProperty gmeow:spdxLicenseId ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/rights/repo-license> ;
+    owl:annotatedTarget "Apache-2.0" ;
+    gmeow:confidence 0.7 ;
+    gmeow:importanceLevel 2 ;
+    gmeow:mappedFrom <https://blackcatinformatics.ca/gmeow/examples/rights/agent-license-scanner> .
+
 <https://blackcatinformatics.ca/gmeow/reifier/48dcc08cba7412ad99d7a65cc9d0db751589d0a2> a owl:Axiom ;
     owl:annotatedProperty gmeow:knowsLanguage ;
     owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/alice> ;
@@ -63,7 +103,16 @@
 
 <https://blackcatinformatics.ca/gmeow/examples/gi-alice> gmeow:genderValue gmeow:genderWoman .
 
+<https://blackcatinformatics.ca/gmeow/examples/rights/photo> gmeow:hasLicense <https://blackcatinformatics.ca/gmeow/examples/rights/cc-by-4> .
+
+<https://blackcatinformatics.ca/gmeow/examples/rights/photo-copyright> gmeow:copyrightHolder <https://blackcatinformatics.ca/gmeow/examples/rights/jane> .
+
+<https://blackcatinformatics.ca/gmeow/examples/rights/repo-license> gmeow:spdxLicenseId "Apache-2.0" .
+
 <https://blackcatinformatics.ca/gmeow/examples/territory-x> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/polity-y> .
 
 <https://blackcatinformatics.ca/gmeow/examples/crimea> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/russia>,
         <https://blackcatinformatics.ca/gmeow/examples/ukraine> .
+
+<https://blackcatinformatics.ca/gmeow/examples/rights/contested-trademark> gmeow:trademarkHolder <https://blackcatinformatics.ca/gmeow/examples/rights/acme>,
+        <https://blackcatinformatics.ca/gmeow/examples/rights/omega> .

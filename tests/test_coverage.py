@@ -59,6 +59,24 @@ def test_contacts_trust_slice_covered() -> None:
     assert not missing, f"contacts-trust classes missing: {missing}"
 
 
+def test_rights_slice_covered() -> None:
+    report = run_coverage()
+    # The rights fixture exercises the IP relators, the deontic trio, the mark,
+    # and the schema.org/ODRL rights cluster — all must be covered (#21).
+    expected_covered = {
+        GMEOW + "RightsStatement",
+        GMEOW + "Copyright",
+        GMEOW + "License",
+        GMEOW + "Trademark",
+        GMEOW + "Mark",
+        GMEOW + "Permission",
+        GMEOW + "Prohibition",
+        GMEOW + "Duty",
+    }
+    missing = expected_covered - report.covered_classes
+    assert not missing, f"rights classes missing: {missing}"
+
+
 def test_import_provenance_slice_covered() -> None:
     report = run_coverage()
     expected_covered = {

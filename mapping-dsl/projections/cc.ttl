@@ -1,0 +1,43 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix cc:    <http://creativecommons.org/ns#> .
+
+# Projection mappings: GMEOW rights → pure Creative Commons Rights Expression
+# Language (CC REL, #21). Compiled to projections/cc.edoal.ttl +
+# queries/projections/cc.rq by `gmeow compile-mappings`. CC REL's scope is the
+# licence link + the attribution credit (its permits/requires/prohibits describe
+# CC's own well-known licence resources, which GMEOW links to by reference rather
+# than rewriting — Principle 5; the full deontic detail projects to ODRL instead).
+
+gmeow:mapCcLicenseLink a gmeow:ProjectionMapping ;
+    rdfs:label "hasLicense → cc:license"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "lic" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasLicense ; gmeow:objectVar "lic" ] ) ;
+        gmeow:edoalSource gmeow:hasLicense ] ;
+    gmeow:hasBinding [ gmeow:profile "cc" ; gmeow:toPredicate cc:license ; gmeow:relation "<=" ; gmeow:confidence 0.8 ] .
+
+gmeow:mapCcLicenseType a gmeow:ProjectionMapping ;
+    rdfs:label "License → cc:License"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "lic" ;
+        gmeow:atom ( [ gmeow:subjectVar "lic" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:License ] ) ;
+        gmeow:edoalSource gmeow:License ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "cc" ; gmeow:toClass cc:License ; gmeow:relation "<=" ; gmeow:confidence 0.8 ] .
+
+gmeow:mapCcAttributionName a gmeow:ProjectionMapping ;
+    rdfs:label "attributionText → cc:attributionName"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "credit" ;
+        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:attributionText ; gmeow:objectVar "credit" ] ) ;
+        gmeow:edoalSource gmeow:attributionText ] ;
+    gmeow:hasBinding [ gmeow:profile "cc" ; gmeow:toPredicate cc:attributionName ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .
+
+gmeow:mapCcAttributionUrl a gmeow:ProjectionMapping ;
+    rdfs:label "attributionUrl → cc:attributionURL"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "au" ;
+        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:attributionUrl ; gmeow:objectVar "au" ] ) ;
+        gmeow:edoalSource gmeow:attributionUrl ] ;
+    gmeow:hasBinding [ gmeow:profile "cc" ; gmeow:toPredicate cc:attributionURL ; gmeow:relation "=" ; gmeow:confidence 0.85 ] .

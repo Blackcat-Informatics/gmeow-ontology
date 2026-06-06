@@ -1,0 +1,17 @@
+# Expired-trademark WARNING fixture (#21). A Trademark whose status is EXPIRED but
+# is NOT suppressed (no gmeow:displayable false) trips
+# gmeow:ExpiredTrademarkSuppressionShape, which is sh:Warning severity (Principle 10:
+# suppression, never erasure; a source may lag the status change). The trademark is
+# otherwise well-formed (one mark, one holder), so NO Violation fires. run_shacl must
+# report a WARNING but still pass (result.ok is True).
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+ex:alice a gmeow:Person .
+ex:mark a gmeow:Mark ; gmeow:markText "OLDBRAND" .
+
+ex:trademark a gmeow:Trademark ;
+    gmeow:trademarkMark ex:mark ;
+    gmeow:trademarkHolder ex:alice ;
+    gmeow:trademarkStatus gmeow:trademarkStatusExpired .

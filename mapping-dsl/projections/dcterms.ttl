@@ -1,0 +1,52 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# Projection mappings: GMEOW rights → flat Dublin Core Terms rights (#21). Compiled
+# to projections/dcterms.edoal.ttl + queries/projections/dcterms.rq by
+# `gmeow compile-mappings`. This is the Dublin Core / DCAT-facing view — the same
+# flat dcterms:license / dcterms:rightsHolder / dcterms:rights that GMEOW already
+# states about itself on the root ontology, here generated for arbitrary instances.
+
+gmeow:mapDctermsLicense a gmeow:ProjectionMapping ;
+    rdfs:label "hasLicense → dcterms:license"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "lic" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasLicense ; gmeow:objectVar "lic" ] ) ;
+        gmeow:edoalSource gmeow:hasLicense ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:license ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDctermsRightsHolder a gmeow:ProjectionMapping ;
+    rdfs:label "Copyright relator holder → dcterms:rightsHolder (flatten)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cw" ; gmeow:value "holder" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "cw" ; gmeow:predicate gmeow:hasCopyright ; gmeow:objectVar "cr" ]
+            [ gmeow:subjectVar "cr" ; gmeow:predicate gmeow:copyrightHolder ; gmeow:objectVar "holder" ] ) ;
+        gmeow:edoalSource gmeow:copyrightHolder ] ;
+    gmeow:hasBinding [
+        gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:rightsHolder ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the Copyright relator (year, notice, status) collapses to a flat dcterms:rightsHolder edge" ] .
+
+gmeow:mapDctermsRights a gmeow:ProjectionMapping ;
+    rdfs:label "Copyright notice → dcterms:rights (flatten)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cw" ; gmeow:value "notice" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "cw" ; gmeow:predicate gmeow:hasCopyright ; gmeow:objectVar "cr" ]
+            [ gmeow:subjectVar "cr" ; gmeow:predicate gmeow:copyrightNotice ; gmeow:objectVar "notice" ] ) ;
+        gmeow:edoalSource gmeow:copyrightNotice ] ;
+    gmeow:hasBinding [
+        gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:rights ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "the structured Copyright collapses to a free-text dcterms:rights string" ] .
+
+gmeow:mapDctermsDateCopyrighted a gmeow:ProjectionMapping ;
+    rdfs:label "Copyright year → dcterms:dateCopyrighted (flatten)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cw" ; gmeow:value "yr" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "cw" ; gmeow:predicate gmeow:hasCopyright ; gmeow:objectVar "cr" ]
+            [ gmeow:subjectVar "cr" ; gmeow:predicate gmeow:copyrightYear ; gmeow:objectVar "yr" ] ) ;
+        gmeow:edoalSource gmeow:copyrightYear ] ;
+    gmeow:hasBinding [
+        gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:dateCopyrighted ; gmeow:relation "<=" ; gmeow:confidence 0.8 ] .

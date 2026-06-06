@@ -1,0 +1,30 @@
+# Malformed rights fixture (#21). Each rights relator trips its closed-world SHACL
+# Violation in shapes/gmeow-shapes.ttl: the RightsStatement governs no asset, the
+# Permission regulates no action, the Copyright has a work but no holder, the License
+# names no licensor, and the Trademark has neither mark nor holder. run_shacl over
+# this graph MUST NOT conform, and each shape names its violation.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:work a gmeow:MediaObject ; rdfs:label "A work"@en .
+
+# RightsStatement with NO statementAbout → "must govern exactly one asset".
+ex:rights a gmeow:RightsStatement ;
+    gmeow:hasPermission ex:perm .
+
+# Permission with NO ruleAction → "must regulate exactly one action".
+ex:perm a gmeow:Permission .
+
+# Copyright with a work but NO holder → "must have at least one holder".
+ex:copyright a gmeow:Copyright ;
+    gmeow:copyrightWork ex:work .
+
+# License with NO licensor → "must name at least one licensor".
+ex:license a gmeow:License ;
+    gmeow:spdxLicenseId "MIT" .
+
+# Trademark with NO mark and NO holder → both Violations fire.
+ex:trademark a gmeow:Trademark ;
+    gmeow:registrationNumber "TMA999999" .

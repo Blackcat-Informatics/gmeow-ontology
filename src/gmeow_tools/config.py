@@ -222,6 +222,15 @@ PREFIXES: dict[str, str] = {
     "esco": "http://data.europa.eu/esco/model#",
     "nmo": "http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#",
     "wot": "http://xmlns.com/wot/0.1/",
+    # Rights / IP / licensing (the rights module, #21)
+    "odrl": "http://www.w3.org/ns/odrl/2/",
+    "cc": "http://creativecommons.org/ns#",
+    "premis": "http://www.loc.gov/premis/rdf/v3/",
+    "rstmt": "https://rightsstatements.org/vocab/",
+    "ccpd": "https://creativecommons.org/publicdomain/",
+    "spdx": "http://spdx.org/rdf/terms#",
+    "spdxlic": "http://spdx.org/licenses/",
+    "ma": "http://www.w3.org/ns/ma-ont#",
     # Gender / sexuality identity vocabularies
     "gsso": "http://purl.obolibrary.org/obo/GSSO_",
     "homosaurus": "https://homosaurus.org/v4/",
@@ -406,6 +415,21 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
         "Nepomuk Message Ontology", PREFIXES["nmo"], "Unknown", "schema"
     ),
     "wot": AlignmentTarget("WOT Schema", PREFIXES["wot"], "Unknown", "schema"),
+    # Rights / IP / licensing (the rights module, #21). We only ever LINK to
+    # these (Principle 5); the policy below documents copy-eligibility, not intent.
+    "odrl": AlignmentTarget("ODRL 2.2", PREFIXES["odrl"], "W3C-Document", "schema"),
+    "cc": AlignmentTarget("CC REL", PREFIXES["cc"], "CC-BY-4.0", "schema"),
+    "premis": AlignmentTarget("PREMIS 3", PREFIXES["premis"], "CC-BY-4.0", "schema"),
+    "rstmt": AlignmentTarget(
+        "RightsStatements.org", PREFIXES["rstmt"], "CC0-1.0", "concept_scheme"
+    ),
+    "spdx": AlignmentTarget("SPDX", PREFIXES["spdx"], "CC-BY-3.0", "schema"),
+    "spdxlic": AlignmentTarget(
+        "SPDX License List", PREFIXES["spdxlic"], "CC0-1.0", "concept_scheme"
+    ),
+    "ma": AlignmentTarget(
+        "Ontology for Media Resources", PREFIXES["ma"], "W3C-Document", "schema"
+    ),
     "gsso": AlignmentTarget(
         "Gender, Sex, and Sexual Orientation Ontology",
         PREFIXES["gsso"],

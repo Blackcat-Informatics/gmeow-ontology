@@ -70,7 +70,10 @@ EDOAL = Namespace(PREFIXES["edoal"])
 DCTERMS = Namespace(PREFIXES["dcterms"])
 
 #: The projection profiles and the FnO catalog file name.
-_PROFILES = ("schema-org", "vcard", "foaf", "geosparql", "ical", "owl-time")
+_PROFILES = (
+    "schema-org", "vcard", "foaf", "geosparql", "ical", "owl-time",
+    "odrl", "cc", "dcterms", "spdx",
+)
 _FNO_FILE = "functions.fno.ttl"
 #: Hand-authored FnO file the compiler reads (for the lint) but never writes.
 _TRANSFORMS_FILE = "transforms.fno.ttl"

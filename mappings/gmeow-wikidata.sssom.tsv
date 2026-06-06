@@ -11,8 +11,32 @@
 #   skos: http://www.w3.org/2004/02/skos/core#
 #   wd: http://www.wikidata.org/entity/
 subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
+gmeow:Copyright	skos:closeMatch	wd:Q1297822	copyright	semapv:ManualMappingCuration	0.8	
 gmeow:Family	skos:exactMatch	wd:Q8436	family	semapv:ManualMappingCuration	0.9	
+gmeow:License	skos:closeMatch	wd:Q79719	license	semapv:ManualMappingCuration	0.8	
+gmeow:Mark	skos:closeMatch	wd:Q431289	brand	semapv:ManualMappingCuration	0.75	
 gmeow:Organization	skos:exactMatch	wd:Q43229	organization	semapv:ManualMappingCuration	0.9	
 gmeow:Person	skos:exactMatch	wd:Q5	human	semapv:ManualMappingCuration	0.95	
 gmeow:Place	skos:exactMatch	wd:Q2221906	geographic location	semapv:ManualMappingCuration	0.9	
+gmeow:RightsStatement	skos:relatedMatch	wd:Q3935748	Rights Expression Language	semapv:ManualMappingCuration	0.5	
+gmeow:RightsStatement	skos:relatedMatch	wd:Q930582	MPEG-21	semapv:ManualMappingCuration	0.4	
 gmeow:SoftwareProject	skos:exactMatch	wd:Q7397	software	semapv:ManualMappingCuration	0.8	
+gmeow:Trademark	skos:closeMatch	wd:Q167270	trademark	semapv:ManualMappingCuration	0.8	
+gmeow:copyrightHolder	skos:relatedMatch	wd:P3931	copyright holder	semapv:ManualMappingCuration	0.85	
+gmeow:copyrightStatus	skos:relatedMatch	wd:P6216	copyright status	semapv:ManualMappingCuration	0.8	
+gmeow:copyrightStatusPublicDomain	skos:closeMatch	wd:Q19652	public domain	semapv:ManualMappingCuration	0.85	
+gmeow:hasLicense	skos:relatedMatch	wd:P275	copyright license	semapv:ManualMappingCuration	0.8	
+gmeow:licenseFamilyCC	skos:closeMatch	wd:Q284742	Creative Commons license	semapv:ManualMappingCuration	0.85	
+gmeow:licenseFamilyCopyleft	skos:closeMatch	wd:Q1139274	copyleft license	semapv:ManualMappingCuration	0.8	
+gmeow:licenseFamilyPermissive	skos:closeMatch	wd:Q1437937	permissive free software license	semapv:ManualMappingCuration	0.75	
+gmeow:licenseFamilyProprietary	skos:closeMatch	wd:Q3238057	proprietary license	semapv:ManualMappingCuration	0.8	
+gmeow:rightsTypeCopyright	skos:closeMatch	wd:Q1297822	copyright	semapv:ManualMappingCuration	0.8	
+gmeow:rightsTypeDatabaseRight	skos:closeMatch	wd:Q688416	database right	semapv:ManualMappingCuration	0.8	
+gmeow:rightsTypeIndustrialDesign	skos:closeMatch	wd:Q252799	industrial design right	semapv:ManualMappingCuration	0.8	
+gmeow:rightsTypeMoralRights	skos:closeMatch	wd:Q1057599	moral rights	semapv:ManualMappingCuration	0.8	
+gmeow:rightsTypePatent	skos:closeMatch	wd:Q253623	patent	semapv:ManualMappingCuration	0.8	
+gmeow:rightsTypePlantBreedersRights	skos:closeMatch	wd:Q695112	plant breeders' rights	semapv:ManualMappingCuration	0.8	
+gmeow:rightsTypeRelatedRights	skos:closeMatch	wd:Q489344	related rights	semapv:ManualMappingCuration	0.8	
+gmeow:rightsTypeTradeSecret	skos:closeMatch	wd:Q602938	trade secret	semapv:ManualMappingCuration	0.8	
+gmeow:rightsTypeTrademark	skos:closeMatch	wd:Q167270	trademark	semapv:ManualMappingCuration	0.8	
+gmeow:trademarkMark	skos:relatedMatch	wd:P1716	brand	semapv:ManualMappingCuration	0.6	
