@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TypeGuard
 
-from rdflib import OWL, RDF, RDFS, SKOS, Graph, URIRef
+from rdflib import OWL, RDF, RDFS, SKOS, BNode, Graph, URIRef
 
 from gmeow_tools.config import (
     DIST_DIR,
@@ -152,6 +152,40 @@ def _in_namespace(subject: object) -> TypeGuard[URIRef]:
     return isinstance(subject, URIRef) and str(subject).startswith(NAMESPACE)
 
 
+def _describe_node(graph: Graph, node: object) -> str:
+    """Return a CURIE or a serialized union/intersection description of a class node."""
+    if isinstance(node, URIRef):
+        return curie(str(node))
+    if isinstance(node, BNode):
+        # Check union class
+        union_list = graph.value(node, OWL.unionOf)
+        if union_list:
+            elements = []
+            curr = union_list
+            while curr and curr != RDF.nil:
+                if not isinstance(curr, (URIRef, BNode)):
+                    break
+                first = graph.value(curr, RDF.first)
+                if first:
+                    elements.append(_describe_node(graph, first))
+                curr = graph.value(curr, RDF.rest)  # type: ignore[assignment]
+            return " | ".join(elements)
+        # Check intersection class
+        intersection_list = graph.value(node, OWL.intersectionOf)
+        if intersection_list:
+            elements = []
+            curr = intersection_list
+            while curr and curr != RDF.nil:
+                if not isinstance(curr, (URIRef, BNode)):
+                    break
+                first = graph.value(curr, RDF.first)
+                if first:
+                    elements.append(_describe_node(graph, first))
+                curr = graph.value(curr, RDF.rest)  # type: ignore[assignment]
+            return " & ".join(elements)
+    return str(node)
+
+
 def collect_terms(
     graph: Graph | None = None, alignments: Graph | None = None
 ) -> list[Term]:
@@ -204,8 +238,12 @@ def collect_terms(
                 label=_text(graph, s, RDFS.label),
                 definition=_text(graph, s, SKOS.definition),
                 prop_kind=kind,
-                domain=curie(str(domain_val)) if domain_val is not None else "",
-                range=curie(str(range_val)) if range_val is not None else "",
+                domain=(
+                    _describe_node(graph, domain_val) if domain_val is not None else ""
+                ),
+                range=(
+                    _describe_node(graph, range_val) if range_val is not None else ""
+                ),
                 functional=(s, RDF.type, OWL.FunctionalProperty) in graph,
                 sub_property_of=_curies(graph, s, RDFS.subPropertyOf),
                 alignments=_alignments(alignments, s),

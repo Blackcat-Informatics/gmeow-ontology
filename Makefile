@@ -104,8 +104,9 @@ normalize: ## Canonicalize the authored ontology sources (rewrites files).
 build: ## Build all serializations + JSON-LD context + apache.conf into dist/.
 	uv run gmeow build
 
-export: ## Generate flattened exports (CSV/CSVW, Markdown, JSONL, llms.txt) into dist/.
+export: ## Generate flattened exports (CSV/CSVW, Markdown, JSONL, llms.txt) into dist/ and copy llms.txt to root.
 	uv run gmeow export
+	cp dist/llms.txt llms.txt
 
 project: compile-mappings ## Project GMEOW data to pure schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profiles (FnO/EDOAL).
 	uv run gmeow project

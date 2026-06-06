@@ -1,0 +1,10 @@
+# Cursor/Windsurf Agent Rules (.cursorrules)
+
+Refer to [AGENTS.md](./AGENTS.md) in the project root for the canonical build commands, testing instructions, directory layout, and strict ontological principles (defined in [CONSTITUTION.md](./CONSTITUTION.md)).
+
+## Quick Commands
+* Run quality gate: `make check`
+* Run tests: `make test`
+* Format code: `make fmt`
+* Compile mappings: `make compile-mappings`
+* Compile statements: `make compile-statements`
