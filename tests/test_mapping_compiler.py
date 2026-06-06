@@ -34,13 +34,16 @@ def test_dsl_parses() -> None:
     # Every SSSOM data row became a TermEquivalence cell (incl. the 7 gUFO↔BFO
     # foundational-spine cells, issue #40, the 13 standpoint cells — PROV-O x3,
     # nanopub, CRMinf x3, Wikidata x2, schema.org, Web Annotation, DnS x2, #43 —
-    # and the 3 pronoun-set Wikidata cells, #46).
-    assert len(dsl.equivalences) == 451
+    # the 3 pronoun-set Wikidata cells, #46, and the maximal rights + rights-Wikidata
+    # cells, #21 — ODRL action/constraint/operator/conflict vocabularies, CC REL,
+    # dcterms, schema.org, SPDX, PREMIS, RightsStatements.org, ma-ont, Wikidata).
+    assert len(dsl.equivalences) == 676
     # 19 projection transforms declared (incl. fnPronounSetToText, #46).
     assert len(dsl.functions) == 19
-    # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint, gmeow-events).
-    assert len(dsl.mapping_sets) == 15
-    # Projection cells across all six profiles (incl. ical + owl-time).
+    # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint, gmeow-events,
+    # gmeow-rights).
+    assert len(dsl.mapping_sets) == 16
+    # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}
     assert profiles == set(_PROFILES)

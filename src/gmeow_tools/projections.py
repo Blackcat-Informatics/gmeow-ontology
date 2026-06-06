@@ -36,12 +36,17 @@ PROFILES: dict[str, Profile] = {
     "foaf": Profile("foaf", ("foaf", "wgs84")),
     "ical": Profile("ical", ("ical",)),
     "owl-time": Profile("owl-time", ("time",)),
+    "odrl": Profile("odrl", ("odrl",)),
+    "cc": Profile("cc", ("cc",)),
+    "dcterms": Profile("dcterms", ("dcterms",)),
+    "spdx": Profile("spdx", ("spdx",)),
 }
 
 #: Worked-example inputs (locations + naming + languages + identity + contacts +
-#: events). The events slice drives the schema.org event-role + iCalendar VEVENT
-#: projections; its contested-fact variant is excluded so the published examples
-#: stay neutral.
+#: events + rights). The events slice drives the schema.org event-role + iCalendar
+#: VEVENT projections; the rights slice drives the ODRL / CC REL / Dublin Core
+#: rights projections. Contested-fact variants are excluded so the published
+#: examples stay neutral.
 _EXAMPLE_FIXTURES = (
     "places.ttl",
     "names.ttl",
@@ -49,6 +54,7 @@ _EXAMPLE_FIXTURES = (
     "identity.ttl",
     "contact-fields.ttl",
     "events.ttl",
+    "rights.ttl",
 )
 
 

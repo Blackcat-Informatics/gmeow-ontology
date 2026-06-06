@@ -438,3 +438,157 @@ gmeow:CorrectedEventSuppressionShape
             }
         """ ;
     ] .
+
+# --------------------------------------------------------------------------- #
+# Rights / IP module (#21). Closed-world well-formedness for the rights relators
+# (the SHACL counterpart of the EL someValuesFrom mediation axioms in rights.ttl),
+# plus an expired-right suppression warning (Principle 10). The generic
+# NoPreferredClaimShape already forbids any preferred / primary right (Principle 9).
+# --------------------------------------------------------------------------- #
+
+# A RightsStatement governs exactly one asset (mirrors the someValuesFrom on
+# gmeow:statementAbout).
+gmeow:RightsStatementShape
+    a sh:NodeShape ;
+    rdfs:label "RightsStatement well-formedness shape" ;
+    sh:targetClass gmeow:RightsStatement ;
+    sh:property [
+        sh:path gmeow:statementAbout ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A RightsStatement must govern exactly one asset (gmeow:statementAbout)." ;
+    ] .
+
+# Every deontic rule regulates exactly one action (mirrors the someValuesFrom on
+# gmeow:ruleAction). Targets the concrete rule kinds directly — pyshacl does not
+# infer subclass membership, so targeting the abstract gmeow:Rule would miss
+# instances typed only as Permission / Prohibition / Duty.
+gmeow:RuleHasActionShape
+    a sh:NodeShape ;
+    rdfs:label "Rule well-formedness shape" ;
+    sh:targetClass gmeow:Permission ;
+    sh:targetClass gmeow:Prohibition ;
+    sh:targetClass gmeow:Duty ;
+    sh:property [
+        sh:path gmeow:ruleAction ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A rule (Permission / Prohibition / Duty) must regulate exactly one action (gmeow:ruleAction)." ;
+    ] .
+
+# A Copyright relator mediates exactly one work and at least one holder.
+gmeow:CopyrightShape
+    a sh:NodeShape ;
+    rdfs:label "Copyright well-formedness shape" ;
+    sh:targetClass gmeow:Copyright ;
+    sh:property [
+        sh:path gmeow:copyrightWork ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Copyright must be about exactly one work (gmeow:copyrightWork)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:copyrightHolder ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Copyright must have at least one holder (gmeow:copyrightHolder)." ;
+    ] .
+
+# A Licence is granted by at least one licensor (its other parties / work are
+# optional — a blanket or open licence need not name a licensee).
+gmeow:LicenseShape
+    a sh:NodeShape ;
+    rdfs:label "License well-formedness shape" ;
+    sh:targetClass gmeow:License ;
+    sh:property [
+        sh:path gmeow:licensor ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A License must name at least one licensor (gmeow:licensor)." ;
+    ] .
+
+# A Trademark mediates exactly one mark and at least one holder.
+gmeow:TrademarkShape
+    a sh:NodeShape ;
+    rdfs:label "Trademark well-formedness shape" ;
+    sh:targetClass gmeow:Trademark ;
+    sh:property [
+        sh:path gmeow:trademarkMark ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Trademark must be about exactly one mark (gmeow:trademarkMark)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:trademarkHolder ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Trademark must have at least one holder (gmeow:trademarkHolder)." ;
+    ] .
+
+# Suppression, never erasure (Principle 10): an expired / cancelled trademark
+# should set gmeow:displayable false rather than be deleted. Warning (a source
+# may lag the status change).
+gmeow:ExpiredTrademarkSuppressionShape
+    a sh:NodeShape ;
+    rdfs:label "Expired / cancelled trademark suppression shape" ;
+    sh:targetClass gmeow:Trademark ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        sh:message "An expired or cancelled trademark should set gmeow:displayable false — suppressed from display, never deleted." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/trademarkStatus> ?st .
+                FILTER( ?st IN (
+                    <https://blackcatinformatics.ca/gmeow/trademarkStatusExpired>,
+                    <https://blackcatinformatics.ca/gmeow/trademarkStatusCancelled> ) )
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
+                }
+            }
+        """ ;
+    ] .
+
+# Constraint algebra well-formedness (#21) — the SHACL counterpart of the EL
+# someValuesFrom mediation axioms on gmeow:AtomicConstraint / gmeow:LogicalConstraint.
+gmeow:AtomicConstraintShape
+    a sh:NodeShape ;
+    rdfs:label "Atomic constraint well-formedness shape" ;
+    sh:targetClass gmeow:AtomicConstraint ;
+    sh:property [
+        sh:path gmeow:leftOperand ;
+        sh:minCount 1 ; sh:maxCount 1 ; sh:severity sh:Violation ;
+        sh:message "An atomic constraint must have exactly one gmeow:leftOperand." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:constraintOperator ;
+        sh:minCount 1 ; sh:maxCount 1 ; sh:severity sh:Violation ;
+        sh:message "An atomic constraint must have exactly one gmeow:constraintOperator." ;
+    ] ;
+    # Exactly one right-hand side: a literal value XOR an IRI reference.
+    sh:xone (
+        [ sh:property [ sh:path gmeow:rightOperand ;
+            sh:minCount 1 ; sh:maxCount 1 ; sh:severity sh:Violation ;
+            sh:message "An atomic constraint must have exactly one gmeow:rightOperand when no reference is given." ] ]
+        [ sh:property [ sh:path gmeow:rightOperandReference ;
+            sh:minCount 1 ; sh:maxCount 1 ; sh:severity sh:Violation ;
+            sh:message "An atomic constraint must have exactly one gmeow:rightOperandReference when no literal value is given." ] ]
+    ) .
+
+gmeow:LogicalConstraintShape
+    a sh:NodeShape ;
+    rdfs:label "Logical constraint well-formedness shape" ;
+    sh:targetClass gmeow:LogicalConstraint ;
+    sh:property [
+        sh:path gmeow:constraintLogic ;
+        sh:minCount 1 ; sh:maxCount 1 ; sh:severity sh:Violation ;
+        sh:message "A logical constraint must have exactly one gmeow:constraintLogic operator." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:logicConstraintMember ;
+        sh:minCount 2 ; sh:severity sh:Violation ;
+        sh:message "A logical constraint must combine at least two member constraints." ;
+    ] .

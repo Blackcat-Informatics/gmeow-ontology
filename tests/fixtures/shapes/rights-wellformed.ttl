@@ -1,0 +1,34 @@
+# Well-formed rights fixture (#21). Every rights relator satisfies the closed-world
+# SHACL shapes in shapes/gmeow-shapes.ttl: the RightsStatement governs exactly one
+# asset, each rule regulates exactly one action, the Copyright has a work + holder,
+# the License names a licensor, the Trademark has a mark + holder (and is registered,
+# so the suppression warning does not fire). run_shacl over this graph MUST conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:work a gmeow:MediaObject ; rdfs:label "A work"@en .
+ex:alice a gmeow:Person ; rdfs:label "Alice"@en .
+
+ex:rights a gmeow:RightsStatement ;
+    gmeow:statementAbout ex:work ;
+    gmeow:hasPermission ex:perm .
+
+ex:perm a gmeow:Permission ;
+    gmeow:ruleAction gmeow:actionReproduce .
+
+ex:copyright a gmeow:Copyright ;
+    gmeow:copyrightWork ex:work ;
+    gmeow:copyrightHolder ex:alice .
+
+ex:license a gmeow:License ;
+    gmeow:licensor ex:alice ;
+    gmeow:spdxLicenseId "MIT" .
+
+ex:mark a gmeow:Mark ; gmeow:markText "EXAMPLE" .
+
+ex:trademark a gmeow:Trademark ;
+    gmeow:trademarkMark ex:mark ;
+    gmeow:trademarkHolder ex:alice ;
+    gmeow:trademarkStatus gmeow:trademarkStatusRegistered .
