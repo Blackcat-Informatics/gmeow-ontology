@@ -178,3 +178,12 @@ def test_internal_language_tags() -> None:
     assert (tag, RDF.type, OWL.FunctionalProperty) in graph
     assert (tag, RDFS.domain, URIRef(GMEOW + "Language")) in graph
     assert (tag, RDFS.range, URIRef("http://www.w3.org/2001/XMLSchema#string")) in graph
+
+
+def test_projection_bcp47_tags_are_distinct_from_registry_codes() -> None:
+    graph = _graph()
+    tag = URIRef(GMEOW + "bcp47Tag")
+    assert (tag, RDF.type, OWL.DatatypeProperty) in graph
+    assert (tag, RDF.type, OWL.FunctionalProperty) not in graph
+    assert (tag, RDFS.domain, URIRef(GMEOW + "Language")) in graph
+    assert (tag, RDFS.range, URIRef("http://www.w3.org/2001/XMLSchema#language")) in graph

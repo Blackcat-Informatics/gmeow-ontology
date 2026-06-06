@@ -13,7 +13,9 @@ gmeow:mapOntolexName a gmeow:ProjectionMapping ;
         gmeow:anchor "app" ; gmeow:value "fullName" ;
         gmeow:atom (
             [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:fullName ; gmeow:objectVar "fullName" ]
-            [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:nameLanguage ; gmeow:objectVar "lang" ; gmeow:optional true ] ) ;
+            [ gmeow:optionalGroup (
+                [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:nameLanguage ; gmeow:objectVar "lang" ]
+                [ gmeow:subjectVar "lang" ; gmeow:predicate gmeow:bcp47Tag ; gmeow:objectVar "langTag" ] ) ] ) ;
         gmeow:mint [ gmeow:bindVar "form" ; gmeow:bindExpr
             [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
                 [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
@@ -28,5 +30,5 @@ gmeow:mapOntolexName a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "app" ; gmeow:tPred ontolex:lexicalForm ; gmeow:tObj "form" ]
             [ gmeow:tSubj "form" ; gmeow:tPred rdf:type ; gmeow:tObjValue ontolex:Form ]
             [ gmeow:tSubj "form" ; gmeow:tPred ontolex:writtenRep ; gmeow:tObj "fullName" ]
-            [ gmeow:tSubj "app" ; gmeow:tPred lime:language ; gmeow:tObj "lang" ] ) ;
+            [ gmeow:tSubj "app" ; gmeow:tPred lime:language ; gmeow:tObj "langTag" ] ) ;
         gmeow:lossyDrop "structured name parts, name usage contexts, register/audience" ] .

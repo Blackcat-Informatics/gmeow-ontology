@@ -115,10 +115,10 @@ WHERE {
             ?app gmeow:nameLanguage ?_lang .
             ?_lang gmeow:languageTag ?_intTag .
             FILTER(isLiteral(?dispName) && LANG(?dispName) = ?_intTag)
-            ?_lang gmeow:languageCode ?_extCode .
+            ?_lang gmeow:bcp47Tag ?_extTag .
             OPTIONAL { ?app gmeow:nameScript ?_sc . }
         }
-        BIND ( IF(BOUND(?_extCode), STRLANG(STR(?dispName), IF(BOUND(?_sc), CONCAT(?_extCode, '-', ?_sc), ?_extCode)), ?dispName) AS ?_final_dispName )
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?dispName), IF(BOUND(?_sc), CONCAT(STR(?_extTag), '-', ?_sc), STR(?_extTag))), ?dispName) AS ?_final_dispName )
     }
     UNION {
         ?ent gmeow:hasAppellation|gmeow:hasName ?app .
@@ -130,10 +130,10 @@ WHERE {
             ?app gmeow:nameLanguage ?_lang .
             ?_lang gmeow:languageTag ?_intTag .
             FILTER(isLiteral(?given) && LANG(?given) = ?_intTag)
-            ?_lang gmeow:languageCode ?_extCode .
+            ?_lang gmeow:bcp47Tag ?_extTag .
             OPTIONAL { ?app gmeow:nameScript ?_sc . }
         }
-        BIND ( IF(BOUND(?_extCode), STRLANG(STR(?given), IF(BOUND(?_sc), CONCAT(?_extCode, '-', ?_sc), ?_extCode)), ?given) AS ?_final_given )
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?given), IF(BOUND(?_sc), CONCAT(STR(?_extTag), '-', ?_sc), STR(?_extTag))), ?given) AS ?_final_given )
     }
     UNION {
         ?ent gmeow:hasAppellation|gmeow:hasName ?app .
@@ -145,10 +145,10 @@ WHERE {
             ?app gmeow:nameLanguage ?_lang .
             ?_lang gmeow:languageTag ?_intTag .
             FILTER(isLiteral(?family) && LANG(?family) = ?_intTag)
-            ?_lang gmeow:languageCode ?_extCode .
+            ?_lang gmeow:bcp47Tag ?_extTag .
             OPTIONAL { ?app gmeow:nameScript ?_sc . }
         }
-        BIND ( IF(BOUND(?_extCode), STRLANG(STR(?family), IF(BOUND(?_sc), CONCAT(?_extCode, '-', ?_sc), ?_extCode)), ?family) AS ?_final_family )
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?family), IF(BOUND(?_sc), CONCAT(STR(?_extTag), '-', ?_sc), STR(?_extTag))), ?family) AS ?_final_family )
     }
     UNION {
         ?ent gmeow:hasGenderIdentity ?gi .
@@ -196,9 +196,9 @@ WHERE {
         OPTIONAL {
             ?_lang gmeow:languageTag ?_intTag .
             FILTER(isLiteral(?desc) && LANG(?desc) = ?_intTag)
-            ?_lang gmeow:languageCode ?_extCode .
+            ?_lang gmeow:bcp47Tag ?_extTag .
         }
-        BIND ( IF(BOUND(?_extCode), STRLANG(STR(?desc), ?_extCode), ?desc) AS ?_final_desc )
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?desc), STR(?_extTag)), ?desc) AS ?_final_desc )
     }
     UNION {
         ?ent gmeow:hasWebPage ?wp .

@@ -272,6 +272,15 @@ def test_render_expr_extensions() -> None:
     assert render_expr(Expr(op=GM.opNot, args=(Expr(var="b"),))) == "(!?b)"
 
 
+def test_retagging_uses_dedicated_bcp47_tag() -> None:
+    """Retagging must not treat every registry languageCode as a BCP-47 tag."""
+    ontolex = emit_sparql(load_dsl(), "ontolex")
+
+    assert "gmeow:bcp47Tag ?_extTag" in ontolex
+    assert "gmeow:languageCode ?_ext" not in ontolex
+    assert "lime:language ?langTag" in ontolex
+
+
 def test_render_path_extensions() -> None:
     from rdflib.collection import Collection
 

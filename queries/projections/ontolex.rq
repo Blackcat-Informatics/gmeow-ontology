@@ -9,21 +9,24 @@ CONSTRUCT {
     ?app ontolex:lexicalForm ?form .
     ?form a ontolex:Form .
     ?form ontolex:writtenRep ?_final_fullName .
-    ?app lime:language ?lang .
+    ?app lime:language ?langTag .
 }
 WHERE {
     {
         ?app gmeow:fullName ?fullName .
-        OPTIONAL { ?app gmeow:nameLanguage ?lang . }
+        OPTIONAL {
+            ?app gmeow:nameLanguage ?lang .
+            ?lang gmeow:bcp47Tag ?langTag .
+        }
         BIND ( IRI(CONCAT(STR(?app), "-form")) AS ?form )
         FILTER NOT EXISTS { ?app gmeow:displayable false . }
         OPTIONAL {
             ?app gmeow:nameLanguage ?_lang .
             ?_lang gmeow:languageTag ?_intTag .
             FILTER(isLiteral(?fullName) && LANG(?fullName) = ?_intTag)
-            ?_lang gmeow:languageCode ?_extCode .
+            ?_lang gmeow:bcp47Tag ?_extTag .
             OPTIONAL { ?app gmeow:nameScript ?_sc . }
         }
-        BIND ( IF(BOUND(?_extCode), STRLANG(STR(?fullName), IF(BOUND(?_sc), CONCAT(?_extCode, '-', ?_sc), ?_extCode)), ?fullName) AS ?_final_fullName )
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?fullName), IF(BOUND(?_sc), CONCAT(STR(?_extTag), '-', ?_sc), STR(?_extTag))), ?fullName) AS ?_final_fullName )
     }
 }

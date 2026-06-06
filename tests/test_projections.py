@@ -246,8 +246,8 @@ def test_ontolex_projection() -> None:
     # 3. Form should have ontolex:writtenRep with retagged language tag ("en").
     assert (form, ontolex_written_rep, Literal("Patrick Colm Audley", lang="en")) in g
 
-    # 4. ex:nameLatin should have lime:language linking to ex:langEn.
-    assert (name_latin, lime_language, URIRef(NAMES + "langEn")) in g
+    # 4. ex:nameLatin should have lime:language as the external BCP-47 tag literal.
+    assert (name_latin, lime_language, Literal("en", datatype=XSD.language)) in g
 
     # 5. ex:nameHan should project with Hans script code (e.g. "zh-Hans").
     name_han = URIRef(NAMES + "nameHan")

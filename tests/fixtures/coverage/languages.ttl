@@ -12,6 +12,7 @@
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
 @prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
 @prefix wd:     <http://www.wikidata.org/entity/> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
 
 # --- (a) Japanese: four co-equal, co-mingled writing systems ---------------- #
 
@@ -20,6 +21,7 @@ ex:japanese a gmeow:Language ;
     gmeow:languageOrigin gmeow:originNatural ;
     gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
     gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:bcp47Tag "ja"^^xsd:language ;
     gmeow:languageCode "ja" ;
     skos:exactMatch wd:Q5287 ;
     gmeow:usesWritingSystem ex:wsHan , ex:wsHiragana , ex:wsKatakana , ex:wsRomaji ;
@@ -105,6 +107,7 @@ ex:asl a gmeow:Language ;
     gmeow:languageOrigin gmeow:originNatural ;
     gmeow:languageModality gmeow:modalitySigned ;
     gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:bcp47Tag "ase"^^xsd:language ;
     gmeow:languageCode "ase" ;
     gmeow:hasAppellation ex:aslName .
 ex:aslName a gmeow:Appellation ;
@@ -130,6 +133,7 @@ ex:german a gmeow:Language ;
     gmeow:languageOrigin gmeow:originNatural ;
     gmeow:languageModality gmeow:modalitySpoken , gmeow:modalityWritten ;
     gmeow:languageStatus gmeow:statusLiving ;
+    gmeow:bcp47Tag "de"^^xsd:language ;
     gmeow:languageCode "de" ;
     gmeow:usesWritingSystem ex:wsLatin ;
     gmeow:hasAppellation ex:deEndonym , ex:deExonym .
@@ -143,7 +147,7 @@ ex:deExonym a gmeow:Appellation ;
 
 ex:english a gmeow:Language ;
     gmeow:languageTag "x-gmeow-english" ;
-    gmeow:languageOrigin gmeow:originNatural ; gmeow:languageCode "en" ;
+    gmeow:languageOrigin gmeow:originNatural ; gmeow:bcp47Tag "en"^^xsd:language ; gmeow:languageCode "en" ;
     gmeow:hasAppellation ex:enName .
 ex:enName a gmeow:Appellation ;
     gmeow:fullName "English"@x-gmeow-english ; gmeow:namePurpose gmeow:namePurposeExonym .

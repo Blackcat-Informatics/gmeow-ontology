@@ -19,14 +19,14 @@
 # --- First-class languages (gmeow:nameLanguage is an object property → Language) #
 # Registry-INDEPENDENT: the IRI is identity, gmeow:languageCode is an OPTIONAL tag.
 
-ex:langEn  a gmeow:Language ; gmeow:languageTag "x-gmeow-english" ; gmeow:languageCode "en" .
-ex:langZh  a gmeow:Language ; gmeow:languageTag "x-gmeow-chinese" ; gmeow:languageCode "zh" .
-ex:langEs  a gmeow:Language ; gmeow:languageTag "x-gmeow-spanish" ; gmeow:languageCode "es" .
-ex:langKo  a gmeow:Language ; gmeow:languageTag "x-gmeow-korean" ; gmeow:languageCode "ko" .
-ex:langBan a gmeow:Language ; gmeow:languageTag "x-gmeow-balinese" ; gmeow:languageCode "ban" .
-ex:langLa  a gmeow:Language ; gmeow:languageTag "x-gmeow-latin" ; gmeow:languageCode "la" .
-ex:langDe  a gmeow:Language ; gmeow:languageTag "x-gmeow-german" ; gmeow:languageCode "de" .
-ex:langId  a gmeow:Language ; gmeow:languageTag "x-gmeow-indonesian" ; gmeow:languageCode "id" .
+ex:langEn  a gmeow:Language ; gmeow:languageTag "x-gmeow-english" ; gmeow:bcp47Tag "en"^^xsd:language ; gmeow:languageCode "en" .
+ex:langZh  a gmeow:Language ; gmeow:languageTag "x-gmeow-chinese" ; gmeow:bcp47Tag "zh"^^xsd:language ; gmeow:languageCode "zh" .
+ex:langEs  a gmeow:Language ; gmeow:languageTag "x-gmeow-spanish" ; gmeow:bcp47Tag "es"^^xsd:language ; gmeow:languageCode "es" .
+ex:langKo  a gmeow:Language ; gmeow:languageTag "x-gmeow-korean" ; gmeow:bcp47Tag "ko"^^xsd:language ; gmeow:languageCode "ko" .
+ex:langBan a gmeow:Language ; gmeow:languageTag "x-gmeow-balinese" ; gmeow:bcp47Tag "ban"^^xsd:language ; gmeow:languageCode "ban" .
+ex:langLa  a gmeow:Language ; gmeow:languageTag "x-gmeow-latin" ; gmeow:bcp47Tag "la"^^xsd:language ; gmeow:languageCode "la" .
+ex:langDe  a gmeow:Language ; gmeow:languageTag "x-gmeow-german" ; gmeow:bcp47Tag "de"^^xsd:language ; gmeow:languageCode "de" .
+ex:langId  a gmeow:Language ; gmeow:languageTag "x-gmeow-indonesian" ; gmeow:bcp47Tag "id"^^xsd:language ; gmeow:languageCode "id" .
 
 # --- Co-equal multilingual names (anti-colonial centrepiece) ---------------- #
 
@@ -114,6 +114,16 @@ ex:alexChosen a gmeow:PersonName ;
     gmeow:namePurpose gmeow:namePurposeLegal ;
     gmeow:displayable true ;
     gmeow:hasNamePart ex:arGiven , ex:arSurname .
+
+ex:arGiven a gmeow:NamePart ;
+    gmeow:namePartType gmeow:namePartGiven ;
+    gmeow:partText "Alex"@x-gmeow-english ;
+    gmeow:partOrder 0 .
+
+ex:arSurname a gmeow:NamePart ;
+    gmeow:namePartType gmeow:namePartFamily ;
+    gmeow:partText "Rivera"@x-gmeow-english ;
+    gmeow:partOrder 1 .
 
 ex:alexFormer a gmeow:PersonName ;
     gmeow:fullName "[suppressed former name]"@x-gmeow-english ;

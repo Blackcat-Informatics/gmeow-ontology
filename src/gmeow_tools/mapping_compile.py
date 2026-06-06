@@ -794,15 +794,15 @@ def _branch(cell: ProjectionCell, b: ProfileBinding) -> str:
                     f"    ?{parent_var} gmeow:nameLanguage ?_lang .",
                     "    ?_lang gmeow:languageTag ?_intTag .",
                     f"    FILTER(isLiteral(?{val}) && LANG(?{val}) = ?_intTag)",
-                    "    ?_lang gmeow:languageCode ?_extCode .",
+                    "    ?_lang gmeow:bcp47Tag ?_extTag .",
                     f"    OPTIONAL {{ ?{parent_var} gmeow:nameScript ?_sc . }}",
                     "}",
                 ]
             )
             bind_expr = (
-                f"IF(BOUND(?_extCode), "
+                f"IF(BOUND(?_extTag), "
                 f"STRLANG(STR(?{val}), "
-                f"IF(BOUND(?_sc), CONCAT(?_extCode, '-', ?_sc), ?_extCode)), "
+                f"IF(BOUND(?_sc), CONCAT(STR(?_extTag), '-', ?_sc), STR(?_extTag))), "
                 f"?{val})"
             )
     elif p.edoal_source in (GM.partText, GM.partExpansion, GM.romanization):
@@ -835,15 +835,15 @@ def _branch(cell: ProjectionCell, b: ProfileBinding) -> str:
                     f"    ?{app_var} gmeow:nameLanguage ?_lang .",
                     "    ?_lang gmeow:languageTag ?_intTag .",
                     f"    FILTER(isLiteral(?{val}) && LANG(?{val}) = ?_intTag)",
-                    "    ?_lang gmeow:languageCode ?_extCode .",
+                    "    ?_lang gmeow:bcp47Tag ?_extTag .",
                     f"    OPTIONAL {{ ?{app_var} gmeow:nameScript ?_sc . }}",
                     "}",
                 ]
             )
             bind_expr = (
-                f"IF(BOUND(?_extCode), "
+                f"IF(BOUND(?_extTag), "
                 f"STRLANG(STR(?{val}), "
-                f"IF(BOUND(?_sc), CONCAT(?_extCode, '-', ?_sc), ?_extCode)), "
+                f"IF(BOUND(?_sc), CONCAT(STR(?_extTag), '-', ?_sc), STR(?_extTag))), "
                 f"?{val})"
             )
     elif p.edoal_source in (GM.description, GM.designGoal):
@@ -852,11 +852,11 @@ def _branch(cell: ProjectionCell, b: ProfileBinding) -> str:
                 "OPTIONAL {",
                 "    ?_lang gmeow:languageTag ?_intTag .",
                 f"    FILTER(isLiteral(?{val}) && LANG(?{val}) = ?_intTag)",
-                "    ?_lang gmeow:languageCode ?_extCode .",
+                "    ?_lang gmeow:bcp47Tag ?_extTag .",
                 "}",
             ]
         )
-        bind_expr = f"IF(BOUND(?_extCode), STRLANG(STR(?{val}), ?_extCode), ?{val})"
+        bind_expr = f"IF(BOUND(?_extTag), STRLANG(STR(?{val}), STR(?_extTag)), ?{val})"
 
     if retag_lines and bind_expr:
         lines.extend(retag_lines)

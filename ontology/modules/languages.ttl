@@ -113,6 +113,14 @@ gmeow:languageTag
     skos:definition "The internal private-use BCP-47 language tag (e.g., 'x-gmeow-japanese') used for @lang annotations on string literals representing this language."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:bcp47Tag
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Language ;
+    rdfs:range xsd:language ;
+    rdfs:label "BCP-47 tag"@en ;
+    skos:definition "An OPTIONAL external BCP-47 language tag used only when projecting GMEOW's internal private-use literals into vocabularies that require standard language-tag literals. Non-functional because a language may expose several valid BCP-47 tags across script, region, or variant contexts; broad registry alignments such as ISO 639-3 codes and Glottocodes remain gmeow:languageCode values."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:languageCode
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Language ;
