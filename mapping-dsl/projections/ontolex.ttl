@@ -1,0 +1,32 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
+@prefix lime:    <http://www.w3.org/ns/lemon/lime#> .
+
+# Projection mappings: GMEOW → pure OntoLex-Lemon. Compiled to
+# projections/ontolex.edoal.ttl + queries/projections/ontolex.rq by `gmeow compile-mappings`.
+
+gmeow:mapOntolexName a gmeow:ProjectionMapping ;
+    rdfs:label "displayable Appellation → ontolex:LexicalEntry + Form + writtenRep"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "app" ; gmeow:value "fullName" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:fullName ; gmeow:objectVar "fullName" ]
+            [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:nameLanguage ; gmeow:objectVar "lang" ; gmeow:optional true ] ) ;
+        gmeow:mint [ gmeow:bindVar "form" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "app" ] ) ] "-form" ) ] ) ] ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:fullName ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ontolex" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget ontolex:LexicalEntry ; gmeow:edoalTargetKind "class" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "app" ; gmeow:tPred rdf:type ; gmeow:tObjValue ontolex:LexicalEntry ]
+            [ gmeow:tSubj "app" ; gmeow:tPred ontolex:lexicalForm ; gmeow:tObj "form" ]
+            [ gmeow:tSubj "form" ; gmeow:tPred rdf:type ; gmeow:tObjValue ontolex:Form ]
+            [ gmeow:tSubj "form" ; gmeow:tPred ontolex:writtenRep ; gmeow:tObj "fullName" ]
+            [ gmeow:tSubj "app" ; gmeow:tPred lime:language ; gmeow:tObj "lang" ] ) ;
+        gmeow:lossyDrop "structured name parts, name usage contexts, register/audience" ] .

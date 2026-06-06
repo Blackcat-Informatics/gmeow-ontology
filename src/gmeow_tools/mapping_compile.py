@@ -81,6 +81,7 @@ _PROFILES = (
     "cc",
     "dcterms",
     "spdx",
+    "ontolex",
 )
 _FNO_FILE = "functions.fno.ttl"
 #: Hand-authored FnO file the compiler reads (for the lint) but never writes.
@@ -705,9 +706,12 @@ def emit_sssom(dsl: Dsl) -> dict[str, str]:
 # --------------------------------------------------------------------------- #
 
 
-def _term(atom: Atom) -> str:
+def _term(atom: Atom, var_map: dict[str, str] | None = None) -> str:
     if atom.object_var is not None:
-        return f"?{atom.object_var}"
+        obj_var = atom.object_var
+        if var_map and obj_var in var_map:
+            obj_var = var_map[obj_var]
+        return f"?{obj_var}"
     if atom.object_value is not None:
         return curie(atom.object_value)
     if atom.object_literal is not None:
@@ -718,8 +722,11 @@ def _term(atom: Atom) -> str:
     raise CompileError("atom has no object")
 
 
-def _atom_triple(atom: Atom) -> str:
-    subj = f"?{atom.subject_var}"
+def _atom_triple(atom: Atom, var_map: dict[str, str] | None = None) -> str:
+    subj_var = atom.subject_var
+    if var_map and subj_var in var_map:
+        subj_var = var_map[subj_var]
+    subj = f"?{subj_var}"
     if atom.path is not None:
         pred = atom.path
     elif atom.predicate == RDF.type and atom.object_value is not None:
@@ -728,7 +735,7 @@ def _atom_triple(atom: Atom) -> str:
         pred = curie(atom.predicate)
     else:
         raise CompileError(f"atom on ?{atom.subject_var} has no predicate/path")
-    return f"{subj} {pred} {_term(atom)} ."
+    return f"{subj} {pred} {_term(atom, var_map)} ."
 
 
 def _class_var(pattern: MappingPattern) -> str:
@@ -769,20 +776,124 @@ def _branch(cell: ProjectionCell, b: ProfileBinding) -> str:
         lines.append(f"FILTER NOT EXISTS {{ {_atom_triple(atom)} }}")
     for flt in p.filters:
         lines.append(f"FILTER( {render_expr(flt)} )")
+
+    # Auto-retag GMEOW internal language tags (x-gmeow-...)
+    val = p.value
+    retag_lines = []
+    bind_expr = None
+    if p.edoal_source == GM.fullName:
+        parent_var = None
+        for a in p.atoms:
+            if getattr(a, "predicate", None) == GM.fullName:
+                parent_var = getattr(a, "subject_var", None)
+                break
+        if parent_var:
+            retag_lines.extend(
+                [
+                    "OPTIONAL {",
+                    f"    ?{parent_var} gmeow:nameLanguage ?_lang .",
+                    "    ?_lang gmeow:languageTag ?_intTag .",
+                    f"    FILTER(isLiteral(?{val}) && LANG(?{val}) = ?_intTag)",
+                    "    ?_lang gmeow:languageCode ?_extCode .",
+                    f"    OPTIONAL {{ ?{parent_var} gmeow:nameScript ?_sc . }}",
+                    "}",
+                ]
+            )
+            bind_expr = (
+                f"IF(BOUND(?_extCode), "
+                f"STRLANG(STR(?{val}), "
+                f"IF(BOUND(?_sc), CONCAT(?_extCode, '-', ?_sc), ?_extCode)), "
+                f"?{val})"
+            )
+    elif p.edoal_source in (GM.partText, GM.partExpansion, GM.romanization):
+        np_var = None
+        for a in p.atoms:
+            if getattr(a, "predicate", None) in (
+                GM.partText,
+                GM.partExpansion,
+                GM.romanization,
+            ):
+                np_var = getattr(a, "subject_var", None)
+                break
+        app_var = None
+        for a in p.atoms:
+            if (
+                getattr(a, "predicate", None) == GM.hasNamePart
+                and getattr(a, "object_var", None) == np_var
+            ):
+                app_var = getattr(a, "subject_var", None)
+                break
+        if not app_var and np_var:
+            for a in p.atoms:
+                if getattr(a, "object_var", None) == np_var:
+                    app_var = getattr(a, "subject_var", None)
+                    break
+        if app_var and np_var:
+            retag_lines.extend(
+                [
+                    "OPTIONAL {",
+                    f"    ?{app_var} gmeow:nameLanguage ?_lang .",
+                    "    ?_lang gmeow:languageTag ?_intTag .",
+                    f"    FILTER(isLiteral(?{val}) && LANG(?{val}) = ?_intTag)",
+                    "    ?_lang gmeow:languageCode ?_extCode .",
+                    f"    OPTIONAL {{ ?{app_var} gmeow:nameScript ?_sc . }}",
+                    "}",
+                ]
+            )
+            bind_expr = (
+                f"IF(BOUND(?_extCode), "
+                f"STRLANG(STR(?{val}), "
+                f"IF(BOUND(?_sc), CONCAT(?_extCode, '-', ?_sc), ?_extCode)), "
+                f"?{val})"
+            )
+    elif p.edoal_source in (GM.description, GM.designGoal):
+        retag_lines.extend(
+            [
+                "OPTIONAL {",
+                "    ?_lang gmeow:languageTag ?_intTag .",
+                f"    FILTER(isLiteral(?{val}) && LANG(?{val}) = ?_intTag)",
+                "    ?_lang gmeow:languageCode ?_extCode .",
+                "}",
+            ]
+        )
+        bind_expr = f"IF(BOUND(?_extCode), STRLANG(STR(?{val}), ?_extCode), ?{val})"
+
+    if retag_lines and bind_expr:
+        lines.extend(retag_lines)
+        lines.append(f"BIND ( {bind_expr} AS ?_final_{val} )")
+
     body = "\n".join(f"        {ln}" for ln in lines)
     return "{\n" + body + "\n    }"
 
 
 def _templates(cell: ProjectionCell, b: ProfileBinding) -> list[str]:
     p = cell.pattern
+    var_map: dict[str, str] = {}
+    if (
+        p.edoal_source
+        in (
+            GM.fullName,
+            GM.partText,
+            GM.partExpansion,
+            GM.romanization,
+            GM.description,
+            GM.designGoal,
+        )
+        and p.value is not None
+    ):
+        var_map[p.value] = f"_final_{p.value}"
+
     if b.template_atoms:
-        return [_atom_triple(a) for a in b.template_atoms]
+        return [_atom_triple(a, var_map) for a in b.template_atoms]
     if b.value_class_map:
         return [f"?{p.anchor} a ?{_class_var(p)} ."]
     if b.to_class is not None:
         return [f"?{p.anchor} a {curie(b.to_class)} ."]
     if b.to_predicate is not None:
-        return [f"?{p.anchor} {curie(b.to_predicate)} ?{p.value} ."]
+        val = p.value
+        if val in var_map:
+            val = var_map[val]
+        return [f"?{p.anchor} {curie(b.to_predicate)} ?{val} ."]
     raise CompileError(f"{cell.iri}: binding for {b.profile} has no output")
 
 

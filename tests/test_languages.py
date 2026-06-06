@@ -169,3 +169,12 @@ def test_software_bridge_and_version_lineage() -> None:
         RDF.type,
         OWL.FunctionalProperty,
     ) in graph
+
+
+def test_internal_language_tags() -> None:
+    graph = _graph()
+    tag = URIRef(GMEOW + "languageTag")
+    assert (tag, RDF.type, OWL.DatatypeProperty) in graph
+    assert (tag, RDF.type, OWL.FunctionalProperty) in graph
+    assert (tag, RDFS.domain, URIRef(GMEOW + "Language")) in graph
+    assert (tag, RDFS.range, URIRef("http://www.w3.org/2001/XMLSchema#string")) in graph

@@ -40,6 +40,7 @@ PROFILES: dict[str, Profile] = {
     "cc": Profile("cc", ("cc",)),
     "dcterms": Profile("dcterms", ("dcterms",)),
     "spdx": Profile("spdx", ("spdx",)),
+    "ontolex": Profile("ontolex", ("ontolex", "lime", "rdf")),
 }
 
 #: Worked-example inputs (locations + naming + languages + identity + contacts +

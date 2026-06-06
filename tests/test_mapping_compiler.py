@@ -39,8 +39,8 @@ def test_dsl_parses() -> None:
     # dcterms, schema.org, SPDX, PREMIS, RightsStatements.org, ma-ont, Wikidata).
     # Issue #105 place naming: +8 names cells (PlaceName→CIDOC E48, hasPlaceName,
     # nameLanguage→dcterms/schema/P407, endonym/exonym) and -3 retired places
-    # alternateName cells, net +5.
-    assert len(dsl.equivalences) == 681
+    # alternateName cells, net +5. OntoLex-Lemon: +3, net +8.
+    assert len(dsl.equivalences) == 684
     # 21 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105).
     assert len(dsl.functions) == 21

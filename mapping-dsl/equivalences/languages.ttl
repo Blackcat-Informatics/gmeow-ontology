@@ -6,6 +6,8 @@
 @prefix schema: <https://schema.org/> .
 @prefix wd: <http://www.wikidata.org/entity/> .
 @prefix wdt: <http://www.wikidata.org/prop/direct/> .
+@prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
+@prefix lime:    <http://www.w3.org/ns/lemon/lime#> .
 
 # Term equivalences for the languages domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-languages.sssom.tsv by `gmeow compile-mappings`.

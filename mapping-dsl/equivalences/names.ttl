@@ -12,6 +12,8 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix gn: <http://www.geonames.org/ontology#> .
 @prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
+@prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
+@prefix lime: <http://www.w3.org/ns/lemon/lime#> .
 
 # Term equivalences for the names domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-names.sssom.tsv by `gmeow compile-mappings`.
@@ -371,3 +373,32 @@ gmeow:eqNames041 a gmeow:TermEquivalence ;
     gmeow:confidence 0.9 ;
     gmeow:comment "Wikidata 'exonym' (Q81639) — verified live against the Wikidata API" ;
     gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+# OntoLex-Lemon alignments for names
+gmeow:eqNames042 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Appellation ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject ontolex:LexicalEntry ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "GMEOW Appellation subclasses OntoLex LexicalEntry" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames043 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:nameLanguage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject lime:language ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "GMEOW nameLanguage close-matches LIME language" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames044 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:fullName ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject ontolex:writtenRep ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "GMEOW fullName close-matches OntoLex writtenRep" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+

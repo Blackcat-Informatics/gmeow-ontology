@@ -76,7 +76,8 @@ gmeow:mapVcardGivenName a gmeow:ProjectionMapping ;
             [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
                 [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
                     [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "ent" ] ) ] "-vcardname" ) ] ) ] ] ;
-        gmeow:suppressWhen [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:partText ] ;
     gmeow:hasBinding [
         gmeow:profile "vcard" ; gmeow:relation "=" ;
         gmeow:templateAtoms (
@@ -99,7 +100,8 @@ gmeow:mapVcardFamilyName a gmeow:ProjectionMapping ;
             [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
                 [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
                     [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "ent" ] ) ] "-vcardname" ) ] ) ] ] ;
-        gmeow:suppressWhen [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:partText ] ;
     gmeow:hasBinding [
         gmeow:profile "vcard" ; gmeow:relation "=" ;
         gmeow:templateAtoms (

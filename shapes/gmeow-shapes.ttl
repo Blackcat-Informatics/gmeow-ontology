@@ -613,3 +613,31 @@ gmeow:LogicalConstraintShape
         sh:minCount 2 ; sh:severity sh:Violation ;
         sh:message "A logical constraint must combine at least two member constraints." ;
     ] .
+
+gmeow:InternalLanguageTagShape
+    a sh:NodeShape ;
+    rdfs:label "GMEOW internal language tag validation shape" ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            SELECT DISTINCT ?this WHERE {
+                ?this ?p ?value .
+                FILTER (STRSTARTS(STR(?p), "https://blackcatinformatics.ca/gmeow/"))
+                FILTER (isLiteral(?value) && lang(?value) != "")
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Literals in GMEOW must use the 'x-gmeow-' private-use prefix for language tags." ;
+        sh:select """
+            SELECT $this ?value
+            WHERE {
+                $this ?p ?value .
+                FILTER (STRSTARTS(STR(?p), "https://blackcatinformatics.ca/gmeow/"))
+                FILTER (isLiteral(?value) && lang(?value) != "" && !regex(lang(?value), "^x-gmeow-[a-z0-9\\\\-]+$"))
+            }
+        """ ;
+    ] .
+
+
