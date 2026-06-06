@@ -12,6 +12,9 @@ proof) lives in :mod:`gmeow_tools.rdf12`, gated on Jena.
 * :func:`base_triple_groundedness` — every quoted predicate is a declared property,
   and any ``gmeow:``-namespace subject/object is a declared term (a typo can't
   fabricate a reified statement about a nonexistent term).
+* :func:`no_preferred_rank` — no cell carries a ``preferredRank`` / ``primary*``
+  selector annotation (Principle 9: contested claims are co-equal, no single slot
+  to win — the standpoint facility, #43).
 """
 
 from __future__ import annotations
@@ -172,10 +175,35 @@ def base_triple_dl_datatypes(dsl: StatementDsl) -> list[str]:
     return problems
 
 
+def no_preferred_rank(dsl: StatementDsl) -> list[str]:
+    """No cell may carry a preferred/primary selector annotation (Principle 9).
+
+    The standpoint facility (#43) dissolves the edit war by refusing any single
+    slot to win: a contested fact is several standpoint-indexed claims that
+    coexist, with no ``preferredRank`` / ``primary*`` marker to fight over. This
+    is the statement-DSL analogue of the identity-orthogonality ban on
+    ``primaryName`` / ``preferredGender``. A flagged annotation property's local
+    name is ``preferredRank`` or begins with ``primary`` / ``preferred``.
+    """
+    problems: list[str] = []
+    for cell in dsl.cells:
+        for ann in cell.annotations:
+            local = str(ann.prop).rsplit("/", 1)[-1].rsplit("#", 1)[-1]
+            lowered = local.lower()
+            if lowered.startswith(("primary", "preferred")):
+                problems.append(
+                    f"{cell.iri}: annotation property {ann.prop} is a "
+                    "preferred/primary selector — contested claims are co-equal, "
+                    "there is no single slot to win (Principle 9)"
+                )
+    return problems
+
+
 def statement_invariants(dsl: StatementDsl, onto: Graph) -> list[str]:
     """Run every pure-Python statement invariant; empty list means clean."""
     return [
         *annotation_property_soundness(dsl, onto),
         *base_triple_groundedness(dsl, onto),
         *base_triple_dl_datatypes(dsl),
+        *no_preferred_rank(dsl),
     ]

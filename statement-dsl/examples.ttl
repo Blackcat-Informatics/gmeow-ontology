@@ -64,3 +64,57 @@ ex:claim-alice-birthdate a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.9 ] ,
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2021-03-14T00:00:00Z"^^xsd:dateTime ] ,
         [ gmeow:annProperty gmeow:mappedFrom ; gmeow:annValue ex:src-civil-register ] .
+
+# =============================================================================
+# Standpoint cells (#43) — contested facts as coexisting, standpoint-indexed
+# claims with NO privileged winner. The standpoint axis is gmeow:accordingTo
+# (whose frame), kept orthogonal to the source axis (gmeow:mappedFrom — which
+# carrier recorded it) and the certainty axis (gmeow:confidence — how sure we
+# are). See ontology/modules/standpoint.ttl and docs/standpoints.md.
+# =============================================================================
+
+# 4 & 5. The Crimea coexistence pair — the centerpiece. Two contradictory
+#    base triples, each indexed to a different standpoint, both retained, neither
+#    privileged: there is no preferredRank / primary* selector to fight over, so
+#    there is nothing to overwrite (Principle 9). Cell 4 carries a source
+#    (gmeow:mappedFrom) and cell 5 does not — the standpoint and the source are
+#    independent axes (a frame need not equal its recorder).
+ex:claim-crimea-in-russia-per-ru a gmeow:StatementMetadata ;
+    rdfs:label "Crimea contained in Russia — per the RU standpoint, from 2014, confidence 0.9"@en ;
+    gmeow:reifier    ex:claim-crimea-in-russia-per-ru ;
+    gmeow:qSubject   ex:crimea ;
+    gmeow:qPredicate gmeow:containedInPlace ;
+    gmeow:qObject    ex:russia ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:accordingTo ; gmeow:annValue ex:standpoint-ru ] ,
+        [ gmeow:annProperty gmeow:confidence  ; gmeow:annValue 0.9 ] ,
+        [ gmeow:annProperty gmeow:validFrom   ; gmeow:annValue "2014-03-18T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:mappedFrom  ; gmeow:annValue ex:src-ru-decree ] .
+
+ex:claim-crimea-in-ukraine-per-un a gmeow:StatementMetadata ;
+    rdfs:label "Crimea contained in Ukraine — per the UA/UN standpoint, from 1991, confidence 0.9"@en ;
+    gmeow:reifier    ex:claim-crimea-in-ukraine-per-un ;
+    gmeow:qSubject   ex:crimea ;
+    gmeow:qPredicate gmeow:containedInPlace ;
+    gmeow:qObject    ex:ukraine ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:accordingTo ; gmeow:annValue ex:standpoint-un ] ,
+        [ gmeow:annProperty gmeow:confidence  ; gmeow:annValue 0.9 ] ,
+        [ gmeow:annProperty gmeow:validFrom   ; gmeow:annValue "1991-12-01T00:00:00Z"^^xsd:dateTime ] .
+
+# 6. The two-clock + modality cell — a 2025 historiographic standpoint asserting
+#    an 1850s fact, held only as CONCEIVABLE (◊_S), not settled. Fact-time
+#    (validFrom/validUntil, the 1850s) and standpoint/observation-time
+#    (assertedAt, 2025) stay distinct — the two clocks never collapse.
+ex:claim-territory-1850-per-2025-historiography a gmeow:StatementMetadata ;
+    rdfs:label "Territory X contained in Polity Y in the 1850s — per a 2025 historiographic standpoint, conceivable"@en ;
+    gmeow:reifier    ex:claim-territory-1850-per-2025-historiography ;
+    gmeow:qSubject   ex:territory-x ;
+    gmeow:qPredicate gmeow:containedInPlace ;
+    gmeow:qObject    ex:polity-y ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:accordingTo        ; gmeow:annValue ex:standpoint-2025-historiography ] ,
+        [ gmeow:annProperty gmeow:standpointModality ; gmeow:annValue gmeow:conceivable ] ,
+        [ gmeow:annProperty gmeow:assertedAt         ; gmeow:annValue "2025-01-01T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:validFrom          ; gmeow:annValue "1850-01-01T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:validUntil         ; gmeow:annValue "1860-12-31T00:00:00Z"^^xsd:dateTime ] .

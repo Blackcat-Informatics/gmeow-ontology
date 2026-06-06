@@ -129,6 +129,21 @@ def test_contact_field_alignments_covered() -> None:
         assert iri in report.covered_predicates
 
 
+def test_standpoint_slice_covered() -> None:
+    report = run_coverage()
+    # The standpoint slice (#43) exercises the facility's native terms — GMEOW's
+    # own, so they register as covered, not as gaps.
+    expected_covered = {
+        GMEOW + "Standpoint",
+        GMEOW + "StandpointTenure",
+        GMEOW + "accordingTo",
+        GMEOW + "sharpens",
+        GMEOW + "standpointModality",
+    }
+    missing = expected_covered - (report.covered_classes | report.covered_predicates)
+    assert not missing, f"standpoint terms missing from coverage: {missing}"
+
+
 def test_slice_is_partial() -> None:
     # The slice is intentionally incomplete: there must be tracked gaps, and
     # coverage must be a real (non-zero, non-total) fraction.

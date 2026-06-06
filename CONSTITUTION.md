@@ -146,8 +146,10 @@ AI-minted yet fully first-class, and why such provenance is always carried, neve
 
 *Embodied in:* [`docs/names-mapping.md`](./docs/names-mapping.md),
 [`docs/languages-mapping.md`](./docs/languages-mapping.md),
-[`docs/identity-mapping.md`](./docs/identity-mapping.md). *Tested by:* the 7-axis orthogonality
-matrix tests.
+[`docs/identity-mapping.md`](./docs/identity-mapping.md),
+[`docs/standpoints.md`](./docs/standpoints.md) (no preferred/primary claim — a contested fact is
+several coequal standpoint-indexed claims). *Tested by:* the 7-axis orthogonality matrix tests;
+`tests/test_standpoint.py` (coexistence + no-preferred-claim guards).
 
 ## 10. Suppression, never erasure
 
@@ -159,8 +161,10 @@ honest, auditable record. Suppression is a display contract enforced through pro
 (Principle 4): the data is retained, the leak is prevented.
 
 *Embodied in:* `gmeow:displayable`, `fnSelectDisplayName`; [`docs/projections.md`](./docs/projections.md);
-[`docs/identity-mapping.md`](./docs/identity-mapping.md). *Tested by:* the projection
-suppression tests.
+[`docs/identity-mapping.md`](./docs/identity-mapping.md);
+[`docs/standpoints.md`](./docs/standpoints.md) (a withdrawn standpoint / closed
+`gmeow:StandpointTenure` is suppressed, not deleted). *Tested by:* the projection
+suppression tests; `tests/test_standpoint.py`.
 
 ---
 
