@@ -18,13 +18,21 @@
             align:relation "<=" ;
             edoal:measure 8e-01 ],
         [ a align:Cell ;
-            rdfs:label "ruleConsequence → odrl:consequence"@en ;
+            rdfs:label "Duty consequence → odrl:consequence"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:ruleConsequence ] ;
             align:entity2 [ a edoal:Property ;
                     edoal:uri odrl:consequence ] ;
             align:relation "<=" ;
-            edoal:measure 7e-01 ] ;
+            edoal:measure 7e-01 ],
+        [ a align:Cell ;
+            rdfs:label "Prohibition consequence → odrl:remedy"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:ruleConsequence ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri odrl:remedy ] ;
+            align:relation "<=" ;
+            edoal:measure 6.5e-01 ] ;
     align:onto1 [ a align:Ontology ;
             align:formalism [ align:name "GMEOW" ] ] ;
     align:onto2 [ a align:Ontology ;

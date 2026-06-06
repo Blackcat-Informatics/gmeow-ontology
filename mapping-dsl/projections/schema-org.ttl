@@ -413,7 +413,8 @@ gmeow:mapSchemaCopyrightYear a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "cw" ; gmeow:predicate gmeow:hasCopyright ; gmeow:objectVar "cr" ]
             [ gmeow:subjectVar "cr" ; gmeow:predicate gmeow:copyrightYear ; gmeow:objectVar "yr" ] ) ;
         gmeow:edoalSource gmeow:copyrightYear ] ;
-    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:copyrightYear ; gmeow:relation "<=" ; gmeow:confidence 0.9 ] .
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:copyrightYear ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the Copyright relator (holder, notice, status) collapses to a flat schema:copyrightYear edge" ] .
 
 gmeow:mapSchemaCopyrightNotice a gmeow:ProjectionMapping ;
     rdfs:label "Copyright relator notice → schema:copyrightNotice (flatten)"@en ;
@@ -423,7 +424,8 @@ gmeow:mapSchemaCopyrightNotice a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "cw" ; gmeow:predicate gmeow:hasCopyright ; gmeow:objectVar "cr" ]
             [ gmeow:subjectVar "cr" ; gmeow:predicate gmeow:copyrightNotice ; gmeow:objectVar "notice" ] ) ;
         gmeow:edoalSource gmeow:copyrightNotice ] ;
-    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:copyrightNotice ; gmeow:relation "<=" ; gmeow:confidence 0.9 ] .
+    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:copyrightNotice ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the structured Copyright relator (holder, year, status) collapses to a flat schema:copyrightNotice edge" ] .
 
 gmeow:mapSchemaCreditText a gmeow:ProjectionMapping ;
     rdfs:label "attributionText → schema:creditText"@en ;

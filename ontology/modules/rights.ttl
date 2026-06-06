@@ -72,10 +72,10 @@ gmeow:hasProhibition
 
 gmeow:hasDuty
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:RightsStatement ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( gmeow:RightsStatement gmeow:Permission ) ] ;
     rdfs:range gmeow:Duty ;
     rdfs:label "has duty"@en ;
-    skos:definition "Relates a rights statement (or a permission) to a duty / obligation that must be discharged (an odrl:duty / odrl:obligation rule)."@en ;
+    skos:definition "Relates a rights statement (or a permission) to a duty / obligation that must be discharged (an odrl:duty / odrl:obligation rule). The domain is the union of gmeow:RightsStatement and gmeow:Permission, so a permission may carry its own duties without being misclassified as a rights statement."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -197,7 +197,7 @@ gmeow:copyrightHolder
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:copyrightYear
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Copyright ;
     rdfs:range rdfs:Literal ;
     rdfs:label "copyright year"@en ;
@@ -205,7 +205,7 @@ gmeow:copyrightYear
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:copyrightNotice
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Copyright ;
     rdfs:range rdfs:Literal ;
     rdfs:label "copyright notice"@en ;
@@ -382,7 +382,7 @@ gmeow:trademarkHolder
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:markText
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Mark ;
     rdfs:range rdfs:Literal ;
     rdfs:label "mark text"@en ;
@@ -390,7 +390,7 @@ gmeow:markText
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:registrationNumber
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Trademark ;
     rdfs:range rdfs:Literal ;
     rdfs:label "registration number"@en ;
@@ -514,7 +514,7 @@ gmeow:constraintOperator
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:rightOperand
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:AtomicConstraint ;
     rdfs:range rdfs:Literal ;
     rdfs:label "right operand"@en ;
@@ -786,4 +786,3 @@ gmeow:copyrightStatusNoCopyrightNonCommercialOnly a gmeow:CopyrightStatus ; rdfs
 gmeow:copyrightStatusNoCopyrightOtherLegalRestrictions a gmeow:CopyrightStatus ; rdfs:label "no copyright — other known legal restrictions"@en ; skos:definition "No copyright, other known legal restrictions (RightsStatements.org NoC-OKLR)."@en .
 gmeow:copyrightStatusNoCopyrightUnitedStates a gmeow:CopyrightStatus ; rdfs:label "no copyright — United States"@en ; skos:definition "No copyright in the United States (RightsStatements.org NoC-US)."@en .
 gmeow:copyrightStatusUndetermined a gmeow:CopyrightStatus ; rdfs:label "copyright undetermined"@en ; skos:definition "Copyright undetermined (RightsStatements.org UND)."@en .
-

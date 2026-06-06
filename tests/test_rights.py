@@ -156,7 +156,7 @@ def test_no_preferred_or_primary_rights_term() -> None:
     for s in set(module.subjects()):
         if not isinstance(s, URIRef) or not str(s).startswith(NAMESPACE):
             continue
-        local = str(s)[len(NAMESPACE):].lower()
+        local = str(s)[len(NAMESPACE) :].lower()
         if "/" not in local and local.startswith(("primary", "preferred")):
             offenders.append(str(s))
     assert offenders == [], offenders
@@ -221,9 +221,10 @@ def test_odrl_projection_emits_constraint_and_conflict_logic() -> None:
     assert (EX["until-2036"], ODRL.leftOperand, GM.leftOpDateTime) in out
     assert (EX["until-2036"], ODRL.operator, GM.operatorLteq) in out
     assert any(out.objects(EX["until-2036"], ODRL.rightOperand))
-    # Conflict-resolution strategy + remedy/consequence chaining.
+    # Conflict-resolution strategy + a prohibition's remedy (ODRL keys remedy to
+    # prohibitions, consequence to duties).
     assert (EX["photo-rights"], ODRL.conflict, GM.conflictProhibit) in out
-    assert (EX["proh-commercial"], ODRL.consequence, EX["duty-compensate"]) in out
+    assert (EX["proh-commercial"], ODRL.remedy, EX["duty-compensate"]) in out
     # Asset + party typing.
     assert (EX.photo, RDF.type, ODRL.Asset) in out
     assert (EX.acme, RDF.type, ODRL.Party) in out
@@ -241,9 +242,6 @@ def test_cc_projection_emits_license_and_attribution() -> None:
     out = project_graph("cc", _projection_source())
     assert (EX.photo, CC.license, EX["cc-by-4"]) in out
     assert (EX["cc-by-4"], RDF.type, CC.License) in out
-    assert (EX.photo, CC.attributionName, None) not in out or any(
-        True for _ in out.objects(EX.photo, CC.attributionName)
-    )
     assert "Photo by Jane Doe / CC BY 4.0" in {
         str(o) for o in out.objects(EX.photo, CC.attributionName)
     }

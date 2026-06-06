@@ -31,8 +31,10 @@ CONSTRUCT {
     ?c odrl:rightOperandReference ?rr .
     ?rs odrl:conflict ?cs .
     ?r odrl:consequence ?d .
+    ?r odrl:remedy ?d .
     ?asset a odrl:Asset .
     ?p a odrl:Party .
+    ?lp a odrl:Party .
 }
 WHERE {
     {
@@ -75,6 +77,11 @@ WHERE {
         ?rs gmeow:conflictStrategy ?cs .
     }
     UNION {
+        ?r a gmeow:Duty .
+        ?r gmeow:ruleConsequence ?d .
+    }
+    UNION {
+        ?r a gmeow:Prohibition .
         ?r gmeow:ruleConsequence ?d .
     }
     UNION {
@@ -83,5 +90,8 @@ WHERE {
     }
     UNION {
         ?anyrule gmeow:ruleAssignee ?p .
+    }
+    UNION {
+        ?anylic gmeow:licensor ?lp .
     }
 }

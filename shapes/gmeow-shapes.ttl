@@ -567,7 +567,16 @@ gmeow:AtomicConstraintShape
         sh:path gmeow:constraintOperator ;
         sh:minCount 1 ; sh:maxCount 1 ; sh:severity sh:Violation ;
         sh:message "An atomic constraint must have exactly one gmeow:constraintOperator." ;
-    ] .
+    ] ;
+    # Exactly one right-hand side: a literal value XOR an IRI reference.
+    sh:xone (
+        [ sh:property [ sh:path gmeow:rightOperand ;
+            sh:minCount 1 ; sh:maxCount 1 ; sh:severity sh:Violation ;
+            sh:message "An atomic constraint must have exactly one gmeow:rightOperand when no reference is given." ] ]
+        [ sh:property [ sh:path gmeow:rightOperandReference ;
+            sh:minCount 1 ; sh:maxCount 1 ; sh:severity sh:Violation ;
+            sh:message "An atomic constraint must have exactly one gmeow:rightOperandReference when no literal value is given." ] ]
+    ) .
 
 gmeow:LogicalConstraintShape
     a sh:NodeShape ;
