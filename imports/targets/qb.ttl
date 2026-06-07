@@ -1,0 +1,32 @@
+@prefix qb:  <http://purl.org/linked-data/cube#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+qb:DataSet a owl:Class ;
+    rdfs:label "Data Set"@en .
+
+qb:Observation a owl:Class ;
+    rdfs:label "Observation"@en .
+
+qb:MeasureProperty a owl:Class ;
+    rdfs:label "Measure Property"@en .
+
+qb:DimensionProperty a owl:Class ;
+    rdfs:label "Dimension Property"@en .
+
+qb:dataSet a owl:ObjectProperty ;
+    rdfs:domain qb:Observation ;
+    rdfs:range qb:DataSet ;
+    rdfs:label "data set"@en .
+
+qb:obsValue a owl:DatatypeProperty ;
+    rdfs:domain qb:Observation ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "observation value"@en .
+
+qb:measureType a owl:ObjectProperty ;
+    rdfs:domain qb:Observation ;
+    rdfs:range qb:MeasureProperty ;
+    rdfs:label "measure type"@en .
