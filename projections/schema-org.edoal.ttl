@@ -119,6 +119,16 @@
             align:relation "=" ;
             edoal:measure 1e+00 ],
         [ a align:Cell ;
+            rdfs:label "Organization destruction event → schema:dissolutionDate"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:compose ( [ a edoal:Relation ;
+                                edoal:uri gmeow:hasDestructionEvent ] [ a edoal:Relation ;
+                                edoal:uri gmeow:eventTime ] ) ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:dissolutionDate ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
             rdfs:label "exact authority coreference → schema:sameAs"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:authorityLink ] ;
@@ -133,6 +143,16 @@
             align:entity2 [ a edoal:Property ;
                     edoal:uri schema:familyName ] ;
             align:relation "<=" ],
+        [ a align:Cell ;
+            rdfs:label "Organization creation event → schema:foundingDate"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:compose ( [ a edoal:Relation ;
+                                edoal:uri gmeow:hasCreationEvent ] [ a edoal:Relation ;
+                                edoal:uri gmeow:eventTime ] ) ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:foundingDate ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
         [ a align:Cell ;
             rdfs:label "Fuzzy event bounds → schema:startDate"@en ;
             align:entity1 [ a edoal:Relation ;

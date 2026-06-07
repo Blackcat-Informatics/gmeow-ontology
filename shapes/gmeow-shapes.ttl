@@ -1195,3 +1195,49 @@ gmeow:RetractedTagSuppressionShape
             }
         """ ;
     ] .
+
+# --------------------------------------------------------------------------- #
+# Lifecycle module (#81). Closed-world well-formedness for EntityExistence and
+# suppression guards for superseded entities.
+# --------------------------------------------------------------------------- #
+
+# An EntityExistence must bind exactly one entity and one interval — the closed-world
+# counterpart of the EL someValuesFrom mediation axiom in lifecycle.ttl.
+gmeow:EntityExistenceHasEntityShape
+    a sh:NodeShape ;
+    rdfs:label "EntityExistence well-formedness shape" ;
+    sh:targetClass gmeow:EntityExistence ;
+    sh:property [
+        sh:path gmeow:existenceEntity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An EntityExistence must record exactly one entity (gmeow:existenceEntity)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:duringInterval ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An EntityExistence must record exactly one interval (gmeow:duringInterval)." ;
+    ] .
+
+# Suppression, never erasure (Principle 10): a superseded entity — one that has a
+# gmeow:supersededBy link to a successor — should set gmeow:displayable false rather
+# than be deleted. Warning — a source may lag the flag.
+gmeow:SupersededEntitySuppressionShape
+    a sh:NodeShape ;
+    rdfs:label "Superseded entity suppression shape" ;
+    sh:targetClass gmeow:Entity ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        sh:message "A superseded entity (one with gmeow:supersededBy) should set gmeow:displayable false — suppressed from display, never deleted." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/supersededBy> ?successor .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
+                }
+            }
+        """ ;
+    ] .

@@ -1,0 +1,14 @@
+# Well-formed EntityExistence fixture (#81). Every subject satisfies the lifecycle
+# SHACL shapes: an EntityExistence binds exactly one entity and one interval.
+# `run_shacl` MUST conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:romeInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "-0753-04-21T00:00:00Z"^^xsd:dateTime .
+
+ex:romeExistence a gmeow:EntityExistence ;
+    gmeow:existenceEntity ex:rome ;
+    gmeow:duringInterval ex:romeInterval .

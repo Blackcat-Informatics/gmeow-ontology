@@ -622,3 +622,37 @@ gmeow:mapSchemaRoute a gmeow:ProjectionMapping ;
         gmeow:profile "schema-org" ; gmeow:relation "<=" ;
         gmeow:toClass schema:Trip ; gmeow:confidence 0.7 ;
         gmeow:lossyDrop "GMEOW Route is domain-generic; schema:Trip is travel-specific. RouteKind, start, end, and via metadata are dropped." ] .
+
+# --------------------------------------------------------------------------- #
+# Lifecycle projections — issue #81. Flat hasCreationEvent / hasDestructionEvent
+# downcasts to schema.org date fields. The full event richness (place, roles,
+# standpoint, confidence) is dropped — the flat date is lossy by design.
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaFoundingDate a gmeow:ProjectionMapping ;
+    rdfs:label "Organization creation event → schema:foundingDate"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "org" ; gmeow:value "fdate" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "org" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Organization ]
+            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:hasCreationEvent ; gmeow:objectVar "cevent" ]
+            [ gmeow:subjectVar "cevent" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "fdate" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:foundingDate ; gmeow:relation "<=" ;
+        gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the creation event's place, participants, and standpoint are dropped; only the instant survives as schema:foundingDate" ] .
+
+gmeow:mapSchemaDissolutionDate a gmeow:ProjectionMapping ;
+    rdfs:label "Organization destruction event → schema:dissolutionDate"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "org" ; gmeow:value "ddate" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "org" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Organization ]
+            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:hasDestructionEvent ; gmeow:objectVar "devent" ]
+            [ gmeow:subjectVar "devent" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "ddate" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:dissolutionDate ; gmeow:relation "<=" ;
+        gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the destruction event's place, participants, and standpoint are dropped; only the instant survives as schema:dissolutionDate" ] .
