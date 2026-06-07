@@ -41,6 +41,8 @@ gmeow:JurisdictionTenure	skos:closeMatch	wd:Q19517	sovereignty	semapv:ManualMapp
 gmeow:Location	skos:closeMatch	bfo:BFO_0000006	spatial region	semapv:ManualMappingCuration	0.8	
 gmeow:Location	skos:closeMatch	bfo:BFO_0000029	site	semapv:ManualMappingCuration	0.8	
 gmeow:Location	skos:closeMatch	crm:E53_Place	Place	semapv:ManualMappingCuration	0.85	
+gmeow:LocationState	skos:closeMatch	crm:E92_Spacetime_Volume	Spacetime Volume	semapv:ManualMappingCuration	0.75	CIDOC-CRM E92 Spacetime Volume — a 4D point set; GMEOW LocationState is a discrete slice (location + time + pose) of it
+gmeow:LocationState	skos:closeMatch	crmgeo:SP1_Spacetime_Volume	Spacetime Volume	semapv:ManualMappingCuration	0.75	CRMgeo SP1 Spacetime Volume — the geospatial extension of CIDOC E92
 gmeow:LocationState	skos:closeMatch	mf:TemporalGeometry	temporal geometry	semapv:ManualMappingCuration	0.7	
 gmeow:LocationState	skos:closeMatch	sosa:Sample		semapv:ManualMappingCuration	0.75	A LocationState in a stream is a sample of the entity's trajectory.
 gmeow:LocationState	skos:closeMatch	sta:HistoricalLocation		semapv:ManualMappingCuration	0.8	HistoricalLocation is time-indexed location of a Thing; LocationState is the state of a moving entity at a time.
@@ -57,6 +59,7 @@ gmeow:RegulatoryOverlay	skos:closeMatch	schema:AdministrativeArea		semapv:Manual
 gmeow:RegulatoryOverlay	skos:closeMatch	wd:Q1055894	administrative territorial entity	semapv:ManualMappingCuration	0.75	Wikidata Q1055894 is the general concept of an administrative territorial entity; GMEOW RegulatoryOverlay adds time-scoping, authority, regulation type, and deontic linkage.
 gmeow:Stream	skos:closeMatch	sta:Datastream		semapv:ManualMappingCuration	0.85	SensorThings Datastream groups observations by sensor + observed property.
 gmeow:Trajectory	skos:closeMatch	mf:TemporalTrajectory	temporal trajectory	semapv:ManualMappingCuration	0.8	
+gmeow:Trajectory	skos:relatedMatch	crm:E92_Spacetime_Volume	Spacetime Volume	semapv:ManualMappingCuration	0.6	a Trajectory is a continuous spacetime volume (relatedMatch, not closeMatch — a trajectory is a path, not any arbitrary volume)
 gmeow:Trajectory	skos:relatedMatch	sta:Datastream		semapv:ManualMappingCuration	0.6	Trajectory as the continuous form of a stream; weaker alignment than Stream→Datastream.
 gmeow:VirtualLocation	skos:closeMatch	schema:VirtualLocation		semapv:ManualMappingCuration	0.9	
 gmeow:addressLocality	owl:equivalentProperty	schema:addressLocality		semapv:ManualMappingCuration	1.0	

@@ -199,3 +199,100 @@ ex:reportedClash a gmeow:Event ;
     gmeow:eventType ex:eventTypeMeeting ;
     gmeow:eventTense gmeow:tensePast ;
     gmeow:eventAspect gmeow:aspectPerfective .
+
+# --------------------------------------------------------------------------- #
+# VIRTUAL / ONLINE EVENT (#106) — eventLocation ranges over the full Location
+# superset, including VirtualLocation.
+# --------------------------------------------------------------------------- #
+
+ex:webinar a gmeow:Event ;
+    gmeow:eventType ex:eventTypeWebinar ;
+    gmeow:eventTime "2024-03-15T14:00:00Z"^^xsd:dateTime ;
+    gmeow:eventLocation ex:zoomRoom .
+
+ex:eventTypeWebinar a gmeow:EventType ; rdfs:label "webinar"@en .
+
+ex:zoomRoom a gmeow:VirtualLocation ;
+    gmeow:accessUrl "https://example.com/webinar/42"^^xsd:anyURI ;
+    gmeow:virtualPlatform "ExampleMeet" .
+
+# --------------------------------------------------------------------------- #
+# MOVING EVENT — parade with trajectory and spacetime slices (#106).
+# Reuses LocationState and Trajectory from the locations module (#94).
+# Note: stateOf / trajectoryOf range over gmeow:Entity (Endurant), so they are
+# omitted here — an Event is a gufo:Event and is disjoint from Endurant. The
+# event→slice linkage is carried by gmeow:eventSpacetime / gmeow:eventTrajectory.
+# --------------------------------------------------------------------------- #
+
+ex:parade a gmeow:Event ;
+    gmeow:eventType ex:eventTypeParade ;
+    gmeow:eventInterval ex:paradeInterval ;
+    gmeow:eventTrajectory ex:paradeRoute ;
+    gmeow:eventSpacetime ex:paradeStartState , ex:paradeEndState .
+
+ex:eventTypeParade a gmeow:EventType ; rdfs:label "parade"@en .
+
+ex:paradeInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2024-07-01T10:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime   "2024-07-01T12:00:00Z"^^xsd:dateTime .
+
+ex:paradeRoute a gmeow:Trajectory ;
+    gmeow:trajectoryReferenceFrame gmeow:referenceFrameWGS84 ;
+    gmeow:hasTrajectorySample ex:paradeStartState , ex:paradeEndState .
+
+ex:paradeStartState a gmeow:LocationState ;
+    gmeow:stateAtInstant ex:paradeStartInstant ;
+    gmeow:stateReferenceFrame gmeow:referenceFrameWGS84 ;
+    gmeow:hasPose ex:paradeStartPose .
+
+ex:paradeStartInstant a gmeow:Instant ;
+    gmeow:instantValue "2024-07-01T10:00:00Z"^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:paradeStartPose a gmeow:Pose ;
+    gmeow:hasPosePosition ex:paradeStartCoords ;
+    gmeow:poseFrame gmeow:referenceFrameWGS84 .
+
+ex:paradeStartCoords a gmeow:SpatialCoordinates ;
+    gmeow:coordinateFrame gmeow:referenceFrameWGS84 .
+
+ex:paradeEndState a gmeow:LocationState ;
+    gmeow:stateAtInstant ex:paradeEndInstant ;
+    gmeow:stateReferenceFrame gmeow:referenceFrameWGS84 ;
+    gmeow:hasPose ex:paradeEndPose .
+
+ex:paradeEndInstant a gmeow:Instant ;
+    gmeow:instantValue "2024-07-01T12:00:00Z"^^xsd:dateTime ;
+    gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+ex:paradeEndPose a gmeow:Pose ;
+    gmeow:hasPosePosition ex:paradeEndCoords ;
+    gmeow:poseFrame gmeow:referenceFrameWGS84 .
+
+ex:paradeEndCoords a gmeow:SpatialCoordinates ;
+    gmeow:coordinateFrame gmeow:referenceFrameWGS84 .
+
+# --------------------------------------------------------------------------- #
+# CELESTIAL EVENT — solar eclipse located in a celestial frame (#106).
+# eventLocation accepts any Location, including a Place expressed in a celestial
+# reference frame.
+# --------------------------------------------------------------------------- #
+
+ex:eclipse a gmeow:Event ;
+    gmeow:eventType ex:eventTypeSolarEclipse ;
+    gmeow:eventTime "2024-04-08T18:17:00Z"^^xsd:dateTime ;
+    gmeow:eventLocation ex:eclipseSkyPosition .
+
+ex:eventTypeSolarEclipse a gmeow:EventType ; rdfs:label "solar eclipse"@en .
+
+ex:eclipseSkyPosition a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypePointOfInterest ;
+    gmeow:hasCoordinates ex:eclipseCoords .
+
+ex:eclipseCoords a gmeow:GeoCoordinates ;
+    gmeow:latitude "-10.5"^^xsd:decimal ;
+    gmeow:longitude "-85.3"^^xsd:decimal .
+    # Note: in a real celestial use-case these would be right-ascension / declination
+    # in the referenceFrameCelestialEquatorial frame; WGS84 is used here for fixture
+    # simplicity so the coverage file stays SHACL-clean without requiring celestial-axis
+    # constraints that do not yet exist in the shapes.

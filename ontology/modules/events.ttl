@@ -9,7 +9,7 @@
 <https://blackcatinformatics.ca/gmeow/modules/events>
     a owl:Ontology ;
     rdfs:label "GMEOW Events Module"@en ;
-    rdfs:comment """The universal event slice: a temporal occurrence in which entities participate IN ROLES, over POSSIBLY FUZZY time, at POSSIBLY SEVERAL locations, asserted by POSSIBLY CONFLICTING sources. Supersets schema.org Event, CIDOC-CRM E5/E7, OWL-Time, PROV-O Activity, iCalendar VEVENT, LODE, SEM and Wikidata by reference.
+    rdfs:comment """The universal event slice: a temporal occurrence in which entities participate IN ROLES, over POSSIBLY FUZZY time, at POSSIBLY SEVERAL locations, along POSSIBLE trajectories, with POSSIBLE spacetime slices, asserted by POSSIBLY CONFLICTING sources. Supersets schema.org Event, CIDOC-CRM E5/E7/E92, OWL-Time, PROV-O Activity, iCalendar VEVENT, LODE, SEM and Wikidata by reference.
 
 DOCTRINE (the no-mess rules).
   * Type is a VALUE, not a class: gmeow:Event is one class; the kind is gmeow:eventType (an open value vocabulary of gmeow:EventType individuals), mirroring placeType / Gender / Language. No event-type subclass taxonomy (Principle 9 — no overtyping).
@@ -271,7 +271,23 @@ gmeow:eventLocation
     rdfs:domain gmeow:Event ;
     rdfs:range gmeow:Location ;
     rdfs:label "event location"@en ;
-    skos:definition "A location at which an event occurred — a geographic gmeow:Place or a gmeow:VirtualLocation (range is the gmeow:Location superset). Non-functional: an event may span several locations, and competing standpoint-indexed locations coexist."@en ;
+    skos:definition "A location at which an event occurred — a geographic gmeow:Place, a gmeow:VirtualLocation, or any other gmeow:Location (the full superset). Non-functional: an event may span several locations, and competing standpoint-indexed locations coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eventTrajectory
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Trajectory ;
+    rdfs:label "event trajectory"@en ;
+    skos:definition "The trajectory of a moving event — a parade, march, migration, or procession — describing its continuous space-time path. Reuses the gmeow:Trajectory facility from the locations module (#94). Non-functional: competing trajectory claims from different sources coexist (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eventSpacetime
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:LocationState ;
+    rdfs:label "event spacetime"@en ;
+    skos:definition "A spacetime slice of an event, expressed as a gmeow:LocationState that carries location, time interval or instant, pose, and optional velocity relative to an explicit reference frame (Principle 11). Reuses LocationState rather than minting a parallel 4D class. Multiple slices may coexist for the same event."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #

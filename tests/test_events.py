@@ -149,6 +149,42 @@ def test_free_text_event_date_and_place_are_gone() -> None:
 
 
 # --------------------------------------------------------------------------- #
+# Spacetime / Trajectory (#106) — moving events and 4D spacetime slices reuse
+# LocationState and Trajectory from the locations module (#94).
+# --------------------------------------------------------------------------- #
+
+
+def test_event_trajectory_exists_and_ranges_over_trajectory() -> None:
+    g = _graph()
+    assert (GM.eventTrajectory, RDF.type, OWL.ObjectProperty) in g
+    assert (GM.eventTrajectory, RDFS.domain, GM.Event) in g
+    assert (GM.eventTrajectory, RDFS.range, GM.Trajectory) in g
+    assert (GM.eventTrajectory, RDF.type, OWL.FunctionalProperty) not in g
+
+
+def test_event_spacetime_exists_and_ranges_over_location_state() -> None:
+    g = _graph()
+    assert (GM.eventSpacetime, RDF.type, OWL.ObjectProperty) in g
+    assert (GM.eventSpacetime, RDFS.domain, GM.Event) in g
+    assert (GM.eventSpacetime, RDFS.range, GM.LocationState) in g
+    assert (GM.eventSpacetime, RDF.type, OWL.FunctionalProperty) not in g
+
+
+def test_event_spacetime_and_trajectory_are_orthogonal() -> None:
+    """No inferential bridge between eventSpacetime, eventTrajectory, eventLocation,
+    or eventInterval — each is an independent assertion axis."""
+    g = _graph()
+    for a, b in combinations(
+        ("eventSpacetime", "eventTrajectory", "eventLocation", "eventInterval"), 2
+    ):
+        na, nb = URIRef(GMEOW + a), URIRef(GMEOW + b)
+        assert (na, RDFS.subPropertyOf, nb) not in g, f"{a} ⊑ {b} forbidden"
+        assert (nb, RDFS.subPropertyOf, na) not in g, f"{b} ⊑ {a} forbidden"
+        assert (na, OWL.equivalentProperty, nb) not in g, f"{a} ≡ {b} forbidden"
+        assert (nb, OWL.equivalentProperty, na) not in g, f"{b} ≡ {a} forbidden"
+
+
+# --------------------------------------------------------------------------- #
 # Orthogonality — eventType ⟂ participationRole ⟂ temporal ⟂ location. No
 # inferential bridge, no shared value space (mirrors test_identity_orthogonality).
 # --------------------------------------------------------------------------- #
