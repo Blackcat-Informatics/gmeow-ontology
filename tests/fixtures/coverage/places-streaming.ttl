@@ -1,0 +1,102 @@
+# Coverage slice (#96): real-time location streaming — a Stream of LocationState
+# samples and its derived Trajectory. Exercises stream→trajectory derivation via
+# wasDerivedFrom, co-existing streams (Principle 9), and WGS84 frame-relativity
+# (Principle 11). Native GMEOW terms only.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# The entity being tracked — a vessel.
+ex:vessel a gmeow:Entity .
+
+# Two platforms/sensors that produce streams on the same entity (P9 coexistence).
+ex:platformAlpha a gmeow:Agent .
+ex:sensorGPS a gmeow:Agent .
+
+ex:platformB a gmeow:Agent .
+ex:sensorRadar a gmeow:Agent .
+
+# --------------------------------------------------------------------------- #
+# Stream 1 — GPS feed (3 location-state samples)
+# --------------------------------------------------------------------------- #
+
+ex:stream1 a gmeow:Stream ;
+    gmeow:streamOf ex:vessel ;
+    gmeow:streamPlatform ex:platformAlpha ;
+    gmeow:streamSensor ex:sensorGPS ;
+    gmeow:streamInterval ex:intervalStream1 ;
+    gmeow:streamSample ex:state1 , ex:state2 , ex:state3 .
+
+ex:intervalStream1 a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-06-01T08:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "2026-06-01T08:00:02Z"^^xsd:dateTime .
+
+ex:state1 a gmeow:LocationState ;
+    gmeow:stateOf ex:vessel ;
+    gmeow:stateAtInstant ex:instant1 ;
+    gmeow:stateReferenceFrame gmeow:referenceFrameWGS84 .
+
+ex:instant1 a gmeow:Instant ;
+    gmeow:instantValue "2026-06-01T08:00:00Z"^^xsd:dateTime .
+
+ex:state2 a gmeow:LocationState ;
+    gmeow:stateOf ex:vessel ;
+    gmeow:stateAtInstant ex:instant2 ;
+    gmeow:stateReferenceFrame gmeow:referenceFrameWGS84 .
+
+ex:instant2 a gmeow:Instant ;
+    gmeow:instantValue "2026-06-01T08:00:01Z"^^xsd:dateTime .
+
+ex:state3 a gmeow:LocationState ;
+    gmeow:stateOf ex:vessel ;
+    gmeow:stateAtInstant ex:instant3 ;
+    gmeow:stateReferenceFrame gmeow:referenceFrameWGS84 .
+
+ex:instant3 a gmeow:Instant ;
+    gmeow:instantValue "2026-06-01T08:00:02Z"^^xsd:dateTime .
+
+# Trajectory 1 — continuous form of stream 1, derived via wasDerivedFrom (P12).
+ex:trajectory1 a gmeow:Trajectory ;
+    gmeow:trajectoryOf ex:vessel ;
+    gmeow:hasTrajectorySample ex:state1 , ex:state2 , ex:state3 ;
+    gmeow:trajectoryReferenceFrame gmeow:referenceFrameWGS84 ;
+    gmeow:wasDerivedFrom ex:stream1 .
+
+# --------------------------------------------------------------------------- #
+# Stream 2 — radar feed (co-existing, P9)
+# --------------------------------------------------------------------------- #
+
+ex:stream2 a gmeow:Stream ;
+    gmeow:streamOf ex:vessel ;
+    gmeow:streamPlatform ex:platformB ;
+    gmeow:streamSensor ex:sensorRadar ;
+    gmeow:streamInterval ex:intervalStream2 ;
+    gmeow:streamSample ex:state4 , ex:state5 .
+
+ex:intervalStream2 a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-06-01T08:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "2026-06-01T08:00:01Z"^^xsd:dateTime .
+
+ex:state4 a gmeow:LocationState ;
+    gmeow:stateOf ex:vessel ;
+    gmeow:stateAtInstant ex:instant4 ;
+    gmeow:stateReferenceFrame gmeow:referenceFrameWGS84 .
+
+ex:instant4 a gmeow:Instant ;
+    gmeow:instantValue "2026-06-01T08:00:00Z"^^xsd:dateTime .
+
+ex:state5 a gmeow:LocationState ;
+    gmeow:stateOf ex:vessel ;
+    gmeow:stateAtInstant ex:instant5 ;
+    gmeow:stateReferenceFrame gmeow:referenceFrameWGS84 .
+
+ex:instant5 a gmeow:Instant ;
+    gmeow:instantValue "2026-06-01T08:00:01Z"^^xsd:dateTime .
+
+ex:trajectory2 a gmeow:Trajectory ;
+    gmeow:trajectoryOf ex:vessel ;
+    gmeow:hasTrajectorySample ex:state4 , ex:state5 ;
+    gmeow:trajectoryReferenceFrame gmeow:referenceFrameWGS84 ;
+    gmeow:wasDerivedFrom ex:stream2 .

@@ -16,7 +16,7 @@ gmeow:mapsetObservations a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/observations" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. gmeow:ScalarQuantity is canonical — no faithful external term captures the unit+determinacy+granularity bundle in one node. Added (#68): StandpointClaim → sosa:Observation; Agent → sosa:Sensor (the observer/sensor/perceiver is a standpoint). Added (#69): IdentityFacet, NameUsage, RightsStatement, and KinRelationship → sosa:Observation (universal claim construct); facetSubject / facetVantage → sosa:hasFeatureOfInterest / sosa:madeBySensor. Added (#77): gmeow:Quantity and gmeow:MeasuredValue are equivalent aliases for ScalarQuantity; aligned to QUDT qudt:QuantityValue." .
+    gmeow:setComment "Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. gmeow:ScalarQuantity is canonical — no faithful external term captures the unit+determinacy+granularity bundle in one node. Added (#68): StandpointClaim → sosa:Observation; Agent → sosa:Sensor (the observer/sensor/perceiver is a standpoint). Added (#69): IdentityFacet, NameUsage, RightsStatement, and KinRelationship → sosa:Observation (universal claim construct); facetSubject / facetVantage → sosa:hasFeatureOfInterest / sosa:madeBySensor. Added (#77): gmeow:Quantity and gmeow:MeasuredValue are equivalent aliases for ScalarQuantity; aligned to QUDT qudt:QuantityValue. Added (#96): Stream → sosa:ObservationCollection; streamSample → sosa:hasMember; Agent → sosa:Platform; streamSensor → sosa:madeBySensor; streamInterval → sosa:phenomenonTime; Observation → sosa:Sampling." .
 
 # --------------------------------------------------------------------------- #
 # SOSA / SSN
@@ -169,6 +169,63 @@ gmeow:eqObs025 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
     gmeow:comment "facetVantage is the asserting agent of an identity claim; aligns to SOSA's sensor (device-centric, broader via broadMatch on Agent)." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+# Added (#96) — SOSA streaming alignments
+
+gmeow:eqObs026 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Stream ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:ObservationCollection ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "SOSA has no first-class Stream; ObservationCollection is the closest grouping construct." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs027 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:streamSample ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:hasMember ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "Stream sample is a member of the observation collection." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+
+gmeow:eqObs029 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:streamSensor ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:madeBySensor ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "Per-stream vs per-observation sensor attribution." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs030 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Observation ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject sosa:Sampling ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "A sampling act is a kind of observation; GMEOW models it through observationTypeSampling." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs031 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Agent ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject sosa:Platform ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "An agent hosting sensors can act as a platform (broader than the sosa:Sensor alignment in eqObs018)." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs032 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:streamInterval ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:phenomenonTime ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "Stream interval vs per-observation phenomenon time." ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #

@@ -102,7 +102,9 @@ def test_dsl_parses() -> None:
     # Issue #103 regulatory overlays: +14 (RegulatoryOverlay→schema/Wikidata,
     # overlayType*→Wikidata x8, civilTimeZone→time:TimeZone/Wikidata,
     # overlayAuthority→schema:organizer, overlayRegulation→schema:legislation).
-    assert len(dsl.equivalences) == 942
+    # Issue #96 streaming: +10 observations (removed eqObs028 per review),
+    # +4 places (eqPlaces104-107); closeMatch→broadMatch/relatedMatch per review.
+    assert len(dsl.equivalences) == 956
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

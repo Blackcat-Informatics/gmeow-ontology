@@ -172,6 +172,7 @@ gmeow:observationTypeIdentity     a gmeow:ObservationType ; rdfs:label "identity
 gmeow:observationTypeNaming       a gmeow:ObservationType ; rdfs:label "naming claim"@en ;         skos:definition "A claim about the appellation by which an entity is known in a given context."@en .
 gmeow:observationTypeRights       a gmeow:ObservationType ; rdfs:label "rights claim"@en ;         skos:definition "A claim about the rights, permissions, prohibitions, or duties governing an entity."@en .
 gmeow:observationTypeKinship      a gmeow:ObservationType ; rdfs:label "kinship claim"@en ;        skos:definition "A claim about a kinship or genealogical relationship between persons."@en .
+gmeow:observationTypeStreaming    a gmeow:ObservationType ; rdfs:label "streaming"@en ;            skos:definition "A streaming observation — a member of a time-ordered sequence produced by a sensor or platform."@en .
 
 # Seeds — ObservationMethod (generic; domain-specific methods live in their modules)
 gmeow:methodDirectObservation     a gmeow:ObservationMethod ; rdfs:label "direct observation"@en ;   skos:definition "Observation by unaided human perception."@en .
@@ -180,6 +181,7 @@ gmeow:methodSurvey               a gmeow:ObservationMethod ; rdfs:label "survey"
 gmeow:methodRemoteSensing        a gmeow:ObservationMethod ; rdfs:label "remote sensing"@en ;        skos:definition "Observation from a distance, typically satellite or aerial imagery."@en .
 gmeow:methodComputationalModel   a gmeow:ObservationMethod ; rdfs:label "computational model"@en ;  skos:definition "Observation derived from a computational or mathematical model."@en .
 gmeow:methodExpertJudgement      a gmeow:ObservationMethod ; rdfs:label "expert judgement"@en ;     skos:definition "Observation based on expert assessment or consensus."@en .
+gmeow:methodStreaming            a gmeow:ObservationMethod ; rdfs:label "streaming"@en ;            skos:definition "Collection via a continuous or periodic streaming protocol."@en .
 
 # =========================================================================== #
 # SPECIALISATIONS — the stack unification
@@ -208,6 +210,70 @@ gmeow:StandpointClaim
     rdfs:subClassOf gmeow:Observation ;
     rdfs:label "Standpoint Claim"@en ;
     skos:definition "An observation made from a specific standpoint or frame — an assertion, denial, or qualified position that a proposition holds. Realises the standpoint side of Principle #3 (Observation ≡ Measurement ≡ Standpoint). The vantage is the standpoint; the observedFeature is the proposition or fact being claimed; the observationResult is the modality (unequivocal, probable, conceivable, refuted)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# STREAM — time-ordered observation sequences (#96)
+# =========================================================================== #
+
+gmeow:Stream
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Stream"@en ;
+    skos:definition "A time-ordered sequence of observations or samples produced by a sensor or platform over a time interval. The ordering of samples is implicit via their individual timestamps, not asserted as a list structure (Principle 12). A stream is the canonical source from which a continuous trajectory may be derived by the solver layer."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# EL axiomatisation: every Stream concerns at least one entity.
+gmeow:Stream rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:streamOf ; owl:someValuesFrom gmeow:Entity ] .
+
+gmeow:streamOf
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Stream ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "stream of"@en ;
+    skos:definition "The entity whose observations the stream contains — the moving feature, device, or thing being tracked. Functional: a stream belongs to exactly one entity."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasStream
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:streamOf ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range gmeow:Stream ;
+    rdfs:label "has stream"@en ;
+    skos:definition "Links an entity to a stream of observations or samples about it. Non-functional: an entity may have multiple co-existing streams from different platforms or sensors (Principle 9), and no stream is privileged."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:streamSample
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Stream ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "stream sample"@en ;
+    skos:definition "Links a stream to an individual observation, location state, or other entity composing it. Non-functional: a stream typically has many samples, and multiple sampling strategies may coexist for the same stream (Principle 9). Ordering is implicit via sample timestamps, not asserted list structure (Principle 12)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:streamPlatform
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Stream ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "stream platform"@en ;
+    skos:definition "The platform hosting the sensor(s) producing this stream — a vehicle, vessel, aircraft, buoy, or fixed station. Non-functional: a stream may migrate across platforms over its lifetime (e.g. a device handed from one drone to another)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:streamSensor
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Stream ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "stream sensor"@en ;
+    skos:definition "The specific sensor or agent producing the stream. Non-functional: multiple sensors may contribute to one stream, and competing sensor claims coexist (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:streamInterval
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Stream ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "stream interval"@en ;
+    skos:definition "The time interval over which the stream was produced. Functional: the interval is constitutive of the stream's identity."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
