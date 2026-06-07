@@ -165,6 +165,13 @@ def test_location_aligned_across_geo_vocabularies() -> None:
         SKOS.closeMatch,
         URIRef("http://www.wikidata.org/prop/direct/P131"),
     ) in graph
+    # Inverse containment aligned to GeoSPARQL sfContains (#101).
+    contains = URIRef(GMEOW + "containsPlace")
+    assert (
+        contains,
+        SKOS.closeMatch,
+        URIRef("http://www.opengis.net/ont/geosparql#sfContains"),
+    ) in graph
     # Address component equivalence + WGS84 coordinate alignment.
     assert (
         URIRef(GMEOW + "streetAddress"),
@@ -228,6 +235,30 @@ def test_geo_authority_targets_are_import_ok() -> None:
 def test_schema_is_reference_only() -> None:
     # schema.org (CC-BY-SA) may be linked but never imported.
     assert ALIGNMENT_TARGETS["schema"].policy is LinkPolicy.REFERENCE_ONLY
+
+
+def test_qb_alignments_present() -> None:
+    from rdflib.namespace import SKOS
+
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "SpatialAggregation"),
+        SKOS.closeMatch,
+        URIRef("http://purl.org/linked-data/cube#Observation"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "Dataset"),
+        SKOS.closeMatch,
+        URIRef("http://purl.org/linked-data/cube#DataSet"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "AggregationFunction"),
+        SKOS.closeMatch,
+        URIRef("http://purl.org/linked-data/cube#MeasureProperty"),
+    ) in graph
+    # Place is intentionally NOT aligned to qb:DimensionProperty because Place is
+    # an object class (spatial features) whereas qb:DimensionProperty is a
+    # metaclass (class of properties). See mapping-dsl/equivalences/aggregation.ttl.
 
 
 def test_all_mappings_expand() -> None:

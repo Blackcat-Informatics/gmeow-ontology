@@ -1,0 +1,62 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix qb: <http://purl.org/linked-data/cube#> .
+
+# Term equivalences for spatial aggregation / statistics — GMEOW authoring source.
+# Compiled to mappings/gmeow-aggregation.sssom.tsv by `gmeow compile-mappings`.
+
+gmeow:mapsetAggregation a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-aggregation.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/aggregation" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Aggregation and statistics alignments — RDF Data Cube (QB) spatial dimensions and observations, GeoSPARQL topological relations (sfContains, hasCentroid). Bridges the #101 spatial-aggregation concern to external vocabularies by reference (Principle 5)." .
+
+# --------------------------------------------------------------------------- #
+# RDF Data Cube (QB)
+# --------------------------------------------------------------------------- #
+
+gmeow:eqAgg001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SpatialAggregation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject qb:Observation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-aggregation.sssom.tsv" .
+
+gmeow:eqAgg002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Dataset ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject qb:DataSet ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-aggregation.sssom.tsv" .
+
+gmeow:eqAgg003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:AggregationFunction ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject qb:MeasureProperty ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-aggregation.sssom.tsv" .
+
+# Note: Place is not aligned to qb:DimensionProperty because Place is an object
+# class (spatial features) whereas qb:DimensionProperty is a metaclass (class
+# of properties). A specific spatial dimension property would align to
+# qb:DimensionProperty, but the feature class itself does not (Principle 5).
+
+# --------------------------------------------------------------------------- #
+# GeoSPARQL — topological relations
+# --------------------------------------------------------------------------- #
+
+gmeow:eqAgg005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:containsPlace ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject geo:sfContains ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-aggregation.sssom.tsv" .

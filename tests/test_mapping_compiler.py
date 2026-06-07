@@ -76,7 +76,12 @@ def test_dsl_parses() -> None:
     # NameUsage→sosa:Observation, RightsStatement→sosa:Observation,
     # KinRelationship→sosa:Observation, facetSubject→sosa:hasFeatureOfInterest,
     # facetVantage→sosa:madeBySensor).
-    assert len(dsl.equivalences) == 860
+    # Issue #101 spatial aggregation: +4 (SpatialAggregation→qb:Observation,
+    # Dataset→qb:DataSet, AggregationFunction→qb:MeasureProperty,
+    # containsPlace→geo:sfContains).
+    # Place is intentionally NOT aligned to qb:DimensionProperty (category
+    # mismatch: object class vs. metaclass of properties).
+    assert len(dsl.equivalences) == 864
     # 25 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -94,7 +99,8 @@ def test_dsl_parses() -> None:
     # Issue #27 adds gmeow-tags.
     # Issue #80 adds gmeow-connectivity.
     # Issue #81 lifecycle: +1 (gmeow-lifecycle.sssom.tsv).
-    assert len(dsl.mapping_sets) == 26
+    # Issue #101 spatial aggregation: +1 (gmeow-aggregation.sssom.tsv).
+    assert len(dsl.mapping_sets) == 27
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}

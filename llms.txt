@@ -11,6 +11,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:AddressTenure (⊑ gmeow:TimeScopedRelation): The reified, time-scoped fact that an agent held a contact point (e.g. an email address) over a particular interval.
 - gmeow:AdoptiveParentChild (⊑ gmeow:ParentChildRelationship): A parent-child relationship established by adoption.
 - gmeow:Agent (⊑ gmeow:Entity, gufo:FunctionalComplex): An entity that can act, bear responsibility, and enter into agreements: a person, an organization, or a software agent.
+- gmeow:AggregationFunction (⊑ gufo:QualityValue): The kind of statistical aggregation applied to a spatial region — a value vocabulary (individuals, never subclasses).
 - gmeow:Agreement (⊑ gufo:Relator): A mutual understanding between two or more agents that creates obligations or rights, reified as a relator connecting its parties.
 - gmeow:Appellation (⊑ gmeow:InformationObject, ontolex:LexicalEntry): A name as an information object borne by an entity — a person's name, a filename, a place name, an organization name. It carries the surface form (gmeow:fullName) and the structured parts (gmeow:hasNamePart); who uses it, toward whom, in what register and over what period is carried by gmeow:NameUsage. The universal superclass reconciling the scattered naming terms. Multiple appellations on one entity are CO-EQUAL — none is canonical or 'primary'.
 - gmeow:Article (⊑ gmeow:CreativeWork): A written work published in a periodical, blog, or scholarly venue.
@@ -168,6 +169,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:SoftwareAgent (⊑ gmeow:Agent): A software process or autonomous program that acts on behalf of a person or organization.
 - gmeow:SoftwareProject (⊑ gmeow:CreativeWork): A software project: a body of source code developed and released as a unit, with repositories, releases, and contributors.
 - gmeow:Source (⊑ gmeow:InformationObject): A source from which evidence is drawn: a record, certificate, register, archive entry, or publication.
+- gmeow:SpatialAggregation (⊑ gmeow:Measurement): A measurement that aggregates entities located within a spatial region, yielding a scalar result such as a count, density, or average. The aggregation region is the observedFeature; the result is a ScalarQuantity. The actual computation is performed by the solver layer (Principle 12), not materialised as asserted triples in the OWL core.
+- gmeow:SpatialBin (⊑ gmeow:Place): A place that serves as a spatial bin in an aggregation grid — a generated region used to partition space for statistical summarisation. Its geometry defines the bin boundary; its aggregation result is a SpatialAggregation.
 - gmeow:SpatialCoordinates (⊑ gmeow:Entity, gufo:Object): A set of coordinate values representing a position in a specific coordinate reference frame.
 - gmeow:Standpoint (⊑ gmeow:Entity): A named perspective / frame within which claims are held true — a state's official position, a community's usage, an editorial or historiographic point of view. Minted only when the frame needs its own identity and labels; often a bare gmeow:Agent (a polity, an organization) suffices as the value of gmeow:accordingTo instead. Standpoints form a poset under gmeow:sharpens, topped by gmeow:universalStandpoint.
 - gmeow:StandpointClaim (⊑ gmeow:Observation): An observation made from a specific standpoint or frame — an assertion, denial, or qualified position that a proposition holds. Realises the standpoint side of Principle #3 (Observation ≡ Measurement ≡ Standpoint). The vantage is the standpoint; the observedFeature is the proposition or fact being claimed; the observationResult is the modality (unequivocal, probable, conceivable, refuted).
@@ -215,6 +218,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:addressRegion [gmeow:PostalAddress → rdfs:Literal]: The region (state, province, or territory) of a postal address.
 - gmeow:adjacentTo [gmeow:Location → gmeow:Location]: Relates a location to another location it is adjacent to.
 - gmeow:after [gmeow:Event → gmeow:Event]: Allen AFTER: this event begins strictly after the related event ends; the transitive inverse of gmeow:before. (= time:intervalAfter; TimeML AFTER; TEO after.)
+- gmeow:aggregationFunction [gmeow:SpatialAggregation → gmeow:AggregationFunction] (functional): The statistical function applied to the entities in the aggregation region — count, sum, average, density, minimum, maximum, or centroid.
 - gmeow:asWKT [gmeow:Geometry → rdfs:Literal]: A Well-Known Text (WKT) serialization of a geometry. The range is rdfs:Literal (not geo:wktLiteral) to stay within the OWL 2 DL datatype map; data may still tag the literal ^^geo:wktLiteral, and the alignment to geo:asWKT preserves GeoSPARQL semantics for spatial engines.
 - gmeow:assertedAt [? → xsd:dateTime]: The instant an agent observed or asserted the annotated claim (e.g. an email Date header or a vCard REV) — a witness that the fact held at that instant. Distinct from validity (validFrom/validUntil) and from a source's carrier time.
 - gmeow:atTime [? → xsd:dateTime]: The instant at which a point-like event or observation occurred.
@@ -251,6 +255,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:containedInLocation [gmeow:Location → gmeow:Location]: Relates a location to a larger location that contains it; transitive. A spatial/topological specialization of the universal gmeow:partOf spine.
 - gmeow:containedInPlace [gmeow:Place → gmeow:Place]: Relates a place to a larger place that geographically contains it; transitive. Chains the nested granularity (room ⊂ building ⊂ city ⊂ region ⊂ country), each level a first-class place. Non-functional: contested sovereignty claims (e.g. Crimea-class) coexist as standpoint-indexed statements (gmeow:accordingTo), never collapsing to a single winner (Principle 9).
 - gmeow:contains [gmeow:Event → gmeow:Event]: Allen CONTAINS: this event's extent strictly contains the related event's extent; the transitive inverse of gmeow:during. A TEMPORAL relation only — not spatial (gmeow:containedInPlace) nor mereological (gmeow:hasSubEvent). (= time:intervalContains; TimeML INCLUDES; TEO contains.)
+- gmeow:containsPlace [gmeow:Place → gmeow:Place]: The inverse of gmeow:containedInPlace — a place that geographically contains another place. Under OWL 2 semantics, transitivity is entailed because containedInPlace is transitive. GMEOW does not assert additional transitive property chains beyond the inverse declaration; transitive closure is a solver concern (Principle 12).
 - gmeow:contentDigest [gmeow:Source → rdfs:Literal]: A content hash of the source's bytes (e.g. "blake3:…") — the reliable carrier identity (two imports of the same bytes are the same source, regardless of mtime or path). Not functional: a source may carry digests under several algorithms.
 - gmeow:coordinateFrame [gmeow:SpatialCoordinates → gmeow:ReferenceFrame] (functional): Relates a set of coordinates to the reference frame they are expressed in.
 - gmeow:copyrightHolder [gmeow:Copyright → gmeow:Agent]: The agent that holds a copyright (schema:copyrightHolder; dcterms:rightsHolder). A specialisation of gmeow:wasAttributedTo — the canonical rights-holder attribution. Non-functional: joint copyright has several co-equal holders.
@@ -316,6 +321,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasAuthenticationResult [gmeow:Message → gmeow:AuthenticationResult]: Relates a message to an authentication check performed on it.
 - gmeow:hasAuthor [gmeow:CreativeWork → gmeow:Agent]: Relates a creative work to an agent chiefly responsible for creating its intellectual content.
 - gmeow:hasAxis [gmeow:ReferenceFrame → gmeow:Axis]: Relates a reference frame to one of its coordinate axes.
+- gmeow:hasBin [gmeow:SpatialAggregation → gmeow:SpatialBin]: Links a spatial aggregation to one of its constituent spatial bins. Non-functional: a bin may participate in multiple aggregations.
 - gmeow:hasBodyPart [gmeow:Message → gmeow:BodyPart]: Relates a message to a MIME part of its body. A MIME-structure specialization of the universal gmeow:hasPart spine.
 - gmeow:hasChild [gmeow:Person → gmeow:Person]: Relates a person to a child; the inverse of hasParent.
 - gmeow:hasContactPoint [gmeow:Agent → gmeow:ContactPoint]: Relates an agent to a means of contacting it.
@@ -700,6 +706,13 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:actionUninstall (a gmeow:RightsAction): Remove an installed asset from a device (odrl:uninstall).
 - gmeow:actionUse (a gmeow:RightsAction): Use the asset (the broad odrl:use action).
 - gmeow:actionWatermark (a gmeow:RightsAction): Apply a watermark to the asset (odrl:watermark) — a duty.
+- gmeow:aggAverage (a gmeow:AggregationFunction): The arithmetic mean of a numeric property over entities within the aggregation region.
+- gmeow:aggCentroid (a gmeow:AggregationFunction): The geometric centre of the aggregation region or of the entities within it. Computed by the solver layer (Principle 12).
+- gmeow:aggCount (a gmeow:AggregationFunction): The number of entities within the aggregation region.
+- gmeow:aggDensity (a gmeow:AggregationFunction): The number of entities per unit area within the aggregation region. Computed by the solver layer (Principle 12).
+- gmeow:aggMaximum (a gmeow:AggregationFunction): The largest value of a numeric property over entities within the aggregation region.
+- gmeow:aggMinimum (a gmeow:AggregationFunction): The smallest value of a numeric property over entities within the aggregation region.
+- gmeow:aggSum (a gmeow:AggregationFunction): The arithmetic sum of a numeric property over entities within the aggregation region.
 - gmeow:aspectNone (a gmeow:GrammaticalAspect): ISO-TimeML aspect NONE.
 - gmeow:aspectPerfective (a gmeow:GrammaticalAspect): ISO-TimeML aspect PERFECTIVE.
 - gmeow:aspectPerfectiveProgressive (a gmeow:GrammaticalAspect): ISO-TimeML aspect PERFECTIVE_PROGRESSIVE.

@@ -502,4 +502,5 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     ),
     "moat": AlignmentTarget("MOAT", PREFIXES["moat"], "Unknown", "schema"),
     "tags": AlignmentTarget("Tag Ontology", PREFIXES["tags"], "Unknown", "schema"),
+    "qb": AlignmentTarget("RDF Data Cube", PREFIXES["qb"], "W3C-Document", "schema"),
 }

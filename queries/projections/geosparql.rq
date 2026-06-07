@@ -16,6 +16,7 @@ CONSTRUCT {
     ?ptGeom geo:asWKT ?pointWkt .
     ?entity geo:hasGeometry ?ptGeom .
     ?place geo:sfWithin ?parent .
+    ?parent geo:sfContains ?place .
 }
 WHERE {
     {
@@ -70,5 +71,9 @@ WHERE {
     UNION {
         ?place a gmeow:Place .
         ?place gmeow:containedInPlace ?parent .
+    }
+    UNION {
+        ?parent a gmeow:Place .
+        ?parent gmeow:containsPlace ?place .
     }
 }

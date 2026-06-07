@@ -1,0 +1,51 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix qb:    <http://purl.org/linked-data/cube#> .
+
+# Projection mappings: GMEOW SpatialAggregation → RDF Data Cube (QB).
+# Compiled to projections/qb.edoal.ttl + queries/projections/qb.rq by
+# `gmeow compile-mappings`.
+
+# SpatialAggregation → qb:Observation with measure value.
+gmeow:mapQbObservation a gmeow:ProjectionMapping ;
+    rdfs:label "SpatialAggregation → qb:Observation"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "agg" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "agg" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SpatialAggregation ]
+            [ gmeow:subjectVar "agg" ; gmeow:predicate gmeow:observedFeature ; gmeow:objectVar "region" ]
+            [ gmeow:subjectVar "agg" ; gmeow:predicate gmeow:aggregationFunction ; gmeow:objectVar "func" ]
+            [ gmeow:subjectVar "agg" ; gmeow:predicate gmeow:observationResult ; gmeow:objectVar "result" ]
+            [ gmeow:subjectVar "result" ; gmeow:predicate gmeow:quantityValue ; gmeow:objectVar "val" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "agg" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+    gmeow:hasBinding [
+        gmeow:profile "qb" ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "vantage, confidence, temporal scope, granularity, and determinacy are dropped in pure QB; only the measure type (function), observation value (scalar), and spatial context (observedFeature) are retained. Suppressed when displayable=false (Principle 10). The consumer's DSD may declare observedFeature as a dimension property." ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "agg" ; gmeow:tPred rdf:type ; gmeow:tObjValue qb:Observation ]
+            [ gmeow:tSubj "agg" ; gmeow:tPred gmeow:observedFeature ; gmeow:tObj "region" ]
+            [ gmeow:tSubj "agg" ; gmeow:tPred qb:measureType ; gmeow:tObj "func" ]
+            [ gmeow:tSubj "agg" ; gmeow:tPred qb:obsValue ; gmeow:tObj "val" ] ) ] .
+
+# SpatialBin → qb:Observation (binned aggregation).
+gmeow:mapQbBinObservation a gmeow:ProjectionMapping ;
+    rdfs:label "SpatialBin → qb:Observation (binned aggregation)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "bin" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "bin" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SpatialBin ]
+            [ gmeow:subjectVar "agg" ; gmeow:predicate gmeow:hasBin ; gmeow:objectVar "bin" ]
+            [ gmeow:subjectVar "agg" ; gmeow:predicate gmeow:aggregationFunction ; gmeow:objectVar "func" ]
+            [ gmeow:subjectVar "agg" ; gmeow:predicate gmeow:observationResult ; gmeow:objectVar "result" ]
+            [ gmeow:subjectVar "result" ; gmeow:predicate gmeow:quantityValue ; gmeow:objectVar "val" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "agg" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+    gmeow:hasBinding [
+        gmeow:profile "qb" ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "bin geometry and aggregation metadata (vantage, confidence, granularity beyond the bin level) are dropped. Suppressed when displayable=false (Principle 10). The consumer's DSD may declare hasBin as a dimension property." ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "agg" ; gmeow:tPred rdf:type ; gmeow:tObjValue qb:Observation ]
+            [ gmeow:tSubj "agg" ; gmeow:tPred gmeow:hasBin ; gmeow:tObj "bin" ]
+            [ gmeow:tSubj "agg" ; gmeow:tPred qb:measureType ; gmeow:tObj "func" ]
+            [ gmeow:tSubj "agg" ; gmeow:tPred qb:obsValue ; gmeow:tObj "val" ] ) ] .
