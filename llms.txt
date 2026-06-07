@@ -37,7 +37,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:CryptographicSignature (⊑ gmeow:InformationObject): A cryptographic signature over a message or its headers, asserting origin and integrity.
 - gmeow:DKIMSignature (⊑ gmeow:CryptographicSignature): A DomainKeys Identified Mail signature (RFC 6376) over selected headers and the body.
 - gmeow:Dataset (⊑ gmeow:CreativeWork): A collection of data published as a unit.
-- gmeow:Determinacy (⊑ gufo:QualityValue): The model of boundary determinacy or certainty for a location or geometry (e.g. crisp, fuzzy, vague, probabilistic).
+- gmeow:Determinacy (⊑ gufo:QualityValue): The model of ontic determinacy or indeterminacy for a value — whether it is inherently crisp, vague, fuzzy, probabilistic, or disputed. Distinct from epistemic confidence (how sure we are of a claim); determinacy records the nature of the value itself. Applies universally: a gender may be fuzzy, a date approximate, a boundary vague, a SLAM cell probabilistic, a contested fact disputed.
 - gmeow:Document (⊑ gmeow:CreativeWork): A bounded textual or digital document — a file, record, or report.
 - gmeow:Duration (⊑ gmeow:Entity): A length of time as a quantity, independent of when it occurs — the running time of an event, a gap, a recurrence period. Carries an xsd:duration via gmeow:durationValue. (= time:Duration / time:TemporalDuration, schema:Duration, ISO-TimeML TIMEX3 type=DURATION, TEO Duration.)
 - gmeow:Duty (⊑ gmeow:Rule): A rule that obliges the discharge of a gmeow:RightsAction (e.g. attribute, share-alike, obtain-consent) as a condition of a permission (odrl:Duty / odrl:obligation; CC REL cc:requires).
@@ -275,6 +275,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasCoordinates [gmeow:Place → gmeow:GeoCoordinates]: Relates a place to its geographic point coordinates.
 - gmeow:hasCopyright [gmeow:Entity → gmeow:Copyright]: Relates a work to its reified copyright.
 - gmeow:hasDescendant [gmeow:Person → gmeow:Person]: Relates a person to a descendant — a child, a child's child, and so on; the transitive inverse of gmeow:hasAncestor. Derived by the reasoner (gmeow:hasChild is a sub-property), never asserted directly.
+- gmeow:hasDeterminacy [? → gmeow:Determinacy]: Relates a value, entity, or claim to its ontic determinacy model — the explicit facet recording whether the value is crisp, vague, fuzzy, probabilistic, or disputed. Domain-free (universal, like hasGranularity). NOT functional: in a multi-source merge sources may state different determinacy models, and those claims coexist rather than force the reasoner to collapse distinct models. Distinct from gmeow:confidence (epistemic certainty) and from gmeow:determinacyModel (the frame-level default for a ReferenceFrame).
 - gmeow:hasDuration [gmeow:Event → gmeow:Duration]: Relates an event to its duration (a gmeow:Duration). Distinct from gmeow:eventInterval (which anchors the event in time); a duration is a length only.
 - gmeow:hasDuty [gmeow:RightsStatement | gmeow:Permission → gmeow:Duty]: Relates a rights statement (or a permission) to a duty / obligation that must be discharged (an odrl:duty / odrl:obligation rule). The domain is the union of gmeow:RightsStatement and gmeow:Permission, so a permission may carry its own duties without being misclassified as a rights statement.
 - gmeow:hasFather [gmeow:Person → gmeow:Person]: Relates a person to a male parent.
@@ -604,6 +605,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:copyrightStatusPublicDomain (a gmeow:CopyrightStatus): The work is in the public domain (the CC public-domain mark; RightsStatements.org NoC-related).
 - gmeow:copyrightStatusUndetermined (a gmeow:CopyrightStatus): Copyright undetermined (RightsStatements.org UND).
 - gmeow:determinacyCrisp (a gmeow:Determinacy): crisp
+- gmeow:determinacyDisputed (a gmeow:Determinacy): disputed
 - gmeow:determinacyFuzzy (a gmeow:Determinacy): fuzzy
 - gmeow:determinacyProbabilistic (a gmeow:Determinacy): probabilistic
 - gmeow:determinacyVague (a gmeow:Determinacy): vague

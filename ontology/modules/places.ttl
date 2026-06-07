@@ -285,13 +285,6 @@ gmeow:FrameKind
     skos:definition "The structural type of a reference frame (e.g. geodetic, Cartesian, polar, grid, narrative)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:Determinacy
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Determinacy"@en ;
-    skos:definition "The model of boundary determinacy or certainty for a location or geometry (e.g. crisp, fuzzy, vague, probabilistic)."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
 gmeow:LocationState
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
@@ -318,12 +311,6 @@ gmeow:frameKindGeodetic      a gmeow:FrameKind ; rdfs:label "geodetic"@en .
 gmeow:frameKindCartesian     a gmeow:FrameKind ; rdfs:label "cartesian"@en .
 gmeow:frameKindPolar         a gmeow:FrameKind ; rdfs:label "polar"@en .
 gmeow:frameKindGrid          a gmeow:FrameKind ; rdfs:label "grid"@en .
-
-# Seeds for Determinacy
-gmeow:determinacyCrisp       a gmeow:Determinacy ; rdfs:label "crisp"@en .
-gmeow:determinacyFuzzy       a gmeow:Determinacy ; rdfs:label "fuzzy"@en .
-gmeow:determinacyVague       a gmeow:Determinacy ; rdfs:label "vague"@en .
-gmeow:determinacyProbabilistic a gmeow:Determinacy ; rdfs:label "probabilistic"@en .
 
 # Seeds for GranularityLevel — the spatial resolution axis (#79; class in core).
 # Ordered coarse→fine by gmeow:coarserThan (transitive, so country is coarser than
