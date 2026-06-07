@@ -84,6 +84,7 @@ _PROFILES = (
     "spdx",
     "ontolex",
     "web-annotation",
+    "bot",
 )
 _FNO_FILE = "functions.fno.ttl"
 #: Hand-authored FnO file the compiler reads (for the lint) but never writes.

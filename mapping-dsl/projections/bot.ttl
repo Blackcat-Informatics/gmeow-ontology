@@ -1,0 +1,75 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix bot:   <https://w3id.org/bot#> .
+
+# Projection mappings: GMEOW → BOT (Building Topology Ontology). Compiled to
+# projections/bot.edoal.ttl + queries/projections/bot.rq by `gmeow compile-mappings`.
+
+# --------------------------------------------------------------------------- #
+# Place kind → BOT class (valueClassMap, the same idiom as schema-org placeType)
+# --------------------------------------------------------------------------- #
+
+gmeow:mapBotPlaceType a gmeow:ProjectionMapping ;
+    rdfs:label "Place placeType value → BOT target class"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ; gmeow:value "pt" ;
+        gmeow:atom ( [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:placeType ; gmeow:objectVar "pt" ] ) ;
+        gmeow:edoalSource gmeow:Place ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "bot" ; gmeow:relation "=" ;
+        gmeow:transform gmeow:fnPlaceTypeToClass ;
+        gmeow:valueClassMap (
+            [ gmeow:whenValue gmeow:placeTypeBuilding ; gmeow:toClass bot:Building ]
+            [ gmeow:whenValue gmeow:placeTypeFloor ; gmeow:toClass bot:Storey ]
+            [ gmeow:whenValue gmeow:placeTypeRoom ; gmeow:toClass bot:Space ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# Containment → BOT hierarchical properties
+# --------------------------------------------------------------------------- #
+
+gmeow:mapBotHasStorey a gmeow:ProjectionMapping ;
+    rdfs:label "building contains floor → bot:hasStorey"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "building" ; gmeow:value "storey" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "storey" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "storey" ; gmeow:predicate gmeow:placeType ; gmeow:objectValue gmeow:placeTypeFloor ]
+            [ gmeow:subjectVar "storey" ; gmeow:predicate gmeow:containedInPlace ; gmeow:objectVar "building" ]
+            [ gmeow:subjectVar "building" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "building" ; gmeow:predicate gmeow:placeType ; gmeow:objectValue gmeow:placeTypeBuilding ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "bot" ; gmeow:toPredicate bot:hasStorey ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the GMEOW containedInPlace subproperty and any standpoint/contestation on the containment are collapsed to a flat bot:hasStorey edge" ] .
+
+gmeow:mapBotHasSpace a gmeow:ProjectionMapping ;
+    rdfs:label "floor contains room → bot:hasSpace"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "storey" ; gmeow:value "space" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "space" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "space" ; gmeow:predicate gmeow:placeType ; gmeow:objectValue gmeow:placeTypeRoom ]
+            [ gmeow:subjectVar "space" ; gmeow:predicate gmeow:containedInPlace ; gmeow:objectVar "storey" ]
+            [ gmeow:subjectVar "storey" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "storey" ; gmeow:predicate gmeow:placeType ; gmeow:objectValue gmeow:placeTypeFloor ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "bot" ; gmeow:toPredicate bot:hasSpace ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the GMEOW containedInPlace subproperty and any standpoint/contestation on the containment are collapsed to a flat bot:hasSpace edge" ] .
+
+# Building contains room directly (skipping floor) — also valid in BOT.
+gmeow:mapBotHasSpaceDirect a gmeow:ProjectionMapping ;
+    rdfs:label "building contains room directly → bot:hasSpace"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "building" ; gmeow:value "space" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "space" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "space" ; gmeow:predicate gmeow:placeType ; gmeow:objectValue gmeow:placeTypeRoom ]
+            [ gmeow:subjectVar "space" ; gmeow:predicate gmeow:containedInPlace ; gmeow:objectVar "building" ]
+            [ gmeow:subjectVar "building" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "building" ; gmeow:predicate gmeow:placeType ; gmeow:objectValue gmeow:placeTypeBuilding ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "bot" ; gmeow:toPredicate bot:hasSpace ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "direct building→room containment, skipping the intermediate storey; the flat edge loses the intermediate floor information" ] .

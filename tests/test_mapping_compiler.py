@@ -112,7 +112,7 @@ def test_dsl_parses() -> None:
     # fnTagToKeyword + fnTaggingToAnnotation #27,
     # fnPosePositionToWktPoint #78,
     # fnRetagGeoJson + fnCoarsenToGranularityGeoJson #82).
-    assert len(dsl.functions) == 27
+    assert len(dsl.functions) == 28
     # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint,
     # gmeow-events, gmeow-rights, gmeow-coreference, gmeow-determinacy, gmeow-privacy).
     # Issue #70 adds gmeow-qudt, gmeow-fibo, gmeow-temporal.
@@ -416,7 +416,7 @@ def test_fno_emits_fnom_implementation_mapping() -> None:
     """Each function declares its SPARQL implementation via fno:/fnom: vocabulary."""
     graph = emit_fno(load_dsl(), load_merged_graph(include_imports=False))
     assert (
-        len(set(graph.subjects(RDF.type, FNO.Implementation))) == 6
+        len(set(graph.subjects(RDF.type, FNO.Implementation))) == 7
     )  # one per profile WITH transforms (owl-time is pure templateAtoms — none;
     # web-annotation added #27)
     bound = False
