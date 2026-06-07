@@ -14,6 +14,7 @@
 #   gn: http://www.geonames.org/ontology#
 #   gvp: http://vocab.getty.edu/ontology#
 #   owl: http://www.w3.org/2002/07/owl#
+#   pos: http://purl.org/ieee1872-owl/pos#
 #   schema: https://schema.org/
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
@@ -26,6 +27,9 @@ gmeow:Geometry	skos:closeMatch	geo:Geometry		semapv:ManualMappingCuration	0.9
 gmeow:Location	skos:closeMatch	bfo:BFO_0000006	spatial region	semapv:ManualMappingCuration	0.8	
 gmeow:Location	skos:closeMatch	bfo:BFO_0000029	site	semapv:ManualMappingCuration	0.8	
 gmeow:Location	skos:closeMatch	crm:E53_Place	Place	semapv:ManualMappingCuration	0.85	
+gmeow:Orientation	skos:closeMatch	pos:OrientationMeasure	Orientation Measure	semapv:ManualMappingCuration	0.85	
+gmeow:Pose	skos:closeMatch	pos:QuantitativePose	Quantitative Pose	semapv:ManualMappingCuration	0.85	
+gmeow:Pose	skos:closeMatch	wd:Q1055020	pose	semapv:ManualMappingCuration	0.8	
 gmeow:VirtualLocation	skos:closeMatch	schema:VirtualLocation		semapv:ManualMappingCuration	0.9	
 gmeow:addressLocality	owl:equivalentProperty	schema:addressLocality		semapv:ManualMappingCuration	1.0	
 gmeow:addressLocality	skos:closeMatch	vcard:locality		semapv:ManualMappingCuration	0.9	
@@ -33,6 +37,7 @@ gmeow:addressPlace	skos:closeMatch	schema:address		semapv:ManualMappingCuration	
 gmeow:addressRegion	owl:equivalentProperty	schema:addressRegion		semapv:ManualMappingCuration	1.0	
 gmeow:addressRegion	skos:closeMatch	vcard:region		semapv:ManualMappingCuration	0.9	
 gmeow:asWKT	skos:closeMatch	geo:asWKT		semapv:ManualMappingCuration	0.9	
+gmeow:bearing	skos:closeMatch	wd:Q123429	bearing	semapv:ManualMappingCuration	0.8	
 gmeow:containedInPlace	skos:closeMatch	dcterms:isPartOf		semapv:ManualMappingCuration	0.7	
 gmeow:containedInPlace	skos:closeMatch	geo:sfWithin		semapv:ManualMappingCuration	0.8	
 gmeow:containedInPlace	skos:closeMatch	gn:parentFeature		semapv:ManualMappingCuration	0.8	
@@ -41,12 +46,18 @@ gmeow:countryCode	skos:closeMatch	schema:addressCountry		semapv:ManualMappingCur
 gmeow:countryCode	skos:closeMatch	vcard:country-name		semapv:ManualMappingCuration	0.7	
 gmeow:elevation	skos:closeMatch	schema:elevation		semapv:ManualMappingCuration	0.9	
 gmeow:elevation	skos:closeMatch	wgs84:alt		semapv:ManualMappingCuration	0.9	
+gmeow:eulerOrder	skos:closeMatch	wd:Q465493	Euler angles	semapv:ManualMappingCuration	0.8	
 gmeow:extendedAddress	skos:closeMatch	vcard:extended-address		semapv:ManualMappingCuration	0.9	
 gmeow:hasCoordinates	skos:closeMatch	schema:geo		semapv:ManualMappingCuration	0.8	
 gmeow:hasGeometry	skos:closeMatch	geo:hasGeometry		semapv:ManualMappingCuration	0.9	
+gmeow:hasPose	skos:closeMatch	pos:pose		semapv:ManualMappingCuration	0.85	
+gmeow:hasPoseOrientation	skos:closeMatch	pos:poseOrientation		semapv:ManualMappingCuration	0.85	
+gmeow:hasPosePosition	skos:closeMatch	pos:posePosition		semapv:ManualMappingCuration	0.85	
+gmeow:heading	skos:closeMatch	wd:Q41154	heading	semapv:ManualMappingCuration	0.8	
 gmeow:latitude	skos:closeMatch	wgs84:lat		semapv:ManualMappingCuration	0.9	
 gmeow:locatedAt	skos:closeMatch	schema:location		semapv:ManualMappingCuration	0.7	
 gmeow:longitude	skos:closeMatch	wgs84:long		semapv:ManualMappingCuration	0.9	
+gmeow:pitch	skos:closeMatch	wd:Q465493	Euler angles	semapv:ManualMappingCuration	0.8	
 gmeow:placeType	skos:closeMatch	gvp:placeType		semapv:ManualMappingCuration	0.8	
 gmeow:placeTypeAdministrativeArea	skos:closeMatch	gn:A		semapv:ManualMappingCuration	0.8	
 gmeow:placeTypeAdministrativeArea	skos:closeMatch	schema:AdministrativeArea		semapv:ManualMappingCuration	0.9	
@@ -65,6 +76,12 @@ gmeow:postOfficeBox	skos:closeMatch	vcard:post-office-box		semapv:ManualMappingC
 gmeow:postalCode	owl:equivalentProperty	schema:postalCode		semapv:ManualMappingCuration	1.0	
 gmeow:postalCode	skos:closeMatch	vcard:postal-code		semapv:ManualMappingCuration	0.9	
 gmeow:proximity	skos:closeMatch	schema:distance		semapv:ManualMappingCuration	0.75	schema.org:distance is a flat property with range QuantitativeValue or Text; GMEOW proximity is a reified Measurement with frame-declared metric kind. Directional lossy projection.
+gmeow:quaternionW	skos:closeMatch	wd:Q462283	quaternion	semapv:ManualMappingCuration	0.8	
+gmeow:quaternionX	skos:closeMatch	wd:Q462283	quaternion	semapv:ManualMappingCuration	0.8	
+gmeow:quaternionY	skos:closeMatch	wd:Q462283	quaternion	semapv:ManualMappingCuration	0.8	
+gmeow:quaternionZ	skos:closeMatch	wd:Q462283	quaternion	semapv:ManualMappingCuration	0.8	
+gmeow:roll	skos:closeMatch	wd:Q465493	Euler angles	semapv:ManualMappingCuration	0.8	
 gmeow:streetAddress	owl:equivalentProperty	schema:streetAddress		semapv:ManualMappingCuration	1.0	
 gmeow:streetAddress	skos:closeMatch	vcard:street-address		semapv:ManualMappingCuration	0.9	
 gmeow:timezone	skos:closeMatch	vcard:tz		semapv:ManualMappingCuration	0.9	
+gmeow:yaw	skos:closeMatch	wd:Q465493	Euler angles	semapv:ManualMappingCuration	0.8	

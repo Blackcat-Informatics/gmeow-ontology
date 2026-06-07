@@ -77,6 +77,13 @@ gmeow:fnPlaceTypeToClass a fno:Function ;
     fno:expects ( gmeow:paramPlaceType ) ;
     fno:returns ( gmeow:outPlaceTypeToClass ) .
 
+gmeow:fnPosePositionToWktPoint a fno:Function ;
+    rdfs:label "pose position → WKT POINT"@en ;
+    dcterms:description "Projects the translational component of a gmeow:Pose (reached via gmeow:hasPosePosition as SpatialCoordinates) to a GeoSPARQL WKT POINT literal. The orientation component is dropped because GeoSPARQL 1.0/1.1 has no native pose model; heading/bearing may be projected separately to a future GeoPose JSON profile."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> ;
+    fno:expects ( gmeow:paramLatitude gmeow:paramLongitude ) ;
+    fno:returns ( gmeow:outPosePositionToWktPoint ) .
+
 gmeow:fnProficiencyToKnownLanguage a fno:Function ;
     rdfs:label "flatten LanguageProficiency → schema:knowsLanguage"@en ;
     dcterms:description "Flattens the reified gmeow:LanguageProficiency relator (agent × language × modality × level) and the flat gmeow:knowsLanguage to schema:knowsLanguage(agent, language). Lossy: the CEFR/ILR/ACTFL level and skill modality are dropped — schema.org has no proficiency model."@en ;
@@ -197,6 +204,10 @@ gmeow:outParticipantToAttendee a fno:Output ;
 gmeow:outPlaceTypeToClass a fno:Output ;
     fno:predicate gmeow:projectedType ;
     fno:type rdfs:Class .
+
+gmeow:outPosePositionToWktPoint a fno:Output ;
+    fno:predicate geo:asWKT ;
+    fno:type geo:wktLiteral .
 
 gmeow:outProficiencyToKnownLanguage a fno:Output ;
     fno:predicate gmeow:projectedKnownLanguage ;
@@ -381,10 +392,6 @@ gmeow:fnWebPageToUrl a fno:Function ;
     fno:expects ( gmeow:paramHasWebPage ) ;
     fno:returns ( gmeow:outWebPageToUrl ) .
 
-gmeow:implGeosparql a fno:Implementation ;
-    dcterms:format "application/sparql-query" ;
-    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> .
-
 gmeow:implIcal a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/ical.rq> .
@@ -428,6 +435,10 @@ gmeow:implFoaf a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/foaf.rq> .
 
+gmeow:implGeosparql a fno:Implementation ;
+    dcterms:format "application/sparql-query" ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> .
+
 gmeow:outNicknameName a fno:Output ;
     fno:predicate gmeow:projectedNick ;
     fno:type rdfs:Literal .
@@ -456,16 +467,6 @@ gmeow:paramHasWebPage a fno:Parameter ;
     fno:required true ;
     fno:type gmeow:WebPage .
 
-gmeow:paramLatitude a fno:Parameter ;
-    fno:predicate gmeow:latitude ;
-    fno:required true ;
-    fno:type xsd:decimal .
-
-gmeow:paramLongitude a fno:Parameter ;
-    fno:predicate gmeow:longitude ;
-    fno:required true ;
-    fno:type xsd:decimal .
-
 gmeow:outParticipationToEventRole a fno:Output ;
     fno:predicate gmeow:projectedEventRole ;
     fno:type gmeow:Entity .
@@ -478,6 +479,16 @@ gmeow:paramParticipationParticipant a fno:Parameter ;
     fno:predicate gmeow:participationParticipant ;
     fno:required true ;
     fno:type gmeow:Entity .
+
+gmeow:paramLatitude a fno:Parameter ;
+    fno:predicate gmeow:latitude ;
+    fno:required true ;
+    fno:type xsd:decimal .
+
+gmeow:paramLongitude a fno:Parameter ;
+    fno:predicate gmeow:longitude ;
+    fno:required true ;
+    fno:type xsd:decimal .
 
 gmeow:implVcard a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
@@ -776,6 +787,23 @@ gmeow:implSchemaOrg a fno:Implementation ;
             rdfs:label "fnPlaceTypeToClass output ↦ ?pt"@en ;
             fnom:functionOutput gmeow:outPlaceTypeToClass ;
             fnom:implementationProperty "pt" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "fnPosePositionToWktPoint → geosparql (FnO mapping)"@en ;
+    fno:function gmeow:fnPosePositionToWktPoint ;
+    fno:implementation gmeow:implGeosparql ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramLatitude ↦ ?lat"@en ;
+            fnom:functionParameter gmeow:paramLatitude ;
+            fnom:implementationProperty "lat" ],
+        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramLongitude ↦ ?lon"@en ;
+            fnom:functionParameter gmeow:paramLongitude ;
+            fnom:implementationProperty "lon" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnPosePositionToWktPoint output ↦ ?pointWkt"@en ;
+            fnom:functionOutput gmeow:outPosePositionToWktPoint ;
+            fnom:implementationProperty "pointWkt" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnProficiencyToKnownLanguage → schema-org (FnO mapping)"@en ;

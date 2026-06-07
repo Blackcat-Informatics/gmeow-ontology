@@ -395,6 +395,12 @@ gmeow:fnLatLongToWktPoint a gmeow:ProjectionFunction ;
     gmeow:fnInput gmeow:latitude , gmeow:longitude ;
     gmeow:fnOutput geo:asWKT ; gmeow:fnOutputType geo:wktLiteral .
 
+gmeow:fnPosePositionToWktPoint a gmeow:ProjectionFunction ;
+    rdfs:label "pose position → WKT POINT"@en ;
+    dcterms:description "Projects the translational component of a gmeow:Pose (reached via gmeow:hasPosePosition as SpatialCoordinates) to a GeoSPARQL WKT POINT literal. The orientation component is dropped because GeoSPARQL 1.0/1.1 has no native pose model; heading/bearing may be projected separately to a future GeoPose JSON profile."@en ;
+    gmeow:fnInput gmeow:latitude , gmeow:longitude ;
+    gmeow:fnOutput geo:asWKT ; gmeow:fnOutputType geo:wktLiteral .
+
 gmeow:fnCoarsenToGranularity a gmeow:ProjectionFunction ;
     rdfs:label "coarsen coordinates to the enclosing region (generalization, P10)"@en ;
     dcterms:description "Disclosure control by generalization (#72, CONSTITUTION P10): a place that carries gmeow:coarsenTo a target gmeow:GranularityLevel is projected with the coordinates of the enclosing ancestor at that level INSTEAD of its precise point — a coarser region rather than exact coordinates, never deletion. Aligns by reference to dpv:Generalisation. Ancestor SELECTION is performed declaratively in the SPARQL projection (the gmeow:containedInPlace+ path matching the ancestor whose gmeow:hasGranularity is the target level); this transform documents the resulting generalization, receiving the already-selected ancestor's coordinates (paramLatitude/paramLongitude) and re-emitting them as the place's location. Heavier geomasking / k-anonymity stays in the solver layer (P12)."@en ;

@@ -162,6 +162,8 @@ def test_location_superset_core() -> None:
         "ReferenceFrame",
         "Axis",
         "SpatialCoordinates",
+        "Pose",
+        "Orientation",
         "FrameRealm",
         "FrameKind",
         "LocationState",
@@ -212,6 +214,15 @@ def test_location_superset_core() -> None:
         "axisYellow",
         "axisKey",
         "axisScalar",
+        "axisYaw",
+        "axisPitch",
+        "axisRoll",
+        "axisQuaternionX",
+        "axisQuaternionY",
+        "axisQuaternionZ",
+        "axisQuaternionW",
+        "axisHeading",
+        "axisBearing",
     ):
         assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "Axis")) in graph
     for ind in (
@@ -343,12 +354,88 @@ def test_location_superset_core() -> None:
         RDFS.subPropertyOf,
         URIRef(GMEOW + "hasReferenceFrame"),
     ) in graph
-    assert (
-        URIRef(GMEOW + "hasCoordinateMatrix"),
-        RDFS.domain,
-        URIRef(GMEOW + "Axis"),
-    ) in graph
+    # hasCoordinateMatrix domain is an owl:unionOf(Axis, Pose).
+    hcm_domain = graph.value(URIRef(GMEOW + "hasCoordinateMatrix"), RDFS.domain)
+    assert hcm_domain is not None
+    assert (hcm_domain, RDF.type, OWL.Class) in graph
+    union_of = graph.value(hcm_domain, OWL.unionOf)
+    assert union_of is not None
+    union_members = list(graph.items(union_of))
+    assert URIRef(GMEOW + "Axis") in union_members
+    assert URIRef(GMEOW + "Pose") in union_members
     assert (URIRef(GMEOW + "hasCoordinateMatrix"), RDFS.range, RDFS.Literal) in graph
+
+    # Pose / Orientation properties
+    assert (
+        URIRef(GMEOW + "hasPose"),
+        RDFS.domain,
+        URIRef(GMEOW + "Entity"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasPose"),
+        RDFS.range,
+        URIRef(GMEOW + "Pose"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasPosePosition"),
+        RDFS.domain,
+        URIRef(GMEOW + "Pose"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasPosePosition"),
+        RDFS.range,
+        URIRef(GMEOW + "SpatialCoordinates"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasPoseOrientation"),
+        RDFS.domain,
+        URIRef(GMEOW + "Pose"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasPoseOrientation"),
+        RDFS.range,
+        URIRef(GMEOW + "Orientation"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "poseFrame"),
+        RDFS.domain,
+        URIRef(GMEOW + "Pose"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "poseFrame"),
+        RDFS.range,
+        URIRef(GMEOW + "ReferenceFrame"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "poseFrame"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "hasReferenceFrame"),
+    ) in graph
+    for orient_prop in (
+        "quaternionX",
+        "quaternionY",
+        "quaternionZ",
+        "quaternionW",
+        "yaw",
+        "pitch",
+        "roll",
+        "heading",
+        "bearing",
+    ):
+        prop = URIRef(GMEOW + orient_prop)
+        assert (prop, RDF.type, OWL.DatatypeProperty) in graph
+        assert (prop, RDFS.domain, URIRef(GMEOW + "Orientation")) in graph
+        assert (prop, RDFS.range, XSD.double) in graph
+    assert (
+        URIRef(GMEOW + "eulerOrder"),
+        RDFS.domain,
+        URIRef(GMEOW + "Orientation"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "eulerOrder"),
+        RDFS.range,
+        XSD.string,
+    ) in graph
 
     # 4. Topology relations
     assert (

@@ -213,3 +213,37 @@ To introduce a new domain (e.g. a proprietary robotic configuration space, a cus
 1. **Declare the Frame Realm**: Create a new individual of type `gmeow:FrameRealm` (e.g., `ex:proprietaryMeasurementRealm`).
 2. **Define a Reference Frame Profile**: Declare a `gmeow:ReferenceFrame` instance with complete profile descriptors (including `gmeow:frameRealm`, `gmeow:hasAxis`, `gmeow:dimensionCount`, `gmeow:frameKind`, `gmeow:requiresHost`, and `gmeow:determinacyModel`). All of these properties are required by the SHACL shapes (validated in `test_shapes.py`), so omitting `gmeow:requiresHost` or any other mandatory descriptor will cause validation to fail.
 3. **Align by Reference**: Add external vocabulary mappings in your domain-specific mapping DSL file (e.g. using `skos:closeMatch` or `skos:relatedMatch` to standard terms), leaving core class definitions untouched.
+
+## Pose: position + orientation (#78)
+
+GMEOW represents a full 6-DOF pose as a compound object — **position** and **orientation** are peers, neither is privileged:
+
+- **`gmeow:Pose`** — a frame-relative position + orientation; not a subclass of `SpatialCoordinates`, but composed of them.
+- **`gmeow:hasPosePosition`** → `gmeow:SpatialCoordinates` — the translational component, reusing the existing coordinate model.
+- **`gmeow:hasPoseOrientation`** → `gmeow:Orientation` — the rotational component.
+- **`gmeow:poseFrame`** — sub-property of `gmeow:hasReferenceFrame`; the frame in which both position and orientation are expressed.
+
+`gmeow:Orientation` is representation-agnostic: a single orientation may carry **co-equal** facets (quaternion, Euler angles, compass angles, or a homogeneous matrix). No form wins:
+
+```turtle
+ex:dronePose a gmeow:Pose ;
+    gmeow:poseFrame ex:wgs84Frame ;
+    gmeow:hasPosePosition ex:dronePosition ;
+    gmeow:hasPoseOrientation ex:droneOrientation .
+
+ex:droneOrientation a gmeow:Orientation ;
+    gmeow:quaternionX 0.0 ; gmeow:quaternionY 0.0 ;
+    gmeow:quaternionZ 0.70710678 ; gmeow:quaternionW 0.70710678 .
+```
+
+The SHACL `PoseShape` enforces exactly one position, one orientation, and one frame per pose. The `OrientationShape` accepts any of: a complete quaternion (`quaternionX/Y/Z/W`), complete Euler angles with `eulerOrder` (`yaw/pitch/roll` + order), a `heading`, a `bearing`, or a `hasCoordinateMatrix` homogeneous transform.
+
+### External alignment
+
+- **IEEE 1872-2015 CORA/POS**: `gmeow:Pose` ↔ `pos:QuantitativePose`; `gmeow:Orientation` ↔ `pos:OrientationMeasure`; `gmeow:hasPose`/`hasPosePosition`/`hasPoseOrientation` ↔ `pos:pose`/`pos:posePosition`/`pos:poseOrientation`.
+- **Wikidata**: `gmeow:Pose` → `wd:Q1055020`; quaternion properties → `wd:Q462283`; Euler properties → `wd:Q465493`; `heading` → `wd:Q41154`; `bearing` → `wd:Q123429`.
+- **OGC GeoPose 1.0**: structurally compatible (frame + position + orientation), but no RDF terms exist yet — the projection layer will add a GeoPose JSON profile later (out of scope for #78).
+
+### Projection behaviour
+
+GeoSPARQL 1.0/1.1 has no native pose model, so the `geosparql` profile projects **only the translational component** of a pose to a WKT POINT. Orientation is an intentional, documented lossy drop (`fnPosePositionToWktPoint`). Heading/bearing may be projected separately once a GeoPose JSON profile is added. The existing `Place` point projection (`mapGeoPoint`) continues to work independently.

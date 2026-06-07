@@ -215,6 +215,8 @@ PREFIXES: dict[str, str] = {
     "tags": "http://www.holygoat.co.uk/owl/redwood/0.1/tags/",
     "time": "http://www.w3.org/2006/time#",
     "teo": "https://sbmi.uth.edu/bsdi/TEO_1.0.0.owl#",
+    # Robotics / pose alignment (#78)
+    "pos": "http://purl.org/ieee1872-owl/pos#",
     # Temporal / geologic / measurement alignment (#67)
     "qudt": "http://qudt.org/schema/qudt/",
     "unit": "http://qudt.org/vocab/unit/",

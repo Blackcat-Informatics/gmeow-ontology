@@ -144,6 +144,41 @@ gmeow:mapGeoPointCoarsened a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "ptGeom" ; gmeow:tPred rdf:type ; gmeow:tObjValue geo:Geometry ]
             [ gmeow:tSubj "ptGeom" ; gmeow:tPred geo:asWKT ; gmeow:tObj "pointWkt" ] ) ] .
 
+gmeow:mapGeoPosePoint a gmeow:ProjectionMapping ;
+    rdfs:label "pose position (lat/long) → geo:Geometry with WKT POINT"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "entity" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "entity" ; gmeow:predicate gmeow:hasPose ; gmeow:objectVar "pose" ]
+            [ gmeow:subjectVar "pose" ; gmeow:predicate gmeow:hasPosePosition ; gmeow:objectVar "c" ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:latitude ; gmeow:objectVar "lat" ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:longitude ; gmeow:objectVar "lon" ] ) ;
+        gmeow:mint [ gmeow:bindVar "ptGeom" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "entity" ] ) ]
+                    "-pose-geom" ) ] ) ] ] ;
+        gmeow:bind [ gmeow:bindVar "pointWkt" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opStrDatatype ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    "POINT("
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "lon" ] ) ]
+                    " "
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "lat" ] ) ]
+                    ")" ) ]
+                geo:wktLiteral ) ] ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "entity" ; gmeow:predicate gmeow:coarsenTo ; gmeow:objectVar "anyLvl" ] ;
+        gmeow:edoalSource gmeow:Pose ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "geosparql" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget geo:Geometry ; gmeow:edoalTargetKind "class" ;
+        gmeow:transform gmeow:fnPosePositionToWktPoint ;
+        gmeow:lossyDrop "orientation component dropped; GeoSPARQL 1.0/1.1 has no pose model" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "entity" ; gmeow:tPred geo:hasGeometry ; gmeow:tObj "ptGeom" ]
+            [ gmeow:tSubj "ptGeom" ; gmeow:tPred rdf:type ; gmeow:tObjValue geo:Geometry ]
+            [ gmeow:tSubj "ptGeom" ; gmeow:tPred geo:asWKT ; gmeow:tObj "pointWkt" ] ) ] .
+
 gmeow:mapGeoWithin a gmeow:ProjectionMapping ;
     rdfs:label "containedInPlace → geo:sfWithin"@en ;
     gmeow:hasMappingPattern [

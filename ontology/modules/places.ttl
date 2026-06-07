@@ -271,6 +271,20 @@ gmeow:SpatialCoordinates
     skos:definition "A set of coordinate values representing a position in a specific coordinate reference frame."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:Pose
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Pose"@en ;
+    skos:definition "A frame-relative position and orientation of an object — a 6-DOF pose. A pose consists of a position (spatial coordinates in a reference frame) and an orientation (quaternion, Euler angles, heading/bearing, or a homogeneous transform matrix). Aligns by reference to IEEE 1872-2015 pos:QuantitativePose and structurally to OGC GeoPose 1.0."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Orientation
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Orientation"@en ;
+    skos:definition "The rotational component of a pose, expressed as co-equal optional facets: quaternion (x, y, z, w), Euler angles (yaw, pitch, roll plus order), or compass angles (heading, bearing). No single representation is privileged; multiple representations may coexist for the same pose. Aligns by reference to IEEE 1872-2015 pos:OrientationMeasure."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:FrameRealm
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
@@ -296,7 +310,7 @@ gmeow:LocationState
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Location State"@en ;
-    skos:definition "The state of a moving entity at a specific point or period in time, including its location, velocity, and orientation."@en ;
+    skos:definition "The state of a moving entity at a specific point or period in time, including its location, velocity, and pose (position + orientation)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Trajectory
@@ -361,6 +375,15 @@ gmeow:axisElevation        a gmeow:Axis ; rdfs:label "elevation"@en .
 gmeow:axisX                a gmeow:Axis ; rdfs:label "X axis"@en .
 gmeow:axisY                a gmeow:Axis ; rdfs:label "Y axis"@en .
 gmeow:axisZ                a gmeow:Axis ; rdfs:label "Z axis"@en .
+gmeow:axisYaw              a gmeow:Axis ; rdfs:label "yaw axis"@en .
+gmeow:axisPitch            a gmeow:Axis ; rdfs:label "pitch axis"@en .
+gmeow:axisRoll             a gmeow:Axis ; rdfs:label "roll axis"@en .
+gmeow:axisQuaternionX      a gmeow:Axis ; rdfs:label "quaternion X axis"@en .
+gmeow:axisQuaternionY      a gmeow:Axis ; rdfs:label "quaternion Y axis"@en .
+gmeow:axisQuaternionZ      a gmeow:Axis ; rdfs:label "quaternion Z axis"@en .
+gmeow:axisQuaternionW      a gmeow:Axis ; rdfs:label "quaternion W axis"@en .
+gmeow:axisHeading          a gmeow:Axis ; rdfs:label "heading axis"@en .
+gmeow:axisBearing          a gmeow:Axis ; rdfs:label "bearing axis"@en .
 gmeow:axisVirtualAddress   a gmeow:Axis ; rdfs:label "virtual address axis"@en .
 gmeow:axisRightAscension   a gmeow:Axis ; rdfs:label "right ascension"@en .
 gmeow:axisDeclination      a gmeow:Axis ; rdfs:label "declination"@en .
@@ -604,10 +627,131 @@ gmeow:coordinateFrame
 
 gmeow:hasCoordinateMatrix
     a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Axis ;
+    rdfs:domain [
+        a owl:Class ;
+        owl:unionOf (
+            gmeow:Axis
+            gmeow:Pose
+        )
+    ] ;
     rdfs:range rdfs:Literal ;
     rdfs:label "has coordinate matrix"@en ;
-    skos:definition "Specifies a transformation or projection matrix associated with a coordinate axis."@en ;
+    skos:definition "Specifies a transformation or projection matrix associated with a coordinate axis, or a homogeneous 4×4 pose matrix combining translation and rotation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasPose
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range gmeow:Pose ;
+    rdfs:label "has pose"@en ;
+    skos:definition "Associates an entity with a frame-relative pose (position + orientation)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasPosePosition
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Pose ;
+    rdfs:range gmeow:SpatialCoordinates ;
+    rdfs:subPropertyOf gmeow:hasPart ;
+    rdfs:label "has pose position"@en ;
+    skos:definition "The translational component of a pose, expressed as spatial coordinates in the pose frame."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasPoseOrientation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Pose ;
+    rdfs:range gmeow:Orientation ;
+    rdfs:subPropertyOf gmeow:hasPart ;
+    rdfs:label "has pose orientation"@en ;
+    skos:definition "The rotational component of a pose."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:poseFrame
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Pose ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+    rdfs:label "pose frame"@en ;
+    skos:definition "The coordinate reference frame in which the pose position and orientation are expressed."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:quaternionX
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Orientation ;
+    rdfs:range xsd:double ;
+    rdfs:label "quaternion X"@en ;
+    skos:definition "The x component of a unit quaternion representing orientation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:quaternionY
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Orientation ;
+    rdfs:range xsd:double ;
+    rdfs:label "quaternion Y"@en ;
+    skos:definition "The y component of a unit quaternion representing orientation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:quaternionZ
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Orientation ;
+    rdfs:range xsd:double ;
+    rdfs:label "quaternion Z"@en ;
+    skos:definition "The z component of a unit quaternion representing orientation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:quaternionW
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Orientation ;
+    rdfs:range xsd:double ;
+    rdfs:label "quaternion W"@en ;
+    skos:definition "The w (scalar) component of a unit quaternion representing orientation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:yaw
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Orientation ;
+    rdfs:range xsd:double ;
+    rdfs:label "yaw"@en ;
+    skos:definition "Rotation about the vertical (typically z) axis, in degrees or radians as indicated by the reference frame."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:pitch
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Orientation ;
+    rdfs:range xsd:double ;
+    rdfs:label "pitch"@en ;
+    skos:definition "Rotation about the lateral (typically y) axis, in degrees or radians as indicated by the reference frame."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:roll
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Orientation ;
+    rdfs:range xsd:double ;
+    rdfs:label "roll"@en ;
+    skos:definition "Rotation about the longitudinal (typically x) axis, in degrees or radians as indicated by the reference frame."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eulerOrder
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Orientation ;
+    rdfs:range xsd:string ;
+    rdfs:label "Euler order"@en ;
+    skos:definition "The order of rotations for the Euler-angle representation (e.g., 'XYZ', 'ZYX', 'ZXZ')."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:heading
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Orientation ;
+    rdfs:range xsd:double ;
+    rdfs:label "heading"@en ;
+    skos:definition "The compass direction an entity is facing, typically clockwise from north, in degrees."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:bearing
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Orientation ;
+    rdfs:range xsd:double ;
+    rdfs:label "bearing"@en ;
+    skos:definition "The angle between an entity's forward direction and a reference direction (typically north), in degrees."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
