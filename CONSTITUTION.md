@@ -204,8 +204,10 @@ frame-relative; conversion between frames is a computation, not an assertion (Pr
 value asserted without its frame is ill-formed. This is also what makes the model *open*: a new
 realm or system is a new frame filling a fixed profile, never a change to the core.
 
-*Embodied in:* the Location reference-frame facility — the #42 epic (CORE / Frame Profile); the
-temporal scale + calendar layer. *(Lands with the locations epic.)*
+*Embodied in:* the generalised reference-frame facility (#70); the Location module (#42) for
+spatial frames; the temporal module for calendar/timescale frames; mappings to QUDT/OM for
+measurement frames, FIBO for currency frames, OWL-Time `time:TRS` for temporal reference
+systems, and Lexvo for language frames.
 
 ## 12. Compute outside the logic — the solver boundary
 

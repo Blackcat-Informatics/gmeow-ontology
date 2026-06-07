@@ -271,11 +271,11 @@ gmeow:SpatialCoordinates
     skos:definition "A set of coordinate values representing a position in a specific coordinate reference frame."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:SpatialRealm
+gmeow:FrameRealm
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Spatial Realm"@en ;
-    skos:definition "The physical, virtual, or conceptual domain of a reference frame (e.g. terrestrial, indoor, celestial, virtual)."@en ;
+    rdfs:label "Frame Realm"@en ;
+    skos:definition "The physical, virtual, or conceptual domain of a reference frame (e.g. terrestrial, indoor, celestial, virtual, measurement, currency, temporal, colourspace, linguistic)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:FrameKind
@@ -299,18 +299,27 @@ gmeow:Trajectory
     skos:definition "A continuous path of motion representing the space-time history of a moving entity."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-# Seeds for Spatial Realm
-gmeow:spatialRealmTerrestrial a gmeow:SpatialRealm ; rdfs:label "terrestrial"@en .
-gmeow:spatialRealmIndoor     a gmeow:SpatialRealm ; rdfs:label "indoor"@en .
-gmeow:spatialRealmVirtual    a gmeow:SpatialRealm ; rdfs:label "virtual / network"@en .
-gmeow:spatialRealmCelestial  a gmeow:SpatialRealm ; rdfs:label "celestial / astronomical"@en .
-gmeow:spatialRealmRobotic    a gmeow:SpatialRealm ; rdfs:label "robotic"@en .
+# Seeds for Frame Realm
+gmeow:frameRealmTerrestrial a gmeow:FrameRealm ; rdfs:label "terrestrial"@en .
+gmeow:frameRealmIndoor     a gmeow:FrameRealm ; rdfs:label "indoor"@en .
+gmeow:frameRealmVirtual    a gmeow:FrameRealm ; rdfs:label "virtual / network"@en .
+gmeow:frameRealmCelestial  a gmeow:FrameRealm ; rdfs:label "celestial / astronomical"@en .
+gmeow:frameRealmRobotic    a gmeow:FrameRealm ; rdfs:label "robotic"@en .
+
+gmeow:frameRealmMeasurement  a gmeow:FrameRealm ; rdfs:label "measurement"@en .
+gmeow:frameRealmCurrency     a gmeow:FrameRealm ; rdfs:label "currency"@en .
+gmeow:frameRealmTemporal     a gmeow:FrameRealm ; rdfs:label "temporal"@en .
+gmeow:frameRealmColourspace  a gmeow:FrameRealm ; rdfs:label "colourspace"@en .
+gmeow:frameRealmLinguistic   a gmeow:FrameRealm ; rdfs:label "linguistic"@en .
 
 # Seeds for Frame Kind
 gmeow:frameKindGeodetic      a gmeow:FrameKind ; rdfs:label "geodetic"@en .
 gmeow:frameKindCartesian     a gmeow:FrameKind ; rdfs:label "cartesian"@en .
 gmeow:frameKindPolar         a gmeow:FrameKind ; rdfs:label "polar"@en .
 gmeow:frameKindGrid          a gmeow:FrameKind ; rdfs:label "grid"@en .
+gmeow:frameKindScalar        a gmeow:FrameKind ; rdfs:label "scalar"@en .
+gmeow:frameKindTemporal      a gmeow:FrameKind ; rdfs:label "temporal"@en .
+gmeow:frameKindCylindrical   a gmeow:FrameKind ; rdfs:label "cylindrical"@en .
 
 # Seeds for GranularityLevel — the spatial resolution axis (#79; class in core).
 # Ordered coarse→fine by gmeow:coarserThan (transitive, so country is coarser than
@@ -336,12 +345,26 @@ gmeow:axisZ                a gmeow:Axis ; rdfs:label "Z axis"@en .
 gmeow:axisVirtualAddress   a gmeow:Axis ; rdfs:label "virtual address axis"@en .
 gmeow:axisRightAscension   a gmeow:Axis ; rdfs:label "right ascension"@en .
 gmeow:axisDeclination      a gmeow:Axis ; rdfs:label "declination"@en .
+gmeow:axisScalar           a gmeow:Axis ; rdfs:label "scalar axis"@en .
+gmeow:axisYear             a gmeow:Axis ; rdfs:label "year"@en .
+gmeow:axisMonth            a gmeow:Axis ; rdfs:label "month"@en .
+gmeow:axisDay              a gmeow:Axis ; rdfs:label "day"@en .
+gmeow:axisHour             a gmeow:Axis ; rdfs:label "hour"@en .
+gmeow:axisMinute           a gmeow:Axis ; rdfs:label "minute"@en .
+gmeow:axisSecond           a gmeow:Axis ; rdfs:label "second"@en .
+gmeow:axisRed              a gmeow:Axis ; rdfs:label "red channel"@en .
+gmeow:axisGreen            a gmeow:Axis ; rdfs:label "green channel"@en .
+gmeow:axisBlue             a gmeow:Axis ; rdfs:label "blue channel"@en .
+gmeow:axisCyan             a gmeow:Axis ; rdfs:label "cyan channel"@en .
+gmeow:axisMagenta          a gmeow:Axis ; rdfs:label "magenta channel"@en .
+gmeow:axisYellow           a gmeow:Axis ; rdfs:label "yellow channel"@en .
+gmeow:axisKey              a gmeow:Axis ; rdfs:label "key (black) channel"@en .
 
 # Default Reference Frames for the seed realms
 gmeow:referenceFrameWGS84
     a gmeow:ReferenceFrame ;
     rdfs:label "WGS 84 Geodetic Reference Frame"@en ;
-    gmeow:frameRealm gmeow:spatialRealmTerrestrial ;
+    gmeow:frameRealm gmeow:frameRealmTerrestrial ;
     gmeow:hasAxis gmeow:axisLatitude, gmeow:axisLongitude, gmeow:axisElevation ;
     gmeow:dimensionCount "3"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindGeodetic ;
@@ -351,7 +374,7 @@ gmeow:referenceFrameWGS84
 gmeow:referenceFrameLocalGrid
     a gmeow:ReferenceFrame ;
     rdfs:label "Local Grid Cartesian Reference Frame"@en ;
-    gmeow:frameRealm gmeow:spatialRealmIndoor ;
+    gmeow:frameRealm gmeow:frameRealmIndoor ;
     gmeow:hasAxis gmeow:axisX, gmeow:axisY, gmeow:axisZ ;
     gmeow:dimensionCount "3"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindCartesian ;
@@ -361,7 +384,7 @@ gmeow:referenceFrameLocalGrid
 gmeow:referenceFrameVirtualPlatform
     a gmeow:ReferenceFrame ;
     rdfs:label "Virtual Platform Reference Frame"@en ;
-    gmeow:frameRealm gmeow:spatialRealmVirtual ;
+    gmeow:frameRealm gmeow:frameRealmVirtual ;
     gmeow:hasAxis gmeow:axisVirtualAddress ;
     gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindGrid ;
@@ -371,7 +394,7 @@ gmeow:referenceFrameVirtualPlatform
 gmeow:referenceFrameCelestialEquatorial
     a gmeow:ReferenceFrame ;
     rdfs:label "Celestial Equatorial Reference Frame"@en ;
-    gmeow:frameRealm gmeow:spatialRealmCelestial ;
+    gmeow:frameRealm gmeow:frameRealmCelestial ;
     gmeow:hasAxis gmeow:axisRightAscension, gmeow:axisDeclination ;
     gmeow:dimensionCount "2"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindPolar ;
@@ -381,20 +404,90 @@ gmeow:referenceFrameCelestialEquatorial
 gmeow:referenceFrameRobotBase
     a gmeow:ReferenceFrame ;
     rdfs:label "Robot Base Cartesian Reference Frame"@en ;
-    gmeow:frameRealm gmeow:spatialRealmRobotic ;
+    gmeow:frameRealm gmeow:frameRealmRobotic ;
     gmeow:hasAxis gmeow:axisX, gmeow:axisY, gmeow:axisZ ;
     gmeow:dimensionCount "3"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindCartesian ;
     gmeow:requiresHost true ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
 
+gmeow:referenceFrameSI
+    a gmeow:ReferenceFrame ;
+    rdfs:label "SI Measurement Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmMeasurement ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameUSD
+    a gmeow:ReferenceFrame ;
+    rdfs:label "US Dollar Currency Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmCurrency ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameGregorian
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Gregorian Calendar Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisMonth, gmeow:axisDay, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTemporal ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameUnixEpoch
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Unix Epoch Timestamp Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameSRGB
+    a gmeow:ReferenceFrame ;
+    rdfs:label "sRGB Colourspace Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmColourspace ;
+    gmeow:hasAxis gmeow:axisRed, gmeow:axisGreen, gmeow:axisBlue ;
+    gmeow:dimensionCount "3"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindCartesian ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameCMYK
+    a gmeow:ReferenceFrame ;
+    rdfs:label "CMYK Colourspace Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmColourspace ;
+    gmeow:hasAxis gmeow:axisCyan, gmeow:axisMagenta, gmeow:axisYellow, gmeow:axisKey ;
+    gmeow:dimensionCount "4"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindCartesian ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameEnglish
+    a gmeow:ReferenceFrame ;
+    rdfs:label "English Language Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmLinguistic ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
 # Reference Frame Profile Properties
 gmeow:frameRealm
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:ReferenceFrame ;
-    rdfs:range gmeow:SpatialRealm ;
+    rdfs:range gmeow:FrameRealm ;
     rdfs:label "frame realm"@en ;
-    skos:definition "Relates a reference frame to the spatial realm it describes."@en ;
+    skos:definition "Relates a reference frame to the realm it describes."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasAxis
@@ -462,8 +555,16 @@ gmeow:determinacyModel
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # Coordinate Properties
+gmeow:hasReferenceFrame
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "has reference frame"@en ;
+    skos:definition "Relates an entity or value to the reference frame in which it is expressed."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:coordinateFrame
     a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
     rdfs:domain gmeow:SpatialCoordinates ;
     rdfs:range gmeow:ReferenceFrame ;
     rdfs:label "coordinate frame"@en ;

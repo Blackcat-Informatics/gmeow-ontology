@@ -162,7 +162,7 @@ def test_location_superset_core() -> None:
         "ReferenceFrame",
         "Axis",
         "SpatialCoordinates",
-        "SpatialRealm",
+        "FrameRealm",
         "FrameKind",
         "LocationState",
         "Trajectory",
@@ -172,20 +172,62 @@ def test_location_superset_core() -> None:
 
     # 2. Value scaffold individuals
     for ind in (
-        "spatialRealmTerrestrial",
-        "spatialRealmIndoor",
-        "spatialRealmVirtual",
-        "spatialRealmCelestial",
-        "spatialRealmRobotic",
+        "frameRealmTerrestrial",
+        "frameRealmIndoor",
+        "frameRealmVirtual",
+        "frameRealmCelestial",
+        "frameRealmRobotic",
     ):
-        assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "SpatialRealm")) in graph
+        assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "FrameRealm")) in graph
     for ind in (
         "frameKindGeodetic",
         "frameKindCartesian",
         "frameKindPolar",
         "frameKindGrid",
+        "frameKindScalar",
+        "frameKindTemporal",
+        "frameKindCylindrical",
     ):
         assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "FrameKind")) in graph
+    for ind in (
+        "frameRealmMeasurement",
+        "frameRealmCurrency",
+        "frameRealmTemporal",
+        "frameRealmColourspace",
+        "frameRealmLinguistic",
+    ):
+        assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "FrameRealm")) in graph
+    for ind in (
+        "axisYear",
+        "axisMonth",
+        "axisDay",
+        "axisHour",
+        "axisMinute",
+        "axisSecond",
+        "axisRed",
+        "axisGreen",
+        "axisBlue",
+        "axisCyan",
+        "axisMagenta",
+        "axisYellow",
+        "axisKey",
+        "axisScalar",
+    ):
+        assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "Axis")) in graph
+    for ind in (
+        "referenceFrameSI",
+        "referenceFrameUSD",
+        "referenceFrameGregorian",
+        "referenceFrameUnixEpoch",
+        "referenceFrameSRGB",
+        "referenceFrameCMYK",
+        "referenceFrameEnglish",
+    ):
+        assert (
+            URIRef(GMEOW + ind),
+            RDF.type,
+            URIRef(GMEOW + "ReferenceFrame"),
+        ) in graph
 
     # 3. New Properties domain & range
     assert (
@@ -196,7 +238,7 @@ def test_location_superset_core() -> None:
     assert (
         URIRef(GMEOW + "frameRealm"),
         RDFS.range,
-        URIRef(GMEOW + "SpatialRealm"),
+        URIRef(GMEOW + "FrameRealm"),
     ) in graph
     assert (URIRef(GMEOW + "frameRealm"), RDF.type, OWL.FunctionalProperty) in graph
     assert (
@@ -290,6 +332,16 @@ def test_location_superset_core() -> None:
         URIRef(GMEOW + "coordinateFrame"),
         RDF.type,
         OWL.FunctionalProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasReferenceFrame"),
+        RDF.type,
+        OWL.ObjectProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "coordinateFrame"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "hasReferenceFrame"),
     ) in graph
     assert (
         URIRef(GMEOW + "hasCoordinateMatrix"),

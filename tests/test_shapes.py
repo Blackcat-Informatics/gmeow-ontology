@@ -95,7 +95,7 @@ def test_wellformed_reference_frame_passes() -> None:
     """A reference frame profile with all required properties passes SHACL."""
     ok = Graph()
     ok.add((EX.frame, RDF.type, GMEOW.ReferenceFrame))
-    ok.add((EX.frame, GMEOW.frameRealm, GMEOW.spatialRealmTerrestrial))
+    ok.add((EX.frame, GMEOW.frameRealm, GMEOW.frameRealmTerrestrial))
     ok.add((EX.frame, GMEOW.hasAxis, EX.axisX))
     ok.add(
         (EX.frame, GMEOW.dimensionCount, Literal(1, datatype=XSD.nonNegativeInteger))
@@ -104,7 +104,7 @@ def test_wellformed_reference_frame_passes() -> None:
     ok.add((EX.frame, GMEOW.requiresHost, Literal(False)))
     ok.add((EX.frame, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
 
-    ok.add((GMEOW.spatialRealmTerrestrial, RDF.type, GMEOW.SpatialRealm))
+    ok.add((GMEOW.frameRealmTerrestrial, RDF.type, GMEOW.FrameRealm))
     ok.add((EX.axisX, RDF.type, GMEOW.Axis))
     ok.add((GMEOW.frameKindCartesian, RDF.type, GMEOW.FrameKind))
     ok.add((GMEOW.determinacyCrisp, RDF.type, GMEOW.Determinacy))
@@ -117,7 +117,7 @@ def test_reference_frame_axis_count_must_match_dimension_count() -> None:
     """Frame profiles reject mismatched axis cardinality and dimension count."""
     bad = Graph()
     bad.add((EX.frame, RDF.type, GMEOW.ReferenceFrame))
-    bad.add((EX.frame, GMEOW.frameRealm, GMEOW.spatialRealmTerrestrial))
+    bad.add((EX.frame, GMEOW.frameRealm, GMEOW.frameRealmTerrestrial))
     bad.add((EX.frame, GMEOW.hasAxis, EX.axisX))
     bad.add(
         (EX.frame, GMEOW.dimensionCount, Literal(3, datatype=XSD.nonNegativeInteger))
@@ -126,7 +126,7 @@ def test_reference_frame_axis_count_must_match_dimension_count() -> None:
     bad.add((EX.frame, GMEOW.requiresHost, Literal(False)))
     bad.add((EX.frame, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
 
-    bad.add((GMEOW.spatialRealmTerrestrial, RDF.type, GMEOW.SpatialRealm))
+    bad.add((GMEOW.frameRealmTerrestrial, RDF.type, GMEOW.FrameRealm))
     bad.add((EX.axisX, RDF.type, GMEOW.Axis))
     bad.add((GMEOW.frameKindCartesian, RDF.type, GMEOW.FrameKind))
     bad.add((GMEOW.determinacyCrisp, RDF.type, GMEOW.Determinacy))
@@ -143,14 +143,14 @@ def test_malformed_reference_frame_fails() -> None:
     result = run_shacl(bad)
     assert not result.ok
     errors = "\n".join(result.errors)
-    assert "declare its spatial realm" in errors
+    assert "declare its frame realm" in errors
     assert "have at least one coordinate axis" in errors
 
 
 def test_novel_realm_extensibility_guard_warns() -> None:
-    """A novel SpatialRealm without a ReferenceFrame triggers a warning."""
+    """A novel FrameRealm without a ReferenceFrame triggers a warning."""
     bad = Graph()
-    bad.add((EX.customRealm, RDF.type, GMEOW.SpatialRealm))
+    bad.add((EX.customRealm, RDF.type, GMEOW.FrameRealm))
     result = run_shacl(bad)
     assert result.ok  # Warning only, so validation passes
     assert any(

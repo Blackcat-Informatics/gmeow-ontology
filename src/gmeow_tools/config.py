@@ -250,9 +250,14 @@ PREFIXES: dict[str, str] = {
     "wds": "http://www.wikidata.org/entity/statement/",
     # Languages (the ISO 639 hub is Lexvo; Glottolog for genealogy/languoids)
     "lexvo": "http://lexvo.org/id/",
+    "lvont": "http://lexvo.org/ontology#",
     "glottolog": "https://glottolog.org/resource/languoid/id/",
     "ontolex": "http://www.w3.org/ns/lemon/ontolex#",
     "lime": "http://www.w3.org/ns/lemon/lime#",
+    # Measurement / units (QUDT)
+    "qudt": "http://qudt.org/schema/qudt/",
+    # Currency (FIBO CurrencyAmount)
+    "fibo-fnd-acc-cur": "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/",
 }
 
 # --------------------------------------------------------------------------- #
@@ -461,4 +466,11 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
         "OntoLex-Lemon", PREFIXES["ontolex"], "W3C-Document", "schema"
     ),
     "lime": AlignmentTarget("LIME", PREFIXES["lime"], "W3C-Document", "schema"),
+    "qudt": AlignmentTarget("QUDT", PREFIXES["qudt"], "CC-BY-4.0", "schema"),
+    "fibo-fnd-acc-cur": AlignmentTarget(
+        "FIBO CurrencyAmount", PREFIXES["fibo-fnd-acc-cur"], "MIT", "schema"
+    ),
+    "lvont": AlignmentTarget(
+        "Lexvo Ontology", PREFIXES["lvont"], "CC-BY-SA-3.0", "schema"
+    ),
 }

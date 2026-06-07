@@ -50,13 +50,16 @@ def test_dsl_parses() -> None:
     # Issue #73 privacy: +16 (SensitivityLevel↔dpv/gufo, hasSensitivity↔dpv, 2 seeds→
     # Wikidata, DataSubject/DataController/PrivacyNotice/hasPrivacyNotice/actionProcess
     # PersonalData↔dpv/schema.org/odrl).
-    assert len(dsl.equivalences) == 727
+    # Issue #70 frame-relativity: +9 (QUDT x3, FIBO x2, OWL-Time TRS x2, Lexvo x2).
+    assert len(dsl.equivalences) == 736
     # 22 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72).
     assert len(dsl.functions) == 22
     # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint,
     # gmeow-events, gmeow-rights, gmeow-coreference, gmeow-determinacy, gmeow-privacy).
-    assert len(dsl.mapping_sets) == 19
+    # Issue #70 adds gmeow-qudt, gmeow-fibo, gmeow-temporal.
+    # gmeow-colourspace is intentionally omitted (no TermEquivalence entries).
+    assert len(dsl.mapping_sets) == 22
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}

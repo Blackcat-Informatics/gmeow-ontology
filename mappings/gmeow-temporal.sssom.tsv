@@ -1,0 +1,15 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/temporal-frames
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow compile-mappings
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: OWL-Time temporal reference system alignments. Contextual: gmeow:ReferenceFrame aligns to time:TRS only when the frame's realm is gmeow:frameRealmTemporal. Interval-relation and event-time alignments remain in equivalences/events.ttl.
+# curie_map:
+#   gmeow: https://blackcatinformatics.ca/gmeow/
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+#   time: http://www.w3.org/2006/time#
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:ReferenceFrame	skos:closeMatch	time:TRS	semapv:ManualMappingCuration	0.9	contextual — holds when the ReferenceFrame's frameRealm is gmeow:frameRealmTemporal
+gmeow:hasReferenceFrame	skos:closeMatch	time:hasTRS	semapv:ManualMappingCuration	0.85	links a temporal position to its calendar/timescale frame

@@ -52,6 +52,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:FormalLanguage (⊑ gmeow:Language): A grammar-defined language with a machine modality and no human native speakers — programming, markup, query, logic, schema, and configuration languages. A thin structural split from gmeow:Language (the sociolinguistic facets — endonym/exonym, co-mingled scripts, native-speaker status — do not apply), complemented by the gmeow:languageOrigin value for fine-grained classification.
 - gmeow:FosterParentChild (⊑ gmeow:ParentChildRelationship): A parent-child relationship through fostering.
 - gmeow:FrameKind (⊑ gufo:QualityValue): The structural type of a reference frame (e.g. geodetic, Cartesian, polar, grid, narrative).
+- gmeow:FrameRealm (⊑ gufo:QualityValue): The physical, virtual, or conceptual domain of a reference frame (e.g. terrestrial, indoor, celestial, virtual, measurement, currency, temporal, colourspace, linguistic).
 - gmeow:Gender (⊑ gufo:QualityValue): A gender a person may identify with — a VALUE, never a gmeow:Person subclass. The set is open and culturally diverse; a gender not among the seed individuals is a FRESH gmeow:Gender individual carrying rdfs:label, not a new class. Pointed at by gmeow:genderValue.
 - gmeow:GenderExpression (⊑ gmeow:IdentityFacet): A person's SELF-ASSERTED gender expression — how they present (a gmeow:GenderExpressionStyle value via gmeow:expressionValue). A distinct axis from gender identity: expression is never inferred from identity (or vice versa), nor from sex or address.
 - gmeow:GenderExpressionStyle (⊑ gufo:QualityValue): A style of gender expression — a VALUE pointed at by gmeow:expressionValue, never a subclass. Open: a style not seeded here is a fresh individual with rdfs:label.
@@ -145,7 +146,6 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:SoftwareProject (⊑ gmeow:CreativeWork): A software project: a body of source code developed and released as a unit, with repositories, releases, and contributors.
 - gmeow:Source (⊑ gmeow:InformationObject): A source from which evidence is drawn: a record, certificate, register, archive entry, or publication.
 - gmeow:SpatialCoordinates (⊑ gmeow:Entity, gufo:Object): A set of coordinate values representing a position in a specific coordinate reference frame.
-- gmeow:SpatialRealm (⊑ gufo:QualityValue): The physical, virtual, or conceptual domain of a reference frame (e.g. terrestrial, indoor, celestial, virtual).
 - gmeow:Standpoint (⊑ gmeow:Entity): A named perspective / frame within which claims are held true — a state's official position, a community's usage, an editorial or historiographic point of view. Minted only when the frame needs its own identity and labels; often a bare gmeow:Agent (a polity, an organization) suffices as the value of gmeow:accordingTo instead. Standpoints form a poset under gmeow:sharpens, topped by gmeow:universalStandpoint.
 - gmeow:StandpointModality (⊑ gufo:QualityValue): The belief value a standpoint assigns a proposition — a closed value vocabulary spanning the Standpoint-Logic □/◊ and the CRMinf belief value (true/false/probable/possible): gmeow:unequivocal, gmeow:probable, gmeow:conceivable, gmeow:refuted. Absence of a value is read as unequivocal.
 - gmeow:StandpointTenure (⊑ gmeow:TimeScopedRelation): The reified, time-scoped fact that a standpoint held a particular position over an interval — recognition granted in 2008 and withdrawn in 2030 is an opened-then-closed tenure, never a deletion (Principle 10). Use only when the adoption / withdrawal of the position is itself worth modelling; the common case is a bare gmeow:accordingTo annotation. Carries its standpoint-time interval via gmeow:duringInterval (temporal module).
@@ -257,7 +257,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:finishedBy [gmeow:Event → gmeow:Event]: Allen FINISHED-BY: inverse of gmeow:finishes. (= time:intervalFinishedBy; TimeML ENDED_BY; TEO finishedBy.)
 - gmeow:finishes [gmeow:Event → gmeow:Event]: Allen FINISHES: this event and the related event end together, and this one began later (it is a final sub-span). NOT transitive. Inverse of gmeow:finishedBy. (= time:intervalFinishes; TimeML ENDS; TEO finishes.)
 - gmeow:frameKind [gmeow:ReferenceFrame → gmeow:FrameKind] (functional): Relates a reference frame to its structural frame kind.
-- gmeow:frameRealm [gmeow:ReferenceFrame → gmeow:SpatialRealm] (functional): Relates a reference frame to the spatial realm it describes.
+- gmeow:frameRealm [gmeow:ReferenceFrame → gmeow:FrameRealm] (functional): Relates a reference frame to the realm it describes.
 - gmeow:frameSolver [gmeow:ReferenceFrame → rdfs:Literal]: Identifies the external solver or transformation method to resolve coordinates in this frame.
 - gmeow:from [gmeow:EmailMessage → gmeow:EmailAddress]: The author address of a message (RFC 5322 From).
 - gmeow:fullName [gmeow:Appellation → rdfs:Literal]: The complete surface form of an appellation as a single string, in the natural order of its culture (language-/script-tag the literal, e.g. "山田太郎"@ja, "Yamada Tarō"@ja-Latn). Authoritative for display. Non-functional: spellings/transliterations from different sources coexist.
@@ -307,6 +307,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasProhibition [gmeow:RightsStatement → gmeow:Prohibition]: Relates a rights statement to a prohibition it imposes (an odrl:prohibition rule).
 - gmeow:hasPronounSet [gmeow:Person → gmeow:PronounSet]: Relates a person to a pronoun set they go by. Non-functional and contextual (scope a context-specific set with gmeow:validFrom/validUntil on the statement, or via a NameUsage). A form of ADDRESS, sex/gender-independent — MUST NOT be inferred from gender identity/expression, sex-assigned-at-birth or orientation.
 - gmeow:hasRecurrenceRule [gmeow:EventSeries → gmeow:RecurrenceRule]: Relates an event series to the recurrence rule by which it repeats.
+- gmeow:hasReferenceFrame [? → gmeow:ReferenceFrame]: Relates an entity or value to the reference frame in which it is expressed.
 - gmeow:hasRelayHop [gmeow:Message → gmeow:RelayHop]: Relates a message to a hop in its delivery path.
 - gmeow:hasRepository [gmeow:SoftwareProject → gmeow:Repository]: Relates a software project to a source-code repository.
 - gmeow:hasRightsStatement [gmeow:Entity → gmeow:RightsStatement]: Relates an entity (typically a gmeow:CreativeWork or gmeow:InformationObject) to a machine-readable rights statement that governs it — the GMEOW analogue of odrl:hasPolicy.
@@ -579,14 +580,28 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:aspectPerfective (a gmeow:GrammaticalAspect): ISO-TimeML aspect PERFECTIVE.
 - gmeow:aspectPerfectiveProgressive (a gmeow:GrammaticalAspect): ISO-TimeML aspect PERFECTIVE_PROGRESSIVE.
 - gmeow:aspectProgressive (a gmeow:GrammaticalAspect): ISO-TimeML aspect PROGRESSIVE.
+- gmeow:axisBlue (a gmeow:Axis): blue channel
+- gmeow:axisCyan (a gmeow:Axis): cyan channel
+- gmeow:axisDay (a gmeow:Axis): day
 - gmeow:axisDeclination (a gmeow:Axis): declination
 - gmeow:axisElevation (a gmeow:Axis): elevation
+- gmeow:axisGreen (a gmeow:Axis): green channel
+- gmeow:axisHour (a gmeow:Axis): hour
+- gmeow:axisKey (a gmeow:Axis): key (black) channel
 - gmeow:axisLatitude (a gmeow:Axis): latitude
 - gmeow:axisLongitude (a gmeow:Axis): longitude
+- gmeow:axisMagenta (a gmeow:Axis): magenta channel
+- gmeow:axisMinute (a gmeow:Axis): minute
+- gmeow:axisMonth (a gmeow:Axis): month
+- gmeow:axisRed (a gmeow:Axis): red channel
 - gmeow:axisRightAscension (a gmeow:Axis): right ascension
+- gmeow:axisScalar (a gmeow:Axis): scalar axis
+- gmeow:axisSecond (a gmeow:Axis): second
 - gmeow:axisVirtualAddress (a gmeow:Axis): virtual address axis
 - gmeow:axisX (a gmeow:Axis): X axis
 - gmeow:axisY (a gmeow:Axis): Y axis
+- gmeow:axisYear (a gmeow:Axis): year
+- gmeow:axisYellow (a gmeow:Axis): yellow channel
 - gmeow:axisZ (a gmeow:Axis): Z axis
 - gmeow:cefrA1 (a gmeow:ProficiencyLevel): CEFR A1
 - gmeow:cefrA2 (a gmeow:ProficiencyLevel): CEFR A2
@@ -658,9 +673,22 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:expressionMasculine (a gmeow:GenderExpressionStyle): masculine
 - gmeow:expressionNeutral (a gmeow:GenderExpressionStyle): neutral
 - gmeow:frameKindCartesian (a gmeow:FrameKind): cartesian
+- gmeow:frameKindCylindrical (a gmeow:FrameKind): cylindrical
 - gmeow:frameKindGeodetic (a gmeow:FrameKind): geodetic
 - gmeow:frameKindGrid (a gmeow:FrameKind): grid
 - gmeow:frameKindPolar (a gmeow:FrameKind): polar
+- gmeow:frameKindScalar (a gmeow:FrameKind): scalar
+- gmeow:frameKindTemporal (a gmeow:FrameKind): temporal
+- gmeow:frameRealmCelestial (a gmeow:FrameRealm): celestial / astronomical
+- gmeow:frameRealmColourspace (a gmeow:FrameRealm): colourspace
+- gmeow:frameRealmCurrency (a gmeow:FrameRealm): currency
+- gmeow:frameRealmIndoor (a gmeow:FrameRealm): indoor
+- gmeow:frameRealmLinguistic (a gmeow:FrameRealm): linguistic
+- gmeow:frameRealmMeasurement (a gmeow:FrameRealm): measurement
+- gmeow:frameRealmRobotic (a gmeow:FrameRealm): robotic
+- gmeow:frameRealmTemporal (a gmeow:FrameRealm): temporal
+- gmeow:frameRealmTerrestrial (a gmeow:FrameRealm): terrestrial
+- gmeow:frameRealmVirtual (a gmeow:FrameRealm): virtual / network
 - gmeow:genderAgender (a gmeow:Gender): agender
 - gmeow:genderBigender (a gmeow:Gender): bigender
 - gmeow:genderDemiboy (a gmeow:Gender): demiboy
@@ -902,9 +930,16 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:pronounZeHir (a gmeow:PronounSet): ze/hir
 - gmeow:pronounZeZir (a gmeow:PronounSet): ze/zir
 - gmeow:pronounZheZher (a gmeow:PronounSet): zhe/zher
+- gmeow:referenceFrameCMYK (a gmeow:ReferenceFrame): CMYK Colourspace Reference Frame
 - gmeow:referenceFrameCelestialEquatorial (a gmeow:ReferenceFrame): Celestial Equatorial Reference Frame
+- gmeow:referenceFrameEnglish (a gmeow:ReferenceFrame): English Language Reference Frame
+- gmeow:referenceFrameGregorian (a gmeow:ReferenceFrame): Gregorian Calendar Reference Frame
 - gmeow:referenceFrameLocalGrid (a gmeow:ReferenceFrame): Local Grid Cartesian Reference Frame
 - gmeow:referenceFrameRobotBase (a gmeow:ReferenceFrame): Robot Base Cartesian Reference Frame
+- gmeow:referenceFrameSI (a gmeow:ReferenceFrame): SI Measurement Reference Frame
+- gmeow:referenceFrameSRGB (a gmeow:ReferenceFrame): sRGB Colourspace Reference Frame
+- gmeow:referenceFrameUSD (a gmeow:ReferenceFrame): US Dollar Currency Reference Frame
+- gmeow:referenceFrameUnixEpoch (a gmeow:ReferenceFrame): Unix Epoch Timestamp Reference Frame
 - gmeow:referenceFrameVirtualPlatform (a gmeow:ReferenceFrame): Virtual Platform Reference Frame
 - gmeow:referenceFrameWGS84 (a gmeow:ReferenceFrame): WGS 84 Geodetic Reference Frame
 - gmeow:refuted (a gmeow:StandpointModality): □¬_S — settled false according to the standpoint: the standpoint DENIES the proposition (CRMinf belief value 'false'). Distinct from silence (no claim) and from low gmeow:confidence — an explicit, recorded denial. The proposition is carried as the subject of the denial, never asserted as a fact of the universal standpoint.
@@ -971,11 +1006,6 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:sensitivityPublic (a gmeow:SensitivityLevel): public
 - gmeow:sensitivityRestricted (a gmeow:SensitivityLevel): restricted
 - gmeow:sensitivitySensitivePersonal (a gmeow:SensitivityLevel): sensitive personal
-- gmeow:spatialRealmCelestial (a gmeow:SpatialRealm): celestial / astronomical
-- gmeow:spatialRealmIndoor (a gmeow:SpatialRealm): indoor
-- gmeow:spatialRealmRobotic (a gmeow:SpatialRealm): robotic
-- gmeow:spatialRealmTerrestrial (a gmeow:SpatialRealm): terrestrial
-- gmeow:spatialRealmVirtual (a gmeow:SpatialRealm): virtual / network
 - gmeow:statusConstructedActive (a gmeow:LanguageStatus): constructed — actively used
 - gmeow:statusDormant (a gmeow:LanguageStatus): dormant
 - gmeow:statusEmerging (a gmeow:LanguageStatus): emerging
