@@ -190,6 +190,20 @@ gmeow:mapSchemaVirtualLocation a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "vl" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:VirtualLocation ]
             [ gmeow:tSubj "vl" ; gmeow:tPred schema:url ; gmeow:tObj "vurl" ] ) ] .
 
+gmeow:mapSchemaNetworkAddress a gmeow:ProjectionMapping ;
+    rdfs:label "NetworkAddress (URL type) → schema:url"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "vl" ; gmeow:value "nval" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "vl" ; gmeow:predicate gmeow:hasNetworkAddress ; gmeow:objectVar "na" ]
+            [ gmeow:subjectVar "na" ; gmeow:predicate gmeow:networkAddressType ; gmeow:objectValue gmeow:networkAddressTypeURL ]
+            [ gmeow:subjectVar "na" ; gmeow:predicate gmeow:networkAddressValue ; gmeow:objectVar "nval" ] ) ;
+        gmeow:edoalSource gmeow:hasNetworkAddress ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:url ; gmeow:relation "<=" ;
+        gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the NetworkAddress frame, type, provenance, and standpoint are dropped; only the URL string survives" ] .
+
 gmeow:mapSchemaAddress a gmeow:ProjectionMapping ;
     rdfs:label "PostalAddress → schema:PostalAddress"@en ;
     gmeow:hasMappingPattern [

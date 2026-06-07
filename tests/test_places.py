@@ -1475,3 +1475,237 @@ def test_storage_capacity_in_bytes() -> None:
     assert Decimal(str(val)) == Decimal("1099511627776")
     unit = g.value(sq, URIRef(GMEOW + "hasUnit"))
     assert unit == URIRef("http://qudt.org/vocab/unit/BYTE")
+
+
+# --------------------------------------------------------------------------- #
+# Virtual Location Type + Network Address Space — issue #84
+# --------------------------------------------------------------------------- #
+
+
+def test_virtual_location_type_is_value_not_subclass() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "VirtualLocationType"),
+        RDFS.subClassOf,
+        URIRef(GUFO + "QualityValue"),
+    ) in graph
+    vlt = URIRef(GMEOW + "virtualLocationType")
+    assert (vlt, RDF.type, OWL.ObjectProperty) in graph
+    assert (vlt, RDF.type, OWL.FunctionalProperty) not in graph
+    for ind in (
+        "virtualLocationTypeVideoConference",
+        "virtualLocationTypeChatSpace",
+        "virtualLocationTypeWebsite",
+        "virtualLocationTypeSocialMediaPage",
+    ):
+        assert (
+            URIRef(GMEOW + ind),
+            RDF.type,
+            URIRef(GMEOW + "VirtualLocationType"),
+        ) in graph
+    for rejected in ("VideoConference", "ChatSpace", "Website", "SocialMediaPage"):
+        assert (URIRef(GMEOW + rejected), RDF.type, OWL.Class) not in graph
+
+
+def test_network_address_grounding() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "NetworkAddress"),
+        RDF.type,
+        OWL.Class,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasNetworkAddress"),
+        RDFS.domain,
+        URIRef(GMEOW + "VirtualLocation"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasNetworkAddress"),
+        RDFS.range,
+        URIRef(GMEOW + "NetworkAddress"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "networkAddressType"),
+        RDFS.domain,
+        URIRef(GMEOW + "NetworkAddress"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "networkAddressType"),
+        RDFS.range,
+        URIRef(GMEOW + "NetworkAddressType"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "networkAddressValue"),
+        RDFS.domain,
+        URIRef(GMEOW + "NetworkAddress"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "networkAddressFrame"),
+        RDFS.domain,
+        URIRef(GMEOW + "NetworkAddress"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "networkAddressFrame"),
+        RDFS.range,
+        URIRef(GMEOW + "ReferenceFrame"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "networkAddressFrame"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "networkAddressFrame"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "hasReferenceFrame"),
+    ) in graph
+
+
+def test_network_address_type_is_value_not_subclass() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "NetworkAddressType"),
+        RDFS.subClassOf,
+        URIRef(GUFO + "QualityValue"),
+    ) in graph
+    for ind in (
+        "networkAddressTypeIPv4",
+        "networkAddressTypeIPv6",
+        "networkAddressTypeMAC",
+        "networkAddressTypeDNS",
+        "networkAddressTypeURL",
+        "networkAddressTypePort",
+        "networkAddressTypeBGP",
+    ):
+        assert (
+            URIRef(GMEOW + ind),
+            RDF.type,
+            URIRef(GMEOW + "NetworkAddressType"),
+        ) in graph
+    for rejected in ("IPv4Address", "IPv6Address", "MACAddress", "DNSName"):
+        assert (URIRef(GMEOW + rejected), RDF.type, OWL.Class) not in graph
+
+
+def test_frame_kind_topological_exists() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "frameKindTopological"),
+        RDF.type,
+        URIRef(GMEOW + "FrameKind"),
+    ) in graph
+
+
+def test_network_reference_frames_have_parent_frame() -> None:
+    graph = _graph()
+    for frame in (
+        "referenceFrameIPv4",
+        "referenceFrameIPv6",
+        "referenceFrameMAC",
+        "referenceFrameDNS",
+        "referenceFrameURL",
+        "referenceFramePort",
+        "referenceFrameBGP",
+    ):
+        assert (
+            URIRef(GMEOW + frame),
+            URIRef(GMEOW + "parentFrame"),
+            URIRef(GMEOW + "referenceFrameInternet"),
+        ) in graph
+
+
+def test_internet_root_frame_is_topological() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "referenceFrameInternet"),
+        URIRef(GMEOW + "frameKind"),
+        URIRef(GMEOW + "frameKindTopological"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "referenceFrameInternet"),
+        URIRef(GMEOW + "hasMetricKind"),
+        URIRef(GMEOW + "metricGraphHops"),
+    ) in graph
+
+
+def test_virtual_location_types_coexist() -> None:
+    """A VirtualLocation may have multiple virtualLocationType values (P9)."""
+    from rdflib import Namespace
+
+    ex_vl = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
+    g = Graph().parse(COVERAGE_FIXTURES / "places-virtual.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    types = set(g.objects(ex_vl.confRoom, URIRef(GMEOW + "virtualLocationType")))
+    assert {
+        URIRef(GMEOW + "virtualLocationTypeVideoConference"),
+        URIRef(GMEOW + "virtualLocationTypeVirtualEventSpace"),
+    } <= types
+
+
+def test_network_addresses_in_different_frames_coexist() -> None:
+    """A VirtualLocation may have NetworkAddresses in different frames (P9)."""
+    from rdflib import Namespace
+
+    ex_vl = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
+    g = Graph().parse(COVERAGE_FIXTURES / "places-virtual.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    addrs = set(g.objects(ex_vl.website, URIRef(GMEOW + "hasNetworkAddress")))
+    assert len(addrs) >= 3, "Expected at least 3 network addresses"
+    frames = {g.value(a, URIRef(GMEOW + "networkAddressFrame")) for a in addrs}
+    assert {
+        URIRef(GMEOW + "referenceFrameIPv4"),
+        URIRef(GMEOW + "referenceFrameDNS"),
+        URIRef(GMEOW + "referenceFrameURL"),
+    } <= frames
+
+
+def test_superseded_network_address_suppressed() -> None:
+    """A superseded network address is retained with displayable false (P10)."""
+    from rdflib import Namespace
+
+    ex_vl = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
+    g = Graph().parse(COVERAGE_FIXTURES / "places-virtual.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    assert (
+        ex_vl.addrOldURL,
+        URIRef(GMEOW + "displayable"),
+        Literal(False),
+    ) in g
+
+
+def test_contested_dns_names_coexist() -> None:
+    """Two standpoint-indexed DNS names for the same virtual location coexist (P9)."""
+    from rdflib import Namespace
+
+    ex_vl = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
+    g = Graph().parse(COVERAGE_FIXTURES / "places-virtual.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    addrs = set(g.objects(ex_vl.service, URIRef(GMEOW + "hasNetworkAddress")))
+    assert {ex_vl.addrDNSCorpA, ex_vl.addrDNSCorpB} <= addrs
+    values = {g.value(a, URIRef(GMEOW + "networkAddressValue")) for a in addrs}
+    assert {
+        Literal("service-corp-a.example"),
+        Literal("service-corp-b.example"),
+    } <= values
+
+
+def test_no_preferred_or_primary_virtual_location_term() -> None:
+    """Principle 9: no single slot to win — virtual locations mint no preferred/primary
+    selector for a contested type or network address."""
+    g = _graph()
+    prop_types = (OWL.ObjectProperty, OWL.DatatypeProperty, OWL.AnnotationProperty)
+    for banned in (
+        "primaryVirtualLocationType",
+        "preferredVirtualLocationType",
+        "primaryNetworkAddress",
+        "preferredNetworkAddress",
+        "primaryNetworkAddressType",
+        "preferredNetworkAddressType",
+    ):
+        node = URIRef(GMEOW + banned)
+        for pt in prop_types:
+            assert (node, RDF.type, pt) not in g, f"{banned} must not exist"
+        assert (node, RDF.type, OWL.Class) not in g
