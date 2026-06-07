@@ -93,7 +93,9 @@ def test_dsl_parses() -> None:
     # Trajectory→mf:TemporalTrajectory).
     # Issue #100 capacity/occupancy: +3 (Brick Capacity, Brick Occupancy,
     # schema.org maximumAttendeeCapacity).
-    assert len(dsl.equivalences) == 914
+    # Issue #161 cross-cutting versions: +3 (versionLabel→schema:version,
+    # versionLabel→doap:revision, VersionSet→doap:Project).
+    assert len(dsl.equivalences) == 917
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -113,7 +115,8 @@ def test_dsl_parses() -> None:
     # Issue #101 spatial aggregation: +1 (gmeow-aggregation.sssom.tsv).
     # Issue #102 accessibility: +1 (gmeow-accessibility.sssom.tsv).
     # Issue #99 data quality: +1 (gmeow-quality.sssom.tsv).
-    assert len(dsl.mapping_sets) == 29
+    # Issue #161 versions: +1 (gmeow-versions.sssom.tsv).
+    assert len(dsl.mapping_sets) == 30
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}

@@ -239,6 +239,17 @@ def test_property_bridges_fire() -> None:
         GMEOW.observedFeature,
     ) in graph
     assert (GMEOW.hasPartner, RDFS.subPropertyOf, GMEOW.observedFeature) in graph
+    # VersionMembership bridges
+    assert (
+        GMEOW.versionMember,
+        RDFS.subPropertyOf,
+        GMEOW.observedFeature,
+    ) in graph
+    assert (
+        GMEOW.membershipAuthority,
+        RDFS.subPropertyOf,
+        GMEOW.vantage,
+    ) in graph
 
 
 def test_standpoint_claim_aligned_to_sosa_observation() -> None:

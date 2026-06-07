@@ -1,0 +1,156 @@
+@prefix ex:     <https://example.org/versions/> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+# Synthetic fixture for cross-cutting version sets and memberships (#161).
+# Covers three target domains: email variants, software releases, book editions.
+
+# --- (a) Email variant lineage --------------------------------------------- #
+
+ex:emailThread a gmeow:VersionSet ;
+    gmeow:name "Project Alpha kick-off thread"@en .
+
+ex:emailOriginal a gmeow:EmailMessage ;
+    gmeow:subject "Kick-off: Project Alpha"@en ;
+    gmeow:versionOf ex:emailThread ;
+    gmeow:versionLabel "original" .
+
+ex:emailReplyInline a gmeow:EmailMessage ;
+    gmeow:subject "Re: Kick-off: Project Alpha"@en ;
+    gmeow:versionOf ex:emailThread ;
+    gmeow:versionLabel "inline-reply" .
+
+ex:memOriginal a gmeow:VersionMembership ;
+    gmeow:versionMember ex:emailOriginal ;
+    gmeow:versionSet ex:emailThread ;
+    gmeow:versionRole gmeow:roleCanonical ;
+    gmeow:membershipAuthority ex:senderAgent .
+
+ex:memReply a gmeow:VersionMembership ;
+    gmeow:versionMember ex:emailReplyInline ;
+    gmeow:versionSet ex:emailThread ;
+    gmeow:versionRole gmeow:roleVariant ;
+    gmeow:membershipAuthority ex:senderAgent .
+
+# --- (b) Software release lineage ------------------------------------------ #
+
+ex:myLibrary a gmeow:VersionSet ;
+    gmeow:name "my-library"@en ;
+    gmeow:identifier "pkg:npm/my-library" .
+
+ex:release1_0 a gmeow:SoftwareAgent ;
+    gmeow:name "my-library v1.0.0"@en ;
+    gmeow:versionOf ex:myLibrary ;
+    gmeow:versionLabel "1.0.0" ;
+    gmeow:versionFingerprint "swh:1:rev:abc123..." .
+
+ex:release1_1 a gmeow:SoftwareAgent ;
+    gmeow:name "my-library v1.1.0"@en ;
+    gmeow:versionOf ex:myLibrary ;
+    gmeow:versionLabel "1.1.0" ;
+    gmeow:supersedes ex:release1_0 .
+
+ex:release2_0 a gmeow:SoftwareAgent ;
+    gmeow:name "my-library v2.0.0"@en ;
+    gmeow:versionOf ex:myLibrary ;
+    gmeow:versionLabel "2.0.0" ;
+    gmeow:supersedes ex:release1_1 .
+
+ex:mem1_0_stable a gmeow:VersionMembership ;
+    gmeow:versionMember ex:release1_0 ;
+    gmeow:versionSet ex:myLibrary ;
+    gmeow:versionRole gmeow:roleStable ;
+    gmeow:versionScale gmeow:scaleMajor ;
+    gmeow:membershipAuthority ex:registryNpm .
+
+ex:mem1_1_latest a gmeow:VersionMembership ;
+    gmeow:versionMember ex:release1_1 ;
+    gmeow:versionSet ex:myLibrary ;
+    gmeow:versionRole gmeow:roleLatest ;
+    gmeow:versionScale gmeow:scaleMinor ;
+    gmeow:membershipAuthority ex:registryNpm ;
+    gmeow:membershipInterval ex:interval1_1 .
+
+ex:interval1_1 a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2024-02-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "2024-06-01T00:00:00Z"^^xsd:dateTime .
+
+ex:mem2_0_latest a gmeow:VersionMembership ;
+    gmeow:versionMember ex:release2_0 ;
+    gmeow:versionSet ex:myLibrary ;
+    gmeow:versionRole gmeow:roleLatest ;
+    gmeow:versionScale gmeow:scaleMajor ;
+    gmeow:membershipAuthority ex:registryNpm .
+
+ex:mem2_0_lts a gmeow:VersionMembership ;
+    gmeow:versionMember ex:release2_0 ;
+    gmeow:versionSet ex:myLibrary ;
+    gmeow:versionRole gmeow:roleLTS ;
+    gmeow:membershipAuthority ex:projectMaintainer .
+
+# 1.1.0 later deprecated (new membership, old one retained for history)
+ex:mem1_1_deprecated a gmeow:VersionMembership ;
+    gmeow:versionMember ex:release1_1 ;
+    gmeow:versionSet ex:myLibrary ;
+    gmeow:versionRole gmeow:roleDeprecated ;
+    gmeow:membershipAuthority ex:registryNpm ;
+    gmeow:displayable false .
+
+# --- (c) Book edition / serial compilation --------------------------------- #
+
+ex:novelLineage a gmeow:VersionSet ;
+    gmeow:name "The Synthetic Chronicles"@en .
+
+ex:firstEdition a gmeow:CreativeWork ;
+    gmeow:title "The Synthetic Chronicles"@en ;
+    gmeow:editionOf ex:novelLineage ;
+    gmeow:versionOf ex:novelLineage ;
+    gmeow:versionLabel "1st edition" .
+
+ex:revisedEdition a gmeow:CreativeWork ;
+    gmeow:title "The Synthetic Chronicles, Revised"@en ;
+    gmeow:editionOf ex:novelLineage ;
+    gmeow:versionOf ex:novelLineage ;
+    gmeow:versionLabel "revised edition" ;
+    gmeow:supersedes ex:firstEdition .
+
+ex:collectedVolume a gmeow:CreativeWork ;
+    gmeow:title "The Complete Synthetic Chronicles"@en ;
+    gmeow:editionOf ex:novelLineage ;
+    gmeow:versionOf ex:novelLineage ;
+    gmeow:versionLabel "collected volume" .
+
+ex:memFirst a gmeow:VersionMembership ;
+    gmeow:versionMember ex:firstEdition ;
+    gmeow:versionSet ex:novelLineage ;
+    gmeow:versionRole gmeow:rolePublished ;
+    gmeow:membershipAuthority ex:publisherA .
+
+ex:memRevised a gmeow:VersionMembership ;
+    gmeow:versionMember ex:revisedEdition ;
+    gmeow:versionSet ex:novelLineage ;
+    gmeow:versionRole gmeow:roleRevised ;
+    gmeow:membershipAuthority ex:publisherA .
+
+ex:memCollected a gmeow:VersionMembership ;
+    gmeow:versionMember ex:collectedVolume ;
+    gmeow:versionSet ex:novelLineage ;
+    gmeow:versionRole gmeow:roleCollected ;
+    gmeow:membershipAuthority ex:publisherB .
+
+# --- Supporting agents ----------------------------------------------------- #
+
+ex:senderAgent a gmeow:Person ;
+    gmeow:name "Original Sender"@en .
+
+ex:registryNpm a gmeow:Organization ;
+    gmeow:name "npm Registry"@en .
+
+ex:projectMaintainer a gmeow:Person ;
+    gmeow:name "Project Maintainer"@en .
+
+ex:publisherA a gmeow:Organization ;
+    gmeow:name "First Publisher"@en .
+
+ex:publisherB a gmeow:Organization ;
+    gmeow:name "Collected Works Press"@en .

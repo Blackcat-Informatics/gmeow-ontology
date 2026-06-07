@@ -1,0 +1,43 @@
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix schema: <https://schema.org/> .
+@prefix doap:   <http://usefulinc.com/ns/doap#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+
+# Term equivalences for the cross-cutting version-set layer (#161).
+# The reified VersionMembership relator has no direct 1:1 equivalent in surface
+# vocabularies; it projects via the EDOAL+FnO layer (flattening to flat edges).
+# This file captures the direct term-level alignments only.
+
+gmeow:mapsetVersions a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-versions.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/versions" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Cross-cutting version-set alignments (#161). VersionMembership is a reified relator with no direct flat equivalent; role claims project lossily to schema:version / doap:revision on the member entity." .
+
+gmeow:eqVersions001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:versionLabel ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:version ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "schema:version is a flat literal on the versioned entity; GMEOW keeps versionLabel as a general designation across all entity kinds." ;
+    gmeow:sssomFile "gmeow-versions.sssom.tsv" .
+
+gmeow:eqVersions002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:versionLabel ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject doap:revision ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DOAP revision is the flat version string on a software release; GMEOW's versionLabel generalises this to all entity kinds." ;
+    gmeow:sssomFile "gmeow-versions.sssom.tsv" .
+
+gmeow:eqVersions003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:VersionSet ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject doap:Project ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "A DOAP Project is the lineage/container for releases; GMEOW's VersionSet is a more general information-object lineage that also covers books, datasets, emails, etc." ;
+    gmeow:sssomFile "gmeow-versions.sssom.tsv" .

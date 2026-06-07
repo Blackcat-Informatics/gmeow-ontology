@@ -1,0 +1,17 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/versions
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow compile-mappings
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: Cross-cutting version-set alignments (#161). VersionMembership is a reified relator with no direct flat equivalent; role claims project lossily to schema:version / doap:revision on the member entity.
+# curie_map:
+#   doap: http://usefulinc.com/ns/doap#
+#   gmeow: https://blackcatinformatics.ca/gmeow/
+#   schema: https://schema.org/
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:VersionSet	skos:closeMatch	doap:Project	semapv:ManualMappingCuration	0.6	A DOAP Project is the lineage/container for releases; GMEOW's VersionSet is a more general information-object lineage that also covers books, datasets, emails, etc.
+gmeow:versionLabel	skos:closeMatch	doap:revision	semapv:ManualMappingCuration	0.85	DOAP revision is the flat version string on a software release; GMEOW's versionLabel generalises this to all entity kinds.
+gmeow:versionLabel	skos:closeMatch	schema:version	semapv:ManualMappingCuration	0.85	schema:version is a flat literal on the versioned entity; GMEOW keeps versionLabel as a general designation across all entity kinds.
