@@ -98,7 +98,7 @@ gmeow:ProjectionMappingShape
 gmeow:MappingPatternShape
     a sh:NodeShape ;
     rdfs:label "MappingPattern shape"@en ;
-    sh:targetSubjectsOf gmeow:anchor ;
+    sh:targetObjectsOf gmeow:hasMappingPattern ;
     sh:property [
         sh:path gmeow:anchor ;
         sh:minCount 1 ; sh:maxCount 1 ;
@@ -145,7 +145,7 @@ gmeow:PatternAtomShape
     sh:targetSubjectsOf gmeow:subjectVar ;
     sh:property [
         sh:path gmeow:subjectVar ;
-        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:maxCount 1 ;
         sh:datatype xsd:string ;
         sh:severity sh:Violation ;
         sh:message "PatternAtom must have exactly one gmeow:subjectVar (string)"
@@ -222,7 +222,7 @@ gmeow:TemplateAtomShape
     sh:targetSubjectsOf gmeow:tSubj ;
     sh:property [
         sh:path gmeow:tSubj ;
-        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:maxCount 1 ;
         sh:datatype xsd:string ;
         sh:severity sh:Violation ;
         sh:message "TemplateAtom must have exactly one gmeow:tSubj (string)"
@@ -283,7 +283,7 @@ gmeow:OptionalGroupShape
 gmeow:ProfileBindingShape
     a sh:NodeShape ;
     rdfs:label "ProfileBinding shape"@en ;
-    sh:targetSubjectsOf gmeow:profile ;
+    sh:targetObjectsOf gmeow:hasBinding ;
     sh:property [
         sh:path gmeow:profile ;
         sh:minCount 1 ; sh:maxCount 1 ;
@@ -390,7 +390,8 @@ gmeow:ProfileBindingShape
 gmeow:BindShape
     a sh:NodeShape ;
     rdfs:label "Bind/Mint shape"@en ;
-    sh:targetSubjectsOf gmeow:bindVar ;
+    sh:targetObjectsOf gmeow:bind ;
+    sh:targetObjectsOf gmeow:mint ;
     sh:property [
         sh:path gmeow:bindVar ;
         sh:minCount 1 ; sh:maxCount 1 ;
@@ -440,8 +441,10 @@ gmeow:ExpressionShape
         sh:select """
             SELECT $this WHERE {
                 FILTER(
-                    (EXISTS { $this gmeow:exprVar ?v } && EXISTS { $this gmeow:exprOp ?op }) ||
-                    (!EXISTS { $this gmeow:exprVar ?v } && !EXISTS { $this gmeow:exprOp ?op })
+                    (EXISTS { $this gmeow:exprVar ?v } &&
+                     (EXISTS { $this gmeow:exprOp ?op } || EXISTS { $this gmeow:exprArgs ?args })) ||
+                    (!EXISTS { $this gmeow:exprVar ?v } &&
+                     !(EXISTS { $this gmeow:exprOp ?op } && EXISTS { $this gmeow:exprArgs ?args }))
                 )
             }
         """
@@ -623,7 +626,7 @@ gmeow:ValueClassMapEntryShape
     sh:targetSubjectsOf gmeow:whenValue ;
     sh:property [
         sh:path gmeow:whenValue ;
-        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "Value-class map entry must have exactly one gmeow:whenValue (IRI)"

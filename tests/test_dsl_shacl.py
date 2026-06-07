@@ -7,7 +7,6 @@ produce their own errors.
 
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -47,22 +46,16 @@ ex:claim-bad a gmeow:StatementMetadata ;
 """
 
 
-def _write_temp_dsl(content: str) -> Path:
-    """Write ``content`` to a temporary ``.ttl`` file and return its parent dir."""
-    tmp = Path(tempfile.mkdtemp())
-    (tmp / "test.ttl").write_text(content, encoding="utf-8")
-    return tmp
-
-
 class TestMappingDslShacl:
-    def test_malformed_term_equivalence_shacl_diagnostic(self) -> None:
+    def test_malformed_term_equivalence_shacl_diagnostic(self, tmp_path: Path) -> None:
         """A TermEquivalence missing alignSubject must fail with a SHACL diagnostic."""
-        src = _write_temp_dsl(_MALFORMED_MAPPING_TTL)
+        (tmp_path / "test.ttl").write_text(_MALFORMED_MAPPING_TTL, encoding="utf-8")
         with pytest.raises(CompileError) as exc_info:
-            load_dsl(src)
+            load_dsl(tmp_path)
         msg = str(exc_info.value)
         assert "mapping DSL SHACL violations" in msg
         assert "focus=" in msg
+        assert "path=" in msg
         assert "msg=" in msg
         assert "source=" in msg
         assert "alignSubject" in msg
@@ -77,11 +70,11 @@ class TestMappingDslShacl:
 
 
 class TestStatementDslShacl:
-    def test_malformed_statement_shacl_diagnostic(self) -> None:
+    def test_malformed_statement_shacl_diagnostic(self, tmp_path: Path) -> None:
         """A StatementMetadata with both qObject and qObjectLiteral must fail."""
-        src = _write_temp_dsl(_MALFORMED_STATEMENT_TTL)
+        (tmp_path / "test.ttl").write_text(_MALFORMED_STATEMENT_TTL, encoding="utf-8")
         with pytest.raises(CompileError) as exc_info:
-            load_statement_dsl(src)
+            load_statement_dsl(tmp_path)
         msg = str(exc_info.value)
         assert "statement DSL SHACL violations" in msg
         assert "focus=" in msg

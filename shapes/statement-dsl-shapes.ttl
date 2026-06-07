@@ -83,7 +83,7 @@ gmeow:AnnotationShape
     sh:targetSubjectsOf gmeow:annProperty ;
     sh:property [
         sh:path gmeow:annProperty ;
-        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "Annotation must have exactly one gmeow:annProperty (IRI)"

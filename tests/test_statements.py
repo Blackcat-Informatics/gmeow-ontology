@@ -88,7 +88,10 @@ def test_duplicate_annotation_value_is_rejected(tmp_path: Path) -> None:
         "        gmeow:annValue 0.5 ; gmeow:annValue 0.6 ] .\n"
     )
     (tmp_path / "dup.ttl").write_text(ttl, encoding="utf-8")
-    with pytest.raises(CompileError, match="SHACL violations"):
+    with pytest.raises(
+        CompileError,
+        match=r"statement DSL SHACL violations",
+    ):
         load_statement_dsl(src=tmp_path)
 
 
