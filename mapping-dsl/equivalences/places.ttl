@@ -765,6 +765,42 @@ gmeow:eqPlaces088 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
+# CIDOC-CRM E92 / CRMgeo SP1 — Spacetime Volume (#106)
+# LocationState is the reused spacetime-slice class; a Trajectory is a spacetime
+# volume composed of LocationState samples.
+# --------------------------------------------------------------------------- #
+
+gmeow:eqPlaces112 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:LocationState ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:E92_Spacetime_Volume ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:objectLabel "Spacetime Volume" ;
+    gmeow:comment "CIDOC-CRM E92 Spacetime Volume — a 4D point set; GMEOW LocationState is a discrete slice (location + time + pose) of it" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces113 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:LocationState ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crmgeo:SP1_Spacetime_Volume ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:objectLabel "Spacetime Volume" ;
+    gmeow:comment "CRMgeo SP1 Spacetime Volume — the geospatial extension of CIDOC E92" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces114 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Trajectory ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crm:E92_Spacetime_Volume ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "Spacetime Volume" ;
+    gmeow:comment "a Trajectory is a continuous spacetime volume (relatedMatch, not closeMatch — a trajectory is a path, not any arbitrary volume)" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
 # Issue #100 — Capacity / Occupancy / Utilization
 # --------------------------------------------------------------------------- #
 
