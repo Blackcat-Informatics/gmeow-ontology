@@ -144,6 +144,8 @@ events, alongside geographic `Place`s.
 
 Every measured or expressed value is relative to an explicit reference system. GMEOW models this by separating frame-independent **structure** (topology, containment, order) from frame-relative **values** through **Reference Frame Profiles**:
 
+These concrete frame profiles are instances of the reusable **`gmeow:Profile`** meta-pattern defined in `ontology/modules/profiles.ttl` (issue #75): a Profile is a closed descriptor schema whose values are drawn from open, extensible value vocabularies, with self-description and a novel-value guard.
+
 - **`gmeow:ReferenceFrame`** describes any reference system — not only spatial CRS, but also units of measure, currencies, calendars/timescales, colourspaces, and languages/registers.
 - Each reference frame declares its parameters via descriptors:
   - **`gmeow:frameRealm`** (e.g. terrestrial, indoor, celestial, virtual, measurement, currency, temporal, colourspace, linguistic).

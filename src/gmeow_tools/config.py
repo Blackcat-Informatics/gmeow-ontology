@@ -193,6 +193,7 @@ PREFIXES: dict[str, str] = {
     "rel": "http://purl.org/vocab/relationship/",
     "doap": "http://usefulinc.com/ns/doap#",
     "prov": "http://www.w3.org/ns/prov#",
+    "prof": "http://www.w3.org/ns/dx/prof/",
     "sosa": "http://www.w3.org/ns/sosa/",
     "ssn": "http://www.w3.org/ns/ssn/",
     "om": "http://www.wurvoc.org/vocabularies/om-1.8/",
