@@ -197,6 +197,7 @@ PREFIXES: dict[str, str] = {
     "prof": "http://www.w3.org/ns/dx/prof/",
     "sosa": "http://www.w3.org/ns/sosa/",
     "ssn": "http://www.w3.org/ns/ssn/",
+    "sweet": "http://sweetontology.net/",
     "om": "http://www.wurvoc.org/vocabularies/om-1.8/",
     "qb": "http://purl.org/linked-data/cube#",
     "mf": "http://www.opengis.net/ont/movingfeatures#",
