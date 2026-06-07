@@ -233,6 +233,7 @@ def test_frame_inheritance_via_quantity() -> None:
     """A Quantity result inherits the observation's reference frame (#77)."""
     graph = Graph()
     graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
 
     graph.add((EX.obs1, RDF.type, GMEOW.Measurement))
     graph.add((EX.obs1, GMEOW.observationResult, EX.q1))

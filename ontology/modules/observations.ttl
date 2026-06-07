@@ -236,8 +236,8 @@ gmeow:quantityUncertainty
 # AXIOMATIZED DOCTRINE (#38) — property chain for frame inheritance
 #
 # An observation's result inherits the observation's reference frame.
-# Expressed as: inverse(observationResult) ∘ hasReferenceFrame ⊑ hasReferenceFrame
-# i.e.  Result <--observationResult-- Observation --hasReferenceFrame--> Frame
+# Expressed as: isResultOf ∘ hasReferenceFrame ⊑ hasReferenceFrame
+# i.e.  Result --isResultOf-- Observation --hasReferenceFrame--> Frame
 #   implies Result --hasReferenceFrame--> Frame.
 #
 # This is OWL 2 DL regular because hasReferenceFrame is a simple property
@@ -247,4 +247,4 @@ gmeow:quantityUncertainty
 # without explicitly framing every coordinate set.
 # =========================================================================== #
 
-gmeow:hasReferenceFrame owl:propertyChainAxiom ( [ owl:inverseOf gmeow:observationResult ] gmeow:hasReferenceFrame ) .
+gmeow:hasReferenceFrame owl:propertyChainAxiom ( gmeow:isResultOf gmeow:hasReferenceFrame ) .
