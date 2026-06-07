@@ -234,3 +234,39 @@ def test_all_mappings_expand() -> None:
     # No CURIE in any mapping row fails to expand (would raise MappingError).
     graph = _graph()
     assert len(graph) >= 80
+
+
+def test_quantity_aligned_to_qudt_quantity_value() -> None:
+    """gmeow:Quantity maps to qudt:QuantityValue (#77)."""
+    from rdflib.namespace import SKOS
+
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "Quantity"),
+        SKOS.closeMatch,
+        URIRef("http://qudt.org/schema/qudt/QuantityValue"),
+    ) in graph
+
+
+def test_quantity_value_aligned_to_qudt() -> None:
+    """gmeow:quantityValue maps to qudt:quantityValue (#77)."""
+    from rdflib.namespace import SKOS
+
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "quantityValue"),
+        SKOS.closeMatch,
+        URIRef("http://qudt.org/schema/qudt/quantityValue"),
+    ) in graph
+
+
+def test_quantity_uncertainty_aligned_to_qudt() -> None:
+    """gmeow:quantityUncertainty maps to qudt:standardUncertainty (#77)."""
+    from rdflib.namespace import SKOS
+
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "quantityUncertainty"),
+        SKOS.closeMatch,
+        URIRef("http://qudt.org/schema/qudt/standardUncertainty"),
+    ) in graph

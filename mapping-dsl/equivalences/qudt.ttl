@@ -26,7 +26,7 @@ gmeow:mapsetQudt a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-qudt.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/qudt" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "QUDT alignments for measurement reference frames. Contextual: gmeow:ReferenceFrame aligns to qudt:Unit only when the frame's realm is gmeow:frameRealmMeasurement. QUDT uses OWL punning (not strict DL); GMEOW keeps the alignment in the mapping layer only, never importing QUDT into the OWL 2 DL core." .
+    gmeow:setComment "QUDT alignments for measurement reference frames and quantity values. Contextual: gmeow:ReferenceFrame aligns to qudt:Unit only when the frame's realm is gmeow:frameRealmMeasurement. gmeow:Quantity aligns to qudt:QuantityValue as the value+unit bundle. QUDT uses OWL punning (not strict DL); GMEOW keeps the alignment in the mapping layer only, never importing QUDT into the OWL 2 DL core." .
 
 gmeow:eqQudt001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:ReferenceFrame ;
@@ -53,6 +53,33 @@ gmeow:eqQudt003 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
     gmeow:comment "an axis defines the kind of quantity being measured (length, time, temperature, etc.)" ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+
+gmeow:eqQudt004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Quantity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject qudt:QuantityValue ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "QUDT's value+unit bundle; GMEOW adds determinacy and provenance axes (#77)." ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+
+gmeow:eqQudt005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:quantityValue ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject qudt:quantityValue ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "the numeric literal property of a quantity value" ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+
+gmeow:eqQudt006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:quantityUncertainty ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject qudt:standardUncertainty ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "QUDT's standard uncertainty is the estimated standard deviation of the mean; GMEOW's quantityUncertainty is the same concept, in the same unit as the quantity value." ;
     gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
 
 # REFUSED (Principle 5 — no faithful external term):
