@@ -23,7 +23,7 @@ WHERE {
         ?c gmeow:longitude ?lon .
     }
     UNION {
-        ?ent gmeow:hasAppellation|gmeow:hasName ?app .
+        ?ent gmeow:hasAppellation|gmeow:hasName|gmeow:hasOrganizationName|gmeow:hasTitle|gmeow:hasAgreementName|gmeow:hasSoftwareName ?app .
         ?app gmeow:fullName ?dispName .
         FILTER NOT EXISTS { ?app gmeow:displayable false . }
         OPTIONAL {

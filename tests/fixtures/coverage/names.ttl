@@ -21,6 +21,8 @@
 
 ex:langEn  a gmeow:Language ; gmeow:languageTag "x-gmeow-english" ; gmeow:bcp47Tag "en"^^xsd:language ; gmeow:languageCode "en" .
 ex:langZh  a gmeow:Language ; gmeow:languageTag "x-gmeow-chinese" ; gmeow:bcp47Tag "zh"^^xsd:language ; gmeow:languageCode "zh" .
+ex:langFr  a gmeow:Language ; gmeow:languageTag "x-gmeow-french" ; gmeow:bcp47Tag "fr"^^xsd:language ; gmeow:languageCode "fr" .
+ex:langJa  a gmeow:Language ; gmeow:languageTag "x-gmeow-japanese" ; gmeow:bcp47Tag "ja"^^xsd:language ; gmeow:languageCode "ja" .
 ex:langEs  a gmeow:Language ; gmeow:languageTag "x-gmeow-spanish" ; gmeow:bcp47Tag "es"^^xsd:language ; gmeow:languageCode "es" .
 ex:langKo  a gmeow:Language ; gmeow:languageTag "x-gmeow-korean" ; gmeow:bcp47Tag "ko"^^xsd:language ; gmeow:languageCode "ko" .
 ex:langBan a gmeow:Language ; gmeow:languageTag "x-gmeow-balinese" ; gmeow:bcp47Tag "ban"^^xsd:language ; gmeow:languageCode "ban" .
@@ -318,6 +320,67 @@ ex:munichExonymUsage a gmeow:NameUsage ;
     gmeow:usageRegister gmeow:registerFormal ;
     gmeow:usageAudience ex:englishSpeakers .
 
-ex:bavarianAuthority a gmeow:Organization .
+ex:bavarianAuthority a gmeow:Organization ;
+    gmeow:hasOrganizationName ex:orgNameEn , ex:orgNameFr .
+
+ex:orgNameEn a gmeow:OrganizationName ;
+    gmeow:fullName "Blackcat Informatics Inc."@x-gmeow-english ;
+    gmeow:nameLanguage ex:langEn ; gmeow:nameScript "Latn" ;
+    gmeow:namePurpose gmeow:namePurposeLegal ; gmeow:displayable true .
+
+ex:orgNameFr a gmeow:OrganizationName ;
+    gmeow:fullName "Informatique Blackcat Inc."@x-gmeow-french ;
+    gmeow:nameLanguage ex:langFr ; gmeow:nameScript "Latn" ;
+    gmeow:namePurpose gmeow:namePurposeExonym ; gmeow:displayable true .
+
+# --- CreativeWork title: co-equal multilingual (issue #97) ------------------ #
+
+ex:doc a gmeow:Document ;
+    gmeow:hasTitle ex:titleEn , ex:titleJa .
+
+ex:titleEn a gmeow:CreativeWorkTitle ;
+    gmeow:fullName "The Art of Naming"@x-gmeow-english ;
+    gmeow:nameLanguage ex:langEn ; gmeow:nameScript "Latn" ;
+    gmeow:displayable true .
+
+ex:titleJa a gmeow:CreativeWorkTitle ;
+    gmeow:fullName "命名の芸術"@x-gmeow-japanese ;
+    gmeow:nameLanguage ex:langJa ; gmeow:nameScript "Hani" ;
+    gmeow:romanization "Meimei no Geijutsu"@x-gmeow-japanese-latn ;
+    gmeow:transliterationScheme gmeow:schemeHepburn ;
+    gmeow:displayable true .
+
+# --- Agreement name: multilingual legal instrument (issue #97) ---------------- #
+
+ex:contract a gmeow:Contract ;
+    gmeow:hasAgreementName ex:contractNameEn , ex:contractNameDe .
+
+ex:contractNameEn a gmeow:AgreementName ;
+    gmeow:fullName "Service Agreement"@x-gmeow-english ;
+    gmeow:nameLanguage ex:langEn ; gmeow:nameScript "Latn" ;
+    gmeow:displayable true .
+
+ex:contractNameDe a gmeow:AgreementName ;
+    gmeow:fullName "Dienstleistungsvertrag"@x-gmeow-german ;
+    gmeow:nameLanguage ex:langDe ; gmeow:nameScript "Latn" ;
+    gmeow:displayable true .
+
+# --- Software name: localized product name (issue #97) ------------------------ #
+
+ex:app a gmeow:SoftwareProject ;
+    gmeow:hasSoftwareName ex:appNameEn , ex:appNameZh .
+
+ex:appNameEn a gmeow:SoftwareName ;
+    gmeow:fullName "GMEOW Toolkit"@x-gmeow-english ;
+    gmeow:nameLanguage ex:langEn ; gmeow:nameScript "Latn" ;
+    gmeow:displayable true .
+
+ex:appNameZh a gmeow:SoftwareName ;
+    gmeow:fullName "喵本体工具包"@x-gmeow-chinese ;
+    gmeow:nameLanguage ex:langZh ; gmeow:nameScript "Hans" ;
+    gmeow:romanization "Miāo Běntǐ Gōngjùbāo"@x-gmeow-chinese-latn ;
+    gmeow:transliterationScheme gmeow:schemePinyin ;
+    gmeow:displayable true .
+
 ex:germanSpeakers a gmeow:Group .
 ex:englishSpeakers a gmeow:Group .

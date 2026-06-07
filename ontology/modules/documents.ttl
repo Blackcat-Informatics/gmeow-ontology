@@ -61,6 +61,22 @@ gmeow:WebPage
     skos:definition "A page on the web identified by a URL."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:CreativeWorkTitle
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Appellation ;
+    rdfs:label "Creative Work Title"@en ;
+    skos:definition "An appellation borne by a creative work — a document title, article headline, dataset name, or media title. Carries its own gmeow:nameLanguage and gmeow:nameScript so co-equal multilingual titles (e.g. 'The Matrix' / '黑客帝国') are separate first-class objects, never alternateName subordinates."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasTitle
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasAppellation ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:CreativeWorkTitle ;
+    rdfs:label "has title"@en ;
+    skos:definition "Relates a creative work to a structured gmeow:CreativeWorkTitle it bears; the creative-work-scoped specialization of gmeow:hasAppellation. Non-functional — a work bears many co-equal titles (original, translated, transliterated, regional); none is primary, and superseded ones set gmeow:displayable false. The structured replacement for the flat gmeow:title literal when multilingual or statement-level metadata is needed."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:hasAuthor
     a owl:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;

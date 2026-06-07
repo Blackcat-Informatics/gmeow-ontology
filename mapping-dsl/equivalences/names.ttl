@@ -401,3 +401,105 @@ gmeow:eqNames044 a gmeow:TermEquivalence ;
     gmeow:confidence 0.85 ;
     gmeow:comment "GMEOW fullName close-matches OntoLex writtenRep" ;
     gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+# Cross-cutting multilingual labels — issue #97. New bearer properties bridge to
+# flat surface-vocabulary name/title literals by projection (Principle 5).
+
+gmeow:eqNames045 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasOrganizationName ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject schema:name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "schema:name — downcast: an organization's structured name objects flatten to the schema:name literal in projection" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames046 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasOrganizationName ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject vcard:organization-name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "vcard:organization-name — downcast from structured OrganizationName to flat literal" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames047 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasOrganizationName ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject foaf:name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "foaf:name — downcast from structured OrganizationName to flat literal" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames048 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasTitle ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:title ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms title — GMEOW's reified CreativeWorkTitle downcasts to dcterms:title by projection" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames049 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasTitle ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject schema:name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "schema:name — downcast: a creative work's structured title objects flatten to schema:name in projection" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames050 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasTitle ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject schema:headline ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "schema:headline — downcast from structured CreativeWorkTitle to flat literal" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames051 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:CreativeWorkTitle ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject schema:name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "schema:name — broad: a CreativeWorkTitle is a kind of name borne by a creative work" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames052 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:AgreementName ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject schema:name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "schema:name — broad: an AgreementName is a kind of name borne by an agreement" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames053 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SoftwareName ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject schema:name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "schema:name — broad: a SoftwareName is a kind of name borne by a software project" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames054 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasAgreementName ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject schema:name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "schema:name — downcast: an agreement's structured name objects flatten to the schema:name literal in projection" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
+
+gmeow:eqNames055 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasSoftwareName ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject schema:name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "schema:name — downcast: a software project's structured name objects flatten to the schema:name literal in projection" ;
+    gmeow:sssomFile "gmeow-names.sssom.tsv" .
