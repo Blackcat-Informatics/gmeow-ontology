@@ -9,6 +9,7 @@
 
     <!-- GMEOW modules -->
     <uri name="https://blackcatinformatics.ca/gmeow/modules/core" uri="ontology/modules/core.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/profiles" uri="ontology/modules/profiles.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/entities" uri="ontology/modules/entities.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/organization" uri="ontology/modules/organization.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/accounts" uri="ontology/modules/accounts.ttl"/>
