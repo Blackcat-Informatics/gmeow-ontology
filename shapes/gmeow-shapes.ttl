@@ -886,11 +886,10 @@ gmeow:ConsentWellformednessShape
             SELECT $this WHERE {
                 $this <https://blackcatinformatics.ca/gmeow/hasPermission> ?perm .
                 ?perm <https://blackcatinformatics.ca/gmeow/ruleAction> <https://blackcatinformatics.ca/gmeow/actionProcessPersonalData> .
-                FILTER (
-                    NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/hasDataSubject> ?subj }
-                    ||
-                    NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/hasDataController> ?ctrl }
-                )
+                OPTIONAL { $this <https://blackcatinformatics.ca/gmeow/hasDataSubject> ?subj }
+                OPTIONAL { $this <https://blackcatinformatics.ca/gmeow/hasDataController> ?ctrl }
             }
+            GROUP BY $this
+            HAVING (COUNT(DISTINCT ?subj) != 1 || COUNT(DISTINCT ?ctrl) < 1)
         """ ;
     ] .

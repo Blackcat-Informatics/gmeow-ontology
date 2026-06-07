@@ -8,6 +8,7 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
 ex:alice a gmeow:Person ; rdfs:label "Alice"@en .
+ex:bob   a gmeow:Person ; rdfs:label "Bob"@en .
 
 # RightsStatement with NO statementAbout → "must govern exactly one asset".
 ex:rs a gmeow:RightsStatement ;
@@ -35,4 +36,15 @@ ex:rs3 a gmeow:RightsStatement ;
     gmeow:hasPermission ex:perm3 .
 
 ex:perm3 a gmeow:Permission ;
+    gmeow:ruleAction gmeow:actionProcessPersonalData .
+
+# Consent-governing RightsStatement with TWO data subjects and one controller
+# → "should name exactly one data subject".
+ex:rs4 a gmeow:RightsStatement ;
+    gmeow:statementAbout ex:alice ;
+    gmeow:hasDataSubject ex:alice, ex:bob ;
+    gmeow:hasDataController ex:alice ;
+    gmeow:hasPermission ex:perm4 .
+
+ex:perm4 a gmeow:Permission ;
     gmeow:ruleAction gmeow:actionProcessPersonalData .
