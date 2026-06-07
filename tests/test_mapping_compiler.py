@@ -106,7 +106,11 @@ def test_dsl_parses() -> None:
     # +4 places (eqPlaces104-107); closeMatch→broadMatch/relatedMatch per review.
     # Issue #106 events spacetime/trajectory: +6 (LocationState→E92/SP1,
     # Trajectory→E92, eventSpacetime/eventTrajectory→E92/SP1 x2).
-    assert len(dsl.equivalences) == 958
+    # Issue #104 sensory environment: +5 (SOSA/SSN x5:
+    # SensoryObservation→sosa:Observation, SensoryEnvironment→sosa:FeatureOfInterest,
+    # CoordinateMatrix→sosa:Result, hasMeasuredCondition→sosa:hasResult,
+    # SensoryPerception→sosa:Observation).
+    assert len(dsl.equivalences) == 963
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -127,7 +131,8 @@ def test_dsl_parses() -> None:
     # Issue #102 accessibility: +1 (gmeow-accessibility.sssom.tsv).
     # Issue #99 data quality: +1 (gmeow-quality.sssom.tsv).
     # Issue #161 versions: +1 (gmeow-versions.sssom.tsv).
-    assert len(dsl.mapping_sets) == 30
+    # Issue #104 sensory environment: +1 (gmeow-sensory-environment.sssom.tsv).
+    assert len(dsl.mapping_sets) == 31
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}

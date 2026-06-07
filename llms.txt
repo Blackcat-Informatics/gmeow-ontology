@@ -37,6 +37,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:ContactPoint (⊑ gmeow:Entity, gufo:Object): A means of reaching an agent: an email address, telephone number, or postal address.
 - gmeow:ContainmentTenure (⊑ gmeow:TimeScopedRelation): The reified, time-scoped fact that a place was contained in a larger place over an interval — for boundary changes, re-organisations, and disputed parallel parents. Reifies containedInPlace over time; the plain transitive property remains the flat shortcut.
 - gmeow:Contract (⊑ gmeow:Agreement): A legally enforceable agreement.
+- gmeow:CoordinateMatrix (⊑ gmeow:Entity, gufo:Object): A multi-dimensional numeric value expressed as a coordinate matrix or vector — the generalisation of ScalarQuantity to vector, matrix, and tensor results. Carries a serialised matrix literal (matrixValue), shape descriptor (matrixShape), reference frame (hasReferenceFrame), unit (hasUnit), and determinacy (hasDeterminacy). Used for colourspace tuples [j,k,l]+intensity, audio spectra, thermal images, and air-quality compound readings. The actual matrix algebra (dot products, transforms, decompositions) lives in the solver layer (Principle 12).
 - gmeow:Copyright (⊑ gufo:Relator): The reified copyright over a work — binding the work, its holder(s), the copyright year and the human-readable notice. Its status (in-copyright, public-domain, …) is a gmeow:copyrightStatus value aligned to RightsStatements.org / PREMIS.
 - gmeow:CopyrightStatus (⊑ gufo:QualityValue): The copyright standing of a work — a VALUE aligned to the RightsStatements.org standardized statements and PREMIS copyright status. Open: a finer-grained statement is a fresh individual.
 - gmeow:CoupleRelationship (⊑ gmeow:KinRelationship): A reified couple relationship (marriage, civil union, or partnership) between two persons; bears marriage, divorce and related events.
@@ -108,6 +109,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:Measurement (⊑ gmeow:Observation): An observation that assigns a quantitative or qualitative value to a feature of interest, typically carrying a unit, uncertainty, and determinacy model. The parent of temporal dating, spatial coordinate assignment, and scalar quantity measurements.
 - gmeow:MediaObject (⊑ gmeow:CreativeWork): An image, audio, or video media file.
 - gmeow:Membership (⊑ gufo:Relator): The reified relationship by which an agent is a member of an organization, optionally playing a role over a period of time.
+- gmeow:MentalReferenceFrame (⊑ gmeow:ReferenceFrame): A perceptual or subjective reference frame in which standpoint-indexed values are expressed — e.g. a thermal comfort scale, an olfactory quality space ('musty'/'muted'), or a subjective loudness frame. A MentalReferenceFrame is a ReferenceFrame whose realm is perceptual and whose axes describe qualitative or semi-quantitative dimensions of human (or animal, or AI) sensory experience. Distinct from measurement frames: two perceivers may map the same physical measurement to different mental-frame coordinates (Principle 11).
 - gmeow:Message (⊑ gmeow:InformationObject): A communication sent from one agent to others — the parent of email and other message kinds.
 - gmeow:MessageHeader (⊑ gmeow:InformationObject): A single RFC 5322 header field (name and value) of a message.
 - gmeow:MessageKeyword (⊑ gufo:QualityValue): A flag/keyword applied to a message (IMAP flag or JMAP keyword) such as seen, flagged, answered, draft, forwarded, or junk.
@@ -177,7 +179,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:ScalarQuantity (⊑ gmeow:Entity, gufo:Object): A scalar numeric value with a unit, determinacy model, and granularity — the entity-valued wrapper for literal observation results (temperatures, distances, counts, probabilities). Keeps gmeow:observationResult uniformly entity-valued: the scalar literal lives here, not on the observation directly.
 - gmeow:ScriptRole (⊑ gufo:QualityValue): The role a writing system plays within a language's mixed orthography (primary, logographic content, syllabic grammar, loanword, transliteration, liturgical, historical, decorative). A value carried by gmeow:scriptRole.
 - gmeow:SensitivityLevel (⊑ gufo:QualityValue): A privacy-sensitivity classification for a value — an open, ordered value vocabulary (public ≺ internal ≺ confidential ≺ restricted ≺ sensitive personal). The explicit facet that drives disclosure-control decisions: a value marked sensitive personal may be coarsened or withheld at projection time under a consent guard. Orthogonal to determinacy, confidence, and granularity (Principle 9). The sensitivity-to-coarsen trigger is a solver concern (P12).
+- gmeow:SensoryEnvironment (⊑ gmeow:Entity, gufo:Object): Ambient perceivable conditions at a specific location and time — the ensemble of physical properties that can be measured by instruments or perceived by observers. A SensoryEnvironment is reified as a first-class entity (not merely a property bag) so that measurements and perceptions about it can carry provenance, confidence, temporal scope, and standpoint indexing. Measured conditions are expressed as CoordinateMatrix values in measurement reference frames; perceived conditions are standpoint-indexed values in MentalReferenceFrames (Principle 9: co-equal facets, no privileged representation).
+- gmeow:SensoryModality (⊑ gufo:QualityValue): The sensory channel or domain through which an environment property is measured or perceived — a value vocabulary (individuals, never subclasses). Distinguishes visual, auditory, olfactory, gustatory, tactile, thermal, air-quality, and other environmental sensing channels. A single environment or observation may span multiple modalities (Principle 9: co-equal, non-functional).
 - gmeow:SensoryObservation (⊑ gmeow:Observation): An observation produced by a sensor or sensory apparatus reading a physical property of the environment. Specialises Observation with sensor-specific properties (sensory property, sensor platform, sampling feature).
+- gmeow:SensoryPerception (⊑ gmeow:StandpointClaim): A standpoint-indexed perceived value about a SensoryEnvironment — a subjective claim made by a perceiver (vantage) about ambient conditions (observedFeature), yielding a result in a MentalReferenceFrame. A SensoryPerception is a StandpointClaim specialised to the sensory domain: the vantage is the perceiver, the observedFeature is the SensoryEnvironment, and the observationResult is the perceived value (a ScalarQuantity, categorical individual, or structured percept descriptor). Competing perceptions coexist without collapse (Principle 9); superseded perceptions are suppressed, never deleted (Principle 10).
 - gmeow:SexAssignedAtBirth (⊑ gufo:QualityValue): A recorded sex-assigned-at-birth value pointed at by gmeow:sexAssignedAtBirth — a VALUE, never a subclass. Deliberately coarse and inclusive (incl. intersex); finer sex-characteristic detail is an optional free-text gmeow:intersexVariation note, not a clinical taxonomy.
 - gmeow:SexualOrientation (⊑ gmeow:IdentityFacet): A person's SELF-ASSERTED sexual orientation — the pattern of their sexual attraction — as a reified facet pointing (via gmeow:sexualOrientationValue) to an open gmeow:SexualOrientationValue. A SEPARATE axis from romantic orientation (split-attraction model) and from gender identity/expression; nothing infers one from another.
 - gmeow:SexualOrientationValue (⊑ gufo:QualityValue): A pattern of sexual attraction — a VALUE pointed at by gmeow:sexualOrientationValue, never a subclass. Open: an orientation not seeded here is a fresh individual with rdfs:label.
@@ -290,6 +295,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:containsPlace [gmeow:Place → gmeow:Place]: The inverse of gmeow:containedInPlace — a place that geographically contains another place. Under OWL 2 semantics, transitivity is entailed because containedInPlace is transitive. GMEOW does not assert additional transitive property chains beyond the inverse declaration; transitive closure is a solver concern (Principle 12).
 - gmeow:contentDigest [gmeow:Source → rdfs:Literal]: A content hash of the source's bytes (e.g. "blake3:…") — the reliable carrier identity (two imports of the same bytes are the same source, regardless of mtime or path). Not functional: a source may carry digests under several algorithms.
 - gmeow:coordinateFrame [gmeow:SpatialCoordinates → gmeow:ReferenceFrame] (functional): Relates a set of coordinates to the reference frame they are expressed in.
+- gmeow:coordinateMatrixFrame [gmeow:CoordinateMatrix → gmeow:ReferenceFrame] (functional): The reference frame in which this CoordinateMatrix is expressed. Functional: a matrix is expressed in exactly one frame; frame transformation is a solver concern (Principle 12). Sub-property of gmeow:hasReferenceFrame so the frame-inheritance property chain (isResultOf ∘ hasReferenceFrame ⊑ hasReferenceFrame) applies automatically.
 - gmeow:copyrightHolder [gmeow:Copyright → gmeow:Agent]: The agent that holds a copyright (schema:copyrightHolder; dcterms:rightsHolder). A specialisation of gmeow:wasAttributedTo — the canonical rights-holder attribution. Non-functional: joint copyright has several co-equal holders.
 - gmeow:copyrightNotice [gmeow:Copyright → rdfs:Literal] (functional): The human-readable copyright notice (schema:copyrightNotice), e.g. "© 2026 Blackcat Informatics Inc."
 - gmeow:copyrightStatus [gmeow:Copyright → gmeow:CopyrightStatus] (functional): The copyright status of a work — one of the gmeow:CopyrightStatus values (in-copyright / public-domain / no-known-copyright / not-evaluated), aligned to RightsStatements.org and PREMIS. Functional.
@@ -318,6 +324,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:email [gmeow:Agent → rdfs:Literal]: An email address at which an agent can be reached.
 - gmeow:endedAtTime [gmeow:TimeInterval → xsd:dateTime] (functional): The instant at which a time interval ends; absent if the interval is still open.
 - gmeow:endorses [gmeow:Agent → gmeow:Agent]: A convenience shortcut recording that one agent vouches for another. Deliberately NOT symmetric (endorsement is directional) and NOT transitive (trust must not propagate inside the reasoner — that is the metric the perspectival TrustAssertion bounds). Use gmeow:TrustAssertion for leveled, dated, perspectival trust.
+- gmeow:environmentAtInstant [gmeow:SensoryEnvironment → gmeow:Instant]: The instant at which this point-like SensoryEnvironment holds. For interval-scoped environments, use gmeow:environmentDuringInterval instead.
+- gmeow:environmentAtLocation [gmeow:SensoryEnvironment → gmeow:Location] (functional): The location whose ambient conditions this SensoryEnvironment describes. Functional: a SensoryEnvironment concerns exactly one location (constitutive of its identity).
+- gmeow:environmentDuringInterval [gmeow:SensoryEnvironment → gmeow:TimeInterval]: The time interval over which this SensoryEnvironment holds. For point-like environments, use gmeow:environmentAtInstant instead.
 - gmeow:eulerOrder [gmeow:Orientation → xsd:string]: The order of rotations for the Euler-angle representation (e.g., 'XYZ', 'ZYX', 'ZXZ').
 - gmeow:eventAspect [gmeow:Event → gmeow:GrammaticalAspect]: The grammatical aspect of a textual mention of the event (ISO-TimeML EVENT @aspect). Annotation-layer only; orthogonal to the event's actual temporal placement.
 - gmeow:eventInterval [gmeow:Event → gmeow:TimeInterval]: The crisp, known time interval over which an event occurred (reuses the temporal module's gmeow:TimeInterval). For a point-like occurrence use gmeow:eventTime; for an approximate date use gmeow:earliestStart / gmeow:latestEnd + gmeow:temporalPrecision.
@@ -389,6 +398,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasHeader [gmeow:Message → gmeow:MessageHeader]: Relates a message to one of its RFC 5322 headers.
 - gmeow:hasKeyword [gmeow:Message → gmeow:MessageKeyword]: Relates a message to a flag/keyword applied to it.
 - gmeow:hasLicense [gmeow:Entity → gmeow:License]: Relates an entity (a work, dataset, software project, …) to a licence granting rights in it (dcterms:license; schema:license). Named gmeow:hasLicense — gmeow:license is reserved for the mapping-DSL set-license datatype property.
+- gmeow:hasMeasuredCondition [gmeow:SensoryEnvironment → gmeow:CoordinateMatrix]: An objective measurement of the ambient conditions, expressed as a CoordinateMatrix in a measurement reference frame. Non-functional: multiple instruments may produce competing measurements, and those claims coexist rather than collapse (Principle 9).
 - gmeow:hasMember [gmeow:Organization → gmeow:Agent]: Relates an organization to one of its member agents; the inverse of memberOf.
 - gmeow:hasMessageParticipant [gmeow:EmailMessage → gmeow:MessageParticipant]: Relates a message to one of its reified address occurrences.
 - gmeow:hasMet [gmeow:Agent → gmeow:Agent]: Records that two agents have met; symmetric. The occasion/period is carried with gmeow:validFrom/validUntil on the statement.
@@ -404,6 +414,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasParticipant [gmeow:Event → gmeow:Agent]: An agent that took part in an event — the flat 80%-case shortcut. Non-functional. Promote to a gmeow:Participation node when the role, period, confidence, or evidence of the participation must be recorded.
 - gmeow:hasPartner [gmeow:CoupleRelationship → gmeow:Person]: Relates a couple relationship to one of its two partners.
 - gmeow:hasParty [gmeow:Agreement → gmeow:Agent]: Relates an agreement to an agent that is bound by it.
+- gmeow:hasPerceivedCondition [gmeow:SensoryEnvironment → gmeow:SensoryPerception]: A standpoint-indexed perceived value about the ambient conditions, expressed as a SensoryPerception in a MentalReferenceFrame. Non-functional: multiple perceivers may produce competing perceptions, and those claims coexist rather than collapse (Principle 9).
 - gmeow:hasPermission [gmeow:RightsStatement → gmeow:Permission]: Relates a rights statement to a permission it grants (an odrl:permission rule).
 - gmeow:hasPlaceName [gmeow:Place → gmeow:PlaceName]: Relates a geographic gmeow:Place to a structured gmeow:PlaceName (toponym) it bears; the place-scoped specialization of gmeow:hasAppellation, mirroring gmeow:hasName for persons. Non-functional — a place bears many co-equal names (endonym/exonym, multilingual, historical); none is primary, and superseded ones set gmeow:displayable false. The structured, first-class replacement for the retired flat gmeow:alternateName literal.
 - gmeow:hasPose [gmeow:Entity → gmeow:Pose]: Associates an entity with a frame-relative pose (position + orientation).
@@ -512,6 +523,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:mailboxRole [gmeow:Mailbox → rdfs:Literal] (functional): The special-use role of a mailbox (JMAP role): inbox, archive, drafts, sent, trash, junk, templates.
 - gmeow:mappedFrom: The source property a claim was derived from during ingestion, recorded for mapping-step audit.
 - gmeow:markText [gmeow:Mark → rdfs:Literal] (functional): The textual form of a mark (the brand name / word mark), e.g. "Blackcat Informatics".
+- gmeow:matrixShape [gmeow:CoordinateMatrix → xsd:string] (functional): The shape descriptor of a CoordinateMatrix (e.g. '4×1' for a colourspace tuple, '256×1' for a spectral vector, '640×480×3' for a thermal image). Enables the solver layer to parse matrixValue correctly without inferring shape from the literal content (Principle 12).
+- gmeow:matrixValue [gmeow:CoordinateMatrix → rdfs:Literal] (functional): The serialised numeric content of a CoordinateMatrix — a vector, matrix, or tensor expressed as a literal (e.g. a JSON array, a WKT-like tuple string, or a base64-encoded binary blob). The serialisation format is frame-specific and is interpreted by the solver layer (Principle 12).
 - gmeow:measuredAge [gmeow:TemporalMeasurement → xsd:decimal] (functional): The numeric age yielded by a temporal measurement, in the unit given by gmeow:hasUnit.
 - gmeow:measuredDate [gmeow:TemporalMeasurement → gmeow:Instant] (functional): The absolute date instant yielded by a temporal measurement.
 - gmeow:measurementDeterminacy [gmeow:TemporalMeasurement → gmeow:Determinacy]: The ontic determinacy model of a temporal measurement — crisp, vague, fuzzy, probabilistic, or disputed (reuses the universal gmeow:Determinacy vocabulary, #71).
@@ -567,6 +580,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:participationInterval [gmeow:Participation → gmeow:TimeInterval]: The time interval over which the participation held. (A relator carries its period this way — matching usageInterval / relationshipInterval — rather than via duringInterval.)
 - gmeow:participationParticipant [gmeow:Participation → gmeow:Entity]: The entity that took part in the event in this participation. Range is gmeow:Entity (not only Agent) to admit non-agent participants — a document signed, a place visited. Non-functional: a joint role may be borne by several participants.
 - gmeow:participationRole [gmeow:Participation → gmeow:ParticipantRole]: The role(s) the participant played, drawn from the open gmeow:ParticipantRole value vocabulary. NON-FUNCTIONAL — mirroring gmeow:eventType: a participation may bear several roles, and competing standpoint-indexed role claims coexist (accordingTo) rather than contradict (Principle 9). Generalizes the former hasPrincipal / hasWitness / hasOfficiant subproperties.
+- gmeow:perceptionEnvironment [gmeow:Observation → gmeow:SensoryEnvironment] (functional): The SensoryEnvironment that a SensoryPerception is about — the observedFeature of the claim. Domain is gmeow:Observation so it applies to any observation subclass; the shape narrows to SensoryPerception instances.
+- gmeow:perceptionModality [gmeow:SensoryPerception → gmeow:SensoryModality] (functional): The sensory modality of a SensoryPerception — the channel through which the perception was made.
 - gmeow:periodContainsPeriod [gmeow:NamedPeriod → gmeow:NamedPeriod]: The transitive inverse of gmeow:periodPartOf.
 - gmeow:periodEnd [gmeow:NamedPeriod → gmeow:Instant] (functional): The instant at which a named period ends.
 - gmeow:periodPartOf [gmeow:NamedPeriod → gmeow:NamedPeriod]: Relates a named period to a larger named period that contains it (e.g. Holocene ⊂ Quaternary ⊂ Cenozoic). Transitive.
@@ -654,6 +669,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:scriptUsageInterval [gmeow:WritingSystemUsage → gmeow:TimeInterval]: The interval over which a writing-system-usage held — e.g. Turkish-in-Arabic-script until 1928. A relator carries its period this way (matching names' NameUsage); lighter cases use gmeow:validFrom/validUntil on the statement. (Distinct from the names module's gmeow:usageInterval, which scopes a NameUsage.)
 - gmeow:selfAsserted [gmeow:IdentityFacet → xsd:boolean]: Whether an identity facet was asserted by the person themselves (true — the top authority) rather than recorded or inferred by a third party (false). Non-functional: a multi-source merge may carry both a self-assertion and a third-party record, which coexist rather than force a contradiction.
 - gmeow:sender [gmeow:EmailMessage → gmeow:EmailAddress]: The transmitting address of a message, where different from the author (RFC 5322 Sender).
+- gmeow:sensoryModality [gmeow:SensoryEnvironment → gmeow:SensoryModality]: The sensory channel(s) through which this environment is measured or perceived. Non-functional: a single environment may span multiple modalities (e.g. a space that is both thermally and acoustically characterised), and competing modality classifications coexist.
 - gmeow:sentAt [gmeow:Message → xsd:dateTime]: When a message was sent (RFC 5322 Date).
 - gmeow:seriesOccurrence [gmeow:EventSeries → gmeow:Event]: Relates an event series to one of the concrete event occurrences it issues.
 - gmeow:sexAssignedAtBirth [gmeow:Person → gmeow:SexAssignedAtBirth]: The sex recorded for a person at birth (a gmeow:SexAssignedAtBirth value) — a RECORDED administrative datum, NOT a self-asserted identity and NOT a gufo IdentityFacet. Deliberately separate from gender identity/expression, which it never implies and is never implied by. Non-functional: a correction and a prior record coexist rather than contradict.
@@ -814,22 +830,29 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:aspectPerfective (a gmeow:GrammaticalAspect): ISO-TimeML aspect PERFECTIVE.
 - gmeow:aspectPerfectiveProgressive (a gmeow:GrammaticalAspect): ISO-TimeML aspect PERFECTIVE_PROGRESSIVE.
 - gmeow:aspectProgressive (a gmeow:GrammaticalAspect): ISO-TimeML aspect PROGRESSIVE.
+- gmeow:axisAstar (a gmeow:Axis): CIE a* red-green
 - gmeow:axisBearing (a gmeow:Axis): bearing axis
 - gmeow:axisBlue (a gmeow:Axis): blue channel
+- gmeow:axisBstar (a gmeow:Axis): CIE b* blue-yellow
 - gmeow:axisCyan (a gmeow:Axis): cyan channel
 - gmeow:axisDay (a gmeow:Axis): day
 - gmeow:axisDeclination (a gmeow:Axis): declination
 - gmeow:axisElevation (a gmeow:Axis): elevation
+- gmeow:axisFrequency (a gmeow:Axis): frequency
 - gmeow:axisGreen (a gmeow:Axis): green channel
 - gmeow:axisHeading (a gmeow:Axis): heading axis
 - gmeow:axisHour (a gmeow:Axis): hour
 - gmeow:axisKey (a gmeow:Axis): key (black) channel
 - gmeow:axisLatitude (a gmeow:Axis): latitude
+- gmeow:axisLightness (a gmeow:Axis): CIE L* lightness
 - gmeow:axisLongitude (a gmeow:Axis): longitude
 - gmeow:axisMagenta (a gmeow:Axis): magenta channel
+- gmeow:axisMagnitude (a gmeow:Axis): magnitude
 - gmeow:axisMinute (a gmeow:Axis): minute
 - gmeow:axisMonth (a gmeow:Axis): month
 - gmeow:axisPitch (a gmeow:Axis): pitch axis
+- gmeow:axisPredictedMeanVote (a gmeow:Axis): predicted mean vote (PMV)
+- gmeow:axisPredictedPercentageDissatisfied (a gmeow:Axis): predicted percentage dissatisfied (PPD)
 - gmeow:axisQuaternionW (a gmeow:Axis): quaternion W axis
 - gmeow:axisQuaternionX (a gmeow:Axis): quaternion X axis
 - gmeow:axisQuaternionY (a gmeow:Axis): quaternion Y axis
@@ -839,6 +862,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisRoll (a gmeow:Axis): roll axis
 - gmeow:axisScalar (a gmeow:Axis): scalar axis
 - gmeow:axisSecond (a gmeow:Axis): second
+- gmeow:axisTristimulusX (a gmeow:Axis): CIE X tristimulus
+- gmeow:axisTristimulusY (a gmeow:Axis): CIE Y tristimulus
+- gmeow:axisTristimulusZ (a gmeow:Axis): CIE Z tristimulus
 - gmeow:axisVirtualAddress (a gmeow:Axis): virtual address axis
 - gmeow:axisX (a gmeow:Axis): X axis
 - gmeow:axisY (a gmeow:Axis): Y axis
@@ -958,6 +984,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:frameRealmIndoor (a gmeow:FrameRealm): indoor
 - gmeow:frameRealmLinguistic (a gmeow:FrameRealm): linguistic
 - gmeow:frameRealmMeasurement (a gmeow:FrameRealm): measurement
+- gmeow:frameRealmPerceptual (a gmeow:FrameRealm): A perceptual or subjective domain in which values are expressed relative to a perceiver's sensory or cognitive frame (e.g. thermal comfort, olfactory quality, subjective loudness).
 - gmeow:frameRealmRobotic (a gmeow:FrameRealm): robotic
 - gmeow:frameRealmTemporal (a gmeow:FrameRealm): temporal
 - gmeow:frameRealmTerrestrial (a gmeow:FrameRealm): terrestrial
@@ -1284,6 +1311,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:qualityDimensionTemporalAccuracy (a gmeow:QualityDimension): Correctness of the temporal references of a feature (e.g. date, time, period) relative to the true temporal value (ISO 19157).
 - gmeow:qualityDimensionThematicAccuracy (a gmeow:QualityDimension): Accuracy of quantitative and qualitative attribute values, including classification correctness and non-quantitative attribute correctness (ISO 19157).
 - gmeow:qualityDimensionTopologicalConsistency (a gmeow:QualityDimension): Correctness of the explicitly encoded topological characteristics of a dataset, typically expressed as error counts or conformance to a topological rule set (ISO 19157).
+- gmeow:referenceFrameAudioSpectrum (a gmeow:ReferenceFrame): Audio Spectrum Reference Frame
+- gmeow:referenceFrameCIELAB (a gmeow:ReferenceFrame): CIE L*a*b* Perceptually-Uniform Reference Frame
+- gmeow:referenceFrameCIEXYZ (a gmeow:ReferenceFrame): CIE 1931 XYZ Tristimulus Reference Frame
 - gmeow:referenceFrameCMYK (a gmeow:ReferenceFrame): CMYK Colourspace Reference Frame
 - gmeow:referenceFrameCelestialEquatorial (a gmeow:ReferenceFrame): Celestial Equatorial Reference Frame
 - gmeow:referenceFrameEnglish (a gmeow:ReferenceFrame): English Language Reference Frame
@@ -1293,6 +1323,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:referenceFrameRobotBase (a gmeow:ReferenceFrame): Robot Base Cartesian Reference Frame
 - gmeow:referenceFrameSI (a gmeow:ReferenceFrame): SI Measurement Reference Frame
 - gmeow:referenceFrameSRGB (a gmeow:ReferenceFrame): sRGB Colourspace Reference Frame
+- gmeow:referenceFrameThermalComfort (a gmeow:MentalReferenceFrame): ASHRAE Thermal Comfort Reference Frame
 - gmeow:referenceFrameUSD (a gmeow:ReferenceFrame): US Dollar Currency Reference Frame
 - gmeow:referenceFrameUnixEpoch (a gmeow:ReferenceFrame): Unix Epoch Timestamp Reference Frame
 - gmeow:referenceFrameVirtualPlatform (a gmeow:ReferenceFrame): Virtual Platform Reference Frame
@@ -1384,6 +1415,13 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:sensitivityPublic (a gmeow:SensitivityLevel): public
 - gmeow:sensitivityRestricted (a gmeow:SensitivityLevel): restricted
 - gmeow:sensitivitySensitivePersonal (a gmeow:SensitivityLevel): sensitive personal
+- gmeow:sensoryModalityAirQuality (a gmeow:SensoryModality): The air-quality/chemical-composition sensory channel.
+- gmeow:sensoryModalityAuditory (a gmeow:SensoryModality): The auditory/sound sensory channel.
+- gmeow:sensoryModalityGustatory (a gmeow:SensoryModality): The gustatory/taste sensory channel.
+- gmeow:sensoryModalityOlfactory (a gmeow:SensoryModality): The olfactory/smell sensory channel.
+- gmeow:sensoryModalityTactile (a gmeow:SensoryModality): The tactile/touch sensory channel.
+- gmeow:sensoryModalityThermal (a gmeow:SensoryModality): The thermal/temperature sensory channel.
+- gmeow:sensoryModalityVisual (a gmeow:SensoryModality): The visual/light sensory channel.
 - gmeow:statusConstructedActive (a gmeow:LanguageStatus): constructed — actively used
 - gmeow:statusDormant (a gmeow:LanguageStatus): dormant
 - gmeow:statusEmerging (a gmeow:LanguageStatus): emerging

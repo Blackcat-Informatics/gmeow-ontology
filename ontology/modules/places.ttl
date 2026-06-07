@@ -436,6 +436,8 @@ gmeow:frameRealmCurrency     a gmeow:FrameRealm ; rdfs:label "currency"@en .
 gmeow:frameRealmTemporal     a gmeow:FrameRealm ; rdfs:label "temporal"@en .
 gmeow:frameRealmColourspace  a gmeow:FrameRealm ; rdfs:label "colourspace"@en .
 gmeow:frameRealmLinguistic   a gmeow:FrameRealm ; rdfs:label "linguistic"@en .
+gmeow:frameRealmPerceptual   a gmeow:FrameRealm ; rdfs:label "perceptual"@en ;
+    skos:definition "A perceptual or subjective domain in which values are expressed relative to a perceiver's sensory or cognitive frame (e.g. thermal comfort, olfactory quality, subjective loudness)."@en .
 
 # Seeds for Frame Kind
 gmeow:frameKindGeodetic      a gmeow:FrameKind ; rdfs:label "geodetic"@en .
@@ -505,6 +507,18 @@ gmeow:axisCyan             a gmeow:Axis ; rdfs:label "cyan channel"@en .
 gmeow:axisMagenta          a gmeow:Axis ; rdfs:label "magenta channel"@en .
 gmeow:axisYellow           a gmeow:Axis ; rdfs:label "yellow channel"@en .
 gmeow:axisKey              a gmeow:Axis ; rdfs:label "key (black) channel"@en .
+
+# Sensory-environment axes (#104)
+gmeow:axisTristimulusX     a gmeow:Axis ; rdfs:label "CIE X tristimulus"@en .
+gmeow:axisTristimulusY     a gmeow:Axis ; rdfs:label "CIE Y tristimulus"@en .
+gmeow:axisTristimulusZ     a gmeow:Axis ; rdfs:label "CIE Z tristimulus"@en .
+gmeow:axisLightness        a gmeow:Axis ; rdfs:label "CIE L* lightness"@en .
+gmeow:axisAstar            a gmeow:Axis ; rdfs:label "CIE a* red-green"@en .
+gmeow:axisBstar            a gmeow:Axis ; rdfs:label "CIE b* blue-yellow"@en .
+gmeow:axisFrequency        a gmeow:Axis ; rdfs:label "frequency"@en .
+gmeow:axisMagnitude        a gmeow:Axis ; rdfs:label "magnitude"@en .
+gmeow:axisPredictedMeanVote a gmeow:Axis ; rdfs:label "predicted mean vote (PMV)"@en .
+gmeow:axisPredictedPercentageDissatisfied a gmeow:Axis ; rdfs:label "predicted percentage dissatisfied (PPD)"@en .
 
 # Default Reference Frames for the seed realms
 gmeow:referenceFrameWGS84

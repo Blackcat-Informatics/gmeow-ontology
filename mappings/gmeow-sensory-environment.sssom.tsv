@@ -1,0 +1,18 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/sensory-environment
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow compile-mappings
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: Sensory environment alignments — SOSA/SSN. Putative (#104).
+# curie_map:
+#   gmeow: https://blackcatinformatics.ca/gmeow/
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+#   sosa: http://www.w3.org/ns/sosa/
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:CoordinateMatrix	skos:closeMatch	sosa:Result	semapv:ManualMappingCuration	0.75	sosa:Result is broader (any result); gmeow:CoordinateMatrix is specifically a multi-dimensional numeric result with frame, unit, and determinacy.
+gmeow:SensoryEnvironment	skos:closeMatch	sosa:FeatureOfInterest	semapv:ManualMappingCuration	0.85	A SensoryEnvironment is the feature of interest that sensory observations are about — the ambient conditions at a location×time.
+gmeow:SensoryObservation	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.95	SOSA does not distinguish observation types; a sensory observation is a kind of sosa:Observation. Already aligned in observations.ttl; repeated here for completeness of the sensory-environment mapping set.
+gmeow:SensoryPerception	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.9	A SensoryPerception is a standpoint-indexed observation; SOSA does not distinguish observation types. The vantage (perceiver) aligns to sosa:madeBySensor.
+gmeow:hasMeasuredCondition	skos:closeMatch	sosa:hasResult	semapv:ManualMappingCuration	0.8	A measured condition is the result of a sensory observation. Directional: GMEOW reifies the environment separately from the observation.
