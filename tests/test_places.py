@@ -998,6 +998,18 @@ def test_trajectory_reference_frame_is_functional() -> None:
     assert (prop, RDF.type, OWL.FunctionalProperty) in graph
 
 
+def test_state_of_is_functional() -> None:
+    graph = _graph()
+    prop = URIRef(GMEOW + "stateOf")
+    assert (prop, RDF.type, OWL.FunctionalProperty) in graph
+
+
+def test_trajectory_of_is_functional() -> None:
+    graph = _graph()
+    prop = URIRef(GMEOW + "trajectoryOf")
+    assert (prop, RDF.type, OWL.FunctionalProperty) in graph
+
+
 def test_no_unsafe_motion_property_chains() -> None:
     """Principle 12: interpolation and coordinate transforms stay in solver."""
     graph = _graph()

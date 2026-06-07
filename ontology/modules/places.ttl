@@ -336,11 +336,11 @@ gmeow:Trajectory
 # =========================================================================== #
 
 gmeow:stateOf
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:LocationState ;
     rdfs:range gmeow:Entity ;
     rdfs:label "state of"@en ;
-    skos:definition "The entity whose location state this is — the moving feature whose presence, pose, and velocity are described by this state."@en ;
+    skos:definition "The entity whose location state this is — the moving feature whose presence, pose, and velocity are described by this state. Functional: a state belongs to exactly one entity."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:stateDuringInterval
@@ -385,11 +385,11 @@ gmeow:stateReferenceFrame
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:trajectoryOf
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Trajectory ;
     rdfs:range gmeow:Entity ;
     rdfs:label "trajectory of"@en ;
-    skos:definition "The entity whose space-time path this trajectory describes."@en ;
+    skos:definition "The entity whose space-time path this trajectory describes. Functional: a trajectory belongs to exactly one entity."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasTrajectorySample
