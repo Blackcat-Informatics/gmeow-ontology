@@ -380,18 +380,34 @@ def test_vcard_geo_projection() -> None:
 
 def test_bot_projection() -> None:
     """Building topology: placeType → BOT class; containsPlace →
-    bot:hasStorey/hasSpace."""
-    g = project_graph("bot", _source())
+    bot:hasStorey/hasSpace/bot:containsZone; adjacentTo → bot:adjacentZone."""
+    src = _source()
+    site = URIRef(LOC + "acmeSite")
+    lobby = URIRef(LOC + "lobby")
+    src.add((site, RDF.type, URIRef(GMEOW + "Place")))
+    src.add((site, URIRef(GMEOW + "placeType"), URIRef(GMEOW + "placeTypeSite")))
+    src.add((site, URIRef(GMEOW + "containsPlace"), URIRef(LOC + "officeBuilding")))
+    src.add((lobby, RDF.type, URIRef(GMEOW + "Place")))
+    src.add((lobby, URIRef(GMEOW + "placeType"), URIRef(GMEOW + "placeTypeRoom")))
+    src.add((URIRef(LOC + "cornerOffice"), URIRef(GMEOW + "adjacentTo"), lobby))
+
+    g = project_graph("bot", src)
     building = URIRef(LOC + "officeBuilding")
     floor = URIRef(LOC + "secondFloor")
     room = URIRef(LOC + "cornerOffice")
     # Class typing.
+    assert (site, RDF.type, URIRef(BOT + "Site")) in g
     assert (building, RDF.type, URIRef(BOT + "Building")) in g
     assert (floor, RDF.type, URIRef(BOT + "Storey")) in g
     assert (room, RDF.type, URIRef(BOT + "Space")) in g
-    # Containment edges.
+    assert (lobby, RDF.type, URIRef(BOT + "Space")) in g
+    # Specific containment edges (existing hasStorey / hasSpace branches).
     assert (building, URIRef(BOT + "hasStorey"), floor) in g
     assert (floor, URIRef(BOT + "hasSpace"), room) in g
+    # Generic containment edge (issue #83: containsPlace → bot:containsZone).
+    assert (site, URIRef(BOT + "containsZone"), building) in g
+    # Adjacency edge (issue #83: adjacentTo → bot:adjacentZone).
+    assert (room, URIRef(BOT + "adjacentZone"), lobby) in g
     _assert_no_gmeow_leakage(g)
 
 

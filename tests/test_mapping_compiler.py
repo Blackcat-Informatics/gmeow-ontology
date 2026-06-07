@@ -110,7 +110,10 @@ def test_dsl_parses() -> None:
     # SensoryObservation→sosa:Observation, SensoryEnvironment→sosa:FeatureOfInterest,
     # CoordinateMatrix→sosa:Result, hasMeasuredCondition→sosa:hasResult,
     # SensoryPerception→sosa:Observation).
-    assert len(dsl.equivalences) == 963
+    # Issue #83 indoor realm (BOT / ifcOWL): +11 (placeType* → bot/ifc x8,
+    # Place→bot:Zone, containsPlace→bot:containsZone,
+    # adjacentTo→bot:adjacentZone).
+    assert len(dsl.equivalences) == 974
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

@@ -4,9 +4,10 @@
 # mapping_tool: gmeow compile-mappings
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard. placeType/storageMedium are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological "within"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream.
+# comment: Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL. placeType/storageMedium are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological "within"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference.
 # curie_map:
 #   bfo: http://purl.obolibrary.org/obo/
+#   bot: https://w3id.org/bot#
 #   brick: https://brickschema.org/schema/Brick#
 #   crm: http://www.cidoc-crm.org/cidoc-crm/
 #   crmgeo: http://www.ics.forth.gr/isl/CRMgeo/
@@ -15,6 +16,7 @@
 #   gmeow: https://blackcatinformatics.ca/gmeow/
 #   gn: http://www.geonames.org/ontology#
 #   gvp: http://vocab.getty.edu/ontology#
+#   ifc: http://www.buildingsmart-tech.org/ifcOWL/IFC4#
 #   lgdo: http://linkedgeodata.org/ontology/
 #   mf: http://www.opengis.net/ont/movingfeatures#
 #   owl: http://www.w3.org/2002/07/owl#
@@ -48,6 +50,7 @@ gmeow:LocationState	skos:closeMatch	sosa:Sample		semapv:ManualMappingCuration	0.
 gmeow:LocationState	skos:closeMatch	sta:HistoricalLocation		semapv:ManualMappingCuration	0.8	HistoricalLocation is time-indexed location of a Thing; LocationState is the state of a moving entity at a time.
 gmeow:Occupancy	skos:closeMatch	brick:Occupancy		semapv:ManualMappingCuration	0.8	Brick Occupancy is a class for the current number of entities in a space; GMEOW Occupancy is a reified Measurement with location, scalar result, and provenance.
 gmeow:Orientation	skos:closeMatch	pos:OrientationMeasure	Orientation Measure	semapv:ManualMappingCuration	0.85	
+gmeow:Place	skos:closeMatch	bot:Zone		semapv:ManualMappingCuration	0.75	BOT Zone is a 3D spatial extent (physical or virtual); GMEOW Place is broader (includes outdoor, non-building geographic places), so the alignment is closeMatch rather than exact.
 gmeow:Place	skos:closeMatch	crmgeo:SP5_Geometric_Place_Expression	Geometric Place Expression	semapv:ManualMappingCuration	0.7	
 gmeow:Place	skos:closeMatch	lgdo:Place		semapv:ManualMappingCuration	0.8	
 gmeow:Place	skos:closeMatch	pleiades:Place		semapv:ManualMappingCuration	0.85	
@@ -67,6 +70,7 @@ gmeow:addressLocality	skos:closeMatch	vcard:locality		semapv:ManualMappingCurati
 gmeow:addressPlace	skos:closeMatch	schema:address		semapv:ManualMappingCuration	0.7	
 gmeow:addressRegion	owl:equivalentProperty	schema:addressRegion		semapv:ManualMappingCuration	1.0	
 gmeow:addressRegion	skos:closeMatch	vcard:region		semapv:ManualMappingCuration	0.9	
+gmeow:adjacentTo	skos:closeMatch	bot:adjacentZone		semapv:ManualMappingCuration	0.85	
 gmeow:asGeoJSON	skos:closeMatch	geo:asGeoJSON		semapv:ManualMappingCuration	0.9	
 gmeow:asWKT	skos:closeMatch	geo:asWKT		semapv:ManualMappingCuration	0.9	
 gmeow:authorityLink	skos:closeMatch	whg:closeMatch		semapv:ManualMappingCuration	0.7	
@@ -76,6 +80,7 @@ gmeow:containedInPlace	skos:closeMatch	geo:sfWithin		semapv:ManualMappingCuratio
 gmeow:containedInPlace	skos:closeMatch	gn:parentFeature		semapv:ManualMappingCuration	0.8	
 gmeow:containedInPlace	skos:closeMatch	lgdo:parentPlace		semapv:ManualMappingCuration	0.7	
 gmeow:containedInPlace	skos:closeMatch	wdt:P131		semapv:ManualMappingCuration	0.8	
+gmeow:containsPlace	skos:closeMatch	bot:containsZone		semapv:ManualMappingCuration	0.85	Direct alignment: both gmeow:containsPlace and bot:containsZone represent parent→child containment.
 gmeow:countryCode	skos:closeMatch	schema:addressCountry		semapv:ManualMappingCuration	0.8	
 gmeow:countryCode	skos:closeMatch	vcard:country-name		semapv:ManualMappingCuration	0.7	
 gmeow:elevation	skos:closeMatch	schema:elevation		semapv:ManualMappingCuration	0.9	
@@ -117,7 +122,9 @@ gmeow:placeSupersedes	skos:closeMatch	wdt:P1365	replaces	semapv:ManualMappingCur
 gmeow:placeType	skos:closeMatch	gvp:placeType		semapv:ManualMappingCuration	0.8	
 gmeow:placeTypeAdministrativeArea	skos:closeMatch	gn:A		semapv:ManualMappingCuration	0.8	
 gmeow:placeTypeAdministrativeArea	skos:closeMatch	schema:AdministrativeArea		semapv:ManualMappingCuration	0.9	
+gmeow:placeTypeBuilding	skos:closeMatch	bot:Building		semapv:ManualMappingCuration	0.85	
 gmeow:placeTypeBuilding	skos:closeMatch	gn:S		semapv:ManualMappingCuration	0.6	
+gmeow:placeTypeBuilding	skos:closeMatch	ifc:IfcBuilding		semapv:ManualMappingCuration	0.8	ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms.
 gmeow:placeTypeBuilding	skos:closeMatch	wd:Q41176		semapv:ManualMappingCuration	0.8	
 gmeow:placeTypeCity	skos:closeMatch	gn:P		semapv:ManualMappingCuration	0.8	
 gmeow:placeTypeCity	skos:closeMatch	schema:City		semapv:ManualMappingCuration	0.9	
@@ -125,8 +132,14 @@ gmeow:placeTypeCity	skos:closeMatch	wd:Q515		semapv:ManualMappingCuration	0.9
 gmeow:placeTypeCountry	skos:closeMatch	gn:A		semapv:ManualMappingCuration	0.7	
 gmeow:placeTypeCountry	skos:closeMatch	schema:Country		semapv:ManualMappingCuration	0.9	
 gmeow:placeTypeCountry	skos:closeMatch	wd:Q6256		semapv:ManualMappingCuration	0.9	
+gmeow:placeTypeFloor	skos:closeMatch	bot:Storey		semapv:ManualMappingCuration	0.85	
+gmeow:placeTypeFloor	skos:closeMatch	ifc:IfcBuildingStorey		semapv:ManualMappingCuration	0.8	ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms.
 gmeow:placeTypeNaturalFeature	skos:closeMatch	gn:T		semapv:ManualMappingCuration	0.6	
+gmeow:placeTypeRoom	skos:closeMatch	bot:Space		semapv:ManualMappingCuration	0.85	
+gmeow:placeTypeRoom	skos:closeMatch	ifc:IfcSpace		semapv:ManualMappingCuration	0.8	ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms.
 gmeow:placeTypeRoom	skos:closeMatch	wd:Q180516		semapv:ManualMappingCuration	0.8	
+gmeow:placeTypeSite	skos:closeMatch	bot:Site		semapv:ManualMappingCuration	0.85	
+gmeow:placeTypeSite	skos:closeMatch	ifc:IfcSite		semapv:ManualMappingCuration	0.8	ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms.
 gmeow:postOfficeBox	skos:closeMatch	schema:postOfficeBoxNumber		semapv:ManualMappingCuration	0.9	
 gmeow:postOfficeBox	skos:closeMatch	vcard:post-office-box		semapv:ManualMappingCuration	0.9	
 gmeow:postalCode	owl:equivalentProperty	schema:postalCode		semapv:ManualMappingCuration	1.0	

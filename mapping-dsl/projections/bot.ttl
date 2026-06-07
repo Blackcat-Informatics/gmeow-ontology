@@ -20,6 +20,7 @@ gmeow:mapBotPlaceType a gmeow:ProjectionMapping ;
         gmeow:profile "bot" ; gmeow:relation "=" ;
         gmeow:transform gmeow:fnPlaceTypeToClass ;
         gmeow:valueClassMap (
+            [ gmeow:whenValue gmeow:placeTypeSite ; gmeow:toClass bot:Site ]
             [ gmeow:whenValue gmeow:placeTypeBuilding ; gmeow:toClass bot:Building ]
             [ gmeow:whenValue gmeow:placeTypeFloor ; gmeow:toClass bot:Storey ]
             [ gmeow:whenValue gmeow:placeTypeRoom ; gmeow:toClass bot:Space ] ) ] .
@@ -73,3 +74,62 @@ gmeow:mapBotHasSpaceDirect a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "bot" ; gmeow:toPredicate bot:hasSpace ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
         gmeow:lossyDrop "direct building→room containment, skipping the intermediate storey; the flat edge loses the intermediate floor information" ] .
+
+# --------------------------------------------------------------------------- #
+# Generic containment → bot:containsZone (issue #83)
+# --------------------------------------------------------------------------- #
+
+gmeow:mapBotContainsZone a gmeow:ProjectionMapping ;
+    rdfs:label "containsPlace → bot:containsZone (indoor topology)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "parent" ; gmeow:value "child" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "parent" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "parent" ; gmeow:predicate gmeow:containsPlace ; gmeow:objectVar "child" ]
+            [ gmeow:subjectVar "parent" ; gmeow:predicate gmeow:placeType ; gmeow:objectVar "pt" ] ) ;
+        gmeow:filter [
+            gmeow:exprOp gmeow:opIn ;
+            gmeow:exprArgs (
+                [ gmeow:exprVar "pt" ]
+                gmeow:placeTypeSite
+                gmeow:placeTypeBuilding
+                gmeow:placeTypeFloor
+                gmeow:placeTypeRoom ) ] ;
+        gmeow:edoalSource gmeow:containsPlace ] ;
+    gmeow:hasBinding [
+        gmeow:profile "bot" ; gmeow:toPredicate bot:containsZone ; gmeow:relation "=" ;
+        gmeow:lossyDrop "only site/building/floor/room containers are projected to BOT; the specific subproperty (hasStorey/hasSpace) is preserved by the dedicated branches above" ] .
+
+# --------------------------------------------------------------------------- #
+# Adjacency → bot:adjacentZone (issue #83)
+# --------------------------------------------------------------------------- #
+
+gmeow:mapBotAdjacentTo a gmeow:ProjectionMapping ;
+    rdfs:label "adjacentTo → bot:adjacentZone (indoor topology)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "x" ; gmeow:value "y" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "x" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "x" ; gmeow:predicate gmeow:adjacentTo ; gmeow:objectVar "y" ]
+            [ gmeow:subjectVar "x" ; gmeow:predicate gmeow:placeType ; gmeow:objectVar "ptx" ]
+            [ gmeow:subjectVar "y" ; gmeow:predicate gmeow:placeType ; gmeow:objectVar "pty" ] ) ;
+        gmeow:filter [
+            gmeow:exprOp gmeow:opIn ;
+            gmeow:exprArgs (
+                [ gmeow:exprVar "ptx" ]
+                gmeow:placeTypeSite
+                gmeow:placeTypeBuilding
+                gmeow:placeTypeFloor
+                gmeow:placeTypeRoom ) ] ;
+        gmeow:filter [
+            gmeow:exprOp gmeow:opIn ;
+            gmeow:exprArgs (
+                [ gmeow:exprVar "pty" ]
+                gmeow:placeTypeSite
+                gmeow:placeTypeBuilding
+                gmeow:placeTypeFloor
+                gmeow:placeTypeRoom ) ] ;
+        gmeow:edoalSource gmeow:adjacentTo ] ;
+    gmeow:hasBinding [
+        gmeow:profile "bot" ; gmeow:toPredicate bot:adjacentZone ; gmeow:relation "=" ;
+        gmeow:lossyDrop "only adjacencies between indoor topology kinds are projected" ] .

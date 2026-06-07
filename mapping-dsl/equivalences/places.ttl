@@ -22,6 +22,8 @@
 @prefix whg: <https://whgazetteer.org/> .
 @prefix mf: <http://www.opengis.net/ont/movingfeatures#> .
 @prefix brick: <https://brickschema.org/schema/Brick#> .
+@prefix bot: <https://w3id.org/bot#> .
+@prefix ifc: <http://www.buildingsmart-tech.org/ifcOWL/IFC4#> .
 @prefix time: <http://www.w3.org/2006/time#> .
 @prefix sta: <http://www.opengis.net/def/ont/sensorthings/1.1/> .
 @prefix sosa: <http://www.w3.org/ns/sosa/> .
@@ -33,7 +35,7 @@ gmeow:mapsetPlaces a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/places" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard. placeType/storageMedium are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream." .
+    gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL. placeType/storageMedium are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference." .
 
 gmeow:eqPlaces001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:VirtualLocation ;
@@ -1007,4 +1009,102 @@ gmeow:eqPlaces111 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:comment "Trajectory as the continuous form of a stream; weaker alignment than Stream→Datastream." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Issue #83 — Indoor realm: BOT / ifcOWL bridging
+# --------------------------------------------------------------------------- #
+
+gmeow:eqPlaces115 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeBuilding ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bot:Building ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces116 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeBuilding ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject ifc:IfcBuilding ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces117 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeFloor ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bot:Storey ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces118 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeFloor ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject ifc:IfcBuildingStorey ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces119 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeRoom ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bot:Space ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces120 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeRoom ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject ifc:IfcSpace ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces121 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeSite ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bot:Site ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces122 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeSite ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject ifc:IfcSite ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces123 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Place ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bot:Zone ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "BOT Zone is a 3D spatial extent (physical or virtual); GMEOW Place is broader (includes outdoor, non-building geographic places), so the alignment is closeMatch rather than exact." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces124 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:containsPlace ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bot:containsZone ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Direct alignment: both gmeow:containsPlace and bot:containsZone represent parent→child containment." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces125 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:adjacentTo ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bot:adjacentZone ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" .

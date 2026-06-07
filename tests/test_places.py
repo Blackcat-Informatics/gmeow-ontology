@@ -74,10 +74,11 @@ def test_place_kind_is_value_not_subclass() -> None:
         "placeTypeCity",
         "placeTypeRoom",
         "placeTypePremises",
+        "placeTypeSite",
     ):
         assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "PlaceType")) in graph
     # The rejected per-kind subclasses must NOT exist as classes.
-    for rejected in ("Country", "City", "Building", "Room"):
+    for rejected in ("Country", "City", "Building", "Room", "Site"):
         assert (URIRef(GMEOW + rejected), RDF.type, OWL.Class) not in graph
 
 

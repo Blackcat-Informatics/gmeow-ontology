@@ -127,6 +127,8 @@ TARGET_SOURCES: dict[str, TargetSource] = {
         "ontolex", "https://www.w3.org/ns/lemon/ontolex.owl", "xml"
     ),
     "lime": TargetSource("lime", "https://www.w3.org/ns/lemon/lime.owl", "xml"),
+    # BOT (Building Topology Ontology) — BSD-3-Clause / CC-BY, property-axiom shape.
+    "bot": TargetSource("bot", "https://w3id.org/bot/bot.ttl", "turtle"),
 }
 
 _USER_AGENT = "gmeow-tools/0.1 (ontology alignment-direction validator)"
