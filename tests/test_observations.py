@@ -178,4 +178,4 @@ def test_agent_aligned_to_sosa_sensor_as_standpoint() -> None:
     assert sosa_matches, (
         "Agent must map to sosa:Sensor (observer/sensor/perceiver as standpoint)"
     )
-    assert sosa_matches[0].predicate_id == "skos:closeMatch"
+    assert sosa_matches[0].predicate_id == "skos:broadMatch"

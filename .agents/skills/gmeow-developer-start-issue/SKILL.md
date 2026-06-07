@@ -66,11 +66,15 @@ cd ".worktrees/${issue_slug}"
 - Branch name should be descriptive and include the issue number.
 - Worktree directory lives under `.worktrees/` in the repo root.
 
-### 3.2 Keep the worktree alive until merge
+### 3.2 Work all the way to the PR
+
+Finish the entire plan, perform any checking required, then commit with a comprehensive commit message and PR.  Do not stop until you have PR'd the branch.
+
+### 3.3 Keep the worktree alive until merge
 
 The worktree and branch **must survive** until the associated pull request is merged into `main`. Do not delete them after the first commit, after opening the PR, or after initial review. They are the isolated workspace for the entire issue lifecycle.
 
-### 3.3 After merge — clean up
+### 3.4 After merge — clean up
 
 Once the PR is merged and `main` is green:
 

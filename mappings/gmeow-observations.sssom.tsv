@@ -13,7 +13,7 @@
 #   skos: http://www.w3.org/2004/02/skos/core#
 #   sosa: http://www.w3.org/ns/sosa/
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
-gmeow:Agent	skos:closeMatch	sosa:Sensor	semapv:ManualMappingCuration	0.75	An agent acting as vantage/observer/perceiver IS a standpoint (Principle 9). sosa:Sensor is device-centric and narrower; the alignment bridges the SOSA sensor concept to the broader GMEOW agent-as-standpoint doctrine.
+gmeow:Agent	skos:broadMatch	sosa:Sensor	semapv:ManualMappingCuration	0.75	An agent acting as vantage/observer/perceiver IS a standpoint (Principle 9). sosa:Sensor is device-centric and narrower; the alignment bridges the SOSA sensor concept to the broader GMEOW agent-as-standpoint doctrine.
 gmeow:Measurement	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.9	A Measurement is a kind of Observation; SOSA does not distinguish them.
 gmeow:Observation	skos:closeMatch	crm:E13_Attribute_Assignment	semapv:ManualMappingCuration	0.9	CIDOC-CRM E13 is the closest CRM class: an activity of assigning an attribute to an item. GMEOW Observation generalises this to any act of observing or asserting, not only attribute assignment.
 gmeow:Observation	skos:closeMatch	prov:Entity	semapv:ManualMappingCuration	0.8	An Observation is a relator (gufo), but as a named individual it is also a prov:Entity that can be attributed, derived, and versioned.

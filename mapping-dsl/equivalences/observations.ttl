@@ -100,7 +100,7 @@ gmeow:eqObs017 a gmeow:TermEquivalence ;
 
 gmeow:eqObs018 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:Agent ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:broadMatch ;
     gmeow:alignObject sosa:Sensor ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
