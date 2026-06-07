@@ -401,6 +401,10 @@ Airspace and maritime overlays often have vertical limits. These are **not** ass
 - `gmeow:hasReferenceFrame` — the reference frame (e.g. WGS-84 for altitude above MSL, a local datum for depth below chart datum).
 
 ```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://example.org/loc/> .
+
 ex:noFlyZone a gmeow:RegulatoryOverlay ;
     gmeow:overlayPlace ex:airportApproach ;
     gmeow:overlayAuthority ex:caa ;

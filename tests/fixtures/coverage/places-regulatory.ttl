@@ -27,6 +27,13 @@ ex:stateA        a gmeow:Organization ; rdfs:label "State A Foreign Ministry"@en
 ex:stateB        a gmeow:Organization ; rdfs:label "State B Foreign Ministry"@en .
 ex:electionBoard a gmeow:Organization ; rdfs:label "Independent Election Board"@en .
 
+# --- RegulatoryOverlayType values (exercising the open value vocabulary) -------- #
+gmeow:overlayTypeZoning              a gmeow:RegulatoryOverlayType ; rdfs:label "zoning"@en .
+gmeow:overlayTypeProtectedArea       a gmeow:RegulatoryOverlayType ; rdfs:label "protected area"@en .
+gmeow:overlayTypeRestrictedAirspace  a gmeow:RegulatoryOverlayType ; rdfs:label "restricted airspace"@en .
+gmeow:overlayTypeSanctions           a gmeow:RegulatoryOverlayType ; rdfs:label "sanctions"@en .
+gmeow:overlayTypeElectoralDistrict   a gmeow:RegulatoryOverlayType ; rdfs:label "electoral district"@en .
+
 # --- Places ------------------------------------------------------------------ #
 ex:residentialZone a gmeow:Place ;
     gmeow:placeType gmeow:placeTypeNeighborhood ;
@@ -100,7 +107,7 @@ ex:noFlyRights a gmeow:RightsStatement ;
     gmeow:hasProhibition ex:proh-fly .
 
 ex:proh-fly a gmeow:Prohibition ;
-    gmeow:ruleAction gmeow:actionNavigate ;
+    gmeow:ruleAction gmeow:actionUse ;
     gmeow:ruleAssignee ex:caa .
 
 # --------------------------------------------------------------------------- #

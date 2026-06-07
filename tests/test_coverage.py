@@ -223,6 +223,7 @@ def test_regulatory_slice_covered() -> None:
     # bounds as ScalarQuantity, and linkage to RightsStatement (#21).
     expected_covered = {
         GMEOW + "RegulatoryOverlay",
+        GMEOW + "RegulatoryOverlayType",
         GMEOW + "overlayPlace",
         GMEOW + "overlayAuthority",
         GMEOW + "overlayType",

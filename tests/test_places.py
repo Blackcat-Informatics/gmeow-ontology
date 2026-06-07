@@ -950,6 +950,46 @@ def test_regulatory_overlay_grounding() -> None:
         RDF.type,
         OWL.Class,
     ) in graph
+    assert (
+        URIRef(GMEOW + "overlayType"),
+        RDFS.range,
+        URIRef(GMEOW + "RegulatoryOverlayType"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayDeterminacy"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "hasDeterminacy"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayDeterminacy"),
+        RDFS.domain,
+        URIRef(GMEOW + "RegulatoryOverlay"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayDeterminacy"),
+        RDFS.range,
+        URIRef(GMEOW + "Determinacy"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayLowerBound"),
+        RDFS.domain,
+        URIRef(GMEOW + "RegulatoryOverlay"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayLowerBound"),
+        RDFS.range,
+        URIRef(GMEOW + "ScalarQuantity"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayUpperBound"),
+        RDFS.domain,
+        URIRef(GMEOW + "RegulatoryOverlay"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayUpperBound"),
+        RDFS.range,
+        URIRef(GMEOW + "ScalarQuantity"),
+    ) in graph
 
 
 def test_contested_regulatory_overlays_coexist() -> None:
