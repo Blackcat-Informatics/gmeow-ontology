@@ -60,3 +60,40 @@ def test_validity_predicates_are_annotation_properties() -> None:
             RDF.type,
             OWL.AnnotationProperty,
         ) in graph
+
+
+def test_instant_subclasses_gufo_abstract_individual() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "Instant"),
+        RDFS.subClassOf,
+        URIRef(GUFO + "AbstractIndividual"),
+    ) in graph
+
+
+def test_time_interval_has_start_and_end_instants() -> None:
+    graph = _graph()
+    for prop in ("hasStartInstant", "hasEndInstant"):
+        node = URIRef(GMEOW + prop)
+        assert (node, RDF.type, OWL.ObjectProperty) in graph
+        assert (node, RDFS.domain, URIRef(GMEOW + "TimeInterval")) in graph
+        assert (node, RDFS.range, URIRef(GMEOW + "Instant")) in graph
+
+
+def test_time_interval_can_have_temporal_frame() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "hasTemporalFrame"),
+        RDF.type,
+        OWL.ObjectProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasTemporalFrame"),
+        RDFS.domain,
+        URIRef(GMEOW + "TimeInterval"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasTemporalFrame"),
+        RDFS.range,
+        URIRef(GMEOW + "TemporalFrame"),
+    ) in graph

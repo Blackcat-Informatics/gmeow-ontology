@@ -1,0 +1,9 @@
+# TQL — Allen interval ordering closure. Every transitively-ordered pair of
+# TimeIntervals, computed with a SPARQL 1.1 property path over gmeow:intervalBefore
+# — no materializing reasoner needed (the path IS the transitive temporal inference).
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?earlier ?later WHERE {
+    ?earlier gmeow:intervalBefore+ ?later .
+}
+ORDER BY ?earlier ?later
