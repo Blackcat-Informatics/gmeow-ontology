@@ -6,6 +6,7 @@
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix geo:     <http://www.opengis.net/ont/geosparql#> .
+@prefix oa:      <http://www.w3.org/ns/oa#> .
 
 # =============================================================================
 # GMEOW mapping DSL — the single authoring source for the alignment layer.
@@ -513,3 +514,16 @@ gmeow:fnParticipantToAttendee a gmeow:ProjectionFunction ;
     dcterms:description "Downcasts the flat gmeow:hasParticipant shortcut to a bare iCalendar ATTENDEE edge: the participant agent is emitted as ical:attendee on the event. Any reified Participation's role, period, confidence and standpoint are dropped — iCal's ATTENDEE carries none of them."@en ;
     gmeow:fnInput gmeow:hasParticipant ;
     gmeow:fnOutput gmeow:projectedAttendee ; gmeow:fnOutputType gmeow:Agent .
+
+gmeow:fnTagToKeyword a gmeow:ProjectionFunction ;
+    rdfs:label "tag label → schema:keywords text"@en ;
+    dcterms:description "Extracts the rdfs:label of a gmeow:Tag pointed at by gmeow:hasTag for emission as schema:keywords. Suppresses tags whose gmeow:displayable is false (the same suppression contract as deadnames). Lossy: the tag IRI is lost; only the surface label survives."@en ;
+    gmeow:fnInput gmeow:hasTag ;
+    gmeow:fnOutput gmeow:projectedTagKeyword ; gmeow:fnOutputType xsd:string .
+
+gmeow:fnTaggingToAnnotation a gmeow:ProjectionFunction ;
+    rdfs:label "reshape Tagging relator → oa:Annotation"@en ;
+    dcterms:description "Reshapes a reified gmeow:Tagging relator into a W3C Web Annotation (oa:Annotation): the tagged entity becomes oa:hasTarget, the tag becomes oa:hasBody, and oa:motivatedBy is set to oa:tagging. The tagger (gmeow:taggingTagger / gmeow:wasAttributedTo) and temporal scope (gmeow:taggingInterval) are lossy-dropped in the structural projection; a consumer that needs them should use the canonical GMEOW model directly."@en ;
+    gmeow:fnInput gmeow:taggingTagged , gmeow:taggingTag ;
+    gmeow:fnInputOptional gmeow:taggingTagger , gmeow:wasAttributedTo , gmeow:taggingInterval ;
+    gmeow:fnOutput gmeow:projectedAnnotation ; gmeow:fnOutputType oa:Annotation .

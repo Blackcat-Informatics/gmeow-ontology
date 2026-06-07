@@ -168,6 +168,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:StorageLocation (⊑ gmeow:Location): A locus where digital objects reside — a cloud-storage folder, an object-store bucket, a filesystem path, a content-addressed store, or a physical disk. Its medium is a value (gmeow:storageMedium); a physical device may sit at a geographic gmeow:physicalPlace.
 - gmeow:StorageMedium (⊑ gufo:QualityValue): The kind of medium a storage location uses (cloud service, local filesystem, object store, content-addressed store, physical disk, removable media). A value, not a StorageLocation subclass: the kinds share the same structure (path, service, holder, physical place).
 - gmeow:Summary (⊑ gmeow:InformationObject): A condensed account derived from a source information object (often machine-generated), linked to its source by gmeow:wasDerivedFrom.
+- gmeow:Tag (⊑ gmeow:InformationObject): An open, user-minted tag — an information object whose identity is its IRI and whose surface form is carried by rdfs:label. Synonyms are multiple labels; homonyms are different IRIs. Coreference is done in data, never by collapsing into one. A tag is NOT a type (it carries no inferential weight over rdf:type) and NOT a property bag — no datatype value property is asserted on it. Part of the universal tagging building block that keeps folksonomy, aboutness and typing as three orthogonal axes.
+- gmeow:TagScheme (⊑ gmeow:InformationObject): A namespaced set of tags — a project vocabulary, a personal tag bucket, or a controlled vocabulary. Multi-tenant: many schemes coexist, and a tag may belong to zero or more schemes (gmeow:tagInScheme). The counterpart of skos:ConceptScheme and schema:DefinedTermSet.
+- gmeow:Tagging (⊑ gufo:Relator): A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a tagger, and optionally a scheme and time interval. Bears provenance (gmeow:wasAttributedTo), confidence (gmeow:confidence), and suppression (gmeow:displayable false for retraction without deletion — Principle 10). Structurally the NameUsage/IdentityFacet idiom wearing a different hat, inheriting time-scoping, confidence-weighting, and retract-without-delete for free. The canonical form when the act of tagging must itself be a node; the flat shortcut is gmeow:hasTag.
 - gmeow:TelephoneNumber (⊑ gmeow:ContactPoint): A contact point reachable by telephone.
 - gmeow:TemporalFrame (⊑ gmeow:ReferenceFrame, gufo:Object): A reference system for expressing time — the temporal counterpart of gmeow:ReferenceFrame. Decomposed into a TimeScale, an optional CalendarSystem, and an optional ReferencePosition. Every crisp instant or interval is asserted relative to a TemporalFrame (Principle 11).
 - gmeow:TemporalMeasurement (⊑ gmeow:Entity, gufo:Object): A measured assignment of a date or age to an entity or sample, carrying the method, uncertainty, and determinacy (Principle 9 — the measurement is a standpoint-indexed claim, not ground truth).
@@ -215,6 +218,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:bcc [gmeow:EmailMessage → gmeow:EmailAddress]: A blind-carbon-copy recipient address of a message (RFC 5322 Bcc).
 - gmeow:bcp47Tag [gmeow:Language → xsd:language]: An OPTIONAL external BCP-47 language tag used only when projecting GMEOW's internal private-use literals into vocabularies that require standard language-tag literals. Non-functional because a language may expose several valid BCP-47 tags across script, region, or variant contexts; broad registry alignments such as ISO 639-3 codes and Glottocodes remain gmeow:languageCode values.
 - gmeow:before [gmeow:Event → gmeow:Event]: Allen BEFORE: this event ends strictly before the related event begins (a gap between them). Transitive. Inverse of gmeow:after. (= time:intervalBefore over the events' extents; TimeML TLINK relType BEFORE; TEO before.)
+- gmeow:broaderTag [gmeow:Tag → gmeow:Tag]: A broader, more general tag. Transitive. Optional: folksonomy stays flat-first.
 - gmeow:cc [gmeow:EmailMessage → gmeow:EmailAddress]: A carbon-copy recipient address of a message (RFC 5322 Cc).
 - gmeow:certificationLevel [gmeow:Certification → rdfs:Literal] (functional): How carefully the binding was verified (OpenPGP certification level): generic, persona, casual, or positive.
 - gmeow:certifiedIdentity [gmeow:Certification → gmeow:Agent] (functional): The agent identity a certification binds the key to.
@@ -347,6 +351,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasSpouse [gmeow:Person → gmeow:Person]: Relates a person to a spouse; symmetric.
 - gmeow:hasStartInstant [gmeow:TimeInterval → gmeow:Instant] (functional): The start instant of a time interval.
 - gmeow:hasSubEvent [gmeow:Event → gmeow:Event]: Relates an event to a constituent sub-event; the transitive inverse of gmeow:subEventOf.
+- gmeow:hasTag [gmeow:Entity → gmeow:Tag]: Relates an entity to a user-minted tag — the 80% flat shortcut. Non-functional: an entity may carry many co-equal tags. Period, confidence, tagger and suppression are carried via RDF-star statement annotations (gmeow:validFrom, gmeow:validUntil, gmeow:confidence, gmeow:displayable) on the shortcut; promote to a gmeow:Tagging relator when the act itself must be a node.
 - gmeow:hasTemporalFrame [gmeow:TimeInterval → gmeow:TemporalFrame]: Relates a time interval to the temporal frame in which its bounds are expressed.
 - gmeow:hasTemporalMeasurement [? → gmeow:TemporalMeasurement]: Relates an entity (event, artifact, place, sample) to a temporal measurement assigned to it.
 - gmeow:hasTrademark [gmeow:Entity → gmeow:Trademark]: Relates an entity (a mark, product or organization) to a trademark right over it.
@@ -384,6 +389,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:intervalStarts [gmeow:TimeInterval → gmeow:TimeInterval]: Allen STARTS: this interval and the related interval begin together, and this one ends first. NOT transitive. Inverse of gmeow:intervalStartedBy. (= time:intervalStarts)
 - gmeow:introducerAmount [gmeow:TrustAssertion → xsd:integer] (functional): The trust-signature amount/weight the trustor assigns to the trustee as an introducer.
 - gmeow:introducerDepth [gmeow:TrustAssertion → xsd:integer] (functional): The trust-signature depth: how many levels of indirect introducers the trustor is willing to follow (a trust-signature notion, not computed here).
+- gmeow:isAbout [gmeow:Entity → gmeow:Entity]: Aboutness — a resource is about another resource. Distinct from typing (rdf:type) and from tagging (gmeow:hasTag): aboutness is a semantic subject-matter relation, tagging is a user-applied label, and typing is an ontological classification. Non-functional.
 - gmeow:isAccessibleForFree [gmeow:Entity → xsd:boolean]: Whether the asset is accessible without payment (schema:isAccessibleForFree).
 - gmeow:isOsiApproved [gmeow:License → xsd:boolean]: Whether the licence is approved by the Open Source Initiative (spdx:isOsiApproved).
 - gmeow:keyAlgorithm [gmeow:CryptographicKey → rdfs:Literal]: The key's algorithm (e.g. rsa, ed25519, secp256k1). Not functional (source-variable).
@@ -431,6 +437,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:namePartType [gmeow:NamePart → gmeow:NamePartType] (functional): The kind of a name part (a gmeow:NamePartType value). Functional: a single part has one kind — a part that is both a surname and a patronymic is modelled as two parts.
 - gmeow:namePurpose [gmeow:Appellation → gmeow:NamePurpose]: The intrinsic kind/purpose(s) of an appellation (legal, birth, chosen, professional, deadname, …) — a gmeow:NamePurpose value. Non-functional: a name may be both legal and chosen.
 - gmeow:nameScript [gmeow:Appellation → rdfs:Literal]: The ISO 15924 script code of an appellation (e.g. "Hani", "Arab", "Latn"). Available explicitly for indexing alongside a BCP-47 script subtag on the literal.
+- gmeow:narrowerTag [gmeow:Tag → gmeow:Tag]: A narrower, more specific tag. Inverse of gmeow:broaderTag. Optional.
 - gmeow:nativeLanguage [gmeow:Agent → gmeow:Language]: Relates an agent to a native (mother-tongue / first) language — a specialization of gmeow:knowsLanguage. Non-functional: a person may have several native languages.
 - gmeow:nip05 [gmeow:OnlineAccount → rdfs:Literal]: A Nostr NIP-05 identifier (user@domain) verifying a Nostr account against a domain.
 - gmeow:nostrPubkey [gmeow:OnlineAccount → rdfs:Literal]: The Nostr public key (npub / hex) identifying a decentralized-identity account.
@@ -490,6 +497,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:recurrenceRuleText [gmeow:RecurrenceRule → xsd:string] (functional): The recurrence rule as an RFC 5545 RRULE string (e.g. FREQ=WEEKLY;BYDAY=MO). Projected directly to iCalendar RRULE; a SET-typed TIMEX3 in ISO-TimeML.
 - gmeow:references [gmeow:Message → gmeow:Message]: Relates a message to an earlier message in its reference chain (RFC 5322 References).
 - gmeow:registrationNumber [gmeow:Trademark → rdfs:Literal] (functional): The registry registration number of a trademark (e.g. a CIPO / USPTO / WIPO number).
+- gmeow:relatedTag [gmeow:Tag → gmeow:Tag]: A tag related to this tag by an associative link. Symmetric. Optional.
 - gmeow:relationshipChild [gmeow:ParentChildRelationship → gmeow:Person] (functional): The child in a reified parent-child relationship.
 - gmeow:relationshipInterval [gmeow:InterpersonalRelationship → gmeow:TimeInterval]: The time interval over which an interpersonal relationship held. (A relator carries its period this way rather than via duringInterval, which is reserved for gufo:Situation-based time-scoped relations.)
 - gmeow:relationshipParent [gmeow:ParentChildRelationship → gmeow:Person] (functional): The parent in a reified parent-child relationship.
@@ -547,6 +555,12 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:subOrganizationOf [gmeow:Organization → gmeow:Organization]: Relates an organization to a larger organization it is part of — a department or division within a company, a team within a department. Transitive (a team is part of the company through its division). A specialization of the universal gmeow:partOf spine. A department is thus a first-class gmeow:Organization, and a gmeow:Membership may target it directly. The 'department' field is the sub-organization a person's membership is in.
 - gmeow:subject [gmeow:Message → rdfs:Literal]: The subject line of a message (RFC 5322 Subject).
 - gmeow:supersedes [gmeow:Entity → gmeow:Entity]: Relates a newer entity, version, record, or claim-bearing artifact to a prior one it supersedes. Non-functional: one successor may consolidate several predecessors. Superseded entities remain first-class and usable; suppression from display is handled separately with gmeow:displayable false when appropriate.
+- gmeow:tagInScheme [gmeow:Tag → gmeow:TagScheme]: Relates a tag to a scheme it belongs to. Non-functional: a tag may reside in many schemes (cross-listing).
+- gmeow:taggingInterval [gmeow:Tagging → gmeow:TimeInterval]: The time interval over which the tagging act holds. A relator carries its period this way (matching gmeow:usageInterval, gmeow:relationshipInterval) rather than via RDF-star annotations on the relator node.
+- gmeow:taggingScheme [gmeow:Tagging → gmeow:TagScheme] (functional): The tag scheme within which the tagging act is performed. Functional per relator: one scheme per Tagging (the tag itself may belong to multiple schemes).
+- gmeow:taggingTag [gmeow:Tagging → gmeow:Tag] (functional): The tag applied in a tagging act. Functional per relator: one tag per Tagging.
+- gmeow:taggingTagged [gmeow:Tagging → gmeow:Entity] (functional): The entity that is tagged in a tagging act. Functional per relator: one tagged entity per Tagging.
+- gmeow:taggingTagger [gmeow:Tagging → gmeow:Agent]: The agent who performed the tagging act. Non-functional: a tag may be co-asserted by multiple agents (e.g. a collaborative curation effort).
 - gmeow:telephone [gmeow:Agent → rdfs:Literal]: A telephone number at which an agent can be reached.
 - gmeow:temporalPrecision [gmeow:Event → gmeow:TemporalPrecision]: The granularity to which an event's time is known — a gmeow:TemporalPrecision value (day / month / year / decade / circa). Makes the determinacy of a date explicit instead of pretending every date is to-the-day.
 - gmeow:tenurePosition [gmeow:StandpointTenure → ?]: The standpoint-indexed claim the tenure says the standpoint held over its interval — a reified statement (a gmeow:StatementMetadata cell in the statement DSL). The range is intentionally left open: the statement-DSL spec layer is not part of the reasoned import closure, so asserting it as rdfs:range would dangle in the merged graph.
@@ -1134,6 +1148,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:storageMediumObjectStore (a gmeow:StorageMedium): object store
 - gmeow:storageMediumPhysicalDisk (a gmeow:StorageMedium): physical disk
 - gmeow:storageMediumRemovableMedia (a gmeow:StorageMedium): removable media
+- gmeow:tagReview (a gmeow:Tag): review
+- gmeow:tagTodo (a gmeow:Tag): todo
+- gmeow:tagUrgent (a gmeow:Tag): urgent
 - gmeow:temporalFrameTAI (a gmeow:TemporalFrame): TAI (atomic, no calendar)
 - gmeow:temporalFrameTDBGregorian (a gmeow:TemporalFrame): TDB Gregorian (barycentric)
 - gmeow:temporalFrameTTGregorian (a gmeow:TemporalFrame): TT Gregorian (dynamical)

@@ -41,6 +41,7 @@ PROFILES: dict[str, Profile] = {
     "dcterms": Profile("dcterms", ("dcterms",)),
     "spdx": Profile("spdx", ("spdx",)),
     "ontolex": Profile("ontolex", ("ontolex", "lime", "rdf")),
+    "web-annotation": Profile("web-annotation", ("oa",)),
 }
 
 #: Worked-example inputs (locations + naming + languages + identity + contacts +
@@ -56,6 +57,7 @@ _EXAMPLE_FIXTURES = (
     "contact-fields.ttl",
     "events.ttl",
     "rights.ttl",
+    "tags.ttl",
 )
 
 

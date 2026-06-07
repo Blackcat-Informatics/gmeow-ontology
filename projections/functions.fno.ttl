@@ -3,6 +3,7 @@
 @prefix fnom: <https://w3id.org/function/vocabulary/mapping#> .
 @prefix geo: <http://www.opengis.net/ont/geosparql#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix oa: <http://www.w3.org/ns/oa#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -118,6 +119,29 @@ gmeow:fnSubOrgToDepartment a fno:Function ;
     fno:expects ( gmeow:paramSubOrganizationOf ) ;
     fno:returns ( gmeow:outSubOrgToDepartment ) .
 
+gmeow:fnTagToKeyword a fno:Function ;
+    rdfs:label "tag label → schema:keywords text"@en ;
+    dcterms:description "Extracts the rdfs:label of a gmeow:Tag pointed at by gmeow:hasTag for emission as schema:keywords. Suppresses tags whose gmeow:displayable is false (the same suppression contract as deadnames). Lossy: the tag IRI is lost; only the surface label survives."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    fno:expects ( gmeow:paramHasTag ) ;
+    fno:returns ( gmeow:outTagToKeyword ) .
+
+gmeow:fnTaggingToAnnotation a fno:Function ;
+    rdfs:label "reshape Tagging relator → oa:Annotation"@en ;
+    dcterms:description "Reshapes a reified gmeow:Tagging relator into a W3C Web Annotation (oa:Annotation): the tagged entity becomes oa:hasTarget, the tag becomes oa:hasBody, and oa:motivatedBy is set to oa:tagging. The tagger (gmeow:taggingTagger / gmeow:wasAttributedTo) and temporal scope (gmeow:taggingInterval) are lossy-dropped in the structural projection; a consumer that needs them should use the canonical GMEOW model directly."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/web-annotation.rq> ;
+    fno:expects ( gmeow:paramTaggingTagged gmeow:paramTaggingTag gmeow:paramTaggingTagger gmeow:paramWasAttributedTo gmeow:paramTaggingInterval ) ;
+    fno:returns ( gmeow:outTaggingToAnnotation ) .
+
+gmeow:implWebAnnotation a fno:Implementation ;
+    dcterms:format "application/sparql-query" ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/web-annotation.rq> .
+
+gmeow:paramTaggingInterval a fno:Parameter ;
+    fno:predicate gmeow:taggingInterval ;
+    fno:required false ;
+    fno:type gmeow:TimeInterval .
+
 gmeow:fnBirthEventToDate a fno:Function ;
     rdfs:label "Birth life-event → schema:birthDate"@en ;
     dcterms:description "Extracts a person's birth date by traversing the reified event model: an event with gmeow:eventType gmeow:eventTypeBirth, whose principal Participation (gmeow:participationRole gmeow:roleParticipantPrincipal, gmeow:participationParticipant ?person) and gmeow:eventTime yield ?person schema:birthDate. GMEOW models birth as an event (with place, sources, confidence, participant roles); this downcasts the event's instant to the flat schema:birthDate / vCard BDAY field."@en ;
@@ -198,6 +222,14 @@ gmeow:outSubOrgToDepartment a fno:Output ;
     fno:predicate gmeow:projectedDepartment ;
     fno:type gmeow:Organization .
 
+gmeow:outTagToKeyword a fno:Output ;
+    fno:predicate gmeow:projectedTagKeyword ;
+    fno:type xsd:string .
+
+gmeow:outTaggingToAnnotation a fno:Output ;
+    fno:predicate gmeow:projectedAnnotation ;
+    fno:type oa:Annotation .
+
 gmeow:paramAddressLocality a fno:Parameter ;
     fno:predicate gmeow:addressLocality ;
     fno:required false ;
@@ -237,6 +269,11 @@ gmeow:paramHasParticipant a fno:Parameter ;
     fno:predicate gmeow:hasParticipant ;
     fno:required true ;
     fno:type gmeow:Agent .
+
+gmeow:paramHasTag a fno:Parameter ;
+    fno:predicate gmeow:hasTag ;
+    fno:required true ;
+    fno:type gmeow:Tag .
 
 gmeow:paramHonorific a fno:Parameter ;
     fno:predicate gmeow:honorific ;
@@ -302,6 +339,26 @@ gmeow:paramSubOrganizationOf a fno:Parameter ;
     fno:predicate gmeow:subOrganizationOf ;
     fno:required true ;
     fno:type gmeow:Organization .
+
+gmeow:paramTaggingTag a fno:Parameter ;
+    fno:predicate gmeow:taggingTag ;
+    fno:required true ;
+    fno:type gmeow:Tag .
+
+gmeow:paramTaggingTagged a fno:Parameter ;
+    fno:predicate gmeow:taggingTagged ;
+    fno:required true ;
+    fno:type gmeow:Entity .
+
+gmeow:paramTaggingTagger a fno:Parameter ;
+    fno:predicate gmeow:taggingTagger ;
+    fno:required false ;
+    fno:type gmeow:Agent .
+
+gmeow:paramWasAttributedTo a fno:Parameter ;
+    fno:predicate gmeow:wasAttributedTo ;
+    fno:required false ;
+    fno:type gmeow:Agent .
 
 gmeow:fnNicknameName a fno:Function ;
     rdfs:label "nickname-purpose PersonName → foaf:nick"@en ;
@@ -882,6 +939,44 @@ gmeow:implSchemaOrg a fno:Implementation ;
             rdfs:label "fnSubOrgToDepartment output ↦ ?dept"@en ;
             fnom:functionOutput gmeow:outSubOrgToDepartment ;
             fnom:implementationProperty "dept" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "fnTagToKeyword → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnTagToKeyword ;
+    fno:implementation gmeow:implSchemaOrg ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramHasTag ↦ ?tag"@en ;
+            fnom:functionParameter gmeow:paramHasTag ;
+            fnom:implementationProperty "tag" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnTagToKeyword output ↦ ?kw"@en ;
+            fnom:functionOutput gmeow:outTagToKeyword ;
+            fnom:implementationProperty "kw" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "fnTaggingToAnnotation → web-annotation (FnO mapping)"@en ;
+    fno:function gmeow:fnTaggingToAnnotation ;
+    fno:implementation gmeow:implWebAnnotation ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramTaggingTag ↦ ?tag"@en ;
+            fnom:functionParameter gmeow:paramTaggingTag ;
+            fnom:implementationProperty "tag" ],
+        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramTaggingTagged ↦ ?tagged"@en ;
+            fnom:functionParameter gmeow:paramTaggingTagged ;
+            fnom:implementationProperty "tagged" ],
+        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramTaggingTagger ↦ ?tagger"@en ;
+            fnom:functionParameter gmeow:paramTaggingTagger ;
+            fnom:implementationProperty "tagger" ],
+        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramWasAttributedTo ↦ ?attributed"@en ;
+            fnom:functionParameter gmeow:paramWasAttributedTo ;
+            fnom:implementationProperty "attributed" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnTaggingToAnnotation output ↦ ?tagging"@en ;
+            fnom:functionOutput gmeow:outTaggingToAnnotation ;
+            fnom:implementationProperty "tagging" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnWebPageToUrl → foaf (FnO mapping)"@en ;

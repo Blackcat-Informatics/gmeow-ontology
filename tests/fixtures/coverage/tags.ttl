@@ -1,0 +1,66 @@
+# Synthetic coverage fixture for the tags building block. Exercises every term:
+# flat hasTag shortcut; reified Tagging relator with provenance, confidence,
+# temporal scope and suppression; tag hierarchy (broaderTag/narrowerTag/relatedTag);
+# multi-tenancy via tagInScheme; the aboutness axis (isAbout); and the trichotomy
+# of typing / aboutness / tagging as three disjoint axes.
+# No RDF-star (the coverage parser can't read << >>); temporality/provenance use
+# the reified path (Tagging + TimeInterval, wasAttributedTo).
+
+@prefix ex:     <https://example.org/tags/> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Tag schemes (multi-tenancy) ------------------------------------------- #
+
+ex:projectScheme a gmeow:TagScheme ; rdfs:label "Project Tags"@en .
+ex:personalScheme a gmeow:TagScheme ; rdfs:label "Personal Tags"@en .
+
+# --- Tag individuals (open value vocabulary) ------------------------------- #
+
+ex:tagUrgent a gmeow:Tag ; rdfs:label "urgent"@en ; gmeow:tagInScheme ex:projectScheme .
+ex:tagTodo a gmeow:Tag ; rdfs:label "todo"@en ; gmeow:tagInScheme ex:projectScheme .
+ex:tagReview a gmeow:Tag ; rdfs:label "review"@en ; gmeow:tagInScheme ex:projectScheme .
+ex:tagML a gmeow:Tag ; rdfs:label "machine learning"@en ; gmeow:tagInScheme ex:personalScheme .
+ex:tagAI a gmeow:Tag ; rdfs:label "artificial intelligence"@en ; gmeow:broaderTag ex:tagML ; gmeow:tagInScheme ex:personalScheme .
+
+# Tag hierarchy: AI is narrower than ML; todo and review are related.
+ex:tagTodo gmeow:relatedTag ex:tagReview .
+ex:tagReview gmeow:relatedTag ex:tagTodo .
+
+# --- Flat hasTag shortcut -------------------------------------------------- #
+
+ex:docA a gmeow:Document ;
+    gmeow:hasTag ex:tagUrgent , ex:tagTodo .
+
+# --- Aboutness axis (distinct from tagging) -------------------------------- #
+
+ex:docA gmeow:isAbout ex:topicML .
+ex:topicML a gmeow:Entity ; rdfs:label "Machine Learning"@en .
+
+# --- Reified Tagging with provenance, confidence, temporal scope ----------- #
+
+ex:taggingDocA a gmeow:Tagging ;
+    gmeow:taggingTagged ex:docA ;
+    gmeow:taggingTag ex:tagReview ;
+    gmeow:taggingTagger ex:alice ;
+    gmeow:taggingScheme ex:projectScheme ;
+    gmeow:taggingInterval ex:taggingIntervalActive ;
+    gmeow:wasAttributedTo ex:alice ;
+    gmeow:displayable true .
+
+ex:alice a gmeow:Person .
+
+ex:taggingIntervalActive a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2024-01-15T09:00:00Z"^^xsd:dateTime .
+
+# --- Superseded / retracted Tagging (suppressed, not deleted) -------------- #
+
+ex:taggingDocAOld a gmeow:Tagging ;
+    gmeow:taggingTagged ex:docA ;
+    gmeow:taggingTag ex:tagUrgent ;
+    gmeow:taggingTagger ex:bob ;
+    gmeow:taggingScheme ex:projectScheme ;
+    gmeow:displayable false .
+
+ex:bob a gmeow:Person .
