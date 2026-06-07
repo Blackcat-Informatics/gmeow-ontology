@@ -38,7 +38,7 @@ WHERE {
         BIND ( CONCAT(COALESCE(?street, ""), ", ", COALESCE(?locality, ""), " ", COALESCE(?region, ""), " ", COALESCE(?pcode, ""), " ", COALESCE(?ccode, "")) AS ?label )
     }
     UNION {
-        ?ent gmeow:hasAppellation|gmeow:hasName ?app .
+        ?ent gmeow:hasAppellation|gmeow:hasName|gmeow:hasOrganizationName|gmeow:hasTitle|gmeow:hasAgreementName|gmeow:hasSoftwareName ?app .
         ?app gmeow:fullName ?dispName .
         FILTER NOT EXISTS { ?app gmeow:displayable false . }
         OPTIONAL {
@@ -51,7 +51,7 @@ WHERE {
         BIND ( IF(BOUND(?_extTag), STRLANG(STR(?dispName), IF(BOUND(?_sc), CONCAT(STR(?_extTag), '-', ?_sc), STR(?_extTag))), ?dispName) AS ?_final_dispName )
     }
     UNION {
-        ?ent gmeow:hasAppellation|gmeow:hasName ?app .
+        ?ent gmeow:hasAppellation|gmeow:hasName|gmeow:hasOrganizationName|gmeow:hasTitle|gmeow:hasAgreementName|gmeow:hasSoftwareName ?app .
         ?app gmeow:hasNamePart ?np .
         ?np gmeow:namePartType gmeow:namePartGiven .
         ?np gmeow:partText ?given .
@@ -67,7 +67,7 @@ WHERE {
         BIND ( IF(BOUND(?_extTag), STRLANG(STR(?given), IF(BOUND(?_sc), CONCAT(STR(?_extTag), '-', ?_sc), STR(?_extTag))), ?given) AS ?_final_given )
     }
     UNION {
-        ?ent gmeow:hasAppellation|gmeow:hasName ?app .
+        ?ent gmeow:hasAppellation|gmeow:hasName|gmeow:hasOrganizationName|gmeow:hasTitle|gmeow:hasAgreementName|gmeow:hasSoftwareName ?app .
         ?app gmeow:hasNamePart ?np .
         ?np gmeow:namePartType gmeow:namePartSurname .
         ?np gmeow:partText ?family .

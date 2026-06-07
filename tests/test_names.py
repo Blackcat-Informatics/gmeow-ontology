@@ -34,7 +34,15 @@ def test_appellation_umbrella_and_structural_subclasses() -> None:
         RDFS.subClassOf,
         URIRef(GMEOW + "InformationObject"),
     ) in graph
-    for sub in ("PersonName", "Filename", "PlaceName", "OrganizationName"):
+    for sub in (
+        "PersonName",
+        "Filename",
+        "PlaceName",
+        "OrganizationName",
+        "CreativeWorkTitle",
+        "AgreementName",
+        "SoftwareName",
+    ):
         assert (
             URIRef(GMEOW + sub),
             RDFS.subClassOf,
@@ -429,6 +437,60 @@ def test_audience_and_standpoint_are_distinct() -> None:
     assert (audience, RDFS.subPropertyOf, according_to) not in g
     assert (according_to, RDFS.subPropertyOf, audience) not in g
     assert (audience, OWL.equivalentProperty, according_to) not in g
+
+
+def test_has_organization_name_subproperty_of_hasappellation() -> None:
+    """hasOrganizationName is the organization-scoped specialization of hasAppellation
+    (issue #97), mirroring hasName for persons and hasPlaceName for places."""
+    graph = _graph()
+    hon = URIRef(GMEOW + "hasOrganizationName")
+    assert (hon, RDF.type, OWL.ObjectProperty) in graph
+    assert (hon, RDFS.subPropertyOf, URIRef(GMEOW + "hasAppellation")) in graph
+    assert (hon, RDFS.domain, URIRef(GMEOW + "Organization")) in graph
+    assert (hon, RDFS.range, URIRef(GMEOW + "OrganizationName")) in graph
+
+
+def test_has_title_subproperty_of_hasappellation() -> None:
+    """hasTitle is the creative-work-scoped specialization of hasAppellation
+    (issue #97), giving CreativeWork multilingual Appellation-based titles."""
+    graph = _graph()
+    ht = URIRef(GMEOW + "hasTitle")
+    assert (ht, RDF.type, OWL.ObjectProperty) in graph
+    assert (ht, RDFS.subPropertyOf, URIRef(GMEOW + "hasAppellation")) in graph
+    assert (ht, RDFS.domain, URIRef(GMEOW + "CreativeWork")) in graph
+    assert (ht, RDFS.range, URIRef(GMEOW + "CreativeWorkTitle")) in graph
+
+
+def test_has_agreement_name_subproperty_of_hasappellation() -> None:
+    """hasAgreementName is the agreement-scoped specialization of hasAppellation
+    (issue #97)."""
+    graph = _graph()
+    han = URIRef(GMEOW + "hasAgreementName")
+    assert (han, RDF.type, OWL.ObjectProperty) in graph
+    assert (han, RDFS.subPropertyOf, URIRef(GMEOW + "hasAppellation")) in graph
+    assert (han, RDFS.domain, URIRef(GMEOW + "Agreement")) in graph
+    assert (han, RDFS.range, URIRef(GMEOW + "AgreementName")) in graph
+
+
+def test_has_software_name_subproperty_of_hasappellation() -> None:
+    """hasSoftwareName is the software-project-scoped specialization of hasAppellation
+    (issue #97)."""
+    graph = _graph()
+    hsn = URIRef(GMEOW + "hasSoftwareName")
+    assert (hsn, RDF.type, OWL.ObjectProperty) in graph
+    assert (hsn, RDFS.subPropertyOf, URIRef(GMEOW + "hasAppellation")) in graph
+    assert (hsn, RDFS.domain, URIRef(GMEOW + "SoftwareProject")) in graph
+    assert (hsn, RDFS.range, URIRef(GMEOW + "SoftwareName")) in graph
+
+
+def test_name_language_is_functional_on_appellation() -> None:
+    """nameLanguage is functional on the Appellation superclass, so it is inherited
+    by all subclasses including the new ones (issue #97)."""
+    graph = _graph()
+    nl = URIRef(GMEOW + "nameLanguage")
+    assert (nl, RDF.type, OWL.ObjectProperty) in graph
+    assert (nl, RDF.type, OWL.FunctionalProperty) in graph
+    assert (nl, RDFS.domain, URIRef(GMEOW + "Appellation")) in graph
 
 
 def test_no_preferred_or_primary_name_term_extended() -> None:

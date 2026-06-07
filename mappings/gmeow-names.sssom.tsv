@@ -22,20 +22,31 @@
 #   wd: http://www.wikidata.org/entity/
 #   wdt: http://www.wikidata.org/prop/direct/
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:AgreementName	skos:broadMatch	schema:name	semapv:ManualMappingCuration	0.6	schema:name — broad: an AgreementName is a kind of name borne by an agreement
 gmeow:Appellation	rdfs:subClassOf	ontolex:LexicalEntry	semapv:ManualMappingCuration	0.9	GMEOW Appellation subclasses OntoLex LexicalEntry
+gmeow:CreativeWorkTitle	skos:broadMatch	schema:name	semapv:ManualMappingCuration	0.6	schema:name — broad: a CreativeWorkTitle is a kind of name borne by a creative work
 gmeow:PersonName	skos:closeMatch	gx:Name	semapv:ManualMappingCuration	0.8	
 gmeow:PlaceName	skos:closeMatch	crm:E48_Place_Name	semapv:ManualMappingCuration	0.85	CIDOC-CRM E48 Place Name — the appellation borne by a place (CRM's E53 Place)
 gmeow:PronounSet	skos:broadMatch	wd:Q36224	semapv:ManualMappingCuration	0.5	Wikidata 'pronoun' — broader grammatical category; a hint, not an equivalence
 gmeow:PronounSet	skos:closeMatch	wd:Q65067284	semapv:ManualMappingCuration	0.9	Wikidata 'personal pronoun set' — third-person pronouns an individual wants used; its Sept-2025 RfC favours full-declension pronoun sets (modelling each set's forms, not a single lexeme), aligning with GMEOW's reified five-form English model
+gmeow:SoftwareName	skos:broadMatch	schema:name	semapv:ManualMappingCuration	0.6	schema:name — broad: a SoftwareName is a kind of name borne by a software project
 gmeow:fullName	skos:closeMatch	foaf:name	semapv:ManualMappingCuration	0.8	
 gmeow:fullName	skos:closeMatch	ontolex:writtenRep	semapv:ManualMappingCuration	0.85	GMEOW fullName close-matches OntoLex writtenRep
 gmeow:fullName	skos:closeMatch	schema:name	semapv:ManualMappingCuration	0.8	
 gmeow:fullName	skos:closeMatch	vcard:fn	semapv:ManualMappingCuration	0.9	
 gmeow:fullName	skos:closeMatch	wdt:P1559	semapv:ManualMappingCuration	0.7	
+gmeow:hasAgreementName	skos:broadMatch	schema:name	semapv:ManualMappingCuration	0.6	schema:name — downcast: an agreement's structured name objects flatten to the schema:name literal in projection
 gmeow:hasNamePart	skos:closeMatch	gx:nameForm	semapv:ManualMappingCuration	0.6	
+gmeow:hasOrganizationName	skos:broadMatch	foaf:name	semapv:ManualMappingCuration	0.6	foaf:name — downcast from structured OrganizationName to flat literal
+gmeow:hasOrganizationName	skos:broadMatch	schema:name	semapv:ManualMappingCuration	0.6	schema:name — downcast: an organization's structured name objects flatten to the schema:name literal in projection
+gmeow:hasOrganizationName	skos:broadMatch	vcard:organization-name	semapv:ManualMappingCuration	0.7	vcard:organization-name — downcast from structured OrganizationName to flat literal
 gmeow:hasPlaceName	skos:broadMatch	gn:name	semapv:ManualMappingCuration	0.6	GeoNames gn:name — lossy: gn:name links a feature to a name LITERAL, gmeow:hasPlaceName to a structured PlaceName object
 gmeow:hasPlaceName	skos:broadMatch	schema:name	semapv:ManualMappingCuration	0.5	schema:name — downcast: a place's structured name objects flatten to the schema:name literal in projection (non-selected names → schema:alternateName)
 gmeow:hasPronounSet	skos:closeMatch	wdt:P6553	semapv:ManualMappingCuration	0.85	Wikidata 'personal pronoun' property (P6553); lossy — its values are lexemes, GMEOW's range is the full five-form PronounSet
+gmeow:hasSoftwareName	skos:broadMatch	schema:name	semapv:ManualMappingCuration	0.6	schema:name — downcast: a software project's structured name objects flatten to the schema:name literal in projection
+gmeow:hasTitle	skos:broadMatch	schema:headline	semapv:ManualMappingCuration	0.6	schema:headline — downcast from structured CreativeWorkTitle to flat literal
+gmeow:hasTitle	skos:broadMatch	schema:name	semapv:ManualMappingCuration	0.6	schema:name — downcast: a creative work's structured title objects flatten to schema:name in projection
+gmeow:hasTitle	skos:closeMatch	dcterms:title	semapv:ManualMappingCuration	0.85	DCTerms title — GMEOW's reified CreativeWorkTitle downcasts to dcterms:title by projection
 gmeow:honorific	skos:closeMatch	schema:honorificPrefix	semapv:ManualMappingCuration	0.7	
 gmeow:honorific	skos:closeMatch	wdt:P511	semapv:ManualMappingCuration	0.8	
 gmeow:nameLanguage	skos:closeMatch	dcterms:language	semapv:ManualMappingCuration	0.8	
