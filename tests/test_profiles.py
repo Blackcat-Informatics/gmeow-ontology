@@ -27,11 +27,11 @@ def test_profile_meta_properties_exist() -> None:
     for prop in (
         "hasProfile",
         "profileAppliesTo",
-        "profileDescriptor",
         "profileOpenValue",
     ):
         p = GMEOW[prop]
         assert (p, RDF.type, OWL.ObjectProperty) in g, f"{p} missing"
+    assert (GMEOW.profileDescriptor, RDF.type, OWL.AnnotationProperty) in g
 
 
 def test_reference_frame_profile_exists_with_descriptors() -> None:
@@ -78,6 +78,23 @@ def test_profile_shape_passes_for_wellformed_profile() -> None:
     ok.add((EX.myProfile, GMEOW.profileDescriptor, GMEOW.hasProfile))
     result = run_shacl(ok)
     assert result.ok, "\n".join(result.errors)
+
+
+def test_profile_shape_fails_for_invalid_profile_applies_to() -> None:
+    bad = Graph()
+    bad.add((EX.myProfile, RDF.type, GMEOW.Profile))
+    bad.add((EX.myProfile, RDFS.label, Literal("Bad profile")))
+    bad.add(
+        (EX.myProfile, SKOS.definition, Literal("profileAppliesTo must be a class."))
+    )
+    bad.add((EX.myProfile, GMEOW.profileDescriptor, GMEOW.hasProfile))
+    bad.add((EX.myProfile, GMEOW.profileAppliesTo, Literal("not-a-class")))
+    result = run_shacl(bad)
+    assert not result.ok
+    assert any(
+        "profileAppliesTo" in e or "ProfileShape" in e or "class" in e
+        for e in result.errors
+    )
 
 
 def test_profile_open_value_guard_warns_on_orphan() -> None:

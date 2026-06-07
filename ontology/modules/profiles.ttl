@@ -37,7 +37,7 @@ gmeow:profileAppliesTo
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:profileDescriptor
-    a owl:ObjectProperty ;
+    a owl:AnnotationProperty ;
     rdfs:domain gmeow:Profile ;
     rdfs:label "profile descriptor"@en ;
     skos:definition "A property that is part of this Profile's closed descriptor schema."@en ;

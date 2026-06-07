@@ -836,8 +836,10 @@ gmeow:ProfileShape
     ] ;
     sh:property [
         sh:path gmeow:profileAppliesTo ;
+        sh:nodeKind sh:IRI ;
+        sh:class owl:Class ;
         sh:severity sh:Violation ;
-        sh:message "When a Profile declares gmeow:profileAppliesTo, the value must be a class."
+        sh:message "When a Profile declares gmeow:profileAppliesTo, the value must be an owl:Class."
     ] ;
     sh:property [
         sh:path gmeow:profileDescriptor ;
