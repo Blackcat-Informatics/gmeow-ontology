@@ -249,7 +249,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:duringInterval [gmeow:TimeScopedRelation → gmeow:TimeInterval]: Relates a time-scoped relation to the interval over which it holds.
 - gmeow:earliestStart [gmeow:Event → xsd:dateTime]: The earliest instant at which an event could have started — the lower bound of a fuzzy / approximate date (xsd:dateTime). Pairs with gmeow:latestEnd and a gmeow:temporalPrecision value to model uncertainty without abandoning DL-clean base triples.
 - gmeow:editionOf [gmeow:CreativeWork → gmeow:CreativeWork] (functional): Relates a concrete edition, issue, or manifestation of a creative work to the stable work it editions. Functional per edition, non-merge semantics: editions remain first-class works with their own identifiers, dates, rights, and provenance.
-- gmeow:edtfValue [? → rdfs:Literal]: An ISO 8601-2 (EDTF) expression of an instant or interval, stored as a plain literal. EDTF parsing and normalization are solver-layer concerns (Principle 12).
+- gmeow:edtfValue [? → rdfs:Literal] (functional): An ISO 8601-2 (EDTF) expression of an instant or interval, stored as a plain literal. EDTF parsing and normalization are solver-layer concerns (Principle 12).
 - gmeow:elevation [gmeow:GeoCoordinates → xsd:decimal]: Elevation above sea level in metres.
 - gmeow:email [gmeow:Agent → rdfs:Literal]: An email address at which an agent can be reached.
 - gmeow:endedAtTime [gmeow:TimeInterval → xsd:dateTime] (functional): The instant at which a time interval ends; absent if the interval is still open.
@@ -267,10 +267,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:fingerprint [gmeow:CryptographicKey → rdfs:Literal]: A fingerprint (hash) identifying a key. Not functional: different sources may report differing or differently-formatted fingerprints for the same key.
 - gmeow:finishedBy [gmeow:Event → gmeow:Event]: Allen FINISHED-BY: inverse of gmeow:finishes. (= time:intervalFinishedBy; TimeML ENDED_BY; TEO finishedBy.)
 - gmeow:finishes [gmeow:Event → gmeow:Event]: Allen FINISHES: this event and the related event end together, and this one began later (it is a final sub-span). NOT transitive. Inverse of gmeow:finishedBy. (= time:intervalFinishes; TimeML ENDS; TEO finishes.)
-- gmeow:frameCalendarSystem [gmeow:TemporalFrame → gmeow:CalendarSystem]: The calendar system of a temporal frame, when one is used. Optional: some frames (e.g. Julian Date) carry only a scale.
+- gmeow:frameCalendarSystem [gmeow:TemporalFrame → gmeow:CalendarSystem] (functional): The calendar system of a temporal frame, when one is used. Optional: some frames (e.g. Julian Date) carry only a scale.
 - gmeow:frameKind [gmeow:ReferenceFrame → gmeow:FrameKind] (functional): Relates a reference frame to its structural frame kind.
 - gmeow:frameRealm [gmeow:ReferenceFrame → gmeow:FrameRealm] (functional): Relates a reference frame to the realm it describes.
-- gmeow:frameReferencePosition [gmeow:TemporalFrame → gmeow:ReferencePosition]: The reference position of a temporal frame, when one is needed. Optional: TAI needs none; civil time needs a timezone.
+- gmeow:frameReferencePosition [gmeow:TemporalFrame → gmeow:ReferencePosition] (functional): The reference position of a temporal frame, when one is needed. Optional: TAI needs none; civil time needs a timezone.
 - gmeow:frameSolver [gmeow:ReferenceFrame → rdfs:Literal]: Identifies the external solver or transformation method to resolve coordinates in this frame.
 - gmeow:frameTimeScale [gmeow:TemporalFrame → gmeow:TimeScale] (functional): The time scale of a temporal frame (functional: a frame has exactly one scale).
 - gmeow:from [gmeow:EmailMessage → gmeow:EmailAddress]: The author address of a message (RFC 5322 From).
@@ -406,7 +406,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:mappedFrom: The source property a claim was derived from during ingestion, recorded for mapping-step audit.
 - gmeow:markText [gmeow:Mark → rdfs:Literal] (functional): The textual form of a mark (the brand name / word mark), e.g. "Blackcat Informatics".
 - gmeow:measuredAge [gmeow:TemporalMeasurement → xsd:decimal] (functional): The numeric age yielded by a temporal measurement, in the unit given by gmeow:hasUnit.
-- gmeow:measuredDate [gmeow:TemporalMeasurement → gmeow:Instant]: The absolute date instant yielded by a temporal measurement.
+- gmeow:measuredDate [gmeow:TemporalMeasurement → gmeow:Instant] (functional): The absolute date instant yielded by a temporal measurement.
 - gmeow:measurementDeterminacy [gmeow:TemporalMeasurement → gmeow:Determinacy]: The ontic determinacy model of a temporal measurement — crisp, vague, fuzzy, probabilistic, or disputed (reuses the universal gmeow:Determinacy vocabulary, #71).
 - gmeow:measurementMethod [gmeow:TemporalMeasurement → gmeow:DatingMethod] (functional): The dating method used for a temporal measurement.
 - gmeow:measurementUncertainty [gmeow:TemporalMeasurement → xsd:decimal] (functional): The uncertainty (e.g. ±1 sigma) of a temporal measurement, in the same unit as the measured age.
