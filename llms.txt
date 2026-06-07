@@ -113,7 +113,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:Measurement (⊑ gmeow:Observation): An observation that assigns a quantitative or qualitative value to a feature of interest, typically carrying a unit, uncertainty, and determinacy model. The parent of temporal dating, spatial coordinate assignment, and scalar quantity measurements.
 - gmeow:MediaObject (⊑ gmeow:CreativeWork): An image, audio, or video media file.
 - gmeow:Membership (⊑ gufo:Relator): The reified relationship by which an agent is a member of an organization, optionally playing a role over a period of time.
-- gmeow:MentalReferenceFrame (⊑ gmeow:ReferenceFrame): A perceptual or subjective reference frame in which standpoint-indexed values are expressed — e.g. a thermal comfort scale, an olfactory quality space ('musty'/'muted'), or a subjective loudness frame. A MentalReferenceFrame is a ReferenceFrame whose realm is perceptual and whose axes describe qualitative or semi-quantitative dimensions of human (or animal, or AI) sensory experience. Distinct from measurement frames: two perceivers may map the same physical measurement to different mental-frame coordinates (Principle 11).
+- gmeow:MentalReferenceFrame (⊑ gmeow:ReferenceFrame): A subjective or internal reference frame in which standpoint-indexed values are expressed — e.g. a thermal comfort scale, an olfactory quality space, a subjective loudness frame, an affective valence/arousal space (Russell circumplex), a conceptual geometry (Gärdenfors), a cognitive map (egocentric or allocentric), or an imagined space (memory palace, dream). A MentalReferenceFrame is a ReferenceFrame whose realm is perceptual or psychological and whose axes describe qualitative or semi-quantitative dimensions of human, animal, or AI experience. Requires a host (the perceiver, thinker, or dreamer); the frame deactivates when its host ceases to exist. Distinct from measurement frames: two hosts may map the same external stimulus to different mental-frame coordinates (Principle 11).
 - gmeow:Message (⊑ gmeow:InformationObject): A communication sent from one agent to others — the parent of email and other message kinds.
 - gmeow:MessageHeader (⊑ gmeow:InformationObject): A single RFC 5322 header field (name and value) of a message.
 - gmeow:MessageKeyword (⊑ gufo:QualityValue): A flag/keyword applied to a message (IMAP flag or JMAP keyword) such as seen, flagged, answered, draft, forwarded, or junk.
@@ -502,6 +502,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:introducerDepth [gmeow:TrustAssertion → xsd:integer] (functional): The trust-signature depth: how many levels of indirect introducers the trustor is willing to follow (a trust-signature notion, not computed here).
 - gmeow:isAbout [gmeow:Entity → gmeow:Entity]: Aboutness — a resource is about another resource. Distinct from typing (rdf:type) and from tagging (gmeow:hasTag): aboutness is a semantic subject-matter relation, tagging is a user-applied label, and typing is an ontological classification. Non-functional.
 - gmeow:isAccessibleForFree [gmeow:Entity → xsd:boolean]: Whether the asset is accessible without payment (schema:isAccessibleForFree).
+- gmeow:isHostedBy [gmeow:ReferenceFrame → gmeow:Entity]: Relates a reference frame to the entity that hosts it — the entity whose existence bounds the frame's existence. A local grid is hosted by its building; a robot base frame by its robot; a mental reference frame by its perceiver (person, animal, or AI agent). When the host ceases to exist, the hosted frame deactivates (destruction event or existenceInterval end). Non-functional: contested authorship or multi-agent shared frames may have multiple host claims that coexist (Principle 9).
 - gmeow:isOsiApproved [gmeow:License → xsd:boolean]: Whether the licence is approved by the Open Source Initiative (spdx:isOsiApproved).
 - gmeow:isResultOf [gmeow:Entity → gmeow:Observation]: Relates an entity (typically an observation result such as a quantity, coordinate set, or quality value) back to the Observation that produced it — the explicit provenance axis of the value×unit/frame×determinacy×provenance bundle (#77). Domain is gmeow:Entity (universal, matching the range of observationResult) so any result type can carry provenance. Non-functional: a result entity may be produced by multiple observations (e.g. a consensus value derived from several readings), and those claims coexist rather than collapse.
 - gmeow:jurisdictionDeterminacy [gmeow:JurisdictionTenure → gmeow:Determinacy]: The ontic determinacy model of this jurisdiction claim — crisp (well-defined border), vague (approximate boundary), fuzzy (probabilistic membership), or disputed (competing claims). Non-functional: sources may disagree on determinacy, and those claims coexist.
@@ -849,15 +850,21 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:aspectPerfective (a gmeow:GrammaticalAspect): ISO-TimeML aspect PERFECTIVE.
 - gmeow:aspectPerfectiveProgressive (a gmeow:GrammaticalAspect): ISO-TimeML aspect PERFECTIVE_PROGRESSIVE.
 - gmeow:aspectProgressive (a gmeow:GrammaticalAspect): ISO-TimeML aspect PROGRESSIVE.
+- gmeow:axisAllocentricX (a gmeow:Axis): The X axis of an allocentric (world-centred) cognitive map.
+- gmeow:axisAllocentricY (a gmeow:Axis): The Y axis of an allocentric (world-centred) cognitive map.
+- gmeow:axisArousal (a gmeow:Axis): The activation-deactivation dimension of affect (Russell circumplex).
 - gmeow:axisAstar (a gmeow:Axis): CIE a* red-green
 - gmeow:axisBGPAS (a gmeow:Axis): BGP autonomous system axis
 - gmeow:axisBearing (a gmeow:Axis): bearing axis
 - gmeow:axisBlue (a gmeow:Axis): blue channel
 - gmeow:axisBstar (a gmeow:Axis): CIE b* blue-yellow
+- gmeow:axisConceptualSimilarity (a gmeow:Axis): The similarity or distance between concepts in a Gärdenfors-style conceptual space.
 - gmeow:axisCyan (a gmeow:Axis): cyan channel
 - gmeow:axisDNSName (a gmeow:Axis): DNS name axis
 - gmeow:axisDay (a gmeow:Axis): day
 - gmeow:axisDeclination (a gmeow:Axis): declination
+- gmeow:axisEgocentricForward (a gmeow:Axis): The forward/backward axis of an egocentric cognitive map, relative to the agent's facing direction.
+- gmeow:axisEgocentricLateral (a gmeow:Axis): The left/right axis of an egocentric cognitive map, relative to the agent's facing direction.
 - gmeow:axisElevation (a gmeow:Axis): elevation
 - gmeow:axisFrequency (a gmeow:Axis): frequency
 - gmeow:axisGalacticLatitude (a gmeow:Axis): galactic latitude
@@ -870,6 +877,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisHour (a gmeow:Axis): hour
 - gmeow:axisIPv4Address (a gmeow:Axis): IPv4 address axis
 - gmeow:axisIPv6Address (a gmeow:Axis): IPv6 address axis
+- gmeow:axisImaginedSpaceX (a gmeow:Axis): The X axis of an imagined or dream space (memory palace, dream landscape).
+- gmeow:axisImaginedSpaceY (a gmeow:Axis): The Y axis of an imagined or dream space (memory palace, dream landscape).
+- gmeow:axisImaginedSpaceZ (a gmeow:Axis): The Z axis of an imagined or dream space (memory palace, dream landscape).
 - gmeow:axisJointAngle1 (a gmeow:Axis): joint angle 1
 - gmeow:axisJointAngle2 (a gmeow:Axis): joint angle 2
 - gmeow:axisJointAngle3 (a gmeow:Axis): joint angle 3
@@ -906,6 +916,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisTristimulusY (a gmeow:Axis): CIE Y tristimulus
 - gmeow:axisTristimulusZ (a gmeow:Axis): CIE Z tristimulus
 - gmeow:axisURL (a gmeow:Axis): URL axis
+- gmeow:axisValence (a gmeow:Axis): The pleasure-displeasure dimension of affect (Russell circumplex).
 - gmeow:axisVirtualAddress (a gmeow:Axis): virtual address axis
 - gmeow:axisX (a gmeow:Axis): X axis
 - gmeow:axisY (a gmeow:Axis): Y axis
@@ -1039,7 +1050,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:frameRealmLinguistic (a gmeow:FrameRealm): linguistic
 - gmeow:frameRealmMathematical (a gmeow:FrameRealm): mathematical / n-D
 - gmeow:frameRealmMeasurement (a gmeow:FrameRealm): measurement
-- gmeow:frameRealmPerceptual (a gmeow:FrameRealm): A perceptual or subjective domain in which values are expressed relative to a perceiver's sensory or cognitive frame (e.g. thermal comfort, olfactory quality, subjective loudness).
+- gmeow:frameRealmPerceptual (a gmeow:FrameRealm): A perceptual or subjective domain in which values are expressed relative to a perceiver's sensory frame (e.g. thermal comfort, olfactory quality, subjective loudness).
+- gmeow:frameRealmPsychological (a gmeow:FrameRealm): A psychological or cognitive domain in which values are expressed relative to a mind's internal representational frame — conceptual spaces, affective states, cognitive maps, or imagined spaces (e.g. memory palace, dream). Hosted by the perceiver, thinker, or dreamer; the frame deactivates when its host does.
 - gmeow:frameRealmRobotic (a gmeow:FrameRealm): robotic
 - gmeow:frameRealmTemporal (a gmeow:FrameRealm): temporal
 - gmeow:frameRealmTerrestrial (a gmeow:FrameRealm): terrestrial
@@ -1379,12 +1391,16 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:refOriginGeocentric (a gmeow:CelestialReferenceOrigin): geocentric
 - gmeow:refOriginHeliocentric (a gmeow:CelestialReferenceOrigin): heliocentric
 - gmeow:refOriginTopocentric (a gmeow:CelestialReferenceOrigin): topocentric (observatory site)
+- gmeow:referenceFrameAffectiveCircumplex (a gmeow:MentalReferenceFrame): Russell Affective Circumplex Reference Frame
 - gmeow:referenceFrameAudioSpectrum (a gmeow:ReferenceFrame): Audio Spectrum Reference Frame
 - gmeow:referenceFrameBGP (a gmeow:ReferenceFrame): BGP Autonomous System Reference Frame
 - gmeow:referenceFrameCIELAB (a gmeow:ReferenceFrame): CIE L*a*b* Perceptually-Uniform Reference Frame
 - gmeow:referenceFrameCIEXYZ (a gmeow:ReferenceFrame): CIE 1931 XYZ Tristimulus Reference Frame
 - gmeow:referenceFrameCMYK (a gmeow:ReferenceFrame): CMYK Colourspace Reference Frame
 - gmeow:referenceFrameCelestialEquatorial (a gmeow:ReferenceFrame): Celestial Equatorial Reference Frame
+- gmeow:referenceFrameCognitiveMapAllocentric (a gmeow:MentalReferenceFrame): Allocentric Cognitive Map Reference Frame
+- gmeow:referenceFrameCognitiveMapEgocentric (a gmeow:MentalReferenceFrame): Egocentric Cognitive Map Reference Frame
+- gmeow:referenceFrameConceptualSpace (a gmeow:MentalReferenceFrame): A generic conceptual space frame after Gärdenfors — domains are convex regions in a similarity metric space. The actual domain-specific axes (colour, taste, shape, etc.) are added per-domain; this seed carries the similarity axis as a placeholder.
 - gmeow:referenceFrameDNS (a gmeow:ReferenceFrame): DNS Name Space Reference Frame
 - gmeow:referenceFrameEnglish (a gmeow:ReferenceFrame): English Language Reference Frame
 - gmeow:referenceFrameFK5 (a gmeow:ReferenceFrame): FK5 Equatorial Reference Frame
@@ -1394,6 +1410,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:referenceFrameICRS (a gmeow:ReferenceFrame): ICRS Celestial Reference Frame
 - gmeow:referenceFrameIPv4 (a gmeow:ReferenceFrame): IPv4 Address Space Reference Frame
 - gmeow:referenceFrameIPv6 (a gmeow:ReferenceFrame): IPv6 Address Space Reference Frame
+- gmeow:referenceFrameImaginedSpace (a gmeow:MentalReferenceFrame): An imagined or dream-space reference frame — e.g. a memory palace, a dream landscape, or a fictional world. Coordinates are relative to the imaginer's internal representation, not to any external geographic frame.
 - gmeow:referenceFrameInternet (a gmeow:ReferenceFrame): Internet Topology Reference Frame
 - gmeow:referenceFrameLatentVectorSpace (a gmeow:ReferenceFrame): Latent Vector Space Reference Frame
 - gmeow:referenceFrameLocalGrid (a gmeow:ReferenceFrame): Local Grid Cartesian Reference Frame
