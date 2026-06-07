@@ -448,6 +448,55 @@ gmeow:eqTemporal039 a gmeow:TermEquivalence ;
     gmeow:comment "Barycentric Dynamical Time (Q1320839)" ;
     gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
 
+# IVOA timescale — direct vocabulary matches (#85)
+gmeow:eqTemporal039b a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:timeScaleUTC ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/timescale/UTC> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+
+gmeow:eqTemporal039c a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:timeScaleTT ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/timescale/TT> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+
+gmeow:eqTemporal039d a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:timeScaleTDB ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/timescale/TDB> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+
+gmeow:eqTemporal039e a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:timeScaleGPS ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/timescale/GPS> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+
+gmeow:eqTemporal039f a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:timeScaleTAI ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/timescale/TAI> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+
+gmeow:eqTemporal039g a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:timeScaleUT1 ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/timescale/UT1> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+
 # --------------------------------------------------------------------------- #
 # Interval-level Allen relations → OWL-Time
 # --------------------------------------------------------------------------- #

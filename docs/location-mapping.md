@@ -519,3 +519,60 @@ An **accessible route** is a `gmeow:Route` of kind `routeKindAccessible`. The ac
 - **WHO ICF**: Each AccessibilityFacet bridges to ICF categories by reference (e.g. `facetWheelchair` ↔ ICF d4 Mobility + e115 Products for personal mobility). Alignment is by reference only — GMEOW never imports the ICF ontology.
 - **OSM**: Conceptual alignment documented in SSSOM comments. OSM tags (`wheelchair=yes/no/limited`, `ramp:wheelchair`, `tactile_paving`, `step_count`) map directionally to facet assertions. No stable RDF ontology exists for OSM tags, so no executable SPARQL projection is generated.
 - **IMDF / IndoorGML**: Conceptual alignment to IMDF accessibility attributes and IndoorGML barrier constructs. No stable RDF IRIs exist for most terms, so alignment uses `skos:relatedMatch` to documentation URLs.
+
+---
+
+## Celestial Locations (#85)
+
+GMEOW models astronomical and space-domain locations as **`gmeow:CelestialLocation`** — a fourth structural kind under `gmeow:Location`, parallel to `Place`, `VirtualLocation`, and `StorageLocation`. Celestial locations are not geographic: they live on the celestial sphere, in the solar system, or in deep space, and their coordinates are expressed as right ascension, declination, and epoch rather than latitude and longitude.
+
+### Structure
+
+- **`gmeow:CelestialLocation`** — an astronomical object or position: a star, galaxy, nebula, planet, asteroid, comet, spacecraft, star cluster, etc. The specific kind is given by `gmeow:celestialObjectType` (a value vocabulary), not a subclass, so any astronomical object from star to galaxy cluster can be a first-class entity with its own coordinates and external identifiers (SIMBAD, NED, VizieR).
+- **`gmeow:CelestialCoordinates`** — a point on the celestial sphere expressed as right ascension, declination, and an optional epoch. The reference frame (ICRS, FK5, Galactic, etc.) is declared via `gmeow:coordinateFrame` (Principle 11: frame-relativity).
+- **`gmeow:hasCelestialCoordinates`** — links a celestial location to its coordinates.
+- **`gmeow:rightAscension`** / **`gmeow:declination`** — in degrees, frame-relative.
+- **`gmeow:celestialEpoch`** — the Julian year for which the coordinates are expressed (e.g. `2000.0` for J2000.0), a frame-relative scalar.
+
+### Reference Frame Model for Celestial Coordinates
+
+The existing `gmeow:ReferenceFrame` Profile pattern (§ Reference Frame Profiles & Extensibility) is extended with two new descriptors for celestial frames:
+
+- **`gmeow:hasReferencePosition`** — the origin of the frame: topocentric (observatory site), geocentric, barycentric (solar system barycenter), or heliocentric. Values are `gmeow:CelestialReferenceOrigin` individuals, aligned to IVOA `refposition`.
+- **`gmeow:hasTimeScale`** — the time standard: UTC, TT (Terrestrial Time), TDB (Barycentric Dynamical Time), or GPS time. Uses existing `gmeow:TimeScale` individuals from the temporal module, aligned to IVOA `timescale`.
+
+Seed celestial reference frames:
+
+| Frame | Axes | Realm | Ref Position | Timescale |
+|---|---|---|---|---|
+| `referenceFrameCelestialEquatorial` | RA, Dec | celestial | geocentric | UTC |
+| `referenceFrameICRS` | RA, Dec | celestial | barycentric | TDB |
+| `referenceFrameFK5` | RA, Dec | celestial | geocentric | UTC |
+| `referenceFrameGalactic` | l, b | celestial | barycentric | TDB |
+
+Coordinate transforms (precession, proper-motion propagation, frame conversion) are **solver-layer computations** (Principle 12), never asserted as triples in the OWL core.
+
+### External Alignment (maximal bridging)
+
+| GMEOW term | External alignment |
+|---|---|
+| `gmeow:CelestialLocation` | IVOA `object-type:astronomical-object`, UAT `astronomical-objects` |
+| `gmeow:CelestialCoordinates` | SWEET `reprSpaceReference:CelestialCoordinate` (reference-only) |
+| `gmeow:referenceFrameICRS` | IVOA `refframe:ICRS` |
+| `gmeow:referenceFrameFK5` | IVOA `refframe:FK5` |
+| `gmeow:referenceFrameGalactic` | IVOA `refframe:galactic` |
+| `gmeow:refOriginTopocentric` | IVOA `refposition:TOPOCENTER` |
+| `gmeow:refOriginGeocentric` | IVOA `refposition:GEOCENTER` |
+| `gmeow:refOriginBarycentric` | IVOA `refposition:BARYCENTER` |
+| `gmeow:refOriginHeliocentric` | IVOA `refposition:HELIOCENTER` |
+| `gmeow:timeScaleUTC` | IVOA `timescale:UTC` |
+| `gmeow:timeScaleTT` | IVOA `timescale:TT` |
+| `gmeow:timeScaleTDB` | IVOA `timescale:TDB` |
+| `gmeow:timeScaleGPS` | IVOA `timescale:GPS` |
+| `gmeow:timeScaleTAI` | IVOA `timescale:TAI` |
+| `gmeow:timeScaleUT1` | IVOA `timescale:UT1` |
+| `gmeow:celestialObjectTypeStar` | IVOA `object-type:star`, SIMBAD `*` |
+| `gmeow:celestialObjectTypeGalaxy` | IVOA `object-type:galaxy`, SIMBAD `G` |
+| `gmeow:celestialObjectTypePlanet` | IVOA `object-type:planet`, UAT `planets` |
+
+**SLSO** (Spacecraft Location System Ontology): No stable published RDF IRIs were found at the time of authoring. Alignment is documented as a placeholder pending stable term publication, following the precedent used for sources without resolvable RDF terms (e.g. OSM tags, IMDF accessibility attributes).

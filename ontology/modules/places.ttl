@@ -9,7 +9,7 @@
 <https://blackcatinformatics.ca/gmeow/modules/places>
     a owl:Ontology ;
     rdfs:label "GMEOW Locations Module"@en ;
-    rdfs:comment """Locations — geographic places, online (virtual) locations, and digital storage locations — with coordinates, geometry, containment, and external-gazetteer coreference (the schema.org / GeoSPARQL / GeoNames / Getty TGN / Wikidata / WGS84 / BOT / ifcOWL superset layer). Place kinds are an open value vocabulary (gmeow:placeType), so any granularity from country to room can be a first-class, QID-bearing place chained by containedInPlace.
+    rdfs:comment """Locations — geographic places, online (virtual) locations, digital storage locations, and celestial / astronomical locations — with coordinates, geometry, containment, and external-gazetteer coreference (the schema.org / GeoSPARQL / GeoNames / Getty TGN / Wikidata / WGS84 / BOT / ifcOWL / IVOA / UAT / SWEET superset layer). Place kinds and celestial object kinds are open value vocabularies (gmeow:placeType, gmeow:celestialObjectType), so any granularity from country to room, or from star to galaxy cluster, can be a first-class, QID-bearing entity chained by containedInPlace or locatedAt.
 
 STANDPOINT DOCTRINE (#51). Contested facts in the locations slice — sovereignty/jurisdiction disputes, competing place names (endonym vs exonym per community), boundary changes, regulatory overlays — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame asserting it — the two axes are orthogonal and must not be conflated. There is NO location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the cross-cutting #43 facility. Superseded or withdrawn claims set gmeow:displayable false, never deletion (Principle 10).
 
@@ -26,7 +26,7 @@ gmeow:Location
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Location"@en ;
-    skos:definition "A locus where an entity can be situated, reside, or occur — a geographic place, an online (virtual) location, or a digital storage location."@en ;
+    skos:definition "A locus where an entity can be situated, reside, or occur — a geographic place, an online (virtual) location, a digital storage location, or an astronomical/celestial position."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Place
@@ -101,11 +101,24 @@ gmeow:networkAddressTypeURL  a gmeow:NetworkAddressType ; rdfs:label "URL"@en .
 gmeow:networkAddressTypePort a gmeow:NetworkAddressType ; rdfs:label "port number"@en .
 gmeow:networkAddressTypeBGP  a gmeow:NetworkAddressType ; rdfs:label "BGP autonomous system"@en .
 
+gmeow:CelestialLocation
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Location ;
+    rdfs:label "Celestial Location"@en ;
+    skos:definition "An astronomical location — a position on the celestial sphere, a solar-system body, a spacecraft, or a deep-sky object. The specific kind is given by gmeow:celestialObjectType (a value), not a subclass, so any astronomical object from star to galaxy cluster can be a first-class entity with its own coordinates and external identifiers (SIMBAD, NED, VizieR)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:GeoCoordinates
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity ;
     rdfs:label "Geo Coordinates"@en ;
     skos:definition "A geographic point expressed as latitude, longitude, and optional elevation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:CelestialCoordinates
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Celestial Coordinates"@en ;
+    skos:definition "A point on the celestial sphere expressed as right ascension, declination, and an optional epoch — frame-relative per Principle 11. The reference frame (ICRS, FK5, Galactic, etc.) is declared via gmeow:coordinateFrame."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Geometry
@@ -179,6 +192,14 @@ gmeow:storedIn
     skos:definition "Relates a digital object (e.g. a document or import source) to the storage location where its bytes reside — the structured form of a source's location."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:hasCelestialCoordinates
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CelestialLocation ;
+    rdfs:range gmeow:CelestialCoordinates ;
+    rdfs:label "has celestial coordinates"@en ;
+    skos:definition "Relates a celestial location to its equatorial or other sky coordinates."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:containedInPlace
     a owl:ObjectProperty, owl:TransitiveProperty ;
     rdfs:subPropertyOf gmeow:containedInLocation, gmeow:partOf ;
@@ -219,6 +240,14 @@ gmeow:placeType
     rdfs:range gmeow:PlaceType ;
     rdfs:label "place type"@en ;
     skos:definition "The kind(s) of a place (one or more gmeow:PlaceType individuals). Non-functional: multi-source classifications may differ (a place that is both 'city' and 'administrative area') and must coexist as evidence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:celestialObjectType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CelestialLocation ;
+    rdfs:range gmeow:CelestialObjectType ;
+    rdfs:label "celestial object type"@en ;
+    skos:definition "The kind(s) of a celestial location (one or more gmeow:CelestialObjectType individuals). Non-functional: multi-source classifications may differ (e.g. a source classified as both 'star' and 'variable star') and must coexist as evidence."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:storageMedium
@@ -344,6 +373,30 @@ gmeow:storagePath
     rdfs:range rdfs:Literal ;
     rdfs:label "storage path"@en ;
     skos:definition "The path, key, or URI of a storage location within its service."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:rightAscension
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CelestialCoordinates ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "right ascension"@en ;
+    skos:definition "Right ascension in degrees (0–360). Frame-relative: the meaning depends on the coordinateFrame (ICRS, FK5, etc.)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:declination
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CelestialCoordinates ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "declination"@en ;
+    skos:definition "Declination in degrees (−90 to +90). Frame-relative: the meaning depends on the coordinateFrame."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:celestialEpoch
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CelestialCoordinates ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "celestial epoch"@en ;
+    skos:definition "The epoch (Julian year, e.g. 2000.0) for which the coordinates are expressed. Required for proper-motion propagation; frame-relative per Principle 11."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:timezone
@@ -590,6 +643,8 @@ gmeow:axisBearing          a gmeow:Axis ; rdfs:label "bearing axis"@en .
 gmeow:axisVirtualAddress   a gmeow:Axis ; rdfs:label "virtual address axis"@en .
 gmeow:axisRightAscension   a gmeow:Axis ; rdfs:label "right ascension"@en .
 gmeow:axisDeclination      a gmeow:Axis ; rdfs:label "declination"@en .
+gmeow:axisGalacticLongitude  a gmeow:Axis ; rdfs:label "galactic longitude"@en .
+gmeow:axisGalacticLatitude   a gmeow:Axis ; rdfs:label "galactic latitude"@en .
 gmeow:axisScalar           a gmeow:Axis ; rdfs:label "scalar axis"@en .
 gmeow:axisYear             a gmeow:Axis ; rdfs:label "year"@en .
 gmeow:axisMonth            a gmeow:Axis ; rdfs:label "month"@en .
@@ -666,7 +721,48 @@ gmeow:referenceFrameCelestialEquatorial
     gmeow:frameKind gmeow:frameKindPolar ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
-    gmeow:hasMetricKind gmeow:metricGeodesic .
+    gmeow:hasMetricKind gmeow:metricGeodesic ;
+    gmeow:hasReferencePosition gmeow:refOriginGeocentric ;
+    gmeow:hasTimeScale gmeow:timeScaleUTC .
+
+gmeow:referenceFrameICRS
+    a gmeow:ReferenceFrame ;
+    rdfs:label "ICRS Celestial Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmCelestial ;
+    gmeow:hasAxis gmeow:axisRightAscension, gmeow:axisDeclination ;
+    gmeow:dimensionCount "2"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindPolar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGeodesic ;
+    gmeow:hasReferencePosition gmeow:refOriginBarycentric ;
+    gmeow:hasTimeScale gmeow:timeScaleTDB .
+
+gmeow:referenceFrameFK5
+    a gmeow:ReferenceFrame ;
+    rdfs:label "FK5 Equatorial Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmCelestial ;
+    gmeow:hasAxis gmeow:axisRightAscension, gmeow:axisDeclination ;
+    gmeow:dimensionCount "2"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindPolar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGeodesic ;
+    gmeow:hasReferencePosition gmeow:refOriginGeocentric ;
+    gmeow:hasTimeScale gmeow:timeScaleUTC .
+
+gmeow:referenceFrameGalactic
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Galactic Coordinate Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmCelestial ;
+    gmeow:hasAxis gmeow:axisGalacticLongitude, gmeow:axisGalacticLatitude ;
+    gmeow:dimensionCount "2"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindPolar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGeodesic ;
+    gmeow:hasReferencePosition gmeow:refOriginBarycentric ;
+    gmeow:hasTimeScale gmeow:timeScaleTDB .
 
 gmeow:referenceFrameRobotBase
     a gmeow:ReferenceFrame ;
@@ -933,6 +1029,22 @@ gmeow:hasMetricKind
     rdfs:range gmeow:MetricKind ;
     rdfs:label "has metric kind"@en ;
     skos:definition "The distance or dissimilarity metric declared by this reference frame. Functional: a frame uses exactly one metric kind for all proximity computations expressed in it. The actual computation is performed by the solver (Principle 12), never materialised as asserted triples in the OWL core."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasReferencePosition
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ReferenceFrame ;
+    rdfs:range gmeow:CelestialReferenceOrigin ;
+    rdfs:label "has reference position"@en ;
+    skos:definition "The origin position of a celestial reference frame (topocentric, geocentric, barycentric, heliocentric). Functional: a frame has exactly one reference position."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasTimeScale
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ReferenceFrame ;
+    rdfs:range gmeow:TimeScale ;
+    rdfs:label "has time scale"@en ;
+    skos:definition "The time standard associated with a celestial reference frame. Functional: a frame uses exactly one time scale."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # Coordinate Properties
@@ -1612,3 +1724,39 @@ gmeow:hasUtilization
     rdfs:label "has utilization"@en ;
     skos:definition "Links a location to a utilization measurement describing the ratio of occupancy to capacity. Flat form for the common case; promote to full reified Utilization when vantage, confidence, temporal scope, or standpoint matter."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Celestial Object Type — VALUE vocabulary (open; individuals, not classes) (#85)
+# --------------------------------------------------------------------------- #
+
+gmeow:CelestialObjectType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Celestial Object Type"@en ;
+    skos:definition "The kind of an astronomical object (star, galaxy, nebula, planet, asteroid, spacecraft, etc.). A value, not a CelestialLocation subclass: the set is open-ended (IVOA object-type vocabulary lists ~100 types) and they share the same structure."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:celestialObjectTypeStar       a gmeow:CelestialObjectType ; rdfs:label "star"@en .
+gmeow:celestialObjectTypeGalaxy     a gmeow:CelestialObjectType ; rdfs:label "galaxy"@en .
+gmeow:celestialObjectTypeNebula     a gmeow:CelestialObjectType ; rdfs:label "nebula"@en .
+gmeow:celestialObjectTypePlanet     a gmeow:CelestialObjectType ; rdfs:label "planet"@en .
+gmeow:celestialObjectTypeAsteroid   a gmeow:CelestialObjectType ; rdfs:label "asteroid"@en .
+gmeow:celestialObjectTypeComet      a gmeow:CelestialObjectType ; rdfs:label "comet"@en .
+gmeow:celestialObjectTypeSpacecraft a gmeow:CelestialObjectType ; rdfs:label "spacecraft / artificial satellite"@en .
+gmeow:celestialObjectTypeCluster    a gmeow:CelestialObjectType ; rdfs:label "star cluster"@en .
+
+# --------------------------------------------------------------------------- #
+# Celestial Reference Origin — VALUE vocabulary (IVOA refposition alignment) (#85)
+# --------------------------------------------------------------------------- #
+
+gmeow:CelestialReferenceOrigin
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Celestial Reference Origin"@en ;
+    skos:definition "The origin of a celestial coordinate system (topocentric, geocentric, barycentric, heliocentric, etc.). A value vocabulary aligned to IVOA refposition."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:refOriginTopocentric  a gmeow:CelestialReferenceOrigin ; rdfs:label "topocentric (observatory site)"@en .
+gmeow:refOriginGeocentric   a gmeow:CelestialReferenceOrigin ; rdfs:label "geocentric"@en .
+gmeow:refOriginBarycentric  a gmeow:CelestialReferenceOrigin ; rdfs:label "barycentric (solar system)"@en .
+gmeow:refOriginHeliocentric a gmeow:CelestialReferenceOrigin ; rdfs:label "heliocentric"@en .

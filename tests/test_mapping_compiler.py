@@ -116,7 +116,10 @@ def test_dsl_parses() -> None:
     # Issue #84 virtual + network address space: +11 (NetworkAddress→Wikidata,
     # networkAddressType*→Wikidata x6 incl. port,
     # virtualLocationType*→schema.org/Wikidata x3, networkAddressTypeBGP→Wikidata).
-    assert len(dsl.equivalences) == 985
+    # Issue #85 celestial realm: +19 (IVOA refframe x3, refposition x4 incl.
+    # heliocentric, object-type x4, UAT x2 in places.ttl; IVOA timescale x6 in
+    # temporal.ttl).
+    assert len(dsl.equivalences) == 1004
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
