@@ -1,0 +1,93 @@
+@prefix bot: <https://w3id.org/bot#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+
+bot:adjacentElement a owl:ObjectProperty .
+
+bot:adjacentZone a owl:ObjectProperty,
+        owl:SymmetricProperty ;
+    rdfs:domain bot:Zone ;
+    rdfs:range bot:Zone ;
+    schema:domainIncludes bot:Building,
+        bot:Site,
+        bot:Space,
+        bot:Storey ;
+    schema:rangeIncludes bot:Building,
+        bot:Site,
+        bot:Space,
+        bot:Storey .
+
+bot:aggregates a owl:ObjectProperty .
+
+bot:containsElement a owl:ObjectProperty .
+
+bot:containsZone a owl:ObjectProperty,
+        owl:TransitiveProperty ;
+    rdfs:domain bot:Zone ;
+    rdfs:range bot:Zone ;
+    schema:domainIncludes bot:Building,
+        bot:Site,
+        bot:Space,
+        bot:Storey ;
+    schema:rangeIncludes bot:Building,
+        bot:Site,
+        bot:Space,
+        bot:Storey .
+
+bot:has3DModel a owl:ObjectProperty ;
+    schema:domainIncludes bot:Element,
+        bot:Zone .
+
+bot:hasBuilding a owl:ObjectProperty ;
+    rdfs:domain bot:Zone ;
+    rdfs:range bot:Building ;
+    schema:domainIncludes bot:Site .
+
+bot:hasElement a owl:ObjectProperty ;
+    rdfs:domain bot:Zone ;
+    rdfs:range bot:Element .
+
+bot:hasSimple3DModel a owl:DatatypeProperty ;
+    schema:domainIncludes bot:Element,
+        bot:Zone .
+
+bot:hasSpace a owl:ObjectProperty ;
+    rdfs:domain bot:Zone ;
+    rdfs:range bot:Space ;
+    schema:domainIncludes bot:Storey .
+
+bot:hasStorey a owl:ObjectProperty ;
+    rdfs:domain bot:Zone ;
+    rdfs:range bot:Storey ;
+    schema:domainIncludes bot:Building .
+
+bot:hasSubElement a owl:ObjectProperty ;
+    rdfs:domain bot:Element ;
+    rdfs:range bot:Element .
+
+bot:hasZeroPoint a owl:ObjectProperty ;
+    rdfs:domain bot:Site .
+
+bot:hostsElement a owl:ObjectProperty ;
+    rdfs:domain bot:Element ;
+    rdfs:range bot:Element .
+
+bot:interfaceOf a owl:ObjectProperty ;
+    rdfs:domain bot:Interface .
+
+bot:intersectingElement a owl:ObjectProperty .
+
+bot:intersectsZone a owl:ObjectProperty,
+        owl:SymmetricProperty ;
+    rdfs:domain bot:Zone ;
+    rdfs:range bot:Zone ;
+    schema:domainIncludes bot:Building,
+        bot:Site,
+        bot:Space,
+        bot:Storey ;
+    schema:rangeIncludes bot:Building,
+        bot:Site,
+        bot:Space,
+        bot:Storey .
+

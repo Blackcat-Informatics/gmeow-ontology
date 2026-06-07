@@ -94,6 +94,57 @@ CONSTRUCT {
 
 Then `geof:within` / `geof:distance` and topological `geo:sfWithin` work natively.
 
+## Indoor topology: BOT and ifcOWL (#83)
+
+GMEOW's existing place model already handles sites, buildings, floors, and rooms at the
+**value** level (`gmeow:placeTypeSite`, `gmeow:placeTypeBuilding`,
+`gmeow:placeTypeFloor`, `gmeow:placeTypeRoom`). No new classes are introduced.
+The **BOT** (Building Topology Ontology) projection maps this value vocabulary
+to BOT classes and properties:
+
+| GMEOW | BOT |
+|---|---|
+| `gmeow:placeTypeSite` | `bot:Site` |
+| `gmeow:placeTypeBuilding` | `bot:Building` |
+| `gmeow:placeTypeFloor` | `bot:Storey` |
+| `gmeow:placeTypeRoom` | `bot:Space` |
+| `gmeow:containsPlace` (building → floor, floor → room) | `bot:hasStorey` / `bot:hasSpace` |
+| `gmeow:containsPlace` (site → building, building → floor, floor → room) | `bot:containsZone` |
+| `gmeow:adjacentTo` | `bot:adjacentZone` |
+
+The alignment is **by reference**; BOT is imported offline as a validation-time target
+snapshot (`imports/targets/bot.ttl`, BSD-3-Clause). The BOT profile emits a BOT
+topology graph without leaking `gmeow:` IRIs.
+
+**ifcOWL** (IFC4) is a reference-only target with a more restrictive license.
+Term equivalences (`skos:closeMatch`) map GMEOW place kinds and topology properties
+to ifcOWL classes such as `ifc:IfcBuilding`, `ifc:IfcBuildingStorey`, and
+`ifc:IfcSpace`, but no executable SPARQL projection is generated — consumers should
+use a licensed IFC solver to derive an ifcOWL serialization.
+
+```turtle
+ex:site a gmeow:Place ; gmeow:placeType gmeow:placeTypeSite ;
+        gmeow:containsPlace ex:building .
+
+ex:building a gmeow:Place ; gmeow:placeType gmeow:placeTypeBuilding ;
+            gmeow:containsPlace ex:floor .
+
+ex:floor a gmeow:Place ; gmeow:placeType gmeow:placeTypeFloor ;
+         gmeow:containsPlace ex:roomA ; gmeow:containsPlace ex:roomB .
+
+ex:roomA a gmeow:Place ; gmeow:placeType gmeow:placeTypeRoom ;
+         gmeow:adjacentTo ex:roomB .
+```
+
+Projected through the `bot` profile this yields:
+
+```turtle
+ex:site a bot:Site ; bot:containsZone ex:building .
+ex:building a bot:Building ; bot:hasStorey ex:floor .
+ex:floor a bot:Storey ; bot:hasSpace ex:roomA , ex:roomB .
+ex:roomA a bot:Space ; bot:adjacentZone ex:roomB .
+```
+
 ## Privacy by generalization: coarsening coordinates (#72 / #79)
 
 A place may declare the coarsest level at which its location should be disclosed:

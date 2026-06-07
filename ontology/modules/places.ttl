@@ -9,7 +9,7 @@
 <https://blackcatinformatics.ca/gmeow/modules/places>
     a owl:Ontology ;
     rdfs:label "GMEOW Locations Module"@en ;
-    rdfs:comment """Locations — geographic places, online (virtual) locations, and digital storage locations — with coordinates, geometry, containment, and external-gazetteer coreference (the schema.org / GeoSPARQL / GeoNames / Getty TGN / Wikidata / WGS84 superset layer). Place kinds are an open value vocabulary (gmeow:placeType), so any granularity from country to room can be a first-class, QID-bearing place chained by containedInPlace.
+    rdfs:comment """Locations — geographic places, online (virtual) locations, and digital storage locations — with coordinates, geometry, containment, and external-gazetteer coreference (the schema.org / GeoSPARQL / GeoNames / Getty TGN / Wikidata / WGS84 / BOT / ifcOWL superset layer). Place kinds are an open value vocabulary (gmeow:placeType), so any granularity from country to room can be a first-class, QID-bearing place chained by containedInPlace.
 
 STANDPOINT DOCTRINE (#51). Contested facts in the locations slice — sovereignty/jurisdiction disputes, competing place names (endonym vs exonym per community), boundary changes, regulatory overlays — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame asserting it — the two axes are orthogonal and must not be conflated. There is NO location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the cross-cutting #43 facility. Superseded or withdrawn claims set gmeow:displayable false, never deletion (Principle 10).
 
@@ -31,7 +31,7 @@ gmeow:Place
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Location ;
     rdfs:label "Place"@en ;
-    skos:definition "A geographic location at any granularity — a country, region, city, thoroughfare, building, floor, or room. The specific kind is given by gmeow:placeType (a value), not a subclass, so any level can be a first-class place with its own coordinates and external identifiers."@en ;
+    skos:definition "A geographic location at any granularity — a country, region, city, thoroughfare, site, building, floor, or room. The specific kind is given by gmeow:placeType (a value), not a subclass, so any level can be a first-class place with its own coordinates and external identifiers."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:VirtualLocation
@@ -80,6 +80,7 @@ gmeow:placeTypeCity               a gmeow:PlaceType ; rdfs:label "city / populat
 gmeow:placeTypeNeighborhood       a gmeow:PlaceType ; rdfs:label "neighborhood"@en .
 gmeow:placeTypeThoroughfare       a gmeow:PlaceType ; rdfs:label "thoroughfare / street"@en .
 gmeow:placeTypePremises           a gmeow:PlaceType ; rdfs:label "premises / address point"@en .
+gmeow:placeTypeSite               a gmeow:PlaceType ; rdfs:label "site / campus / parcel"@en .
 gmeow:placeTypeBuilding           a gmeow:PlaceType ; rdfs:label "building"@en .
 gmeow:placeTypeFloor              a gmeow:PlaceType ; rdfs:label "floor / level"@en .
 gmeow:placeTypeRoom               a gmeow:PlaceType ; rdfs:label "room"@en .
