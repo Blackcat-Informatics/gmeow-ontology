@@ -9,6 +9,7 @@ observation-result pattern inherited from the universal observation stack.
 from __future__ import annotations
 
 from rdflib import OWL, RDF, RDFS, Graph, URIRef
+from rdflib.namespace import XSD
 
 from gmeow_tools.graph import load_merged_graph
 
@@ -89,6 +90,15 @@ def test_contains_place_exists_and_is_inverse() -> None:
         OWL.inverseOf,
         URIRef(GMEOW + "containedInPlace"),
     ) in graph
+
+
+def test_minimum_population_is_datatype() -> None:
+    graph = _graph()
+    prop = URIRef(GMEOW + "minimumPopulation")
+    assert (prop, RDF.type, OWL.DatatypeProperty) in graph
+    assert (prop, RDF.type, OWL.FunctionalProperty) in graph
+    assert (prop, RDFS.domain, URIRef(GMEOW + "SpatialAggregation")) in graph
+    assert (prop, RDFS.range, XSD.nonNegativeInteger) in graph
 
 
 def test_no_unsafe_complex_property_chains() -> None:

@@ -20,6 +20,9 @@ CONSTRUCT {
     ?g geo:asGeoJSON ?gjTagged .
     ?coarseGeom geo:asGeoJSON ?gjTagged .
     ?traj a geo:Feature .
+    ?place geo:hasCentroid ?g_centroid .
+    ?g_centroid a geo:Geometry .
+    ?g_centroid geo:asWKT ?wktTagged_centroid .
 }
 WHERE {
     {
@@ -98,5 +101,12 @@ WHERE {
     }
     UNION {
         ?traj a gmeow:Trajectory .
+    }
+    UNION {
+        ?place a gmeow:Place .
+        ?place gmeow:hasCentroid ?g_centroid .
+        ?g_centroid gmeow:asWKT ?wkt .
+        BIND ( STRDT(STR(?wkt), geo:wktLiteral) AS ?wktTagged_centroid )
+        FILTER NOT EXISTS { ?place gmeow:coarsenTo ?anyLvl . }
     }
 }

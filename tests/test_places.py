@@ -625,6 +625,14 @@ def test_spatial_frames_declare_metric_kind() -> None:
     ) in graph
 
 
+def test_has_centroid_domain_range() -> None:
+    graph = _graph()
+    prop = URIRef(GMEOW + "hasCentroid")
+    assert (prop, RDF.type, OWL.ObjectProperty) in graph
+    assert (prop, RDFS.domain, URIRef(GMEOW + "Place")) in graph
+    assert (prop, RDFS.range, URIRef(GMEOW + "Geometry")) in graph
+
+
 # --------------------------------------------------------------------------- #
 # Standpoint coexistence — contested sovereignty / place names (#51)
 # --------------------------------------------------------------------------- #

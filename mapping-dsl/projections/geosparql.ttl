@@ -267,3 +267,27 @@ gmeow:mapGeoTrajectory a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "trajectory samples (LocationStates), temporal scope, reference frame, and interpolation method are dropped in pure GeoSPARQL; only the feature identity is retained. The sample geometries project separately via mapGeoPosePositionToWktPoint." ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "traj" ; gmeow:tPred rdf:type ; gmeow:tObjValue geo:Feature ] ) ] .
+
+# Centroid projection (#101) — gmeow:hasCentroid → geo:hasCentroid
+gmeow:mapGeoCentroid a gmeow:ProjectionMapping ;
+    rdfs:label "hasCentroid geometry → geo:hasCentroid with WKT"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasCentroid ; gmeow:objectVar "g_centroid" ]
+            [ gmeow:subjectVar "g_centroid" ; gmeow:predicate gmeow:asWKT ; gmeow:objectVar "wkt" ] ) ;
+        gmeow:bind [ gmeow:bindVar "wktTagged_centroid" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opStrDatatype ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "wkt" ] ) ]
+                geo:wktLiteral ) ] ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:coarsenTo ; gmeow:objectVar "anyLvl" ] ;
+        gmeow:edoalSource gmeow:hasCentroid ; gmeow:edoalSourceKind "relation" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "geosparql" ; gmeow:relation "=" ;
+        gmeow:edoalTarget geo:hasCentroid ; gmeow:edoalTargetKind "property" ;
+        gmeow:transform gmeow:fnRetagWkt ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "place" ; gmeow:tPred geo:hasCentroid ; gmeow:tObj "g_centroid" ]
+            [ gmeow:tSubj "g_centroid" ; gmeow:tPred rdf:type ; gmeow:tObjValue geo:Geometry ]
+            [ gmeow:tSubj "g_centroid" ; gmeow:tPred geo:asWKT ; gmeow:tObj "wktTagged_centroid" ] ) ] .
