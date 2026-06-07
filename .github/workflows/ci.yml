@@ -78,7 +78,7 @@ jobs:
       - name: Sync environment
         run: uv sync --frozen
 
-      - name: Validate (syntax, lint, SHACL)
+      - name: Validate (syntax, lint, SHACL, DSL SHACL)
         run: uv run gmeow validate
 
       - name: Mapping DSL compiles with no drift
@@ -89,6 +89,12 @@ jobs:
 
       - name: Wikidata QID/PID syntax gate
         run: uv run gmeow wikidata
+
+      - name: Coverage gaps
+        run: uv run gmeow coverage --gaps
+
+      - name: Alignment direction lint
+        run: uv run gmeow lint-alignment
 
   reason:
     runs-on: ubuntu-latest
@@ -112,6 +118,32 @@ jobs:
 
       - name: Reason (ELK) + OWL 2 DL profile
         run: uv run gmeow reason --reasoner ELK
+
+      - name: Reasoned-graph negative tests (verify)
+        run: uv run gmeow verify --reasoner ELK
+
+  reason-hermit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Sync environment
+        run: uv sync --frozen
+
+      - name: Pull pinned ROBOT image
+        run: |
+          ROBOT_IMAGE=$(uv run python -c "from gmeow_tools.config import ROBOT_IMAGE; print(ROBOT_IMAGE)")
+          docker pull "$ROBOT_IMAGE"
+
+      - name: Reason (HermiT) — sound + complete consistency
+        run: uv run gmeow reason --reasoner hermit
 
   statements:
     runs-on: ubuntu-latest
@@ -146,7 +178,7 @@ jobs:
   # above. `if: always()` guarantees it reports a definite success/failure
   # (never a merge-blocking "skipped") and fails if any parallel job did not.
   quality:
-    needs: [lint, python, ontology, reason, statements]
+    needs: [lint, python, ontology, reason, reason-hermit, statements]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -156,10 +188,11 @@ jobs:
           PYTHON: ${{ needs.python.result }}
           ONTOLOGY: ${{ needs.ontology.result }}
           REASON: ${{ needs.reason.result }}
+          REASON_HERMIT: ${{ needs.reason-hermit.result }}
           STATEMENTS: ${{ needs.statements.result }}
         run: |
-          echo "results: lint=$LINT python=$PYTHON ontology=$ONTOLOGY reason=$REASON statements=$STATEMENTS"
-          for r in "$LINT" "$PYTHON" "$ONTOLOGY" "$REASON" "$STATEMENTS"; do
+          echo "results: lint=$LINT python=$PYTHON ontology=$ONTOLOGY reason=$REASON reason-hermit=$REASON_HERMIT statements=$STATEMENTS"
+          for r in "$LINT" "$PYTHON" "$ONTOLOGY" "$REASON" "$REASON_HERMIT" "$STATEMENTS"; do
             if [ "$r" != "success" ]; then
               echo "::error::a quality job did not succeed ($r)"
               exit 1

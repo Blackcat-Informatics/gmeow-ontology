@@ -24,6 +24,7 @@ from rdflib.namespace import Namespace
 from rdflib.term import Node
 
 from gmeow_tools.config import MAPPING_DSL_DIR, PREFIXES
+from gmeow_tools.dsl_validate import validate_mapping_dsl
 
 GM = Namespace(PREFIXES["gmeow"])
 DCTERMS_DESCRIPTION = URIRef("http://purl.org/dc/terms/description")
@@ -591,8 +592,19 @@ def _mapping_sets(graph: Graph) -> dict[str, MappingSet]:
 def load_dsl(src: Path = MAPPING_DSL_DIR) -> Dsl:
     """Parse the whole DSL (vocabulary + equivalence + projection cells)."""
     graph = Graph()
+    node_to_file: dict[Node, Path] = {}
     for path in sorted(src.rglob("*.ttl")):
         graph.parse(path, format="turtle")
+        # Track source file for named IRIs (second parse is harmless).
+        file_graph = Graph().parse(path, format="turtle")
+        for subject in file_graph.subjects():
+            if isinstance(subject, URIRef) and subject not in node_to_file:
+                node_to_file[subject] = path
+    violations = validate_mapping_dsl(graph, node_to_file)
+    if violations:
+        raise CompileError(
+            "mapping DSL SHACL violations:\n  " + "\n  ".join(violations)
+        )
     return Dsl(
         equivalences=tuple(_equivalences(graph)),
         projections=tuple(_projections(graph)),

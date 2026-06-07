@@ -72,6 +72,10 @@ TARGET_SNAPSHOT_DIR = IMPORTS_DIR / "targets"
 MAPPINGS_DIR = PROJECT_ROOT / "mappings"
 SHAPES_DIR = PROJECT_ROOT / "shapes"
 SHAPES_FILE = SHAPES_DIR / "gmeow-shapes.ttl"
+#: SHACL shapes for the mapping DSL source (gmeow_tools.dsl_validate).
+MAPPING_DSL_SHAPES_FILE = SHAPES_DIR / "mapping-dsl-shapes.ttl"
+#: SHACL shapes for the statement DSL source (gmeow_tools.dsl_validate).
+STATEMENT_DSL_SHAPES_FILE = SHAPES_DIR / "statement-dsl-shapes.ttl"
 QUERIES_DIR = PROJECT_ROOT / "queries"
 COMPETENCY_DIR = QUERIES_DIR / "competency"
 QC_DIR = QUERIES_DIR / "qc"
