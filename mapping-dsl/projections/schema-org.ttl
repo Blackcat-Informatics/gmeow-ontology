@@ -437,7 +437,8 @@ gmeow:mapSchemaJobTitle a gmeow:ProjectionMapping ;
         gmeow:edoalPath true ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:jobTitle ; gmeow:relation "<=" ;
-        gmeow:transform gmeow:fnMembershipToJobTitle ; gmeow:confidence 0.9 ] .
+        gmeow:transform gmeow:fnMembershipToJobTitle ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the Membership relator (organization, period, role, confidence, standpoint) collapses to a flat schema:jobTitle literal; contested membership claims are not distinguished" ] .
 
 gmeow:mapSchemaDepartment a gmeow:ProjectionMapping ;
     rdfs:label "subOrganizationOf → schema:department (inverse, parent→child)"@en ;
@@ -447,7 +448,8 @@ gmeow:mapSchemaDepartment a gmeow:ProjectionMapping ;
         gmeow:edoalPath true ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:department ; gmeow:relation "<=" ;
-        gmeow:transform gmeow:fnSubOrgToDepartment ; gmeow:confidence 1.0 ] .
+        gmeow:transform gmeow:fnSubOrgToDepartment ; gmeow:confidence 1.0 ;
+        gmeow:lossyDrop "the subOrganizationOf hierarchy and any contested succession/standpoint claims collapse to a flat schema:department edge" ] .
 
 # Reified Participation → the flat schema.org event-role edges, keyed by role
 # value. The relator's period / confidence / evidence / standpoint and the open

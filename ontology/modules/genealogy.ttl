@@ -8,7 +8,9 @@
 <https://blackcatinformatics.ca/gmeow/modules/genealogy>
     a owl:Ontology ;
     rdfs:label "GMEOW Genealogy Module"@en ;
-    rdfs:comment "A comprehensive, evidence-centric genealogy model: reified, typed kinship relationships and kinship convenience properties. Life events themselves are modelled by the universal events module (gmeow:Event + gmeow:eventType value vocabulary + the gmeow:Participation relator); a person's life events are gmeow:LifeEvent occurrences carrying gmeow:eventTypeBirth / …Marriage / …NameChange etc. Structured naming terms (gmeow:PersonName et al.) live in the names module and link to the event that confers them via gmeow:conferredByEvent. Supersedes the unmaintained W3C SWAP gedcom vocabulary; aligned to BIO, GEDCOM X, schema.org, Wikidata, REL and GeoNames."@en ;
+    rdfs:comment """A comprehensive, evidence-centric genealogy model: reified, typed kinship relationships and kinship convenience properties. Life events themselves are modelled by the universal events module (gmeow:Event + gmeow:eventType value vocabulary + the gmeow:Participation relator); a person's life events are gmeow:LifeEvent occurrences carrying gmeow:eventTypeBirth / …Marriage / …NameChange etc. Structured naming terms (gmeow:PersonName et al.) live in the names module and link to the event that confers them via gmeow:conferredByEvent. Supersedes the unmaintained W3C SWAP gedcom vocabulary; aligned to BIO, GEDCOM X, schema.org, Wikidata, REL and GeoNames.
+
+STANDPOINT DOCTRINE (#51). Contested facts in genealogy — disputed parentage, conflicting birth/death dates, competing civil vs parish records — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested birth date is two standpoint-indexed gmeow:eventTime claims on the same gmeow:LifeEvent (the events module's mechanism). A contested parentage is two gmeow:accordingTo-annotated gmeow:hasParent claims, or two reified gmeow:ParentChildRelationship instances each carrying gmeow:accordingTo. There is NO genealogy-specific dispute mechanism, no preferredParent, no primaryKinship — only the cross-cutting #43 facility. A withdrawn parentage claim (an opened-then-closed StandpointTenure, or a superseded claim) sets gmeow:displayable false, never deletion (Principle 10)."""@en ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # Classes
@@ -31,7 +33,7 @@ gmeow:KinRelationship
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Kin Relationship"@en ;
-    skos:definition "A reified kinship relationship between persons, able to bear its own events, dates and sources."@en ;
+    skos:definition "A reified kinship relationship between persons, able to bear its own events, dates, sources, and standpoint-indexed claims. A disputed kinship is several coexisting gmeow:accordingTo-annotated relators, none privileged (Principle 9)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:CoupleRelationship
@@ -88,7 +90,7 @@ gmeow:hasParent
     rdfs:domain gmeow:Person ;
     rdfs:range gmeow:Person ;
     rdfs:label "has parent"@en ;
-    skos:definition "Relates a person to a parent (any kind: biological, adoptive, step, or foster)."@en ;
+    skos:definition "Relates a person to a parent (any kind: biological, adoptive, step, or foster). Non-functional: contested parentage claims from multiple sources coexist as standpoint-indexed statements (gmeow:accordingTo), never collapsing to a single winner (Principle 9)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasChild

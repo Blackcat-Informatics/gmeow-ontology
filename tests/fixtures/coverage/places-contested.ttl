@@ -1,0 +1,79 @@
+# Coverage slice (#51): contested location facts — standpoint-indexed,
+# coexisting, NO winner. Exercises contested sovereignty (containedInPlace),
+# contested place names (hasPlaceName / PlaceNaming), and a superseded historical
+# name suppressed with gmeow:displayable false (Principle 10). Native GMEOW terms only.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:standpoint-polity-a a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-polity-b a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# A contested sovereignty case: a place is containedInPlace two larger places,
+# each asserted by a different polity standpoint.
+ex:disputedPlace a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeRegion ;
+    gmeow:containedInPlace ex:polityA , ex:polityB .
+
+ex:polityA a gmeow:Place ; gmeow:placeType gmeow:placeTypeCountry .
+ex:polityB a gmeow:Place ; gmeow:placeType gmeow:placeTypeCountry .
+
+ex:claimContainedInA a owl:Axiom ;
+    owl:annotatedSource   ex:disputedPlace ;
+    owl:annotatedProperty gmeow:containedInPlace ;
+    owl:annotatedTarget   ex:polityA ;
+    gmeow:accordingTo ex:standpoint-polity-a ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    gmeow:confidence 0.95 .
+
+ex:claimContainedInB a owl:Axiom ;
+    owl:annotatedSource   ex:disputedPlace ;
+    owl:annotatedProperty gmeow:containedInPlace ;
+    owl:annotatedTarget   ex:polityB ;
+    gmeow:accordingTo ex:standpoint-polity-b ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    gmeow:confidence 0.9 .
+
+# A contested place name: endonym vs exonym, each asserted by a different community.
+ex:disputedPlace gmeow:hasPlaceName ex:nameEndonym , ex:nameExonym .
+
+ex:nameEndonym a gmeow:PlaceName ;
+    gmeow:fullName "Konstantinoupoli"@x-gmeow-el ;
+    gmeow:namePurpose gmeow:namePurposeEndonym ;
+    gmeow:displayable true .
+
+ex:nameExonym a gmeow:PlaceName ;
+    gmeow:fullName "Constantinople"@x-gmeow-en ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+ex:namingEndonym a gmeow:NameUsage ;
+    gmeow:usageNamed ex:disputedPlace ;
+    gmeow:usageAppellation ex:nameEndonym ;
+    gmeow:usageAudience ex:greekCommunity ;
+    gmeow:usageAuthority ex:greekCommunity ;
+    gmeow:usageRegister gmeow:registerFormal .
+
+ex:namingExonym a gmeow:NameUsage ;
+    gmeow:usageNamed ex:disputedPlace ;
+    gmeow:usageAppellation ex:nameExonym ;
+    gmeow:usageAudience ex:westernCommunity ;
+    gmeow:usageAuthority ex:westernCommunity ;
+    gmeow:usageRegister gmeow:registerFormal .
+
+ex:greekCommunity a gmeow:Organization .
+ex:westernCommunity a gmeow:Organization .
+
+# A superseded historical name — suppressed, never deleted (Principle 10).
+ex:nameHistorical a gmeow:PlaceName ;
+    gmeow:fullName "Byzantium"@x-gmeow-la ;
+    gmeow:namePurpose gmeow:namePurposeSuperseded ;
+    gmeow:displayable false .
+
+ex:namingHistorical a gmeow:NameUsage ;
+    gmeow:usageNamed ex:disputedPlace ;
+    gmeow:usageAppellation ex:nameHistorical ;
+    gmeow:usageRegister gmeow:registerFormal ;
+    gmeow:displayable false .

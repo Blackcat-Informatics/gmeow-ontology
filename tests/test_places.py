@@ -8,14 +8,19 @@ authority link.
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, URIRef
+from pathlib import Path
+
+from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
 from rdflib.namespace import XSD
 
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.validate import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"
 GEO = "http://www.opengis.net/ont/geosparql#"
+EX_PLACES = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
+COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
 
 
 def _graph() -> Graph:
@@ -613,3 +618,59 @@ def test_spatial_frames_declare_metric_kind() -> None:
         URIRef(GMEOW + "hasMetricKind"),
         URIRef(GMEOW + "metricGeodesic"),
     ) in graph
+
+
+# --------------------------------------------------------------------------- #
+# Standpoint coexistence — contested sovereignty / place names (#51)
+# --------------------------------------------------------------------------- #
+
+
+def test_contested_sovereignty_coexists() -> None:
+    """Two contradictory standpoint-indexed containedInPlace claims load, SHACL-pass,
+    and are BOTH retained — neither is the ground truth."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-contested.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    containers = set(
+        g.objects(EX_PLACES.disputedPlace, URIRef(GMEOW + "containedInPlace"))
+    )
+    assert {EX_PLACES.polityA, EX_PLACES.polityB} <= containers
+
+
+def test_contested_place_names_coexist() -> None:
+    """Two co-equal toponyms (endonym vs exonym) are both retained."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-contested.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    names = set(g.objects(EX_PLACES.disputedPlace, URIRef(GMEOW + "hasPlaceName")))
+    assert {EX_PLACES.nameEndonym, EX_PLACES.nameExonym} <= names
+
+
+def test_superseded_historical_name_suppressed() -> None:
+    """A superseded place name is retained with displayable false (Principle 10)."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-contested.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    assert (
+        EX_PLACES.nameHistorical,
+        URIRef(GMEOW + "displayable"),
+        Literal(False),
+    ) in g
+
+
+def test_no_preferred_or_primary_place_term() -> None:
+    """Principle 9: no single slot to win — places mints no preferred/primary
+    selector for a contested jurisdiction or toponym."""
+    g = _graph()
+    prop_types = (OWL.ObjectProperty, OWL.DatatypeProperty, OWL.AnnotationProperty)
+    for banned in (
+        "primaryName",
+        "preferredName",
+        "primaryJurisdiction",
+        "preferredJurisdiction",
+        "preferredRank",
+    ):
+        node = URIRef(GMEOW + banned)
+        for pt in prop_types:
+            assert (node, RDF.type, pt) not in g, f"{banned} must not exist"
+        assert (node, RDF.type, OWL.Class) not in g
