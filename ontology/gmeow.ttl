@@ -56,4 +56,5 @@
         <https://blackcatinformatics.ca/gmeow/modules/trust> ,
         <https://blackcatinformatics.ca/gmeow/modules/provenance> ,
         <https://blackcatinformatics.ca/gmeow/modules/standpoint> ,
-        <https://blackcatinformatics.ca/gmeow/modules/rights> .
+        <https://blackcatinformatics.ca/gmeow/modules/rights> ,
+        <https://blackcatinformatics.ca/gmeow/modules/coreference> .

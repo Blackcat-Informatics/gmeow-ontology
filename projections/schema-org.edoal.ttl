@@ -122,7 +122,7 @@
             rdfs:label "exact authority coreference → schema:sameAs"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:authorityLink ] ;
-            align:entity2 [ a edoal:Property ;
+            align:entity2 [ a edoal:Relation ;
                     edoal:uri schema:sameAs ] ;
             align:relation "<=" ;
             edoal:measure 8e-01 ],

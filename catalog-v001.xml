@@ -32,4 +32,5 @@
     <uri name="https://blackcatinformatics.ca/gmeow/modules/provenance" uri="ontology/modules/provenance.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/standpoint" uri="ontology/modules/standpoint.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/rights" uri="ontology/modules/rights.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/coreference" uri="ontology/modules/coreference.ttl"/>
 </catalog>

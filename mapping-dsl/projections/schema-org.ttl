@@ -114,6 +114,7 @@ gmeow:mapSchemaExactAuthorityLink a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:authorityLink ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:sameAs ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:edoalTargetKind "relation" ;
         gmeow:lossyDrop "authority provenance, confidence, standpoint, and exact-vs-close match distinction collapse to a schema.org identity URL; skos:closeMatch authority links are not emitted" ] .
 
 gmeow:mapSchemaPlaceType a gmeow:ProjectionMapping ;
