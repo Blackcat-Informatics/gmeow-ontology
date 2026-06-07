@@ -1,0 +1,114 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/test/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# =========================================================================== #
+# Example observation data — GMEOW Observation module (#66).
+#
+# Two standpoint-indexed coordinate observations of the same place,
+# plus a contested temperature reading, demonstrating:
+#   - Observation as gufo:Relator
+#   - Vantage (observer / standpoint)
+#   - ObservedFeature + ObservationResult
+#   - ReferenceFrame inheritance
+#   - ScalarQuantity for literal results
+#   - Co-equal conflicting claims (Principle 9)
+# =========================================================================== #
+
+# --- Place being observed --------------------------------------------------- #
+
+ex:placeEdmonton
+    a gmeow:Place ;
+    rdfs:label "Edmonton"@en ;
+    gmeow:placeType gmeow:placeTypeCity .
+
+# --- Coordinate Observation 1: GPS survey by Agency A ----------------------- #
+
+ex:obsCoordsAgencyA
+    a gmeow:Measurement ;
+    gmeow:observationType gmeow:observationTypeMeasurement ;
+    gmeow:vantage ex:agencyA ;
+    gmeow:observedFeature ex:placeEdmonton ;
+    gmeow:observationResult ex:coordsAgencyA ;
+    gmeow:observationMethod gmeow:methodInstrumentalReading ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ;
+    gmeow:hasGranularity gmeow:granularityPoint ;
+    gmeow:hasDeterminacy gmeow:determinacyCrisp ;
+    gmeow:confidence "0.95"^^xsd:decimal ;
+    gmeow:assertedAt "2023-06-15T09:00:00Z"^^xsd:dateTime .
+
+ex:coordsAgencyA
+    a gmeow:GeoCoordinates ;
+    gmeow:latitude "53.5461"^^xsd:decimal ;
+    gmeow:longitude "-113.4938"^^xsd:decimal .
+
+ex:agencyA
+    a gmeow:Organization ;
+    rdfs:label "Geodetic Survey Agency A"@en .
+
+# --- Coordinate Observation 2: Remote sensing by Agency B ------------------- #
+# A co-equal, conflicting claim — different coordinates for the same place.
+# Both observations coexist; neither is privileged (Principle 9).
+
+ex:obsCoordsAgencyB
+    a gmeow:Measurement ;
+    gmeow:observationType gmeow:observationTypeMeasurement ;
+    gmeow:vantage ex:agencyB ;
+    gmeow:observedFeature ex:placeEdmonton ;
+    gmeow:observationResult ex:coordsAgencyB ;
+    gmeow:observationMethod gmeow:methodRemoteSensing ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ;
+    gmeow:hasGranularity gmeow:granularityPoint ;
+    gmeow:hasDeterminacy gmeow:determinacyCrisp ;
+    gmeow:confidence "0.88"^^xsd:decimal ;
+    gmeow:assertedAt "2024-01-20T14:30:00Z"^^xsd:dateTime .
+
+ex:coordsAgencyB
+    a gmeow:GeoCoordinates ;
+    gmeow:latitude "53.5463"^^xsd:decimal ;
+    gmeow:longitude "-113.4941"^^xsd:decimal .
+
+ex:agencyB
+    a gmeow:Organization ;
+    rdfs:label "Remote Sensing Agency B"@en .
+
+# --- Sensory Observation: contested temperature reading --------------------- #
+
+ex:obsTempStation1
+    a gmeow:SensoryObservation ;
+    gmeow:observationType gmeow:observationTypeSensory ;
+    gmeow:vantage ex:weatherStation1 ;
+    gmeow:observedFeature ex:placeEdmonton ;
+    gmeow:observationResult ex:tempStation1 ;
+    gmeow:observationMethod gmeow:methodInstrumentalReading ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI ;
+    gmeow:hasDeterminacy gmeow:determinacyCrisp ;
+    gmeow:confidence "0.99"^^xsd:decimal ;
+    gmeow:assertedAt "2024-07-15T12:00:00Z"^^xsd:dateTime .
+
+ex:tempStation1
+    a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "25.3"^^xsd:decimal ;
+    gmeow:hasUnit <http://qudt.org/vocab/unit/DEG_C> ;
+    gmeow:hasDeterminacy gmeow:determinacyCrisp .
+
+ex:weatherStation1
+    a gmeow:Agent ;
+    rdfs:label "Weather Station YEG-01"@en .
+
+# --- Standpoint Claim: political boundary assertion ------------------------- #
+
+ex:claimCanada
+    a gmeow:StandpointClaim ;
+    gmeow:observationType gmeow:observationTypeStandpoint ;
+    gmeow:vantage ex:governmentCanada ;
+    gmeow:observedFeature ex:placeEdmonton ;
+    gmeow:observationResult gmeow:unequivocal ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:confidence "1.0"^^xsd:decimal ;
+    gmeow:validFrom "1905-09-01T00:00:00Z"^^xsd:dateTime .
+
+ex:governmentCanada
+    a gmeow:Organization ;
+    rdfs:label "Government of Canada"@en .

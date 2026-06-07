@@ -26,6 +26,7 @@ dev = [
     "mypy>=1.14",
     "pytest>=8.3",
     "pytest-cov>=6.0",
+    "pytest-xdist>=3.6",
     "pre-commit>=4.0",
     "owlrl>=6.0.2",  # pure-Python OWL 2 RL — fast, Docker-free entailment tests (#38)
 ]

@@ -92,6 +92,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:Mailbox (⊑ gmeow:InformationObject): A named container of messages within an account — a folder, JMAP mailbox, or Gmail label.
 - gmeow:MailboxResidence (⊑ gmeow:TimeScopedRelation): The reified, time-scoped fact that a message resided in a mailbox/label over an interval (membership is time-varying — messages move between folders and labels).
 - gmeow:Mark (⊑ gmeow:InformationObject): A brand / sign / name / logo that can be trademarked — the thing a gmeow:Trademark protects (schema:Brand). An information object: it may itself bear a gmeow:RightsStatement (logos are also copyright works).
+- gmeow:Measurement (⊑ gmeow:Observation): An observation that assigns a quantitative or qualitative value to a feature of interest, typically carrying a unit, uncertainty, and determinacy model. The parent of temporal dating, spatial coordinate assignment, and scalar quantity measurements.
 - gmeow:MediaObject (⊑ gmeow:CreativeWork): An image, audio, or video media file.
 - gmeow:Membership (⊑ gufo:Relator): The reified relationship by which an agent is a member of an organization, optionally playing a role over a period of time.
 - gmeow:Message (⊑ gmeow:InformationObject): A communication sent from one agent to others — the parent of email and other message kinds.
@@ -103,6 +104,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:NameRegister (⊑ gufo:QualityValue): The social register of a name-usage (formal, intimate, professional, casual). A value vocabulary carried by gmeow:usageRegister on a gmeow:NameUsage.
 - gmeow:NameUsage (⊑ gufo:Relator): A reified, context-dependent use of an appellation: a named entity is called by a given appellation, by or among a particular audience (or within a relationship scope), in a particular register, over a period, on some evidence. Perspectival — a usage is whoever's, never a global fact — so it carries no notion of a preferred or canonical name. Mint one NameUsage per (appellation, audience, register) tuple; its period is carried by gmeow:usageInterval or by validFrom/validUntil on the statement.
 - gmeow:NamedPeriod (⊑ gmeow:Entity, gufo:Object): A named stretch of time with defined bounds — a geologic era, historical dynasty, artistic period, fiscal year, or any other culturally salient temporal division.
+- gmeow:Observation (⊑ gufo:Relator): A reified act of observing, measuring, or asserting a feature of interest — the universal stack unifying spatial measurement, temporal dating, sensory reading, and standpoint claims. Mediates between an observer (vantage), a feature (observedFeature), and a result (observationResult). Every observation carries at least a vantage and an observedFeature (EL open-world); closed-world cardinality is SHACL's concern.
+- gmeow:ObservationMethod (⊑ gufo:QualityValue): The method or protocol by which an observation was made — a value vocabulary (individuals, never subclasses). Generalizes gmeow:DatingMethod (temporal module) and subsumes sensor types, survey protocols, laboratory techniques, archaeological procedures, and standpoint assertion methods. A method is constitutive of the observation: changing the method changes the observation's identity (it is a different act).
+- gmeow:ObservationType (⊑ gufo:QualityValue): The kind of observation being made — a value vocabulary (individuals, never subclasses). Distinguishes measurement, sensory reading, standpoint claim, derived inference, and simulation output. The specific sub-discipline (radiocarbon dating, GPS survey, temperature sensing) is gmeow:observationMethod, not gmeow:observationType.
 - gmeow:Occupation (⊑ gmeow:Entity): A kind of work or profession, such as those classified by ESCO or SOC.
 - gmeow:OnlineAccount (⊑ gmeow:InformationObject): An account an agent holds with an online service — a social profile, code-forge account, or decentralized identity.
 - gmeow:Organization (⊑ gmeow:Agent): A structured group of agents — a company, institution, association, or governmental body — able to act as a single agent.
@@ -142,8 +146,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:RomanticOrientationValue (⊑ gufo:QualityValue): A pattern of romantic attraction — a VALUE pointed at by gmeow:romanticOrientationValue, never a subclass. Kept separate from sexual orientation (split-attraction). Open: a fresh individual with rdfs:label when none is seeded.
 - gmeow:Rule (⊑ gufo:Relator): The abstract base of a deontic rule in a rights statement — it binds a regulated gmeow:RightsAction to an optional target asset and assignee. Specialised by gmeow:Permission, gmeow:Prohibition and gmeow:Duty (the ODRL rule trio).
 - gmeow:SMIMESignature (⊑ gmeow:CryptographicSignature): An S/MIME signature (RFC 8551) over a message, bound to an X.509 certificate.
+- gmeow:ScalarQuantity (⊑ gmeow:Entity, gufo:Object): A scalar numeric value with a unit, determinacy model, and granularity — the entity-valued wrapper for literal observation results (temperatures, distances, counts, probabilities). Keeps gmeow:observationResult uniformly entity-valued: the scalar literal lives here, not on the observation directly.
 - gmeow:ScriptRole (⊑ gufo:QualityValue): The role a writing system plays within a language's mixed orthography (primary, logographic content, syllabic grammar, loanword, transliteration, liturgical, historical, decorative). A value carried by gmeow:scriptRole.
 - gmeow:SensitivityLevel (⊑ gufo:QualityValue): A privacy-sensitivity classification for a value — an open, ordered value vocabulary (public ≺ internal ≺ confidential ≺ restricted ≺ sensitive personal). The explicit facet that drives disclosure-control decisions: a value marked sensitive personal may be coarsened or withheld at projection time under a consent guard. Orthogonal to determinacy, confidence, and granularity (Principle 9). The sensitivity-to-coarsen trigger is a solver concern (P12).
+- gmeow:SensoryObservation (⊑ gmeow:Observation): An observation produced by a sensor or sensory apparatus reading a physical property of the environment. Specialises Observation with sensor-specific properties (sensory property, sensor platform, sampling feature).
 - gmeow:SexAssignedAtBirth (⊑ gufo:QualityValue): A recorded sex-assigned-at-birth value pointed at by gmeow:sexAssignedAtBirth — a VALUE, never a subclass. Deliberately coarse and inclusive (incl. intersex); finer sex-characteristic detail is an optional free-text gmeow:intersexVariation note, not a clinical taxonomy.
 - gmeow:SexualOrientation (⊑ gmeow:IdentityFacet): A person's SELF-ASSERTED sexual orientation — the pattern of their sexual attraction — as a reified facet pointing (via gmeow:sexualOrientationValue) to an open gmeow:SexualOrientationValue. A SEPARATE axis from romantic orientation (split-attraction model) and from gender identity/expression; nothing infers one from another.
 - gmeow:SexualOrientationValue (⊑ gufo:QualityValue): A pattern of sexual attraction — a VALUE pointed at by gmeow:sexualOrientationValue, never a subclass. Open: an orientation not seeded here is a fresh individual with rdfs:label.
@@ -153,6 +159,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:Source (⊑ gmeow:InformationObject): A source from which evidence is drawn: a record, certificate, register, archive entry, or publication.
 - gmeow:SpatialCoordinates (⊑ gmeow:Entity, gufo:Object): A set of coordinate values representing a position in a specific coordinate reference frame.
 - gmeow:Standpoint (⊑ gmeow:Entity): A named perspective / frame within which claims are held true — a state's official position, a community's usage, an editorial or historiographic point of view. Minted only when the frame needs its own identity and labels; often a bare gmeow:Agent (a polity, an organization) suffices as the value of gmeow:accordingTo instead. Standpoints form a poset under gmeow:sharpens, topped by gmeow:universalStandpoint.
+- gmeow:StandpointClaim (⊑ gmeow:Observation): An observation made from a specific standpoint or frame — an assertion, denial, or qualified position that a proposition holds. Realises the standpoint side of Principle #3 (Observation ≡ Measurement ≡ Standpoint). The vantage is the standpoint; the observedFeature is the proposition or fact being claimed; the observationResult is the modality (unequivocal, probable, conceivable, refuted).
 - gmeow:StandpointModality (⊑ gufo:QualityValue): The belief value a standpoint assigns a proposition — a closed value vocabulary spanning the Standpoint-Logic □/◊ and the CRMinf belief value (true/false/probable/possible): gmeow:unequivocal, gmeow:probable, gmeow:conceivable, gmeow:refuted. Absence of a value is read as unequivocal.
 - gmeow:StandpointTenure (⊑ gmeow:TimeScopedRelation): The reified, time-scoped fact that a standpoint held a particular position over an interval — recognition granted in 2008 and withdrawn in 2030 is an opened-then-closed tenure, never a deletion (Principle 10). Use only when the adoption / withdrawal of the position is itself worth modelling; the common case is a bare gmeow:accordingTo annotation. Carries its standpoint-time interval via gmeow:duringInterval (temporal module).
 - gmeow:StepParentChild (⊑ gmeow:ParentChildRelationship): A parent-child relationship through marriage to a biological/adoptive parent.
@@ -424,6 +431,11 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:nativeLanguage [gmeow:Agent → gmeow:Language]: Relates an agent to a native (mother-tongue / first) language — a specialization of gmeow:knowsLanguage. Non-functional: a person may have several native languages.
 - gmeow:nip05 [gmeow:OnlineAccount → rdfs:Literal]: A Nostr NIP-05 identifier (user@domain) verifying a Nostr account against a domain.
 - gmeow:nostrPubkey [gmeow:OnlineAccount → rdfs:Literal]: The Nostr public key (npub / hex) identifying a decentralized-identity account.
+- gmeow:observationEvent [gmeow:Observation → gmeow:Event]: The event during which the observation was made — a survey, a census, an excavation, a clinical trial. Links an observation to the temporal occurrence that produced it. For the generating activity (provenance), use gmeow:wasGeneratedBy; this property is the *event* perspective (when did it happen).
+- gmeow:observationMethod [gmeow:Observation → gmeow:ObservationMethod] (functional): The method or protocol used to produce the observation. Functional: one method per observation (compound protocols are modelled as a single fused method individual, e.g. 'GPS-RTK survey with ground control'). Distinct from gmeow:vantage: the method is *how* it was done, the vantage is *who* did it.
+- gmeow:observationResult [gmeow:Observation → gmeow:Entity]: The entity-valued result of an observation — a coordinate set, an instant, a quality value, a quantity, or another entity. For literal scalar readings (e.g. 22.5°C), the observationResult entity carries the literal via a datatype property (e.g. qudt:quantityValue or a module-specific scalar property). Non-functional: a single observation may yield several results in different frames or granularities, and competing result claims coexist rather than collapse.
+- gmeow:observationType [gmeow:Observation → gmeow:ObservationType]: The kind(s) of observation being made — measurement, sensory reading, standpoint claim, derived inference, etc. Non-functional: an observation may be both a measurement and a derived inference (e.g. a calibrated sensor reading that is also machine-learned), and competing type classifications coexist.
+- gmeow:observedFeature [gmeow:Observation → gmeow:Entity]: The entity whose property or state is being observed — the feature of interest. Range is gmeow:Entity (not a narrower type) because anything can be observed: a place, a person, an event, a document, a quality value.
 - gmeow:occurrenceOfSeries [gmeow:Event → gmeow:EventSeries]: Relates a concrete event occurrence to the series that issued it; the inverse of gmeow:seriesOccurrence.
 - gmeow:overlappedBy [gmeow:Event → gmeow:Event]: Allen OVERLAPPED-BY: inverse of gmeow:overlaps. (= time:intervalOverlappedBy; TEO overlappedBy.)
 - gmeow:overlaps [gmeow:Event → gmeow:Event]: Allen OVERLAPS: this event begins before, and ends during, the related event (their extents partially overlap). NOT transitive. Inverse of gmeow:overlappedBy. (= time:intervalOverlaps; TEO overlaps.)
@@ -458,6 +470,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:pronounPossessiveDeterminer [gmeow:PronounSet → rdfs:Literal] (functional): The possessive determiner form of a pronoun set, e.g. "her", "their", "xyr".
 - gmeow:pronounReflexive [gmeow:PronounSet → rdfs:Literal] (functional): The reflexive form of a pronoun set, e.g. "herself", "themself", "xemself".
 - gmeow:pronounSubject [gmeow:PronounSet → rdfs:Literal] (functional): The subject (nominative) form of a pronoun set, e.g. "she", "they", "xe".
+- gmeow:quantityUncertainty [gmeow:ScalarQuantity → xsd:decimal] (functional): The uncertainty (e.g. ±1 sigma) of a scalar quantity, in the same unit as the quantity value.
+- gmeow:quantityValue [gmeow:ScalarQuantity → xsd:decimal] (functional): The numeric value of a scalar quantity.
 - gmeow:rcc8dc [gmeow:Location → gmeow:Location]: RCC-8: Disconnected (DC) — regions are disjoint and do not share any point.
 - gmeow:rcc8ec [gmeow:Location → gmeow:Location]: RCC-8: Externally Connected (EC) — regions share only boundary points.
 - gmeow:rcc8eq [gmeow:Location → gmeow:Location]: RCC-8: Equal (EQ) — regions are identical.
@@ -559,6 +573,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:usesWritingSystem [gmeow:Language → gmeow:WritingSystem]: Relates a language to a writing system it is written in — the direct relation. Non-functional and CO-EQUAL: Japanese uses Han, Hiragana, Katakana and Latin simultaneously, none primary. When role or period matter, reify the binding as gmeow:WritingSystemUsage.
 - gmeow:validFrom [? → xsd:dateTime]: The instant from which the annotated statement is asserted to hold.
 - gmeow:validUntil [? → xsd:dateTime]: The instant until which the annotated statement is asserted to hold.
+- gmeow:vantage [gmeow:Observation → gmeow:Agent]: The agent or standpoint from which the observation is made — the reified-object-property counterpart of gmeow:accordingTo. When an annotated statement is promoted to a reified Observation, its gmeow:accordingTo becomes the gmeow:vantage of the relator. Range is gmeow:Agent (person, organization, software agent, sensor) rather than only gmeow:Standpoint, because the common case is a bare agent; use a gmeow:Standpoint individual when the frame needs its own identity. Non-functional: joint observations (a reading co-authored by two agencies) are valid.
 - gmeow:verificationStatus [gmeow:CryptographicSignature → rdfs:Literal] (functional): The verification outcome of a signature: verified, failed, or unverified.
 - gmeow:versionLabel [gmeow:Language → rdfs:Literal]: The version designation of a language as a literal ("1993", "2011", "New Ithkuil", "v2.1"). Domain is gmeow:Language (not only LanguageVersion) so a lineage may carry a current-version label. Non-functional.
 - gmeow:versionOf [gmeow:Entity → gmeow:Entity] (functional): Relates a concrete version entity to the stable lineage entity it versions: a language version to its language, a software release to its project, a data release to its dataset, or a work version to its work. Functional because a version belongs to one lineage, but the lineage may have many versions.
@@ -858,6 +873,12 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:measurementHoloceneStart (a gmeow:TemporalMeasurement): Holocene start age
 - gmeow:measurementPhanerozoicStart (a gmeow:TemporalMeasurement): Phanerozoic start age
 - gmeow:measurementQuaternaryStart (a gmeow:TemporalMeasurement): Quaternary start age
+- gmeow:methodComputationalModel (a gmeow:ObservationMethod): Observation derived from a computational or mathematical model.
+- gmeow:methodDirectObservation (a gmeow:ObservationMethod): Observation by unaided human perception.
+- gmeow:methodExpertJudgement (a gmeow:ObservationMethod): Observation based on expert assessment or consensus.
+- gmeow:methodInstrumentalReading (a gmeow:ObservationMethod): Observation by a calibrated instrument or sensor.
+- gmeow:methodRemoteSensing (a gmeow:ObservationMethod): Observation from a distance, typically satellite or aerial imagery.
+- gmeow:methodSurvey (a gmeow:ObservationMethod): A systematic survey or census procedure.
 - gmeow:modalityMachine (a gmeow:LanguageModality): machine / programmatic
 - gmeow:modalityMultimodal (a gmeow:LanguageModality): multimodal
 - gmeow:modalitySigned (a gmeow:LanguageModality): signed
@@ -903,9 +924,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:namePurposeCeremonial (a gmeow:NamePurpose): ceremonial name
 - gmeow:namePurposeChosen (a gmeow:NamePurpose): chosen / self-identified name
 - gmeow:namePurposeDeadname (a gmeow:NamePurpose): deadname (historical, do-not-display)
-- gmeow:namePurposeEndonym (a gmeow:NamePurpose): endonym (native name, e.g. Deutsch)
-- gmeow:namePurposeExonym (a gmeow:NamePurpose): exonym (external name, e.g. German)
-- gmeow:namePurposeGlossonym (a gmeow:NamePurpose): glossonym (a language's name)
+- gmeow:namePurposeEndonym (a gmeow:NamePurpose): endonym (name used by a place's own inhabitants / a language's own speakers)
+- gmeow:namePurposeExonym (a gmeow:NamePurpose): exonym (name used by outsiders / in another language)
 - gmeow:namePurposeLegal (a gmeow:NamePurpose): legal name
 - gmeow:namePurposeNickname (a gmeow:NamePurpose): nickname / familiar name
 - gmeow:namePurposeOnlineHandle (a gmeow:NamePurpose): online handle / username
@@ -914,6 +934,11 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:namePurposeRegnal (a gmeow:NamePurpose): regnal name
 - gmeow:namePurposeReligious (a gmeow:NamePurpose): religious name
 - gmeow:namePurposeSuperseded (a gmeow:NamePurpose): superseded / former name
+- gmeow:observationTypeDerived (a gmeow:ObservationType): An observation produced by inference, calculation, or machine learning from other observations.
+- gmeow:observationTypeMeasurement (a gmeow:ObservationType): A quantitative or qualitative measurement assigning a value to a feature.
+- gmeow:observationTypeSensory (a gmeow:ObservationType): A reading from a sensor or sensory apparatus.
+- gmeow:observationTypeSimulation (a gmeow:ObservationType): An observation produced by computational simulation rather than direct measurement.
+- gmeow:observationTypeStandpoint (a gmeow:ObservationType): An assertion made from a specific standpoint or frame.
 - gmeow:operatorEq (a gmeow:ConstraintOperator): The ODRL eq comparison operator (odrl:eq).
 - gmeow:operatorGt (a gmeow:ConstraintOperator): The ODRL gt comparison operator (odrl:gt).
 - gmeow:operatorGteq (a gmeow:ConstraintOperator): The ODRL gteq comparison operator (odrl:gteq).
