@@ -1,0 +1,167 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix sosa: <http://www.w3.org/ns/sosa/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
+
+# Term equivalences for the observation domain — GMEOW authoring source.
+# Compiled to mappings/gmeow-observations.sssom.tsv by `gmeow compile-mappings`.
+# Aligns SOSA/SSN (W3C/OGC), PROV-O (W3C), and CIDOC-CRM E13 (ISO 21127).
+
+gmeow:mapsetObservations a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/observations" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. gmeow:ScalarQuantity is canonical — no faithful external term captures the unit+determinacy+granularity bundle in one node." .
+
+# --------------------------------------------------------------------------- #
+# SOSA / SSN
+# --------------------------------------------------------------------------- #
+
+gmeow:eqObs001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Observation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:Observation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:observedFeature ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:hasFeatureOfInterest ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:observationResult ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:hasResult ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:vantage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:madeBySensor ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "SOSA is device-centric; gmeow:vantage covers human standpoints, organizations, and sensors alike. CloseMatch with a note." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:observationMethod ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:usedProcedure ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ObservationMethod ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:Procedure ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Measurement ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:Observation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "A Measurement is a kind of Observation; SOSA does not distinguish them." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ScalarQuantity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:Result ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "sosa:Result is broader (any result); gmeow:ScalarQuantity is specifically a scalar numeric with unit+determinacy+granularity." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# PROV-O
+# --------------------------------------------------------------------------- #
+
+gmeow:eqObs009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Observation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject prov:Entity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "An Observation is a relator (gufo), but as a named individual it is also a prov:Entity that can be attributed, derived, and versioned." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:vantage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject prov:wasAttributedTo ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "prov:wasAttributedTo is a property, gmeow:vantage is a property; the alignment is on the semantic axis (who is responsible), not structural identity." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:observationResult ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject prov:generated ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "Inverse direction: prov:wasGeneratedBy links Entity to Activity; gmeow:observationResult links Observation to its result Entity. Semantic alignment, not structural identity." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# CIDOC-CRM E13 Attribute Assignment
+# --------------------------------------------------------------------------- #
+
+gmeow:eqObs012 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Observation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:E13_Attribute_Assignment ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "CIDOC-CRM E13 is the closest CRM class: an activity of assigning an attribute to an item. GMEOW Observation generalises this to any act of observing or asserting, not only attribute assignment." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:observedFeature ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:P140_assigned_attribute_to ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs014 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:observationResult ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:P141_assigned ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs015 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:vantage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:P14_carried_out_by ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "crm:P14 is event-centric; gmeow:vantage is relator-centric. Semantic alignment on 'who performed it'." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:observationMethod ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:P33_used_specific_technique ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
