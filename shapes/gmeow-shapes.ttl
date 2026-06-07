@@ -821,3 +821,75 @@ gmeow:HasGranularityShape
         sh:severity sh:Violation ;
         sh:message "gmeow:hasGranularity must point at a gmeow:GranularityLevel — the value's own resolution level." ;
     ] .
+
+# --------------------------------------------------------------------------- #
+# Privacy / consent / redaction shapes (#73, PRIV-GEN).
+#
+# These target instance data and stay dormant on the TBox. Sensitive-value
+# coarsening is a Warning (a source may legitimately publish sensitive data
+# under explicit consent). Consent well-formedness is a Warning (a source may
+# supply incomplete metadata). Privacy-notice attribution is a Warning.
+# --------------------------------------------------------------------------- #
+
+# A value marked sensitive-personal SHOULD carry a disclosure-control directive
+# (coarsenTo or displayable false). Warning — a source may publish under consent.
+gmeow:SensitiveValueShape
+    a sh:NodeShape ;
+    rdfs:label "Sensitive value disclosure-control shape" ;
+    sh:targetSubjectsOf gmeow:hasSensitivity ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        sh:message "A value marked gmeow:sensitivitySensitivePersonal should also carry gmeow:coarsenTo or gmeow:displayable false — the trigger for projection-time redaction (Principle 10). A source may legitimately publish the precise value under explicit consent." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/hasSensitivity> <https://blackcatinformatics.ca/gmeow/sensitivitySensitivePersonal> .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/coarsenTo> ?lvl
+                }
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
+                }
+            }
+        """ ;
+    ] .
+
+# A privacy notice SHOULD declare who issued it.
+gmeow:PrivacyNoticeShape
+    a sh:NodeShape ;
+    rdfs:label "Privacy notice attribution shape" ;
+    sh:targetClass gmeow:PrivacyNotice ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        sh:message "A privacy notice should declare who issued it (dcterms:creator or gmeow:wasAttributedTo)." ;
+        sh:select """
+            SELECT $this WHERE {
+                FILTER NOT EXISTS {
+                    $this <http://purl.org/dc/terms/creator> ?creator
+                }
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/wasAttributedTo> ?att
+                }
+            }
+        """ ;
+    ] .
+
+# Consent metadata well-formedness — Warning because incomplete consent metadata
+# is allowed (a source may supply it later).
+gmeow:ConsentWellformednessShape
+    a sh:NodeShape ;
+    rdfs:label "Consent metadata well-formedness shape" ;
+    sh:targetClass gmeow:RightsStatement ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        sh:message "A consent-governing rights statement (one with a permission whose gmeow:ruleAction is gmeow:actionProcessPersonalData) should name exactly one data subject (gmeow:hasDataSubject) and at least one data controller (gmeow:hasDataController)." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/hasPermission> ?perm .
+                ?perm <https://blackcatinformatics.ca/gmeow/ruleAction> <https://blackcatinformatics.ca/gmeow/actionProcessPersonalData> .
+                OPTIONAL { $this <https://blackcatinformatics.ca/gmeow/hasDataSubject> ?subj }
+                OPTIONAL { $this <https://blackcatinformatics.ca/gmeow/hasDataController> ?ctrl }
+            }
+            GROUP BY $this
+            HAVING (COUNT(DISTINCT ?subj) != 1 || COUNT(DISTINCT ?ctrl) < 1)
+        """ ;
+    ] .

@@ -1,0 +1,57 @@
+# Coverage + projection fixture for the privacy / consent / redaction facility
+# (#73, PRIV-GEN). Exercises the full privacy stack: a person with a sensitive
+# home location (coarsened to city), a consent-governing RightsStatement with a
+# Permission for actionProcessPersonalData constrained to purpose=delivery and
+# recipient=delivery company, plus a PrivacyNotice. Drives tests/test_privacy.py's
+# ODRL projection round-trip and the coverage harness.
+
+@prefix ex:    <https://example.org/privacy/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The agents ------------------------------------------------------------- #
+ex:alice      a gmeow:Person ; rdfs:label "Alice"@en .
+ex:acme       a gmeow:Organization ; rdfs:label "Acme Corp"@en .
+ex:deliveryCo a gmeow:Organization ; rdfs:label "FastDelivery Inc."@en .
+
+# --- Alice's home location (sensitive, coarsened to city) ------------------- #
+ex:alice-home a gmeow:Place ;
+    rdfs:label "Alice's home"@en ;
+    gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ;
+    gmeow:coarsenTo gmeow:granularityCity ;
+    gmeow:containedInPlace ex:alice-city .
+
+ex:alice-city a gmeow:Place ;
+    rdfs:label "Springfield"@en ;
+    gmeow:hasGranularity gmeow:granularityCity .
+
+# --- The privacy notice ----------------------------------------------------- #
+ex:alice-notice a gmeow:PrivacyNotice ;
+    rdfs:label "Alice's Privacy Notice"@en ;
+    gmeow:wasAttributedTo ex:acme .
+
+# --- The consent-governing rights statement --------------------------------- #
+ex:alice-privacy a gmeow:RightsStatement ;
+    gmeow:statementAbout ex:alice-home ;
+    gmeow:hasDataSubject ex:alice ;
+    gmeow:hasDataController ex:acme ;
+    gmeow:hasPrivacyNotice ex:alice-notice ;
+    gmeow:hasPermission ex:perm-process .
+
+# Permission to process personal data for delivery purpose only.
+ex:perm-process a gmeow:Permission ;
+    gmeow:ruleAction gmeow:actionProcessPersonalData ;
+    gmeow:ruleAssignee ex:deliveryCo ;
+    gmeow:ruleConstraint ex:purpose-delivery ;
+    gmeow:ruleConstraint ex:recipient-deliveryCo .
+
+ex:purpose-delivery a gmeow:AtomicConstraint ;
+    gmeow:leftOperand gmeow:leftOpPurpose ;
+    gmeow:constraintOperator gmeow:operatorEq ;
+    gmeow:rightOperand "Delivery" .
+
+ex:recipient-deliveryCo a gmeow:AtomicConstraint ;
+    gmeow:leftOperand gmeow:leftOpRecipient ;
+    gmeow:constraintOperator gmeow:operatorEq ;
+    gmeow:rightOperandReference ex:deliveryCo .

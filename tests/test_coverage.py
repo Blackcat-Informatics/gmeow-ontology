@@ -187,6 +187,21 @@ def test_coreference_slice_covered() -> None:
     assert not missing, f"coreference terms missing from coverage: {missing}"
 
 
+def test_privacy_slice_covered() -> None:
+    report = run_coverage()
+    # The privacy fixture exercises the sensitivity vocabulary, privacy roles,
+    # and the privacy notice — all native GMEOW.
+    expected_covered = {
+        GMEOW + "PrivacyNotice",
+        GMEOW + "hasSensitivity",
+        GMEOW + "hasDataSubject",
+        GMEOW + "hasDataController",
+        GMEOW + "hasPrivacyNotice",
+    }
+    missing = expected_covered - (report.covered_classes | report.covered_predicates)
+    assert not missing, f"privacy terms missing from coverage: {missing}"
+
+
 def test_slice_is_partial() -> None:
     # The slice is intentionally incomplete: there must be tracked gaps, and
     # coverage must be a real (non-zero, non-total) fraction.

@@ -168,3 +168,32 @@ gmeow:determinacyVague         a gmeow:Determinacy ; rdfs:label "vague"@en ;    
 gmeow:determinacyFuzzy         a gmeow:Determinacy ; rdfs:label "fuzzy"@en ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:determinacyProbabilistic a gmeow:Determinacy ; rdfs:label "probabilistic"@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:determinacyDisputed      a gmeow:Determinacy ; rdfs:label "disputed"@en ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Sensitivity — universal privacy-classification vocabulary (#73, PRIV-GEN).
+#
+# Every value may carry a sensitivity level that drives disclosure control
+# (coarsenTo / displayable) at projection time under a consent guard (P10).
+# The sensitivity axis is orthogonal to determinacy, confidence, and granularity.
+# --------------------------------------------------------------------------- #
+
+gmeow:SensitivityLevel
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Sensitivity Level"@en ;
+    skos:definition "A privacy-sensitivity classification for a value — an open, ordered value vocabulary (public ≺ internal ≺ confidential ≺ restricted ≺ sensitive personal). The explicit facet that drives disclosure-control decisions: a value marked sensitive personal may be coarsened or withheld at projection time under a consent guard. Orthogonal to determinacy, confidence, and granularity (Principle 9). The sensitivity-to-coarsen trigger is a solver concern (P12)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasSensitivity
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:SensitivityLevel ;
+    rdfs:label "has sensitivity"@en ;
+    skos:definition "Relates a value, entity, or claim to its privacy-sensitivity level — the explicit facet that drives disclosure-control decisions (coarsenTo / displayable) at projection time under a consent guard. Domain-free (universal, like hasGranularity and hasDeterminacy). NOT functional: in a multi-source merge sources may state different sensitivity levels, and those claims coexist rather than force the reasoner to collapse distinct levels. Distinct from gmeow:confidence (epistemic certainty) and from gmeow:hasDeterminacy (ontic model)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Seeds
+gmeow:sensitivityPublic            a gmeow:SensitivityLevel ; rdfs:label "public"@en ;            rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:sensitivityInternal          a gmeow:SensitivityLevel ; rdfs:label "internal"@en ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:sensitivityConfidential      a gmeow:SensitivityLevel ; rdfs:label "confidential"@en ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:sensitivityRestricted        a gmeow:SensitivityLevel ; rdfs:label "restricted"@en ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:sensitivitySensitivePersonal a gmeow:SensitivityLevel ; rdfs:label "sensitive personal"@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
