@@ -157,3 +157,28 @@ ex:telescopeOrientation a gmeow:Orientation ;
     gmeow:pitch 10.0 ;
     gmeow:roll 0.0 ;
     gmeow:eulerOrder "ZYX" .
+
+# --------------------------------------------------------------------------- #
+# Issue #98 — BOT building-topology fixture data (building ⊃ floor ⊃ room)
+# --------------------------------------------------------------------------- #
+
+ex:officeBuilding a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeBuilding ;
+    gmeow:hasCoordinates ex:buildingCoords ;
+    gmeow:hasPlaceName ex:officeBuildingName .
+
+ex:officeBuildingName a gmeow:PlaceName ;
+    gmeow:fullName "Acme Tower"@en ; gmeow:nameLanguage ex:langEn ;
+    gmeow:displayable true .
+
+ex:buildingCoords a gmeow:GeoCoordinates ;
+    gmeow:latitude 51.5074 ;
+    gmeow:longitude -0.1278 .
+
+ex:secondFloor a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeFloor ;
+    gmeow:containedInPlace ex:officeBuilding .
+
+ex:cornerOffice a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeRoom ;
+    gmeow:containedInPlace ex:secondFloor .

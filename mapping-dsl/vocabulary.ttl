@@ -545,3 +545,9 @@ gmeow:fnTaggingToAnnotation a gmeow:ProjectionFunction ;
     gmeow:fnInput gmeow:taggingTagged , gmeow:taggingTag ;
     gmeow:fnInputOptional gmeow:taggingTagger , gmeow:wasAttributedTo , gmeow:taggingInterval ;
     gmeow:fnOutput gmeow:projectedAnnotation ; gmeow:fnOutputType oa:Annotation .
+
+gmeow:fnLatLongToGeoUri a gmeow:ProjectionFunction ;
+    rdfs:label "latitude + longitude → geo: URI (RFC 5870)"@en ;
+    dcterms:description "Composes separate decimal latitude and longitude into a geo: URI (RFC 5870, e.g. geo:53.544972,-113.924398). The URI identifies a geographic point independent of any particular serialization format (WKT, GeoJSON, vCard GEO, …). Used as the minted node IRI for vCard Geo projections and as a canonical, dereferenceable location identifier."@en ;
+    gmeow:fnInput gmeow:latitude , gmeow:longitude ;
+    gmeow:fnOutput gmeow:projectedGeoUri ; gmeow:fnOutputType xsd:anyURI .

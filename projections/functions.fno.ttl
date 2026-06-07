@@ -63,6 +63,13 @@ gmeow:fnHonorificToAffix a fno:Function ;
     fno:expects ( gmeow:paramHonorific ) ;
     fno:returns ( gmeow:outHonorificToAffix ) .
 
+gmeow:fnLatLongToGeoUri a fno:Function ;
+    rdfs:label "latitude + longitude → geo: URI (RFC 5870)"@en ;
+    dcterms:description "Composes separate decimal latitude and longitude into a geo: URI (RFC 5870, e.g. geo:53.544972,-113.924398). The URI identifies a geographic point independent of any particular serialization format (WKT, GeoJSON, vCard GEO, …). Used as the minted node IRI for vCard Geo projections and as a canonical, dereferenceable location identifier."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> ;
+    fno:expects ( gmeow:paramLatitude gmeow:paramLongitude ) ;
+    fno:returns ( gmeow:outLatLongToGeoUri ) .
+
 gmeow:fnLatLongToWktPoint a fno:Function ;
     rdfs:label "latitude + longitude → WKT POINT"@en ;
     dcterms:description "Combines separate decimal latitude and longitude into a GeoSPARQL WKT POINT literal (POINT(lon lat), lon first per WKT), typed geo:wktLiteral."@en ;
@@ -76,13 +83,6 @@ gmeow:fnParticipantToAttendee a fno:Function ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/ical.rq> ;
     fno:expects ( gmeow:paramHasParticipant ) ;
     fno:returns ( gmeow:outParticipantToAttendee ) .
-
-gmeow:fnPlaceTypeToClass a fno:Function ;
-    rdfs:label "place-type value → target class"@en ;
-    dcterms:description "Maps a gmeow:placeType value individual (e.g. placeTypeCountry) to the target vocabulary class to assert via rdf:type (e.g. schema:Country). The conditional retyping; place types without a target class are dropped."@en ;
-    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
-    fno:expects ( gmeow:paramPlaceType ) ;
-    fno:returns ( gmeow:outPlaceTypeToClass ) .
 
 gmeow:fnPosePositionToWktPoint a fno:Function ;
     rdfs:label "pose position → WKT POINT"@en ;
@@ -154,9 +154,17 @@ gmeow:fnTaggingToAnnotation a fno:Function ;
     fno:expects ( gmeow:paramTaggingTagged gmeow:paramTaggingTag gmeow:paramTaggingTagger gmeow:paramWasAttributedTo gmeow:paramTaggingInterval ) ;
     fno:returns ( gmeow:outTaggingToAnnotation ) .
 
+gmeow:implBot a fno:Implementation ;
+    dcterms:format "application/sparql-query" ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/bot.rq> .
+
 gmeow:implWebAnnotation a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/web-annotation.rq> .
+
+gmeow:outLatLongToGeoUri a fno:Output ;
+    fno:predicate gmeow:projectedGeoUri ;
+    fno:type xsd:anyURI .
 
 gmeow:paramTaggingInterval a fno:Parameter ;
     fno:predicate gmeow:taggingInterval ;
@@ -183,6 +191,13 @@ gmeow:fnParticipationToEventRole a fno:Function ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/ical.rq> ;
     fno:expects ( gmeow:paramParticipationParticipant ) ;
     fno:returns ( gmeow:outParticipationToEventRole ) .
+
+gmeow:fnPlaceTypeToClass a fno:Function ;
+    rdfs:label "place-type value → target class"@en ;
+    dcterms:description "Maps a gmeow:placeType value individual (e.g. placeTypeCountry) to the target vocabulary class to assert via rdf:type (e.g. schema:Country). The conditional retyping; place types without a target class are dropped."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/bot.rq> ;
+    fno:expects ( gmeow:paramPlaceType ) ;
+    fno:returns ( gmeow:outPlaceTypeToClass ) .
 
 gmeow:fnSelectDisplayableGender a fno:Function ;
     rdfs:label "select displayable gender identity → gender label"@en ;
@@ -218,10 +233,6 @@ gmeow:outLatLongToWktPoint a fno:Output ;
 gmeow:outParticipantToAttendee a fno:Output ;
     fno:predicate gmeow:projectedAttendee ;
     fno:type gmeow:Agent .
-
-gmeow:outPlaceTypeToClass a fno:Output ;
-    fno:predicate gmeow:projectedType ;
-    fno:type rdfs:Class .
 
 gmeow:outPosePositionToWktPoint a fno:Output ;
     fno:predicate geo:asWKT ;
@@ -308,11 +319,6 @@ gmeow:paramLanguageCode a fno:Parameter ;
     fno:predicate gmeow:languageCode ;
     fno:required true ;
     fno:type rdfs:Literal .
-
-gmeow:paramPlaceType a fno:Parameter ;
-    fno:predicate gmeow:placeType ;
-    fno:required true ;
-    fno:type gmeow:PlaceType .
 
 gmeow:paramPostalCode a fno:Parameter ;
     fno:predicate gmeow:postalCode ;
@@ -425,6 +431,10 @@ gmeow:outMembershipToJobTitle a fno:Output ;
     fno:predicate gmeow:projectedJobTitle ;
     fno:type rdfs:Literal .
 
+gmeow:outPlaceTypeToClass a fno:Output ;
+    fno:predicate gmeow:projectedType ;
+    fno:type rdfs:Class .
+
 gmeow:outRetagWkt a fno:Output ;
     fno:predicate geo:asWKT ;
     fno:type geo:wktLiteral .
@@ -447,6 +457,11 @@ gmeow:paramHasRole a fno:Parameter ;
     fno:predicate gmeow:hasRole ;
     fno:required true ;
     fno:type gmeow:Role .
+
+gmeow:paramPlaceType a fno:Parameter ;
+    fno:predicate gmeow:placeType ;
+    fno:required true ;
+    fno:type gmeow:PlaceType .
 
 gmeow:implFoaf a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
@@ -507,6 +522,10 @@ gmeow:implGeosparql a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> .
 
+gmeow:implVcard a fno:Implementation ;
+    dcterms:format "application/sparql-query" ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> .
+
 gmeow:paramLatitude a fno:Parameter ;
     fno:predicate gmeow:latitude ;
     fno:required true ;
@@ -516,10 +535,6 @@ gmeow:paramLongitude a fno:Parameter ;
     fno:predicate gmeow:longitude ;
     fno:required true ;
     fno:type xsd:decimal .
-
-gmeow:implVcard a fno:Implementation ;
-    dcterms:format "application/sparql-query" ;
-    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> .
 
 gmeow:implSchemaOrg a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
@@ -683,6 +698,19 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "honSuffix" ] .
 
 [] a fno:Mapping ;
+    rdfs:label "fnLatLongToGeoUri → vcard (FnO mapping)"@en ;
+    fno:function gmeow:fnLatLongToGeoUri ;
+    fno:implementation gmeow:implVcard ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramLatitude ↦ ?lat"@en ;
+            fnom:functionParameter gmeow:paramLatitude ;
+            fnom:implementationProperty "lat" ],
+        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramLongitude ↦ ?lon"@en ;
+            fnom:functionParameter gmeow:paramLongitude ;
+            fnom:implementationProperty "lon" ] .
+
+[] a fno:Mapping ;
     rdfs:label "fnLatLongToWktPoint → geosparql (FnO mapping)"@en ;
     fno:function gmeow:fnLatLongToWktPoint ;
     fno:implementation gmeow:implGeosparql ;
@@ -818,6 +846,19 @@ gmeow:implSchemaOrg a fno:Implementation ;
             rdfs:label "fnParticipationToEventRole output ↦ ?performer"@en ;
             fnom:functionOutput gmeow:outParticipationToEventRole ;
             fnom:implementationProperty "performer" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "fnPlaceTypeToClass → bot (FnO mapping)"@en ;
+    fno:function gmeow:fnPlaceTypeToClass ;
+    fno:implementation gmeow:implBot ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramPlaceType ↦ ?pt"@en ;
+            fnom:functionParameter gmeow:paramPlaceType ;
+            fnom:implementationProperty "pt" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnPlaceTypeToClass output ↦ ?pt"@en ;
+            fnom:functionOutput gmeow:outPlaceTypeToClass ;
+            fnom:implementationProperty "pt" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnPlaceTypeToClass → schema-org (FnO mapping)"@en ;
