@@ -207,7 +207,7 @@ gmeow:sensitivitySensitivePersonal a gmeow:SensitivityLevel ; rdfs:label "sensit
 # --------------------------------------------------------------------------- #
 
 gmeow:hasUnit
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:range qudt:Unit ;
     rdfs:label "has unit"@en ;
     skos:definition "Relates a quantitative value or measurement to its QUDT unit (by reference, never imported). Domain-free: used by temporal measurements, spatial measurements, and any other quantified claim."@en ;

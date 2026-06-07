@@ -576,7 +576,8 @@ gmeow:eventAspect
 # =========================================================================== #
 
 gmeow:eventTemporalFrame
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
     rdfs:domain gmeow:Event ;
     rdfs:range gmeow:TemporalFrame ;
     rdfs:label "event temporal frame"@en ;

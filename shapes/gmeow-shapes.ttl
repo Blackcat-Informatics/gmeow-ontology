@@ -912,20 +912,20 @@ gmeow:TemporalFrameShape
         sh:message "A TemporalFrame must have exactly one gmeow:frameTimeScale." ;
     ] ;
     sh:property [
-        sh:path gmeow:frameTemporalRealm ;
+        sh:path gmeow:frameRealm ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:class gmeow:TemporalRealm ;
+        sh:class gmeow:FrameRealm ;
         sh:severity sh:Violation ;
-        sh:message "A TemporalFrame must have exactly one gmeow:frameTemporalRealm." ;
+        sh:message "A TemporalFrame must have exactly one gmeow:frameRealm (inherited from ReferenceFrame)." ;
     ] ;
     sh:property [
-        sh:path gmeow:frameScaleKind ;
+        sh:path gmeow:frameKind ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:class gmeow:FrameScaleKind ;
+        sh:class gmeow:FrameKind ;
         sh:severity sh:Violation ;
-        sh:message "A TemporalFrame must have exactly one gmeow:frameScaleKind." ;
+        sh:message "A TemporalFrame must have exactly one gmeow:frameKind (inherited from ReferenceFrame)." ;
     ] .
 
 # An Instant must carry at least one of instantValue (xsd:dateTime) or edtfValue

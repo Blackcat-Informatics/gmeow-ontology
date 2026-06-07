@@ -1,4 +1,4 @@
-"""Tests for the temporal frame profile (issue #67)."""
+"""Tests for the temporal frame profile (issue #67, refactored for #70)."""
 
 from __future__ import annotations
 
@@ -15,12 +15,12 @@ def _graph() -> Graph:
     return load_merged_graph(include_imports=True)
 
 
-def test_temporal_frame_subclasses_entity_and_gufo_object() -> None:
+def test_temporal_frame_subclasses_reference_frame() -> None:
     g = _graph()
     assert (
         URIRef(GMEOW + "TemporalFrame"),
         RDFS.subClassOf,
-        URIRef(GMEOW + "Entity"),
+        URIRef(GMEOW + "ReferenceFrame"),
     ) in g
     assert (
         URIRef(GMEOW + "TemporalFrame"),
@@ -31,13 +31,7 @@ def test_temporal_frame_subclasses_entity_and_gufo_object() -> None:
 
 def test_temporal_frame_component_classes_exist() -> None:
     g = _graph()
-    for term in (
-        "TimeScale",
-        "CalendarSystem",
-        "ReferencePosition",
-        "TemporalRealm",
-        "FrameScaleKind",
-    ):
+    for term in ("TimeScale", "CalendarSystem", "ReferencePosition"):
         assert (URIRef(GMEOW + term), RDF.type, OWL.Class) in g
 
 
@@ -63,15 +57,15 @@ def test_temporal_frame_seed_individuals() -> None:
     }
     assert any(c in calendars for c in non_gregorian)
 
-    # All 5 temporal realms
-    for realm in (
-        "temporalRealmTerrestrial",
-        "temporalRealmAstronomical",
-        "temporalRealmPlanetary",
-        "temporalRealmGeological",
-        "temporalRealmHistorical",
-    ):
-        assert (URIRef(GMEOW + realm), RDF.type, URIRef(GMEOW + "TemporalRealm")) in g
+    # All temporal frames use frameRealmTemporal (from places.ttl #70)
+    frames = set(g.subjects(RDF.type, URIRef(GMEOW + "TemporalFrame")))
+    assert len(frames) >= 2
+    for frame in frames:
+        assert (
+            frame,
+            URIRef(GMEOW + "frameRealm"),
+            URIRef(GMEOW + "frameRealmTemporal"),
+        ) in g
 
 
 def test_temporal_frame_utc_gregorian_exists_with_components() -> None:
@@ -90,13 +84,13 @@ def test_temporal_frame_utc_gregorian_exists_with_components() -> None:
     ) in g
     assert (
         frame,
-        URIRef(GMEOW + "frameTemporalRealm"),
-        URIRef(GMEOW + "temporalRealmTerrestrial"),
+        URIRef(GMEOW + "frameRealm"),
+        URIRef(GMEOW + "frameRealmTemporal"),
     ) in g
     assert (
         frame,
-        URIRef(GMEOW + "frameScaleKind"),
-        URIRef(GMEOW + "frameScaleKindCivil"),
+        URIRef(GMEOW + "frameKind"),
+        URIRef(GMEOW + "frameKindTemporal"),
     ) in g
 
 
@@ -105,9 +99,19 @@ def test_frame_time_scale_is_functional() -> None:
     assert (URIRef(GMEOW + "frameTimeScale"), RDF.type, OWL.FunctionalProperty) in g
 
 
-def test_has_temporal_frame_links_time_interval_to_temporal_frame() -> None:
+def test_has_temporal_frame_is_subproperty_of_has_reference_frame() -> None:
     g = _graph()
     prop = URIRef(GMEOW + "hasTemporalFrame")
     assert (prop, RDF.type, OWL.ObjectProperty) in g
+    assert (prop, RDFS.subPropertyOf, URIRef(GMEOW + "hasReferenceFrame")) in g
     assert (prop, RDFS.domain, URIRef(GMEOW + "TimeInterval")) in g
+    assert (prop, RDFS.range, URIRef(GMEOW + "TemporalFrame")) in g
+
+
+def test_in_temporal_frame_is_subproperty_of_has_reference_frame() -> None:
+    g = _graph()
+    prop = URIRef(GMEOW + "inTemporalFrame")
+    assert (prop, RDF.type, OWL.ObjectProperty) in g
+    assert (prop, RDFS.subPropertyOf, URIRef(GMEOW + "hasReferenceFrame")) in g
+    assert (prop, RDFS.domain, URIRef(GMEOW + "Instant")) in g
     assert (prop, RDFS.range, URIRef(GMEOW + "TemporalFrame")) in g
