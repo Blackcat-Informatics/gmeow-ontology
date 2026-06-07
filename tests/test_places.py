@@ -456,7 +456,11 @@ def test_location_superset_core() -> None:
         URIRef(GMEOW + "containedInLocation"),
     ) in graph
     assert (URIRef(GMEOW + "adjacentTo"), RDF.type, OWL.SymmetricProperty) in graph
-    assert (URIRef(GMEOW + "connectsTo"), RDF.type, OWL.SymmetricProperty) in graph
+    assert (
+        URIRef(GMEOW + "spatiallyConnectsTo"),
+        RDF.type,
+        OWL.SymmetricProperty,
+    ) in graph
 
     # 5. locatedAt property chain axiom
     chain_head = graph.value(URIRef(GMEOW + "locatedAt"), OWL.propertyChainAxiom)

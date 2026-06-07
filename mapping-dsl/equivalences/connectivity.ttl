@@ -1,0 +1,37 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix schema: <https://schema.org/> .
+@prefix gtfs: <http://vocab.gtfs.org/terms#> .
+
+# Term equivalences for connectivity and routing — GMEOW authoring source.
+# Compiled to mappings/gmeow-connectivity.sssom.tsv by `gmeow compile-mappings`.
+
+gmeow:mapsetConnectivity a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-connectivity.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/connectivity" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Connectivity and routing alignments — GTFS, schema.org, and network vocabularies." .
+
+# GTFS alignments
+gmeow:eqConn001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Route ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gtfs:Route ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "gtfs:Route is a transit-specific route; gmeow:Route is domain-generic." ;
+    gmeow:sssomFile "gmeow-connectivity.sssom.tsv" .
+
+# schema.org alignments
+gmeow:eqConn003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Route ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:Trip ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "schema:Trip is travel-specific; gmeow:Route is domain-generic. Lossy directional projection." ;
+    gmeow:sssomFile "gmeow-connectivity.sssom.tsv" .

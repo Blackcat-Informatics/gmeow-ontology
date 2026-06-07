@@ -801,13 +801,14 @@ gmeow:adjacentTo
     skos:definition "Relates a location to another location it is adjacent to."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:connectsTo
+gmeow:spatiallyConnectsTo
     a owl:ObjectProperty, owl:SymmetricProperty ;
+    rdfs:subPropertyOf gmeow:connectsTo ;
     rdfs:domain gmeow:Location ;
     rdfs:range gmeow:Location ;
-    rdfs:label "connects to"@en ;
-    skos:definition "Relates a location to another location it connects to."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:label "spatially connects to"@en ;
+    skos:definition "Relates a location to another location it is spatially or topologically traversable to — a road segment, a network link, a portal, or a transit stop connection. Symmetric: the link can be traversed in either direction. A specialization of the universal gmeow:connectsTo spine. Distinct from gmeow:adjacentTo (RCC-8 EC: touching but not necessarily traversable) and from gmeow:containedInLocation (mereological containment)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 # RCC-8 JEPD Relations
 gmeow:rcc8dc

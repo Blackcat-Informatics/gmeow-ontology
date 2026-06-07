@@ -610,3 +610,15 @@ gmeow:mapSchemaConditionsOfAccess a gmeow:ProjectionMapping ;
         gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:conditionsOfAccess ; gmeow:objectVar "coa" ] ) ;
         gmeow:edoalSource gmeow:conditionsOfAccess ] ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:conditionsOfAccess ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+# Connectivity / Routing projections (#80, CONN-GEN)
+
+gmeow:mapSchemaRoute a gmeow:ProjectionMapping ;
+    rdfs:label "Route → schema:Trip (lossy)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "route" ;
+        gmeow:atom ( [ gmeow:subjectVar "route" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Route ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:toClass schema:Trip ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "GMEOW Route is domain-generic; schema:Trip is travel-specific. RouteKind, start, end, and via metadata are dropped." ] .
