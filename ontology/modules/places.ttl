@@ -13,7 +13,9 @@
 
 STANDPOINT DOCTRINE (#51). Contested facts in the locations slice — sovereignty/jurisdiction disputes, competing place names (endonym vs exonym per community), boundary changes, regulatory overlays — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame asserting it — the two axes are orthogonal and must not be conflated. There is NO location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the cross-cutting #43 facility. Superseded or withdrawn claims set gmeow:displayable false, never deletion (Principle 10).
 
-REGULATORY OVERLAYS (#103). Legal and regulatory spatial overlays — zoning, protected areas, restricted airspace, sanctions, tax/electoral districts, postal zones, civil-time zones, fishing zones, customs zones — are modelled as reified gmeow:RegulatoryOverlay instances (⊑ gmeow:TimeScopedRelation), each binding a place, an authority, an overlay type (open value vocabulary), and an optional RightsStatement (#21) for the deontic rules. 3D bounds (altitude/depth) are frame-relative ScalarQuantity values (Principle 11). Contested overlays coexist as multiple standpoint-indexed instances, never a single winner (Principle 9)."""@en ;
+REGULATORY OVERLAYS (#103). Legal and regulatory spatial overlays — zoning, protected areas, restricted airspace, sanctions, tax/electoral districts, postal zones, civil-time zones, fishing zones, customs zones — are modelled as reified gmeow:RegulatoryOverlay instances (⊑ gmeow:TimeScopedRelation), each binding a place, an authority, an overlay type (open value vocabulary), and an optional RightsStatement (#21) for the deontic rules. 3D bounds (altitude/depth) are frame-relative ScalarQuantity values (Principle 11). Contested overlays coexist as multiple standpoint-indexed instances, never a single winner (Principle 9).
+
+VIRTUAL LOCATIONS + NETWORK ADDRESS SPACE (#84). Virtual locations (video conferences, chat spaces, websites, social media pages) are typed by an open value vocabulary (gmeow:VirtualLocationType). Their network addresses — IP, IPv6, MAC, DNS, URL, port, BGP-AS — are modelled as frame-relative coordinates (gmeow:NetworkAddress) in topology-only reference frames (gmeow:frameKindTopological) nested under the Internet root frame via gmeow:parentFrame. CIDR containment, DNS resolution, and path-length are solver-layer computations (Principle 12), never asserted as triples in the OWL core."""@en ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -38,7 +40,7 @@ gmeow:VirtualLocation
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Location ;
     rdfs:label "Virtual Location"@en ;
-    skos:definition "A non-geographic location reachable online — a video-conference room, chat space, or metaverse room. Has an access locator and platform rather than coordinates."@en ;
+    skos:definition "A non-geographic location reachable online — a video-conference room, chat space, metaverse room, website, or social media page. The specific kind is given by gmeow:virtualLocationType (a value), not a subclass. Has network addresses (gmeow:hasNetworkAddress) and an access URL (gmeow:accessUrl) rather than geographic coordinates."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:StorageLocation
@@ -47,6 +49,57 @@ gmeow:StorageLocation
     rdfs:label "Storage Location"@en ;
     skos:definition "A locus where digital objects reside — a cloud-storage folder, an object-store bucket, a filesystem path, a content-addressed store, or a physical disk. Its medium is a value (gmeow:storageMedium); a physical device may sit at a geographic gmeow:physicalPlace."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Virtual Location Type — open value vocabulary (individuals, not subclasses)
+# --------------------------------------------------------------------------- #
+
+gmeow:VirtualLocationType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Virtual Location Type"@en ;
+    skos:definition "The kind of a virtual location (video conference, chat space, metaverse room, website, social media page, …). A value, not a subclass: the set is open-ended and they share all of VirtualLocation's structure, so a new kind is a new individual, not a new class (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:virtualLocationTypeVideoConference   a gmeow:VirtualLocationType ; rdfs:label "video conference"@en .
+gmeow:virtualLocationTypeChatSpace         a gmeow:VirtualLocationType ; rdfs:label "chat space"@en .
+gmeow:virtualLocationTypeMetaverseRoom     a gmeow:VirtualLocationType ; rdfs:label "metaverse room"@en .
+gmeow:virtualLocationTypeWebsite           a gmeow:VirtualLocationType ; rdfs:label "website"@en .
+gmeow:virtualLocationTypeSocialMediaPage   a gmeow:VirtualLocationType ; rdfs:label "social media page"@en .
+gmeow:virtualLocationTypeOnlineForum       a gmeow:VirtualLocationType ; rdfs:label "online forum"@en .
+gmeow:virtualLocationTypeStreamingChannel  a gmeow:VirtualLocationType ; rdfs:label "streaming channel"@en .
+gmeow:virtualLocationTypeVirtualEventSpace a gmeow:VirtualLocationType ; rdfs:label "virtual event space"@en .
+
+# --------------------------------------------------------------------------- #
+# Network Address — frame-relative coordinate in a network topology (#84)
+# --------------------------------------------------------------------------- #
+# Parallels GeoCoordinates and SpatialCoordinates: a NetworkAddress is a
+# coordinate value in a ReferenceFrame. The flat shortcut is gmeow:accessUrl;
+# promote to NetworkAddress when frame, provenance, confidence, or standpoint
+# matters (Principle 11). Actual CIDR/DNS containment is solver-layer (P12).
+# --------------------------------------------------------------------------- #
+
+gmeow:NetworkAddress
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Network Address"@en ;
+    skos:definition "A network-layer address or locator expressed as a coordinate in a network reference frame — an IP address, MAC address, DNS name, URL, port number, or BGP autonomous-system number. The flat shortcut for the common case is gmeow:accessUrl on a VirtualLocation; promote to NetworkAddress when frame, provenance, confidence, or standpoint matters."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:NetworkAddressType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Network Address Type"@en ;
+    skos:definition "The kind of a network address (IPv4, IPv6, MAC, DNS, URL, port, BGP-AS). A value, not a subclass: the set is open-ended and they share all of NetworkAddress's structure, so a new kind is a new individual, not a new class (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:networkAddressTypeIPv4 a gmeow:NetworkAddressType ; rdfs:label "IPv4 address"@en .
+gmeow:networkAddressTypeIPv6 a gmeow:NetworkAddressType ; rdfs:label "IPv6 address"@en .
+gmeow:networkAddressTypeMAC  a gmeow:NetworkAddressType ; rdfs:label "MAC address"@en .
+gmeow:networkAddressTypeDNS  a gmeow:NetworkAddressType ; rdfs:label "DNS name"@en .
+gmeow:networkAddressTypeURL  a gmeow:NetworkAddressType ; rdfs:label "URL"@en .
+gmeow:networkAddressTypePort a gmeow:NetworkAddressType ; rdfs:label "port number"@en .
+gmeow:networkAddressTypeBGP  a gmeow:NetworkAddressType ; rdfs:label "BGP autonomous system"@en .
 
 gmeow:GeoCoordinates
     a owl:Class, gufo:Kind ;
@@ -234,6 +287,47 @@ gmeow:virtualPlatform
     rdfs:range rdfs:Literal ;
     rdfs:label "virtual platform"@en ;
     skos:definition "The platform hosting a virtual location (Zoom, Meet, a chat service, …)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:virtualLocationType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:VirtualLocation ;
+    rdfs:range gmeow:VirtualLocationType ;
+    rdfs:label "virtual location type"@en ;
+    skos:definition "The kind(s) of a virtual location (one or more gmeow:VirtualLocationType individuals). Non-functional: multi-source classifications may differ and must coexist as evidence (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasNetworkAddress
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:VirtualLocation ;
+    rdfs:range gmeow:NetworkAddress ;
+    rdfs:label "has network address"@en ;
+    skos:definition "Relates a virtual location to a network address that locates it within a network topology."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:networkAddressType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NetworkAddress ;
+    rdfs:range gmeow:NetworkAddressType ;
+    rdfs:label "network address type"@en ;
+    skos:definition "The kind of a network address (a gmeow:NetworkAddressType individual). Non-functional: competing classifications coexist (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:networkAddressValue
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NetworkAddress ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "network address value"@en ;
+    skos:definition "The literal string value of a network address (e.g. '192.0.2.1', '00:1B:44:11:3A:B7', 'example.com', '443'). Functional: an address has exactly one value string."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:networkAddressFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+    rdfs:domain gmeow:NetworkAddress ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "network address frame"@en ;
+    skos:definition "The network reference frame in which this address is expressed. Functional: an address is expressed in exactly one frame."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:storageService
@@ -448,6 +542,8 @@ gmeow:frameKindGrid          a gmeow:FrameKind ; rdfs:label "grid"@en .
 gmeow:frameKindScalar        a gmeow:FrameKind ; rdfs:label "scalar"@en .
 gmeow:frameKindTemporal      a gmeow:FrameKind ; rdfs:label "temporal"@en .
 gmeow:frameKindCylindrical   a gmeow:FrameKind ; rdfs:label "cylindrical"@en .
+gmeow:frameKindTopological   a gmeow:FrameKind ; rdfs:label "topological"@en ;
+    skos:definition "A frame whose structure is defined by containment, adjacency, or graph connectivity rather than geometric coordinates. Distance is measured in hops or nesting depth, not metres or degrees."@en .
 
 # Seeds for MetricKind
 gmeow:metricGeodesic     a gmeow:MetricKind ; rdfs:label "geodesic"@en ;
@@ -508,6 +604,13 @@ gmeow:axisCyan             a gmeow:Axis ; rdfs:label "cyan channel"@en .
 gmeow:axisMagenta          a gmeow:Axis ; rdfs:label "magenta channel"@en .
 gmeow:axisYellow           a gmeow:Axis ; rdfs:label "yellow channel"@en .
 gmeow:axisKey              a gmeow:Axis ; rdfs:label "key (black) channel"@en .
+gmeow:axisIPv4Address      a gmeow:Axis ; rdfs:label "IPv4 address axis"@en .
+gmeow:axisIPv6Address      a gmeow:Axis ; rdfs:label "IPv6 address axis"@en .
+gmeow:axisMACAddress       a gmeow:Axis ; rdfs:label "MAC address axis"@en .
+gmeow:axisDNSName          a gmeow:Axis ; rdfs:label "DNS name axis"@en .
+gmeow:axisURL              a gmeow:Axis ; rdfs:label "URL axis"@en .
+gmeow:axisPortNumber       a gmeow:Axis ; rdfs:label "port number axis"@en .
+gmeow:axisBGPAS            a gmeow:Axis ; rdfs:label "BGP autonomous system axis"@en .
 
 # Sensory-environment axes (#104)
 gmeow:axisTristimulusX     a gmeow:Axis ; rdfs:label "CIE X tristimulus"@en .
@@ -645,6 +748,111 @@ gmeow:referenceFrameEnglish
     gmeow:frameKind gmeow:frameKindScalar ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
+
+# --------------------------------------------------------------------------- #
+# Network Address Space Reference Frames — topology-only, Internet-nested (#84)
+# --------------------------------------------------------------------------- #
+# Per Principle 11, every network address is a coordinate in an explicit
+# reference frame. Per Principle 12, CIDR containment, DNS resolution, and
+# path-length are solver-layer computations, never asserted as triples.
+# The Internet frame is the root; each address-space frame is a child via
+# parentFrame, forming the Internet-wide topology hierarchy.
+# --------------------------------------------------------------------------- #
+
+gmeow:referenceFrameInternet
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Internet Topology Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmVirtual ;
+    gmeow:hasAxis gmeow:axisVirtualAddress ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTopological ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGraphHops .
+
+gmeow:referenceFrameIPv4
+    a gmeow:ReferenceFrame ;
+    rdfs:label "IPv4 Address Space Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmVirtual ;
+    gmeow:hasAxis gmeow:axisIPv4Address ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTopological ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGraphHops ;
+    gmeow:parentFrame gmeow:referenceFrameInternet .
+
+gmeow:referenceFrameIPv6
+    a gmeow:ReferenceFrame ;
+    rdfs:label "IPv6 Address Space Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmVirtual ;
+    gmeow:hasAxis gmeow:axisIPv6Address ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTopological ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGraphHops ;
+    gmeow:parentFrame gmeow:referenceFrameInternet .
+
+gmeow:referenceFrameMAC
+    a gmeow:ReferenceFrame ;
+    rdfs:label "MAC Address Space Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmVirtual ;
+    gmeow:hasAxis gmeow:axisMACAddress ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTopological ;
+    gmeow:requiresHost true ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGraphHops ;
+    gmeow:parentFrame gmeow:referenceFrameInternet .
+
+gmeow:referenceFrameDNS
+    a gmeow:ReferenceFrame ;
+    rdfs:label "DNS Name Space Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmVirtual ;
+    gmeow:hasAxis gmeow:axisDNSName ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTopological ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGraphHops ;
+    gmeow:parentFrame gmeow:referenceFrameInternet .
+
+gmeow:referenceFrameURL
+    a gmeow:ReferenceFrame ;
+    rdfs:label "URL Space Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmVirtual ;
+    gmeow:hasAxis gmeow:axisURL ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTopological ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGraphHops ;
+    gmeow:parentFrame gmeow:referenceFrameInternet .
+
+gmeow:referenceFramePort
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Port Number Space Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmVirtual ;
+    gmeow:hasAxis gmeow:axisPortNumber ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTopological ;
+    gmeow:requiresHost true ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGraphHops ;
+    gmeow:parentFrame gmeow:referenceFrameInternet .
+
+gmeow:referenceFrameBGP
+    a gmeow:ReferenceFrame ;
+    rdfs:label "BGP Autonomous System Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmVirtual ;
+    gmeow:hasAxis gmeow:axisBGPAS ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTopological ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGraphHops ;
+    gmeow:parentFrame gmeow:referenceFrameInternet .
 
 # Reference Frame Profile Properties
 gmeow:frameRealm

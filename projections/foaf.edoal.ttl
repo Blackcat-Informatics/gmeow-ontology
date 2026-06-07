@@ -46,6 +46,14 @@
             edoal:measure 8e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnSelectDisplayName ] ],
         [ a align:Cell ;
+            rdfs:label "NetworkAddress (URL type) → foaf:page"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasNetworkAddress ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri foaf:page ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ],
+        [ a align:Cell ;
             rdfs:label "nickname-purpose PersonName → foaf:nick"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:hasName ] ;
