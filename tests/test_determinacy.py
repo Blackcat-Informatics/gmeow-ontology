@@ -43,7 +43,7 @@ def test_has_determinacy_property_structure() -> None:
     assert (GM.hasDeterminacy, RDF.type, OWL.ObjectProperty) in g
     assert (GM.hasDeterminacy, RDFS.range, GM.Determinacy) in g
     # Domain-free (universal, like hasGranularity).
-    assert (GM.hasDeterminacy, RDFS.domain, None) not in g
+    assert g.value(GM.hasDeterminacy, RDFS.domain) is None
     # NOT functional: multi-source claims coexist (Principle 9).
     assert (GM.hasDeterminacy, RDF.type, OWL.FunctionalProperty) not in g
 

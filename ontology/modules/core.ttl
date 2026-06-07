@@ -163,8 +163,8 @@ gmeow:hasDeterminacy
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # Seeds
-gmeow:determinacyCrisp         a gmeow:Determinacy ; rdfs:label "crisp"@en .
-gmeow:determinacyVague         a gmeow:Determinacy ; rdfs:label "vague"@en .
-gmeow:determinacyFuzzy         a gmeow:Determinacy ; rdfs:label "fuzzy"@en .
-gmeow:determinacyProbabilistic a gmeow:Determinacy ; rdfs:label "probabilistic"@en .
-gmeow:determinacyDisputed      a gmeow:Determinacy ; rdfs:label "disputed"@en .
+gmeow:determinacyCrisp         a gmeow:Determinacy ; rdfs:label "crisp"@en ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:determinacyVague         a gmeow:Determinacy ; rdfs:label "vague"@en ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:determinacyFuzzy         a gmeow:Determinacy ; rdfs:label "fuzzy"@en ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:determinacyProbabilistic a gmeow:Determinacy ; rdfs:label "probabilistic"@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:determinacyDisputed      a gmeow:Determinacy ; rdfs:label "disputed"@en ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
