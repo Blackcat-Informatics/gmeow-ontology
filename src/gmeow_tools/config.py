@@ -262,8 +262,6 @@ PREFIXES: dict[str, str] = {
     "glottolog": "https://glottolog.org/resource/languoid/id/",
     "ontolex": "http://www.w3.org/ns/lemon/ontolex#",
     "lime": "http://www.w3.org/ns/lemon/lime#",
-    # Measurement / units (QUDT)
-    "qudt": "http://qudt.org/schema/qudt/",
     # Currency (FIBO CurrencyAmount)
     "fibo-fnd-acc-cur": "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/",
 }

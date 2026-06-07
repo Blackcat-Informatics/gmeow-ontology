@@ -97,7 +97,7 @@ gmeow:recordedNoLaterThan
 # =========================================================================== #
 
 gmeow:TemporalFrame
-    a owl:Class, gufo:Kind ;
+    a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:ReferenceFrame, gufo:Object ;
     rdfs:label "Temporal Frame"@en ;
     skos:definition "A reference system for expressing time — the temporal counterpart of gmeow:ReferenceFrame. Decomposed into a TimeScale, an optional CalendarSystem, and an optional ReferencePosition. Every crisp instant or interval is asserted relative to a TemporalFrame (Principle 11)."@en ;
@@ -127,6 +127,7 @@ gmeow:ReferencePosition
 # Temporal Frame Profile Properties
 gmeow:hasTemporalFrame
     a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:range gmeow:TemporalFrame ;
     rdfs:label "has temporal frame"@en ;
@@ -254,6 +255,7 @@ gmeow:edtfValue
 
 gmeow:inTemporalFrame
     a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
     rdfs:domain gmeow:Instant ;
     rdfs:range gmeow:TemporalFrame ;
     rdfs:label "in temporal frame"@en ;
