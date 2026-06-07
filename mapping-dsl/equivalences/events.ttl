@@ -5,6 +5,7 @@
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 @prefix schema: <https://schema.org/> .
 @prefix crm:    <http://www.cidoc-crm.org/cidoc-crm/> .
+@prefix crmgeo: <http://www.ics.forth.gr/isl/CRMgeo/> .
 @prefix prov:   <http://www.w3.org/ns/prov#> .
 @prefix time:   <http://www.w3.org/2006/time#> .
 @prefix teo:    <https://sbmi.uth.edu/bsdi/TEO_1.0.0.owl#> .
@@ -1233,4 +1234,38 @@ gmeow:eqEvents127 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
     gmeow:comment "the fuzzy lower bound becomes the VEVENT DTSTART" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+# =========================================================================== #
+# Spacetime / Trajectory linkage (#106) — moving events and 4D spacetime slices
+# =========================================================================== #
+
+gmeow:eqEvents128 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTrajectory ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crm:E92_Spacetime_Volume ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "Spacetime Volume" ;
+    gmeow:comment "a trajectory is a continuous spacetime volume (relatedMatch — it is a path, not any arbitrary volume)" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents129 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventSpacetime ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crm:E92_Spacetime_Volume ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:objectLabel "Spacetime Volume" ;
+    gmeow:comment "an event spacetime slice is a discrete projection of a spacetime volume onto a LocationState; no direct CIDOC property exists from Event to E92" ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents130 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventSpacetime ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crmgeo:SP1_Spacetime_Volume ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:objectLabel "Spacetime Volume" ;
+    gmeow:comment "CRMgeo SP1 is the geospatial extension of CIDOC E92; same relatedMatch rationale as eqEvents129" ;
     gmeow:sssomFile "gmeow-events.sssom.tsv" .
