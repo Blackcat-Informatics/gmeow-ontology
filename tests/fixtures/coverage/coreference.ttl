@@ -1,0 +1,52 @@
+@prefix ex:     <https://example.org/coref/> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix schema: <https://schema.org/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# Synthetic fixture for universal identity/coreference (#74). The stable GMEOW
+# entity keeps its own IRI; authority records are references with explicit match
+# strength, not owl:sameAs merges.
+
+ex:recordedPerson a gmeow:Person ;
+    gmeow:name "Synthetic Researcher"@en ;
+    gmeow:authorityLink <https://example.org/coref/authority/person-123> ,
+        <https://example.org/coref/authority/person-near> ;
+    skos:exactMatch <https://example.org/coref/authority/person-123> ;
+    skos:closeMatch <https://example.org/coref/authority/person-near> .
+
+ex:terrestrialPlace a gmeow:Place ;
+    gmeow:name "Synthetic Bay"@en ;
+    gmeow:authorityLink <https://example.org/coref/authority/place-456> ;
+    skos:closeMatch <https://example.org/coref/authority/place-456> .
+
+ex:roboticFrameAgent a gmeow:SoftwareAgent ;
+    gmeow:name "Synthetic field robot identity"@en ;
+    gmeow:counterpartOf ex:recordedPerson .
+
+ex:work a gmeow:CreativeWork ;
+    gmeow:title "Synthetic Field Notes"@en .
+
+ex:workEdition a gmeow:CreativeWork ;
+    gmeow:title "Synthetic Field Notes, annotated edition"@en ;
+    gmeow:editionOf ex:work ;
+    gmeow:identifier "doi:10.0000/example.coref.edition" .
+
+ex:datasetLineage a gmeow:Dataset ;
+    gmeow:title "Synthetic Coreference Dataset"@en .
+
+ex:datasetV1 a gmeow:Dataset ;
+    gmeow:title "Synthetic Coreference Dataset v1"@en ;
+    gmeow:versionOf ex:datasetLineage ;
+    gmeow:versionLabel "v1" .
+
+ex:datasetV2 a gmeow:Dataset ;
+    gmeow:title "Synthetic Coreference Dataset v2"@en ;
+    gmeow:versionOf ex:datasetLineage ;
+    gmeow:versionLabel "v2" ;
+    gmeow:supersedes ex:datasetV1 .
+
+# External surface-vocabulary examples that should be covered by mappings.
+ex:surfaceThing
+    schema:sameAs <https://example.org/coref/authority/person-123> ;
+    dcterms:isVersionOf ex:work .
