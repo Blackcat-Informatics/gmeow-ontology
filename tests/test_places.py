@@ -164,7 +164,6 @@ def test_location_superset_core() -> None:
         "SpatialCoordinates",
         "SpatialRealm",
         "FrameKind",
-        "Determinacy",
         "LocationState",
         "Trajectory",
     ):
@@ -192,6 +191,7 @@ def test_location_superset_core() -> None:
         "determinacyFuzzy",
         "determinacyVague",
         "determinacyProbabilistic",
+        "determinacyDisputed",
     ):
         assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "Determinacy")) in graph
 
