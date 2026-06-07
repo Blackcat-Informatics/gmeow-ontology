@@ -16,6 +16,8 @@
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
 @prefix dpv: <https://w3id.org/dpv#> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
 
 # Term equivalences for the properties domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-properties.sssom.tsv by `gmeow compile-mappings`.
@@ -487,4 +489,62 @@ gmeow:eqProperties056 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:comment "SKOS broader — the generic hierarchical-order counterpart of the granularity-level ordering gmeow:coarserThan" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+# =========================================================================== #
+# Expanded temporal kernel (#67)
+# =========================================================================== #
+
+gmeow:eqProperties057 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:instantValue ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject time:inXSDDateTimeStamp ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "crisp instant value as xsd:dateTime" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties058 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:periodStart ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject time:hasBeginning ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "beginning of a named period" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties059 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:periodEnd ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject time:hasEnd ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "end of a named period" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties060 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasUnit ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject qudt:hasUnit ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "QUDT unit linkage for measurements" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties061 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:measurementMethod ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crm:P39_measured ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "CIDOC measured property" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties062 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:measurementUncertainty ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crm:P90_has_value ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "uncertainty band expressed as a CIDOC value" ;
     gmeow:sssomFile "gmeow-properties.sssom.tsv" .

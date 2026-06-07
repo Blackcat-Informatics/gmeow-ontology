@@ -98,7 +98,7 @@ gmeow:recordedNoLaterThan
 
 gmeow:TemporalFrame
     a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:subClassOf gmeow:ReferenceFrame, gufo:Object ;
     rdfs:label "Temporal Frame"@en ;
     skos:definition "A reference system for expressing time — the temporal counterpart of gmeow:ReferenceFrame. Decomposed into a TimeScale, an optional CalendarSystem, and an optional ReferencePosition. Every crisp instant or interval is asserted relative to a TemporalFrame (Principle 11)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -122,20 +122,6 @@ gmeow:ReferencePosition
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Reference Position"@en ;
     skos:definition "The spatial locus, observatory, timezone, or planetary body relative to which a time is expressed — e.g. an observatory longitude for local sidereal time, an IANA timezone for civil time, or a planet for planetary calendars."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:TemporalRealm
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Temporal Realm"@en ;
-    skos:definition "The domain of a temporal frame (terrestrial, astronomical, planetary, geological, historical)."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:FrameScaleKind
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Frame Scale Kind"@en ;
-    skos:definition "The structural kind of a time scale (atomic, dynamical, sidereal, civil)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # Temporal Frame Profile Properties
@@ -171,34 +157,7 @@ gmeow:frameReferencePosition
     skos:definition "The reference position of a temporal frame, when one is needed. Optional: TAI needs none; civil time needs a timezone."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:frameTemporalRealm
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:TemporalFrame ;
-    rdfs:range gmeow:TemporalRealm ;
-    rdfs:label "frame temporal realm"@en ;
-    skos:definition "The realm of a temporal frame."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:frameScaleKind
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:TemporalFrame ;
-    rdfs:range gmeow:FrameScaleKind ;
-    rdfs:label "frame scale kind"@en ;
-    skos:definition "The structural kind of the time scale in a temporal frame."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-# Seeds for TemporalRealm
-gmeow:temporalRealmTerrestrial   a gmeow:TemporalRealm ; rdfs:label "terrestrial"@en .
-gmeow:temporalRealmAstronomical  a gmeow:TemporalRealm ; rdfs:label "astronomical"@en .
-gmeow:temporalRealmPlanetary     a gmeow:TemporalRealm ; rdfs:label "planetary"@en .
-gmeow:temporalRealmGeological    a gmeow:TemporalRealm ; rdfs:label "geological"@en .
-gmeow:temporalRealmHistorical    a gmeow:TemporalRealm ; rdfs:label "historical"@en .
-
-# Seeds for FrameScaleKind
-gmeow:frameScaleKindAtomic      a gmeow:FrameScaleKind ; rdfs:label "atomic"@en .
-gmeow:frameScaleKindDynamical   a gmeow:FrameScaleKind ; rdfs:label "dynamical"@en .
-gmeow:frameScaleKindSidereal    a gmeow:FrameScaleKind ; rdfs:label "sidereal"@en .
-gmeow:frameScaleKindCivil       a gmeow:FrameScaleKind ; rdfs:label "civil"@en .
 
 # Seeds for TimeScale
 gmeow:timeScaleTAI  a gmeow:TimeScale ; rdfs:label "International Atomic Time (TAI)"@en ; skos:definition "Atomic time scale based on SI seconds."@en .
@@ -219,37 +178,53 @@ gmeow:calendarEthiopian  a gmeow:CalendarSystem ; rdfs:label "Ethiopian calendar
 gmeow:calendarCoptic     a gmeow:CalendarSystem ; rdfs:label "Coptic calendar"@en ; skos:definition "The Coptic calendar."@en .
 gmeow:calendarISOWeek    a gmeow:CalendarSystem ; rdfs:label "ISO week date"@en ; skos:definition "The ISO 8601 week-numbering calendar."@en .
 
-# Default Temporal Frames
+# Default Temporal Frames — satisfy FrameProfileShape (hasAxis, dimensionCount, frameRealm, frameKind, requiresHost, determinacyModel)
 gmeow:temporalFrameUTCGregorian
     a gmeow:TemporalFrame ;
     rdfs:label "UTC Gregorian (civil time)"@en ;
     gmeow:frameTimeScale gmeow:timeScaleUTC ;
     gmeow:frameCalendarSystem gmeow:calendarGregorian ;
-    gmeow:frameTemporalRealm gmeow:temporalRealmTerrestrial ;
-    gmeow:frameScaleKind gmeow:frameScaleKindCivil .
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisMonth, gmeow:axisDay, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTemporal ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
 
 gmeow:temporalFrameTAI
     a gmeow:TemporalFrame ;
     rdfs:label "TAI (atomic, no calendar)"@en ;
     gmeow:frameTimeScale gmeow:timeScaleTAI ;
-    gmeow:frameTemporalRealm gmeow:temporalRealmTerrestrial ;
-    gmeow:frameScaleKind gmeow:frameScaleKindAtomic .
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
 
 gmeow:temporalFrameTTGregorian
     a gmeow:TemporalFrame ;
     rdfs:label "TT Gregorian (dynamical)"@en ;
     gmeow:frameTimeScale gmeow:timeScaleTT ;
     gmeow:frameCalendarSystem gmeow:calendarGregorian ;
-    gmeow:frameTemporalRealm gmeow:temporalRealmTerrestrial ;
-    gmeow:frameScaleKind gmeow:frameScaleKindDynamical .
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisMonth, gmeow:axisDay, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTemporal ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
 
 gmeow:temporalFrameTDBGregorian
     a gmeow:TemporalFrame ;
     rdfs:label "TDB Gregorian (barycentric)"@en ;
     gmeow:frameTimeScale gmeow:timeScaleTDB ;
     gmeow:frameCalendarSystem gmeow:calendarGregorian ;
-    gmeow:frameTemporalRealm gmeow:temporalRealmAstronomical ;
-    gmeow:frameScaleKind gmeow:frameScaleKindDynamical .
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisMonth, gmeow:axisDay, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTemporal ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
 
 # =========================================================================== #
 # INSTANT & EDTF

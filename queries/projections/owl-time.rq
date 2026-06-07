@@ -17,6 +17,19 @@ CONSTRUCT {
     ?finishesA time:intervalFinishes ?finishesB .
     ?finishedByA time:intervalFinishedBy ?finishedByB .
     ?coincidesWithA time:intervalEquals ?coincidesWithB .
+    ?intBeforeA time:intervalBefore ?intBeforeB .
+    ?intAfterA time:intervalAfter ?intAfterB .
+    ?intMeetsA time:intervalMeets ?intMeetsB .
+    ?intMetByA time:intervalMetBy ?intMetByB .
+    ?intOverlapsA time:intervalOverlaps ?intOverlapsB .
+    ?intOverlappedByA time:intervalOverlappedBy ?intOverlappedByB .
+    ?intStartsA time:intervalStarts ?intStartsB .
+    ?intStartedByA time:intervalStartedBy ?intStartedByB .
+    ?intDuringA time:intervalDuring ?intDuringB .
+    ?intContainsA time:intervalContains ?intContainsB .
+    ?intFinishesA time:intervalFinishes ?intFinishesB .
+    ?intFinishedByA time:intervalFinishedBy ?intFinishedByB .
+    ?intCoincidesA time:intervalEquals ?intCoincidesB .
 }
 WHERE {
     {
@@ -57,5 +70,44 @@ WHERE {
     }
     UNION {
         ?coincidesWithA gmeow:coincidesWith ?coincidesWithB .
+    }
+    UNION {
+        ?intBeforeA gmeow:intervalBefore ?intBeforeB .
+    }
+    UNION {
+        ?intAfterA gmeow:intervalAfter ?intAfterB .
+    }
+    UNION {
+        ?intMeetsA gmeow:intervalMeets ?intMeetsB .
+    }
+    UNION {
+        ?intMetByA gmeow:intervalMetBy ?intMetByB .
+    }
+    UNION {
+        ?intOverlapsA gmeow:intervalOverlaps ?intOverlapsB .
+    }
+    UNION {
+        ?intOverlappedByA gmeow:intervalOverlappedBy ?intOverlappedByB .
+    }
+    UNION {
+        ?intStartsA gmeow:intervalStarts ?intStartsB .
+    }
+    UNION {
+        ?intStartedByA gmeow:intervalStartedBy ?intStartedByB .
+    }
+    UNION {
+        ?intDuringA gmeow:intervalDuring ?intDuringB .
+    }
+    UNION {
+        ?intContainsA gmeow:intervalContains ?intContainsB .
+    }
+    UNION {
+        ?intFinishesA gmeow:intervalFinishes ?intFinishesB .
+    }
+    UNION {
+        ?intFinishedByA gmeow:intervalFinishedBy ?intFinishedByB .
+    }
+    UNION {
+        ?intCoincidesA gmeow:intervalCoincidesWith ?intCoincidesB .
     }
 }

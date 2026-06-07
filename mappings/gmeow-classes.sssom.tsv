@@ -8,6 +8,7 @@
 # curie_map:
 #   bibframe: http://id.loc.gov/ontologies/bibframe/
 #   bibo: http://purl.org/ontology/bibo/
+#   crm: http://www.cidoc-crm.org/cidoc-crm/
 #   doap: http://usefulinc.com/ns/doap#
 #   foaf: http://xmlns.com/foaf/0.1/
 #   gedcom: http://www.w3.org/2000/10/swap/pim/gedcom#
@@ -21,6 +22,7 @@
 #   semapv: https://w3id.org/semapv/vocab/
 #   sioc: http://rdfs.org/sioc/ns#
 #   skos: http://www.w3.org/2004/02/skos/core#
+#   time: http://www.w3.org/2006/time#
 #   vcard: http://www.w3.org/2006/vcard/ns#
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 bibframe:Work	skos:closeMatch	gmeow:CreativeWork	semapv:ManualMappingCuration	0.8	
@@ -40,8 +42,11 @@ gmeow:Document	owl:equivalentClass	schema:DigitalDocument	semapv:ManualMappingCu
 gmeow:Family	owl:equivalentClass	gedcom:Family	semapv:ManualMappingCuration	1.0	
 gmeow:GeoCoordinates	owl:equivalentClass	schema:GeoCoordinates	semapv:ManualMappingCuration	1.0	
 gmeow:Group	owl:equivalentClass	foaf:Group	semapv:ManualMappingCuration	0.95	
+gmeow:Instant	owl:equivalentClass	time:Instant	semapv:ManualMappingCuration	0.95	OWL-Time instant
 gmeow:MediaObject	owl:equivalentClass	schema:MediaObject	semapv:ManualMappingCuration	1.0	
 gmeow:Membership	owl:equivalentClass	org:Membership	semapv:ManualMappingCuration	1.0	
+gmeow:NamedPeriod	skos:closeMatch	crm:E4_Period	semapv:ManualMappingCuration	0.8	CIDOC culturally-defined period
+gmeow:NamedPeriod	skos:closeMatch	time:ProperInterval	semapv:ManualMappingCuration	0.85	named period ≈ OWL-Time proper interval
 gmeow:Occupation	owl:equivalentClass	schema:Occupation	semapv:ManualMappingCuration	1.0	
 gmeow:OnlineAccount	owl:equivalentClass	foaf:OnlineAccount	semapv:ManualMappingCuration	1.0	
 gmeow:Organization	owl:equivalentClass	foaf:Organization	semapv:ManualMappingCuration	1.0	
@@ -54,6 +59,8 @@ gmeow:Place	owl:equivalentClass	schema:Place	semapv:ManualMappingCuration	1.0
 gmeow:PostalAddress	owl:equivalentClass	schema:PostalAddress	semapv:ManualMappingCuration	1.0	
 gmeow:Role	owl:equivalentClass	org:Role	semapv:ManualMappingCuration	1.0	
 gmeow:SoftwareProject	owl:equivalentClass	doap:Project	semapv:ManualMappingCuration	1.0	
+gmeow:TemporalFrame	skos:closeMatch	time:TemporalReferenceSystem	semapv:ManualMappingCuration	0.85	temporal reference system / frame
+gmeow:TemporalMeasurement	skos:closeMatch	crm:E16_Measurement	semapv:ManualMappingCuration	0.8	CIDOC measurement event
 gmeow:WebPage	owl:equivalentClass	schema:WebPage	semapv:ManualMappingCuration	1.0	
 org:FormalOrganization	rdfs:subClassOf	gmeow:Organization	semapv:ManualMappingCuration	1.0	formal org is an organization
 prov:Entity	skos:closeMatch	gmeow:Entity	semapv:ManualMappingCuration	0.7	

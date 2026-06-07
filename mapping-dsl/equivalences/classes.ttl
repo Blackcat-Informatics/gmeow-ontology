@@ -14,6 +14,8 @@
 @prefix bibo: <http://purl.org/ontology/bibo/> .
 @prefix bibframe: <http://id.loc.gov/ontologies/bibframe/> .
 @prefix sioc: <http://rdfs.org/sioc/ns#> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
 
 # Term equivalences for the classes domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-classes.sssom.tsv by `gmeow compile-mappings`.
@@ -386,4 +388,53 @@ gmeow:eqClasses046 a gmeow:TermEquivalence ;
     gmeow:alignObject gmeow:Entity ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+# =========================================================================== #
+# Expanded temporal kernel (#67)
+# =========================================================================== #
+
+gmeow:eqClasses047 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Instant ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject time:Instant ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "OWL-Time instant" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses048 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:TemporalFrame ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject time:TemporalReferenceSystem ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "temporal reference system / frame" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses049 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:NamedPeriod ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject time:ProperInterval ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "named period ≈ OWL-Time proper interval" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses050 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:NamedPeriod ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:E4_Period ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "CIDOC culturally-defined period" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses051 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:TemporalMeasurement ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:E16_Measurement ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "CIDOC measurement event" ;
     gmeow:sssomFile "gmeow-classes.sssom.tsv" .
