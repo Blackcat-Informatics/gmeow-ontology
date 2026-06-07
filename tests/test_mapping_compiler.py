@@ -51,12 +51,10 @@ def test_dsl_parses() -> None:
     # Wikidata, DataSubject/DataController/PrivacyNotice/hasPrivacyNotice/actionProcess
     # PersonalData↔dpv/schema.org/odrl).
     # Issue #70 frame-relativity: +9 (QUDT x3, FIBO x2, OWL-Time TRS x2, Lexvo x2).
-    # Issue #67 expanded temporal: +63 (TemporalFrame→time:TRS/CRMgeo,
-    # Instant→time:Instant, NamedPeriod→periodo:AuthorityPeriod,
-    # TemporalMeasurement→crmgeo:SP1, 13 Allen interval relations→time:,
-    # EDTF, CIDOC-CRM, ICS, QUDT, Wikidata, plus start/end/value/unit/method
-    # property alignments across OWL-Time, CRM, QUDT, and Wikidata).
-    assert len(dsl.equivalences) == 799
+    # Issue #67 expanded temporal: +52 net after removing 11 duplicates that
+    # were split across classes.ttl/properties.ttl and consolidating them in
+    # temporal.ttl per Principle 4 (one canonical source).
+    assert len(dsl.equivalences) == 788
     # 22 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72).
     assert len(dsl.functions) == 22

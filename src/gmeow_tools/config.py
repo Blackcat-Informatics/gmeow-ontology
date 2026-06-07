@@ -203,7 +203,7 @@ PREFIXES: dict[str, str] = {
     # Temporal / geologic / measurement alignment (#67)
     "qudt": "http://qudt.org/schema/qudt/",
     "unit": "http://qudt.org/vocab/unit/",
-    "edtf": "https://periodo.github.io/edtf-ontology/edtf",
+    "edtf": "http://id.loc.gov/datatypes/edtf/",
     "periodo": "http://n2t.net/ark:/99152/",
     "gts": "http://resource.geosciml.org/ontology/timescale/gts#",
     "ivoa": "http://www.ivoa.net/rdf/",

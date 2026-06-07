@@ -84,6 +84,11 @@ def test_time_interval_can_have_temporal_frame() -> None:
     graph = _graph()
     assert (
         URIRef(GMEOW + "hasTemporalFrame"),
+        RDF.type,
+        OWL.ObjectProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasTemporalFrame"),
         RDFS.domain,
         URIRef(GMEOW + "TimeInterval"),
     ) in graph

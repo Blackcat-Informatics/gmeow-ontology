@@ -936,7 +936,7 @@ gmeow:InstantShape
     sh:targetClass gmeow:Instant ;
     sh:or (
         [ sh:path gmeow:instantValue ; sh:minCount 1 ; sh:datatype xsd:dateTime ]
-        [ sh:path gmeow:edtfValue ; sh:minCount 1 ; sh:datatype rdfs:Literal ]
+        [ sh:path gmeow:edtfValue ; sh:minCount 1 ; sh:datatype xsd:string ]
     ) ;
     sh:severity sh:Violation ;
     sh:message "An Instant must have either gmeow:instantValue (xsd:dateTime) or gmeow:edtfValue (EDTF literal), or both." .

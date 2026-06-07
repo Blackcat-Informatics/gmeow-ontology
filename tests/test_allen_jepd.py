@@ -88,10 +88,9 @@ def test_no_event_interval_property_disjointness_in_owl() -> None:
     for event_rel, interval_rel in zip(_EVENT_ALLEN, _INTERVAL_ALLEN, strict=True):
         event_node = URIRef(GMEOW + event_rel)
         interval_node = URIRef(GMEOW + interval_rel)
-        assert (
-            event_node,
-            OWL.propertyDisjointWith,
-            interval_node,
-        ) not in g, (
-            f"{event_rel} must NOT be property-disjoint with {interval_rel} in OWL"
-        )
+        for s, o in [(event_node, interval_node), (interval_node, event_node)]:
+            assert (
+                s,
+                OWL.propertyDisjointWith,
+                o,
+            ) not in g, f"{s} must NOT be property-disjoint with {o} in OWL"

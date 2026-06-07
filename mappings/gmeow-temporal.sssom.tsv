@@ -8,7 +8,7 @@
 # curie_map:
 #   crm: http://www.cidoc-crm.org/cidoc-crm/
 #   crmgeo: http://www.ics.forth.gr/isl/CRMgeo/
-#   edtf: https://periodo.github.io/edtf-ontology/edtf
+#   edtf: http://id.loc.gov/datatypes/edtf/
 #   gmeow: https://blackcatinformatics.ca/gmeow/
 #   gts: http://resource.geosciml.org/ontology/timescale/gts#
 #   periodo: http://n2t.net/ark:/99152/

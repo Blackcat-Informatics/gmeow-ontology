@@ -18,12 +18,10 @@
 #   org: http://www.w3.org/ns/org#
 #   owl: http://www.w3.org/2002/07/owl#
 #   prov: http://www.w3.org/ns/prov#
-#   qudt: http://qudt.org/schema/qudt/
 #   rel: http://purl.org/vocab/relationship/
 #   schema: https://schema.org/
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
-#   time: http://www.w3.org/2006/time#
 #   vcard: http://www.w3.org/2006/vcard/ns#
 subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
 gmeow:accountName	owl:equivalentProperty	foaf:accountName		semapv:ManualMappingCuration	1.0	
@@ -56,16 +54,12 @@ gmeow:hasSibling	owl:equivalentProperty	rel:siblingOf		semapv:ManualMappingCurat
 gmeow:hasSibling	owl:equivalentProperty	schema:sibling		semapv:ManualMappingCuration	1.0	
 gmeow:hasSpouse	owl:equivalentProperty	rel:spouseOf		semapv:ManualMappingCuration	1.0	
 gmeow:hasSpouse	owl:equivalentProperty	schema:spouse		semapv:ManualMappingCuration	1.0	
-gmeow:hasUnit	skos:closeMatch	qudt:hasUnit		semapv:ManualMappingCuration	0.9	QUDT unit linkage for measurements
 gmeow:hasWebPage	skos:closeMatch	foaf:homepage		semapv:ManualMappingCuration	0.8	
 gmeow:hasWebPage	skos:closeMatch	schema:url		semapv:ManualMappingCuration	0.8	
 gmeow:holdsAccount	owl:equivalentProperty	foaf:account		semapv:ManualMappingCuration	1.0	
 gmeow:identifier	skos:closeMatch	bibo:doi		semapv:ManualMappingCuration	0.8	
-gmeow:instantValue	owl:equivalentProperty	time:inXSDDateTimeStamp		semapv:ManualMappingCuration	0.9	crisp instant value as xsd:dateTime
 gmeow:latitude	owl:equivalentProperty	schema:latitude		semapv:ManualMappingCuration	1.0	
 gmeow:longitude	owl:equivalentProperty	schema:longitude		semapv:ManualMappingCuration	1.0	
-gmeow:measurementMethod	skos:relatedMatch	crm:P39_measured		semapv:ManualMappingCuration	0.6	CIDOC measured property
-gmeow:measurementUncertainty	skos:relatedMatch	crm:P90_has_value		semapv:ManualMappingCuration	0.55	uncertainty band expressed as a CIDOC value
 gmeow:memberOf	owl:equivalentProperty	schema:memberOf		semapv:ManualMappingCuration	1.0	
 gmeow:memberOf	skos:closeMatch	org:memberOf		semapv:ManualMappingCuration	0.9	
 gmeow:name	owl:equivalentProperty	foaf:name		semapv:ManualMappingCuration	1.0	
@@ -79,8 +73,6 @@ gmeow:partOf	skos:closeMatch	gufo:isCollectionMemberOf		semapv:ManualMappingCura
 gmeow:partOf	skos:closeMatch	gufo:isComponentOf		semapv:ManualMappingCuration	0.65	gUFO component parthood is endurant/component-specific and not generally transitive; GMEOW partOf is broader
 gmeow:partOf	skos:closeMatch	gufo:isSubCollectionOf		semapv:ManualMappingCuration	0.6	gUFO subcollection parthood is collection-specific; GMEOW partOf is the broader cross-module spine
 gmeow:partOf	skos:closeMatch	schema:isPartOf		semapv:ManualMappingCuration	0.8	
-gmeow:periodEnd	skos:closeMatch	time:hasEnd		semapv:ManualMappingCuration	0.85	end of a named period
-gmeow:periodStart	skos:closeMatch	time:hasBeginning		semapv:ManualMappingCuration	0.85	beginning of a named period
 gmeow:subOrganizationOf	owl:equivalentProperty	org:subOrganizationOf		semapv:ManualMappingCuration	0.9	
 gmeow:subOrganizationOf	owl:equivalentProperty	schema:parentOrganization		semapv:ManualMappingCuration	0.9	
 gmeow:telephone	owl:equivalentProperty	schema:telephone		semapv:ManualMappingCuration	1.0	

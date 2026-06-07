@@ -143,7 +143,7 @@ gmeow:frameTimeScale
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:frameCalendarSystem
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:TemporalFrame ;
     rdfs:range gmeow:CalendarSystem ;
     rdfs:label "frame calendar system"@en ;
@@ -151,7 +151,7 @@ gmeow:frameCalendarSystem
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:frameReferencePosition
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:TemporalFrame ;
     rdfs:range gmeow:ReferencePosition ;
     rdfs:label "frame reference position"@en ;
@@ -247,7 +247,7 @@ gmeow:instantValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:edtfValue
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:range rdfs:Literal ;
     rdfs:label "EDTF value"@en ;
     skos:definition "An ISO 8601-2 (EDTF) expression of an instant or interval, stored as a plain literal. EDTF parsing and normalization are solver-layer concerns (Principle 12)."@en ;
@@ -383,6 +383,7 @@ gmeow:measurementPhanerozoicStart
     a gmeow:TemporalMeasurement ;
     rdfs:label "Phanerozoic start age"@en ;
     gmeow:measurementMethod gmeow:datingMethodStratigraphicCorrelation ;
+    gmeow:hasUnit <http://qudt.org/vocab/unit/YR> ;
     gmeow:measuredAge "538800000"^^xsd:decimal ;
     gmeow:measurementUncertainty "5000000"^^xsd:decimal .
 
@@ -390,6 +391,7 @@ gmeow:measurementCenozoicStart
     a gmeow:TemporalMeasurement ;
     rdfs:label "Cenozoic start age"@en ;
     gmeow:measurementMethod gmeow:datingMethodStratigraphicCorrelation ;
+    gmeow:hasUnit <http://qudt.org/vocab/unit/YR> ;
     gmeow:measuredAge "66000000"^^xsd:decimal ;
     gmeow:measurementUncertainty "500000"^^xsd:decimal .
 
@@ -397,6 +399,7 @@ gmeow:measurementQuaternaryStart
     a gmeow:TemporalMeasurement ;
     rdfs:label "Quaternary start age"@en ;
     gmeow:measurementMethod gmeow:datingMethodStratigraphicCorrelation ;
+    gmeow:hasUnit <http://qudt.org/vocab/unit/YR> ;
     gmeow:measuredAge "2580000"^^xsd:decimal ;
     gmeow:measurementUncertainty "10000"^^xsd:decimal .
 
@@ -404,6 +407,7 @@ gmeow:measurementHoloceneStart
     a gmeow:TemporalMeasurement ;
     rdfs:label "Holocene start age"@en ;
     gmeow:measurementMethod gmeow:datingMethodStratigraphicCorrelation ;
+    gmeow:hasUnit <http://qudt.org/vocab/unit/YR> ;
     gmeow:measuredAge "11700"^^xsd:decimal ;
     gmeow:measurementUncertainty "500"^^xsd:decimal .
 
@@ -449,7 +453,7 @@ gmeow:measuredAge
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:measuredDate
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:TemporalMeasurement ;
     rdfs:range gmeow:Instant ;
     rdfs:label "measured date"@en ;
