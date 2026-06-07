@@ -1,0 +1,23 @@
+@prefix mf:  <http://www.opengis.net/ont/movingfeatures#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Minimal conceptual import target for OGC Moving Features / ISO 19141.
+# The OGC Moving Features standard (OGC 19-045r3, ISO 19141:2008) is
+# primarily UML/XML/JSON-based; no canonical RDF/OWL ontology exists.
+# This stub provides the concept IRIs used in GMEOW alignment mappings.
+
+mf:TemporalGeometry a owl:Class ;
+    rdfs:label "Temporal Geometry"@en .
+
+mf:TemporalTrajectory a owl:Class ;
+    rdfs:subClassOf mf:TemporalGeometry ;
+    rdfs:label "Temporal Trajectory"@en .
+
+mf:PrismGeometry a owl:Class ;
+    rdfs:subClassOf mf:TemporalGeometry ;
+    rdfs:label "Prism Geometry"@en .
+
+mf:RigidTemporalGeometry a owl:Class ;
+    rdfs:subClassOf mf:TemporalGeometry ;
+    rdfs:label "Rigid Temporal Geometry"@en .
