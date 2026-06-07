@@ -89,7 +89,9 @@ def test_dsl_parses() -> None:
     # /clearance bridging to shared ICF categories).
     # Issue #99 data quality: +10 (DQV x4, GeoDCAT-AP/OA x1, PROV-O lineage x1,
     # Wikidata x3).
-    assert len(dsl.equivalences) == 908
+    # Issue #94 motion: +2 (LocationState→mf:TemporalGeometry,
+    # Trajectory→mf:TemporalTrajectory).
+    assert len(dsl.equivalences) == 910
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

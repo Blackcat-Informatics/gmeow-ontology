@@ -199,6 +199,7 @@ PREFIXES: dict[str, str] = {
     "ssn": "http://www.w3.org/ns/ssn/",
     "om": "http://www.wurvoc.org/vocabularies/om-1.8/",
     "qb": "http://purl.org/linked-data/cube#",
+    "mf": "http://www.opengis.net/ont/movingfeatures#",
     "oboe": "http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#",
     "obi": "http://purl.obolibrary.org/obo/OBI_",
     "iao": "http://purl.obolibrary.org/obo/IAO_",
@@ -510,4 +511,5 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "moat": AlignmentTarget("MOAT", PREFIXES["moat"], "Unknown", "schema"),
     "tags": AlignmentTarget("Tag Ontology", PREFIXES["tags"], "Unknown", "schema"),
     "qb": AlignmentTarget("RDF Data Cube", PREFIXES["qb"], "W3C-Document", "schema"),
+    "mf": AlignmentTarget("OGC Moving Features", PREFIXES["mf"], "OGC", "schema"),
 }

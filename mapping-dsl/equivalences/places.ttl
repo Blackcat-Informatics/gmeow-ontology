@@ -20,6 +20,7 @@
 @prefix lgdo: <http://linkedgeodata.org/ontology/> .
 @prefix pleiades: <http://pleiades.stoa.org/places/vocab#> .
 @prefix whg: <https://whgazetteer.org/> .
+@prefix mf: <http://www.opengis.net/ont/movingfeatures#> .
 
 # Term equivalences for the places domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-places.sssom.tsv by `gmeow compile-mappings`.
@@ -735,4 +736,26 @@ gmeow:eqPlaces086 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:objectLabel "replaced by" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# OGC Moving Features / ISO 19141 (#94)
+# --------------------------------------------------------------------------- #
+
+gmeow:eqPlaces087 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:LocationState ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject mf:TemporalGeometry ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "temporal geometry" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces088 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Trajectory ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject mf:TemporalTrajectory ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "temporal trajectory" ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" .

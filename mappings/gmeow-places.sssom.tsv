@@ -15,6 +15,7 @@
 #   gn: http://www.geonames.org/ontology#
 #   gvp: http://vocab.getty.edu/ontology#
 #   lgdo: http://linkedgeodata.org/ontology/
+#   mf: http://www.opengis.net/ont/movingfeatures#
 #   owl: http://www.w3.org/2002/07/owl#
 #   pleiades: http://pleiades.stoa.org/places/vocab#
 #   pos: http://purl.org/ieee1872-owl/pos#
@@ -35,6 +36,7 @@ gmeow:JurisdictionTenure	skos:closeMatch	wd:Q19517	sovereignty	semapv:ManualMapp
 gmeow:Location	skos:closeMatch	bfo:BFO_0000006	spatial region	semapv:ManualMappingCuration	0.8	
 gmeow:Location	skos:closeMatch	bfo:BFO_0000029	site	semapv:ManualMappingCuration	0.8	
 gmeow:Location	skos:closeMatch	crm:E53_Place	Place	semapv:ManualMappingCuration	0.85	
+gmeow:LocationState	skos:closeMatch	mf:TemporalGeometry	temporal geometry	semapv:ManualMappingCuration	0.7	
 gmeow:Orientation	skos:closeMatch	pos:OrientationMeasure	Orientation Measure	semapv:ManualMappingCuration	0.85	
 gmeow:Place	skos:closeMatch	crmgeo:SP5_Geometric_Place_Expression	Geometric Place Expression	semapv:ManualMappingCuration	0.7	
 gmeow:Place	skos:closeMatch	lgdo:Place		semapv:ManualMappingCuration	0.8	
@@ -43,6 +45,7 @@ gmeow:Place	skos:closeMatch	whg:Place		semapv:ManualMappingCuration	0.8
 gmeow:PlaceNaming	skos:closeMatch	crm:E41_Appellation	Appellation	semapv:ManualMappingCuration	0.8	CIDOC-CRM E41_Appellation is the time-spanned name; GMEOW PlaceNaming is the reified relator (NameUsage) that binds a PlaceName to a Place over an interval.
 gmeow:Pose	skos:closeMatch	pos:QuantitativePose	Quantitative Pose	semapv:ManualMappingCuration	0.85	
 gmeow:Pose	skos:closeMatch	wd:Q1055020	pose	semapv:ManualMappingCuration	0.8	
+gmeow:Trajectory	skos:closeMatch	mf:TemporalTrajectory	temporal trajectory	semapv:ManualMappingCuration	0.8	
 gmeow:VirtualLocation	skos:closeMatch	schema:VirtualLocation		semapv:ManualMappingCuration	0.9	
 gmeow:addressLocality	owl:equivalentProperty	schema:addressLocality		semapv:ManualMappingCuration	1.0	
 gmeow:addressLocality	skos:closeMatch	vcard:locality		semapv:ManualMappingCuration	0.9	

@@ -252,3 +252,18 @@ gmeow:mapGeoJsonCoarsened a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "place" ; gmeow:tPred geo:hasGeometry ; gmeow:tObj "coarseGeom" ]
             [ gmeow:tSubj "coarseGeom" ; gmeow:tPred rdf:type ; gmeow:tObjValue geo:Geometry ]
             [ gmeow:tSubj "coarseGeom" ; gmeow:tPred geo:asGeoJSON ; gmeow:tObj "gjTagged" ] ) ] .
+
+# Trajectory → geo:Feature (the spatial path is a feature; individual samples
+# project via mapGeoPosePositionToWktPoint). Continuous LineString interpolation
+# is a solver-layer concern (Principle 12).
+gmeow:mapGeoTrajectory a gmeow:ProjectionMapping ;
+    rdfs:label "Trajectory → geo:Feature"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "traj" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "traj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Trajectory ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "geosparql" ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "trajectory samples (LocationStates), temporal scope, reference frame, and interpolation method are dropped in pure GeoSPARQL; only the feature identity is retained. The sample geometries project separately via mapGeoPosePositionToWktPoint." ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "traj" ; gmeow:tPred rdf:type ; gmeow:tObjValue geo:Feature ] ) ] .
