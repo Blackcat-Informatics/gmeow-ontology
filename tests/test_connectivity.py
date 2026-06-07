@@ -92,7 +92,8 @@ def test_connection_relator() -> None:
         assert (p, RDF.type, OWL.ObjectProperty) in graph
         assert (p, RDF.type, OWL.FunctionalProperty) in graph
         assert (p, RDFS.domain, conn) in graph
-        assert (p, RDFS.range, URIRef(GMEOW + "Entity")) in graph
+        # Range is owl:Thing (universal connectivity contract).
+        assert (p, RDFS.range, OWL.Thing) in graph
 
 
 def test_route_properties() -> None:
@@ -106,18 +107,21 @@ def test_route_properties() -> None:
         assert (p, RDF.type, OWL.ObjectProperty) in graph
         assert (p, RDF.type, OWL.FunctionalProperty) in graph
         assert (p, RDFS.domain, route) in graph
-        assert (p, RDFS.range, URIRef(GMEOW + "Entity")) in graph
+        # Range is owl:Thing (universal connectivity contract).
+        assert (p, RDFS.range, OWL.Thing) in graph
 
     # routeVia is NOT functional (multiple via points possible)
     via = URIRef(GMEOW + "routeVia")
     assert (via, RDF.type, OWL.ObjectProperty) in graph
     assert (via, RDF.type, OWL.FunctionalProperty) not in graph
     assert (via, RDFS.domain, route) in graph
-    assert (via, RDFS.range, URIRef(GMEOW + "Entity")) in graph
+    # Range is owl:Thing (universal connectivity contract).
+    assert (via, RDFS.range, OWL.Thing) in graph
 
-    # hasRouteSegment ⊑ hasPart
+    # hasRouteSegment ⊑ hasPart, transitive
     seg = URIRef(GMEOW + "hasRouteSegment")
     assert (seg, RDF.type, OWL.ObjectProperty) in graph
+    assert (seg, RDF.type, OWL.TransitiveProperty) in graph
     assert (
         seg,
         RDFS.subPropertyOf,
@@ -126,10 +130,11 @@ def test_route_properties() -> None:
     assert (seg, RDFS.domain, route) in graph
     assert (seg, RDFS.range, route) in graph
 
-    # hasRoute links entities to routes
+    # hasRoute links things to routes
     has_route = URIRef(GMEOW + "hasRoute")
     assert (has_route, RDF.type, OWL.ObjectProperty) in graph
-    assert (has_route, RDFS.domain, URIRef(GMEOW + "Entity")) in graph
+    # Domain is owl:Thing (universal connectivity contract).
+    assert (has_route, RDFS.domain, OWL.Thing) in graph
     assert (has_route, RDFS.range, route) in graph
 
 

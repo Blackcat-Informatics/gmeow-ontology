@@ -26,17 +26,17 @@ gmeow:Connection
 gmeow:connectionSource
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Connection ;
-    rdfs:range gmeow:Entity ;
+    rdfs:range owl:Thing ;
     rdfs:label "connection source"@en ;
-    skos:definition "The source entity of a reified Connection."@en ;
+    skos:definition "The source of a reified Connection."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/connectivity> .
 
 gmeow:connectionTarget
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Connection ;
-    rdfs:range gmeow:Entity ;
+    rdfs:range owl:Thing ;
     rdfs:label "connection target"@en ;
-    skos:definition "The target entity of a reified Connection."@en ;
+    skos:definition "The target of a reified Connection."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/connectivity> .
 
 # --------------------------------------------------------------------------- #
@@ -70,25 +70,25 @@ gmeow:routeKindDependency   a gmeow:RouteKind ; rdfs:label "dependency chain"@en
 gmeow:routeStart
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Route ;
-    rdfs:range gmeow:Entity ;
+    rdfs:range owl:Thing ;
     rdfs:label "route start"@en ;
-    skos:definition "The starting entity of a route."@en ;
+    skos:definition "The start of a route."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/connectivity> .
 
 gmeow:routeEnd
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Route ;
-    rdfs:range gmeow:Entity ;
+    rdfs:range owl:Thing ;
     rdfs:label "route end"@en ;
-    skos:definition "The ending entity of a route."@en ;
+    skos:definition "The end of a route."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/connectivity> .
 
 gmeow:routeVia
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Route ;
-    rdfs:range gmeow:Entity ;
+    rdfs:range owl:Thing ;
     rdfs:label "route via"@en ;
-    skos:definition "An intermediate entity that a route passes through. The order of via points is computed by the solver layer (Principle 12), not asserted in the OWL core."@en ;
+    skos:definition "An intermediate point that a route passes through. The order of via points is computed by the solver layer (Principle 12), not asserted in the OWL core."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/connectivity> .
 
 gmeow:routeKind
@@ -100,7 +100,7 @@ gmeow:routeKind
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/connectivity> .
 
 gmeow:hasRouteSegment
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:TransitiveProperty ;
     rdfs:subPropertyOf gmeow:hasPart ;
     rdfs:domain gmeow:Route ;
     rdfs:range gmeow:Route ;
@@ -110,10 +110,10 @@ gmeow:hasRouteSegment
 
 gmeow:hasRoute
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:Entity ;
+    rdfs:domain owl:Thing ;
     rdfs:range gmeow:Route ;
     rdfs:label "has route"@en ;
-    skos:definition "Relates an entity to a route that starts from, ends at, or passes through it."@en ;
+    skos:definition "Relates a thing to a route that starts from, ends at, or passes through it."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/connectivity> .
 
 # --------------------------------------------------------------------------- #
