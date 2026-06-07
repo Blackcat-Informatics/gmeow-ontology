@@ -32,9 +32,10 @@ Every issue is a design decision. Before touching code, mappings, or ontology mo
 
 For any non-trivial issue — new features, architectural changes, multi-file refactors, or ontology additions — enter plan mode before writing implementation code.
 
-1. **Write the plan** to the active plan file (the agent's designated plan path).
-2. **Get approval** via `ExitPlanMode` before proceeding.
-3. **Post the approved plan** as a comment on the GitHub issue.
+1. **ALL COMMENTS MUST BE READ** You must read all the github issue comments using the gh cli and JSON format.
+2. **Write the plan** to the active plan file (the agent's designated plan path).
+3. **Get approval** via `ExitPlanMode` before proceeding.
+4. **Post the approved plan** as a comment on the GitHub issue.
 
 > **Why:** The approved plan is the design contract. Posting it to the issue creates a transparent, time-stamped record that reviewers and future maintainers can reference. It prevents drift between "what was agreed" and "what was implemented."
 
