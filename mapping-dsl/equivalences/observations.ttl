@@ -16,7 +16,7 @@ gmeow:mapsetObservations a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/observations" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. gmeow:ScalarQuantity is canonical — no faithful external term captures the unit+determinacy+granularity bundle in one node." .
+    gmeow:setComment "Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. gmeow:ScalarQuantity is canonical — no faithful external term captures the unit+determinacy+granularity bundle in one node. Added (#68): StandpointClaim → sosa:Observation; Agent → sosa:Sensor (the observer/sensor/perceiver is a standpoint)." .
 
 # --------------------------------------------------------------------------- #
 # SOSA / SSN
@@ -87,6 +87,24 @@ gmeow:eqObs008 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:comment "sosa:Result is broader (any result); gmeow:ScalarQuantity is specifically a scalar numeric with unit+determinacy+granularity." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs017 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:StandpointClaim ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:Observation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "SOSA does not distinguish observation types; a standpoint claim is a kind of observation, and the standpoint-indexed statement realises sosa:Observation." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs018 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Agent ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject sosa:Sensor ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "An agent acting as vantage/observer/perceiver IS a standpoint (Principle 9). sosa:Sensor is device-centric and narrower; the alignment bridges the SOSA sensor concept to the broader GMEOW agent-as-standpoint doctrine." ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
