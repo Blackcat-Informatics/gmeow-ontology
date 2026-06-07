@@ -51,13 +51,19 @@ def test_dsl_parses() -> None:
     # Wikidata, DataSubject/DataController/PrivacyNotice/hasPrivacyNotice/actionProcess
     # PersonalData↔dpv/schema.org/odrl).
     # Issue #70 frame-relativity: +9 (QUDT x3, FIBO x2, OWL-Time TRS x2, Lexvo x2).
-    assert len(dsl.equivalences) == 736
+    # Issue #67 expanded temporal: +63 (TemporalFrame→time:TRS/CRMgeo,
+    # Instant→time:Instant, NamedPeriod→periodo:AuthorityPeriod,
+    # TemporalMeasurement→crmgeo:SP1, 13 Allen interval relations→time:,
+    # EDTF, CIDOC-CRM, ICS, QUDT, Wikidata, plus start/end/value/unit/method
+    # property alignments across OWL-Time, CRM, QUDT, and Wikidata).
+    assert len(dsl.equivalences) == 799
     # 22 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72).
     assert len(dsl.functions) == 22
     # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint,
     # gmeow-events, gmeow-rights, gmeow-coreference, gmeow-determinacy, gmeow-privacy).
     # Issue #70 adds gmeow-qudt, gmeow-fibo, gmeow-temporal.
+    # Issue #67 expands gmeow-temporal (merged, not double-counted).
     # gmeow-colourspace is intentionally omitted (no TermEquivalence entries).
     assert len(dsl.mapping_sets) == 22
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
