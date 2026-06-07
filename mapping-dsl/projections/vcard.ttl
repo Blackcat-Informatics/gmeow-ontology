@@ -198,3 +198,33 @@ gmeow:mapVcardUrl a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "vcard" ; gmeow:toPredicate vcard:hasURL ; gmeow:relation "<=" ;
         gmeow:transform gmeow:fnWebPageToUrl ; gmeow:confidence 0.8 ] .
+
+# --------------------------------------------------------------------------- #
+# Issue #98 — vCard geo: hasCoordinates → vcard:hasGeo via geo: URI (RFC 5870)
+# --------------------------------------------------------------------------- #
+
+gmeow:mapVcardGeo a gmeow:ProjectionMapping ;
+    rdfs:label "Place coordinates → vcard:hasGeo (vcard:Geo node with geo: URI)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasCoordinates ; gmeow:objectVar "c" ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:latitude ; gmeow:objectVar "lat" ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:longitude ; gmeow:objectVar "lon" ] ) ;
+        gmeow:bind [ gmeow:bindVar "geoNode" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    "geo:" [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "lat" ] ) ]
+                    "," [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "lon" ] ) ] ) ] ) ] ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:coarsenTo ; gmeow:objectVar "anyLvl" ] ;
+        gmeow:edoalSource gmeow:hasCoordinates ] ;
+    gmeow:hasBinding [
+        gmeow:profile "vcard" ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnLatLongToGeoUri ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "elevation is dropped; the coordinate reference frame (WGS84) is implicit in the geo: URI" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "place" ; gmeow:tPred vcard:hasGeo ; gmeow:tObj "geoNode" ]
+            [ gmeow:tSubj "geoNode" ; gmeow:tPred rdf:type ; gmeow:tObjValue vcard:Geo ]
+            [ gmeow:tSubj "geoNode" ; gmeow:tPred vcard:latitude ; gmeow:tObj "lat" ]
+            [ gmeow:tSubj "geoNode" ; gmeow:tPred vcard:longitude ; gmeow:tObj "lon" ] ) ] .

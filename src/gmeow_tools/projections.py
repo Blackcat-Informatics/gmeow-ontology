@@ -42,6 +42,7 @@ PROFILES: dict[str, Profile] = {
     "spdx": Profile("spdx", ("spdx",)),
     "ontolex": Profile("ontolex", ("ontolex", "lime", "rdf")),
     "web-annotation": Profile("web-annotation", ("oa",)),
+    "bot": Profile("bot", ("bot",)),
 }
 
 #: Worked-example inputs (locations + naming + languages + identity + contacts +

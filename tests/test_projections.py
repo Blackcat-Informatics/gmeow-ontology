@@ -22,6 +22,8 @@ NAMES = "https://example.org/names/"
 
 LANG = "https://example.org/lang/"
 IDENT = "https://example.org/identity/"
+BOT = "https://w3id.org/bot#"
+EX_PLACES = "https://blackcatinformatics.ca/gmeow/examples/places/"
 
 
 def _source() -> Graph:
@@ -336,3 +338,75 @@ def test_project_examples_round_trip(tmp_path: Path) -> None:
     for path in written:
         assert path.exists()
         assert len(Graph().parse(path, format="turtle")) > 0
+
+
+# --------------------------------------------------------------------------- #
+# Issue #98 — vCard geo, BOT, and "emit all, privilege none" tests
+# --------------------------------------------------------------------------- #
+
+
+def test_vcard_geo_projection() -> None:
+    """Place coordinates → vcard:hasGeo with vcard:Geo node (RFC 5870 geo: URI)."""
+    g = project_graph("vcard", _source())
+    wb = URIRef(LOC + "westbourne112")
+    # vcard:hasGeo points to a typed vcard:Geo node.
+    geo_nodes = list(g.objects(wb, URIRef(VCARD + "hasGeo")))
+    assert len(geo_nodes) == 1, f"expected one vcard:hasGeo target, got {geo_nodes}"
+    geo_node = geo_nodes[0]
+    assert (geo_node, RDF.type, URIRef(VCARD + "Geo")) in g
+    # Latitude and longitude are emitted as datatype properties on the Geo node.
+    assert (
+        geo_node,
+        URIRef(VCARD + "latitude"),
+        Literal("53.544972", datatype=XSD.decimal),
+    ) in g or (
+        geo_node,
+        URIRef(VCARD + "latitude"),
+        Literal(53.544972),
+    ) in g
+    assert (
+        geo_node,
+        URIRef(VCARD + "longitude"),
+        Literal("-113.924398", datatype=XSD.decimal),
+    ) in g or (
+        geo_node,
+        URIRef(VCARD + "longitude"),
+        Literal(-113.924398),
+    ) in g
+    # The node IRI is a geo: URI (RFC 5870).
+    assert str(geo_node).startswith("geo:"), f"expected geo: URI, got {geo_node}"
+    _assert_no_gmeow_leakage(g)
+
+
+def test_bot_projection() -> None:
+    """Building topology: placeType → BOT class; containsPlace →
+    bot:hasStorey/hasSpace."""
+    g = project_graph("bot", _source())
+    building = URIRef(LOC + "officeBuilding")
+    floor = URIRef(LOC + "secondFloor")
+    room = URIRef(LOC + "cornerOffice")
+    # Class typing.
+    assert (building, RDF.type, URIRef(BOT + "Building")) in g
+    assert (floor, RDF.type, URIRef(BOT + "Storey")) in g
+    assert (room, RDF.type, URIRef(BOT + "Space")) in g
+    # Containment edges.
+    assert (building, URIRef(BOT + "hasStorey"), floor) in g
+    assert (floor, URIRef(BOT + "hasSpace"), room) in g
+    _assert_no_gmeow_leakage(g)
+
+
+def test_schema_org_contested_place_names_emit_all() -> None:
+    """Principle 9 — 'emit all, privilege none': every displayable place name projects
+    as schema:name; the endonym/exonym distinction is a frame choice, not a ground-truth
+    privileging. Superseded names remain suppressed (Principle 10)."""
+    src = load_merged_graph(include_imports=False)
+    src.parse(FIXTURES_DIR / "places-contested.ttl", format="turtle")
+    g = project_graph("schema-org", src)
+    disputed = URIRef(EX_PLACES + "disputedPlace")
+    names = set(g.objects(disputed, URIRef(SCHEMA + "name")))
+    # Both co-equal toponyms are emitted as schema:name via mapSchemaPlaceAllNames.
+    assert Literal("Konstantinoupoli", lang="x-gmeow-el") in names
+    assert Literal("Constantinople", lang="x-gmeow-en") in names
+    # The superseded historical name is suppressed — never leaks.
+    assert Literal("Byzantium", lang="x-gmeow-la") not in names
+    _assert_no_gmeow_leakage(g)

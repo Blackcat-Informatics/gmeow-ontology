@@ -694,3 +694,34 @@ gmeow:mapSchemaOccupancy a gmeow:ProjectionMapping ;
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:occupancy ; gmeow:relation "<=" ;
         gmeow:confidence 0.7 ;
         gmeow:lossyDrop "the Occupancy relator (provenance, unit, temporal scope, standpoint) collapses to a flat schema:occupancy integer; non-displayable/superseded occupancies are suppressed; restricted to gmeow:Place to avoid projecting byte occupancies from StorageLocation" ] .
+
+# --------------------------------------------------------------------------- #
+# Issue #98 — Schema.org location enrichments
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaLocation a gmeow:ProjectionMapping ;
+    rdfs:label "locatedAt → schema:location"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "loc" ;
+        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:locatedAt ; gmeow:objectVar "loc" ] ) ;
+        gmeow:edoalSource gmeow:locatedAt ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:location ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "the location's type distinction (Place vs VirtualLocation vs StorageLocation) is preserved by the target node's own rdf:type projection, but the locatedAt relation itself loses the structural subproperty (storedIn, physicalPlace)" ] .
+
+# "Emit all, privilege none" — every displayable place name is schema:name,
+# with no endonym/exonym categorisation (Principle 9). Coexists with the
+# endonym-preferred frame; this is a maximal, no-privilege projection choice.
+gmeow:mapSchemaPlaceAllNames a gmeow:ProjectionMapping ;
+    rdfs:label "ALL displayable PlaceNames → schema:name (no privilege)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ; gmeow:value "allName" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasPlaceName ; gmeow:objectVar "pn" ]
+            [ gmeow:subjectVar "pn" ; gmeow:predicate gmeow:fullName ; gmeow:objectVar "allName" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "pn" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:hasPlaceName ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:name ; gmeow:relation "<=" ;
+        gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "namePurpose (endonym/exonym/superseded) is ignored; every displayable name is emitted as schema:name. The consumer receives all co-equal claims without privileging." ] .

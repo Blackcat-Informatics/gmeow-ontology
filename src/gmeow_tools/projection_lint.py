@@ -51,6 +51,7 @@ _PROFILE_TARGETS: dict[str, tuple[str, ...]] = {
     "geosparql": ("geo",),
     "ical": ("ical",),
     "owl-time": ("time",),
+    "bot": ("bot",),
     # Rights module (#21): the structural ODRL policy + CC REL licence projections.
     # Their target terms are declared in the SSSOM linkage layer (the structural
     # templateAtoms cells emit no EDOAL cell), so the drift check confirms every
@@ -64,15 +65,19 @@ _PROFILE_TARGETS: dict[str, tuple[str, ...]] = {
 #: Target terms a compose/decompose transform legitimately MINTS — intermediate
 #: nodes, linking properties, composed literals and datatypes. These are outputs of
 #: declared FnO transforms (fnComposeAddress, the name-part decomposition,
-#: fnRetagWkt, fnRetagGeoJson, fnCoarsenToGranularityGeoJson), not standalone term
-#: correspondences, so they have no EDOAL/SSSOM cell. Listed here so the drift check
-#: still catches genuinely-undeclared mappings.
+#: fnRetagWkt, fnRetagGeoJson, fnCoarsenToGranularityGeoJson, fnLatLongToGeoUri),
+#: not standalone term correspondences, so they have no EDOAL/SSSOM cell. Listed
+#: here so the drift check still catches genuinely-undeclared mappings.
 _STRUCTURAL_OUTPUTS: frozenset[str] = frozenset(
     {
         "http://www.w3.org/2006/vcard/ns#hasName",
         "http://www.w3.org/2006/vcard/ns#Name",
         "http://www.w3.org/2006/vcard/ns#hasAddress",
         "http://www.w3.org/2006/vcard/ns#label",
+        "http://www.w3.org/2006/vcard/ns#hasGeo",
+        "http://www.w3.org/2006/vcard/ns#Geo",
+        "http://www.w3.org/2006/vcard/ns#latitude",
+        "http://www.w3.org/2006/vcard/ns#longitude",
         "http://www.opengis.net/ont/geosparql#wktLiteral",
         "http://www.opengis.net/ont/geosparql#geoJSONLiteral",
     }
