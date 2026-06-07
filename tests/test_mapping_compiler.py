@@ -56,7 +56,9 @@ def test_dsl_parses() -> None:
     # temporal.ttl per Principle 4 (one canonical source).
     # Issue #66 base observations: +16 (SOSA/SSN x6, PROV-O x4, CIDOC E13 x3,
     # determinacy x1, Wikidata x2).
-    assert len(dsl.equivalences) == 804
+    # Issue #68 standpoint enhancement: +2 (StandpointClaim→sosa:Observation,
+    # Agent→sosa:Sensor).
+    assert len(dsl.equivalences) == 806
     # 22 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72).
     assert len(dsl.functions) == 22

@@ -150,3 +150,32 @@ def test_standpoint_claim_specialises_observation() -> None:
 
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
     assert (EX.c1, RDF.type, GMEOW.Observation) in graph
+
+
+def test_standpoint_claim_aligned_to_sosa_observation() -> None:
+    """The standpoint-indexed statement is aligned to sosa:Observation (#68)."""
+    from gmeow_tools.mappings import load_mappings
+
+    mappings = load_mappings()
+    observation_mappings = [
+        m for m in mappings if m.subject_id == "gmeow:StandpointClaim"
+    ]
+    assert observation_mappings, "StandpointClaim must have at least one mapping"
+    sosa_matches = [
+        m for m in observation_mappings if m.object_id == "sosa:Observation"
+    ]
+    assert sosa_matches, "StandpointClaim must map to sosa:Observation"
+    assert sosa_matches[0].predicate_id == "skos:closeMatch"
+
+
+def test_agent_aligned_to_sosa_sensor_as_standpoint() -> None:
+    """Agent-as-vantage is a standpoint, bridged to sosa:Sensor (#68)."""
+    from gmeow_tools.mappings import load_mappings
+
+    mappings = load_mappings()
+    agent_mappings = [m for m in mappings if m.subject_id == "gmeow:Agent"]
+    sosa_matches = [m for m in agent_mappings if m.object_id == "sosa:Sensor"]
+    assert sosa_matches, (
+        "Agent must map to sosa:Sensor (observer/sensor/perceiver as standpoint)"
+    )
+    assert sosa_matches[0].predicate_id == "skos:closeMatch"

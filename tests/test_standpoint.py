@@ -17,7 +17,7 @@ from __future__ import annotations
 from itertools import combinations
 from pathlib import Path
 
-from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
+from rdflib import OWL, RDF, RDFS, SKOS, Graph, Namespace, URIRef
 
 from gmeow_tools.config import PROJECT_ROOT, STATEMENT_RDF12_FILE
 from gmeow_tools.graph import load_merged_graph
@@ -107,6 +107,47 @@ def test_three_axes_are_orthogonal() -> None:
         assert (b, RDFS.subPropertyOf, a) not in g
         assert (a, OWL.equivalentProperty, b) not in g
         assert (b, OWL.equivalentProperty, a) not in g
+
+
+def test_vantage_semantically_subsumes_according_to() -> None:
+    """gmeow:vantage ⊑ gmeow:accordingTo is documented on the TBox (#68).
+    Direct rdfs:subPropertyOf axiomatisation is impossible because accordingTo
+    is an AnnotationProperty (DL-clean, Principle 3) while vantage is an
+    ObjectProperty; the subsumption is documented, not reasoned."""
+    g = _graph()
+    scope_note = g.value(GM.vantage, SKOS.scopeNote)
+    assert scope_note is not None
+    text = str(scope_note)
+    assert "gmeow:vantage ⊑ gmeow:accordingTo" in text, (
+        f"vantage scopeNote must document the semantic subsumption: {text}"
+    )
+    assert "not axiomatised" in text or "not axiomatized" in text
+
+
+def test_vantage_recognises_observer_as_standpoint() -> None:
+    """The vantage agent — observer, sensor, perceiver — IS a standpoint (#68)."""
+    g = _graph()
+    definition = g.value(GM.vantage, SKOS.definition)
+    assert definition is not None
+    text = str(definition)
+    assert "observer" in text and "sensor" in text and "perceiver" in text, (
+        f"vantage definition must name observer/sensor/perceiver as standpoint: {text}"
+    )
+    assert "IS a standpoint" in text or "is a standpoint" in text, (
+        f"vantage definition must assert the observer-as-standpoint doctrine: {text}"
+    )
+
+
+def test_according_to_references_vantage_as_reified_counterpart() -> None:
+    """accordingTo definition references vantage as its reified counterpart (#68)."""
+    g = _graph()
+    definition = g.value(GM.accordingTo, SKOS.definition)
+    assert definition is not None
+    text = str(definition)
+    assert "vantage" in text, f"accordingTo definition must reference vantage: {text}"
+    assert "accordingTo becomes the gmeow:vantage" in text, (
+        f"accordingTo definition must document the promotion path: {text}"
+    )
 
 
 def test_no_preferred_or_primary_term_is_declared() -> None:
