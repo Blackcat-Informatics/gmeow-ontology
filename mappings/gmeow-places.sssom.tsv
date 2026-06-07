@@ -8,26 +8,39 @@
 # curie_map:
 #   bfo: http://purl.obolibrary.org/obo/
 #   crm: http://www.cidoc-crm.org/cidoc-crm/
+#   crmgeo: http://www.ics.forth.gr/isl/CRMgeo/
 #   dcterms: http://purl.org/dc/terms/
 #   geo: http://www.opengis.net/ont/geosparql#
 #   gmeow: https://blackcatinformatics.ca/gmeow/
 #   gn: http://www.geonames.org/ontology#
 #   gvp: http://vocab.getty.edu/ontology#
+#   lgdo: http://linkedgeodata.org/ontology/
 #   owl: http://www.w3.org/2002/07/owl#
+#   pleiades: http://pleiades.stoa.org/places/vocab#
 #   pos: http://purl.org/ieee1872-owl/pos#
 #   schema: https://schema.org/
 #   semapv: https://w3id.org/semapv/vocab/
+#   sf: http://www.opengis.net/ont/sf#
 #   skos: http://www.w3.org/2004/02/skos/core#
 #   vcard: http://www.w3.org/2006/vcard/ns#
 #   wd: http://www.wikidata.org/entity/
 #   wdt: http://www.wikidata.org/prop/direct/
 #   wgs84: http://www.w3.org/2003/01/geo/wgs84_pos#
+#   whg: https://whgazetteer.org/
 subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
+gmeow:ContainmentTenure	skos:closeMatch	wdt:P131	located in the administrative territorial entity	semapv:ManualMappingCuration	0.7	Wikidata P131 is the flat administrative-hierarchy property; GMEOW ContainmentTenure reifies it with temporal scope and standpoint indexing.
 gmeow:Geometry	skos:closeMatch	geo:Geometry		semapv:ManualMappingCuration	0.9	
+gmeow:JurisdictionTenure	skos:closeMatch	crm:E4_Period	Period	semapv:ManualMappingCuration	0.75	CIDOC-CRM E4_Period captures the time-spanned governance period; GMEOW JurisdictionTenure adds the place×polity relator structure and standpoint indexing.
+gmeow:JurisdictionTenure	skos:closeMatch	wd:Q19517	sovereignty	semapv:ManualMappingCuration	0.75	
 gmeow:Location	skos:closeMatch	bfo:BFO_0000006	spatial region	semapv:ManualMappingCuration	0.8	
 gmeow:Location	skos:closeMatch	bfo:BFO_0000029	site	semapv:ManualMappingCuration	0.8	
 gmeow:Location	skos:closeMatch	crm:E53_Place	Place	semapv:ManualMappingCuration	0.85	
 gmeow:Orientation	skos:closeMatch	pos:OrientationMeasure	Orientation Measure	semapv:ManualMappingCuration	0.85	
+gmeow:Place	skos:closeMatch	crmgeo:SP5_Geometric_Place_Expression	Geometric Place Expression	semapv:ManualMappingCuration	0.7	
+gmeow:Place	skos:closeMatch	lgdo:Place		semapv:ManualMappingCuration	0.8	
+gmeow:Place	skos:closeMatch	pleiades:Place		semapv:ManualMappingCuration	0.85	
+gmeow:Place	skos:closeMatch	whg:Place		semapv:ManualMappingCuration	0.8	
+gmeow:PlaceNaming	skos:closeMatch	crm:E41_Appellation	Appellation	semapv:ManualMappingCuration	0.8	CIDOC-CRM E41_Appellation is the time-spanned name; GMEOW PlaceNaming is the reified relator (NameUsage) that binds a PlaceName to a Place over an interval.
 gmeow:Pose	skos:closeMatch	pos:QuantitativePose	Quantitative Pose	semapv:ManualMappingCuration	0.85	
 gmeow:Pose	skos:closeMatch	wd:Q1055020	pose	semapv:ManualMappingCuration	0.8	
 gmeow:VirtualLocation	skos:closeMatch	schema:VirtualLocation		semapv:ManualMappingCuration	0.9	
@@ -36,11 +49,14 @@ gmeow:addressLocality	skos:closeMatch	vcard:locality		semapv:ManualMappingCurati
 gmeow:addressPlace	skos:closeMatch	schema:address		semapv:ManualMappingCuration	0.7	
 gmeow:addressRegion	owl:equivalentProperty	schema:addressRegion		semapv:ManualMappingCuration	1.0	
 gmeow:addressRegion	skos:closeMatch	vcard:region		semapv:ManualMappingCuration	0.9	
+gmeow:asGeoJSON	skos:closeMatch	geo:asGeoJSON		semapv:ManualMappingCuration	0.9	
 gmeow:asWKT	skos:closeMatch	geo:asWKT		semapv:ManualMappingCuration	0.9	
+gmeow:authorityLink	skos:closeMatch	whg:closeMatch		semapv:ManualMappingCuration	0.7	
 gmeow:bearing	skos:closeMatch	wd:Q123429	bearing	semapv:ManualMappingCuration	0.8	
 gmeow:containedInPlace	skos:closeMatch	dcterms:isPartOf		semapv:ManualMappingCuration	0.7	
 gmeow:containedInPlace	skos:closeMatch	geo:sfWithin		semapv:ManualMappingCuration	0.8	
 gmeow:containedInPlace	skos:closeMatch	gn:parentFeature		semapv:ManualMappingCuration	0.8	
+gmeow:containedInPlace	skos:closeMatch	lgdo:parentPlace		semapv:ManualMappingCuration	0.7	
 gmeow:containedInPlace	skos:closeMatch	wdt:P131		semapv:ManualMappingCuration	0.8	
 gmeow:countryCode	skos:closeMatch	schema:addressCountry		semapv:ManualMappingCuration	0.8	
 gmeow:countryCode	skos:closeMatch	vcard:country-name		semapv:ManualMappingCuration	0.7	
@@ -48,8 +64,15 @@ gmeow:elevation	skos:closeMatch	schema:elevation		semapv:ManualMappingCuration	0
 gmeow:elevation	skos:closeMatch	wgs84:alt		semapv:ManualMappingCuration	0.9	
 gmeow:eulerOrder	skos:closeMatch	wd:Q465493	Euler angles	semapv:ManualMappingCuration	0.8	
 gmeow:extendedAddress	skos:closeMatch	vcard:extended-address		semapv:ManualMappingCuration	0.9	
+gmeow:geometryTypeLineString	skos:closeMatch	sf:LineString		semapv:ManualMappingCuration	0.95	
+gmeow:geometryTypeMultiLineString	skos:closeMatch	sf:MultiLineString		semapv:ManualMappingCuration	0.95	
+gmeow:geometryTypeMultiPoint	skos:closeMatch	sf:MultiPoint		semapv:ManualMappingCuration	0.95	
+gmeow:geometryTypeMultiPolygon	skos:closeMatch	sf:MultiPolygon		semapv:ManualMappingCuration	0.95	
+gmeow:geometryTypePoint	skos:closeMatch	sf:Point		semapv:ManualMappingCuration	0.95	
+gmeow:geometryTypePolygon	skos:closeMatch	sf:Polygon		semapv:ManualMappingCuration	0.95	
 gmeow:hasCoordinates	skos:closeMatch	schema:geo		semapv:ManualMappingCuration	0.8	
 gmeow:hasGeometry	skos:closeMatch	geo:hasGeometry		semapv:ManualMappingCuration	0.9	
+gmeow:hasPlaceName	skos:closeMatch	pleiades:Name		semapv:ManualMappingCuration	0.8	
 gmeow:hasPose	skos:closeMatch	pos:pose		semapv:ManualMappingCuration	0.85	
 gmeow:hasPoseOrientation	skos:closeMatch	pos:poseOrientation		semapv:ManualMappingCuration	0.85	
 gmeow:hasPosePosition	skos:closeMatch	pos:posePosition		semapv:ManualMappingCuration	0.85	
@@ -58,6 +81,8 @@ gmeow:latitude	skos:closeMatch	wgs84:lat		semapv:ManualMappingCuration	0.9
 gmeow:locatedAt	skos:closeMatch	schema:location		semapv:ManualMappingCuration	0.7	
 gmeow:longitude	skos:closeMatch	wgs84:long		semapv:ManualMappingCuration	0.9	
 gmeow:pitch	skos:closeMatch	wd:Q465493	Euler angles	semapv:ManualMappingCuration	0.8	
+gmeow:placeSupersededBy	skos:closeMatch	wdt:P1366	replaced by	semapv:ManualMappingCuration	0.85	
+gmeow:placeSupersedes	skos:closeMatch	wdt:P1365	replaces	semapv:ManualMappingCuration	0.85	
 gmeow:placeType	skos:closeMatch	gvp:placeType		semapv:ManualMappingCuration	0.8	
 gmeow:placeTypeAdministrativeArea	skos:closeMatch	gn:A		semapv:ManualMappingCuration	0.8	
 gmeow:placeTypeAdministrativeArea	skos:closeMatch	schema:AdministrativeArea		semapv:ManualMappingCuration	0.9	

@@ -678,3 +678,212 @@ def test_no_preferred_or_primary_place_term() -> None:
         for pt in prop_types:
             assert (node, RDF.type, pt) not in g, f"{banned} must not exist"
         assert (node, RDF.type, OWL.Class) not in g
+
+
+# --------------------------------------------------------------------------- #
+# Terrestrial realm deepening — JurisdictionTenure, ContainmentTenure,
+# GeometryType, asGeoJSON, determinacy & lifecycle wiring (#82)
+# --------------------------------------------------------------------------- #
+
+
+def test_jurisdiction_tenure_grounding() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "JurisdictionTenure"),
+        RDFS.subClassOf,
+        URIRef(GMEOW + "TimeScopedRelation"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "jurisdictionPlace"),
+        RDFS.domain,
+        URIRef(GMEOW + "JurisdictionTenure"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "jurisdictionPlace"),
+        RDFS.range,
+        URIRef(GMEOW + "Place"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "jurisdictionPlace"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "jurisdictionPolity"),
+        RDFS.domain,
+        URIRef(GMEOW + "JurisdictionTenure"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "jurisdictionPolity"),
+        RDFS.range,
+        URIRef(GMEOW + "Agent"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "jurisdictionPolity"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+
+
+def test_containment_tenure_grounding() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "ContainmentTenure"),
+        RDFS.subClassOf,
+        URIRef(GMEOW + "TimeScopedRelation"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "containmentChild"),
+        RDFS.domain,
+        URIRef(GMEOW + "ContainmentTenure"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "containmentChild"),
+        RDFS.range,
+        URIRef(GMEOW + "Place"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "containmentChild"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "containmentParent"),
+        RDFS.domain,
+        URIRef(GMEOW + "ContainmentTenure"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "containmentParent"),
+        RDFS.range,
+        URIRef(GMEOW + "Place"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "containmentParent"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+
+
+def test_geometry_type_is_value_not_subclass() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "GeometryType"),
+        RDFS.subClassOf,
+        URIRef(GUFO + "QualityValue"),
+    ) in graph
+    for gt in (
+        "geometryTypePoint",
+        "geometryTypeLineString",
+        "geometryTypePolygon",
+        "geometryTypeMultiPoint",
+        "geometryTypeMultiLineString",
+        "geometryTypeMultiPolygon",
+    ):
+        assert (
+            URIRef(GMEOW + gt),
+            RDF.type,
+            URIRef(GMEOW + "GeometryType"),
+        ) in graph
+    for rejected in ("Point", "LineString", "Polygon", "MultiPoint"):
+        assert (URIRef(GMEOW + rejected), RDF.type, OWL.Class) not in graph
+
+
+def test_asgeojson_range_is_dl_safe() -> None:
+    graph = _graph()
+    as_gj = URIRef(GMEOW + "asGeoJSON")
+    assert (as_gj, RDF.type, OWL.DatatypeProperty) in graph
+    assert (as_gj, RDFS.range, RDFS.Literal) in graph
+    assert (as_gj, RDFS.range, URIRef(GEO + "geoJSONLiteral")) not in graph
+
+
+def test_place_determinacy_subproperty() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "placeDeterminacy"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "hasDeterminacy"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "placeDeterminacy"),
+        RDFS.domain,
+        URIRef(GMEOW + "Place"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "geometryDeterminacy"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "hasDeterminacy"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "geometryDeterminacy"),
+        RDFS.domain,
+        URIRef(GMEOW + "Geometry"),
+    ) in graph
+
+
+def test_place_supersession_subproperties() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "placeSupersededBy"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "supersededBy"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "placeSupersedes"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "supersedes"),
+    ) in graph
+
+
+def test_contested_jurisdiction_tenures_coexist() -> None:
+    """Two contradictory JurisdictionTenures on the same place load, SHACL-pass,
+    and are BOTH retained — neither is the ground truth (Principle 9)."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-contested.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    tenures = set(g.subjects(RDF.type, URIRef(GMEOW + "JurisdictionTenure")))
+    assert len(tenures) >= 2, "Expected at least two co-existing JurisdictionTenures"
+    polities = set()
+    for tenure in tenures:
+        polity = g.value(tenure, URIRef(GMEOW + "jurisdictionPolity"))
+        if polity:
+            polities.add(polity)
+    assert len(polities) >= 2, "Expected at least two distinct polity claims"
+
+
+def test_containment_tenure_records_border_change() -> None:
+    """A ContainmentTenure records a place's parent change over time."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-contested.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    tenures = list(g.subjects(RDF.type, URIRef(GMEOW + "ContainmentTenure")))
+    assert len(tenures) >= 2, "Expected at least two ContainmentTenure records"
+
+    parent_pred = URIRef(GMEOW + "containmentParent")
+    child_pred = URIRef(GMEOW + "containmentChild")
+    interval_pred = URIRef(GMEOW + "duringInterval")
+
+    claims = {
+        (
+            g.value(t, parent_pred),
+            g.value(t, interval_pred),
+        )
+        for t in tenures
+        if (t, child_pred, EX_PLACES.disputedPlace) in g
+    }
+
+    assert (EX_PLACES.polityA, EX_PLACES.interval1920_1954) in claims
+    assert (EX_PLACES.polityB, EX_PLACES.interval1954_present) in claims
+
+
+def test_geometry_has_type_and_geojson() -> None:
+    """A geometry may carry both a GeometryType value and a GeoJSON serialization."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-contested.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    geoms = set(g.objects(EX_PLACES.disputedPlace, URIRef(GMEOW + "hasGeometry")))
+    assert geoms, "Expected at least one geometry on disputedPlace"
+    for geom in geoms:
+        gt = g.value(geom, URIRef(GMEOW + "geometryType"))
+        assert gt is not None, "Geometry must have a geometryType"
+        gj = g.value(geom, URIRef(GMEOW + "asGeoJSON"))
+        assert gj is not None, "Geometry must have an asGeoJSON serialization"
