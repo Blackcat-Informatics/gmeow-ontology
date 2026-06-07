@@ -212,7 +212,7 @@ gmeow:mapVcardGeo a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasCoordinates ; gmeow:objectVar "c" ]
             [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:latitude ; gmeow:objectVar "lat" ]
             [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:longitude ; gmeow:objectVar "lon" ] ) ;
-        gmeow:mint [ gmeow:bindVar "geoNode" ; gmeow:bindExpr
+        gmeow:bind [ gmeow:bindVar "geoNode" ; gmeow:bindExpr
             [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
                 [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
                     "geo:" [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "lat" ] ) ]

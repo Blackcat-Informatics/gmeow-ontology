@@ -162,10 +162,6 @@ gmeow:implWebAnnotation a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/web-annotation.rq> .
 
-gmeow:outLatLongToGeoUri a fno:Output ;
-    fno:predicate gmeow:projectedGeoUri ;
-    fno:type xsd:anyURI .
-
 gmeow:paramTaggingInterval a fno:Parameter ;
     fno:predicate gmeow:taggingInterval ;
     fno:required false ;
@@ -225,6 +221,10 @@ gmeow:outEventTypeToSummary a fno:Output ;
 gmeow:outFuzzyTimeToDate a fno:Output ;
     fno:predicate gmeow:projectedFuzzyDate ;
     fno:type rdfs:Literal .
+
+gmeow:outLatLongToGeoUri a fno:Output ;
+    fno:predicate gmeow:projectedGeoUri ;
+    fno:type xsd:anyURI .
 
 gmeow:outLatLongToWktPoint a fno:Output ;
     fno:predicate geo:asWKT ;
@@ -708,7 +708,11 @@ gmeow:implSchemaOrg a fno:Implementation ;
         [ a fnom:PropertyParameterMapping ;
             rdfs:label "paramLongitude ↦ ?lon"@en ;
             fnom:functionParameter gmeow:paramLongitude ;
-            fnom:implementationProperty "lon" ] .
+            fnom:implementationProperty "lon" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnLatLongToGeoUri output ↦ ?geoNode"@en ;
+            fnom:functionOutput gmeow:outLatLongToGeoUri ;
+            fnom:implementationProperty "geoNode" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnLatLongToWktPoint → geosparql (FnO mapping)"@en ;

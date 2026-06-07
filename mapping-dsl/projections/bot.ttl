@@ -38,7 +38,7 @@ gmeow:mapBotHasStorey a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "storey" ; gmeow:predicate gmeow:containedInPlace ; gmeow:objectVar "building" ]
             [ gmeow:subjectVar "building" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
             [ gmeow:subjectVar "building" ; gmeow:predicate gmeow:placeType ; gmeow:objectValue gmeow:placeTypeBuilding ] ) ;
-        gmeow:edoalSource gmeow:containedInPlace ] ;
+        gmeow:edoalPath true ] ;
     gmeow:hasBinding [
         gmeow:profile "bot" ; gmeow:toPredicate bot:hasStorey ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
         gmeow:lossyDrop "the GMEOW containedInPlace subproperty and any standpoint/contestation on the containment are collapsed to a flat bot:hasStorey edge" ] .
@@ -53,7 +53,7 @@ gmeow:mapBotHasSpace a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "space" ; gmeow:predicate gmeow:containedInPlace ; gmeow:objectVar "storey" ]
             [ gmeow:subjectVar "storey" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
             [ gmeow:subjectVar "storey" ; gmeow:predicate gmeow:placeType ; gmeow:objectValue gmeow:placeTypeFloor ] ) ;
-        gmeow:edoalSource gmeow:containedInPlace ] ;
+        gmeow:edoalPath true ] ;
     gmeow:hasBinding [
         gmeow:profile "bot" ; gmeow:toPredicate bot:hasSpace ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
         gmeow:lossyDrop "the GMEOW containedInPlace subproperty and any standpoint/contestation on the containment are collapsed to a flat bot:hasSpace edge" ] .
@@ -69,7 +69,7 @@ gmeow:mapBotHasSpaceDirect a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "space" ; gmeow:predicate gmeow:containedInPlace ; gmeow:objectVar "building" ]
             [ gmeow:subjectVar "building" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
             [ gmeow:subjectVar "building" ; gmeow:predicate gmeow:placeType ; gmeow:objectValue gmeow:placeTypeBuilding ] ) ;
-        gmeow:edoalSource gmeow:containedInPlace ] ;
+        gmeow:edoalPath true ] ;
     gmeow:hasBinding [
         gmeow:profile "bot" ; gmeow:toPredicate bot:hasSpace ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
         gmeow:lossyDrop "direct building→room containment, skipping the intermediate storey; the flat edge loses the intermediate floor information" ] .

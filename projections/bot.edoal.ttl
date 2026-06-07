@@ -13,7 +13,8 @@
     align:map [ a align:Cell ;
             rdfs:label "building contains room directly → bot:hasSpace"@en ;
             align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:containedInPlace ] ;
+                    edoal:inverse [ a edoal:Relation ;
+                            edoal:uri gmeow:containedInPlace ] ] ;
             align:entity2 [ a edoal:Property ;
                     edoal:uri bot:hasSpace ] ;
             align:relation "<=" ;
@@ -21,7 +22,8 @@
         [ a align:Cell ;
             rdfs:label "floor contains room → bot:hasSpace"@en ;
             align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:containedInPlace ] ;
+                    edoal:inverse [ a edoal:Relation ;
+                            edoal:uri gmeow:containedInPlace ] ] ;
             align:entity2 [ a edoal:Property ;
                     edoal:uri bot:hasSpace ] ;
             align:relation "<=" ;
@@ -29,7 +31,8 @@
         [ a align:Cell ;
             rdfs:label "building contains floor → bot:hasStorey"@en ;
             align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:containedInPlace ] ;
+                    edoal:inverse [ a edoal:Relation ;
+                            edoal:uri gmeow:containedInPlace ] ] ;
             align:entity2 [ a edoal:Property ;
                     edoal:uri bot:hasStorey ] ;
             align:relation "<=" ;
