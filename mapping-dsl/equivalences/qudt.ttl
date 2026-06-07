@@ -1,0 +1,56 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
+
+# Term equivalences for the measurement / unit domain — GMEOW authoring source.
+# Compiled to mappings/gmeow-qudt.sssom.tsv by `gmeow compile-mappings`.
+#
+# QUDT (Quantities, Units, Dimensions and Types) is an active W3C-member ontology
+# that models units as reference systems for numerical values. The alignment is
+# contextual: a gmeow:ReferenceFrame whose gmeow:frameRealm is
+# gmeow:frameRealmMeasurement corresponds to a qudt:Unit.
+
+# REFUSED (Principle 5 — no faithful external term):
+#   gmeow:FrameRealm has no direct QUDT counterpart. QUDT does not model a
+#   generalised "realm" or "domain" abstraction above units; the concept is
+#   GMEOW-specific.
+# REFUSED (Principle 5):
+#   gmeow:FrameKind has no direct QUDT counterpart. QUDT uses
+#   qudt:QuantityKind for dimensional classification, not structural frame kinds.
+
+gmeow:mapsetQudt a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/qudt" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "QUDT alignments for measurement reference frames. Contextual: gmeow:ReferenceFrame aligns to qudt:Unit only when the frame's realm is gmeow:frameRealmMeasurement. QUDT uses OWL punning (not strict DL); GMEOW keeps the alignment in the mapping layer only, never importing QUDT into the OWL 2 DL core." .
+
+gmeow:eqQudt001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ReferenceFrame ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject qudt:Unit ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "contextual — holds when the ReferenceFrame's frameRealm is gmeow:frameRealmMeasurement" ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+
+gmeow:eqQudt002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasReferenceFrame ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject qudt:unit ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "contextual — links a quantity value to its unit-of-measure frame" ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+
+gmeow:eqQudt003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Axis ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject qudt:QuantityKind ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "an axis defines the kind of quantity being measured (length, time, temperature, etc.)" ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" .

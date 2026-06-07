@@ -1,0 +1,15 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/fibo
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow compile-mappings
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: FIBO CurrencyAmount alignments for currency reference frames. Contextual: gmeow:ReferenceFrame aligns to fibo-fnd-acc-cur:Currency only when the frame's realm is gmeow:frameRealmCurrency. FIBO is heavyweight but authoritative; the alignment layer stays lightweight via skos:closeMatch.
+# curie_map:
+#   fibo-fnd-acc-cur: https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/
+#   gmeow: https://blackcatinformatics.ca/gmeow/
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:ReferenceFrame	skos:closeMatch	fibo-fnd-acc-cur:Currency	semapv:ManualMappingCuration	0.85	contextual — holds when the ReferenceFrame's frameRealm is gmeow:frameRealmCurrency
+gmeow:hasReferenceFrame	skos:closeMatch	fibo-fnd-acc-cur:hasCurrency	semapv:ManualMappingCuration	0.8	links a monetary amount to its currency frame
