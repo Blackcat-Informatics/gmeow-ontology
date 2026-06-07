@@ -1,0 +1,220 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/modules/sensory-environment>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Sensory Environment Module"@en ;
+    rdfs:comment """Ambient perceivable conditions at a Location×time. Measured conditions are expressed as CoordinateMatrix values in measurement reference frames (colourspace, audio spectrum, thermal, air-quality). Perceived conditions are standpoint-indexed values in MentalReferenceFrames. Part of the #42 Location-as-reference-frame epic. Consumes OBS + #43 + R6. Putative."""@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# CORE CLASSES
+# =========================================================================== #
+
+gmeow:SensoryEnvironment
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Sensory Environment"@en ;
+    skos:definition "Ambient perceivable conditions at a specific location and time — the ensemble of physical properties that can be measured by instruments or perceived by observers. A SensoryEnvironment is reified as a first-class entity (not merely a property bag) so that measurements and perceptions about it can carry provenance, confidence, temporal scope, and standpoint indexing. Measured conditions are expressed as CoordinateMatrix values in measurement reference frames; perceived conditions are standpoint-indexed values in MentalReferenceFrames (Principle 9: co-equal facets, no privileged representation)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:CoordinateMatrix
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Coordinate Matrix"@en ;
+    skos:definition "A multi-dimensional numeric value expressed as a coordinate matrix or vector — the generalisation of ScalarQuantity to vector, matrix, and tensor results. Carries a serialised matrix literal (matrixValue), shape descriptor (matrixShape), reference frame (hasReferenceFrame), unit (hasUnit), and determinacy (hasDeterminacy). Used for colourspace tuples [j,k,l]+intensity, audio spectra, thermal images, and air-quality compound readings. The actual matrix algebra (dot products, transforms, decompositions) lives in the solver layer (Principle 12)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:MentalReferenceFrame
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:ReferenceFrame ;
+    rdfs:label "Mental Reference Frame"@en ;
+    skos:definition "A perceptual or subjective reference frame in which standpoint-indexed values are expressed — e.g. a thermal comfort scale, an olfactory quality space ('musty'/'muted'), or a subjective loudness frame. A MentalReferenceFrame is a ReferenceFrame whose realm is perceptual and whose axes describe qualitative or semi-quantitative dimensions of human (or animal, or AI) sensory experience. Distinct from measurement frames: two perceivers may map the same physical measurement to different mental-frame coordinates (Principle 11)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:SensoryPerception
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:StandpointClaim ;
+    rdfs:label "Sensory Perception"@en ;
+    skos:definition "A standpoint-indexed perceived value about a SensoryEnvironment — a subjective claim made by a perceiver (vantage) about ambient conditions (observedFeature), yielding a result in a MentalReferenceFrame. A SensoryPerception is a StandpointClaim specialised to the sensory domain: the vantage is the perceiver, the observedFeature is the SensoryEnvironment, and the observationResult is the perceived value (a ScalarQuantity, categorical individual, or structured percept descriptor). Competing perceptions coexist without collapse (Principle 9); superseded perceptions are suppressed, never deleted (Principle 10)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:SensoryModality
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Sensory Modality"@en ;
+    skos:definition "The sensory channel or domain through which an environment property is measured or perceived — a value vocabulary (individuals, never subclasses). Distinguishes visual, auditory, olfactory, gustatory, tactile, thermal, air-quality, and other environmental sensing channels. A single environment or observation may span multiple modalities (Principle 9: co-equal, non-functional)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# CORE PROPERTIES
+# =========================================================================== #
+
+gmeow:environmentAtLocation
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:SensoryEnvironment ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "environment at location"@en ;
+    skos:definition "The location whose ambient conditions this SensoryEnvironment describes. Functional: a SensoryEnvironment concerns exactly one location (constitutive of its identity)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:environmentAtInstant
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:SensoryEnvironment ;
+    rdfs:range gmeow:Instant ;
+    rdfs:label "environment at instant"@en ;
+    skos:definition "The instant at which this point-like SensoryEnvironment holds. For interval-scoped environments, use gmeow:environmentDuringInterval instead."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:environmentDuringInterval
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:SensoryEnvironment ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "environment during interval"@en ;
+    skos:definition "The time interval over which this SensoryEnvironment holds. For point-like environments, use gmeow:environmentAtInstant instead."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasMeasuredCondition
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:SensoryEnvironment ;
+    rdfs:range gmeow:CoordinateMatrix ;
+    rdfs:label "has measured condition"@en ;
+    skos:definition "An objective measurement of the ambient conditions, expressed as a CoordinateMatrix in a measurement reference frame. Non-functional: multiple instruments may produce competing measurements, and those claims coexist rather than collapse (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasPerceivedCondition
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:SensoryEnvironment ;
+    rdfs:range gmeow:SensoryPerception ;
+    rdfs:label "has perceived condition"@en ;
+    skos:definition "A standpoint-indexed perceived value about the ambient conditions, expressed as a SensoryPerception in a MentalReferenceFrame. Non-functional: multiple perceivers may produce competing perceptions, and those claims coexist rather than collapse (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sensoryModality
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:SensoryEnvironment ;
+    rdfs:range gmeow:SensoryModality ;
+    rdfs:label "sensory modality"@en ;
+    skos:definition "The sensory channel(s) through which this environment is measured or perceived. Non-functional: a single environment may span multiple modalities (e.g. a space that is both thermally and acoustically characterised), and competing modality classifications coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:matrixValue
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:CoordinateMatrix ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "matrix value"@en ;
+    skos:definition "The serialised numeric content of a CoordinateMatrix — a vector, matrix, or tensor expressed as a literal (e.g. a JSON array, a WKT-like tuple string, or a base64-encoded binary blob). The serialisation format is frame-specific and is interpreted by the solver layer (Principle 12)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:matrixShape
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:CoordinateMatrix ;
+    rdfs:range xsd:string ;
+    rdfs:label "matrix shape"@en ;
+    skos:definition "The shape descriptor of a CoordinateMatrix (e.g. '4×1' for a colourspace tuple, '256×1' for a spectral vector, '640×480×3' for a thermal image). Enables the solver layer to parse matrixValue correctly without inferring shape from the literal content (Principle 12)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:coordinateMatrixFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+    rdfs:domain gmeow:CoordinateMatrix ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "coordinate matrix frame"@en ;
+    skos:definition "The reference frame in which this CoordinateMatrix is expressed. Functional: a matrix is expressed in exactly one frame; frame transformation is a solver concern (Principle 12). Sub-property of gmeow:hasReferenceFrame so the frame-inheritance property chain (isResultOf ∘ hasReferenceFrame ⊑ hasReferenceFrame) applies automatically."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# UNIVERSAL CLAIM CONSTRUCT BRIDGES
+# =========================================================================== #
+
+gmeow:perceptionEnvironment
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    rdfs:domain gmeow:Observation ;
+    rdfs:range gmeow:SensoryEnvironment ;
+    rdfs:label "perception environment"@en ;
+    skos:definition "The SensoryEnvironment that a SensoryPerception is about — the observedFeature of the claim. Domain is gmeow:Observation so it applies to any observation subclass; the shape narrows to SensoryPerception instances."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:perceptionModality
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:SensoryPerception ;
+    rdfs:range gmeow:SensoryModality ;
+    rdfs:label "perception modality"@en ;
+    skos:definition "The sensory modality of a SensoryPerception — the channel through which the perception was made."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# VALUE VOCABULARY SEEDS — SensoryModality
+# =========================================================================== #
+
+gmeow:sensoryModalityVisual     a gmeow:SensoryModality ; rdfs:label "visual"@en ;     skos:definition "The visual/light sensory channel."@en .
+gmeow:sensoryModalityAuditory   a gmeow:SensoryModality ; rdfs:label "auditory"@en ;   skos:definition "The auditory/sound sensory channel."@en .
+gmeow:sensoryModalityOlfactory  a gmeow:SensoryModality ; rdfs:label "olfactory"@en ;  skos:definition "The olfactory/smell sensory channel."@en .
+gmeow:sensoryModalityGustatory  a gmeow:SensoryModality ; rdfs:label "gustatory"@en ;  skos:definition "The gustatory/taste sensory channel."@en .
+gmeow:sensoryModalityTactile    a gmeow:SensoryModality ; rdfs:label "tactile"@en ;    skos:definition "The tactile/touch sensory channel."@en .
+gmeow:sensoryModalityThermal    a gmeow:SensoryModality ; rdfs:label "thermal"@en ;    skos:definition "The thermal/temperature sensory channel."@en .
+gmeow:sensoryModalityAirQuality a gmeow:SensoryModality ; rdfs:label "air quality"@en ; skos:definition "The air-quality/chemical-composition sensory channel."@en .
+
+# =========================================================================== #
+# REFERENCE FRAME SEEDS
+# =========================================================================== #
+
+gmeow:referenceFrameCIEXYZ
+    a gmeow:ReferenceFrame ;
+    rdfs:label "CIE 1931 XYZ Tristimulus Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmColourspace ;
+    gmeow:hasAxis gmeow:axisTristimulusX, gmeow:axisTristimulusY, gmeow:axisTristimulusZ ;
+    gmeow:dimensionCount "3"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindCartesian ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricEuclidean .
+
+gmeow:referenceFrameCIELAB
+    a gmeow:ReferenceFrame ;
+    rdfs:label "CIE L*a*b* Perceptually-Uniform Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmColourspace ;
+    gmeow:hasAxis gmeow:axisLightness, gmeow:axisAstar, gmeow:axisBstar ;
+    gmeow:dimensionCount "3"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindCartesian ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricEuclidean .
+
+gmeow:referenceFrameAudioSpectrum
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Audio Spectrum Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmMeasurement ;
+    gmeow:hasAxis gmeow:axisFrequency, gmeow:axisMagnitude ;
+    gmeow:dimensionCount "2"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindCartesian ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricEuclidean .
+
+gmeow:referenceFrameThermalComfort
+    a gmeow:MentalReferenceFrame ;
+    rdfs:label "ASHRAE Thermal Comfort Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmPerceptual ;
+    gmeow:hasAxis gmeow:axisPredictedMeanVote, gmeow:axisPredictedPercentageDissatisfied ;
+    gmeow:dimensionCount "2"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindCartesian ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricEuclidean .
+
+# =========================================================================== #
+# AXIOMATIZED DOCTRINE — EL open-world restrictions
+# =========================================================================== #
+
+gmeow:SensoryEnvironment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:environmentAtLocation ; owl:someValuesFrom gmeow:Location ] .
+
+gmeow:SensoryPerception rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:perceptionEnvironment ; owl:someValuesFrom gmeow:SensoryEnvironment ] .
