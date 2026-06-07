@@ -285,6 +285,13 @@ gmeow:FrameKind
     skos:definition "The structural type of a reference frame (e.g. geodetic, Cartesian, polar, grid, narrative)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:MetricKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Metric Kind"@en ;
+    skos:definition "The computational method by which distance or dissimilarity is measured in a reference frame — geodesic (curved surface), Euclidean (straight-line in Cartesian space), cosine (angular similarity in latent vector space), edit-distance (Levenshtein / sequence alignment), or graph-hops (shortest-path in a network). A value vocabulary (individuals, never subclasses) per Principle 9."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:LocationState
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
@@ -320,6 +327,18 @@ gmeow:frameKindGrid          a gmeow:FrameKind ; rdfs:label "grid"@en .
 gmeow:frameKindScalar        a gmeow:FrameKind ; rdfs:label "scalar"@en .
 gmeow:frameKindTemporal      a gmeow:FrameKind ; rdfs:label "temporal"@en .
 gmeow:frameKindCylindrical   a gmeow:FrameKind ; rdfs:label "cylindrical"@en .
+
+# Seeds for MetricKind
+gmeow:metricGeodesic     a gmeow:MetricKind ; rdfs:label "geodesic"@en ;
+    skos:definition "Shortest path along a curved surface (e.g. great-circle on a spheroid)."@en .
+gmeow:metricEuclidean   a gmeow:MetricKind ; rdfs:label "Euclidean"@en ;
+    skos:definition "Straight-line distance in a Cartesian or flat space."@en .
+gmeow:metricCosine      a gmeow:MetricKind ; rdfs:label "cosine similarity"@en ;
+    skos:definition "Angular proximity in a latent vector space (1 − cosine distance)."@en .
+gmeow:metricEditDistance a gmeow:MetricKind ; rdfs:label "edit distance"@en ;
+    skos:definition "String or sequence dissimilarity (Levenshtein, Hamming, Damerau-Levenshtein, etc.)."@en .
+gmeow:metricGraphHops   a gmeow:MetricKind ; rdfs:label "graph hops"@en ;
+    skos:definition "Shortest-path edge count in a network or graph."@en .
 
 # Seeds for GranularityLevel — the spatial resolution axis (#79; class in core).
 # Ordered coarse→fine by gmeow:coarserThan (transitive, so country is coarser than
@@ -369,7 +388,8 @@ gmeow:referenceFrameWGS84
     gmeow:dimensionCount "3"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindGeodetic ;
     gmeow:requiresHost false ;
-    gmeow:determinacyModel gmeow:determinacyCrisp .
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGeodesic .
 
 gmeow:referenceFrameLocalGrid
     a gmeow:ReferenceFrame ;
@@ -379,7 +399,8 @@ gmeow:referenceFrameLocalGrid
     gmeow:dimensionCount "3"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindCartesian ;
     gmeow:requiresHost true ;
-    gmeow:determinacyModel gmeow:determinacyCrisp .
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricEuclidean .
 
 gmeow:referenceFrameVirtualPlatform
     a gmeow:ReferenceFrame ;
@@ -399,7 +420,8 @@ gmeow:referenceFrameCelestialEquatorial
     gmeow:dimensionCount "2"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindPolar ;
     gmeow:requiresHost false ;
-    gmeow:determinacyModel gmeow:determinacyCrisp .
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGeodesic .
 
 gmeow:referenceFrameRobotBase
     a gmeow:ReferenceFrame ;
@@ -409,7 +431,8 @@ gmeow:referenceFrameRobotBase
     gmeow:dimensionCount "3"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindCartesian ;
     gmeow:requiresHost true ;
-    gmeow:determinacyModel gmeow:determinacyCrisp .
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricEuclidean .
 
 gmeow:referenceFrameSI
     a gmeow:ReferenceFrame ;
@@ -554,6 +577,14 @@ gmeow:determinacyModel
     skos:definition "Relates a reference frame to its default determinacy model."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:hasMetricKind
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ReferenceFrame ;
+    rdfs:range gmeow:MetricKind ;
+    rdfs:label "has metric kind"@en ;
+    skos:definition "The distance or dissimilarity metric declared by this reference frame. Functional: a frame uses exactly one metric kind for all proximity computations expressed in it. The actual computation is performed by the solver (Principle 12), never materialised as asserted triples in the OWL core."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 # Coordinate Properties
 gmeow:hasReferenceFrame
     a owl:ObjectProperty ;
@@ -577,6 +608,33 @@ gmeow:hasCoordinateMatrix
     rdfs:range rdfs:Literal ;
     rdfs:label "has coordinate matrix"@en ;
     skos:definition "Specifies a transformation or projection matrix associated with a coordinate axis."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Proximity / Distance — frame-relative measurement (#95)
+# --------------------------------------------------------------------------- #
+
+gmeow:ProximityMeasurement
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Measurement ;
+    rdfs:label "Proximity Measurement"@en ;
+    skos:definition "A measurement of distance, dissimilarity, or proximity between two entities, expressed as a scalar quantity in a reference frame that declares its metric kind. The observedFeature is the entity measured from; gmeow:proximityTo names the target entity; gmeow:observationResult points to the scalar value. Computed by the solver (Principle 12), not asserted in the OWL core."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:proximityTo
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ProximityMeasurement ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "proximity to"@en ;
+    skos:definition "The target entity to which proximity is measured."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:proximity
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range gmeow:ProximityMeasurement ;
+    rdfs:label "proximity"@en ;
+    skos:definition "Links an entity to a proximity measurement describing its distance or dissimilarity to another entity. The measurement carries the scalar value (via observationResult → ScalarQuantity), the reference frame (via hasReferenceFrame), and the target entity (via proximityTo). Flat form for the common case; promote to full reified Measurement when vantage, confidence, temporal scope, or standpoint matter."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # Universal Topology Relations

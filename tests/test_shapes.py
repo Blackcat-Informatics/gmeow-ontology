@@ -157,3 +157,18 @@ def test_novel_realm_extensibility_guard_warns() -> None:
         "must be referenced by at least one ReferenceFrame" in w
         for w in result.warnings
     )
+
+
+def test_wellformed_proximity_fixture_conforms() -> None:
+    """A well-formed ProximityMeasurement passes every shape (AC#1 positive, #95)."""
+    result = run_shacl(_fixture("proximity-wellformed"))
+    assert result.ok, "\n".join(result.errors)
+
+
+def test_malformed_proximity_fixture_is_flagged() -> None:
+    """A malformed ProximityMeasurement is rejected by SHACL (#95)."""
+    result = run_shacl(_fixture("proximity-malformed"))
+    assert not result.ok
+    report = "\n".join(result.errors + result.warnings)
+    assert "exactly one target entity (gmeow:proximityTo)" in report
+    assert "exactly one scalar quantity result" in report

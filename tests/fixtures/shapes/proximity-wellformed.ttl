@@ -1,0 +1,18 @@
+# Well-formed proximity measurement fixture (#95).
+# A ProximityMeasurement with exactly one proximityTo and one observationResult
+# pointing to a ScalarQuantity with value and unit. Must pass SHACL.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:office a gmeow:Place .
+ex:home a gmeow:Place .
+
+ex:commute a gmeow:ProximityMeasurement ;
+    gmeow:proximityTo ex:home ;
+    gmeow:observationResult [
+        a gmeow:ScalarQuantity ;
+        gmeow:quantityValue "12.4"^^xsd:decimal ;
+        gmeow:hasUnit <http://qudt.org/vocab/unit/KM>
+    ] .

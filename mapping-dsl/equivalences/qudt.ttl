@@ -54,3 +54,12 @@ gmeow:eqQudt003 a gmeow:TermEquivalence ;
     gmeow:confidence 0.75 ;
     gmeow:comment "an axis defines the kind of quantity being measured (length, time, temperature, etc.)" ;
     gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
+
+# REFUSED (Principle 5 — no faithful external term):
+#   gmeow:hasMetricKind has no direct QUDT counterpart. QUDT models units
+#   (qudt:Unit) and quantity kinds (qudt:QuantityKind), but not the
+#   computational method by which distance is calculated (geodesic vs Euclidean
+#   vs cosine vs edit-distance vs graph-hops). This concept is GMEOW-specific.
+# REFUSED (Principle 5):
+#   gmeow:MetricKind has no direct QUDT counterpart. QUDT uses qudt:QuantityKind
+#   for dimensional classification, not computational distance metrics.

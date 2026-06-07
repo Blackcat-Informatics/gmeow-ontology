@@ -1,0 +1,11 @@
+# Malformed proximity measurement fixture (#95).
+# Missing proximityTo and missing observationResult. Must fail SHACL.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+ex:office a gmeow:Place .
+ex:home a gmeow:Place .
+
+# Missing proximityTo and missing observationResult
+ex:incomplete a gmeow:ProximityMeasurement .
