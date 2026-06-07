@@ -111,6 +111,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:Message (⊑ gmeow:InformationObject): A communication sent from one agent to others — the parent of email and other message kinds.
 - gmeow:MessageHeader (⊑ gmeow:InformationObject): A single RFC 5322 header field (name and value) of a message.
 - gmeow:MessageKeyword (⊑ gufo:QualityValue): A flag/keyword applied to a message (IMAP flag or JMAP keyword) such as seen, flagged, answered, draft, forwarded, or junk.
+- gmeow:MessageParticipant (⊑ gufo:Relator): A reified occurrence of an email address in a particular message header or envelope context.
+- gmeow:MessageParticipantRole (⊑ gufo:QualityValue): The role an address occurrence plays in a message header or envelope.
 - gmeow:MetricKind (⊑ gufo:QualityValue): The computational method by which distance or dissimilarity is measured in a reference frame — geodesic (curved surface), Euclidean (straight-line in Cartesian space), cosine (angular similarity in latent vector space), edit-distance (Levenshtein / sequence alignment), or graph-hops (shortest-path in a network). A value vocabulary (individuals, never subclasses) per Principle 9.
 - gmeow:NamePart (⊑ gmeow:InformationObject): A reified component of a structured appellation — a given name, a surname, a patronymic, a nobiliary particle, an Arabic nisba, a filename extension. Its kind is the value gmeow:namePartType, its text is gmeow:partText, and gmeow:partOrder records its position WITHOUT implying a Western given-before-family order.
 - gmeow:NamePartType (⊑ gufo:QualityValue): The kind of a name part (given, surname, patronymic, particle, Arabic nisba, filename extension, …). A value, not a NamePart subclass: naming systems worldwide contribute an open-ended set of part kinds that share NamePart's structure.
@@ -234,6 +236,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:addressLocality [gmeow:PostalAddress → rdfs:Literal]: The locality (city or town) of a postal address.
 - gmeow:addressPlace [gmeow:PostalAddress → gmeow:Place]: The geographic place a postal address denotes (typically the premises/building) — the seam from the as-written address to the resolved place hierarchy, its coordinates/geometry, and its external identifiers.
 - gmeow:addressRegion [gmeow:PostalAddress → rdfs:Literal]: The region (state, province, or territory) of a postal address.
+- gmeow:addressValue [gmeow:EmailAddress → rdfs:Literal]: The normalized addr-spec of an email address.
 - gmeow:adjacentTo [gmeow:Location → gmeow:Location]: Relates a location to another location it is adjacent to.
 - gmeow:after [gmeow:Event → gmeow:Event]: Allen AFTER: this event begins strictly after the related event ends; the transitive inverse of gmeow:before. (= time:intervalAfter; TimeML AFTER; TEO after.)
 - gmeow:aggregationFunction [gmeow:SpatialAggregation → gmeow:AggregationFunction] (functional): The statistical function applied to the entities in the aggregation region — count, sum, average, density, minimum, maximum, or centroid.
@@ -299,7 +302,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:determinacyModel [gmeow:ReferenceFrame → gmeow:Determinacy] (functional): Relates a reference frame to its default determinacy model.
 - gmeow:developer [gmeow:SoftwareProject → gmeow:Agent]: Relates a software project to an agent that develops it.
 - gmeow:dimensionCount [gmeow:ReferenceFrame → xsd:nonNegativeInteger] (functional): The number of dimensions spanned by a reference frame.
+- gmeow:displayName [gmeow:MessageParticipant → rdfs:Literal]: The display name as rendered in this particular header occurrence.
 - gmeow:displayable [? → xsd:boolean]: Whether a name or identity facet may be shown in interfaces and reports. The ONLY display control in the model — across naming (gmeow:Appellation) and identity (gmeow:IdentityFacet: gender/orientation), deliberately no preferred/primary marker (display selection is locale-relative and symmetric). It is intentionally domain-free so it applies to both. Superseded names (especially deadnames) and superseded gender/orientation labels set this false; consumers MUST honour false and never surface the string. NOT functional: in a multi-source merge, sources may disagree, and those claims must coexist rather than force a global inconsistency — the cautious value (false) wins at the projection layer. Cardinality is enforced by SHACL on data, not by the logical core.
+- gmeow:domainPart [gmeow:EmailAddress → rdfs:Literal]: The domain part of an email address.
 - gmeow:durationValue [gmeow:Duration → xsd:duration] (functional): The length of a gmeow:Duration as an xsd:duration literal (ISO 8601, e.g. P1Y2M / PT3H). DL-clean; the TEO hasNormalizedDuration 0Y0M0W0D0H0m0s string is a projection target.
 - gmeow:during [gmeow:Event → gmeow:Event]: Allen DURING: this event's extent falls strictly within the related event's extent (both endpoints interior). Transitive. Inverse of gmeow:contains. Distinct from gmeow:subEventOf (mereological part-of) and gmeow:containedInPlace (spatial). (= time:intervalDuring; TimeML IS_INCLUDED; TEO during.)
 - gmeow:duringInterval [gmeow:TimeScopedRelation → gmeow:TimeInterval]: Relates a time-scoped relation to the interval over which it holds.
@@ -380,6 +385,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasKeyword [gmeow:Message → gmeow:MessageKeyword]: Relates a message to a flag/keyword applied to it.
 - gmeow:hasLicense [gmeow:Entity → gmeow:License]: Relates an entity (a work, dataset, software project, …) to a licence granting rights in it (dcterms:license; schema:license). Named gmeow:hasLicense — gmeow:license is reserved for the mapping-DSL set-license datatype property.
 - gmeow:hasMember [gmeow:Organization → gmeow:Agent]: Relates an organization to one of its member agents; the inverse of memberOf.
+- gmeow:hasMessageParticipant [gmeow:EmailMessage → gmeow:MessageParticipant]: Relates a message to one of its reified address occurrences.
 - gmeow:hasMet [gmeow:Agent → gmeow:Agent]: Records that two agents have met; symmetric. The occasion/period is carried with gmeow:validFrom/validUntil on the statement.
 - gmeow:hasMetricKind [gmeow:ReferenceFrame → gmeow:MetricKind] (functional): The distance or dissimilarity metric declared by this reference frame. Functional: a frame uses exactly one metric kind for all proximity computations expressed in it. The actual computation is performed by the solver (Principle 12), never materialised as asserted triples in the OWL core.
 - gmeow:hasMother [gmeow:Person → gmeow:Person]: Relates a person to a female parent.
@@ -491,6 +497,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:licensee [gmeow:License → gmeow:Agent]: The party receiving a licence (odrl:assignee). A specialisation of gmeow:hasParty. Absent on an open / public licence offered to everyone.
 - gmeow:licensor [gmeow:License → gmeow:Agent]: The party granting a licence (odrl:assigner). A specialisation of gmeow:hasParty. Non-functional: a licence may be granted jointly.
 - gmeow:listId [gmeow:Message → rdfs:Literal]: The mailing-list identifier a message was distributed through (RFC 2919 List-Id).
+- gmeow:localPart [gmeow:EmailAddress → rdfs:Literal]: The local part of an email address.
 - gmeow:locatedAt [gmeow:Entity → gmeow:Location]: Relates an entity to a location it is situated at, resides in, or occurs at — geographic, virtual, or storage.
 - gmeow:logicConstraintMember [gmeow:LogicalConstraint → gmeow:Constraint]: A member constraint combined by a logical constraint (odrl:operand). Non-functional: a logical constraint combines two or more.
 - gmeow:longitude [gmeow:GeoCoordinates → xsd:decimal]: The longitude of a geographic point in decimal degrees.
@@ -537,6 +544,12 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:partOfThread [gmeow:Message → gmeow:Thread]: Relates a message to the thread (conversation) it belongs to. A conversation-thread specialization of the universal gmeow:partOf spine.
 - gmeow:partOrder [gmeow:NamePart → xsd:nonNegativeInteger] (functional): The 0-based position of a part within its appellation's surface order, as actually written in its culture. Records observed order WITHOUT implying a given-before-family default — East-Asian family-first is simply order 0 = surname.
 - gmeow:partText [gmeow:NamePart → rdfs:Literal]: The string value of a name part. Language-/script-tag the literal where applicable.
+- gmeow:participantAddress [gmeow:MessageParticipant → gmeow:EmailAddress] (functional): The normalized email address that appears in this participant occurrence.
+- gmeow:participantGroup [gmeow:MessageParticipant → rdfs:Literal]: The RFC 5322 group name that contains this address occurrence.
+- gmeow:participantHeader [gmeow:MessageParticipant → gmeow:MessageHeader] (functional): The RFC 5322 header field from which this occurrence was parsed.
+- gmeow:participantMessage [gmeow:MessageParticipant → gmeow:EmailMessage] (functional): The message a participant occurrence belongs to.
+- gmeow:participantOrdinal [gmeow:MessageParticipant → xsd:integer] (functional): The zero-based position of this address occurrence.
+- gmeow:participantRole [gmeow:MessageParticipant → gmeow:MessageParticipantRole] (functional): The header or envelope role of this address occurrence.
 - gmeow:participationEvent [gmeow:Participation → gmeow:Event] (functional): The event a participation is part of (functional — one event per participation).
 - gmeow:participationInterval [gmeow:Participation → gmeow:TimeInterval]: The time interval over which the participation held. (A relator carries its period this way — matching usageInterval / relationshipInterval — rather than via duringInterval.)
 - gmeow:participationParticipant [gmeow:Participation → gmeow:Entity]: The entity that took part in the event in this participation. Range is gmeow:Entity (not only Agent) to admit non-agent participants — a document signed, a place visited. Non-functional: a joint role may be borne by several participants.
@@ -579,6 +592,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:quaternionX [gmeow:Orientation → xsd:double]: The x component of a unit quaternion representing orientation.
 - gmeow:quaternionY [gmeow:Orientation → xsd:double]: The y component of a unit quaternion representing orientation.
 - gmeow:quaternionZ [gmeow:Orientation → xsd:double]: The z component of a unit quaternion representing orientation.
+- gmeow:rawAddressValue [gmeow:MessageParticipant → rdfs:Literal]: The raw, unparsed header segment or envelope value for this occurrence.
 - gmeow:rcc8dc [gmeow:Location → gmeow:Location]: RCC-8: Disconnected (DC) — regions are disjoint and do not share any point.
 - gmeow:rcc8ec [gmeow:Location → gmeow:Location]: RCC-8: Externally Connected (EC) — regions share only boundary points.
 - gmeow:rcc8eq [gmeow:Location → gmeow:Location]: RCC-8: Equal (EQ) — regions are identical.
@@ -1042,6 +1056,21 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:measurementHoloceneStart (a gmeow:TemporalMeasurement): Holocene start age
 - gmeow:measurementPhanerozoicStart (a gmeow:TemporalMeasurement): Phanerozoic start age
 - gmeow:measurementQuaternaryStart (a gmeow:TemporalMeasurement): Quaternary start age
+- gmeow:messageRoleBcc (a gmeow:MessageParticipantRole): bcc
+- gmeow:messageRoleCc (a gmeow:MessageParticipantRole): cc
+- gmeow:messageRoleDeliveredTo (a gmeow:MessageParticipantRole): delivered-to
+- gmeow:messageRoleEnvelopeFrom (a gmeow:MessageParticipantRole): envelope-from
+- gmeow:messageRoleEnvelopeTo (a gmeow:MessageParticipantRole): envelope-to
+- gmeow:messageRoleErrorsTo (a gmeow:MessageParticipantRole): errors-to
+- gmeow:messageRoleFrom (a gmeow:MessageParticipantRole): from
+- gmeow:messageRoleOriginalTo (a gmeow:MessageParticipantRole): original-to
+- gmeow:messageRoleReplyTo (a gmeow:MessageParticipantRole): reply-to
+- gmeow:messageRoleResentCc (a gmeow:MessageParticipantRole): resent-cc
+- gmeow:messageRoleResentFrom (a gmeow:MessageParticipantRole): resent-from
+- gmeow:messageRoleResentTo (a gmeow:MessageParticipantRole): resent-to
+- gmeow:messageRoleReturnPath (a gmeow:MessageParticipantRole): return-path
+- gmeow:messageRoleSender (a gmeow:MessageParticipantRole): sender
+- gmeow:messageRoleTo (a gmeow:MessageParticipantRole): to
 - gmeow:methodComputationalModel (a gmeow:ObservationMethod): Observation derived from a computational or mathematical model.
 - gmeow:methodDirectObservation (a gmeow:ObservationMethod): Observation by unaided human perception.
 - gmeow:methodExpertJudgement (a gmeow:ObservationMethod): Observation based on expert assessment or consensus.

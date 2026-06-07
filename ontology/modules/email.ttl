@@ -350,3 +350,147 @@ gmeow:mailboxName
     rdfs:label "mailbox name"@en ;
     skos:definition "The display name of a mailbox or label."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Stable address decomposition (on EmailAddress, not on occurrence)
+# --------------------------------------------------------------------------- #
+
+gmeow:addressValue
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:EmailAddress ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "address value"@en ;
+    skos:definition "The normalized addr-spec of an email address."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:localPart
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:EmailAddress ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "local part"@en ;
+    skos:definition "The local part of an email address."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:domainPart
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:EmailAddress ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "domain part"@en ;
+    skos:definition "The domain part of an email address."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# MessageParticipant — reified contextual occurrence of an address in a message
+# --------------------------------------------------------------------------- #
+
+gmeow:MessageParticipant
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Message Participant"@en ;
+    skos:definition "A reified occurrence of an email address in a particular message header or envelope context."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:MessageParticipant rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:participantMessage ; owl:someValuesFrom gmeow:EmailMessage ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:participantAddress ; owl:someValuesFrom gmeow:EmailAddress ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:participantRole ; owl:someValuesFrom gmeow:MessageParticipantRole ] .
+
+gmeow:participantMessage
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MessageParticipant ;
+    rdfs:range gmeow:EmailMessage ;
+    rdfs:label "participant message"@en ;
+    skos:definition "The message a participant occurrence belongs to."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasMessageParticipant
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:participantMessage ;
+    rdfs:domain gmeow:EmailMessage ;
+    rdfs:range gmeow:MessageParticipant ;
+    rdfs:label "has message participant"@en ;
+    skos:definition "Relates a message to one of its reified address occurrences."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:participantAddress
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MessageParticipant ;
+    rdfs:range gmeow:EmailAddress ;
+    rdfs:label "participant address"@en ;
+    skos:definition "The normalized email address that appears in this participant occurrence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:participantRole
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MessageParticipant ;
+    rdfs:range gmeow:MessageParticipantRole ;
+    rdfs:label "participant role"@en ;
+    skos:definition "The header or envelope role of this address occurrence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:participantHeader
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MessageParticipant ;
+    rdfs:range gmeow:MessageHeader ;
+    rdfs:label "participant header"@en ;
+    skos:definition "The RFC 5322 header field from which this occurrence was parsed."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:participantOrdinal
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MessageParticipant ;
+    rdfs:range xsd:integer ;
+    rdfs:label "participant ordinal"@en ;
+    skos:definition "The zero-based position of this address occurrence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:participantGroup
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:MessageParticipant ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "participant group"@en ;
+    skos:definition "The RFC 5322 group name that contains this address occurrence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:rawAddressValue
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:MessageParticipant ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "raw address value"@en ;
+    skos:definition "The raw, unparsed header segment or envelope value for this occurrence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:displayName
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:MessageParticipant ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "display name"@en ;
+    skos:definition "The display name as rendered in this particular header occurrence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# MessageParticipantRole — open value vocabulary for header/envelope roles
+# --------------------------------------------------------------------------- #
+
+gmeow:MessageParticipantRole
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Message Participant Role"@en ;
+    skos:definition "The role an address occurrence plays in a message header or envelope."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:messageRoleFrom         a gmeow:MessageParticipantRole ; rdfs:label "from"@en ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleSender       a gmeow:MessageParticipantRole ; rdfs:label "sender"@en ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleReplyTo      a gmeow:MessageParticipantRole ; rdfs:label "reply-to"@en ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleTo           a gmeow:MessageParticipantRole ; rdfs:label "to"@en ;           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleCc           a gmeow:MessageParticipantRole ; rdfs:label "cc"@en ;           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleBcc          a gmeow:MessageParticipantRole ; rdfs:label "bcc"@en ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleReturnPath   a gmeow:MessageParticipantRole ; rdfs:label "return-path"@en ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleErrorsTo     a gmeow:MessageParticipantRole ; rdfs:label "errors-to"@en ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleEnvelopeFrom a gmeow:MessageParticipantRole ; rdfs:label "envelope-from"@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleEnvelopeTo   a gmeow:MessageParticipantRole ; rdfs:label "envelope-to"@en ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleDeliveredTo  a gmeow:MessageParticipantRole ; rdfs:label "delivered-to"@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleOriginalTo   a gmeow:MessageParticipantRole ; rdfs:label "original-to"@en ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleResentFrom   a gmeow:MessageParticipantRole ; rdfs:label "resent-from"@en ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleResentTo     a gmeow:MessageParticipantRole ; rdfs:label "resent-to"@en ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleResentCc     a gmeow:MessageParticipantRole ; rdfs:label "resent-cc"@en ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

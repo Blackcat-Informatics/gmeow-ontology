@@ -1354,6 +1354,60 @@ gmeow:RetractedTagSuppressionShape
     ] .
 
 # --------------------------------------------------------------------------- #
+# Email module (#159). Closed-world well-formedness for the MessageParticipant
+# relator; suppression contract (Principle 10) for withdrawn occurrences.
+# --------------------------------------------------------------------------- #
+
+# A MessageParticipant must mediate exactly one message, one address, and one
+# role — the closed-world counterpart of the EL someValuesFrom mediation axiom
+# in email.ttl (mirrors gmeow:TaggingHasPlayersShape).
+gmeow:MessageParticipantHasPlayersShape
+    a sh:NodeShape ;
+    rdfs:label "MessageParticipant well-formedness shape" ;
+    sh:targetClass gmeow:MessageParticipant ;
+    sh:property [
+        sh:path gmeow:participantMessage ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A MessageParticipant must belong to exactly one message (gmeow:participantMessage)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:participantAddress ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A MessageParticipant must reference exactly one EmailAddress (gmeow:participantAddress)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:participantRole ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A MessageParticipant must declare exactly one role (gmeow:participantRole)." ;
+    ] .
+
+# Suppression, never erasure (Principle 10): a withdrawn or superseded
+# MessageParticipant occurrence (one with gmeow:validUntil) should set
+# gmeow:displayable false rather than be deleted. Warning — a source may lag.
+gmeow:SuppressedMessageParticipantShape
+    a sh:NodeShape ;
+    rdfs:label "Suppressed / withdrawn message participant shape" ;
+    sh:targetClass gmeow:MessageParticipant ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        sh:message "A withdrawn or superseded MessageParticipant (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/validUntil> ?until .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
+                }
+            }
+        """ ;
+    ] .
+
+# --------------------------------------------------------------------------- #
 # Lifecycle module (#81). Closed-world well-formedness for EntityExistence and
 # suppression guards for superseded entities.
 # --------------------------------------------------------------------------- #

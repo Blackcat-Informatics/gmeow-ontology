@@ -38,9 +38,26 @@ def test_email_slice_terms_are_covered() -> None:
         GMEOW + "RelayHop",
         GMEOW + "TextExtraction",
         GMEOW + "Summary",
+        GMEOW + "MessageParticipant",
+        GMEOW + "MessageHeader",
     }
     missing = expected_covered - report.covered_classes
     assert not missing, f"email classes missing: {missing}"
+    expected_predicates = {
+        GMEOW + "addressValue",
+        GMEOW + "localPart",
+        GMEOW + "domainPart",
+        GMEOW + "participantMessage",
+        GMEOW + "participantAddress",
+        GMEOW + "participantRole",
+        GMEOW + "participantHeader",
+        GMEOW + "participantOrdinal",
+        GMEOW + "displayName",
+        GMEOW + "rawAddressValue",
+        GMEOW + "hasMessageParticipant",
+    }
+    missing_p = expected_predicates - report.covered_predicates
+    assert not missing_p, f"email predicates missing: {missing_p}"
 
 
 def test_contacts_trust_slice_covered() -> None:
