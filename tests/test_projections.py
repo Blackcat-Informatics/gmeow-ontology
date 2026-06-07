@@ -225,7 +225,14 @@ def test_geosparql_pose_projection() -> None:
     assert any("-113.92435" in p and "53.54495" in p for p in points)
     # Orientation literals must NOT leak into the GeoSPARQL profile.
     for orient_val in ("0.70710678", "45.0", "10.0", "ZYX"):
-        assert orient_val not in g.serialize(format="turtle")
+        lit = Literal(orient_val)
+        assert lit not in set(g.objects()), (
+            f"Orientation literal {orient_val!r} leaked into GeoSPARQL projection"
+        )
+        assert lit not in set(g.subjects()), (
+            f"Orientation literal {orient_val!r} leaked as"
+            f" subject into GeoSPARQL projection"
+        )
     _assert_no_gmeow_leakage(g)
 
 

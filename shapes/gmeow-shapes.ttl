@@ -813,7 +813,7 @@ gmeow:OrientationShape
         ) ]
         [ sh:path gmeow:heading ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:double ]
         [ sh:path gmeow:bearing ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:double ]
-        [ sh:path gmeow:hasCoordinateMatrix ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype rdfs:Literal ]
+        [ sh:path gmeow:hasCoordinateMatrix ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:Literal ]
     ) ;
     sh:severity sh:Violation ;
     sh:message "An Orientation must carry at least one of: a complete unit quaternion (x,y,z,w); complete Euler angles with eulerOrder (yaw,pitch,roll,order); a heading; a bearing; or a homogeneous coordinate matrix." .

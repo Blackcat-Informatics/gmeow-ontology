@@ -360,9 +360,11 @@ def test_location_superset_core() -> None:
     assert (hcm_domain, RDF.type, OWL.Class) in graph
     union_of = graph.value(hcm_domain, OWL.unionOf)
     assert union_of is not None
-    union_members = list(graph.items(union_of))
-    assert URIRef(GMEOW + "Axis") in union_members
-    assert URIRef(GMEOW + "Pose") in union_members
+    union_members = set(graph.items(union_of))
+    assert union_members == {
+        URIRef(GMEOW + "Axis"),
+        URIRef(GMEOW + "Pose"),
+    }
     assert (URIRef(GMEOW + "hasCoordinateMatrix"), RDFS.range, RDFS.Literal) in graph
 
     # Pose / Orientation properties
