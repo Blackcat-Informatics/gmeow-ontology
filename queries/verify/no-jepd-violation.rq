@@ -1,0 +1,19 @@
+# ROBOT verify QC (#67) — JEPD integrity of Allen interval relations.
+# No TimeInterval may stand in two different Allen relations to the same
+# other interval. The 13 relations are declared pairwise disjoint via
+# owl:AllDisjointProperties; any row is a FAILURE.
+
+PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl:   <http://www.w3.org/2002/07/owl#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?interval ?other ?rel1 ?rel2 WHERE {
+    ?interval a gmeow:TimeInterval .
+    ?other a gmeow:TimeInterval .
+    ?dis a owl:AllDisjointProperties ;
+         owl:members/rdf:rest*/rdf:first ?rel1 ;
+         owl:members/rdf:rest*/rdf:first ?rel2 .
+    FILTER(STR(?rel1) < STR(?rel2))
+    ?interval ?rel1 ?other .
+    ?interval ?rel2 ?other .
+}
