@@ -1,0 +1,31 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/observations
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow compile-mappings
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. gmeow:ScalarQuantity is canonical — no faithful external term captures the unit+determinacy+granularity bundle in one node.
+# curie_map:
+#   crm: http://www.cidoc-crm.org/cidoc-crm/
+#   gmeow: https://blackcatinformatics.ca/gmeow/
+#   prov: http://www.w3.org/ns/prov#
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+#   sosa: http://www.w3.org/ns/sosa/
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:Measurement	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.9	A Measurement is a kind of Observation; SOSA does not distinguish them.
+gmeow:Observation	skos:closeMatch	crm:E13_Attribute_Assignment	semapv:ManualMappingCuration	0.9	CIDOC-CRM E13 is the closest CRM class: an activity of assigning an attribute to an item. GMEOW Observation generalises this to any act of observing or asserting, not only attribute assignment.
+gmeow:Observation	skos:closeMatch	prov:Entity	semapv:ManualMappingCuration	0.8	An Observation is a relator (gufo), but as a named individual it is also a prov:Entity that can be attributed, derived, and versioned.
+gmeow:Observation	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.95	
+gmeow:ObservationMethod	skos:closeMatch	sosa:Procedure	semapv:ManualMappingCuration	0.85	
+gmeow:ScalarQuantity	skos:closeMatch	sosa:Result	semapv:ManualMappingCuration	0.7	sosa:Result is broader (any result); gmeow:ScalarQuantity is specifically a scalar numeric with unit+determinacy+granularity.
+gmeow:observationMethod	skos:closeMatch	crm:P33_used_specific_technique	semapv:ManualMappingCuration	0.85	
+gmeow:observationMethod	skos:closeMatch	sosa:usedProcedure	semapv:ManualMappingCuration	0.9	
+gmeow:observationResult	skos:closeMatch	crm:P141_assigned	semapv:ManualMappingCuration	0.85	
+gmeow:observationResult	skos:closeMatch	prov:generated	semapv:ManualMappingCuration	0.75	Inverse direction: prov:wasGeneratedBy links Entity to Activity; gmeow:observationResult links Observation to its result Entity. Semantic alignment, not structural identity.
+gmeow:observationResult	skos:closeMatch	sosa:hasResult	semapv:ManualMappingCuration	0.9	
+gmeow:observedFeature	skos:closeMatch	crm:P140_assigned_attribute_to	semapv:ManualMappingCuration	0.85	
+gmeow:observedFeature	skos:closeMatch	sosa:hasFeatureOfInterest	semapv:ManualMappingCuration	0.95	
+gmeow:vantage	skos:closeMatch	crm:P14_carried_out_by	semapv:ManualMappingCuration	0.8	crm:P14 is event-centric; gmeow:vantage is relator-centric. Semantic alignment on 'who performed it'.
+gmeow:vantage	skos:closeMatch	prov:wasAttributedTo	semapv:ManualMappingCuration	0.85	prov:wasAttributedTo is a property, gmeow:vantage is a property; the alignment is on the semantic axis (who is responsible), not structural identity.
+gmeow:vantage	skos:closeMatch	sosa:madeBySensor	semapv:ManualMappingCuration	0.7	SOSA is device-centric; gmeow:vantage covers human standpoints, organizations, and sensors alike. CloseMatch with a note.

@@ -19,6 +19,8 @@ SHACL-validates split (Principle 8):
 
 from __future__ import annotations
 
+from functools import cache
+
 import owlrl
 import pytest
 from rdflib import RDF, Graph, Namespace
@@ -41,10 +43,19 @@ requires_robot = pytest.mark.skipif(
 # --------------------------------------------------------------------------- #
 
 
+@cache
+def _parsed_module(module: str) -> Graph:
+    """Parse a single authored module (cached) — closure runs with A-Box present."""
+    graph = Graph()
+    graph.parse(ONTOLOGY_DIR / "modules" / f"{module}.ttl", format="turtle")
+    return graph
+
+
 def _materialize(module: str, *abox: tuple[Node, Node, Node]) -> Graph:
     """Close a real authored module + a tiny A-Box under OWL 2 RL."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / f"{module}.ttl", format="turtle")
+    for triple in _parsed_module(module):
+        graph.add(triple)
     for triple in abox:
         graph.add(triple)
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
