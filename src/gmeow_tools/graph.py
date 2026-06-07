@@ -8,6 +8,7 @@ Reasoning and the canonical release product are produced by ROBOT in
 
 from __future__ import annotations
 
+from functools import lru_cache
 from pathlib import Path
 
 from rdflib import Graph
@@ -52,18 +53,12 @@ def bind_prefixes(graph: Graph) -> None:
         graph.bind(prefix, namespace, replace=True)
 
 
-def load_merged_graph(*, include_imports: bool = True) -> Graph:
-    """Parse and merge all ontology sources into one rdflib graph.
+@lru_cache(maxsize=2)
+def _build_merged_graph(include_imports: bool) -> Graph:
+    """Parse and merge all ontology sources into one rdflib graph (cached).
 
-    Args:
-        include_imports: Whether to merge the vendored import files too.
-
-    Returns:
-        A single graph containing the union of all parsed source triples, with
-        the canonical prefixes bound.
-
-    Raises:
-        FileNotFoundError: If the root ontology file is missing.
+    The expensive disk-parsing work is cached by ``include_imports`` flag.
+    Callers receive a *copy* so mutations do not corrupt the cache.
     """
     if not ONTOLOGY_FILE.exists():
         raise FileNotFoundError(f"root ontology not found: {ONTOLOGY_FILE}")
@@ -72,3 +67,25 @@ def load_merged_graph(*, include_imports: bool = True) -> Graph:
         merged.parse(source, format="turtle")
     bind_prefixes(merged)
     return merged
+
+
+def load_merged_graph(*, include_imports: bool = True) -> Graph:
+    """Parse and merge all ontology sources into one rdflib graph.
+
+    Args:
+        include_imports: Whether to merge the vendored import files too.
+
+    Returns:
+        A single graph containing the union of all parsed source triples, with
+        the canonical prefixes bound. The returned graph is a shallow copy so
+        callers may mutate it safely.
+
+    Raises:
+        FileNotFoundError: If the root ontology file is missing.
+    """
+    cached = _build_merged_graph(include_imports)
+    g = Graph()
+    for triple in cached:
+        g.add(triple)
+    bind_prefixes(g)
+    return g

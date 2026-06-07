@@ -87,7 +87,7 @@ def test_scalar_quantity_properties_exist() -> None:
 
 
 def test_observation_el_axioms_fire() -> None:
-    """An Observation with vantage + observedFeature is classified correctly."""
+    """An Observation individual with required properties stays consistent."""
     graph = Graph()
     graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
     # Minimal A-Box: an observation of a place by an agent
@@ -97,8 +97,10 @@ def test_observation_el_axioms_fire() -> None:
     graph.add((EX.agent1, RDF.type, GMEOW.Agent))
     graph.add((EX.place1, RDF.type, GMEOW.Place))
 
-    # The EL restriction should classify obs1 as an Observation (it already is,
-    # but the reasoner should not reject it).
+    # The EL restrictions are necessary (not sufficient) conditions, so the
+    # reasoner will not *infer* Observation from the properties alone under
+    # OWL 2 RL.  What we verify here is that the asserted type is not
+    # contradicted — i.e. the axioms are consistent with the A-Box.
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
     assert (EX.obs1, RDF.type, GMEOW.Observation) in graph
 

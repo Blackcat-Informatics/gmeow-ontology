@@ -924,9 +924,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:namePurposeCeremonial (a gmeow:NamePurpose): ceremonial name
 - gmeow:namePurposeChosen (a gmeow:NamePurpose): chosen / self-identified name
 - gmeow:namePurposeDeadname (a gmeow:NamePurpose): deadname (historical, do-not-display)
-- gmeow:namePurposeEndonym (a gmeow:NamePurpose): endonym (native name, e.g. Deutsch)
-- gmeow:namePurposeExonym (a gmeow:NamePurpose): exonym (external name, e.g. German)
-- gmeow:namePurposeGlossonym (a gmeow:NamePurpose): glossonym (a language's name)
+- gmeow:namePurposeEndonym (a gmeow:NamePurpose): endonym (name used by a place's own inhabitants / a language's own speakers)
+- gmeow:namePurposeExonym (a gmeow:NamePurpose): exonym (name used by outsiders / in another language)
 - gmeow:namePurposeLegal (a gmeow:NamePurpose): legal name
 - gmeow:namePurposeNickname (a gmeow:NamePurpose): nickname / familiar name
 - gmeow:namePurposeOnlineHandle (a gmeow:NamePurpose): online handle / username

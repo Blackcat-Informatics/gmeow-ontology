@@ -972,9 +972,8 @@ gmeow:ObservationShape
     sh:property [
         sh:path gmeow:vantage ;
         sh:minCount 1 ;
-        sh:maxCount 1 ;
         sh:severity sh:Violation ;
-        sh:message "An Observation must record exactly one vantage (gmeow:vantage)." ;
+        sh:message "An Observation must record at least one vantage (gmeow:vantage)." ;
     ] ;
     sh:property [
         sh:path gmeow:observedFeature ;

@@ -63,6 +63,9 @@ compile-statements: ## Compile statement-dsl/ → RDF 1.2 lead artifact + OWL do
 statements-check: ## Fail if the committed statement artifacts are stale vs statement-dsl/ (Jena).
 	uv run gmeow compile-statements --check
 
+mappings-only: ## Build alignment axioms + VoID linksets (assumes SSSOM files present).
+	uv run gmeow mappings
+
 mappings: compile-mappings ## Build alignment axioms + VoID linksets from SSSOM; validate QID syntax.
 	uv run gmeow mappings
 
@@ -116,9 +119,11 @@ project: compile-mappings ## Project GMEOW data to pure schema.org/GeoSPARQL/vCa
 	uv run gmeow project
 
 test: ## Run the test suite.
-	uv run pytest
+	uv run pytest -n auto
 
-check: lint validate statements-check reason reason-hermit verify compile-check mappings lint-alignment wikidata coverage test ## Full local quality gate.
+check: ## Full local quality gate (parallelized where safe).
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint validate statements-check compile-check wikidata coverage reason reason-hermit verify mappings-only lint-alignment
+	$(MAKE) test
 	@echo "✓ all checks passed"
 
 release: ## RDF 1.2 + OWL downcast → reasoned closure (HermiT) + build + metadata + CrossRef deposit.

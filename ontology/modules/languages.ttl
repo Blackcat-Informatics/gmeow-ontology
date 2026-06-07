@@ -488,11 +488,5 @@ gmeow:schemeIAST                 a gmeow:TransliterationScheme ; rdfs:label "IAS
 gmeow:schemeBGNPCGN              a gmeow:TransliterationScheme ; rdfs:label "BGN/PCGN romanization"@en .
 gmeow:schemeIPA                  a gmeow:TransliterationScheme ; rdfs:label "IPA phonetic transcription"@en .
 
-# =========================================================================== #
-# Endonym/exonym — added as instances of the names module's open gmeow:NamePurpose
-# value class (a language bears co-equal endonym/exonym gmeow:Appellation).
-# =========================================================================== #
-
-gmeow:namePurposeEndonym   a gmeow:NamePurpose ; rdfs:label "endonym (native name, e.g. Deutsch)"@en .
-gmeow:namePurposeExonym    a gmeow:NamePurpose ; rdfs:label "exonym (external name, e.g. German)"@en .
-gmeow:namePurposeGlossonym a gmeow:NamePurpose ; rdfs:label "glossonym (a language's name)"@en .
+# Endonym/exonym/glossonym are defined in the names module (gmeow:NamePurpose
+# value vocabulary). Languages reference them, they are not redeclared here.
