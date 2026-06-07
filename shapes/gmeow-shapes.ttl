@@ -1245,6 +1245,13 @@ gmeow:SpatialAggregationShape
     rdfs:label "SpatialAggregation well-formedness shape" ;
     sh:targetClass gmeow:SpatialAggregation ;
     sh:property [
+        sh:path gmeow:vantage ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A SpatialAggregation must record exactly one vantage (gmeow:vantage)." ;
+    ] ;
+    sh:property [
         sh:path gmeow:observedFeature ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
@@ -1263,8 +1270,14 @@ gmeow:SpatialAggregationShape
     sh:property [
         sh:path gmeow:observationResult ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:or (
+            [ sh:class gmeow:ScalarQuantity ]
+            [ sh:class gmeow:Quantity ]
+            [ sh:class gmeow:MeasuredValue ]
+        ) ;
         sh:severity sh:Violation ;
-        sh:message "A SpatialAggregation must yield at least one observation result." ;
+        sh:message "A SpatialAggregation must yield exactly one scalar quantity result (ScalarQuantity, Quantity, or MeasuredValue)." ;
     ] ;
     sh:property [
         sh:path gmeow:minimumPopulation ;

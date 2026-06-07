@@ -269,6 +269,7 @@ ex:cityCensus a gmeow:SpatialAggregation ;
     gmeow:observationResult [
         a gmeow:ScalarQuantity ;
         gmeow:quantityValue "15000"^^xsd:decimal ;
+        gmeow:hasUnit <http://qudt.org/vocab/unit/UNITLESS> ;
     ] ;
     gmeow:minimumPopulation 5 ;
     gmeow:vantage ex:censusBureau .
