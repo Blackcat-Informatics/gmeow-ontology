@@ -1,0 +1,38 @@
+# Malformed privacy fixture (#73). Each privacy-related relator trips its closed-
+# world SHACL shape: the RightsStatement governs no asset, the Permission regulates
+# no action, and the consent-governing RightsStatements lack a data subject or a
+# data controller. run_shacl over this graph MUST NOT conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:alice a gmeow:Person ; rdfs:label "Alice"@en .
+
+# RightsStatement with NO statementAbout → "must govern exactly one asset".
+ex:rs a gmeow:RightsStatement ;
+    gmeow:hasDataSubject ex:alice ;
+    gmeow:hasPermission ex:perm .
+
+# Permission with NO ruleAction → "must regulate exactly one action".
+ex:perm a gmeow:Permission .
+
+# Consent-governing RightsStatement with hasDataSubject but NO hasDataController
+# → "should name at least one data controller".
+ex:rs2 a gmeow:RightsStatement ;
+    gmeow:statementAbout ex:alice ;
+    gmeow:hasDataSubject ex:alice ;
+    gmeow:hasPermission ex:perm2 .
+
+ex:perm2 a gmeow:Permission ;
+    gmeow:ruleAction gmeow:actionProcessPersonalData .
+
+# Consent-governing RightsStatement with actionProcessPersonalData but NO hasDataSubject
+# → "should name exactly one data subject".
+ex:rs3 a gmeow:RightsStatement ;
+    gmeow:statementAbout ex:alice ;
+    gmeow:hasDataController ex:alice ;
+    gmeow:hasPermission ex:perm3 .
+
+ex:perm3 a gmeow:Permission ;
+    gmeow:ruleAction gmeow:actionProcessPersonalData .

@@ -1,0 +1,192 @@
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix gufo:   <http://purl.org/nemo/gufo#> .
+@prefix dpv:    <https://w3id.org/dpv#> .
+@prefix schema: <https://schema.org/> .
+@prefix odrl:   <http://www.w3.org/ns/odrl/2/> .
+@prefix wd:     <http://www.wikidata.org/entity/> .
+
+# Term equivalences for the privacy / consent / redaction facility (#73) — GMEOW
+# authoring source. Compiled to mappings/gmeow-privacy.sssom.tsv by
+# `gmeow compile-mappings`. All alignments are BY REFERENCE (Principle 5);
+# GMEOW never imports an external axiom.
+#
+# CONSTITUTIONAL GROUNDING (P10): suppression, never erasure — a sensitive
+# value is coarsened or withheld at projection time under a consent guard,
+# never deleted. The sensitivity vocabulary marks what needs protection;
+# the existing coarsenTo / displayable mechanism performs the redaction.
+#
+# SOLVER BOUNDARY (P12): consent evaluation, k-anonymity, and geomasking
+# are computed in external solver layers, never materialised as OWL axioms.
+# The ontology carries only the policy STRUCTURE (sensitivity levels, consent
+# rules, party roles); the enforcement math lives outside.
+
+gmeow:mapsetPrivacy a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/privacy" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """Privacy / consent / redaction alignments (#73, PRIV-GEN).
+        DPV: the primary external vocabulary for privacy concepts. GMEOW's sensitivity level, data-subject / data-controller roles, privacy notice, and process-personal-data action are aligned to DPV by reference (Principle 5). DPV is a W3C Community Group deliverable, not a W3C Recommendation; alignments use skos:closeMatch rather than owl:equivalentClass.
+        ODRL: consent is modelled as a Permission / Prohibition / Duty over actionProcessPersonalData with purpose/recipient constraints — the existing deontic trio (#21), not a parallel consent relator.
+        Schema.org: PrivacyNotice projects to schema:PrivacyPolicy; hasPrivacyNotice projects to schema:publishingPrinciples.
+        REDACTION = GENERALISATION: the actual redaction mechanism is the existing coarsenTo / displayable projection-time directive (#72). Sensitivity metadata drives the trigger; the solver evaluates consent + sensitivity at emit time (P12).""" ;
+    gmeow:setTrailer "# REFUSED (Principle 5 — no faithful external term): gmeow:hasSensitivity has no exact DPV counterpart. DPV's hasSensitivityLevel is scoped to processes/entities within DPV's data-handling model; GMEOW's hasSensitivity is a universal domain-free facet (like hasGranularity, hasDeterminacy). A closeMatch is warranted but not exact.\n# REFUSED (Principle 5): the sensitivity-to-coarsen trigger (a value with hasSensitivity sensitivePersonal SHOULD also carry coarsenTo or displayable false) is a GMEOW-specific projection-layer contract, not an external vocabulary concept.\n# REFUSED (Principle 5): no faithful external term for hasPrivacyNotice as a domain-free property. DPV has hasNotice (on Process), schema.org has publishingPrinciples (on Organization/CreativeWork); neither covers the full domain-free usage." .
+
+# --------------------------------------------------------------------------- #
+# Sensitivity vocabulary
+# --------------------------------------------------------------------------- #
+
+gmeow:eqPrivacy001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SensitivityLevel ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dpv:SensitivityLevel ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DPV's SensitivityLevel is scoped to its process/entity model; GMEOW's is a universal QualityValue facet" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SensitivityLevel ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:QualityValue ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "gmeow:SensitivityLevel is declared rdfs:subClassOf gufo:QualityValue in the ontology" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasSensitivity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dpv:hasSensitivityLevel ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "DPV hasSensitivityLevel is scoped to processes/entities; GMEOW hasSensitivity is universal and domain-free" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:sensitivitySensitivePersonal ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dpv:SensitivePersonalData ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "the special-category personal-data tier in both vocabularies" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:sensitivitySensitivePersonal ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q2796 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "personal data" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:sensitivityConfidential ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q188475 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "confidentiality" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Privacy roles — DataSubject, DataController, PrivacyNotice
+# --------------------------------------------------------------------------- #
+
+gmeow:eqPrivacy007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasDataSubject ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dpv:hasDataSubject ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "the data-subject property in both vocabularies" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasDataController ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dpv:hasDataController ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "the data-controller property in both vocabularies" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:PrivacyNotice ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dpv:PrivacyNotice ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "the privacy-notice concept in both vocabularies" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:PrivacyNotice ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:PrivacyPolicy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "schema.org privacy policy (a CreativeWork)" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasPrivacyNotice ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dpv:hasNotice ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "DPV hasNotice links a process to its notice; GMEOW hasPrivacyNotice is domain-free" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy012 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasPrivacyNotice ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject schema:publishingPrinciples ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "schema.org publishing principles (may include privacy policy)" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Action alignment — process personal data
+# --------------------------------------------------------------------------- #
+
+gmeow:eqPrivacy013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:actionProcessPersonalData ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject odrl:use ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "processing personal data is the privacy-scoped form of odrl:use" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy014 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:actionProcessPersonalData ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject dpv:Processing ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "DPV Processing is a class (process/activity), not an action value; relatedMatch is the best fit" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy015 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasDataSubject ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject odrl:assignee ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "the data subject is the party to whom the privacy policy applies (ODRL assignee analogue)" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasDataController ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject odrl:assigner ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "the data controller is the party issuing the privacy policy (ODRL assigner analogue)" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .

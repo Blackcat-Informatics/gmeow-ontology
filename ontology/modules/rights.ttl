@@ -158,6 +158,7 @@ gmeow:actionAttribute     a gmeow:RightsAction ; rdfs:label "attribute"@en ;    
 gmeow:actionShareAlike    a gmeow:RightsAction ; rdfs:label "share alike"@en ;   skos:definition "Distribute derivatives under the same licence (odrl:shareAlike; cc:ShareAlike) — typically the action of a share-alike duty."@en .
 gmeow:actionRetainNotice  a gmeow:RightsAction ; rdfs:label "retain notice"@en ; skos:definition "Preserve copyright / licence notices (cc:Notice) — typically the action of a notice duty."@en .
 gmeow:actionObtainConsent a gmeow:RightsAction ; rdfs:label "obtain consent"@en ; skos:definition "Obtain the holder's prior consent before exercising a permission (odrl:obtainConsent)."@en .
+gmeow:actionProcessPersonalData a gmeow:RightsAction ; rdfs:label "process personal data"@en ; skos:definition "Process personal data about a data subject — the privacy-regulated action (aligned to dpv:Processing and odrl:use)."@en .
 
 # =========================================================================== #
 # Copyright — a relator binding the work, its holder(s), year and notice.
@@ -429,6 +430,47 @@ gmeow:attributionText
     rdfs:range rdfs:Literal ;
     rdfs:label "attribution text"@en ;
     skos:definition "The credit line to display when reusing the asset (schema:creditText; cc:attributionName) — e.g. \"Photo by Jane Doe / CC BY 4.0\". The structured holder is gmeow:wasAttributedTo / gmeow:copyrightHolder."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# Privacy / consent / redaction facility (#73, PRIV-GEN).
+#
+# Consent is modelled through the existing deontic trio (Permission / Prohibition
+# / Duty) — no parallel consent relator is minted. A consent policy is a
+# RightsStatement whose rules regulate gmeow:actionProcessPersonalData with
+# purpose/recipient constraints. Data-subject and data-controller parties are
+# declared on the RightsStatement. Redaction (coarsenTo / displayable) is the
+# existing projection-time mechanism; sensitivity metadata drives the trigger.
+# =========================================================================== #
+
+gmeow:hasDataSubject
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:RightsStatement ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "has data subject"@en ;
+    skos:definition "The data subject whose personal data is governed by a rights statement — the individual about whom personal data is processed. Not a subproperty of gmeow:hasParty because a rights statement (an ODRL policy) is not an agreement; the party model is reused at the licence level."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasDataController
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:RightsStatement ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "has data controller"@en ;
+    skos:definition "The data controller responsible for processing personal data under a rights statement — the agent that determines the purposes and means of processing."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:PrivacyNotice
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Privacy Notice"@en ;
+    skos:definition "A human- or machine-readable privacy notice informing data subjects about the processing of their personal data — the information-object counterpart of a dpv:PrivacyNotice / schema:PrivacyPolicy. It may be attached to a RightsStatement or to the entity whose data is governed."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasPrivacyNotice
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:PrivacyNotice ;
+    rdfs:label "has privacy notice"@en ;
+    skos:definition "Relates an entity or rights statement to its privacy notice. Domain-free: a notice may be attached to a RightsStatement, a Licence, or directly to the governed entity."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
