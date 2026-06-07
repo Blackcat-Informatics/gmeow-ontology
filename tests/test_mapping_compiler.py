@@ -186,6 +186,21 @@ def test_value_class_table_emitted() -> None:
     assert "( gmeow:placeTypeCountry schema:Country )" in query
 
 
+def test_schema_org_accessibility_predicate_separation() -> None:
+    """The schema-org projection must not cross-emit accessibility predicates:
+    hasAccessibilityFeature rows must not materialize schema:accessibilityHazard
+    and hasBarrier rows must not materialize schema:accessibilityFeature."""
+    dsl = load_dsl()
+    query = emit_sparql(dsl, "schema-org")
+    # Each branch should use a distinct variable so there is no cross-emission.
+    assert "?place schema:accessibilityFeature ?featureFacet" in query
+    assert "?place schema:accessibilityHazard ?hazardFacet" in query
+    # Ensure the value vars are distinct (not the shared "?facet" that caused
+    # the cross-emission bug).
+    assert "?featureFacet" in query
+    assert "?hazardFacet" in query
+
+
 def test_sssom_roundtrips_to_committed() -> None:
     """The emitted SSSOM rows equal the committed rows (set-wise)."""
     generated = emit_sssom(load_dsl())

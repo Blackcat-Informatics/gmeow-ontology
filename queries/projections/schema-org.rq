@@ -7,8 +7,8 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX schema: <https://schema.org/>
 
 CONSTRUCT {
-    ?place schema:accessibilityFeature ?facet .
-    ?place schema:accessibilityHazard ?facet .
+    ?place schema:accessibilityFeature ?featureFacet .
+    ?place schema:accessibilityHazard ?hazardFacet .
     ?place a schema:Place .
     ?place schema:containedInPlace ?parent .
     ?place schema:geo ?coords .
@@ -73,11 +73,11 @@ CONSTRUCT {
 }
 WHERE {
     {
-        ?place gmeow:hasAccessibilityFeature ?facet .
+        ?place gmeow:hasAccessibilityFeature ?featureFacet .
         FILTER NOT EXISTS { ?place gmeow:displayable false . }
     }
     UNION {
-        ?place gmeow:hasBarrier ?facet .
+        ?place gmeow:hasBarrier ?hazardFacet .
         FILTER NOT EXISTS { ?place gmeow:displayable false . }
     }
     UNION {

@@ -85,8 +85,10 @@ gmeow:hasAccessibilityNeed
     skos:definition "Relates an entity to an accessibility facet it requires in order to reach or use a location. Non-functional: needs are co-equal facets (Principle 9). There is no 'primary need' — all asserted needs coexist."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/accessibility> .
 
-# The feature and barrier axes are orthogonal at the property level.
-gmeow:hasAccessibilityFeature owl:propertyDisjointWith gmeow:hasBarrier .
+# NOTE: We intentionally do NOT declare these properties disjoint, because a
+# location may carry both feature and barrier for the same facet under
+# different local conditions (e.g. different entrances). Use reified
+# AccessibilityAssertion with provenance/context when disambiguation is needed.
 
 # --------------------------------------------------------------------------- #
 # Reified relator — AccessibilityAssertion (promote when metadata matters)

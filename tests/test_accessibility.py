@@ -133,7 +133,7 @@ def test_assertion_roles_are_functional() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Orthogonality guard: feature ⟂ barrier
+# Orthogonality guard: feature and barrier must not collapse into one property
 # --------------------------------------------------------------------------- #
 
 
@@ -151,15 +151,6 @@ def test_no_bridge_between_feature_and_barrier() -> None:
         assert (nb, RDFS.subPropertyOf, na) not in graph, f"{b} ⊑ {a} forbidden"
         assert (na, OWL.equivalentProperty, nb) not in graph, f"{a} ≡ {b} forbidden"
         assert (nb, OWL.equivalentProperty, na) not in graph, f"{b} ≡ {a} forbidden"
-
-
-def test_has_accessibility_feature_and_has_barrier_are_property_disjoint() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "hasAccessibilityFeature"),
-        OWL.propertyDisjointWith,
-        URIRef(GMEOW + "hasBarrier"),
-    ) in graph
 
 
 # --------------------------------------------------------------------------- #

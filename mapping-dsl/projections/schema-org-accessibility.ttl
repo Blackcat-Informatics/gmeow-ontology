@@ -7,13 +7,19 @@
 # Projection mappings: GMEOW accessibility layer → schema.org.
 # Compiled to projections/schema-org-accessibility.edoal.ttl +
 # queries/projections/schema-org-accessibility.rq by `gmeow compile-mappings`.
+#
+# NOTE on suppression: the projection only checks gmeow:displayable false on the
+# place node. Assertion-level retraction (setting displayable false on a reified
+# gmeow:AccessibilityAssertion) is NOT automatically propagated to the inferred
+# flat shortcut in this projection; data sources must also remove or suppress the
+# flat shortcut triple when retracting an assertion.
 
 gmeow:mapSchemaAccessibilityFeature a gmeow:ProjectionMapping ;
     rdfs:label "hasAccessibilityFeature → schema:accessibilityFeature (lossy)"@en ;
     gmeow:hasMappingPattern [
-        gmeow:anchor "place" ; gmeow:value "facet" ;
+        gmeow:anchor "place" ; gmeow:value "featureFacet" ;
         gmeow:atom (
-            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasAccessibilityFeature ; gmeow:objectVar "facet" ] ) ;
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasAccessibilityFeature ; gmeow:objectVar "featureFacet" ] ) ;
         gmeow:suppressWhen [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
         gmeow:edoalSource gmeow:hasAccessibilityFeature ] ;
     gmeow:hasBinding [
@@ -23,9 +29,9 @@ gmeow:mapSchemaAccessibilityFeature a gmeow:ProjectionMapping ;
 gmeow:mapSchemaAccessibilityHazard a gmeow:ProjectionMapping ;
     rdfs:label "hasBarrier → schema:accessibilityHazard (lossy)"@en ;
     gmeow:hasMappingPattern [
-        gmeow:anchor "place" ; gmeow:value "facet" ;
+        gmeow:anchor "place" ; gmeow:value "hazardFacet" ;
         gmeow:atom (
-            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasBarrier ; gmeow:objectVar "facet" ] ) ;
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasBarrier ; gmeow:objectVar "hazardFacet" ] ) ;
         gmeow:suppressWhen [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
         gmeow:edoalSource gmeow:hasBarrier ] ;
     gmeow:hasBinding [

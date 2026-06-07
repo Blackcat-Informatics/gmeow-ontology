@@ -18,10 +18,8 @@ SELECT ?assertion ?subject ?facet ?polarity WHERE {
     ?assertion a gmeow:AccessibilityAssertion ;
         gmeow:assertionSubject ?subject ;
         gmeow:assertionFacet ?facet ;
-        gmeow:assertionPolarity ?polarity .
-    # The vantage is recorded via RDF-star / statement-level metadata
-    # on the flat shortcut, or via the universal observation stack
-    # when promoted to AccessibilityAssertion.
+        gmeow:assertionPolarity ?polarity ;
+        gmeow:vantage ?vantage .
 }
 
 # Q3: Which locations have barriers for a specific facet?
