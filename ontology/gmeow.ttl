@@ -61,6 +61,7 @@
         <https://blackcatinformatics.ca/gmeow/modules/rights> ,
         <https://blackcatinformatics.ca/gmeow/modules/coreference> ,
         <https://blackcatinformatics.ca/gmeow/modules/observations> ,
+        <https://blackcatinformatics.ca/gmeow/modules/quality> ,
         <https://blackcatinformatics.ca/gmeow/modules/tags> ,
         <https://blackcatinformatics.ca/gmeow/modules/connectivity> ,
         <https://blackcatinformatics.ca/gmeow/modules/aggregation> ,

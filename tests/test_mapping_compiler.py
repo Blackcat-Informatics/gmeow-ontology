@@ -87,7 +87,9 @@ def test_dsl_parses() -> None:
     # hasBarrier→schema:a11yHazard, AccessibilityAssertion→sosa:Observation,
     # 7 facet→ICF, 4 duplicate ICF facet alignments for step-free/auditory/cognitive
     # /clearance bridging to shared ICF categories).
-    assert len(dsl.equivalences) == 898
+    # Issue #99 data quality: +10 (DQV x4, GeoDCAT-AP/OA x1, PROV-O lineage x1,
+    # Wikidata x3).
+    assert len(dsl.equivalences) == 908
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -106,7 +108,8 @@ def test_dsl_parses() -> None:
     # Issue #81 lifecycle: +1 (gmeow-lifecycle.sssom.tsv).
     # Issue #101 spatial aggregation: +1 (gmeow-aggregation.sssom.tsv).
     # Issue #102 accessibility: +1 (gmeow-accessibility.sssom.tsv).
-    assert len(dsl.mapping_sets) == 28
+    # Issue #99 data quality: +1 (gmeow-quality.sssom.tsv).
+    assert len(dsl.mapping_sets) == 29
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}
