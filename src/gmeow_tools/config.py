@@ -175,6 +175,7 @@ PREFIXES: dict[str, str] = {
     "vann": "http://purl.org/vocab/vann/",
     "void": "http://rdfs.org/ns/void#",
     "dcat": "http://www.w3.org/ns/dcat#",
+    "dqv": "http://www.w3.org/ns/dqv#",
     "sssom": "https://w3id.org/sssom/",
     "semapv": "https://w3id.org/semapv/vocab/",
     # Transformation / complex-alignment layer (projection specs; not reasoned)
@@ -427,6 +428,7 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     ),
     "doap": AlignmentTarget("DOAP", PREFIXES["doap"], "Public-Domain", "schema"),
     "prov": AlignmentTarget("PROV-O", PREFIXES["prov"], "W3C-Document", "schema"),
+    "dqv": AlignmentTarget("W3C DQV", PREFIXES["dqv"], "W3C-Document", "schema"),
     "org": AlignmentTarget("ORG", PREFIXES["org"], "PDDL-1.0", "schema"),
     "time": AlignmentTarget("OWL-Time", PREFIXES["time"], "CC-BY-4.0", "schema"),
     "schema": AlignmentTarget(
