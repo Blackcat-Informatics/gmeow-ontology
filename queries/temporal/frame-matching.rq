@@ -1,0 +1,21 @@
+# TQL — instants and intervals expressed in a given temporal frame.
+# Parameter: ?frame. Returns the entity, its value(s), and the frame's
+# scale and optional calendar system.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?entity ?instantValue ?edtfValue ?scale ?calendar WHERE {
+    {
+        ?entity a gmeow:Instant ;
+                gmeow:inTemporalFrame ?frame .
+    }
+    UNION
+    {
+        ?entity a gmeow:TimeInterval ;
+                gmeow:hasTemporalFrame ?frame .
+    }
+    OPTIONAL { ?entity gmeow:instantValue ?instantValue }
+    OPTIONAL { ?entity gmeow:edtfValue ?edtfValue }
+    ?frame gmeow:frameTimeScale ?scale .
+    OPTIONAL { ?frame gmeow:frameCalendarSystem ?calendar }
+}
+ORDER BY ?entity

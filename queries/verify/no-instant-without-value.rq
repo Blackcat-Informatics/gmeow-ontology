@@ -1,0 +1,11 @@
+# ROBOT verify QC (#67) — every Instant must carry at least one value.
+# An instant with neither a crisp instantValue nor an edtfValue is
+# indeterminate and therefore a FAILURE.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?instant WHERE {
+    ?instant a gmeow:Instant .
+    FILTER NOT EXISTS { ?instant gmeow:instantValue ?v }
+    FILTER NOT EXISTS { ?instant gmeow:edtfValue ?e }
+}

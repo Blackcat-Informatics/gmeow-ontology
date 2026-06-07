@@ -1,0 +1,13 @@
+# TQL — named period containment hierarchy. Returns every NamedPeriod and its
+# containing ancestors via the transitive gmeow:periodPartOf+.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?period ?periodLabel ?periodType ?ancestor ?ancestorLabel WHERE {
+    ?period a gmeow:NamedPeriod ;
+            gmeow:periodPartOf+ ?ancestor .
+    OPTIONAL { ?period rdfs:label ?periodLabel }
+    OPTIONAL { ?period gmeow:periodType ?pt . ?pt rdfs:label ?periodType }
+    OPTIONAL { ?ancestor rdfs:label ?ancestorLabel }
+}
+ORDER BY ?period ?ancestor

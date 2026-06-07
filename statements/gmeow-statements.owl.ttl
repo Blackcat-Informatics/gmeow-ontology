@@ -39,6 +39,22 @@
     gmeow:confidence 0.9 ;
     gmeow:validFrom "1991-12-01T00:00:00+00:00"^^xsd:dateTime .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-date-gregorian-1582> a owl:Axiom ;
+    owl:annotatedProperty gmeow:eventTime ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-reformation-date> ;
+    owl:annotatedTarget "1582-10-15T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-gregorian-historiography> ;
+    gmeow:assertedAt "2020-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.95 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-date-julian-1582> a owl:Axiom ;
+    owl:annotatedProperty gmeow:eventTime ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-reformation-date> ;
+    owl:annotatedTarget "1582-10-05T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-julian-historiography> ;
+    gmeow:assertedAt "2020-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.95 .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-territory-1850-per-2025-historiography> a owl:Axiom ;
     owl:annotatedProperty gmeow:containedInPlace ;
     owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/territory-x> ;
@@ -113,6 +129,9 @@
 
 <https://blackcatinformatics.ca/gmeow/examples/crimea> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/russia>,
         <https://blackcatinformatics.ca/gmeow/examples/ukraine> .
+
+<https://blackcatinformatics.ca/gmeow/examples/event-reformation-date> gmeow:eventTime "1582-10-05T00:00:00+00:00"^^xsd:dateTime,
+        "1582-10-15T00:00:00+00:00"^^xsd:dateTime .
 
 <https://blackcatinformatics.ca/gmeow/examples/rights/contested-trademark> gmeow:trademarkHolder <https://blackcatinformatics.ca/gmeow/examples/rights/acme>,
         <https://blackcatinformatics.ca/gmeow/examples/rights/omega> .

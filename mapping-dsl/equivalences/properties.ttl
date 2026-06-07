@@ -16,6 +16,8 @@
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
 @prefix dpv: <https://w3id.org/dpv#> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
 
 # Term equivalences for the properties domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-properties.sssom.tsv by `gmeow compile-mappings`.

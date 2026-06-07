@@ -14,6 +14,8 @@
 @prefix bibo: <http://purl.org/ontology/bibo/> .
 @prefix bibframe: <http://id.loc.gov/ontologies/bibframe/> .
 @prefix sioc: <http://rdfs.org/sioc/ns#> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
 
 # Term equivalences for the classes domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-classes.sssom.tsv by `gmeow compile-mappings`.

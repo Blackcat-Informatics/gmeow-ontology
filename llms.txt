@@ -20,6 +20,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:Axis (⊑ gmeow:Entity, gufo:Object): A coordinate axis or dimension of a reference frame (e.g. X, Y, Z, latitude, longitude, elevation, time).
 - gmeow:BiologicalParentChild (⊑ gmeow:ParentChildRelationship): A parent-child relationship by biological descent.
 - gmeow:BodyPart (⊑ gmeow:InformationObject): A MIME part of a message's body, with a media type and content.
+- gmeow:CalendarSystem (⊑ gmeow:Entity, gufo:Object): The rules mapping a time scale to human-readable dates. Co-equal: Gregorian is one peer among Julian, Hebrew, Islamic, Chinese, Persian, Ethiopian, Coptic, ISO week, and others (Principle 9).
 - gmeow:Certification (⊑ gufo:Relator): A reified attestation that a cryptographic key belongs to a given identity, made by a certifying agent (a PGP key-signature / Web-of-Trust certification). Its validity window is carried with gmeow:validFrom/validUntil; revocation sets validUntil.
 - gmeow:Citation (⊑ gmeow:InformationObject): A reference to a specific place within a source (a page, entry, image, or record locator).
 - gmeow:ConflictStrategy (⊑ gufo:QualityValue): A policy conflict-resolution strategy — the ODRL conflict values perm / prohibit / invalid.
@@ -37,6 +38,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:CryptographicSignature (⊑ gmeow:InformationObject): A cryptographic signature over a message or its headers, asserting origin and integrity.
 - gmeow:DKIMSignature (⊑ gmeow:CryptographicSignature): A DomainKeys Identified Mail signature (RFC 6376) over selected headers and the body.
 - gmeow:Dataset (⊑ gmeow:CreativeWork): A collection of data published as a unit.
+- gmeow:DatingMethod (⊑ gufo:QualityValue): The method used to derive a temporal measurement — radiocarbon, dendrochronology, thermoluminescence, etc. A value, never a subclass.
 - gmeow:Determinacy (⊑ gufo:QualityValue): The model of ontic determinacy or indeterminacy for a value — whether it is inherently crisp, vague, fuzzy, probabilistic, or disputed. Distinct from epistemic confidence (how sure we are of a claim); determinacy records the nature of the value itself. Applies universally: a gender may be fuzzy, a date approximate, a boundary vague, a SLAM cell probabilistic, a contested fact disputed.
 - gmeow:Document (⊑ gmeow:CreativeWork): A bounded textual or digital document — a file, record, or report.
 - gmeow:Duration (⊑ gmeow:Entity): A length of time as a quantity, independent of when it occurs — the running time of an event, a gap, a recurrence period. Carries an xsd:duration via gmeow:durationValue. (= time:Duration / time:TemporalDuration, schema:Duration, ISO-TimeML TIMEX3 type=DURATION, TEO Duration.)
@@ -69,6 +71,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:IdentityFacet (⊑ gufo:Relator): A reified, SELF-ASSERTED claim about an aspect of a person's identity — gender identity, gender expression, or (in the sexuality module) sexual/romantic orientation — mediating the person and an open identity value. A gufo:Relator, the same idiom as gmeow:NameUsage. A person bears MANY co-equal facets (e.g. bigender); none is privileged, there is no preferred/primary marker, and a superseded facet is kept with gmeow:displayable false rather than deleted. Self-assertion (gmeow:selfAsserted) is the top authority; the optional validity period is carried by gmeow:validFrom/validUntil on the facet.
 - gmeow:ImportActivity (⊑ gmeow:Activity): An activity that ingested an external source artifact (an import envelope such as a vCard file) and recorded the claims it carried. Carries the ingestion (transaction) time — when the system learned the claims, distinct from when they were asserted or when they hold.
 - gmeow:InformationObject (⊑ gmeow:Entity, gufo:Object): An entity whose nature is to carry information content: a document, dataset, software artifact, online account, or message. The shared parent of the document, software and account layers.
+- gmeow:Instant (⊑ gufo:AbstractIndividual): A zero-duration point in time, distinct from a TimeInterval. Carries a crisp instantValue (xsd:dateTime) and/or an edtfValue (EDTF literal) relative to a TemporalFrame.
 - gmeow:InterpersonalRelationship (⊑ gufo:Relator): A reified standing relationship between agents (acquaintance, collaboration, …), able to bear its own time interval, confidence, and source evidence.
 - gmeow:KeyScheme (⊑ gufo:QualityValue): The cryptographic scheme/format of a key (OpenPGP, X.509, SSH, Nostr, …). Modelled as a value, not a key subclass: the set of schemes is open-ended and they carry no distinct key structure here, so a new scheme is a new individual, not a new class.
 - gmeow:KinRelationship (⊑ gufo:Relator): A reified kinship relationship between persons, able to bear its own events, dates and sources.
@@ -99,6 +102,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:NamePurpose (⊑ gufo:QualityValue): The purpose/kind of a whole appellation (legal, birth, chosen, professional, deadname, …). A value, not a PersonName subclass; a person may simultaneously bear several co-equal names of different purposes.
 - gmeow:NameRegister (⊑ gufo:QualityValue): The social register of a name-usage (formal, intimate, professional, casual). A value vocabulary carried by gmeow:usageRegister on a gmeow:NameUsage.
 - gmeow:NameUsage (⊑ gufo:Relator): A reified, context-dependent use of an appellation: a named entity is called by a given appellation, by or among a particular audience (or within a relationship scope), in a particular register, over a period, on some evidence. Perspectival — a usage is whoever's, never a global fact — so it carries no notion of a preferred or canonical name. Mint one NameUsage per (appellation, audience, register) tuple; its period is carried by gmeow:usageInterval or by validFrom/validUntil on the statement.
+- gmeow:NamedPeriod (⊑ gmeow:Entity, gufo:Object): A named stretch of time with defined bounds — a geologic era, historical dynasty, artistic period, fiscal year, or any other culturally salient temporal division.
 - gmeow:Occupation (⊑ gmeow:Entity): A kind of work or profession, such as those classified by ESCO or SOC.
 - gmeow:OnlineAccount (⊑ gmeow:InformationObject): An account an agent holds with an online service — a social profile, code-forge account, or decentralized identity.
 - gmeow:Organization (⊑ gmeow:Agent): A structured group of agents — a company, institution, association, or governmental body — able to act as a single agent.
@@ -108,6 +112,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:ParticipantRole (⊑ gufo:QualityValue): The role an entity plays in an event — a VALUE, never a participation subproperty. The set is open; a role not among the seeds is a FRESH gmeow:ParticipantRole individual with rdfs:label. Carried by gmeow:participationRole on a gmeow:Participation.
 - gmeow:Participation (⊑ gufo:Relator): A reified participation of an entity in an event, in a role, over a period, on some evidence — the same relator idiom as gmeow:NameUsage. Mint one Participation per (event, participant, role) tuple when role / period / confidence / evidence must be recorded; the 80% case uses the flat gmeow:hasParticipant. Perspectival and co-equal: a disputed role is several standpoint-indexed Participations that coexist, none privileged; a withdrawn one is kept with gmeow:displayable false, never deleted.
 - gmeow:Patent (⊑ gmeow:CreativeWork): A granted or filed patent describing an invention.
+- gmeow:PeriodType (⊑ gufo:QualityValue): The kind of a named period (geologic eon, era, period, epoch, age; historical dynasty, era; fiscal year). A value, never a subclass.
 - gmeow:Permission (⊑ gmeow:Rule): A rule that grants the ability to exercise a gmeow:RightsAction over the governed asset (odrl:Permission). Its required duties ride gmeow:hasDuty.
 - gmeow:Person (⊑ gmeow:Agent): An individual human being, living or deceased.
 - gmeow:PersonName (⊑ gmeow:Appellation): A structured, typed name borne by a person — birth name, married name, chosen name, alias, religious name — with ordered, typed name parts, an optional honorific, a script/language, and a purpose (gmeow:namePurpose). A person bears many co-equal PersonNames (across life stages and across languages/scripts); their validity period is carried with gmeow:validFrom/validUntil on the bearing statement or by a gmeow:NameUsage.
@@ -126,6 +131,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:PronounSet (⊑ gmeow:InformationObject): A set of third-person pronouns a person goes by, in the five English forms (subject, object, possessive determiner, possessive pronoun, reflexive). Sex/gender INDEPENDENT and contextual. A known set is one of the gmeow:PronounSet value individuals; any other set is expressed by filling the five form properties on a fresh PronounSet instance.
 - gmeow:RecurrenceRule (⊑ gmeow:InformationObject): A rule by which a gmeow:EventSeries repeats — weekly, every-first-Monday, annually. Carries an RFC 5545 RRULE string via gmeow:recurrenceRuleText. (= ISO-TimeML TIMEX3 type=SET with freq/quant, iCalendar RRULE, schema:Schedule, TEO periodic time interval.)
 - gmeow:ReferenceFrame (⊑ gmeow:Entity, gufo:Object): A reference system (such as a coordinate system, datum, grid, or platform space) relative to which locations, coordinates, or measurements are expressed.
+- gmeow:ReferencePosition (⊑ gmeow:Entity, gufo:Object): The spatial locus, observatory, timezone, or planetary body relative to which a time is expressed — e.g. an observatory longitude for local sidereal time, an IANA timezone for civil time, or a planet for planetary calendars.
 - gmeow:RelayHop (⊑ gufo:Event): One hop in a message's delivery path, recorded by a Received header: a relaying server, the host it received from, a server timestamp, and the protocol used.
 - gmeow:Repository (⊑ gmeow:InformationObject): A version-control repository holding the source code of a software project.
 - gmeow:RightsAction (⊑ gufo:QualityValue): The kind of action a rights rule regulates — a VALUE, never a rule subclass. The set is open (ODRL's action vocabulary + CC REL); an action not among the seed individuals is a FRESH gmeow:RightsAction individual carrying rdfs:label. Pointed at by gmeow:ruleAction.
@@ -154,11 +160,14 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:StorageMedium (⊑ gufo:QualityValue): The kind of medium a storage location uses (cloud service, local filesystem, object store, content-addressed store, physical disk, removable media). A value, not a StorageLocation subclass: the kinds share the same structure (path, service, holder, physical place).
 - gmeow:Summary (⊑ gmeow:InformationObject): A condensed account derived from a source information object (often machine-generated), linked to its source by gmeow:wasDerivedFrom.
 - gmeow:TelephoneNumber (⊑ gmeow:ContactPoint): A contact point reachable by telephone.
+- gmeow:TemporalFrame (⊑ gmeow:ReferenceFrame, gufo:Object): A reference system for expressing time — the temporal counterpart of gmeow:ReferenceFrame. Decomposed into a TimeScale, an optional CalendarSystem, and an optional ReferencePosition. Every crisp instant or interval is asserted relative to a TemporalFrame (Principle 11).
+- gmeow:TemporalMeasurement (⊑ gmeow:Entity, gufo:Object): A measured assignment of a date or age to an entity or sample, carrying the method, uncertainty, and determinacy (Principle 9 — the measurement is a standpoint-indexed claim, not ground truth).
 - gmeow:TemporalPrecision (⊑ gufo:QualityValue): The granularity to which an event's time is known — day, month, year, decade, or circa. A value carried by gmeow:temporalPrecision; pairs with gmeow:earliestStart / gmeow:latestEnd to express a fuzzy date without abandoning DL-clean xsd:dateTime base triples.
 - gmeow:TextDirection (⊑ gufo:QualityValue): The writing direction of a writing system (ltr, rtl, vertical, boustrophedon, non-linear, contextual). A value carried by gmeow:textDirection.
 - gmeow:TextExtraction (⊑ gmeow:Document): The text content extracted from a source object (e.g. a PDF attachment), linked to its source by gmeow:wasDerivedFrom.
 - gmeow:Thread (⊑ gmeow:InformationObject): A conversation: a set of messages related by reply/reference chains.
 - gmeow:TimeInterval (⊑ gufo:AbstractIndividual): A bounded stretch of time, optionally open-ended, delimited by a start and/or end instant.
+- gmeow:TimeScale (⊑ gmeow:Entity, gufo:Object): The atomic progression of time — TAI, TT, UTC, GPS, UT1, TDB, etc. A time scale is independent of any calendar or geographic reference position.
 - gmeow:TimeScopedRelation (⊑ gufo:Situation): A reified relationship that holds only over a particular time interval — the base for residence, tenure, and membership-over-time situations.
 - gmeow:Trademark (⊑ gufo:Relator): The reified trademark right over a mark — binding the mark, its holder, the registration number and the ™/®/status value. Aligned (by reference) to schema:Brand, the WIPO trademark vocabulary and Wikidata.
 - gmeow:TrademarkStatus (⊑ gufo:QualityValue): The registration status of a trademark — a VALUE: unregistered (™), registered (®), pending, expired, or cancelled. Open vocabulary.
@@ -240,6 +249,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:duringInterval [gmeow:TimeScopedRelation → gmeow:TimeInterval]: Relates a time-scoped relation to the interval over which it holds.
 - gmeow:earliestStart [gmeow:Event → xsd:dateTime]: The earliest instant at which an event could have started — the lower bound of a fuzzy / approximate date (xsd:dateTime). Pairs with gmeow:latestEnd and a gmeow:temporalPrecision value to model uncertainty without abandoning DL-clean base triples.
 - gmeow:editionOf [gmeow:CreativeWork → gmeow:CreativeWork] (functional): Relates a concrete edition, issue, or manifestation of a creative work to the stable work it editions. Functional per edition, non-merge semantics: editions remain first-class works with their own identifiers, dates, rights, and provenance.
+- gmeow:edtfValue [? → rdfs:Literal] (functional): An ISO 8601-2 (EDTF) expression of an instant or interval, stored as a plain literal. EDTF parsing and normalization are solver-layer concerns (Principle 12).
 - gmeow:elevation [gmeow:GeoCoordinates → xsd:decimal]: Elevation above sea level in metres.
 - gmeow:email [gmeow:Agent → rdfs:Literal]: An email address at which an agent can be reached.
 - gmeow:endedAtTime [gmeow:TimeInterval → xsd:dateTime] (functional): The instant at which a time interval ends; absent if the interval is still open.
@@ -247,6 +257,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:eventAspect [gmeow:Event → gmeow:GrammaticalAspect]: The grammatical aspect of a textual mention of the event (ISO-TimeML EVENT @aspect). Annotation-layer only; orthogonal to the event's actual temporal placement.
 - gmeow:eventInterval [gmeow:Event → gmeow:TimeInterval]: The crisp, known time interval over which an event occurred (reuses the temporal module's gmeow:TimeInterval). For a point-like occurrence use gmeow:eventTime; for an approximate date use gmeow:earliestStart / gmeow:latestEnd + gmeow:temporalPrecision.
 - gmeow:eventLocation [gmeow:Event → gmeow:Location]: A location at which an event occurred — a geographic gmeow:Place or a gmeow:VirtualLocation (range is the gmeow:Location superset). Non-functional: an event may span several locations, and competing standpoint-indexed locations coexist.
+- gmeow:eventTemporalFrame [gmeow:Event → gmeow:TemporalFrame] (functional): The temporal frame in which the event's date/interval is expressed — explicit for non-default frames (Principle 11).
 - gmeow:eventTense [gmeow:Event → gmeow:GrammaticalTense]: The grammatical tense of a textual mention of the event (ISO-TimeML EVENT @tense). Annotation-layer only; MUST NOT be inferred from, or used to infer, the event's gmeow:eventTime / eventInterval.
 - gmeow:eventTime [gmeow:Event → xsd:dateTime]: The instant at which a point-like event occurred (xsd:dateTime — DL-clean, never xsd:date). Replaces the former free-text gmeow:eventDate. Non-functional: competing standpoint-indexed dates coexist as confidence-weighted statements.
 - gmeow:eventType [gmeow:Event → gmeow:EventType]: The kind(s) of an event, drawn from the open gmeow:EventType value vocabulary. Non-functional: an occurrence may carry several types (a wedding that is also a religious rite), and competing standpoint-indexed type claims coexist rather than contradict.
@@ -256,9 +267,12 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:fingerprint [gmeow:CryptographicKey → rdfs:Literal]: A fingerprint (hash) identifying a key. Not functional: different sources may report differing or differently-formatted fingerprints for the same key.
 - gmeow:finishedBy [gmeow:Event → gmeow:Event]: Allen FINISHED-BY: inverse of gmeow:finishes. (= time:intervalFinishedBy; TimeML ENDED_BY; TEO finishedBy.)
 - gmeow:finishes [gmeow:Event → gmeow:Event]: Allen FINISHES: this event and the related event end together, and this one began later (it is a final sub-span). NOT transitive. Inverse of gmeow:finishedBy. (= time:intervalFinishes; TimeML ENDS; TEO finishes.)
+- gmeow:frameCalendarSystem [gmeow:TemporalFrame → gmeow:CalendarSystem] (functional): The calendar system of a temporal frame, when one is used. Optional: some frames (e.g. Julian Date) carry only a scale.
 - gmeow:frameKind [gmeow:ReferenceFrame → gmeow:FrameKind] (functional): Relates a reference frame to its structural frame kind.
 - gmeow:frameRealm [gmeow:ReferenceFrame → gmeow:FrameRealm] (functional): Relates a reference frame to the realm it describes.
+- gmeow:frameReferencePosition [gmeow:TemporalFrame → gmeow:ReferencePosition] (functional): The reference position of a temporal frame, when one is needed. Optional: TAI needs none; civil time needs a timezone.
 - gmeow:frameSolver [gmeow:ReferenceFrame → rdfs:Literal]: Identifies the external solver or transformation method to resolve coordinates in this frame.
+- gmeow:frameTimeScale [gmeow:TemporalFrame → gmeow:TimeScale] (functional): The time scale of a temporal frame (functional: a frame has exactly one scale).
 - gmeow:from [gmeow:EmailMessage → gmeow:EmailAddress]: The author address of a message (RFC 5322 From).
 - gmeow:fullName [gmeow:Appellation → rdfs:Literal]: The complete surface form of an appellation as a single string, in the natural order of its culture (language-/script-tag the literal, e.g. "山田太郎"@ja, "Yamada Tarō"@ja-Latn). Authoritative for display. Non-functional: spellings/transliterations from different sources coexist.
 - gmeow:genderValue [gmeow:GenderIdentity → gmeow:Gender] (functional): The gmeow:Gender value a gender-identity facet asserts (functional PER FACET — one value each; multiplicity is expressed by multiple facets). The value is a gmeow:Gender individual: a predefined one, or — when none fits — a fresh individual carrying rdfs:label (the custom-PronounSet idiom). The single path to the gender value; there is deliberately no flat datatype shortcut.
@@ -282,6 +296,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasDeterminacy [? → gmeow:Determinacy]: Relates a value, entity, or claim to its ontic determinacy model — the explicit facet recording whether the value is crisp, vague, fuzzy, probabilistic, or disputed. Domain-free (universal, like hasGranularity). NOT functional: in a multi-source merge sources may state different determinacy models, and those claims coexist rather than force the reasoner to collapse distinct models. Distinct from gmeow:confidence (epistemic certainty) and from gmeow:determinacyModel (the frame-level default for a ReferenceFrame).
 - gmeow:hasDuration [gmeow:Event → gmeow:Duration]: Relates an event to its duration (a gmeow:Duration). Distinct from gmeow:eventInterval (which anchors the event in time); a duration is a length only.
 - gmeow:hasDuty [gmeow:RightsStatement | gmeow:Permission → gmeow:Duty]: Relates a rights statement (or a permission) to a duty / obligation that must be discharged (an odrl:duty / odrl:obligation rule). The domain is the union of gmeow:RightsStatement and gmeow:Permission, so a permission may carry its own duties without being misclassified as a rights statement.
+- gmeow:hasEndInstant [gmeow:TimeInterval → gmeow:Instant] (functional): The end instant of a time interval; absent if the interval is open-ended.
 - gmeow:hasFather [gmeow:Person → gmeow:Person]: Relates a person to a male parent.
 - gmeow:hasGenderExpression [gmeow:Person → gmeow:GenderExpression]: Relates a person to a self-asserted gender-expression facet. Non-functional and contextual. MUST NOT be inferred from gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics.
 - gmeow:hasGenderIdentity [gmeow:Person → gmeow:GenderIdentity]: Relates a person to a self-asserted gender-identity facet they hold. Non-functional and contextual — a person bears many co-equal identities; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasPronounSet, gmeow:honorific, gmeow:hasGenderExpression or gmeow:sexAssignedAtBirth.
@@ -320,8 +335,12 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasSkill [gmeow:Agent → gmeow:Skill]: Relates an agent to a skill it possesses.
 - gmeow:hasSource [gmeow:Entity → gmeow:Source]: Relates an entity or reified claim to a source that provides evidence for it. The strength of that evidence is recorded with gmeow:confidence on the supported statement.
 - gmeow:hasSpouse [gmeow:Person → gmeow:Person]: Relates a person to a spouse; symmetric.
+- gmeow:hasStartInstant [gmeow:TimeInterval → gmeow:Instant] (functional): The start instant of a time interval.
 - gmeow:hasSubEvent [gmeow:Event → gmeow:Event]: Relates an event to a constituent sub-event; the transitive inverse of gmeow:subEventOf.
+- gmeow:hasTemporalFrame [gmeow:TimeInterval → gmeow:TemporalFrame]: Relates a time interval to the temporal frame in which its bounds are expressed.
+- gmeow:hasTemporalMeasurement [? → gmeow:TemporalMeasurement]: Relates an entity (event, artifact, place, sample) to a temporal measurement assigned to it.
 - gmeow:hasTrademark [gmeow:Entity → gmeow:Trademark]: Relates an entity (a mark, product or organization) to a trademark right over it.
+- gmeow:hasUnit [? → qudt:Unit] (functional): Relates a quantitative value or measurement to its QUDT unit (by reference, never imported). Domain-free: used by temporal measurements, spatial measurements, and any other quantified claim.
 - gmeow:hasUsed [gmeow:Agent → gmeow:Entity]: Records that an agent has used some entity (a tool, service, or work). The period is carried with gmeow:validFrom/validUntil on the statement.
 - gmeow:hasWebPage [gmeow:Entity → gmeow:WebPage]: Relates an entity to a web page representing it — a homepage, a profile page, a project site. The structured form of a 'website / URL' field: the page is a first-class gmeow:WebPage (documents module) whose IRI is its URL, so it can itself carry a title, language, and rights. Non-functional — an entity may have several pages.
 - gmeow:hasWorkedWith [gmeow:Agent → gmeow:Agent]: Records that two agents have worked together; symmetric. The period is carried with gmeow:validFrom/validUntil on the statement, or reified as a gmeow:ProfessionalRelationship.
@@ -336,8 +355,23 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:identifier [gmeow:CreativeWork → rdfs:Literal]: A formal identifier of a creative work, such as a DOI or patent number.
 - gmeow:importanceLevel: Relative import/source importance of a claim on a 0–10 scale; projection takes the maximum across imports.
 - gmeow:inReplyTo [gmeow:Message → gmeow:Message]: Relates a message to the message it directly replies to (RFC 5322 In-Reply-To).
+- gmeow:inTemporalFrame [gmeow:Instant → gmeow:TemporalFrame]: Relates an instant to the temporal frame in which its value is expressed.
 - gmeow:ingestedAt [gmeow:ImportActivity → xsd:dateTime] (functional): When an import activity recorded its claims into the system — the transaction time. Distinct from gmeow:assertedAt (observation) and gmeow:validFrom/validUntil (validity).
+- gmeow:instantValue [gmeow:Instant → xsd:dateTime] (functional): The crisp instant as an xsd:dateTime literal in the associated temporal frame.
 - gmeow:intersexVariation [gmeow:Person → rdfs:Literal]: An optional free-text note recording an intersex variation, for inclusivity where gmeow:sexAssignedAtBirth gmeow:saabIntersex is insufficient. Deliberately a plain note, NOT a clinical DSD taxonomy and NOT a value vocabulary — GMEOW does not model medical sex characteristics in depth.
+- gmeow:intervalAfter [gmeow:TimeInterval → gmeow:TimeInterval]: Allen AFTER: this interval begins strictly after the related interval ends. Transitive inverse of gmeow:intervalBefore. (= time:intervalAfter)
+- gmeow:intervalBefore [gmeow:TimeInterval → gmeow:TimeInterval]: Allen BEFORE: this interval ends strictly before the related interval begins. Transitive. Inverse of gmeow:intervalAfter. (= time:intervalBefore)
+- gmeow:intervalCoincidesWith [gmeow:TimeInterval → gmeow:TimeInterval]: Allen EQUALS: this interval and the related interval share the same temporal extent. Symmetric and transitive. TEMPORAL simultaneity only, never identity of the intervals themselves. (= time:intervalEquals)
+- gmeow:intervalContains [gmeow:TimeInterval → gmeow:TimeInterval]: Allen CONTAINS: this interval's extent strictly contains the related interval's extent. Transitive inverse of gmeow:intervalDuring. (= time:intervalContains)
+- gmeow:intervalDuring [gmeow:TimeInterval → gmeow:TimeInterval]: Allen DURING: this interval's extent falls strictly within the related interval's extent. Transitive. Inverse of gmeow:intervalContains. (= time:intervalDuring)
+- gmeow:intervalFinishedBy [gmeow:TimeInterval → gmeow:TimeInterval]: Allen FINISHED-BY: inverse of gmeow:intervalFinishes. (= time:intervalFinishedBy)
+- gmeow:intervalFinishes [gmeow:TimeInterval → gmeow:TimeInterval]: Allen FINISHES: this interval and the related interval end together, and this one began later. NOT transitive. Inverse of gmeow:intervalFinishedBy. (= time:intervalFinishes)
+- gmeow:intervalMeets [gmeow:TimeInterval → gmeow:TimeInterval]: Allen MEETS: this interval ends exactly when the related interval begins. NOT transitive. Inverse of gmeow:intervalMetBy. (= time:intervalMeets)
+- gmeow:intervalMetBy [gmeow:TimeInterval → gmeow:TimeInterval]: Allen MET-BY: inverse of gmeow:intervalMeets. (= time:intervalMetBy)
+- gmeow:intervalOverlappedBy [gmeow:TimeInterval → gmeow:TimeInterval]: Allen OVERLAPPED-BY: inverse of gmeow:intervalOverlaps. (= time:intervalOverlappedBy)
+- gmeow:intervalOverlaps [gmeow:TimeInterval → gmeow:TimeInterval]: Allen OVERLAPS: this interval begins before and ends during the related interval. NOT transitive. Inverse of gmeow:intervalOverlappedBy. (= time:intervalOverlaps)
+- gmeow:intervalStartedBy [gmeow:TimeInterval → gmeow:TimeInterval]: Allen STARTED-BY: inverse of gmeow:intervalStarts. (= time:intervalStartedBy)
+- gmeow:intervalStarts [gmeow:TimeInterval → gmeow:TimeInterval]: Allen STARTS: this interval and the related interval begin together, and this one ends first. NOT transitive. Inverse of gmeow:intervalStartedBy. (= time:intervalStarts)
 - gmeow:introducerAmount [gmeow:TrustAssertion → xsd:integer] (functional): The trust-signature amount/weight the trustor assigns to the trustee as an introducer.
 - gmeow:introducerDepth [gmeow:TrustAssertion → xsd:integer] (functional): The trust-signature depth: how many levels of indirect introducers the trustor is willing to follow (a trust-signature notion, not computed here).
 - gmeow:isAccessibleForFree [gmeow:Entity → xsd:boolean]: Whether the asset is accessible without payment (schema:isAccessibleForFree).
@@ -371,6 +405,11 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:mailboxRole [gmeow:Mailbox → rdfs:Literal] (functional): The special-use role of a mailbox (JMAP role): inbox, archive, drafts, sent, trash, junk, templates.
 - gmeow:mappedFrom: The source property a claim was derived from during ingestion, recorded for mapping-step audit.
 - gmeow:markText [gmeow:Mark → rdfs:Literal] (functional): The textual form of a mark (the brand name / word mark), e.g. "Blackcat Informatics".
+- gmeow:measuredAge [gmeow:TemporalMeasurement → xsd:decimal] (functional): The numeric age yielded by a temporal measurement, in the unit given by gmeow:hasUnit.
+- gmeow:measuredDate [gmeow:TemporalMeasurement → gmeow:Instant] (functional): The absolute date instant yielded by a temporal measurement.
+- gmeow:measurementDeterminacy [gmeow:TemporalMeasurement → gmeow:Determinacy]: The ontic determinacy model of a temporal measurement — crisp, vague, fuzzy, probabilistic, or disputed (reuses the universal gmeow:Determinacy vocabulary, #71).
+- gmeow:measurementMethod [gmeow:TemporalMeasurement → gmeow:DatingMethod] (functional): The dating method used for a temporal measurement.
+- gmeow:measurementUncertainty [gmeow:TemporalMeasurement → xsd:decimal] (functional): The uncertainty (e.g. ±1 sigma) of a temporal measurement, in the same unit as the measured age.
 - gmeow:mediaType [gmeow:BodyPart → rdfs:Literal] (functional): The MIME media type of a body part (e.g. text/plain, application/pdf).
 - gmeow:meets [gmeow:Event → gmeow:Event]: Allen MEETS: this event ends exactly when the related event begins (no gap, no overlap). NOT transitive. Inverse of gmeow:metBy. (= time:intervalMeets; TimeML IBEFORE / immediately-before; TEO meets.)
 - gmeow:memberOf [gmeow:Agent → gmeow:Organization]: Relates an agent to an organization it belongs to.
@@ -398,6 +437,11 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:participationInterval [gmeow:Participation → gmeow:TimeInterval]: The time interval over which the participation held. (A relator carries its period this way — matching usageInterval / relationshipInterval — rather than via duringInterval.)
 - gmeow:participationParticipant [gmeow:Participation → gmeow:Entity]: The entity that took part in the event in this participation. Range is gmeow:Entity (not only Agent) to admit non-agent participants — a document signed, a place visited. Non-functional: a joint role may be borne by several participants.
 - gmeow:participationRole [gmeow:Participation → gmeow:ParticipantRole]: The role(s) the participant played, drawn from the open gmeow:ParticipantRole value vocabulary. NON-FUNCTIONAL — mirroring gmeow:eventType: a participation may bear several roles, and competing standpoint-indexed role claims coexist (accordingTo) rather than contradict (Principle 9). Generalizes the former hasPrincipal / hasWitness / hasOfficiant subproperties.
+- gmeow:periodContainsPeriod [gmeow:NamedPeriod → gmeow:NamedPeriod]: The transitive inverse of gmeow:periodPartOf.
+- gmeow:periodEnd [gmeow:NamedPeriod → gmeow:Instant] (functional): The instant at which a named period ends.
+- gmeow:periodPartOf [gmeow:NamedPeriod → gmeow:NamedPeriod]: Relates a named period to a larger named period that contains it (e.g. Holocene ⊂ Quaternary ⊂ Cenozoic). Transitive.
+- gmeow:periodStart [gmeow:NamedPeriod → gmeow:Instant] (functional): The instant at which a named period begins.
+- gmeow:periodType [gmeow:NamedPeriod → gmeow:PeriodType]: The kind(s) of a named period. Non-functional: competing classifications coexist.
 - gmeow:physicalPlace [gmeow:StorageLocation → gmeow:Place]: The geographic place where a storage location's device physically sits (e.g. the room holding a disk). Absent for purely cloud storage.
 - gmeow:placeType [gmeow:Place → gmeow:PlaceType]: The kind(s) of a place (one or more gmeow:PlaceType individuals). Non-functional: multi-source classifications may differ (a place that is both 'city' and 'administrative area') and must coexist as evidence.
 - gmeow:postOfficeBox [gmeow:PostalAddress → rdfs:Literal]: The post-office-box of a postal address.
@@ -603,6 +647,15 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisYear (a gmeow:Axis): year
 - gmeow:axisYellow (a gmeow:Axis): yellow channel
 - gmeow:axisZ (a gmeow:Axis): Z axis
+- gmeow:calendarChinese (a gmeow:CalendarSystem): The lunisolar Chinese calendar.
+- gmeow:calendarCoptic (a gmeow:CalendarSystem): The Coptic calendar.
+- gmeow:calendarEthiopian (a gmeow:CalendarSystem): The Ethiopian calendar, similar to the Coptic.
+- gmeow:calendarGregorian (a gmeow:CalendarSystem): The Gregorian calendar, introduced 1582.
+- gmeow:calendarHebrew (a gmeow:CalendarSystem): The lunisolar Hebrew calendar.
+- gmeow:calendarISOWeek (a gmeow:CalendarSystem): The ISO 8601 week-numbering calendar.
+- gmeow:calendarIslamic (a gmeow:CalendarSystem): The lunar Islamic calendar.
+- gmeow:calendarJulian (a gmeow:CalendarSystem): The Julian calendar, predecessor to the Gregorian.
+- gmeow:calendarPersian (a gmeow:CalendarSystem): The solar Persian calendar.
 - gmeow:cefrA1 (a gmeow:ProficiencyLevel): CEFR A1
 - gmeow:cefrA2 (a gmeow:ProficiencyLevel): CEFR A2
 - gmeow:cefrB1 (a gmeow:ProficiencyLevel): CEFR B1
@@ -626,6 +679,16 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:copyrightStatusNotEvaluated (a gmeow:CopyrightStatus): The copyright status has not been evaluated (RightsStatements.org CNE).
 - gmeow:copyrightStatusPublicDomain (a gmeow:CopyrightStatus): The work is in the public domain (the CC public-domain mark; RightsStatements.org NoC-related).
 - gmeow:copyrightStatusUndetermined (a gmeow:CopyrightStatus): Copyright undetermined (RightsStatements.org UND).
+- gmeow:datingMethodAminoAcidRacemization (a gmeow:DatingMethod): amino acid racemization
+- gmeow:datingMethodDendrochronology (a gmeow:DatingMethod): dendrochronology
+- gmeow:datingMethodElectronSpinResonance (a gmeow:DatingMethod): electron spin resonance (ESR)
+- gmeow:datingMethodOpticallyStimulatedLuminescence (a gmeow:DatingMethod): optically stimulated luminescence (OSL)
+- gmeow:datingMethodPaleomagnetism (a gmeow:DatingMethod): paleomagnetism
+- gmeow:datingMethodPotassiumArgon (a gmeow:DatingMethod): potassium-argon (K-Ar)
+- gmeow:datingMethodRadiocarbon (a gmeow:DatingMethod): radiocarbon dating (14C)
+- gmeow:datingMethodStratigraphicCorrelation (a gmeow:DatingMethod): stratigraphic correlation
+- gmeow:datingMethodThermoluminescence (a gmeow:DatingMethod): thermoluminescence
+- gmeow:datingMethodUraniumLead (a gmeow:DatingMethod): uranium-lead (U-Pb)
 - gmeow:determinacyCrisp (a gmeow:Determinacy): crisp
 - gmeow:determinacyDisputed (a gmeow:Determinacy): disputed
 - gmeow:determinacyFuzzy (a gmeow:Determinacy): fuzzy
@@ -791,6 +854,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:logicAndSequence (a gmeow:ConstraintLogic): The ODRL andSequence logical-constraint operator (odrl:andSequence).
 - gmeow:logicOr (a gmeow:ConstraintLogic): The ODRL or logical-constraint operator (odrl:or).
 - gmeow:logicXone (a gmeow:ConstraintLogic): The ODRL xone logical-constraint operator (odrl:xone).
+- gmeow:measurementCenozoicStart (a gmeow:TemporalMeasurement): Cenozoic start age
+- gmeow:measurementHoloceneStart (a gmeow:TemporalMeasurement): Holocene start age
+- gmeow:measurementPhanerozoicStart (a gmeow:TemporalMeasurement): Phanerozoic start age
+- gmeow:measurementQuaternaryStart (a gmeow:TemporalMeasurement): Quaternary start age
 - gmeow:modalityMachine (a gmeow:LanguageModality): machine / programmatic
 - gmeow:modalityMultimodal (a gmeow:LanguageModality): multimodal
 - gmeow:modalitySigned (a gmeow:LanguageModality): signed
@@ -881,6 +948,18 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:originProgramming (a gmeow:LanguageOrigin): programming
 - gmeow:originQuery (a gmeow:LanguageOrigin): query
 - gmeow:originReconstructed (a gmeow:LanguageOrigin): reconstructed (proto-language)
+- gmeow:periodCenozoic (a gmeow:NamedPeriod): Cenozoic Era
+- gmeow:periodHolocene (a gmeow:NamedPeriod): Holocene Epoch
+- gmeow:periodPhanerozoic (a gmeow:NamedPeriod): Phanerozoic Eon
+- gmeow:periodQuaternary (a gmeow:NamedPeriod): Quaternary Period
+- gmeow:periodTypeFiscalYear (a gmeow:PeriodType): fiscal year
+- gmeow:periodTypeGeologicAge (a gmeow:PeriodType): geologic age
+- gmeow:periodTypeGeologicEon (a gmeow:PeriodType): geologic eon
+- gmeow:periodTypeGeologicEpoch (a gmeow:PeriodType): geologic epoch
+- gmeow:periodTypeGeologicEra (a gmeow:PeriodType): geologic era
+- gmeow:periodTypeGeologicPeriod (a gmeow:PeriodType): geologic period
+- gmeow:periodTypeHistoricalDynasty (a gmeow:PeriodType): historical dynasty
+- gmeow:periodTypeHistoricalEra (a gmeow:PeriodType): historical era
 - gmeow:placeTypeAdministrativeArea (a gmeow:PlaceType): administrative area
 - gmeow:placeTypeBuilding (a gmeow:PlaceType): building
 - gmeow:placeTypeCity (a gmeow:PlaceType): city / populated place
@@ -1020,10 +1099,20 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:storageMediumObjectStore (a gmeow:StorageMedium): object store
 - gmeow:storageMediumPhysicalDisk (a gmeow:StorageMedium): physical disk
 - gmeow:storageMediumRemovableMedia (a gmeow:StorageMedium): removable media
+- gmeow:temporalFrameTAI (a gmeow:TemporalFrame): TAI (atomic, no calendar)
+- gmeow:temporalFrameTDBGregorian (a gmeow:TemporalFrame): TDB Gregorian (barycentric)
+- gmeow:temporalFrameTTGregorian (a gmeow:TemporalFrame): TT Gregorian (dynamical)
+- gmeow:temporalFrameUTCGregorian (a gmeow:TemporalFrame): UTC Gregorian (civil time)
 - gmeow:tenseFuture (a gmeow:GrammaticalTense): ISO-TimeML tense FUTURE.
 - gmeow:tenseNone (a gmeow:GrammaticalTense): ISO-TimeML tense NONE (untensed / nominal mention).
 - gmeow:tensePast (a gmeow:GrammaticalTense): ISO-TimeML tense PAST.
 - gmeow:tensePresent (a gmeow:GrammaticalTense): ISO-TimeML tense PRESENT.
+- gmeow:timeScaleGPS (a gmeow:TimeScale): Atomic time scale used by GPS, offset from TAI.
+- gmeow:timeScaleTAI (a gmeow:TimeScale): Atomic time scale based on SI seconds.
+- gmeow:timeScaleTDB (a gmeow:TimeScale): Dynamical time scale for solar-system barycentric calculations.
+- gmeow:timeScaleTT (a gmeow:TimeScale): Dynamical time scale for Earth-surface geocentric coordinate time.
+- gmeow:timeScaleUT1 (a gmeow:TimeScale): Earth-rotation-based time scale; the basis for civil-time solar alignment.
+- gmeow:timeScaleUTC (a gmeow:TimeScale): Civil atomic time scale with leap seconds.
 - gmeow:trademarkStatusCancelled (a gmeow:TrademarkStatus): A registration that has been cancelled / invalidated.
 - gmeow:trademarkStatusExpired (a gmeow:TrademarkStatus): A registration that has lapsed / expired (retained, not deleted — Principle 10; gmeow:validUntil records when).
 - gmeow:trademarkStatusPending (a gmeow:TrademarkStatus): A trademark application pending registration.

@@ -118,3 +118,32 @@ ex:claim-territory-1850-per-2025-historiography a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt         ; gmeow:annValue "2025-01-01T00:00:00Z"^^xsd:dateTime ] ,
         [ gmeow:annProperty gmeow:validFrom          ; gmeow:annValue "1850-01-01T00:00:00Z"^^xsd:dateTime ] ,
         [ gmeow:annProperty gmeow:validUntil         ; gmeow:annValue "1860-12-31T00:00:00Z"^^xsd:dateTime ] .
+
+# =============================================================================
+# Temporal frame coexistence (#67) — a contested date expressed in two co-equal
+# calendars. The Gregorian date 1582-10-15 and the Julian date 1582-10-05 refer
+# to the same physical instant; both claims coexist, neither is privileged
+# (Principle 9). The calendar is a frame choice, not a truth value.
+# =============================================================================
+
+ex:claim-date-gregorian-1582 a gmeow:StatementMetadata ;
+    rdfs:label "Date 1582-10-15 (Gregorian) — per historiographic convention"@en ;
+    gmeow:reifier    ex:claim-date-gregorian-1582 ;
+    gmeow:qSubject   ex:event-reformation-date ;
+    gmeow:qPredicate gmeow:eventTime ;
+    gmeow:qObjectLiteral "1582-10-15T00:00:00Z"^^xsd:dateTime ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:accordingTo ; gmeow:annValue ex:standpoint-gregorian-historiography ] ,
+        [ gmeow:annProperty gmeow:confidence  ; gmeow:annValue 0.95 ] ,
+        [ gmeow:annProperty gmeow:assertedAt  ; gmeow:annValue "2020-01-01T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-date-julian-1582 a gmeow:StatementMetadata ;
+    rdfs:label "Date 1582-10-05 (Julian) — per Eastern Orthodox historiography"@en ;
+    gmeow:reifier    ex:claim-date-julian-1582 ;
+    gmeow:qSubject   ex:event-reformation-date ;
+    gmeow:qPredicate gmeow:eventTime ;
+    gmeow:qObjectLiteral "1582-10-05T00:00:00Z"^^xsd:dateTime ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:accordingTo ; gmeow:annValue ex:standpoint-julian-historiography ] ,
+        [ gmeow:annProperty gmeow:confidence  ; gmeow:annValue 0.95 ] ,
+        [ gmeow:annProperty gmeow:assertedAt  ; gmeow:annValue "2020-01-01T00:00:00Z"^^xsd:dateTime ] .

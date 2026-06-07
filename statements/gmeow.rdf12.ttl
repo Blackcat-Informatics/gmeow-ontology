@@ -32,6 +32,12 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/examples/rights/photo>
         gmeow:hasLicense  <https://blackcatinformatics.ca/gmeow/examples/rights/cc-by-4> .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-date-gregorian-1582>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/event-reformation-date> gmeow:eventTime "1582-10-15T00:00:00+00:00"^^xsd:dateTime )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-gregorian-historiography>;
+        gmeow:assertedAt   "2020-01-01T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.95 .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-territory-1850-per-2025-historiography>
         rdf:reifies               <<( <https://blackcatinformatics.ca/gmeow/examples/territory-x> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/polity-y> )>>;
         gmeow:accordingTo         <https://blackcatinformatics.ca/gmeow/examples/standpoint-2025-historiography>;
@@ -60,6 +66,15 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 
 <https://blackcatinformatics.ca/gmeow/examples/rights/photo-copyright>
         gmeow:copyrightHolder  <https://blackcatinformatics.ca/gmeow/examples/rights/jane> .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-date-julian-1582>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/event-reformation-date> gmeow:eventTime "1582-10-05T00:00:00+00:00"^^xsd:dateTime )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-julian-historiography>;
+        gmeow:assertedAt   "2020-01-01T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.95 .
+
+<https://blackcatinformatics.ca/gmeow/examples/event-reformation-date>
+        gmeow:eventTime  "1582-10-15T00:00:00+00:00"^^xsd:dateTime , "1582-10-05T00:00:00+00:00"^^xsd:dateTime .
 
 <https://blackcatinformatics.ca/gmeow/examples/rights/claim-mark-holder-acme>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/rights/contested-trademark> gmeow:trademarkHolder <https://blackcatinformatics.ca/gmeow/examples/rights/acme> )>>;

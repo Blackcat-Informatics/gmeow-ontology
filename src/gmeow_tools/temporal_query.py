@@ -68,6 +68,21 @@ TEMPORAL_QUERIES: dict[str, TemporalQuery] = {
         ("validAt", "asOf"),
         "claims valid at ?validAt and asserted by ?asOf (four clocks)",
     ),
+    "interval-allen-closure": TemporalQuery(
+        "interval-allen-closure",
+        (),
+        "transitively-ordered TimeInterval pairs via intervalBefore+",
+    ),
+    "period-containment": TemporalQuery(
+        "period-containment",
+        (),
+        "named periods and their containing ancestors via periodPartOf+",
+    ),
+    "frame-matching": TemporalQuery(
+        "frame-matching",
+        ("frame",),
+        "instants/intervals expressed in a given temporal frame",
+    ),
 }
 
 

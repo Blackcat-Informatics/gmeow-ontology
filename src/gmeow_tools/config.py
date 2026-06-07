@@ -200,6 +200,14 @@ PREFIXES: dict[str, str] = {
     "org": "http://www.w3.org/ns/org#",
     "time": "http://www.w3.org/2006/time#",
     "teo": "https://sbmi.uth.edu/bsdi/TEO_1.0.0.owl#",
+    # Temporal / geologic / measurement alignment (#67)
+    "qudt": "http://qudt.org/schema/qudt/",
+    "unit": "http://qudt.org/vocab/unit/",
+    "edtf": "http://id.loc.gov/datatypes/edtf/",
+    "periodo": "http://n2t.net/ark:/99152/",
+    "gts": "http://resource.geosciml.org/ontology/timescale/gts#",
+    "ivoa": "http://www.ivoa.net/rdf/",
+    "crmgeo": "http://www.ics.forth.gr/isl/CRMgeo/",
     "lode": "http://linkedevents.org/ontology/",
     "sem": "http://semanticweb.cs.vu.nl/2009/11/sem/",
     "ical": "http://www.w3.org/2002/12/cal/icaltzd#",
@@ -254,8 +262,6 @@ PREFIXES: dict[str, str] = {
     "glottolog": "https://glottolog.org/resource/languoid/id/",
     "ontolex": "http://www.w3.org/ns/lemon/ontolex#",
     "lime": "http://www.w3.org/ns/lemon/lime#",
-    # Measurement / units (QUDT)
-    "qudt": "http://qudt.org/schema/qudt/",
     # Currency (FIBO CurrencyAmount)
     "fibo-fnd-acc-cur": "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/",
 }
