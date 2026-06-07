@@ -82,6 +82,7 @@ _PROFILES = (
     "dcterms",
     "spdx",
     "ontolex",
+    "web-annotation",
 )
 _FNO_FILE = "functions.fno.ttl"
 #: Hand-authored FnO file the compiler reads (for the lint) but never writes.

@@ -1,0 +1,77 @@
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix oa:     <http://www.w3.org/ns/oa#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# Projection mappings: GMEOW tags → schema.org keywords and W3C Web Annotation.
+# Compiled to projections/*.edoal.ttl + queries/projections/*.rq by
+# `gmeow compile-mappings`.
+
+# --------------------------------------------------------------------------- #
+# schema.org — flat hasTag → schema:keywords (extract label, suppress hidden)
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaHasTag a gmeow:ProjectionMapping ;
+    rdfs:label "hasTag → schema:keywords (label text, suppress displayable false)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "kw" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:hasTag ; gmeow:objectVar "tag" ]
+            [ gmeow:subjectVar "tag" ; gmeow:predicate rdfs:label ; gmeow:objectVar "kw" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "tag" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:hasTag ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:keywords ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnTagToKeyword ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "tag IRI lost; only label text emitted; displayable false tags suppressed" ] .
+
+# --------------------------------------------------------------------------- #
+# schema.org — Tagging relator → schema:keywords (lossy flatten)
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaTaggingKeyword a gmeow:ProjectionMapping ;
+    rdfs:label "Tagging relator → schema:keywords (lossy flatten)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "kw" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "tagging" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Tagging ]
+            [ gmeow:subjectVar "tagging" ; gmeow:predicate gmeow:taggingTagged ; gmeow:objectVar "ent" ]
+            [ gmeow:subjectVar "tagging" ; gmeow:predicate gmeow:taggingTag ; gmeow:objectVar "tag" ]
+            [ gmeow:subjectVar "tag" ; gmeow:predicate rdfs:label ; gmeow:objectVar "kw" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "tagging" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "tag" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:Tagging ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:keywords ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnTagToKeyword ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "tagger, scheme, interval, confidence, provenance dropped; only tag label survives" ] .
+
+# --------------------------------------------------------------------------- #
+# W3C Web Annotation — Tagging relator → oa:Annotation (reshape)
+# --------------------------------------------------------------------------- #
+
+gmeow:mapWebAnnotationTagging a gmeow:ProjectionMapping ;
+    rdfs:label "Tagging relator → oa:Annotation (body/target/motivatedBy)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "tagging" ; gmeow:value "tagging" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "tagging" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Tagging ]
+            [ gmeow:subjectVar "tagging" ; gmeow:predicate gmeow:taggingTagged ; gmeow:objectVar "tagged" ]
+            [ gmeow:subjectVar "tagging" ; gmeow:predicate gmeow:taggingTag ; gmeow:objectVar "tag" ]
+            [ gmeow:subjectVar "tagging" ; gmeow:predicate gmeow:taggingTagger ; gmeow:objectVar "tagger" ; gmeow:optional true ]
+            [ gmeow:subjectVar "tagging" ; gmeow:predicate gmeow:wasAttributedTo ; gmeow:objectVar "attributed" ; gmeow:optional true ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "tagging" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "tag" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:Tagging ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "web-annotation" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget oa:Annotation ; gmeow:edoalTargetKind "class" ;
+        gmeow:transform gmeow:fnTaggingToAnnotation ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "confidence, temporal scope (taggingInterval), scheme dropped; tagger and attribution omitted (not projected)" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "tagging" ; gmeow:tPred rdf:type ; gmeow:tObjValue oa:Annotation ]
+            [ gmeow:tSubj "tagging" ; gmeow:tPred oa:hasTarget ; gmeow:tObj "tagged" ]
+            [ gmeow:tSubj "tagging" ; gmeow:tPred oa:hasBody ; gmeow:tObj "tag" ]
+            [ gmeow:tSubj "tagging" ; gmeow:tPred oa:motivatedBy ; gmeow:tObjValue oa:tagging ] ) ] .

@@ -59,17 +59,24 @@ def test_dsl_parses() -> None:
     # Issue #68 standpoint enhancement: +2 (StandpointClaim→sosa:Observation,
     # Agent→sosa:Sensor).
     # Issue #95 distance/metric: +1 (proximity→schema:distance).
-    assert len(dsl.equivalences) == 807
-    # 22 projection transforms declared (incl. fnPronounSetToText #46,
-    # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72).
-    assert len(dsl.functions) == 22
+    # Issue #27 tagging building block: +16 (Tag↔skos:Concept/schema:DefinedTerm,
+    # TagScheme↔skos:ConceptScheme/schema:DefinedTermSet, hasTag↔skos:hasTopConcept/
+    # schema:keywords, isAbout↔schema:about/oa:hasTarget, Tagging↔oa:Annotation,
+    # broaderTag↔skos:broader, narrowerTag↔skos:narrower, relatedTag↔skos:related,
+    # tagInScheme↔skos:inScheme, 2 MOAT alignments, 2 tag-relation seeds).
+    assert len(dsl.equivalences) == 823
+    # 24 projection transforms declared (incl. fnPronounSetToText #46,
+    # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
+    # fnTagToKeyword + fnTaggingToAnnotation #27).
+    assert len(dsl.functions) == 24
     # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint,
     # gmeow-events, gmeow-rights, gmeow-coreference, gmeow-determinacy, gmeow-privacy).
     # Issue #70 adds gmeow-qudt, gmeow-fibo, gmeow-temporal.
     # Issue #67 expands gmeow-temporal (merged, not double-counted).
     # Issue #66 adds gmeow-observations.
+    # Issue #27 adds gmeow-tags.
     # gmeow-colourspace is intentionally omitted (no TermEquivalence entries).
-    assert len(dsl.mapping_sets) == 23
+    assert len(dsl.mapping_sets) == 24
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}
@@ -343,8 +350,9 @@ def test_fno_emits_fnom_implementation_mapping() -> None:
     """Each function declares its SPARQL implementation via fno:/fnom: vocabulary."""
     graph = emit_fno(load_dsl(), load_merged_graph(include_imports=False))
     assert (
-        len(set(graph.subjects(RDF.type, FNO.Implementation))) == 5
-    )  # one per profile WITH transforms (owl-time is pure templateAtoms — none)
+        len(set(graph.subjects(RDF.type, FNO.Implementation))) == 6
+    )  # one per profile WITH transforms (owl-time is pure templateAtoms — none;
+    # web-annotation added #27)
     bound = False
     for mapping in graph.subjects(RDF.type, FNO.Mapping):
         if graph.value(mapping, FNO.function) != GM.fnComposeBcp47:
