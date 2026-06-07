@@ -9,6 +9,14 @@
     rdfs:label "GMEOW → geosparql (EDOAL)"@en ;
     align:level "2EDOAL" ;
     align:map [ a align:Cell ;
+            rdfs:label "hasCentroid geometry → geo:hasCentroid with WKT"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasCentroid ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri geo:hasCentroid ] ;
+            align:relation "=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnRetagWkt ] ],
+        [ a align:Cell ;
             rdfs:label "coarsenTo → enclosing-region GeoJSON (privacy generalization)"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:coarsenTo ] ;

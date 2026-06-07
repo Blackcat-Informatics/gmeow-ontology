@@ -4,7 +4,7 @@
 # mapping_tool: gmeow compile-mappings
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Aggregation and statistics alignments — RDF Data Cube (QB) spatial dimensions and observations, GeoSPARQL topological relations (sfContains, hasCentroid). Bridges the #101 spatial-aggregation concern to external vocabularies by reference (Principle 5).
+# comment: Aggregation and statistics alignments — RDF Data Cube (QB) spatial observations and GeoSPARQL topological relations. Bridges the #101 spatial-aggregation concern to external vocabularies by reference (Principle 5).
 # curie_map:
 #   geo: http://www.opengis.net/ont/geosparql#
 #   gmeow: https://blackcatinformatics.ca/gmeow/
@@ -16,3 +16,4 @@ gmeow:AggregationFunction	skos:closeMatch	qb:MeasureProperty	semapv:ManualMappin
 gmeow:Dataset	skos:closeMatch	qb:DataSet	semapv:ManualMappingCuration	0.9	
 gmeow:SpatialAggregation	skos:closeMatch	qb:Observation	semapv:ManualMappingCuration	0.8	
 gmeow:containsPlace	skos:closeMatch	geo:sfContains	semapv:ManualMappingCuration	0.9	
+gmeow:hasCentroid	skos:closeMatch	geo:hasCentroid	semapv:ManualMappingCuration	0.9	

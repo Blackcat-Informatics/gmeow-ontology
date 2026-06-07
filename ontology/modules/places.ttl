@@ -870,6 +870,18 @@ gmeow:proximity
     skos:definition "Links an entity to a proximity measurement describing its distance or dissimilarity to another entity. The measurement carries the scalar value (via observationResult → ScalarQuantity), the reference frame (via hasReferenceFrame), and the target entity (via proximityTo). Flat form for the common case; promote to full reified Measurement when vantage, confidence, temporal scope, or standpoint matter."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+# --------------------------------------------------------------------------- #
+# Centroid — flat shortcut for the common case (#101)
+# --------------------------------------------------------------------------- #
+
+gmeow:hasCentroid
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Place ;
+    rdfs:range gmeow:Geometry ;
+    rdfs:label "has centroid"@en ;
+    skos:definition "The geometric centroid of a place — a flat shortcut for the common case. The full relator form is a SpatialAggregation with aggregationFunction aggCentroid, carrying provenance, frame, and solver reference."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 # Universal Topology Relations
 gmeow:containedInLocation
     a owl:ObjectProperty, owl:TransitiveProperty ;

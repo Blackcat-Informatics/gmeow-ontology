@@ -4,6 +4,7 @@
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/modules/aggregation>
     a owl:Ontology ;
@@ -97,6 +98,14 @@ gmeow:hasBin
     rdfs:range gmeow:SpatialBin ;
     rdfs:label "has bin"@en ;
     skos:definition "Links a spatial aggregation to one of its constituent spatial bins. Non-functional: a bin may participate in multiple aggregations."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:minimumPopulation
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:SpatialAggregation ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "minimum population"@en ;
+    skos:definition "The minimum population size (k) required for the aggregation result to be disclosed — the k-anonymity parameter. A result failing this check is suppressed at projection time (coarsen or withhold, Principle 10), never deleted."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #

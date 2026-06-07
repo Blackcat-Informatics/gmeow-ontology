@@ -1237,6 +1237,56 @@ gmeow:ProximityMeasurementShape
     ] .
 
 # --------------------------------------------------------------------------- #
+# Spatial Aggregation / Statistics (#101)
+# --------------------------------------------------------------------------- #
+
+gmeow:SpatialAggregationShape
+    a sh:NodeShape ;
+    rdfs:label "SpatialAggregation well-formedness shape" ;
+    sh:targetClass gmeow:SpatialAggregation ;
+    sh:property [
+        sh:path gmeow:observedFeature ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:Place ;
+        sh:severity sh:Violation ;
+        sh:message "A SpatialAggregation must name exactly one observed feature (the aggregation region, gmeow:observedFeature)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:aggregationFunction ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:AggregationFunction ;
+        sh:severity sh:Violation ;
+        sh:message "A SpatialAggregation must declare exactly one aggregation function (gmeow:aggregationFunction)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:observationResult ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A SpatialAggregation must yield at least one observation result." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:minimumPopulation ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:nonNegativeInteger ;
+        sh:severity sh:Violation ;
+        sh:message "A SpatialAggregation may declare at most one minimum population (gmeow:minimumPopulation)." ;
+    ] .
+
+gmeow:CentroidGeometryShape
+    a sh:NodeShape ;
+    rdfs:label "Place centroid shape" ;
+    sh:targetClass gmeow:Place ;
+    sh:property [
+        sh:path gmeow:hasCentroid ;
+        sh:maxCount 1 ;
+        sh:class gmeow:Geometry ;
+        sh:severity sh:Violation ;
+        sh:message "A Place may have at most one centroid geometry (gmeow:hasCentroid)." ;
+    ] .
+
+# --------------------------------------------------------------------------- #
 # Tags module (#27). Closed-world well-formedness for the Tagging relator;
 # suppression contract (Principle 10) for retracted taggings.
 # --------------------------------------------------------------------------- #

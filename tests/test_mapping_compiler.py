@@ -76,9 +76,9 @@ def test_dsl_parses() -> None:
     # NameUsage→sosa:Observation, RightsStatement→sosa:Observation,
     # KinRelationship→sosa:Observation, facetSubject→sosa:hasFeatureOfInterest,
     # facetVantage→sosa:madeBySensor).
-    # Issue #101 spatial aggregation: +4 (SpatialAggregation→qb:Observation,
+    # Issue #101 spatial aggregation: +5 (SpatialAggregation→qb:Observation,
     # Dataset→qb:DataSet, AggregationFunction→qb:MeasureProperty,
-    # containsPlace→geo:sfContains).
+    # containsPlace→geo:sfContains, hasCentroid→geo:hasCentroid).
     # Place is intentionally NOT aligned to qb:DimensionProperty (category
     # mismatch: object class vs. metaclass of properties).
     # Issue #82 terrestrial realm deepening: +20 (LinkedGeoData x3, CIDOC-CRM+CRMgeo x4,
@@ -93,7 +93,7 @@ def test_dsl_parses() -> None:
     # Trajectory→mf:TemporalTrajectory).
     # Issue #100 capacity/occupancy: +3 (Brick Capacity, Brick Occupancy,
     # schema.org maximumAttendeeCapacity).
-    assert len(dsl.equivalences) == 913
+    assert len(dsl.equivalences) == 914
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
