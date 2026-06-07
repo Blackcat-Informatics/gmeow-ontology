@@ -216,6 +216,25 @@ def test_places_contested_slice_covered() -> None:
     assert not missing, f"places contested terms missing: {missing}"
 
 
+def test_regulatory_slice_covered() -> None:
+    report = run_coverage()
+    # The regulatory overlay fixture (#103) exercises the new RegulatoryOverlay
+    # class, its properties, the RegulatoryOverlayType value vocabulary, 3D
+    # bounds as ScalarQuantity, and linkage to RightsStatement (#21).
+    expected_covered = {
+        GMEOW + "RegulatoryOverlay",
+        GMEOW + "overlayPlace",
+        GMEOW + "overlayAuthority",
+        GMEOW + "overlayType",
+        GMEOW + "overlayRegulation",
+        GMEOW + "overlayDeterminacy",
+        GMEOW + "overlayLowerBound",
+        GMEOW + "overlayUpperBound",
+    }
+    missing = expected_covered - (report.covered_classes | report.covered_predicates)
+    assert not missing, f"regulatory overlay terms missing: {missing}"
+
+
 def test_organization_contested_slice_covered() -> None:
     report = run_coverage()
     expected_covered = {

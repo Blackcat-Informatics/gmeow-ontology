@@ -24,6 +24,7 @@
 #   semapv: https://w3id.org/semapv/vocab/
 #   sf: http://www.opengis.net/ont/sf#
 #   skos: http://www.w3.org/2004/02/skos/core#
+#   time: http://www.w3.org/2006/time#
 #   vcard: http://www.w3.org/2006/vcard/ns#
 #   wd: http://www.wikidata.org/entity/
 #   wdt: http://www.wikidata.org/prop/direct/
@@ -48,6 +49,8 @@ gmeow:Place	skos:closeMatch	whg:Place		semapv:ManualMappingCuration	0.8
 gmeow:PlaceNaming	skos:closeMatch	crm:E41_Appellation	Appellation	semapv:ManualMappingCuration	0.8	CIDOC-CRM E41_Appellation is the time-spanned name; GMEOW PlaceNaming is the reified relator (NameUsage) that binds a PlaceName to a Place over an interval.
 gmeow:Pose	skos:closeMatch	pos:QuantitativePose	Quantitative Pose	semapv:ManualMappingCuration	0.85	
 gmeow:Pose	skos:closeMatch	wd:Q1055020	pose	semapv:ManualMappingCuration	0.8	
+gmeow:RegulatoryOverlay	skos:closeMatch	schema:AdministrativeArea		semapv:ManualMappingCuration	0.6	schema.org AdministrativeArea is a flat Place subclass for government-defined areas; GMEOW RegulatoryOverlay is a reified, time-scoped situation that binds a place, an authority, a regulation type, and optional deontic rules. Directional lossy projection.
+gmeow:RegulatoryOverlay	skos:closeMatch	wd:Q1055894	administrative territorial entity	semapv:ManualMappingCuration	0.75	Wikidata Q1055894 is the general concept of an administrative territorial entity; GMEOW RegulatoryOverlay adds time-scoping, authority, regulation type, and deontic linkage.
 gmeow:Trajectory	skos:closeMatch	mf:TemporalTrajectory	temporal trajectory	semapv:ManualMappingCuration	0.8	
 gmeow:VirtualLocation	skos:closeMatch	schema:VirtualLocation		semapv:ManualMappingCuration	0.9	
 gmeow:addressLocality	owl:equivalentProperty	schema:addressLocality		semapv:ManualMappingCuration	1.0	
@@ -87,6 +90,18 @@ gmeow:heading	skos:closeMatch	wd:Q41154	heading	semapv:ManualMappingCuration	0.8
 gmeow:latitude	skos:closeMatch	wgs84:lat		semapv:ManualMappingCuration	0.9	
 gmeow:locatedAt	skos:closeMatch	schema:location		semapv:ManualMappingCuration	0.7	
 gmeow:longitude	skos:closeMatch	wgs84:long		semapv:ManualMappingCuration	0.9	
+gmeow:overlayAuthority	skos:closeMatch	schema:organizer		semapv:ManualMappingCuration	0.5	schema.org organizer is a loose match for the authority that imposed a regulatory overlay; GMEOW overlayAuthority is specifically the governing body (state, international organization, indigenous council) that decreed the regulation. Directional lossy projection.
+gmeow:overlayRegulation	skos:closeMatch	schema:legislation		semapv:ManualMappingCuration	0.6	schema.org legislation is a CreativeWork subclass for laws; GMEOW overlayRegulation links to a machine-readable RightsStatement (deontic rules). Directional lossy projection.
+gmeow:overlayTypeCivilTimeZone	skos:closeMatch	time:TimeZone		semapv:ManualMappingCuration	0.8	OWL-Time TimeZone is a temporal reference position; GMEOW overlayTypeCivilTimeZone adds the regulatory authority and time-scoped interval, treating the timezone as a government-decreed spatial overlay.
+gmeow:overlayTypeCivilTimeZone	skos:closeMatch	wd:Q12868	time zone	semapv:ManualMappingCuration	0.9	
+gmeow:overlayTypeCustomsZone	skos:closeMatch	wd:Q783930	customs territory	semapv:ManualMappingCuration	0.8	
+gmeow:overlayTypeElectoralDistrict	skos:closeMatch	wd:Q171441	electoral district	semapv:ManualMappingCuration	0.9	
+gmeow:overlayTypeFishingZone	skos:closeMatch	wd:Q1285733	exclusive economic zone	semapv:ManualMappingCuration	0.85	UNCLOS Article 55 defines the EEZ; GMEOW models it as a regulatory overlay with authority, time scope, and deontic rules. Maritime-specific depth bounds use overlayLowerBound / overlayUpperBound.
+gmeow:overlayTypePostalZone	skos:closeMatch	wd:Q37447	postal code	semapv:ManualMappingCuration	0.9	
+gmeow:overlayTypeProtectedArea	skos:closeMatch	wd:Q1041938	protected area	semapv:ManualMappingCuration	0.9	IUCN management categories (Ia–VI) are additional classifications on the protected area, not subclasses.
+gmeow:overlayTypeRestrictedAirspace	skos:closeMatch	wd:Q2574180	no-fly zone	semapv:ManualMappingCuration	0.85	AIXM airspace types (prohibited, restricted, danger, TRA, TSA) are specific kinds of restricted airspace, aligned by reference in data via skos:exactMatch to the relevant AIXM code list values.
+gmeow:overlayTypeSanctions	skos:closeMatch	wd:Q1540287	sanctions	semapv:ManualMappingCuration	0.8	
+gmeow:overlayTypeZoning	skos:closeMatch	wd:Q160730	zoning	semapv:ManualMappingCuration	0.85	
 gmeow:pitch	skos:closeMatch	wd:Q465493	Euler angles	semapv:ManualMappingCuration	0.8	
 gmeow:placeSupersededBy	skos:closeMatch	wdt:P1366	replaced by	semapv:ManualMappingCuration	0.85	
 gmeow:placeSupersedes	skos:closeMatch	wdt:P1365	replaces	semapv:ManualMappingCuration	0.85	
