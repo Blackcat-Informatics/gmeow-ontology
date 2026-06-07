@@ -116,6 +116,9 @@ def test_contested_certification_coexists() -> None:
     assert result.ok, "\n".join(result.errors)
     # The certification itself exists.
     assert (EX_TRUST.contestedCert, RDF.type, URIRef(GMEOW + "Certification")) in g
+    # Both standpoint axioms coexist: affirmation and refutation.
+    assert (EX_TRUST.claimCertAffirmed, RDF.type, OWL.Axiom) in g
+    assert (EX_TRUST.claimCertRefuted, RDF.type, OWL.Axiom) in g
 
 
 def test_three_axes_are_orthogonal_in_trust() -> None:
