@@ -1,0 +1,83 @@
+# Coverage slice (#100): contested capacity claims — coexisting, NO winner.
+# Exercises Capacity, Occupancy, contested capacity (fire code vs venue claim),
+# superseded capacity suppressed with gmeow:displayable false (Principle 10).
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix qudt:  <http://qudt.org/schema/qudt/> .
+
+# A concert venue with two contested capacity claims.
+ex:venue a gmeow:Place ; gmeow:placeType gmeow:placeTypeBuilding .
+
+ex:capFireCode a gmeow:Capacity ;
+    gmeow:capacityOf ex:venue ;
+    gmeow:observationResult ex:sqFireCode ;
+    gmeow:vantage ex:fireDept ;
+    gmeow:confidence 0.95 ;
+    gmeow:assertedAt "2024-01-15T09:00:00Z"^^xsd:dateTime .
+
+ex:sqFireCode a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "450"^^xsd:decimal ;
+    gmeow:hasUnit <http://qudt.org/vocab/unit/NUM> .
+
+ex:capVenueClaim a gmeow:Capacity ;
+    gmeow:capacityOf ex:venue ;
+    gmeow:observationResult ex:sqVenue ;
+    gmeow:vantage ex:venueOwner ;
+    gmeow:confidence 0.7 ;
+    gmeow:assertedAt "2024-01-20T14:00:00Z"^^xsd:dateTime .
+
+ex:sqVenue a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "600"^^xsd:decimal ;
+    gmeow:hasUnit <http://qudt.org/vocab/unit/NUM> .
+
+ex:fireDept a gmeow:Organization ;
+    gmeow:hasName [ gmeow:fullName "Fire Department"@x-gmeow-en ] .
+
+ex:venueOwner a gmeow:Organization ;
+    gmeow:hasName [ gmeow:fullName "Venue Owner"@x-gmeow-en ] .
+
+# A superseded capacity after renovation — suppressed, never deleted (P10).
+ex:capOld a gmeow:Capacity ;
+    gmeow:capacityOf ex:venue ;
+    gmeow:observationResult ex:sqOld ;
+    gmeow:vantage ex:venueOwner ;
+    gmeow:displayable false ;
+    gmeow:validUntil "2023-12-01T00:00:00Z"^^xsd:dateTime .
+
+ex:sqOld a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "300"^^xsd:decimal ;
+    gmeow:hasUnit <http://qudt.org/vocab/unit/NUM> .
+
+# Current occupancy from a sensor reading.
+ex:occNow a gmeow:Occupancy ;
+    gmeow:occupancyOf ex:venue ;
+    gmeow:observationResult ex:sqOcc ;
+    gmeow:vantage ex:ticketGate ;
+    gmeow:confidence 0.9 ;
+    gmeow:assertedAt "2024-06-01T20:00:00Z"^^xsd:dateTime .
+
+ex:sqOcc a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "412"^^xsd:decimal ;
+    gmeow:hasUnit <http://qudt.org/vocab/unit/NUM> .
+
+ex:ticketGate a gmeow:SoftwareAgent ;
+    gmeow:hasName [ gmeow:fullName "Ticket Gate Sensor"@x-gmeow-en ] .
+
+# A storage location with byte capacity.
+ex:storage a gmeow:StorageLocation ;
+    gmeow:storageMedium gmeow:storageMediumCloudService .
+
+ex:capStorage a gmeow:Capacity ;
+    gmeow:capacityOf ex:storage ;
+    gmeow:observationResult ex:sqStorage ;
+    gmeow:vantage ex:cloudProvider ;
+    gmeow:confidence 1.0 .
+
+ex:sqStorage a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "1099511627776"^^xsd:decimal ;
+    gmeow:hasUnit <http://qudt.org/vocab/unit/BYTE> .
+
+ex:cloudProvider a gmeow:Organization ;
+    gmeow:hasName [ gmeow:fullName "Cloud Provider"@x-gmeow-en ] .

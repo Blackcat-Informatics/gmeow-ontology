@@ -656,3 +656,41 @@ gmeow:mapSchemaDissolutionDate a gmeow:ProjectionMapping ;
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:dissolutionDate ; gmeow:relation "<=" ;
         gmeow:confidence 0.9 ;
         gmeow:lossyDrop "the destruction event's place, participants, and standpoint are dropped; only the instant survives as schema:dissolutionDate" ] .
+
+# --------------------------------------------------------------------------- #
+# Capacity / Occupancy projections — issue #100.
+# Reified Measurement → flat schema.org integer. The provenance, unit, temporal
+# scope, and standpoint are dropped; only the scalar quantity value survives.
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaMaximumAttendeeCapacity a gmeow:ProjectionMapping ;
+    rdfs:label "Capacity Measurement → schema:maximumAttendeeCapacity (lossy)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ; gmeow:value "capVal" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasCapacity ; gmeow:objectVar "cap" ]
+            [ gmeow:subjectVar "cap" ; gmeow:predicate gmeow:observationResult ; gmeow:objectVar "sq" ]
+            [ gmeow:subjectVar "sq" ; gmeow:predicate gmeow:quantityValue ; gmeow:objectVar "capVal" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "cap" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:maximumAttendeeCapacity ; gmeow:relation "<=" ;
+        gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "the Capacity relator (provenance, unit, temporal scope, standpoint) collapses to a flat schema:maximumAttendeeCapacity integer; non-displayable/superseded capacities are suppressed; restricted to gmeow:Place to avoid projecting byte capacities from StorageLocation" ] .
+
+gmeow:mapSchemaOccupancy a gmeow:ProjectionMapping ;
+    rdfs:label "Occupancy Measurement → schema:occupancy (lossy)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ; gmeow:value "occVal" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasOccupancy ; gmeow:objectVar "occ" ]
+            [ gmeow:subjectVar "occ" ; gmeow:predicate gmeow:observationResult ; gmeow:objectVar "sq2" ]
+            [ gmeow:subjectVar "sq2" ; gmeow:predicate gmeow:quantityValue ; gmeow:objectVar "occVal" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "occ" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:occupancy ; gmeow:relation "<=" ;
+        gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "the Occupancy relator (provenance, unit, temporal scope, standpoint) collapses to a flat schema:occupancy integer; non-displayable/superseded occupancies are suppressed; restricted to gmeow:Place to avoid projecting byte occupancies from StorageLocation" ] .
