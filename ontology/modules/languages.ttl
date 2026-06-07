@@ -213,10 +213,10 @@ gmeow:scriptUsageInterval
 
 gmeow:versionLabel
     a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Language ;
+    rdfs:domain gmeow:Entity ;
     rdfs:range rdfs:Literal ;
     rdfs:label "version label"@en ;
-    skos:definition "The version designation of a language as a literal (\"1993\", \"2011\", \"New Ithkuil\", \"v2.1\"). Domain is gmeow:Language (not only LanguageVersion) so a lineage may carry a current-version label. Non-functional."@en ;
+    skos:definition "The version designation of an entity as a literal (\"1993\", \"2011\", \"v2.1.0-beta\", \"3rd Edition\"). Domain is gmeow:Entity so any versioned artifact — a language, a software release, a book edition, a dataset, an email variant — may carry its designation. Non-functional."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:writtenInLanguage

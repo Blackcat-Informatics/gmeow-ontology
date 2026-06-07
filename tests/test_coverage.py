@@ -227,6 +227,23 @@ def test_coreference_slice_covered() -> None:
     assert not missing, f"coreference terms missing from coverage: {missing}"
 
 
+def test_versions_slice_covered() -> None:
+    report = run_coverage()
+    expected_covered = {
+        GMEOW + "VersionSet",
+        GMEOW + "VersionMembership",
+        GMEOW + "versionMember",
+        GMEOW + "versionSet",
+        GMEOW + "versionRole",
+        GMEOW + "versionScale",
+        GMEOW + "membershipInterval",
+        GMEOW + "membershipAuthority",
+        GMEOW + "versionFingerprint",
+    }
+    missing = expected_covered - (report.covered_classes | report.covered_predicates)
+    assert not missing, f"versions terms missing from coverage: {missing}"
+
+
 def test_privacy_slice_covered() -> None:
     report = run_coverage()
     # The privacy fixture exercises the sensitivity vocabulary, privacy roles,

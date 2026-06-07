@@ -209,6 +209,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:TransliterationScheme (⊑ gufo:QualityValue): A named transliteration/romanization/transcription system (Hepburn, Pinyin, ISO 233, IPA, …). A value carried by gmeow:transliterationScheme; the major schemes are catalogued as FnO functions in the projection layer (projections/transforms.fno.ttl).
 - gmeow:TrustAssertion (⊑ gufo:Relator): A reified, perspectival assertion that one agent (the trustor) trusts another (the trustee), optionally as an introducer to a given depth — the OpenPGP owner-trust notion. Its validity window is carried with gmeow:validFrom/validUntil.
 - gmeow:Utilization (⊑ gmeow:Measurement): A measurement of the ratio of current occupancy to maximum capacity at a location, typically expressed as a ratio (0–1) or percentage. The location is the observedFeature; the result is a ScalarQuantity. Computed by the solver layer (P12) from capacity and occupancy measurements, not asserted directly in the canonical core.
+- gmeow:VersionMembership (⊑ gmeow:Observation, gufo:Relator): A reified, standpoint-scoped claim that a concrete entity belongs to a version set with a particular role and/or scale — an observation in the universal claim stack (#69). Mediates between an entity (versionMember), a version set (versionSet), and an optional role/scale asserted by an authority (membershipAuthority / vantage). Mint one VersionMembership per (entity, versionSet, role, authority) tuple; when a role changes over time, close the old membership's interval or mint a fresh one — never overwrite (Principle 10). Inherits confidence, displayable, and temporal scope from Observation.
+- gmeow:VersionRole (⊑ gufo:QualityValue): A role or status that an entity holds within a version set according to an authority — a VALUE, never an Entity subclass. Standpoint-scoped: 'latest' according to a package registry may differ from 'latest' according to a downstream mirror. The seed list is an anchor, not a fence.
+- gmeow:VersionScale (⊑ gufo:QualityValue): The magnitude scale of a version change — a VALUE, never an Entity subclass. Used for SemVer-style classification and analogous schemes in non-software domains.
+- gmeow:VersionSet (⊑ gmeow:InformationObject): A first-class information object representing a version family or release lineage — the set of all concrete artifacts that are versions of a common stable entity. A VersionSet is an InformationObject (a kind of Entity) so it can carry identifiers, provenance, and authority links. Examples: the lineage of a software project, the edition chain of a book, the variant family of an email thread, the DOI concept record.
 - gmeow:VirtualLocation (⊑ gmeow:Location): A non-geographic location reachable online — a video-conference room, chat space, or metaverse room. Has an access locator and platform rather than coordinates.
 - gmeow:WebPage (⊑ gmeow:CreativeWork): A page on the web identified by a URL.
 - gmeow:WritingSystem (⊑ gmeow:InformationObject): A first-class system for visually or tactilely representing language — a script: Latin, Han (kanji), Hiragana, Katakana, Arabic, Braille, or a bespoke conlang/AI script. Carries gmeow:scriptCode (ISO 15924 when one exists, else a bespoke identifier), a type (gmeow:writingSystemType) and a direction (gmeow:textDirection). Bound to the languages that use it — co-equally and simultaneously — through gmeow:WritingSystemUsage; bespoke and non-linear scripts (Ithkuil) are first-class.
@@ -496,6 +500,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:mediaType [gmeow:BodyPart → rdfs:Literal] (functional): The MIME media type of a body part (e.g. text/plain, application/pdf).
 - gmeow:meets [gmeow:Event → gmeow:Event]: Allen MEETS: this event ends exactly when the related event begins (no gap, no overlap). NOT transitive. Inverse of gmeow:metBy. (= time:intervalMeets; TimeML IBEFORE / immediately-before; TEO meets.)
 - gmeow:memberOf [gmeow:Agent → gmeow:Organization]: Relates an agent to an organization it belongs to.
+- gmeow:membershipAuthority [gmeow:VersionMembership → gmeow:Agent]: The agent or standpoint that asserts this version membership and its role — a project maintainer, a package registry, a publisher, a curator, or a self-asserting individual. NON-FUNCTIONAL: competing authority claims coexist without privilege (Principle 9). When the claim is promoted from a flat statement annotation, gmeow:accordingTo becomes the membershipAuthority of the relator.
+- gmeow:membershipInterval [gmeow:VersionMembership → gmeow:TimeInterval]: The time interval over which this version membership / role claim holds. A relator carries its period this way (matching gmeow:usageInterval, gmeow:taggingInterval, gmeow:relationshipInterval) rather than via gmeow:duringInterval, which is reserved for gufo:Situation-based time-scoped relations.
 - gmeow:membershipMember [gmeow:Membership → gmeow:Agent] (functional): The agent whose membership a gmeow:Membership reifies. Functional — a membership concerns one member (the relator's member role); the flat gmeow:memberOf is the agent→organization shortcut, this connects the reified relator to its member so role and period can be carried.
 - gmeow:membershipOrganization [gmeow:Membership → gmeow:Organization] (functional): The organization a gmeow:Membership is in. Functional — a membership concerns one organization (which may be a department, i.e. a gmeow:subOrganizationOf a larger org).
 - gmeow:metBy [gmeow:Event → gmeow:Event]: Allen MET-BY: this event begins exactly when the related event ends; inverse of gmeow:meets. (= time:intervalMetBy; TimeML IAFTER; TEO metBy.)
@@ -692,8 +698,13 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:validUntil [? → xsd:dateTime]: The instant until which the annotated statement is asserted to hold.
 - gmeow:vantage [gmeow:Observation → gmeow:Agent]: The agent or standpoint from which the observation is made — the reified-object-property counterpart of gmeow:accordingTo. Semantically, gmeow:vantage ⊑ gmeow:accordingTo: when an annotated statement is promoted to a reified Observation, its gmeow:accordingTo becomes the gmeow:vantage of the relator. The agent in the vantage role — an observer, a sensor, a perceiver — IS a standpoint (Principle 9): no frame is privileged, and every vantage is a co-equal facet from which the claim is held. Range is gmeow:Agent (person, organization, software agent, sensor) rather than only gmeow:Standpoint, because the common case is a bare agent; use a gmeow:Standpoint individual when the frame needs its own identity. Non-functional: joint observations (a reading co-authored by two agencies) are valid.
 - gmeow:verificationStatus [gmeow:CryptographicSignature → rdfs:Literal] (functional): The verification outcome of a signature: verified, failed, or unverified.
-- gmeow:versionLabel [gmeow:Language → rdfs:Literal]: The version designation of a language as a literal ("1993", "2011", "New Ithkuil", "v2.1"). Domain is gmeow:Language (not only LanguageVersion) so a lineage may carry a current-version label. Non-functional.
+- gmeow:versionFingerprint [gmeow:Entity → rdfs:Literal]: A content fingerprint of the versioned entity — a hash, SWHID, content digest, or semantic identifier. Broader than gmeow:contentDigest (which is byte-exact and domain gmeow:Source): versionFingerprint covers semantic fingerprints where exact bytes are not the identity criterion (e.g. a normalized form, a canonicalized serialization). Non-functional: a single entity may carry several fingerprints under different algorithms or schemes.
+- gmeow:versionLabel [gmeow:Entity → rdfs:Literal]: The version designation of an entity as a literal ("1993", "2011", "v2.1.0-beta", "3rd Edition"). Domain is gmeow:Entity so any versioned artifact — a language, a software release, a book edition, a dataset, an email variant — may carry its designation. Non-functional.
+- gmeow:versionMember [gmeow:VersionMembership → gmeow:Entity] (functional): The concrete entity that participates in a version set via this membership — a software release, a book edition, an email variant, a dataset snapshot. Functional per relator: one member per VersionMembership.
 - gmeow:versionOf [gmeow:Entity → gmeow:Entity] (functional): Relates a concrete version entity to the stable lineage entity it versions: a language version to its language, a software release to its project, a data release to its dataset, or a work version to its work. Functional because a version belongs to one lineage, but the lineage may have many versions.
+- gmeow:versionRole [gmeow:VersionMembership → gmeow:VersionRole]: The role or status classification this membership asserts for the member within the set — canonical, variant, latest, stable, LTS, deprecated, yanked, draft, published, revised, collected, withdrawn. NON-FUNCTIONAL: an entity may hold multiple roles from different authorities simultaneously (standpoint-indexed coexistence per Principle 9), and a role may change over time via new memberships rather than overwrite.
+- gmeow:versionScale [gmeow:VersionMembership → gmeow:VersionScale]: The scale classification of this membership — trivial, minor, major. NON-FUNCTIONAL: different authorities or schemes may classify the same change differently; those claims coexist.
+- gmeow:versionSet [gmeow:VersionMembership → gmeow:VersionSet] (functional): The version set / lineage to which this membership belongs. Functional per relator: one set per VersionMembership.
 - gmeow:virtualPlatform [gmeow:VirtualLocation → rdfs:Literal]: The platform hosting a virtual location (Zoom, Meet, a chat service, …).
 - gmeow:wasAssociatedWith [gmeow:Activity → gmeow:Agent]: Relates an activity to an agent associated with carrying it out — e.g. the software agent that ran an import. (Activity→Agent; the counterpart of gmeow:wasAttributedTo, which ascribes an endurant Entity to an agent.)
 - gmeow:wasAttributedTo [gmeow:Entity → gmeow:Agent]: Ascribes responsibility for an entity to an agent.
@@ -1237,12 +1248,24 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:roleAgent (a gmeow:ParticipantRole): An agent that carried out or caused the event (the active party).
 - gmeow:roleAttendee (a gmeow:ParticipantRole): An agent who attended the event.
 - gmeow:roleBeneficiary (a gmeow:ParticipantRole): An entity that benefited from the event.
+- gmeow:roleCanonical (a gmeow:VersionRole): canonical
+- gmeow:roleCollected (a gmeow:VersionRole): collected
+- gmeow:roleDeprecated (a gmeow:VersionRole): deprecated
+- gmeow:roleDraft (a gmeow:VersionRole): draft
+- gmeow:roleLTS (a gmeow:VersionRole): long-term support (LTS)
+- gmeow:roleLatest (a gmeow:VersionRole): latest
 - gmeow:roleOfficiant (a gmeow:ParticipantRole): A person who officiated at the event. Generalizes the former gmeow:hasOfficiant.
 - gmeow:roleOrganizer (a gmeow:ParticipantRole): An agent that organized or convened the event.
 - gmeow:roleParticipantPrincipal (a gmeow:ParticipantRole): The entity an event is principally about (e.g. the child in a birth, the deceased in a death). Generalizes the former gmeow:hasPrincipal.
 - gmeow:rolePerformer (a gmeow:ParticipantRole): An agent who performed at the event.
+- gmeow:rolePublished (a gmeow:VersionRole): published
+- gmeow:roleRevised (a gmeow:VersionRole): revised
+- gmeow:roleStable (a gmeow:VersionRole): stable
+- gmeow:roleVariant (a gmeow:VersionRole): variant
 - gmeow:roleVictim (a gmeow:ParticipantRole): An entity harmed by the event — distinct from, and never inferred from, any other role.
+- gmeow:roleWithdrawn (a gmeow:VersionRole): withdrawn
 - gmeow:roleWitness (a gmeow:ParticipantRole): A person who witnessed the event. Generalizes the former gmeow:hasWitness.
+- gmeow:roleYanked (a gmeow:VersionRole): yanked
 - gmeow:romanticAromantic (a gmeow:RomanticOrientationValue): aromantic
 - gmeow:romanticBiromantic (a gmeow:RomanticOrientationValue): biromantic
 - gmeow:romanticDemiromantic (a gmeow:RomanticOrientationValue): demiromantic
@@ -1266,7 +1289,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:scaleACTFL (a gmeow:ProficiencyScale): ACTFL
 - gmeow:scaleCEFR (a gmeow:ProficiencyScale): CEFR
 - gmeow:scaleILR (a gmeow:ProficiencyScale): ILR
+- gmeow:scaleMajor (a gmeow:VersionScale): major
+- gmeow:scaleMinor (a gmeow:VersionScale): minor
 - gmeow:scaleSelfReported (a gmeow:ProficiencyScale): self-reported
+- gmeow:scaleTrivial (a gmeow:VersionScale): trivial
 - gmeow:schemeBGNPCGN (a gmeow:TransliterationScheme): BGN/PCGN romanization
 - gmeow:schemeHepburn (a gmeow:TransliterationScheme): Hepburn (Japanese → Latin)
 - gmeow:schemeIAST (a gmeow:TransliterationScheme): IAST (Sanskrit/Indic → Latin)

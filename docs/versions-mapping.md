@@ -1,0 +1,164 @@
+<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+# Versions — modelling & interoperability guide
+
+Most vocabularies model versions as ad-hoc attributes: `schema:version` on a
+`CreativeWork`, SemVer strings on a DOAP release, `dcterms:isVersionOf` between
+dataset snapshots. Each domain reinvents its own taxonomy: `StableRelease`,
+`YankedCrate`, `DefinitiveEdition`, `CanonicalEmail`.
+
+GMEOW refuses this anti-pattern. **"Latest", "stable", "yanked", "canonical",
+"definitive" are not intrinsic types** — they are standpoint-scoped claims
+asserted by an authority (a registry, a publisher, a project, a curator). The
+same artifact may be `latest` to npm and `deprecated` to a downstream mirror.
+Both claims coexist without privilege (Principle 9).
+
+## Decision tree: which property to use?
+
+| Situation | Use | Example |
+|---|---|---|
+| A concrete artifact belongs to a stable lineage | `versionOf` | `release-2.0.0 versionOf my-library` |
+| A concrete edition of a creative work | `editionOf` | `annotated-edition editionOf original-novel` |
+| One artifact replaces another | `supersedes` | `v2.0.0 supersedes v1.1.0` |
+| Cross-frame correspondence without merge | `counterpartOf` | `robot-agent counterpartOf person` |
+| Derivation/provenance chain | `wasDerivedFrom` | `translation wasDerivedFrom original` |
+| Role/status within a version set (reified) | `VersionMembership` | `membership roleLatest accordingTo registry` |
+
+The **thin spine** (`versionOf`, `editionOf`, `supersedes`, `counterpartOf`) is
+the 80 % flat shortcut. The **reified layer** (`VersionMembership`) is promoted
+when the role claim itself must carry authority, confidence, temporal scope, or
+standpoint indexing.
+
+## The reified layer: VersionMembership
+
+A `VersionMembership` is an `Observation` + `Relator` in the universal claim
+stack. It mediates three things:
+
+- **`versionMember`** — the concrete artifact (observedFeature)
+- **`versionSet`** — the lineage it belongs to
+- **`versionRole`** / **`versionScale`** — the classification, as `QualityValue` individuals
+- **`membershipAuthority`** (vantage) — who asserts this role
+- **`membershipInterval`** — when the claim holds
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/versions/> .
+
+ex:myLibrary a gmeow:VersionSet ;
+    gmeow:name "my-library"@en .
+
+ex:v2_0 a gmeow:SoftwareAgent ;
+    gmeow:versionOf ex:myLibrary ;
+    gmeow:versionLabel "2.0.0" .
+
+ex:memLatest a gmeow:VersionMembership ;
+    gmeow:versionMember ex:v2_0 ;
+    gmeow:versionSet ex:myLibrary ;
+    gmeow:versionRole gmeow:roleLatest ;
+    gmeow:membershipAuthority ex:npmRegistry .
+
+ex:memLTS a gmeow:VersionMembership ;
+    gmeow:versionMember ex:v2_0 ;
+    gmeow:versionSet ex:myLibrary ;
+    gmeow:versionRole gmeow:roleLTS ;
+    gmeow:membershipAuthority ex:projectMaintainer .
+```
+
+`★` Two memberships on the same artifact, from two authorities, with two
+roles — both are first-class and co-equal.
+
+## Temporal scoping: never overwrite
+
+When a release shifts from `latest` to `deprecated`, **do not overwrite the
+old membership**. Preserve history by either:
+
+1. **Closing the interval** — set an end date on `membershipInterval`.
+2. **Minting a fresh membership** — create a new `VersionMembership` for the
+   new role, leaving the old one intact.
+
+A deprecated or yanked release may carry `gmeow:displayable false` so it is
+suppressed from consumer projections, but it is **never deleted** (Principle 10).
+
+```turtle
+# Old membership retained
+ex:memLatest a gmeow:VersionMembership ;
+    gmeow:versionMember ex:v1_1 ;
+    gmeow:versionSet ex:myLibrary ;
+    gmeow:versionRole gmeow:roleLatest ;
+    gmeow:membershipAuthority ex:npmRegistry .
+
+# New membership for the deprecated state
+ex:memDeprecated a gmeow:VersionMembership ;
+    gmeow:versionMember ex:v1_1 ;
+    gmeow:versionSet ex:myLibrary ;
+    gmeow:versionRole gmeow:roleDeprecated ;
+    gmeow:membershipAuthority ex:npmRegistry ;
+    gmeow:displayable false .
+```
+
+## Separation from attestation layer (#162)
+
+`VersionMembership` records **what role is asserted** and **by whom**.
+It does **not** embed the cryptographic or signed evidence for that assertion.
+
+Attestation evidence — release signatures, SLSA provenance, DOI/SWHID
+assertions, yanked-release notices, registry attestations — belongs in the
+future #162 attestation layer and **composes with** `VersionMembership` by
+linking evidence to the same artifacts. A version role may be *attested by* a
+registry, but the attestation is evidence **for** the role claim, not the role
+itself.
+
+```turtle
+# #161: the role claim
+ex:memLatest a gmeow:VersionMembership ;
+    gmeow:versionRole gmeow:roleLatest ;
+    gmeow:membershipAuthority ex:npmRegistry .
+
+# #162 (future): the attestation evidence
+ex:sig a gmeow:ReleaseSignature ;          # term from #162
+    gmeow:signatureArtifact "base64..." ;
+    gmeow:wasAttributedTo ex:npmRegistry .
+```
+
+## Value vocabularies: open, not a fence
+
+`VersionRole` and `VersionScale` are `gufo:QualityValue` subclasses. The seed
+list is an anchor, not a fence:
+
+| Seed | Meaning |
+|---|---|
+| `roleCanonical` | The canonical/reference variant |
+| `roleVariant` | A non-canonical variant |
+| `roleLatest` | The most recent release |
+| `roleStable` | Considered stable by the authority |
+| `roleLTS` | Long-term support commitment |
+| `roleDeprecated` | Discouraged but retained |
+| `roleYanked` | Withdrawn with urgency |
+| `roleDraft` | Unpublished / in-progress |
+| `rolePublished` | Publicly available |
+| `roleRevised` | A revised edition |
+| `roleCollected` | Part of a collected volume |
+| `roleWithdrawn` | Formally withdrawn |
+| `scaleTrivial` | Patch-level change |
+| `scaleMinor` | Backward-compatible change |
+| `scaleMajor` | Breaking change |
+
+Domain-specific values (e.g. `roleNightly`, `roleReleaseCandidate`) are minted
+as fresh individuals carrying `rdfs:label`.
+
+## Projections
+
+The mapping compiler generates SSSOM/EDOAL/SPARQL projections from
+`mapping-dsl/`. Cross-vocabulary mappings include:
+
+| GMEOW | schema.org | DOAP | Wikidata |
+|---|---|---|---|
+| `VersionSet` | — | `doap:Project` (lineage) | — |
+| `versionOf` | — | — | P548 (version type) |
+| `versionLabel` | `schema:version` | `doap:revision` | — |
+| `versionRole` | — | — | P548 qualifier |
+| `supersedes` | — | — | P1365 (replaces) |
+
+`★` Projections are lossy by design. A "latest" selection rule lives in the
+importer/solver, never as an OWL axiom (Principle 12).
