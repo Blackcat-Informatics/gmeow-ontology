@@ -200,6 +200,7 @@ PREFIXES: dict[str, str] = {
     "om": "http://www.wurvoc.org/vocabularies/om-1.8/",
     "qb": "http://purl.org/linked-data/cube#",
     "mf": "http://www.opengis.net/ont/movingfeatures#",
+    "sta": "http://www.opengis.net/def/ont/sensorthings/1.1/",
     "oboe": "http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#",
     "obi": "http://purl.obolibrary.org/obo/OBI_",
     "iao": "http://purl.obolibrary.org/obo/IAO_",

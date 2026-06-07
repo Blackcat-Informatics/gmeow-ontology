@@ -196,6 +196,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:StepParentChild (⊑ gmeow:ParentChildRelationship): A parent-child relationship through marriage to a biological/adoptive parent.
 - gmeow:StorageLocation (⊑ gmeow:Location): A locus where digital objects reside — a cloud-storage folder, an object-store bucket, a filesystem path, a content-addressed store, or a physical disk. Its medium is a value (gmeow:storageMedium); a physical device may sit at a geographic gmeow:physicalPlace.
 - gmeow:StorageMedium (⊑ gufo:QualityValue): The kind of medium a storage location uses (cloud service, local filesystem, object store, content-addressed store, physical disk, removable media). A value, not a StorageLocation subclass: the kinds share the same structure (path, service, holder, physical place).
+- gmeow:Stream (⊑ gmeow:Entity, gufo:Object): A time-ordered sequence of observations or samples produced by a sensor or platform over a time interval. The ordering of samples is implicit via their individual timestamps, not asserted as a list structure (Principle 12). A stream is the canonical source from which a continuous trajectory may be derived by the solver layer.
 - gmeow:Summary (⊑ gmeow:InformationObject): A condensed account derived from a source information object (often machine-generated), linked to its source by gmeow:wasDerivedFrom.
 - gmeow:Tag (⊑ gmeow:InformationObject): An open, user-minted tag — an information object whose identity is its IRI and whose surface form is carried by rdfs:label. Synonyms are multiple labels; homonyms are different IRIs. Coreference is done in data, never by collapsing into one. A tag is NOT a type (it carries no inferential weight over rdf:type) and NOT a property bag — no datatype value property is asserted on it. Part of the universal tagging building block that keeps folksonomy, aboutness and typing as three orthogonal axes.
 - gmeow:TagScheme (⊑ gmeow:InformationObject): A namespaced set of tags — a project vocabulary, a personal tag bucket, or a controlled vocabulary. Multi-tenant: many schemes coexist, and a tag may belong to zero or more schemes (gmeow:tagInScheme). The counterpart of skos:ConceptScheme and schema:DefinedTermSet.
@@ -428,6 +429,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasSource [gmeow:Entity → gmeow:Source]: Relates an entity or reified claim to a source that provides evidence for it. The strength of that evidence is recorded with gmeow:confidence on the supported statement.
 - gmeow:hasSpouse [gmeow:Person → gmeow:Person]: Relates a person to a spouse; symmetric.
 - gmeow:hasStartInstant [gmeow:TimeInterval → gmeow:Instant] (functional): The start instant of a time interval.
+- gmeow:hasStream [gmeow:Entity → gmeow:Stream]: Links an entity to a stream of observations or samples about it. Non-functional: an entity may have multiple co-existing streams from different platforms or sensors (Principle 9), and no stream is privileged.
 - gmeow:hasSubEvent [gmeow:Event → gmeow:Event]: Relates an event to a constituent sub-event; the transitive inverse of gmeow:subEventOf.
 - gmeow:hasTag [gmeow:Entity → gmeow:Tag]: Relates an entity to a user-minted tag — the 80% flat shortcut. Non-functional: an entity may carry many co-equal tags. Period, confidence, tagger and suppression are carried via RDF-star statement annotations (gmeow:validFrom, gmeow:validUntil, gmeow:confidence, gmeow:displayable) on the shortcut; promote to a gmeow:Tagging relator when the act itself must be a node.
 - gmeow:hasTemporalFrame [gmeow:TimeInterval → gmeow:TemporalFrame]: Relates a time interval to the temporal frame in which its bounds are expressed.
@@ -680,6 +682,11 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:storagePath [gmeow:StorageLocation → rdfs:Literal]: The path, key, or URI of a storage location within its service.
 - gmeow:storageService [gmeow:StorageLocation → rdfs:Literal]: The service or system hosting a storage location (e.g. "Google Drive", "AWS S3", "local").
 - gmeow:storedIn [gmeow:Entity → gmeow:StorageLocation]: Relates a digital object (e.g. a document or import source) to the storage location where its bytes reside — the structured form of a source's location.
+- gmeow:streamInterval [gmeow:Stream → gmeow:TimeInterval] (functional): The time interval over which the stream was produced. Functional: the interval is constitutive of the stream's identity.
+- gmeow:streamOf [gmeow:Stream → gmeow:Entity] (functional): The entity whose observations the stream contains — the moving feature, device, or thing being tracked. Functional: a stream belongs to exactly one entity.
+- gmeow:streamPlatform [gmeow:Stream → gmeow:Agent]: The platform hosting the sensor(s) producing this stream — a vehicle, vessel, aircraft, buoy, or fixed station. Non-functional: a stream may migrate across platforms over its lifetime (e.g. a device handed from one drone to another).
+- gmeow:streamSample [gmeow:Stream → gmeow:Entity]: Links a stream to an individual observation, location state, or other entity composing it. Non-functional: a stream typically has many samples, and multiple sampling strategies may coexist for the same stream (Principle 9). Ordering is implicit via sample timestamps, not asserted list structure (Principle 12).
+- gmeow:streamSensor [gmeow:Stream → gmeow:Agent]: The specific sensor or agent producing the stream. Non-functional: multiple sensors may contribute to one stream, and competing sensor claims coexist (Principle 9).
 - gmeow:streetAddress [gmeow:PostalAddress → rdfs:Literal]: The street address line (number and thoroughfare) of a postal address.
 - gmeow:subEventOf [gmeow:Event → gmeow:Event]: Relates an event to a larger event it is part of — a talk within a session within a conference. Transitive: a part of a part is a part (CIDOC-CRM P9 consists of). A specialization of the universal gmeow:partOf spine. Non-simple, so kept out of all cardinality axioms.
 - gmeow:subOrganizationOf [gmeow:Organization → gmeow:Organization]: Relates an organization to a larger organization it is part of — a department or division within a company, a team within a department. Transitive (a team is part of the company through its division). A specialization of the universal gmeow:partOf spine. A department is thus a first-class gmeow:Organization, and a gmeow:Membership may target it directly. The 'department' field is the sub-organization a person's membership is in.
@@ -1085,6 +1092,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:methodExpertJudgement (a gmeow:ObservationMethod): Observation based on expert assessment or consensus.
 - gmeow:methodInstrumentalReading (a gmeow:ObservationMethod): Observation by a calibrated instrument or sensor.
 - gmeow:methodRemoteSensing (a gmeow:ObservationMethod): Observation from a distance, typically satellite or aerial imagery.
+- gmeow:methodStreaming (a gmeow:ObservationMethod): Collection via a continuous or periodic streaming protocol.
 - gmeow:methodSurvey (a gmeow:ObservationMethod): A systematic survey or census procedure.
 - gmeow:metricCosine (a gmeow:MetricKind): Angular proximity in a latent vector space (1 − cosine distance).
 - gmeow:metricEditDistance (a gmeow:MetricKind): String or sequence dissimilarity (Levenshtein, Hamming, Damerau-Levenshtein, etc.).
@@ -1155,6 +1163,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:observationTypeSensory (a gmeow:ObservationType): A reading from a sensor or sensory apparatus.
 - gmeow:observationTypeSimulation (a gmeow:ObservationType): An observation produced by computational simulation rather than direct measurement.
 - gmeow:observationTypeStandpoint (a gmeow:ObservationType): An assertion made from a specific standpoint or frame.
+- gmeow:observationTypeStreaming (a gmeow:ObservationType): A streaming observation — a member of a time-ordered sequence produced by a sensor or platform.
 - gmeow:operatorEq (a gmeow:ConstraintOperator): The ODRL eq comparison operator (odrl:eq).
 - gmeow:operatorGt (a gmeow:ConstraintOperator): The ODRL gt comparison operator (odrl:gt).
 - gmeow:operatorGteq (a gmeow:ConstraintOperator): The ODRL gteq comparison operator (odrl:gteq).

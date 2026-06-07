@@ -23,6 +23,8 @@
 @prefix mf: <http://www.opengis.net/ont/movingfeatures#> .
 @prefix brick: <https://brickschema.org/schema/Brick#> .
 @prefix time: <http://www.w3.org/2006/time#> .
+@prefix sta: <http://www.opengis.net/def/ont/sensorthings/1.1/> .
+@prefix sosa: <http://www.w3.org/ns/sosa/> .
 
 # Term equivalences for the places domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-places.sssom.tsv by `gmeow compile-mappings`.
@@ -31,7 +33,7 @@ gmeow:mapsetPlaces a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/places" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard. placeType/storageMedium are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here." .
+    gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard. placeType/storageMedium are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream." .
 
 gmeow:eqPlaces001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:VirtualLocation ;
@@ -929,4 +931,44 @@ gmeow:eqPlaces105 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:comment "schema.org legislation is a CreativeWork subclass for laws; GMEOW overlayRegulation links to a machine-readable RightsStatement (deontic rules). Directional lossy projection." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Issue #96 — SOSA streaming + SensorThings API
+# --------------------------------------------------------------------------- #
+
+gmeow:eqPlaces108 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Stream ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sta:Datastream ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "SensorThings Datastream groups observations by sensor + observed property." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces109 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:LocationState ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sta:HistoricalLocation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "HistoricalLocation is time-indexed location of a Thing; LocationState is the state of a moving entity at a time." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces110 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:LocationState ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:Sample ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "A LocationState in a stream is a sample of the entity's trajectory." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces111 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Trajectory ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject sta:Datastream ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "Trajectory as the continuous form of a stream; weaker alignment than Stream→Datastream." ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" .
