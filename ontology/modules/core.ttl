@@ -137,3 +137,34 @@ gmeow:generalizesVia
     rdfs:label "generalizes via"@en ;
     skos:definition "Projection-compiler guidance naming the transitive part/whole property to walk when coarsening a value (e.g. gmeow:containedInPlace for places). Defaults to gmeow:partOf when absent. An annotation property — it directs generalization without imposing logical semantics, keeping the core OWL 2 DL."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Determinacy — universal ontic-uncertainty vocabulary (#71).
+#
+# Ontic indeterminacy (how inherently defined a value is) is held distinct from
+# epistemic confidence (how sure we are). A value may be crisp, vague, fuzzy,
+# probabilistic, or disputed — and that is recorded explicitly rather than
+# assumed away (CONSTITUTION P9). Applies to any value: gender, date, boundary,
+# SLAM cell. The fuzzy/probabilistic math lives in the solver layer (P12).
+# --------------------------------------------------------------------------- #
+
+gmeow:Determinacy
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Determinacy"@en ;
+    skos:definition "The model of ontic determinacy or indeterminacy for a value — whether it is inherently crisp, vague, fuzzy, probabilistic, or disputed. Distinct from epistemic confidence (how sure we are of a claim); determinacy records the nature of the value itself. Applies universally: a gender may be fuzzy, a date approximate, a boundary vague, a SLAM cell probabilistic, a contested fact disputed."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasDeterminacy
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:Determinacy ;
+    rdfs:label "has determinacy"@en ;
+    skos:definition "Relates a value, entity, or claim to its ontic determinacy model — the explicit facet recording whether the value is crisp, vague, fuzzy, probabilistic, or disputed. Domain-free (universal, like hasGranularity). NOT functional: in a multi-source merge sources may state different determinacy models, and those claims coexist rather than force the reasoner to collapse distinct models. Distinct from gmeow:confidence (epistemic certainty) and from gmeow:determinacyModel (the frame-level default for a ReferenceFrame)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Seeds
+gmeow:determinacyCrisp         a gmeow:Determinacy ; rdfs:label "crisp"@en .
+gmeow:determinacyVague         a gmeow:Determinacy ; rdfs:label "vague"@en .
+gmeow:determinacyFuzzy         a gmeow:Determinacy ; rdfs:label "fuzzy"@en .
+gmeow:determinacyProbabilistic a gmeow:Determinacy ; rdfs:label "probabilistic"@en .
+gmeow:determinacyDisputed      a gmeow:Determinacy ; rdfs:label "disputed"@en .
