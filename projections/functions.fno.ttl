@@ -239,10 +239,6 @@ gmeow:outRetagGeoJson a fno:Output ;
     fno:predicate geo:asGeoJSON ;
     fno:type geo:geoJSONLiteral .
 
-gmeow:outRetagWkt a fno:Output ;
-    fno:predicate geo:asWKT ;
-    fno:type geo:wktLiteral .
-
 gmeow:outSelectEndonym a fno:Output ;
     fno:predicate gmeow:projectedEndonym ;
     fno:type rdfs:Literal .
@@ -428,6 +424,10 @@ gmeow:outHonorificToAffix a fno:Output ;
 gmeow:outMembershipToJobTitle a fno:Output ;
     fno:predicate gmeow:projectedJobTitle ;
     fno:type rdfs:Literal .
+
+gmeow:outRetagWkt a fno:Output ;
+    fno:predicate geo:asWKT ;
+    fno:type geo:wktLiteral .
 
 gmeow:outSelectDisplayableGender a fno:Output ;
     fno:predicate gmeow:projectedGender ;
@@ -915,7 +915,11 @@ gmeow:implSchemaOrg a fno:Implementation ;
     fno:returnMapping [ a fnom:DefaultReturnMapping ;
             rdfs:label "fnRetagWkt output ↦ ?wktTagged"@en ;
             fnom:functionOutput gmeow:outRetagWkt ;
-            fnom:implementationProperty "wktTagged" ] .
+            fnom:implementationProperty "wktTagged" ],
+        [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnRetagWkt output ↦ ?wktTagged_centroid"@en ;
+            fnom:functionOutput gmeow:outRetagWkt ;
+            fnom:implementationProperty "wktTagged_centroid" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnSelectDisplayName → foaf (FnO mapping)"@en ;

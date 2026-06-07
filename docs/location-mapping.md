@@ -250,6 +250,36 @@ The SHACL `PoseShape` enforces exactly one position, one orientation, and one fr
 
 GeoSPARQL 1.0/1.1 has no native pose model, so the `geosparql` profile projects **only the translational component** of a pose to a WKT POINT. Orientation is an intentional, documented lossy drop (`fnPosePositionToWktPoint`). Heading/bearing may be projected separately once a GeoPose JSON profile is added. The existing `Place` point projection (`mapGeoPoint`) continues to work independently.
 
+## Spatial Aggregation and Privacy-Preserving Statistics (#101)
+
+GMEOW models spatial aggregation as a reified `gmeow:SpatialAggregation` — a `gmeow:Measurement` specialisation that summarises entities located within a `gmeow:Place`. The aggregation function (`gmeow:aggregationFunction`) is a value vocabulary (`gmeow:AggregationFunction`) with seeds for count, sum, average, density, centroid, minimum, and maximum. The aggregation region is the `gmeow:observedFeature`; the result is a `gmeow:ScalarQuantity`. The actual arithmetic is performed by the solver layer (Principle 12), never materialised as asserted triples.
+
+For k-anonymity, a `gmeow:minimumPopulation` datatype property on `SpatialAggregation` declares the minimum population size (k) required for disclosure. A result failing this check is suppressed at projection time (coarsen or withhold, Principle 10), never deleted.
+
+The flat shortcut `gmeow:hasCentroid` on `gmeow:Place` provides the geometric centroid directly; the full relator form is a `SpatialAggregation` with `aggregationFunction` `aggCentroid`, carrying provenance, frame, and solver reference.
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://example.org/loc/> .
+
+ex:cityCensus a gmeow:SpatialAggregation ;
+    gmeow:observedFeature ex:metropolis ;
+    gmeow:aggregationFunction gmeow:aggCount ;
+    gmeow:observationResult [
+        a gmeow:ScalarQuantity ;
+        gmeow:quantityValue "15000"^^xsd:decimal ;
+        gmeow:hasUnit <http://qudt.org/vocab/unit/UNITLESS> ;
+    ] ;
+    gmeow:minimumPopulation 5 ;
+    gmeow:vantage ex:censusBureau .
+```
+
+**Alignments:**
+
+- **GeoSPARQL**: `gmeow:hasCentroid` → `geo:hasCentroid`; `gmeow:containsPlace` → `geo:sfContains`.
+- **RDF Data Cube**: `gmeow:SpatialAggregation` → `qb:Observation`; `gmeow:AggregationFunction` → `qb:MeasureProperty`.
+
 ## Time-scoped jurisdiction and containment (#82)
 
 A place's **sovereignty** and **parent containment** are time-scoped, contested, and historically varying. GMEOW models them as reified `gmeow:TimeScopedRelation` subtypes:
