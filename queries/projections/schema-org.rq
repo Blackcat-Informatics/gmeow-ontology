@@ -65,6 +65,8 @@ CONSTRUCT {
     ?ent schema:usageInfo ?ui .
     ?ent schema:conditionsOfAccess ?coa .
     ?route a schema:Trip .
+    ?org schema:foundingDate ?fdate .
+    ?org schema:dissolutionDate ?ddate .
     ?ent schema:keywords ?kw .
 }
 WHERE {
@@ -326,6 +328,16 @@ WHERE {
     }
     UNION {
         ?route a gmeow:Route .
+    }
+    UNION {
+        ?org a gmeow:Organization .
+        ?org gmeow:hasCreationEvent ?cevent .
+        ?cevent gmeow:eventTime ?fdate .
+    }
+    UNION {
+        ?org a gmeow:Organization .
+        ?org gmeow:hasDestructionEvent ?devent .
+        ?devent gmeow:eventTime ?ddate .
     }
     UNION {
         ?ent gmeow:hasTag ?tag .

@@ -66,7 +66,9 @@ def test_dsl_parses() -> None:
     # tagInScheme↔skos:inScheme, 2 MOAT alignments, 2 tag-relation seeds).
     # Issue #78 pose/orientation: +16 (IEEE 1872 POS x5, Wikidata x11).
     # Issue #80 connectivity: +2 (Route→gtfs:Route, Route→schema:Trip).
-    assert len(dsl.equivalences) == 841
+    # Issue #81 lifecycle: +8 (+7 as originally authored, +1 eventTypeDissolution
+    # mapping added per review feedback).
+    assert len(dsl.equivalences) == 849
     # 25 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -83,7 +85,8 @@ def test_dsl_parses() -> None:
     # gmeow-colourspace is intentionally omitted (no TermEquivalence entries).
     # Issue #27 adds gmeow-tags.
     # Issue #80 adds gmeow-connectivity.
-    assert len(dsl.mapping_sets) == 25
+    # Issue #81 lifecycle: +1 (gmeow-lifecycle.sssom.tsv).
+    assert len(dsl.mapping_sets) == 26
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}
