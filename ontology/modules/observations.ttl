@@ -128,12 +128,6 @@ gmeow:relationshipChild rdfs:subPropertyOf gmeow:observedFeature .
 # CoupleRelationship bridge.
 gmeow:hasPartner rdfs:subPropertyOf gmeow:observedFeature .
 
-# IdentityFacet value bridges — results of the observation.
-gmeow:genderValue rdfs:subPropertyOf gmeow:observationResult .
-gmeow:expressionValue rdfs:subPropertyOf gmeow:observationResult .
-gmeow:sexualOrientationValue rdfs:subPropertyOf gmeow:observationResult .
-gmeow:romanticOrientationValue rdfs:subPropertyOf gmeow:observationResult .
-
 # =========================================================================== #
 # OBSERVATION → EVENT LINKAGE (lightweight — heavy form uses ObservingActivity)
 # =========================================================================== #

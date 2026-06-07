@@ -228,18 +228,17 @@ def test_property_bridges_fire() -> None:
     assert (GMEOW.facetSubject, RDFS.subPropertyOf, GMEOW.observedFeature) in graph
     assert (GMEOW.facetVantage, RDFS.subPropertyOf, GMEOW.vantage) in graph
     # KinRelationship bridges
-    assert (GMEOW.relationshipParent, RDFS.subPropertyOf, GMEOW.observedFeature) in graph
-    assert (GMEOW.relationshipChild, RDFS.subPropertyOf, GMEOW.observedFeature) in graph
+    assert (
+        GMEOW.relationshipParent,
+        RDFS.subPropertyOf,
+        GMEOW.observedFeature,
+    ) in graph
+    assert (
+        GMEOW.relationshipChild,
+        RDFS.subPropertyOf,
+        GMEOW.observedFeature,
+    ) in graph
     assert (GMEOW.hasPartner, RDFS.subPropertyOf, GMEOW.observedFeature) in graph
-    # IdentityFacet value bridges
-    assert (GMEOW.genderValue, RDFS.subPropertyOf, GMEOW.observationResult) in graph
-    assert (GMEOW.expressionValue, RDFS.subPropertyOf, GMEOW.observationResult) in graph
-    assert (
-        GMEOW.sexualOrientationValue, RDFS.subPropertyOf, GMEOW.observationResult
-    ) in graph
-    assert (
-        GMEOW.romanticOrientationValue, RDFS.subPropertyOf, GMEOW.observationResult
-    ) in graph
 
 
 def test_standpoint_claim_aligned_to_sosa_observation() -> None:

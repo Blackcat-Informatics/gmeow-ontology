@@ -20,20 +20,30 @@ ex:dana a gmeow:Person ;
     gmeow:hasRomanticOrientation ex:danaRomantic .
 
 ex:danaGi a gmeow:GenderIdentity ;
+    gmeow:facetSubject ex:dana ;
+    gmeow:facetVantage ex:dana ;
     gmeow:genderValue gmeow:genderNonBinary .
 
 ex:danaExpr a gmeow:GenderExpression ;
+    gmeow:facetSubject ex:dana ;
+    gmeow:facetVantage ex:dana ;
     gmeow:expressionValue gmeow:expressionAndrogynous .
 
 ex:danaSexual a gmeow:SexualOrientation ;
+    gmeow:facetSubject ex:dana ;
+    gmeow:facetVantage ex:dana ;
     gmeow:sexualOrientationValue gmeow:orientBisexual .
 
 ex:danaRomantic a gmeow:RomanticOrientation ;
+    gmeow:facetSubject ex:dana ;
+    gmeow:facetVantage ex:dana ;
     gmeow:romanticOrientationValue gmeow:romanticBiromantic .
 
 # --- A superseded facet, correctly suppressed (never deleted) ---------------- #
 
 ex:danaGiOld a gmeow:GenderIdentity ;
+    gmeow:facetSubject ex:dana ;
+    gmeow:facetVantage ex:dana ;
     gmeow:genderValue gmeow:genderMan ;
     gmeow:validUntil "2020-01-01T00:00:00"^^xsd:dateTime ;
     gmeow:displayable false .
