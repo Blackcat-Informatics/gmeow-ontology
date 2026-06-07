@@ -208,6 +208,34 @@ def test_geosparql_projection() -> None:
     _assert_no_gmeow_leakage(g)
 
 
+def test_geosparql_pose_projection() -> None:
+    """Pose positions project to WKT POINT; orientation is intentionally dropped."""
+    g = project_graph("geosparql", _source())
+    wkt = URIRef(GEO + "wktLiteral")
+    points = {
+        str(o)
+        for o in g.objects(None, URIRef(GEO + "asWKT"))
+        if isinstance(o, Literal) and o.datatype == wkt and "POINT" in str(o)
+    }
+    # Drone pose position (53.5449, -113.9244) projects to
+    # POINT(-113.9244 53.5449).
+    assert any("-113.9244" in p and "53.5449" in p for p in points)
+    # Telescope pose position (53.54495, -113.92435) projects to
+    # POINT(-113.92435 53.54495).
+    assert any("-113.92435" in p and "53.54495" in p for p in points)
+    # Orientation literals must NOT leak into the GeoSPARQL profile.
+    for orient_val in ("0.70710678", "45.0", "10.0", "ZYX"):
+        lit = Literal(orient_val)
+        assert lit not in set(g.objects()), (
+            f"Orientation literal {orient_val!r} leaked into GeoSPARQL projection"
+        )
+        assert lit not in set(g.subjects()), (
+            f"Orientation literal {orient_val!r} leaked as"
+            f" subject into GeoSPARQL projection"
+        )
+    _assert_no_gmeow_leakage(g)
+
+
 def test_vcard_projection() -> None:
     g = project_graph("vcard", _source())
     assert (None, RDF.type, URIRef(VCARD + "Address")) in g

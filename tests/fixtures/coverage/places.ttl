@@ -106,3 +106,54 @@ ex:vcardSource a gmeow:Source ;
 ex:patrick a gmeow:Person ;
     gmeow:locatedAt ex:westbourne112 ;
     gmeow:hasContactPoint ex:addr .
+
+# Pose / Orientation coverage (#78): a drone with quaternion orientation and a
+# telescope with Euler-angle orientation. Both share the same WGS84 frame for
+# simplicity; in production each pose points at its own ReferenceFrame profile.
+ex:wgs84Frame a gmeow:ReferenceFrame ;
+    gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+    gmeow:frameKind gmeow:frameKindGeodetic ;
+    gmeow:hasAxis gmeow:axisLatitude, gmeow:axisLongitude, gmeow:axisElevation ;
+    gmeow:dimensionCount 3 ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyExact .
+
+ex:drone a gmeow:PhysicalObject ;
+    gmeow:hasPose ex:dronePose .
+
+ex:dronePose a gmeow:Pose ;
+    gmeow:poseFrame ex:wgs84Frame ;
+    gmeow:hasPosePosition ex:dronePosition ;
+    gmeow:hasPoseOrientation ex:droneOrientation .
+
+ex:dronePosition a gmeow:GeoCoordinates ;
+    gmeow:latitude 53.544900 ;
+    gmeow:longitude -113.924400 ;
+    gmeow:elevation 650.0 ;
+    gmeow:coordinateFrame ex:wgs84Frame .
+
+ex:droneOrientation a gmeow:Orientation ;
+    gmeow:quaternionX 0.0 ;
+    gmeow:quaternionY 0.0 ;
+    gmeow:quaternionZ 0.70710678 ;
+    gmeow:quaternionW 0.70710678 .
+
+ex:telescope a gmeow:PhysicalObject ;
+    gmeow:hasPose ex:telescopePose .
+
+ex:telescopePose a gmeow:Pose ;
+    gmeow:poseFrame ex:wgs84Frame ;
+    gmeow:hasPosePosition ex:telescopePosition ;
+    gmeow:hasPoseOrientation ex:telescopeOrientation .
+
+ex:telescopePosition a gmeow:GeoCoordinates ;
+    gmeow:latitude 53.544950 ;
+    gmeow:longitude -113.924350 ;
+    gmeow:elevation 648.0 ;
+    gmeow:coordinateFrame ex:wgs84Frame .
+
+ex:telescopeOrientation a gmeow:Orientation ;
+    gmeow:yaw 45.0 ;
+    gmeow:pitch 10.0 ;
+    gmeow:roll 0.0 ;
+    gmeow:eulerOrder "ZYX" .
