@@ -914,9 +914,165 @@ gmeow:rcc8eq
 # the inferred gmeow:PlaceNaming (≡ NameUsage ⊓ ∃usageNamed.Place). The former
 # flat gmeow:alternateName literal was retired in favour of that model (Principle 6).
 
-# Future: gmeow:adjacentTo (symmetric place topology) and time-varying place
-# facts (renames, boundary/jurisdiction changes) reified over the temporal
-# module's gmeow:TimeScopedRelation — deferred; no current consumer.
+# --------------------------------------------------------------------------- #
+# Time-scoped relators — jurisdiction and containment over time (#82)
+# --------------------------------------------------------------------------- #
+# The flat transitive containedInPlace is the 80 % case; these relators carry
+# the same information when period, standpoint, or contestation matter.
+# Both are gufo:SituationType subtypes of gmeow:TimeScopedRelation, carrying
+# their interval via gmeow:duringInterval (temporal module).
+# --------------------------------------------------------------------------- #
+
+gmeow:JurisdictionTenure
+    a owl:Class, gufo:SituationType ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    rdfs:label "Jurisdiction Tenure"@en ;
+    skos:definition "The reified, time-scoped fact that a place was governed by a particular polity over an interval — a sovereignty or administrative jurisdiction claim. Non-functional on the place: contested sovereignty (e.g. Crimea-class) is modelled as multiple co-existing JurisdictionTenures, each standpoint-indexed and confidence-weighted, never collapsing to a single winner (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:jurisdictionPlace
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:JurisdictionTenure ;
+    rdfs:range gmeow:Place ;
+    rdfs:label "jurisdiction place"@en ;
+    skos:definition "The place whose governance is recorded by this JurisdictionTenure. Functional: a tenure concerns exactly one place (constitutive of the situation's identity)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:jurisdictionPolity
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:JurisdictionTenure ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "jurisdiction polity"@en ;
+    skos:definition "The governing polity (state, administrative body, or organization) that held jurisdiction over the place during this tenure. Functional: a single tenure has exactly one governing polity."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:jurisdictionDeterminacy
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasDeterminacy ;
+    rdfs:domain gmeow:JurisdictionTenure ;
+    rdfs:range gmeow:Determinacy ;
+    rdfs:label "jurisdiction determinacy"@en ;
+    skos:definition "The ontic determinacy model of this jurisdiction claim — crisp (well-defined border), vague (approximate boundary), fuzzy (probabilistic membership), or disputed (competing claims). Non-functional: sources may disagree on determinacy, and those claims coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:ContainmentTenure
+    a owl:Class, gufo:SituationType ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    rdfs:label "Containment Tenure"@en ;
+    skos:definition "The reified, time-scoped fact that a place was contained in a larger place over an interval — for boundary changes, re-organisations, and disputed parallel parents. Reifies containedInPlace over time; the plain transitive property remains the flat shortcut."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:containmentChild
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ContainmentTenure ;
+    rdfs:range gmeow:Place ;
+    rdfs:label "containment child"@en ;
+    skos:definition "The contained (child) place in this containment tenure. Functional: a tenure concerns exactly one child place."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:containmentParent
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ContainmentTenure ;
+    rdfs:range gmeow:Place ;
+    rdfs:label "containment parent"@en ;
+    skos:definition "The containing (parent) place in this containment tenure. Functional: a single tenure has exactly one parent place."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# GeometryType value vocabulary & GeoJSON support (#82)
+# --------------------------------------------------------------------------- #
+
+gmeow:GeometryType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Geometry Type"@en ;
+    skos:definition "The structural kind of a geometry (point, line, polygon, multipoint, multilinestring, multipolygon). A value vocabulary (individuals, never subclasses) aligned by reference to GeoSPARQL simple-features (sf:Point, sf:LineString, sf:Polygon, etc.)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:geometryType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Geometry ;
+    rdfs:range gmeow:GeometryType ;
+    rdfs:label "geometry type"@en ;
+    skos:definition "The structural kind of a geometry (a gmeow:GeometryType individual). Non-functional: competing source classifications may differ (e.g. polygon vs multipolygon) and must coexist as evidence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:geometryTypePoint           a gmeow:GeometryType ; rdfs:label "point"@en .
+gmeow:geometryTypeLineString      a gmeow:GeometryType ; rdfs:label "line string"@en .
+gmeow:geometryTypePolygon         a gmeow:GeometryType ; rdfs:label "polygon"@en .
+gmeow:geometryTypeMultiPoint      a gmeow:GeometryType ; rdfs:label "multi-point"@en .
+gmeow:geometryTypeMultiLineString a gmeow:GeometryType ; rdfs:label "multi-line string"@en .
+gmeow:geometryTypeMultiPolygon    a gmeow:GeometryType ; rdfs:label "multi-polygon"@en .
+
+gmeow:asGeoJSON
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Geometry ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "as GeoJSON"@en ;
+    skos:definition "A GeoJSON serialization of a geometry. The range is rdfs:Literal (not geo:geoJSONLiteral) to stay within the OWL 2 DL datatype map; data may still tag the literal ^^geo:geoJSONLiteral, and the alignment to geo:asGeoJSON preserves GeoSPARQL semantics for spatial engines."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Place determinacy & lifecycle wiring (#82)
+# --------------------------------------------------------------------------- #
+
+gmeow:placeDeterminacy
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasDeterminacy ;
+    rdfs:domain gmeow:Place ;
+    rdfs:range gmeow:Determinacy ;
+    rdfs:label "place determinacy"@en ;
+    skos:definition "The ontic determinacy model of a place's existence or boundary — crisp, vague, fuzzy, probabilistic, or disputed. Non-functional: in a multi-source merge, sources may state different determinacy models, and those claims coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:geometryDeterminacy
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasDeterminacy ;
+    rdfs:domain gmeow:Geometry ;
+    rdfs:range gmeow:Determinacy ;
+    rdfs:label "geometry determinacy"@en ;
+    skos:definition "The ontic determinacy model of a geometry's boundary — crisp (surveyed), vague (approximate), fuzzy (probabilistic), or disputed. Non-functional: competing source classifications coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:placeSupersededBy
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:placeSupersedes ;
+    rdfs:subPropertyOf gmeow:supersededBy ;
+    rdfs:domain gmeow:Place ;
+    rdfs:range gmeow:Place ;
+    rdfs:label "place superseded by"@en ;
+    skos:definition "Links a place to the place that replaced it — Constantinople placeSupersededBy Istanbul, a merged municipality placeSupersededBy its successor. Directional. The superseded place is retained (never deleted) and may carry gmeow:displayable false."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:placeSupersedes
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:placeSupersededBy ;
+    rdfs:subPropertyOf gmeow:supersedes ;
+    rdfs:domain gmeow:Place ;
+    rdfs:range gmeow:Place ;
+    rdfs:label "place supersedes"@en ;
+    skos:definition "Links a newer place to a prior one it supersedes. Inverse of gmeow:placeSupersededBy. Non-functional: one successor may consolidate several predecessors."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# AXIOMATIZED DOCTRINE — open-world EL someValuesFrom on the time-scoped relators.
+# Closed-world "exactly one" cardinality is enforced by SHACL (JurisdictionTenureShape,
+# ContainmentTenureShape). gmeow:JurisdictionTenure and gmeow:ContainmentTenure are
+# gufo:Situation subtypes, not gufo:Relators, so they carry gmeow:duringInterval
+# (inherited from TimeScopedRelation) rather than a relator interval.
+
+gmeow:JurisdictionTenure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:jurisdictionPlace ; owl:someValuesFrom gmeow:Place ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:jurisdictionPolity ; owl:someValuesFrom gmeow:Agent ] .
+
+gmeow:ContainmentTenure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:containmentChild ; owl:someValuesFrom gmeow:Place ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:containmentParent ; owl:someValuesFrom gmeow:Place ] .
+
+# Multilingual / historical place names are NOT a flat literal: a place bears
+# co-equal gmeow:PlaceName appellations via gmeow:hasPlaceName (names module),
+# their endonym/exonym purpose, language frame and toponymic authority carried by
+# the inferred gmeow:PlaceNaming (≡ NameUsage ⊓ ∃usageNamed.Place). The former
+# flat gmeow:alternateName literal was retired in favour of that model (Principle 6).
 
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE (#38 — phase 2 of the reasoning-depth epic #35)

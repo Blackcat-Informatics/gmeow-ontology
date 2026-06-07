@@ -21,6 +21,13 @@ gmeow:fnCoarsenToGranularity a fno:Function ;
     fno:expects ( gmeow:paramCoarsenTo gmeow:paramLatitude gmeow:paramLongitude ) ;
     fno:returns ( gmeow:outCoarsenToGranularity ) .
 
+gmeow:fnCoarsenToGranularityGeoJson a fno:Function ;
+    rdfs:label "coarsen GeoJSON coordinates to the enclosing region (generalization, P10)"@en ;
+    dcterms:description "Disclosure control by generalization (#72, CONSTITUTION P10): a place that carries gmeow:coarsenTo a target gmeow:GranularityLevel is projected with the coordinates of the enclosing ancestor at that level INSTEAD of its precise GeoJSON — a coarser region rather than exact coordinates, never deletion. Receives the already-selected ancestor's GeoJSON and re-emitting it as the place's location. Heavier geomasking / k-anonymity stays in the solver layer (P12)."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> ;
+    fno:expects ( gmeow:paramCoarsenTo gmeow:paramAsGeoJSON ) ;
+    fno:returns ( gmeow:outCoarsenToGranularityGeoJson ) .
+
 gmeow:fnComposeAddress a fno:Function ;
     rdfs:label "compose address components → single label string"@en ;
     dcterms:description "Concatenates the decomposed address components (street, locality, region, postal code, country) into one single-line label string — emitted as vcard:label by the vCard projection. Lossy: formatting convention varies by locale."@en ;
@@ -97,6 +104,13 @@ gmeow:fnPronounSetToText a fno:Function ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/vcard.rq> ;
     fno:expects ( gmeow:paramPronounSubject gmeow:paramPronounObject gmeow:paramPronounPossessiveDeterminer gmeow:paramPronounPossessive gmeow:paramPronounReflexive ) ;
     fno:returns ( gmeow:outPronounSetToText ) .
+
+gmeow:fnRetagGeoJson a fno:Function ;
+    rdfs:label "retag GeoJSON literal as geo:geoJSONLiteral"@en ;
+    dcterms:description "Re-tags a gmeow:asGeoJSON value (range rdfs:Literal, for OWL 2 DL safety) with the geo:geoJSONLiteral datatype so GeoSPARQL spatial engines recognise it."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> ;
+    fno:expects ( gmeow:paramAsGeoJSON ) ;
+    fno:returns ( gmeow:outRetagGeoJson ) .
 
 gmeow:fnRetagWkt a fno:Function ;
     rdfs:label "retag WKT literal as geo:wktLiteral"@en ;
@@ -177,6 +191,10 @@ gmeow:fnSelectDisplayableGender a fno:Function ;
     fno:expects ( gmeow:paramHasGenderIdentity ) ;
     fno:returns ( gmeow:outSelectDisplayableGender ) .
 
+gmeow:outCoarsenToGranularityGeoJson a fno:Output ;
+    fno:predicate geo:asGeoJSON ;
+    fno:type geo:geoJSONLiteral .
+
 gmeow:outComposeAddress a fno:Output ;
     fno:predicate gmeow:projectedAddress ;
     fno:type xsd:string .
@@ -217,6 +235,10 @@ gmeow:outPronounSetToText a fno:Output ;
     fno:predicate gmeow:projectedPronouns ;
     fno:type xsd:string .
 
+gmeow:outRetagGeoJson a fno:Output ;
+    fno:predicate geo:asGeoJSON ;
+    fno:type geo:geoJSONLiteral .
+
 gmeow:outRetagWkt a fno:Output ;
     fno:predicate geo:asWKT ;
     fno:type geo:wktLiteral .
@@ -255,11 +277,6 @@ gmeow:paramAsWKT a fno:Parameter ;
     fno:predicate gmeow:asWKT ;
     fno:required true ;
     fno:type rdfs:Literal .
-
-gmeow:paramCoarsenTo a fno:Parameter ;
-    fno:predicate gmeow:coarsenTo ;
-    fno:required true ;
-    fno:type gmeow:GranularityLevel .
 
 gmeow:paramCountryCode a fno:Parameter ;
     fno:predicate gmeow:countryCode ;
@@ -435,10 +452,6 @@ gmeow:implFoaf a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/foaf.rq> .
 
-gmeow:implGeosparql a fno:Implementation ;
-    dcterms:format "application/sparql-query" ;
-    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> .
-
 gmeow:outNicknameName a fno:Output ;
     fno:predicate gmeow:projectedNick ;
     fno:type rdfs:Literal .
@@ -446,6 +459,16 @@ gmeow:outNicknameName a fno:Output ;
 gmeow:outWebPageToUrl a fno:Output ;
     fno:predicate gmeow:projectedUrl ;
     fno:type xsd:anyURI .
+
+gmeow:paramAsGeoJSON a fno:Parameter ;
+    fno:predicate gmeow:asGeoJSON ;
+    fno:required true ;
+    fno:type rdfs:Literal .
+
+gmeow:paramCoarsenTo a fno:Parameter ;
+    fno:predicate gmeow:coarsenTo ;
+    fno:required true ;
+    fno:type gmeow:GranularityLevel .
 
 gmeow:paramHasAppellation a fno:Parameter ;
     fno:predicate gmeow:hasAppellation ;
@@ -479,6 +502,10 @@ gmeow:paramParticipationParticipant a fno:Parameter ;
     fno:predicate gmeow:participationParticipant ;
     fno:required true ;
     fno:type gmeow:Entity .
+
+gmeow:implGeosparql a fno:Implementation ;
+    dcterms:format "application/sparql-query" ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> .
 
 gmeow:paramLatitude a fno:Parameter ;
     fno:predicate gmeow:latitude ;
@@ -523,6 +550,23 @@ gmeow:implSchemaOrg a fno:Implementation ;
             rdfs:label "fnBirthEventToDate output ↦ ?bdate"@en ;
             fnom:functionOutput gmeow:outBirthEventToDate ;
             fnom:implementationProperty "bdate" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "fnCoarsenToGranularityGeoJson → geosparql (FnO mapping)"@en ;
+    fno:function gmeow:fnCoarsenToGranularityGeoJson ;
+    fno:implementation gmeow:implGeosparql ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramAsGeoJSON ↦ ?gj"@en ;
+            fnom:functionParameter gmeow:paramAsGeoJSON ;
+            fnom:implementationProperty "gj" ],
+        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramCoarsenTo ↦ ?lvl"@en ;
+            fnom:functionParameter gmeow:paramCoarsenTo ;
+            fnom:implementationProperty "lvl" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnCoarsenToGranularityGeoJson output ↦ ?gjTagged"@en ;
+            fnom:functionOutput gmeow:outCoarsenToGranularityGeoJson ;
+            fnom:implementationProperty "gjTagged" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnCoarsenToGranularity → geosparql (FnO mapping)"@en ;
@@ -846,6 +890,19 @@ gmeow:implSchemaOrg a fno:Implementation ;
             rdfs:label "fnPronounSetToText output ↦ ?pronouns"@en ;
             fnom:functionOutput gmeow:outPronounSetToText ;
             fnom:implementationProperty "pronouns" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "fnRetagGeoJson → geosparql (FnO mapping)"@en ;
+    fno:function gmeow:fnRetagGeoJson ;
+    fno:implementation gmeow:implGeosparql ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramAsGeoJSON ↦ ?gj"@en ;
+            fnom:functionParameter gmeow:paramAsGeoJSON ;
+            fnom:implementationProperty "gj" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnRetagGeoJson output ↦ ?gjTagged"@en ;
+            fnom:functionOutput gmeow:outRetagGeoJson ;
+            fnom:implementationProperty "gjTagged" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnRetagWkt → geosparql (FnO mapping)"@en ;
