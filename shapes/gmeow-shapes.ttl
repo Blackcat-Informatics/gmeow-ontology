@@ -1433,3 +1433,54 @@ gmeow:SupersededPlaceSuppressionShape
             }
         """ ;
     ] .
+
+# --------------------------------------------------------------------------- #
+# Accessibility module (#102). Closed-world well-formedness for the
+# AccessibilityAssertion relator; suppression contract (Principle 10).
+# --------------------------------------------------------------------------- #
+
+gmeow:AccessibilityAssertionShape
+    a sh:NodeShape ;
+    rdfs:label "AccessibilityAssertion well-formedness shape" ;
+    sh:targetClass gmeow:AccessibilityAssertion ;
+    sh:property [
+        sh:path gmeow:assertionSubject ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An AccessibilityAssertion must assess exactly one subject (gmeow:assertionSubject)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:assertionFacet ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An AccessibilityAssertion must assert exactly one facet (gmeow:assertionFacet)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:assertionPolarity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An AccessibilityAssertion must declare exactly one polarity (gmeow:assertionPolarity)." ;
+    ] .
+
+# Suppression, never erasure (Principle 10): a retracted or superseded
+# accessibility assertion (one with gmeow:validUntil) should set
+# gmeow:displayable false rather than be deleted. Warning — a source may lag.
+gmeow:RetractedAccessibilityAssertionShape
+    a sh:NodeShape ;
+    rdfs:label "Retracted accessibility assertion suppression shape" ;
+    sh:targetClass gmeow:AccessibilityAssertion ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        sh:message "A retracted or superseded accessibility assertion (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/validUntil> ?until .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
+                }
+            }
+        """ ;
+    ] .

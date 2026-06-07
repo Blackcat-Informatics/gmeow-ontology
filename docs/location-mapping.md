@@ -320,3 +320,39 @@ ex:cityBoundary a gmeow:Geometry ;
 | `gmeow:Place` | `pleiades:Place`, `whg:Place`, `lgdo:Place` |
 | `gmeow:hasPlaceName` | `pleiades:Name` |
 | `gmeow:authorityLink` | `whg:closeMatch` |
+
+---
+
+## Accessibility (#102)
+
+GMEOW models accessibility as a **cross-cutting facet layer** over locations and routes. A location can have **features** (positive facilitators) and **barriers** (negative impediments) for any accessibility dimension; an entity can declare **needs** for the same dimensions. There is no privileged or primary dimension — wheelchair, step-free, visual, auditory, cognitive, clearance, and life-support are orthogonal, co-equal facets (Principle 9).
+
+### Facet model
+
+- **`gmeow:AccessibilityFacet`** — the dimension (wheelchair, step-free, visual, auditory, cognitive, clearance, life-support). An open value vocabulary: individuals, never subclasses.
+- **`gmeow:hasAccessibilityFeature`** — flat shortcut: a location positively provides a facet.
+- **`gmeow:hasBarrier`** — flat shortcut: a location impedes a facet.
+- **`gmeow:hasAccessibilityNeed`** — flat shortcut: an entity requires a facet.
+
+A location MAY simultaneously carry **both** `hasAccessibilityFeature` and `hasBarrier` for the **same** facet (e.g. a ramp at the front entrance and stairs at the side). The two properties are declared `owl:propertyDisjointWith` to enforce conceptual separation — a single triple cannot be both.
+
+### Reified assertions (provenance + suppression)
+
+When the claim itself must be a node (provenance, confidence, temporal scope, or retraction), promote to **`gmeow:AccessibilityAssertion`** — a `gufo:Relator` with:
+
+- `assertionSubject` — the location or connection being assessed.
+- `assertionFacet` — the AccessibilityFacet.
+- `assertionPolarity` — `polarityFeature`, `polarityBarrier`, or `polarityLimited`.
+
+A retracted or disputed assertion sets `gmeow:displayable false` — suppressed from projection, never deleted (Principle 10).
+
+### Accessible routes
+
+An **accessible route** is a `gmeow:Route` of kind `routeKindAccessible`. The actual path is computed by the **solver layer** (Principle 12): it filters `gmeow:spatiallyConnectsTo` and locations to exclude any that have a `gmeow:hasBarrier` for a needed facet. The OWL core does not assert route triples.
+
+### External alignment
+
+- **schema.org**: `hasAccessibilityFeature` → `schema:accessibilityFeature` (lossy: GMEOW emits typed facet IRIs; schema.org expects specific text tokens). `hasBarrier` → `schema:accessibilityHazard`.
+- **WHO ICF**: Each AccessibilityFacet bridges to ICF categories by reference (e.g. `facetWheelchair` ↔ ICF d4 Mobility + e115 Products for personal mobility). Alignment is by reference only — GMEOW never imports the ICF ontology.
+- **OSM**: Conceptual alignment documented in SSSOM comments. OSM tags (`wheelchair=yes/no/limited`, `ramp:wheelchair`, `tactile_paving`, `step_count`) map directionally to facet assertions. No stable RDF ontology exists for OSM tags, so no executable SPARQL projection is generated.
+- **IMDF / IndoorGML**: Conceptual alignment to IMDF accessibility attributes and IndoorGML barrier constructs. No stable RDF IRIs exist for most terms, so alignment uses `skos:relatedMatch` to documentation URLs.

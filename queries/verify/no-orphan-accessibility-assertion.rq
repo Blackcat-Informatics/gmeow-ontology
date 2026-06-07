@@ -1,0 +1,13 @@
+# Negative test: every AccessibilityAssertion must have a subject, facet, and polarity.
+# An orphan assertion (missing any of these) is an error.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?assertion WHERE {
+    ?assertion a gmeow:AccessibilityAssertion .
+    FILTER (
+        NOT EXISTS { ?assertion gmeow:assertionSubject ?subject } ||
+        NOT EXISTS { ?assertion gmeow:assertionFacet ?facet } ||
+        NOT EXISTS { ?assertion gmeow:assertionPolarity ?polarity }
+    )
+}
