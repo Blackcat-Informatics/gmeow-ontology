@@ -682,6 +682,10 @@ def test_no_preferred_or_primary_place_term() -> None:
         "primaryJurisdiction",
         "preferredJurisdiction",
         "preferredRank",
+        "primaryOverlay",
+        "preferredOverlay",
+        "primaryRegulatoryOverlay",
+        "preferredRegulatoryOverlay",
     ):
         node = URIRef(GMEOW + banned)
         for pt in prop_types:
@@ -882,6 +886,171 @@ def test_containment_tenure_records_border_change() -> None:
 
     assert (EX_PLACES.polityA, EX_PLACES.interval1920_1954) in claims
     assert (EX_PLACES.polityB, EX_PLACES.interval1954_present) in claims
+
+
+# --------------------------------------------------------------------------- #
+# RegulatoryOverlay — legal / regulatory overlays beyond sovereignty (#103)
+# --------------------------------------------------------------------------- #
+
+
+def test_regulatory_overlay_grounding() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "RegulatoryOverlay"),
+        RDFS.subClassOf,
+        URIRef(GMEOW + "TimeScopedRelation"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayPlace"),
+        RDFS.domain,
+        URIRef(GMEOW + "RegulatoryOverlay"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayPlace"),
+        RDFS.range,
+        URIRef(GMEOW + "Place"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayPlace"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayAuthority"),
+        RDFS.domain,
+        URIRef(GMEOW + "RegulatoryOverlay"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayAuthority"),
+        RDFS.range,
+        URIRef(GMEOW + "Agent"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayAuthority"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayType"),
+        RDFS.domain,
+        URIRef(GMEOW + "RegulatoryOverlay"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayRegulation"),
+        RDFS.domain,
+        URIRef(GMEOW + "RegulatoryOverlay"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayRegulation"),
+        RDFS.range,
+        URIRef(GMEOW + "RightsStatement"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "RegulatoryOverlayType"),
+        RDF.type,
+        OWL.Class,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayType"),
+        RDFS.range,
+        URIRef(GMEOW + "RegulatoryOverlayType"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayDeterminacy"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "hasDeterminacy"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayDeterminacy"),
+        RDFS.domain,
+        URIRef(GMEOW + "RegulatoryOverlay"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayDeterminacy"),
+        RDFS.range,
+        URIRef(GMEOW + "Determinacy"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayLowerBound"),
+        RDFS.domain,
+        URIRef(GMEOW + "RegulatoryOverlay"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayLowerBound"),
+        RDFS.range,
+        URIRef(GMEOW + "ScalarQuantity"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayUpperBound"),
+        RDFS.domain,
+        URIRef(GMEOW + "RegulatoryOverlay"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "overlayUpperBound"),
+        RDFS.range,
+        URIRef(GMEOW + "ScalarQuantity"),
+    ) in graph
+
+
+def test_contested_regulatory_overlays_coexist() -> None:
+    """Two contradictory RegulatoryOverlays on the same place load, SHACL-pass,
+    and are BOTH retained — neither is the ground truth (Principle 9)."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-regulatory.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    overlays = set(g.subjects(RDF.type, URIRef(GMEOW + "RegulatoryOverlay")))
+    assert len(overlays) >= 2, "Expected at least two co-existing RegulatoryOverlays"
+    authorities = set()
+    for overlay in overlays:
+        auth = g.value(overlay, URIRef(GMEOW + "overlayAuthority"))
+        if auth:
+            authorities.add(auth)
+    assert len(authorities) >= 2, "Expected at least two distinct authority claims"
+
+
+def test_regulatory_overlay_linked_to_rights_statement() -> None:
+    """A RegulatoryOverlay may link to a RightsStatement for the deontic rules
+    that govern activity within the overlay."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-regulatory.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    overlays = list(g.subjects(RDF.type, URIRef(GMEOW + "RegulatoryOverlay")))
+    assert overlays, "Expected at least one RegulatoryOverlay"
+    regs = set()
+    for overlay in overlays:
+        reg = g.value(overlay, URIRef(GMEOW + "overlayRegulation"))
+        if reg:
+            regs.add(reg)
+    assert regs, "Expected at least one overlay linked to a RightsStatement"
+    for reg in regs:
+        assert (reg, RDF.type, URIRef(GMEOW + "RightsStatement")) in g
+
+
+def test_regulatory_overlay_3d_bounds() -> None:
+    """A restricted-airspace overlay carries altitude bounds as ScalarQuantity
+    with QUDT units and a reference frame (Principle 11)."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-regulatory.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    overlays = list(g.subjects(RDF.type, URIRef(GMEOW + "RegulatoryOverlay")))
+    found_bounds = False
+    for overlay in overlays:
+        lower = g.value(overlay, URIRef(GMEOW + "overlayLowerBound"))
+        upper = g.value(overlay, URIRef(GMEOW + "overlayUpperBound"))
+        if lower and upper:
+            found_bounds = True
+            for bound in (lower, upper):
+                sq = g.value(bound, URIRef(GMEOW + "quantityValue"))
+                assert sq is not None, "3D bound ScalarQuantity must have quantityValue"
+                unit = g.value(bound, URIRef(GMEOW + "hasUnit"))
+                assert unit is not None, "3D bound ScalarQuantity must have hasUnit"
+                frame = g.value(bound, URIRef(GMEOW + "hasReferenceFrame"))
+                assert frame is not None, (
+                    "3D bound ScalarQuantity must have hasReferenceFrame"
+                )
+    assert found_bounds, (
+        "Expected at least one overlay with both lower and upper bounds"
+    )
 
 
 def test_geometry_has_type_and_geojson() -> None:

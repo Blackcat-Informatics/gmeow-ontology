@@ -353,6 +353,88 @@ ex:cityBoundary a gmeow:Geometry ;
 
 ---
 
+## Regulatory Overlays (#103)
+
+GMEOW models legal and regulatory spatial overlays as reified **`gmeow:RegulatoryOverlay`** instances — time-scoped situations (⊑ `gmeow:TimeScopedRelation`) that bind a **place**, an **authority**, a **regulation type**, and optional **deontic rules** (`gmeow:RightsStatement`, #21). This covers zoning, protected areas, restricted airspace, sanctions, tax/electoral districts, postal zones, civil-time zones, fishing zones, and customs zones.
+
+### Distinction from JurisdictionTenure
+
+- **`gmeow:JurisdictionTenure`** — governance / sovereignty (who rules the place).
+- **`gmeow:RegulatoryOverlay`** — specific regulations applied over a place (what rules apply, and where).
+
+A place may have multiple overlays of different types simultaneously (a national park within a tax district within a civil-time zone), and contested overlays (disputed EEZ, overlapping indigenous claims vs. state zoning) coexist as standpoint-indexed instances, never a single winner (Principle 9).
+
+### Structure
+
+- **`gmeow:RegulatoryOverlay`** — the reified situation.
+- **`gmeow:overlayPlace`** → `gmeow:Place` — the geographic area (functional).
+- **`gmeow:overlayAuthority`** → `gmeow:Agent` — the body that imposed it (functional).
+- **`gmeow:overlayType`** → `gmeow:RegulatoryOverlayType` — the kind of overlay (non-functional, open value vocabulary).
+- **`gmeow:overlayRegulation`** → `gmeow:RightsStatement` — the deontic rules (#21) that govern activity within the overlay.
+- **`gmeow:overlayDeterminacy`** → `gmeow:Determinacy` — crisp, vague, fuzzy, or disputed boundary.
+- **`gmeow:overlayLowerBound` / `gmeow:overlayUpperBound`** → `gmeow:ScalarQuantity` — 3D bounds (altitude, depth, elevation) with QUDT unit and reference frame (Principle 11). Optional for 2D overlays.
+- **`gmeow:duringInterval`** → `gmeow:TimeInterval` — the period during which the overlay is in force (inherited from `TimeScopedRelation`).
+
+### Value vocabulary: `RegulatoryOverlayType`
+
+An open value vocabulary (individuals, never subclasses):
+
+| Individual | Meaning |
+|---|---|
+| `overlayTypeZoning` | Land-use regulation (residential, commercial, industrial, agricultural, mixed-use) |
+| `overlayTypeProtectedArea` | National park, wildlife reserve, marine protected area (IUCN categories Ia–VI are additional classifications, not subclasses) |
+| `overlayTypeRestrictedAirspace` | Prohibited, restricted, danger area, TRA, TSA, no-fly zone |
+| `overlayTypeSanctions` | Embargoed / sanctioned territory |
+| `overlayTypeTaxDistrict` | Tax assessment / collection district |
+| `overlayTypeElectoralDistrict` | Voting / constituency boundary |
+| `overlayTypePostalZone` | Postal code / ZIP delivery area |
+| `overlayTypeCivilTimeZone` | Civil time zone boundary (authority-decreed, not merely astronomical) |
+| `overlayTypeFishingZone` | EEZ / fisheries management zone (UNCLOS Article 55) |
+| `overlayTypeCustomsZone` | Customs territory, free-trade zone, bonded warehouse area |
+
+### 3D bounds and frame-relativity
+
+Airspace and maritime overlays often have vertical limits. These are **not** asserted as raw numbers on the overlay; they are `gmeow:ScalarQuantity` values carrying:
+
+- `gmeow:quantityValue` — the numeric bound.
+- `gmeow:hasUnit` — the QUDT unit (metres, feet, flight levels).
+- `gmeow:hasReferenceFrame` — the reference frame (e.g. WGS-84 for altitude above MSL, a local datum for depth below chart datum).
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://example.org/loc/> .
+
+ex:noFlyZone a gmeow:RegulatoryOverlay ;
+    gmeow:overlayPlace ex:airportApproach ;
+    gmeow:overlayAuthority ex:caa ;
+    gmeow:overlayType gmeow:overlayTypeRestrictedAirspace ;
+    gmeow:overlayLowerBound [ gmeow:quantityValue "0"^^xsd:decimal ; gmeow:hasUnit <http://qudt.org/vocab/unit/M> ; gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ] ;
+    gmeow:overlayUpperBound [ gmeow:quantityValue "3000"^^xsd:decimal ; gmeow:hasUnit <http://qudt.org/vocab/unit/M> ; gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ] ;
+    gmeow:duringInterval ex:intervalOngoing .
+```
+
+The 2D/3D polygon of the overlay's footprint lives on the `gmeow:Place` via `hasGeometry`; the vertical bounds live on the `RegulatoryOverlay`. This separation keeps geometry in one place and makes frame-relativity explicit (Principle 11).
+
+### External alignment (maximal bridging)
+
+| GMEOW term | External alignment |
+|---|---|
+| `gmeow:RegulatoryOverlay` | `schema:AdministrativeArea` (partial, lossy), `wd:Q1055894` (administrative territorial entity) |
+| `gmeow:overlayTypeZoning` | `wd:Q160730` (zoning) |
+| `gmeow:overlayTypeProtectedArea` | `wd:Q1041938` (protected area); IUCN management categories (Ia–VI) by reference |
+| `gmeow:overlayTypeRestrictedAirspace` | `wd:Q2574180` (no-fly zone); AIXM airspace types by reference |
+| `gmeow:overlayTypeSanctions` | `wd:Q1540287` (sanctions) |
+| `gmeow:overlayTypeElectoralDistrict` | `wd:Q171441` (electoral district) |
+| `gmeow:overlayTypePostalZone` | `wd:Q37447` (postal code) |
+| `gmeow:overlayTypeCivilTimeZone` | `time:TimeZone` (OWL-Time), `wd:Q12868` (time zone) |
+| `gmeow:overlayTypeFishingZone` | `wd:Q1285733` (exclusive economic zone) |
+| `gmeow:overlayTypeCustomsZone` | `wd:Q783930` (customs territory) |
+| `gmeow:overlayAuthority` | `schema:organizer` (lossy directional projection) |
+| `gmeow:overlayRegulation` | `schema:legislation` (lossy directional projection) |
+
+---
+
 ## Accessibility (#102)
 
 GMEOW models accessibility as a **cross-cutting facet layer** over locations and routes. A location can have **features** (positive facilitators) and **barriers** (negative impediments) for any accessibility dimension; an entity can declare **needs** for the same dimensions. There is no privileged or primary dimension — wheelchair, step-free, visual, auditory, cognitive, clearance, and life-support are orthogonal, co-equal facets (Principle 9).

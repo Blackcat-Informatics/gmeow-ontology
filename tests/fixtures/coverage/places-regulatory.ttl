@@ -1,0 +1,149 @@
+# Coverage slice for regulatory overlays (#103). Exercises RegulatoryOverlay,
+# RegulatoryOverlayType, overlayPlace, overlayAuthority, overlayType,
+# overlayRegulation, overlayDeterminacy, overlayLowerBound / overlayUpperBound,
+# standpoint coexistence, and linkage to RightsStatement (#21).
+# Native GMEOW terms only.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix qudt:  <http://qudt.org/vocab/unit/> .
+
+# --- Standpoints ------------------------------------------------------------- #
+ex:standpoint-city     a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-national a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-un       a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-state-a  a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-state-b  a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# --- Agents ------------------------------------------------------------------ #
+ex:cityCouncil   a gmeow:Organization ; rdfs:label "City Council"@en .
+ex:nationalParkService a gmeow:Organization ; rdfs:label "National Park Service"@en .
+ex:caa           a gmeow:Organization ; rdfs:label "Civil Aviation Authority"@en .
+ex:unSecurityCouncil a gmeow:Organization ; rdfs:label "UN Security Council"@en .
+ex:stateA        a gmeow:Organization ; rdfs:label "State A Foreign Ministry"@en .
+ex:stateB        a gmeow:Organization ; rdfs:label "State B Foreign Ministry"@en .
+ex:electionBoard a gmeow:Organization ; rdfs:label "Independent Election Board"@en .
+
+# --- RegulatoryOverlayType values (exercising the open value vocabulary) -------- #
+gmeow:overlayTypeZoning              a gmeow:RegulatoryOverlayType ; rdfs:label "zoning"@en .
+gmeow:overlayTypeProtectedArea       a gmeow:RegulatoryOverlayType ; rdfs:label "protected area"@en .
+gmeow:overlayTypeRestrictedAirspace  a gmeow:RegulatoryOverlayType ; rdfs:label "restricted airspace"@en .
+gmeow:overlayTypeSanctions           a gmeow:RegulatoryOverlayType ; rdfs:label "sanctions"@en .
+gmeow:overlayTypeElectoralDistrict   a gmeow:RegulatoryOverlayType ; rdfs:label "electoral district"@en .
+
+# --- Places ------------------------------------------------------------------ #
+ex:residentialZone a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeNeighborhood ;
+    rdfs:label "Westside Residential Zone"@en .
+
+ex:nationalPark a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeNaturalFeature ;
+    rdfs:label "Alpine National Park"@en .
+
+ex:airportApproach a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypePointOfInterest ;
+    rdfs:label "Airport Approach Corridor"@en .
+
+ex:sanctionedRegion a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeRegion ;
+    rdfs:label "Disputed Eastern Region"@en .
+
+ex:constituency42 a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeAdministrativeArea ;
+    rdfs:label "Constituency 42"@en .
+
+# --------------------------------------------------------------------------- #
+# Zoning overlay — residential land-use regulation
+# --------------------------------------------------------------------------- #
+ex:zoningResidential a gmeow:RegulatoryOverlay ;
+    gmeow:overlayPlace ex:residentialZone ;
+    gmeow:overlayAuthority ex:cityCouncil ;
+    gmeow:overlayType gmeow:overlayTypeZoning ;
+    gmeow:overlayDeterminacy gmeow:determinacyCrisp ;
+    gmeow:accordingTo ex:standpoint-city ;
+    gmeow:duringInterval ex:intervalOngoing .
+
+# --------------------------------------------------------------------------- #
+# Protected area — national park (IUCN II)
+# --------------------------------------------------------------------------- #
+ex:parkProtection a gmeow:RegulatoryOverlay ;
+    gmeow:overlayPlace ex:nationalPark ;
+    gmeow:overlayAuthority ex:nationalParkService ;
+    gmeow:overlayType gmeow:overlayTypeProtectedArea ;
+    gmeow:overlayDeterminacy gmeow:determinacyCrisp ;
+    gmeow:accordingTo ex:standpoint-national ;
+    gmeow:duringInterval ex:intervalOngoing .
+
+# --------------------------------------------------------------------------- #
+# Restricted airspace — no-fly zone with 3D altitude bounds
+# --------------------------------------------------------------------------- #
+ex:noFlyZone a gmeow:RegulatoryOverlay ;
+    gmeow:overlayPlace ex:airportApproach ;
+    gmeow:overlayAuthority ex:caa ;
+    gmeow:overlayType gmeow:overlayTypeRestrictedAirspace ;
+    gmeow:overlayRegulation ex:noFlyRights ;
+    gmeow:overlayDeterminacy gmeow:determinacyCrisp ;
+    gmeow:overlayLowerBound ex:altitude0 ;
+    gmeow:overlayUpperBound ex:altitude3000 ;
+    gmeow:accordingTo ex:standpoint-national ;
+    gmeow:duringInterval ex:intervalOngoing .
+
+ex:altitude0 a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "0"^^xsd:decimal ;
+    gmeow:hasUnit qudt:M ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 .
+
+ex:altitude3000 a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "3000"^^xsd:decimal ;
+    gmeow:hasUnit qudt:M ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 .
+
+# RightsStatement governing the no-fly zone (deontic rules)
+ex:noFlyRights a gmeow:RightsStatement ;
+    gmeow:statementAbout ex:airportApproach ;
+    gmeow:hasProhibition ex:proh-fly .
+
+ex:proh-fly a gmeow:Prohibition ;
+    gmeow:ruleAction gmeow:actionUse ;
+    gmeow:ruleAssignee ex:caa .
+
+# --------------------------------------------------------------------------- #
+# Sanctions — contested: two standpoints, two overlays on the same place
+# --------------------------------------------------------------------------- #
+ex:sanctionsUn a gmeow:RegulatoryOverlay ;
+    gmeow:overlayPlace ex:sanctionedRegion ;
+    gmeow:overlayAuthority ex:unSecurityCouncil ;
+    gmeow:overlayType gmeow:overlayTypeSanctions ;
+    gmeow:overlayDeterminacy gmeow:determinacyDisputed ;
+    gmeow:accordingTo ex:standpoint-un ;
+    gmeow:duringInterval ex:intervalOngoing .
+
+ex:sanctionsStateA a gmeow:RegulatoryOverlay ;
+    gmeow:overlayPlace ex:sanctionedRegion ;
+    gmeow:overlayAuthority ex:stateA ;
+    gmeow:overlayType gmeow:overlayTypeSanctions ;
+    gmeow:overlayDeterminacy gmeow:determinacyDisputed ;
+    gmeow:accordingTo ex:standpoint-state-a ;
+    gmeow:duringInterval ex:intervalOngoing .
+
+# --------------------------------------------------------------------------- #
+# Electoral district
+# --------------------------------------------------------------------------- #
+ex:electionOverlay a gmeow:RegulatoryOverlay ;
+    gmeow:overlayPlace ex:constituency42 ;
+    gmeow:overlayAuthority ex:electionBoard ;
+    gmeow:overlayType gmeow:overlayTypeElectoralDistrict ;
+    gmeow:overlayDeterminacy gmeow:determinacyCrisp ;
+    gmeow:accordingTo ex:standpoint-national ;
+    gmeow:duringInterval ex:interval2024_2028 .
+
+# --- Time intervals ---------------------------------------------------------- #
+ex:intervalOngoing a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2020-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:interval2024_2028 a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2024-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "2028-12-31T23:59:59Z"^^xsd:dateTime .
