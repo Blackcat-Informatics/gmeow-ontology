@@ -13,6 +13,8 @@
 #   - ObservedFeature + ObservationResult
 #   - ReferenceFrame inheritance
 #   - ScalarQuantity for literal results
+#   - Quantity / MeasuredValue as domain-neutral aliases (#77)
+#   - isResultOf for explicit result→observation provenance (#77)
 #   - Co-equal conflicting claims (Principle 9)
 # =========================================================================== #
 
@@ -96,6 +98,38 @@ ex:tempStation1
 ex:weatherStation1
     a gmeow:Agent ;
     rdfs:label "Weather Station YEG-01"@en .
+
+# --- Measurement: mass using Quantity (domain-neutral alias) ---------------- #
+# Demonstrates the value×unit×determinacy×provenance bundle (#77).
+
+ex:obsMassLab1
+    a gmeow:Measurement ;
+    gmeow:observationType gmeow:observationTypeMeasurement ;
+    gmeow:vantage ex:lab1 ;
+    gmeow:observedFeature ex:sampleA ;
+    gmeow:observationResult ex:massSampleA ;
+    gmeow:observationMethod gmeow:methodInstrumentalReading ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameSI ;
+    gmeow:hasGranularity gmeow:granularityPoint ;
+    gmeow:hasDeterminacy gmeow:determinacyCrisp ;
+    gmeow:confidence "0.995"^^xsd:decimal ;
+    gmeow:assertedAt "2024-08-01T10:00:00Z"^^xsd:dateTime .
+
+ex:massSampleA
+    a gmeow:Quantity ;
+    gmeow:quantityValue "42.195"^^xsd:decimal ;
+    gmeow:quantityUncertainty "0.001"^^xsd:decimal ;
+    gmeow:hasUnit <http://qudt.org/vocab/unit/KiloGM> ;
+    gmeow:hasDeterminacy gmeow:determinacyCrisp ;
+    gmeow:isResultOf ex:obsMassLab1 .
+
+ex:lab1
+    a gmeow:Organization ;
+    rdfs:label "National Metrology Lab"@en .
+
+ex:sampleA
+    a gmeow:Entity ;
+    rdfs:label "Test Sample A"@en .
 
 # --- Standpoint Claim: political boundary assertion ------------------------- #
 

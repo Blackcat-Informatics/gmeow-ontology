@@ -69,7 +69,10 @@ def test_dsl_parses() -> None:
     # Issue #81 lifecycle: +8 (+7 as originally authored, +1 eventTypeDissolution
     # mapping added per review feedback).
     # Issue #75 Profile meta-pattern: +1 (gmeow:Profile skos:relatedMatch prof:Profile).
-    assert len(dsl.equivalences) == 850
+    # Issue #77 universal quantity: +4 (Quantity→qudt:QuantityValue,
+    # quantityValue→qudt:quantityValue, quantityUncertainty→qudt:standardUncertainty,
+    # Quantity→sosa:Result).
+    assert len(dsl.equivalences) == 854
     # 25 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

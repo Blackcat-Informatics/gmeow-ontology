@@ -16,7 +16,7 @@ gmeow:mapsetObservations a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/observations" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. gmeow:ScalarQuantity is canonical — no faithful external term captures the unit+determinacy+granularity bundle in one node. Added (#68): StandpointClaim → sosa:Observation; Agent → sosa:Sensor (the observer/sensor/perceiver is a standpoint)." .
+    gmeow:setComment "Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. gmeow:ScalarQuantity is canonical — no faithful external term captures the unit+determinacy+granularity bundle in one node. Added (#68): StandpointClaim → sosa:Observation; Agent → sosa:Sensor (the observer/sensor/perceiver is a standpoint). Added (#77): gmeow:Quantity and gmeow:MeasuredValue are equivalent aliases for ScalarQuantity; aligned to QUDT qudt:QuantityValue." .
 
 # --------------------------------------------------------------------------- #
 # SOSA / SSN
@@ -87,6 +87,15 @@ gmeow:eqObs008 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:comment "sosa:Result is broader (any result); gmeow:ScalarQuantity is specifically a scalar numeric with unit+determinacy+granularity." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs019 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Quantity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:Result ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "sosa:Result is broader (any result); gmeow:Quantity is the domain-neutral alias for ScalarQuantity (#77)." ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" .
 
 gmeow:eqObs017 a gmeow:TermEquivalence ;

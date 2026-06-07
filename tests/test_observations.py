@@ -34,6 +34,7 @@ def test_observation_properties_exist() -> None:
     for prop in (
         "observedFeature",
         "observationResult",
+        "isResultOf",
         "vantage",
         "observationMethod",
         "observationType",
@@ -51,6 +52,8 @@ def test_observation_value_vocabularies_exist() -> None:
         "SensoryObservation",
         "StandpointClaim",
         "ScalarQuantity",
+        "Quantity",
+        "MeasuredValue",
     ):
         assert (GMEOW[term], RDF.type, OWL.Class) in graph
 
@@ -179,3 +182,64 @@ def test_agent_aligned_to_sosa_sensor_as_standpoint() -> None:
         "Agent must map to sosa:Sensor (observer/sensor/perceiver as standpoint)"
     )
     assert sosa_matches[0].predicate_id == "skos:broadMatch"
+
+
+def test_quantity_equivalent_to_scalar_quantity() -> None:
+    """Quantity is equivalent to ScalarQuantity (#77)."""
+    graph = load_merged_graph(include_imports=False)
+    assert (
+        GMEOW.Quantity,
+        OWL.equivalentClass,
+        GMEOW.ScalarQuantity,
+    ) in graph
+
+
+def test_measured_value_equivalent_to_quantity() -> None:
+    """MeasuredValue is equivalent to Quantity (#77)."""
+    graph = load_merged_graph(include_imports=False)
+    assert (
+        GMEOW.MeasuredValue,
+        OWL.equivalentClass,
+        GMEOW.Quantity,
+    ) in graph
+
+
+def test_is_result_of_is_inverse_of_observation_result() -> None:
+    """isResultOf is declared as the inverse of observationResult (#77)."""
+    graph = load_merged_graph(include_imports=False)
+    assert (
+        GMEOW.isResultOf,
+        OWL.inverseOf,
+        GMEOW.observationResult,
+    ) in graph
+
+
+def test_is_result_of_provenance_chain() -> None:
+    """A quantity can trace back to its producing observation via isResultOf (#77)."""
+    graph = Graph()
+    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+
+    graph.add((EX.obs1, RDF.type, GMEOW.Measurement))
+    graph.add((EX.q1, RDF.type, GMEOW.Quantity))
+    graph.add((EX.q1, GMEOW.isResultOf, EX.obs1))
+
+    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    # Because isResultOf is inverse of observationResult,
+    # obs1 --observationResult--> q1 is inferred.
+    assert (EX.obs1, GMEOW.observationResult, EX.q1) in graph
+
+
+def test_frame_inheritance_via_quantity() -> None:
+    """A Quantity result inherits the observation's reference frame (#77)."""
+    graph = Graph()
+    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
+
+    graph.add((EX.obs1, RDF.type, GMEOW.Measurement))
+    graph.add((EX.obs1, GMEOW.observationResult, EX.q1))
+    graph.add((EX.obs1, GMEOW.hasReferenceFrame, EX.frameSI))
+    graph.add((EX.q1, RDF.type, GMEOW.Quantity))
+    graph.add((EX.frameSI, RDF.type, GMEOW.ReferenceFrame))
+
+    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    assert (EX.q1, GMEOW.hasReferenceFrame, EX.frameSI) in graph

@@ -9,7 +9,9 @@
 <https://blackcatinformatics.ca/gmeow/modules/observations>
     a owl:Ontology ;
     rdfs:label "GMEOW Observations Module"@en ;
-    rdfs:comment """The universal observation stack: a reified gufo:Relator that unifies spatial measurement, temporal dating, sensory reading, and standpoint claims into one structure — realising Governing Principle #3 (Observation ≡ Measurement ≡ Standpoint). Sits in the foundational provenance/standpoint layer and is consumed by locations, temporal, sensory, and events. Aligns SOSA/SSN, PROV-O, and CIDOC E13 by reference."""@en ;
+    rdfs:comment """The universal observation stack: a reified gufo:Relator that unifies spatial measurement, temporal dating, sensory reading, and standpoint claims into one structure — realising Governing Principle #3 (Observation ≡ Measurement ≡ Standpoint). Sits in the foundational provenance/standpoint layer and is consumed by locations, temporal, sensory, and events. Aligns SOSA/SSN, PROV-O, and CIDOC E13 by reference.
+
+Also home to the universal Quantity / MeasuredValue construct (#77): a scalar numeric value bundled with unit/frame, determinacy, and provenance — the synthesis of FRAME-GEN + DET-GEN + OBS. gmeow:Quantity and gmeow:MeasuredValue are equivalent to gmeow:ScalarQuantity, providing domain-neutral names for the same construct."""@en ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -47,6 +49,15 @@ gmeow:observationResult
     rdfs:range gmeow:Entity ;
     rdfs:label "observation result"@en ;
     skos:definition "The entity-valued result of an observation — a coordinate set, an instant, a quality value, a quantity, or another entity. For literal scalar readings (e.g. 22.5°C), the observationResult entity carries the literal via a datatype property (e.g. qudt:quantityValue or a module-specific scalar property). Non-functional: a single observation may yield several results in different frames or granularities, and competing result claims coexist rather than collapse."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:isResultOf
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:observationResult ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range gmeow:Observation ;
+    rdfs:label "is result of"@en ;
+    skos:definition "Relates an entity (typically an observation result such as a quantity, coordinate set, or quality value) back to the Observation that produced it — the explicit provenance axis of the value×unit/frame×determinacy×provenance bundle (#77). Domain is gmeow:Entity (universal, matching the range of observationResult) so any result type can carry provenance. Non-functional: a result entity may be produced by multiple observations (e.g. a consensus value derived from several readings), and those claims coexist rather than collapse."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:vantage
@@ -165,6 +176,22 @@ gmeow:ScalarQuantity
     skos:definition "A scalar numeric value with a unit, determinacy model, and granularity — the entity-valued wrapper for literal observation results (temperatures, distances, counts, probabilities). Keeps gmeow:observationResult uniformly entity-valued: the scalar literal lives here, not on the observation directly."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:Quantity
+    a owl:Class, gufo:Kind ;
+    owl:equivalentClass gmeow:ScalarQuantity ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Quantity"@en ;
+    skos:definition "A universal scalar numeric value bundled with unit/frame, determinacy, and provenance — the synthesis of FRAME-GEN + DET-GEN + OBS (#77). Equivalent to gmeow:ScalarQuantity; the domain-neutral name for the same construct. Used for temperatures, distances, counts, probabilities, masses, prices, and any other quantitative observation result. The value lives in gmeow:quantityValue; the unit/frame in gmeow:hasUnit / gmeow:hasReferenceFrame; the determinacy in gmeow:hasDeterminacy; the provenance in gmeow:isResultOf."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:MeasuredValue
+    a owl:Class, gufo:Kind ;
+    owl:equivalentClass gmeow:Quantity ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Measured Value"@en ;
+    skos:definition "An alias for gmeow:Quantity — the measured-value perspective on the same value×unit/frame×determinacy×provenance bundle (#77). Equivalent to gmeow:Quantity and gmeow:ScalarQuantity. Provided for consumers who prefer the 'measured value' terminology common in metrology and sensor standards."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:quantityValue
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:ScalarQuantity ;
@@ -209,8 +236,8 @@ gmeow:quantityUncertainty
 # AXIOMATIZED DOCTRINE (#38) — property chain for frame inheritance
 #
 # An observation's result inherits the observation's reference frame.
-# Expressed as: inverse(observationResult) ∘ hasReferenceFrame ⊑ hasReferenceFrame
-# i.e.  Result <--observationResult-- Observation --hasReferenceFrame--> Frame
+# Expressed as: isResultOf ∘ hasReferenceFrame ⊑ hasReferenceFrame
+# i.e.  Result --isResultOf-- Observation --hasReferenceFrame--> Frame
 #   implies Result --hasReferenceFrame--> Frame.
 #
 # This is OWL 2 DL regular because hasReferenceFrame is a simple property
@@ -220,4 +247,4 @@ gmeow:quantityUncertainty
 # without explicitly framing every coordinate set.
 # =========================================================================== #
 
-gmeow:hasReferenceFrame owl:propertyChainAxiom ( [ owl:inverseOf gmeow:observationResult ] gmeow:hasReferenceFrame ) .
+gmeow:hasReferenceFrame owl:propertyChainAxiom ( gmeow:isResultOf gmeow:hasReferenceFrame ) .
