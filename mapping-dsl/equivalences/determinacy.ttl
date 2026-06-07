@@ -1,0 +1,99 @@
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix gufo:   <http://purl.org/nemo/gufo#> .
+@prefix bfo:    <http://purl.obolibrary.org/obo/> .
+@prefix wd:     <http://www.wikidata.org/entity/> .
+
+# Term equivalences for the universal determinacy vocabulary (#71) — GMEOW
+# authoring source. Compiled to mappings/gmeow-determinacy.sssom.tsv by
+# `gmeow compile-mappings`. All alignments are BY REFERENCE (Principle 5);
+# GMEOW never imports an external axiom.
+#
+# CONSTITUTIONAL GROUNDING (P9): ontic indeterminacy is held distinct from
+# epistemic confidence. A value may be inherently crisp, vague, fuzzy,
+# probabilistic, or disputed — and that is recorded explicitly rather than
+# assumed away. This is the determinacy axis: the nature of the value itself,
+# not how sure we are of the claim.
+#
+# SOLVER BOUNDARY (P12): fuzzy-set membership functions, probability
+# distributions, and vague-boundary geometry are computed in external solver
+# layers, never materialised as OWL axioms. The ontology carries only the
+# determinacy TYPE (a gmeow:Determinacy value individual); the math lives
+# outside.
+
+gmeow:mapsetDeterminacy a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/determinacy" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """Universal determinacy alignments (#71).
+        FORMAL GROUNDING: gmeow:Determinacy is an owl:Class (a gUFO AbstractIndividualType / QualityValue type), and its instances (crisp, vague, fuzzy, probabilistic, disputed) are first-class, referenceable, and co-equal value individuals. There is no 'preferred' determinacy (Principle 9).
+        ONTOLOGICAL STATUS: gmeow:hasDeterminacy is an ObjectProperty (not an AnnotationProperty), because determinacy is a facet of the VALUE, not metadata ABOUT the claim. It is orthogonal to gmeow:confidence (epistemic) and to gmeow:standpointModality (belief force).
+        SCOPE: Applies universally — a gender may be fuzzy, a date vague, a boundary probabilistic, a SLAM cell probabilistic, a contested fact disputed.""" ;
+    gmeow:setTrailer "# REFUSED (Principle 5 — no faithful external term): gmeow:determinacyCrisp has no clean Wikidata / ontology alignment. 'Crisp set' is the mathematical opposite of fuzzy set, but no stable QID names the concept directly; 'exactness' (Q89694598) and 'accuracy and precision' (Q272035) are about measurement error, not set-membership boundary. GMEOW retains the term without alignment rather than force a weak match.\n# REFUSED (Principle 5): gmeow:hasDeterminacy has no faithful external property alignment. Schema.org, GeoSPARQL, PROV-O, CIDOC-CRM, and DOLCE+DnS carry no direct 'determinacy of a value' property; the concept is novel.\n# REFUSED (Principle 5): gmeow:determinacyModel has no faithful external property alignment. It is the frame-level default for a ReferenceFrame, a GMEOW-specific construct." .
+
+# --------------------------------------------------------------------------- #
+# Class-level alignment
+# --------------------------------------------------------------------------- #
+
+gmeow:eqDeterminacy001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Determinacy ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gufo:QualityValue ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "gmeow:Determinacy is declared rdfs:subClassOf gufo:QualityValue in the ontology; the alignment makes the dependency explicit in the mapping layer" ;
+    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" .
+
+gmeow:eqDeterminacy002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Determinacy ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject bfo:BFO_0000019 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "BFO 'quality' is a high-level ontological category, not a value individual type; only a loose relatedMatch is warranted" ;
+    gmeow:objectLabel "quality" ;
+    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Seed-level alignments to Wikidata Q-items
+# --------------------------------------------------------------------------- #
+
+gmeow:eqDeterminacy003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:determinacyFuzzy ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1055058 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "fuzzy set" ;
+    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" .
+
+gmeow:eqDeterminacy004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:determinacyVague ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1411921 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "vagueness" ;
+    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" .
+
+gmeow:eqDeterminacy005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:determinacyProbabilistic ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q9492 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "probability" ;
+    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" .
+
+gmeow:eqDeterminacy006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:determinacyDisputed ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q18912752 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "Wikidata 'disputed' sourcing qualifier; the closest structured external term for a contested/undecided value" ;
+    gmeow:objectLabel "disputed" ;
+    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" .

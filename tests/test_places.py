@@ -164,7 +164,6 @@ def test_location_superset_core() -> None:
         "SpatialCoordinates",
         "SpatialRealm",
         "FrameKind",
-        "Determinacy",
         "LocationState",
         "Trajectory",
     ):
@@ -187,13 +186,6 @@ def test_location_superset_core() -> None:
         "frameKindGrid",
     ):
         assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "FrameKind")) in graph
-    for ind in (
-        "determinacyCrisp",
-        "determinacyFuzzy",
-        "determinacyVague",
-        "determinacyProbabilistic",
-    ):
-        assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "Determinacy")) in graph
 
     # 3. New Properties domain & range
     assert (
