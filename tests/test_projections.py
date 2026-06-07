@@ -31,6 +31,7 @@ def _source() -> Graph:
     graph.parse(FIXTURES_DIR / "languages.ttl", format="turtle")
     graph.parse(FIXTURES_DIR / "identity.ttl", format="turtle")
     graph.parse(FIXTURES_DIR / "contact-fields.ttl", format="turtle")
+    graph.parse(FIXTURES_DIR / "coreference.ttl", format="turtle")
     return graph
 
 
@@ -85,6 +86,16 @@ def test_schema_org_projection() -> None:
         URIRef(SCHEMA + "name"),
         Literal("112 Westbourne Road", lang="en"),
     ) in g
+    assert (
+        URIRef("https://example.org/coref/recordedPerson"),
+        URIRef(SCHEMA + "sameAs"),
+        URIRef("https://example.org/coref/authority/person-123"),
+    ) in g
+    assert (
+        URIRef("https://example.org/coref/recordedPerson"),
+        URIRef(SCHEMA + "sameAs"),
+        URIRef("https://example.org/coref/authority/person-near"),
+    ) not in g
     _assert_no_gmeow_leakage(g)
 
 

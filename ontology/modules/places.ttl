@@ -170,13 +170,6 @@ gmeow:physicalPlace
     skos:definition "The geographic place where a storage location's device physically sits (e.g. the room holding a disk). Absent for purely cloud storage."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:authorityLink
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Entity ;
-    rdfs:label "authority link"@en ;
-    skos:definition "Links an entity to its record in an external authority/gazetteer (GeoNames, Getty TGN, Wikidata, OSM, …) by IRI. A 'see-also' pointer; assert gazetteer identity with skos:exactMatch/closeMatch. The range is intentionally open. Wikidata is the recommended hub — its cross-references reach the other authorities."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
 # --------------------------------------------------------------------------- #
 # Datatype properties (all non-functional)
 # --------------------------------------------------------------------------- #

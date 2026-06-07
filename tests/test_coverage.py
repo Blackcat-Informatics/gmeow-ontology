@@ -172,6 +172,21 @@ def test_standpoint_slice_covered() -> None:
     assert not missing, f"standpoint terms missing from coverage: {missing}"
 
 
+def test_coreference_slice_covered() -> None:
+    report = run_coverage()
+    expected_covered = {
+        GMEOW + "authorityLink",
+        GMEOW + "counterpartOf",
+        GMEOW + "versionOf",
+        GMEOW + "editionOf",
+        GMEOW + "supersedes",
+        "https://schema.org/sameAs",
+        "http://purl.org/dc/terms/isVersionOf",
+    }
+    missing = expected_covered - (report.covered_classes | report.covered_predicates)
+    assert not missing, f"coreference terms missing from coverage: {missing}"
+
+
 def test_slice_is_partial() -> None:
     # The slice is intentionally incomplete: there must be tracked gaps, and
     # coverage must be a real (non-zero, non-total) fraction.

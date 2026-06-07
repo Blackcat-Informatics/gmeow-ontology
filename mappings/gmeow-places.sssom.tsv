@@ -33,7 +33,6 @@ gmeow:addressPlace	skos:closeMatch	schema:address		semapv:ManualMappingCuration	
 gmeow:addressRegion	owl:equivalentProperty	schema:addressRegion		semapv:ManualMappingCuration	1.0	
 gmeow:addressRegion	skos:closeMatch	vcard:region		semapv:ManualMappingCuration	0.9	
 gmeow:asWKT	skos:closeMatch	geo:asWKT		semapv:ManualMappingCuration	0.9	
-gmeow:authorityLink	skos:closeMatch	schema:sameAs		semapv:ManualMappingCuration	0.7	
 gmeow:containedInPlace	skos:closeMatch	dcterms:isPartOf		semapv:ManualMappingCuration	0.7	
 gmeow:containedInPlace	skos:closeMatch	geo:sfWithin		semapv:ManualMappingCuration	0.8	
 gmeow:containedInPlace	skos:closeMatch	gn:parentFeature		semapv:ManualMappingCuration	0.8	
