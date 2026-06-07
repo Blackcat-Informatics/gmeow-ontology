@@ -64,11 +64,13 @@ def test_dsl_parses() -> None:
     # schema:keywords, isAbout↔schema:about/oa:hasTarget, Tagging↔oa:Annotation,
     # broaderTag↔skos:broader, narrowerTag↔skos:narrower, relatedTag↔skos:related,
     # tagInScheme↔skos:inScheme, 2 MOAT alignments, 2 tag-relation seeds).
-    assert len(dsl.equivalences) == 823
-    # 24 projection transforms declared (incl. fnPronounSetToText #46,
+    # Issue #78 pose/orientation: +16 (IEEE 1872 POS x5, Wikidata x11).
+    assert len(dsl.equivalences) == 839
+    # 25 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
-    # fnTagToKeyword + fnTaggingToAnnotation #27).
-    assert len(dsl.functions) == 24
+    # fnTagToKeyword + fnTaggingToAnnotation #27,
+    # fnPosePositionToWktPoint #78).
+    assert len(dsl.functions) == 25
     # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint,
     # gmeow-events, gmeow-rights, gmeow-coreference, gmeow-determinacy, gmeow-privacy).
     # Issue #70 adds gmeow-qudt, gmeow-fibo, gmeow-temporal.

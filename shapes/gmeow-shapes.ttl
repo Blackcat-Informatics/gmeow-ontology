@@ -768,6 +768,56 @@ gmeow:FrameProfileShape
         """ ;
     ] .
 
+gmeow:PoseShape
+    a sh:NodeShape ;
+    rdfs:label "Pose well-formedness shape" ;
+    sh:targetClass gmeow:Pose ;
+    sh:property [
+        sh:path gmeow:hasPosePosition ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:SpatialCoordinates ;
+        sh:severity sh:Violation ;
+        sh:message "A Pose must have exactly one position (gmeow:hasPosePosition) as SpatialCoordinates." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:hasPoseOrientation ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:Orientation ;
+        sh:severity sh:Violation ;
+        sh:message "A Pose must have exactly one orientation (gmeow:hasPoseOrientation) as Orientation." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:poseFrame ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class gmeow:ReferenceFrame ;
+        sh:severity sh:Violation ;
+        sh:message "A Pose must declare exactly one reference frame (gmeow:poseFrame)." ;
+    ] .
+
+gmeow:OrientationShape
+    a sh:NodeShape ;
+    rdfs:label "Orientation well-formedness shape" ;
+    sh:targetClass gmeow:Orientation ;
+    sh:or (
+        [ sh:and (
+            [ sh:path gmeow:quaternionX ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:double ]
+            [ sh:path gmeow:quaternionY ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:double ]
+            [ sh:path gmeow:quaternionZ ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:double ]
+            [ sh:path gmeow:quaternionW ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:double ]
+        ) ]
+        [ sh:and (
+            [ sh:path gmeow:yaw   ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:double ]
+            [ sh:path gmeow:pitch ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:double ]
+            [ sh:path gmeow:roll  ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:double ]
+            [ sh:path gmeow:eulerOrder ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ]
+        ) ]
+        [ sh:path gmeow:heading ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:double ]
+        [ sh:path gmeow:bearing ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:double ]
+        [ sh:path gmeow:hasCoordinateMatrix ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:Literal ]
+    ) ;
+    sh:severity sh:Violation ;
+    sh:message "An Orientation must carry at least one of: a complete unit quaternion (x,y,z,w); complete Euler angles with eulerOrder (yaw,pitch,roll,order); a heading; a bearing; or a homogeneous coordinate matrix." .
+
 gmeow:NovelRealmExtensibilityShape
     a sh:NodeShape ;
     rdfs:label "Novel realm extensibility shape" ;
