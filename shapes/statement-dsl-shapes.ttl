@@ -1,0 +1,96 @@
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# =============================================================================
+# SHACL shapes for the GMEOW statement DSL (statement-dsl/**/*.ttl).
+#
+# These shapes validate the canonical authoring source BEFORE the Python
+# graph-walkers in gmeow_tools.statement_dsl run. Violations surface as
+# structured per-node diagnostics (focus node, path, message, source file).
+# =============================================================================
+
+# --------------------------------------------------------------------------- #
+# StatementMetadata
+# --------------------------------------------------------------------------- #
+
+gmeow:StatementMetadataShape
+    a sh:NodeShape ;
+    rdfs:label "StatementMetadata shape"@en ;
+    sh:targetClass gmeow:StatementMetadata ;
+    sh:property [
+        sh:path gmeow:qSubject ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "StatementMetadata must have exactly one gmeow:qSubject (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:qPredicate ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "StatementMetadata must have exactly one gmeow:qPredicate (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:qObject ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "StatementMetadata may have at most one gmeow:qObject (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:qObjectLiteral ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "StatementMetadata may have at most one gmeow:qObjectLiteral"
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "StatementMetadata needs exactly one of qObject (IRI) or qObjectLiteral" ;
+        sh:select """
+            SELECT $this WHERE {
+                FILTER(
+                    (EXISTS { $this gmeow:qObject ?o } && EXISTS { $this gmeow:qObjectLiteral ?l }) ||
+                    (!EXISTS { $this gmeow:qObject ?o } && !EXISTS { $this gmeow:qObjectLiteral ?l })
+                )
+            }
+        """
+    ] ;
+    sh:property [
+        sh:path gmeow:reifier ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "StatementMetadata may have at most one gmeow:reifier (IRI)"
+    ] ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "StatementMetadata may have at most one rdfs:label"
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Annotation
+# --------------------------------------------------------------------------- #
+
+gmeow:AnnotationShape
+    a sh:NodeShape ;
+    rdfs:label "Annotation shape"@en ;
+    sh:targetSubjectsOf gmeow:annProperty ;
+    sh:property [
+        sh:path gmeow:annProperty ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "Annotation must have exactly one gmeow:annProperty (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:annValue ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Annotation must have exactly one gmeow:annValue (IRI or literal)"
+    ] .

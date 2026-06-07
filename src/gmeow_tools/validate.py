@@ -11,8 +11,14 @@ from pathlib import Path
 
 from rdflib import RDF, RDFS, Graph, Literal, URIRef
 from rdflib.namespace import OWL, SKOS
+from rdflib.term import Node
 
-from gmeow_tools.config import NAMESPACE, SHAPES_FILE
+from gmeow_tools.config import (
+    MAPPING_DSL_DIR,
+    NAMESPACE,
+    SHAPES_FILE,
+    STATEMENT_DSL_DIR,
+)
 from gmeow_tools.graph import iter_source_files, load_merged_graph
 from gmeow_tools.reasoning_lint import reasoning_invariants
 
@@ -203,6 +209,36 @@ def _partition_shacl_results(report_graph: Graph) -> tuple[list[str], list[str]]
     return violations, warnings
 
 
+def _dsl_shacl(dsl_dir: Path, label: str) -> ValidationResult:
+    """Validate every ``.ttl`` file under *dsl_dir* against its SHACL shapes.
+
+    Returns a :class:`ValidationResult` whose errors carry per-file provenance.
+    """
+    from gmeow_tools.dsl_validate import (
+        validate_mapping_dsl,
+        validate_statement_dsl,
+    )
+
+    result = ValidationResult()
+    graph = Graph()
+    node_to_file: dict[Node, Path] = {}
+    for path in sorted(dsl_dir.rglob("*.ttl")):
+        graph.parse(path, format="turtle")
+        file_graph = Graph().parse(path, format="turtle")
+        for subject in file_graph.subjects():
+            if isinstance(subject, URIRef) and subject not in node_to_file:
+                node_to_file[subject] = path
+    if label == "mapping":
+        violations = validate_mapping_dsl(graph, node_to_file)
+    else:
+        violations = validate_statement_dsl(graph, node_to_file)
+    if violations:
+        result.errors.append(
+            f"{label} DSL SHACL violations:\n  " + "\n  ".join(violations)
+        )
+    return result
+
+
 def validate_all() -> ValidationResult:
     """Run syntax, structural lint, and SHACL checks over the merged graph."""
     result = check_syntax()
@@ -213,4 +249,6 @@ def validate_all() -> ValidationResult:
     result.extend(structural_lint(merged))
     result.extend(reasoning_lint(merged))
     result.extend(run_shacl(merged))
+    result.extend(_dsl_shacl(MAPPING_DSL_DIR, "mapping"))
+    result.extend(_dsl_shacl(STATEMENT_DSL_DIR, "statement"))
     return result
