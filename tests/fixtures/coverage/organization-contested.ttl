@@ -1,0 +1,67 @@
+# Coverage slice (#51): contested organization facts — standpoint-indexed,
+# coexisting, NO winner. Exercises contested membership (memberOf), contested
+# succession (subOrganizationOf), and a withdrawn recognition via StandpointTenure
+# with gmeow:displayable false (Principle 10). Native GMEOW terms only.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/organizations/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:standpoint-board-a a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-board-b a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-jurisdiction-x a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# A contested membership: two rival boards claim the same person as a member.
+ex:member a gmeow:Person ;
+    gmeow:memberOf ex:orgA , ex:orgB .
+
+ex:orgA a gmeow:Organization .
+ex:orgB a gmeow:Organization .
+
+ex:claimMemberOfA a owl:Axiom ;
+    owl:annotatedSource   ex:member ;
+    owl:annotatedProperty gmeow:memberOf ;
+    owl:annotatedTarget   ex:orgA ;
+    gmeow:accordingTo ex:standpoint-board-a ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    gmeow:confidence 0.85 .
+
+ex:claimMemberOfB a owl:Axiom ;
+    owl:annotatedSource   ex:member ;
+    owl:annotatedProperty gmeow:memberOf ;
+    owl:annotatedTarget   ex:orgB ;
+    gmeow:accordingTo ex:standpoint-board-b ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    gmeow:confidence 0.8 .
+
+# A contested succession post-merger: two subOrganizationOf claims.
+ex:subsidiary a gmeow:Organization ;
+    gmeow:subOrganizationOf ex:mergedCo , ex:acquirerCo .
+
+ex:mergedCo a gmeow:Organization .
+ex:acquirerCo a gmeow:Organization .
+
+ex:claimSuccessionMerged a owl:Axiom ;
+    owl:annotatedSource   ex:subsidiary ;
+    owl:annotatedProperty gmeow:subOrganizationOf ;
+    owl:annotatedTarget   ex:mergedCo ;
+    gmeow:accordingTo ex:standpoint-jurisdiction-x ;
+    gmeow:standpointModality gmeow:probable ;
+    gmeow:confidence 0.7 .
+
+ex:claimSuccessionAcquirer a owl:Axiom ;
+    owl:annotatedSource   ex:subsidiary ;
+    owl:annotatedProperty gmeow:subOrganizationOf ;
+    owl:annotatedTarget   ex:acquirerCo ;
+    gmeow:accordingTo ex:standpoint-board-b ;
+    gmeow:standpointModality gmeow:conceivable ;
+    gmeow:confidence 0.5 .
+
+# A withdrawn recognition — a StandpointTenure closed with displayable false.
+ex:withdrawnRecognition a gmeow:StandpointTenure ;
+    gmeow:tenureStandpoint ex:standpoint-jurisdiction-x ;
+    gmeow:duringInterval [ a gmeow:TimeInterval ;
+        gmeow:startedAtTime "2008-02-17T00:00:00Z"^^xsd:dateTime ;
+        gmeow:endedAtTime   "2024-06-01T00:00:00Z"^^xsd:dateTime ] ;
+    gmeow:displayable false .

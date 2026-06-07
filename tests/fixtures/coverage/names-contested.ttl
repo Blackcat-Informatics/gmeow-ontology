@@ -1,0 +1,83 @@
+# Coverage slice (#51): contested naming facts — standpoint-indexed, coexisting,
+# NO winner. Exercises a name-usage contested between self-assertion and state
+# registry, and a community-specific exonym that one standpoint refutes.
+# Native GMEOW terms only.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/names/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+ex:standpoint-self a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-registry a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-community a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# A person with a self-asserted chosen name and a state-registered legal name.
+# Both are co-equal; neither is primary.
+ex:person a gmeow:Person ;
+    gmeow:hasName ex:chosenName , ex:legalName .
+
+ex:chosenName a gmeow:PersonName ;
+    gmeow:fullName "River"@x-gmeow-en ;
+    gmeow:namePurpose gmeow:namePurposeChosen ;
+    gmeow:displayable true .
+
+ex:legalName a gmeow:PersonName ;
+    gmeow:fullName "Alex Smith"@x-gmeow-en ;
+    gmeow:namePurpose gmeow:namePurposeLegal ;
+    gmeow:displayable true .
+
+# Two NameUsages for the same appellation, each from a different standpoint.
+ex:usageSelf a gmeow:NameUsage ;
+    gmeow:usageNamed ex:person ;
+    gmeow:usageAppellation ex:chosenName ;
+    gmeow:usageAudience ex:person ;
+    gmeow:usageAuthority ex:person ;
+    gmeow:usageRegister gmeow:registerCasual .
+
+ex:usageRegistry a gmeow:NameUsage ;
+    gmeow:usageNamed ex:person ;
+    gmeow:usageAppellation ex:legalName ;
+    gmeow:usageAudience ex:stateRegistry ;
+    gmeow:usageAuthority ex:stateRegistry ;
+    gmeow:usageRegister gmeow:registerFormal .
+
+ex:stateRegistry a gmeow:Organization .
+
+# Standpoint-indexed claims on the name-usage.
+ex:claimChosenSelf a owl:Axiom ;
+    owl:annotatedSource   ex:usageSelf ;
+    owl:annotatedProperty gmeow:usageAppellation ;
+    owl:annotatedTarget   ex:chosenName ;
+    gmeow:accordingTo ex:standpoint-self ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    gmeow:confidence 1.0 .
+
+ex:claimLegalRegistry a owl:Axiom ;
+    owl:annotatedSource   ex:usageRegistry ;
+    owl:annotatedProperty gmeow:usageAppellation ;
+    owl:annotatedTarget   ex:legalName ;
+    gmeow:accordingTo ex:standpoint-registry ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    gmeow:confidence 0.95 .
+
+# A community-specific exonym that one standpoint refutes.
+ex:exonymName a gmeow:PersonName ;
+    gmeow:fullName "Foreign Alias"@x-gmeow-en ;
+    gmeow:namePurpose gmeow:namePurposeExonym ;
+    gmeow:displayable true .
+
+ex:claimExonym a owl:Axiom ;
+    owl:annotatedSource   ex:person ;
+    owl:annotatedProperty gmeow:hasName ;
+    owl:annotatedTarget   ex:exonymName ;
+    gmeow:accordingTo ex:standpoint-community ;
+    gmeow:standpointModality gmeow:conceivable ;
+    gmeow:confidence 0.6 .
+
+ex:claimExonymRefuted a owl:Axiom ;
+    owl:annotatedSource   ex:person ;
+    owl:annotatedProperty gmeow:hasName ;
+    owl:annotatedTarget   ex:exonymName ;
+    gmeow:accordingTo ex:standpoint-self ;
+    gmeow:standpointModality gmeow:refuted ;
+    gmeow:confidence 0.9 .

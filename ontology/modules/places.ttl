@@ -9,7 +9,9 @@
 <https://blackcatinformatics.ca/gmeow/modules/places>
     a owl:Ontology ;
     rdfs:label "GMEOW Locations Module"@en ;
-    rdfs:comment "Locations — geographic places, online (virtual) locations, and digital storage locations — with coordinates, geometry, containment, and external-gazetteer coreference (the schema.org / GeoSPARQL / GeoNames / Getty TGN / Wikidata / WGS84 superset layer). Place kinds are an open value vocabulary (gmeow:placeType), so any granularity from country to room can be a first-class, QID-bearing place chained by containedInPlace."@en ;
+    rdfs:comment """Locations — geographic places, online (virtual) locations, and digital storage locations — with coordinates, geometry, containment, and external-gazetteer coreference (the schema.org / GeoSPARQL / GeoNames / Getty TGN / Wikidata / WGS84 superset layer). Place kinds are an open value vocabulary (gmeow:placeType), so any granularity from country to room can be a first-class, QID-bearing place chained by containedInPlace.
+
+STANDPOINT DOCTRINE (#51). Contested facts in the locations slice — sovereignty/jurisdiction disputes, competing place names (endonym vs exonym per community), boundary changes — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame asserting it — the two axes are orthogonal and must not be conflated. There is NO location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the cross-cutting #43 facility. Superseded or withdrawn claims set gmeow:displayable false, never deletion (Principle 10)."""@en ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -127,7 +129,7 @@ gmeow:containedInPlace
     rdfs:domain gmeow:Place ;
     rdfs:range gmeow:Place ;
     rdfs:label "contained in place"@en ;
-    skos:definition "Relates a place to a larger place that geographically contains it; transitive. Chains the nested granularity (room ⊂ building ⊂ city ⊂ region ⊂ country), each level a first-class place."@en ;
+    skos:definition "Relates a place to a larger place that geographically contains it; transitive. Chains the nested granularity (room ⊂ building ⊂ city ⊂ region ⊂ country), each level a first-class place. Non-functional: contested sovereignty claims (e.g. Crimea-class) coexist as standpoint-indexed statements (gmeow:accordingTo), never collapsing to a single winner (Principle 9)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasCoordinates
