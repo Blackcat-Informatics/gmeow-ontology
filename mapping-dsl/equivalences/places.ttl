@@ -1108,3 +1108,107 @@ gmeow:eqPlaces125 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Issue #84 — Virtual Location Type + Network Address Space
+# --------------------------------------------------------------------------- #
+
+gmeow:eqPlaces126 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:NetworkAddress ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject wd:Q11135 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "IP address" ;
+    gmeow:comment "Wikidata Q11135 is the general IP address concept; GMEOW NetworkAddress is the frame-relative coordinate abstraction that covers IPv4, IPv6, MAC, DNS, URL, port, and BGP-AS." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces127 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:networkAddressTypeIPv4 ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q11103 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "IPv4" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces128 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:networkAddressTypeIPv6 ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q2551624 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "IPv6" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces129 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:networkAddressTypeMAC ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q20484 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "MAC address" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces130 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:networkAddressTypeDNS ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q32635 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "domain name" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces131 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:networkAddressTypeURL ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q42253 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "URL" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces132 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:networkAddressTypeBGP ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q11155 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:objectLabel "Border Gateway Protocol" ;
+    gmeow:comment "Wikidata Q11155 is the BGP protocol; GMEOW networkAddressTypeBGP refers to the autonomous-system number used in BGP routing. Directional lossy projection." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces133 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:virtualLocationTypeWebsite ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:WebPage ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces134 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:virtualLocationTypeSocialMediaPage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:ProfilePage ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces135 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:virtualLocationTypeVideoConference ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1326624 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:objectLabel "video conference" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces136 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:networkAddressTypePort ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q8187 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "port" ;
+    gmeow:comment "Wikidata Q8187 is the general port (computer networking) concept; GMEOW networkAddressTypePort refers to a transport-layer port number." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .

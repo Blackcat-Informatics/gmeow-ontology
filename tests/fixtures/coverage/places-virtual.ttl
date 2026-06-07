@@ -1,0 +1,93 @@
+# Coverage slice (#84): virtual locations + network address space.
+# Exercises VirtualLocationType value vocabulary, NetworkAddress frame-relative
+# coordinates, coexistence of multiple virtualLocationType values (P9),
+# coexistence of multiple NetworkAddresses in different frames,
+# standpoint-indexed competing DNS names, and suppression via displayable false (P10).
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:standpoint-corp-a a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-corp-b a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# A virtual location with multiple types (coexistence, Principle 9).
+ex:confRoom a gmeow:VirtualLocation ;
+    gmeow:virtualLocationType gmeow:virtualLocationTypeVideoConference ,
+                              gmeow:virtualLocationTypeVirtualEventSpace ;
+    gmeow:accessUrl "https://meet.example.com/abc-123"^^xsd:anyURI ;
+    gmeow:virtualPlatform "Google Meet" .
+
+# A website with multiple network addresses in different frames.
+ex:website a gmeow:VirtualLocation ;
+    gmeow:virtualLocationType gmeow:virtualLocationTypeWebsite ;
+    gmeow:hasNetworkAddress ex:addrIPv4 , ex:addrDNS , ex:addrURL .
+
+ex:addrIPv4 a gmeow:NetworkAddress ;
+    gmeow:networkAddressType gmeow:networkAddressTypeIPv4 ;
+    gmeow:networkAddressValue "192.0.2.42" ;
+    gmeow:networkAddressFrame gmeow:referenceFrameIPv4 ;
+    gmeow:displayable true .
+
+ex:addrDNS a gmeow:NetworkAddress ;
+    gmeow:networkAddressType gmeow:networkAddressTypeDNS ;
+    gmeow:networkAddressValue "example.com" ;
+    gmeow:networkAddressFrame gmeow:referenceFrameDNS ;
+    gmeow:displayable true .
+
+ex:addrURL a gmeow:NetworkAddress ;
+    gmeow:networkAddressType gmeow:networkAddressTypeURL ;
+    gmeow:networkAddressValue "https://example.com/" ;
+    gmeow:networkAddressFrame gmeow:referenceFrameURL ;
+    gmeow:displayable true .
+
+# A social media page with a suppressed old URL (Principle 10).
+ex:socialPage a gmeow:VirtualLocation ;
+    gmeow:virtualLocationType gmeow:virtualLocationTypeSocialMediaPage ;
+    gmeow:hasNetworkAddress ex:addrCurrentURL , ex:addrOldURL .
+
+ex:addrCurrentURL a gmeow:NetworkAddress ;
+    gmeow:networkAddressType gmeow:networkAddressTypeURL ;
+    gmeow:networkAddressValue "https://social.example.com/user" ;
+    gmeow:networkAddressFrame gmeow:referenceFrameURL ;
+    gmeow:displayable true .
+
+ex:addrOldURL a gmeow:NetworkAddress ;
+    gmeow:networkAddressType gmeow:networkAddressTypeURL ;
+    gmeow:networkAddressValue "https://old.example.com/profile" ;
+    gmeow:networkAddressFrame gmeow:referenceFrameURL ;
+    gmeow:displayable false .
+
+# Standpoint-indexed competing DNS names for the same virtual location (P9).
+ex:service a gmeow:VirtualLocation ;
+    gmeow:virtualLocationType gmeow:virtualLocationTypeWebsite ;
+    gmeow:hasNetworkAddress ex:addrDNSCorpA , ex:addrDNSCorpB .
+
+ex:addrDNSCorpA a gmeow:NetworkAddress ;
+    gmeow:networkAddressType gmeow:networkAddressTypeDNS ;
+    gmeow:networkAddressValue "service-corp-a.example" ;
+    gmeow:networkAddressFrame gmeow:referenceFrameDNS ;
+    gmeow:displayable true .
+
+ex:addrDNSCorpB a gmeow:NetworkAddress ;
+    gmeow:networkAddressType gmeow:networkAddressTypeDNS ;
+    gmeow:networkAddressValue "service-corp-b.example" ;
+    gmeow:networkAddressFrame gmeow:referenceFrameDNS ;
+    gmeow:displayable true .
+
+ex:claimDNSCorpA a owl:Axiom ;
+    owl:annotatedSource   ex:service ;
+    owl:annotatedProperty gmeow:hasNetworkAddress ;
+    owl:annotatedTarget   ex:addrDNSCorpA ;
+    gmeow:accordingTo ex:standpoint-corp-a ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    gmeow:confidence 0.9 .
+
+ex:claimDNSCorpB a owl:Axiom ;
+    owl:annotatedSource   ex:service ;
+    owl:annotatedProperty gmeow:hasNetworkAddress ;
+    owl:annotatedTarget   ex:addrDNSCorpB ;
+    gmeow:accordingTo ex:standpoint-corp-b ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    gmeow:confidence 0.85 .

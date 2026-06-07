@@ -122,6 +122,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:NameRegister (⊑ gufo:QualityValue): The social register of a name-usage (formal, intimate, professional, casual). A value vocabulary carried by gmeow:usageRegister on a gmeow:NameUsage.
 - gmeow:NameUsage (⊑ gmeow:Observation, gufo:Relator): A reified, context-dependent use of an appellation — an observation in the universal claim stack (#69): a named entity (observedFeature) is called by a given appellation (observationResult), by or among a particular audience (or within a relationship scope), in a particular register, over a period, on some evidence. Perspectival — a usage is whoever's, never a global fact — so it carries no notion of a preferred or canonical name. Mint one NameUsage per (appellation, audience, register) tuple; its period is carried by gmeow:usageInterval or by validFrom/validUntil on the statement.
 - gmeow:NamedPeriod (⊑ gmeow:Entity, gufo:Object): A named stretch of time with defined bounds — a geologic era, historical dynasty, artistic period, fiscal year, or any other culturally salient temporal division.
+- gmeow:NetworkAddress (⊑ gmeow:Entity): A network-layer address or locator expressed as a coordinate in a network reference frame — an IP address, MAC address, DNS name, URL, port number, or BGP autonomous-system number. The flat shortcut for the common case is gmeow:accessUrl on a VirtualLocation; promote to NetworkAddress when frame, provenance, confidence, or standpoint matters.
+- gmeow:NetworkAddressType (⊑ gufo:QualityValue): The kind of a network address (IPv4, IPv6, MAC, DNS, URL, port, BGP-AS). A value, not a subclass: the set is open-ended and they share all of NetworkAddress's structure, so a new kind is a new individual, not a new class (Principle 9).
 - gmeow:Observation (⊑ gufo:Relator): A reified act of observing, measuring, or asserting a feature of interest — the universal claim construct unifying spatial measurement, temporal dating, sensory reading, standpoint claims, identity claims, naming claims, rights claims, and kinship claims. Mediates between an observer (vantage), a feature (observedFeature), and a result (observationResult). Every observation carries at least a vantage and an observedFeature (EL open-world); closed-world cardinality is SHACL's concern.
 - gmeow:ObservationMethod (⊑ gufo:QualityValue): The method or protocol by which an observation was made — a value vocabulary (individuals, never subclasses). Generalizes gmeow:DatingMethod (temporal module) and subsumes sensor types, survey protocols, laboratory techniques, archaeological procedures, and standpoint assertion methods. A method is constitutive of the observation: changing the method changes the observation's identity (it is a different act).
 - gmeow:ObservationType (⊑ gufo:QualityValue): The kind of observation being made — a value vocabulary (individuals, never subclasses). Distinguishes measurement, sensory reading, standpoint claim, derived inference, and simulation output. The specific sub-discipline (radiocarbon dating, GPS survey, temperature sensing) is gmeow:observationMethod, not gmeow:observationType.
@@ -226,7 +228,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:VersionRole (⊑ gufo:QualityValue): A role or status that an entity holds within a version set according to an authority — a VALUE, never an Entity subclass. Standpoint-scoped: 'latest' according to a package registry may differ from 'latest' according to a downstream mirror. The seed list is an anchor, not a fence.
 - gmeow:VersionScale (⊑ gufo:QualityValue): The magnitude scale of a version change — a VALUE, never an Entity subclass. Used for SemVer-style classification and analogous schemes in non-software domains.
 - gmeow:VersionSet (⊑ gmeow:InformationObject): A first-class information object representing a version family or release lineage — the set of all concrete artifacts that are versions of a common stable entity. A VersionSet is an InformationObject (a kind of Entity) so it can carry identifiers, provenance, and authority links. Examples: the lineage of a software project, the edition chain of a book, the variant family of an email thread, the DOI concept record.
-- gmeow:VirtualLocation (⊑ gmeow:Location): A non-geographic location reachable online — a video-conference room, chat space, or metaverse room. Has an access locator and platform rather than coordinates.
+- gmeow:VirtualLocation (⊑ gmeow:Location): A non-geographic location reachable online — a video-conference room, chat space, metaverse room, website, or social media page. The specific kind is given by gmeow:virtualLocationType (a value), not a subclass. Has network addresses (gmeow:hasNetworkAddress) and an access URL (gmeow:accessUrl) rather than geographic coordinates.
+- gmeow:VirtualLocationType (⊑ gufo:QualityValue): The kind of a virtual location (video conference, chat space, metaverse room, website, social media page, …). A value, not a subclass: the set is open-ended and they share all of VirtualLocation's structure, so a new kind is a new individual, not a new class (Principle 9).
 - gmeow:WebPage (⊑ gmeow:CreativeWork): A page on the web identified by a URL.
 - gmeow:WritingSystem (⊑ gmeow:InformationObject): A first-class system for visually or tactilely representing language — a script: Latin, Han (kanji), Hiragana, Katakana, Arabic, Braille, or a bespoke conlang/AI script. Carries gmeow:scriptCode (ISO 15924 when one exists, else a bespoke identifier), a type (gmeow:writingSystemType) and a direction (gmeow:textDirection). Bound to the languages that use it — co-equally and simultaneously — through gmeow:WritingSystemUsage; bespoke and non-linear scripts (Ithkuil) are first-class.
 - gmeow:WritingSystemType (⊑ gufo:QualityValue): The structural kind of a writing system (alphabet, abjad, abugida, syllabary, logographic, featural, ideographic, pictographic, non-linear, mixed). A value carried by gmeow:writingSystemType.
@@ -406,6 +409,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasMother [gmeow:Person → gmeow:Person]: Relates a person to a female parent.
 - gmeow:hasName [gmeow:Person → gmeow:PersonName]: Relates a person to a structured, typed PersonName they bear; the person-scoped specialization of gmeow:hasAppellation. Non-functional — a person bears many co-equal names.
 - gmeow:hasNamePart [gmeow:Appellation → gmeow:NamePart]: Relates an appellation to one of its reified, typed parts. Non-functional — a name has many parts. A specialized information-object component relation under the universal gmeow:hasPart spine.
+- gmeow:hasNetworkAddress [gmeow:VirtualLocation → gmeow:NetworkAddress]: Relates a virtual location to a network address that locates it within a network topology.
 - gmeow:hasOccupancy [gmeow:Location → gmeow:Occupancy]: Links a location to an occupancy measurement describing the current number of entities located at it. Flat form for the common case; promote to full reified Occupancy when vantage, confidence, temporal scope, or standpoint matter.
 - gmeow:hasOccupation [gmeow:Person → gmeow:Occupation]: Relates a person to an occupation they hold or have held.
 - gmeow:hasOrganizationName [gmeow:Organization → gmeow:OrganizationName]: Relates an organization to a structured gmeow:OrganizationName it bears; the organization-scoped specialization of gmeow:hasAppellation, mirroring gmeow:hasName for persons and gmeow:hasPlaceName for places. Non-functional — an organization bears many co-equal names (legal, trading, former, multilingual); none is primary, and superseded ones set gmeow:displayable false.
@@ -546,6 +550,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:nameScript [gmeow:Appellation → rdfs:Literal]: The ISO 15924 script code of an appellation (e.g. "Hani", "Arab", "Latn"). Available explicitly for indexing alongside a BCP-47 script subtag on the literal.
 - gmeow:narrowerTag [gmeow:Tag → gmeow:Tag]: A narrower, more specific tag. Inverse of gmeow:broaderTag. Optional.
 - gmeow:nativeLanguage [gmeow:Agent → gmeow:Language]: Relates an agent to a native (mother-tongue / first) language — a specialization of gmeow:knowsLanguage. Non-functional: a person may have several native languages.
+- gmeow:networkAddressFrame [gmeow:NetworkAddress → gmeow:ReferenceFrame] (functional): The network reference frame in which this address is expressed. Functional: an address is expressed in exactly one frame.
+- gmeow:networkAddressType [gmeow:NetworkAddress → gmeow:NetworkAddressType]: The kind of a network address (a gmeow:NetworkAddressType individual). Non-functional: competing classifications coexist (Principle 9).
+- gmeow:networkAddressValue [gmeow:NetworkAddress → rdfs:Literal] (functional): The literal string value of a network address (e.g. '192.0.2.1', '00:1B:44:11:3A:B7', 'example.com', '443'). Functional: an address has exactly one value string.
 - gmeow:nip05 [gmeow:OnlineAccount → rdfs:Literal]: A Nostr NIP-05 identifier (user@domain) verifying a Nostr account against a domain.
 - gmeow:nostrPubkey [gmeow:OnlineAccount → rdfs:Literal]: The Nostr public key (npub / hex) identifying a decentralized-identity account.
 - gmeow:observationEvent [gmeow:Observation → gmeow:Event]: The event during which the observation was made — a survey, a census, an excavation, a clinical trial. Links an observation to the temporal occurrence that produced it. For the generating activity (provenance), use gmeow:wasGeneratedBy; this property is the *event* perspective (when did it happen).
@@ -760,6 +767,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:versionRole [gmeow:VersionMembership → gmeow:VersionRole]: The role or status classification this membership asserts for the member within the set — canonical, variant, latest, stable, LTS, deprecated, yanked, draft, published, revised, collected, withdrawn. NON-FUNCTIONAL: an entity may hold multiple roles from different authorities simultaneously (standpoint-indexed coexistence per Principle 9), and a role may change over time via new memberships rather than overwrite.
 - gmeow:versionScale [gmeow:VersionMembership → gmeow:VersionScale]: The scale classification of this membership — trivial, minor, major. NON-FUNCTIONAL: different authorities or schemes may classify the same change differently; those claims coexist.
 - gmeow:versionSet [gmeow:VersionMembership → gmeow:VersionSet] (functional): The version set / lineage to which this membership belongs. Functional per relator: one set per VersionMembership.
+- gmeow:virtualLocationType [gmeow:VirtualLocation → gmeow:VirtualLocationType]: The kind(s) of a virtual location (one or more gmeow:VirtualLocationType individuals). Non-functional: multi-source classifications may differ and must coexist as evidence (Principle 9).
 - gmeow:virtualPlatform [gmeow:VirtualLocation → rdfs:Literal]: The platform hosting a virtual location (Zoom, Meet, a chat service, …).
 - gmeow:wasAssociatedWith [gmeow:Activity → gmeow:Agent]: Relates an activity to an agent associated with carrying it out — e.g. the software agent that ran an import. (Activity→Agent; the counterpart of gmeow:wasAttributedTo, which ascribes an endurant Entity to an agent.)
 - gmeow:wasAttributedTo [gmeow:Entity → gmeow:Agent]: Ascribes responsibility for an entity to an agent.
@@ -831,10 +839,12 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:aspectPerfectiveProgressive (a gmeow:GrammaticalAspect): ISO-TimeML aspect PERFECTIVE_PROGRESSIVE.
 - gmeow:aspectProgressive (a gmeow:GrammaticalAspect): ISO-TimeML aspect PROGRESSIVE.
 - gmeow:axisAstar (a gmeow:Axis): CIE a* red-green
+- gmeow:axisBGPAS (a gmeow:Axis): BGP autonomous system axis
 - gmeow:axisBearing (a gmeow:Axis): bearing axis
 - gmeow:axisBlue (a gmeow:Axis): blue channel
 - gmeow:axisBstar (a gmeow:Axis): CIE b* blue-yellow
 - gmeow:axisCyan (a gmeow:Axis): cyan channel
+- gmeow:axisDNSName (a gmeow:Axis): DNS name axis
 - gmeow:axisDay (a gmeow:Axis): day
 - gmeow:axisDeclination (a gmeow:Axis): declination
 - gmeow:axisElevation (a gmeow:Axis): elevation
@@ -842,15 +852,19 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisGreen (a gmeow:Axis): green channel
 - gmeow:axisHeading (a gmeow:Axis): heading axis
 - gmeow:axisHour (a gmeow:Axis): hour
+- gmeow:axisIPv4Address (a gmeow:Axis): IPv4 address axis
+- gmeow:axisIPv6Address (a gmeow:Axis): IPv6 address axis
 - gmeow:axisKey (a gmeow:Axis): key (black) channel
 - gmeow:axisLatitude (a gmeow:Axis): latitude
 - gmeow:axisLightness (a gmeow:Axis): CIE L* lightness
 - gmeow:axisLongitude (a gmeow:Axis): longitude
+- gmeow:axisMACAddress (a gmeow:Axis): MAC address axis
 - gmeow:axisMagenta (a gmeow:Axis): magenta channel
 - gmeow:axisMagnitude (a gmeow:Axis): magnitude
 - gmeow:axisMinute (a gmeow:Axis): minute
 - gmeow:axisMonth (a gmeow:Axis): month
 - gmeow:axisPitch (a gmeow:Axis): pitch axis
+- gmeow:axisPortNumber (a gmeow:Axis): port number axis
 - gmeow:axisPredictedMeanVote (a gmeow:Axis): predicted mean vote (PMV)
 - gmeow:axisPredictedPercentageDissatisfied (a gmeow:Axis): predicted percentage dissatisfied (PPD)
 - gmeow:axisQuaternionW (a gmeow:Axis): quaternion W axis
@@ -865,6 +879,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisTristimulusX (a gmeow:Axis): CIE X tristimulus
 - gmeow:axisTristimulusY (a gmeow:Axis): CIE Y tristimulus
 - gmeow:axisTristimulusZ (a gmeow:Axis): CIE Z tristimulus
+- gmeow:axisURL (a gmeow:Axis): URL axis
 - gmeow:axisVirtualAddress (a gmeow:Axis): virtual address axis
 - gmeow:axisX (a gmeow:Axis): X axis
 - gmeow:axisY (a gmeow:Axis): Y axis
@@ -978,6 +993,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:frameKindPolar (a gmeow:FrameKind): polar
 - gmeow:frameKindScalar (a gmeow:FrameKind): scalar
 - gmeow:frameKindTemporal (a gmeow:FrameKind): temporal
+- gmeow:frameKindTopological (a gmeow:FrameKind): A frame whose structure is defined by containment, adjacency, or graph connectivity rather than geometric coordinates. Distance is measured in hops or nesting depth, not metres or degrees.
 - gmeow:frameRealmCelestial (a gmeow:FrameRealm): celestial / astronomical
 - gmeow:frameRealmColourspace (a gmeow:FrameRealm): colourspace
 - gmeow:frameRealmCurrency (a gmeow:FrameRealm): currency
@@ -1183,6 +1199,13 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:namePurposeRegnal (a gmeow:NamePurpose): regnal name
 - gmeow:namePurposeReligious (a gmeow:NamePurpose): religious name
 - gmeow:namePurposeSuperseded (a gmeow:NamePurpose): superseded / former name
+- gmeow:networkAddressTypeBGP (a gmeow:NetworkAddressType): BGP autonomous system
+- gmeow:networkAddressTypeDNS (a gmeow:NetworkAddressType): DNS name
+- gmeow:networkAddressTypeIPv4 (a gmeow:NetworkAddressType): IPv4 address
+- gmeow:networkAddressTypeIPv6 (a gmeow:NetworkAddressType): IPv6 address
+- gmeow:networkAddressTypeMAC (a gmeow:NetworkAddressType): MAC address
+- gmeow:networkAddressTypePort (a gmeow:NetworkAddressType): port number
+- gmeow:networkAddressTypeURL (a gmeow:NetworkAddressType): URL
 - gmeow:observationTypeDerived (a gmeow:ObservationType): An observation produced by inference, calculation, or machine learning from other observations.
 - gmeow:observationTypeIdentity (a gmeow:ObservationType): An identity claim — gender identity, gender expression, sexual orientation, or romantic orientation — asserted by or about a person.
 - gmeow:observationTypeKinship (a gmeow:ObservationType): A claim about a kinship or genealogical relationship between persons.
@@ -1313,18 +1336,26 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:qualityDimensionThematicAccuracy (a gmeow:QualityDimension): Accuracy of quantitative and qualitative attribute values, including classification correctness and non-quantitative attribute correctness (ISO 19157).
 - gmeow:qualityDimensionTopologicalConsistency (a gmeow:QualityDimension): Correctness of the explicitly encoded topological characteristics of a dataset, typically expressed as error counts or conformance to a topological rule set (ISO 19157).
 - gmeow:referenceFrameAudioSpectrum (a gmeow:ReferenceFrame): Audio Spectrum Reference Frame
+- gmeow:referenceFrameBGP (a gmeow:ReferenceFrame): BGP Autonomous System Reference Frame
 - gmeow:referenceFrameCIELAB (a gmeow:ReferenceFrame): CIE L*a*b* Perceptually-Uniform Reference Frame
 - gmeow:referenceFrameCIEXYZ (a gmeow:ReferenceFrame): CIE 1931 XYZ Tristimulus Reference Frame
 - gmeow:referenceFrameCMYK (a gmeow:ReferenceFrame): CMYK Colourspace Reference Frame
 - gmeow:referenceFrameCelestialEquatorial (a gmeow:ReferenceFrame): Celestial Equatorial Reference Frame
+- gmeow:referenceFrameDNS (a gmeow:ReferenceFrame): DNS Name Space Reference Frame
 - gmeow:referenceFrameEnglish (a gmeow:ReferenceFrame): English Language Reference Frame
 - gmeow:referenceFrameGregorian (a gmeow:ReferenceFrame): Gregorian Calendar Reference Frame
+- gmeow:referenceFrameIPv4 (a gmeow:ReferenceFrame): IPv4 Address Space Reference Frame
+- gmeow:referenceFrameIPv6 (a gmeow:ReferenceFrame): IPv6 Address Space Reference Frame
+- gmeow:referenceFrameInternet (a gmeow:ReferenceFrame): Internet Topology Reference Frame
 - gmeow:referenceFrameLocalGrid (a gmeow:ReferenceFrame): Local Grid Cartesian Reference Frame
+- gmeow:referenceFrameMAC (a gmeow:ReferenceFrame): MAC Address Space Reference Frame
 - gmeow:referenceFrameNetworkGraph (a gmeow:ReferenceFrame): Network Graph Reference Frame
+- gmeow:referenceFramePort (a gmeow:ReferenceFrame): Port Number Space Reference Frame
 - gmeow:referenceFrameRobotBase (a gmeow:ReferenceFrame): Robot Base Cartesian Reference Frame
 - gmeow:referenceFrameSI (a gmeow:ReferenceFrame): SI Measurement Reference Frame
 - gmeow:referenceFrameSRGB (a gmeow:ReferenceFrame): sRGB Colourspace Reference Frame
 - gmeow:referenceFrameThermalComfort (a gmeow:MentalReferenceFrame): ASHRAE Thermal Comfort Reference Frame
+- gmeow:referenceFrameURL (a gmeow:ReferenceFrame): URL Space Reference Frame
 - gmeow:referenceFrameUSD (a gmeow:ReferenceFrame): US Dollar Currency Reference Frame
 - gmeow:referenceFrameUnixEpoch (a gmeow:ReferenceFrame): Unix Epoch Timestamp Reference Frame
 - gmeow:referenceFrameVirtualPlatform (a gmeow:ReferenceFrame): Virtual Platform Reference Frame
@@ -1461,6 +1492,14 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:trademarkStatusUnregistered (a gmeow:TrademarkStatus): An unregistered common-law trademark, asserted with the ™ symbol.
 - gmeow:unequivocal (a gmeow:StandpointModality): □_S — settled / necessary true according to the standpoint: the proposition holds in every precisification the standpoint admits (CRMinf belief value 'true'). The default when no gmeow:standpointModality is given.
 - gmeow:universalStandpoint (a gmeow:Standpoint): The universal standpoint * — the top of the poset, admitting every precisification: the uncontested global facts every standpoint shares. A statement with no gmeow:accordingTo is held according to the universal standpoint; every standpoint gmeow:sharpens it.
+- gmeow:virtualLocationTypeChatSpace (a gmeow:VirtualLocationType): chat space
+- gmeow:virtualLocationTypeMetaverseRoom (a gmeow:VirtualLocationType): metaverse room
+- gmeow:virtualLocationTypeOnlineForum (a gmeow:VirtualLocationType): online forum
+- gmeow:virtualLocationTypeSocialMediaPage (a gmeow:VirtualLocationType): social media page
+- gmeow:virtualLocationTypeStreamingChannel (a gmeow:VirtualLocationType): streaming channel
+- gmeow:virtualLocationTypeVideoConference (a gmeow:VirtualLocationType): video conference
+- gmeow:virtualLocationTypeVirtualEventSpace (a gmeow:VirtualLocationType): virtual event space
+- gmeow:virtualLocationTypeWebsite (a gmeow:VirtualLocationType): website
 - gmeow:wsTypeAbjad (a gmeow:WritingSystemType): abjad
 - gmeow:wsTypeAbugida (a gmeow:WritingSystemType): abugida
 - gmeow:wsTypeAlphabet (a gmeow:WritingSystemType): alphabet
