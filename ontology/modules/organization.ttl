@@ -8,7 +8,9 @@
 <https://blackcatinformatics.ca/gmeow/modules/organization>
     a owl:Ontology ;
     rdfs:label "GMEOW Organization Module"@en ;
-    rdfs:comment "Organizational roles and memberships (the ORG-superset layer)."@en ;
+    rdfs:comment """Organizational roles and memberships (the ORG-superset layer).
+
+STANDPOINT DOCTRINE (#51). Contested facts in the organization slice — disputed membership, rival succession claims, contested recognition of legitimacy — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested membership is two gmeow:accordingTo-annotated gmeow:memberOf base triples, or two reified gmeow:Membership relators each carrying gmeow:accordingTo. A contested succession (post-merger, post-coup) is two gmeow:accordingTo-annotated gmeow:subOrganizationOf claims. Recognition granted and later withdrawn is modelled as a gmeow:StandpointTenure with gmeow:displayable false, never deletion (Principle 10). There is NO organization-specific dispute mechanism, no primaryMember, no preferredSuccessor — only the cross-cutting #43 facility."""@en ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Role

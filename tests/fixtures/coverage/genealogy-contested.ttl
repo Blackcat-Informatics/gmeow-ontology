@@ -1,0 +1,67 @@
+# Coverage slice (#51): contested genealogy facts — standpoint-indexed,
+# coexisting, NO winner. Exercises contested parentage (civil register vs parish
+# record), contested birth date on a LifeEvent, and a withdrawn parentage claim
+# suppressed with gmeow:displayable false (Principle 10). Native GMEOW terms only.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/genealogy/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:standpoint-civil a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-parish a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# A child with contested parentage: civil register says one father, parish says another.
+# Both base triples are asserted; each is standpoint-indexed via gmeow:accordingTo.
+ex:child a gmeow:Person ;
+    gmeow:hasParent ex:civilFather , ex:parishFather .
+
+ex:civilFather a gmeow:Person .
+ex:parishFather a gmeow:Person .
+
+ex:claimCivilParent a owl:Axiom ;
+    owl:annotatedSource   ex:child ;
+    owl:annotatedProperty gmeow:hasParent ;
+    owl:annotatedTarget   ex:civilFather ;
+    gmeow:accordingTo ex:standpoint-civil ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    gmeow:confidence 0.9 .
+
+ex:claimParishParent a owl:Axiom ;
+    owl:annotatedSource   ex:child ;
+    owl:annotatedProperty gmeow:hasParent ;
+    owl:annotatedTarget   ex:parishFather ;
+    gmeow:accordingTo ex:standpoint-parish ;
+    gmeow:standpointModality gmeow:probable ;
+    gmeow:confidence 0.7 .
+
+# A contested birth date on the same LifeEvent — two eventTime claims.
+ex:childBirth a gmeow:LifeEvent ;
+    gmeow:eventType gmeow:eventTypeBirth ;
+    gmeow:eventTime "1894-01-01T00:00:00Z"^^xsd:dateTime ,
+                    "1896-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:claimBirth1894 a owl:Axiom ;
+    owl:annotatedSource   ex:childBirth ;
+    owl:annotatedProperty gmeow:eventTime ;
+    owl:annotatedTarget   "1894-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:accordingTo ex:standpoint-civil ;
+    gmeow:confidence 0.8 .
+
+ex:claimBirth1896 a owl:Axiom ;
+    owl:annotatedSource   ex:childBirth ;
+    owl:annotatedProperty gmeow:eventTime ;
+    owl:annotatedTarget   "1896-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:accordingTo ex:standpoint-parish ;
+    gmeow:confidence 0.6 .
+
+# A withdrawn parentage claim — a mistaken attribution, corrected by suppression.
+# The base triple is still asserted but annotated as withdrawn.
+ex:withdrawnClaim a owl:Axiom ;
+    owl:annotatedSource   ex:child ;
+    owl:annotatedProperty gmeow:hasParent ;
+    owl:annotatedTarget   ex:parishFather ;
+    gmeow:accordingTo ex:standpoint-parish ;
+    gmeow:standpointModality gmeow:refuted ;
+    gmeow:displayable false ;
+    gmeow:confidence 0.3 .

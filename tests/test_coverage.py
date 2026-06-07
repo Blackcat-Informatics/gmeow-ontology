@@ -172,6 +172,46 @@ def test_standpoint_slice_covered() -> None:
     assert not missing, f"standpoint terms missing from coverage: {missing}"
 
 
+def test_genealogy_contested_slice_covered() -> None:
+    report = run_coverage()
+    # The genealogy-contested fixture exercises standpoint-indexed parentage and
+    # life-event claims (#51).
+    expected_covered = {
+        GMEOW + "Person",
+        GMEOW + "hasParent",
+        GMEOW + "LifeEvent",
+        GMEOW + "eventTime",
+    }
+    missing = expected_covered - (report.covered_classes | report.covered_predicates)
+    assert not missing, f"genealogy contested terms missing: {missing}"
+
+
+def test_places_contested_slice_covered() -> None:
+    report = run_coverage()
+    expected_covered = {
+        GMEOW + "Place",
+        GMEOW + "containedInPlace",
+        GMEOW + "PlaceName",
+        GMEOW + "hasPlaceName",
+        GMEOW + "NameUsage",
+    }
+    missing = expected_covered - (report.covered_classes | report.covered_predicates)
+    assert not missing, f"places contested terms missing: {missing}"
+
+
+def test_organization_contested_slice_covered() -> None:
+    report = run_coverage()
+    expected_covered = {
+        GMEOW + "Person",
+        GMEOW + "Organization",
+        GMEOW + "memberOf",
+        GMEOW + "subOrganizationOf",
+        GMEOW + "StandpointTenure",
+    }
+    missing = expected_covered - (report.covered_classes | report.covered_predicates)
+    assert not missing, f"organization contested terms missing: {missing}"
+
+
 def test_coreference_slice_covered() -> None:
     report = run_coverage()
     expected_covered = {

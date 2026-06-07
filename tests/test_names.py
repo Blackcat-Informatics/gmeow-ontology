@@ -10,11 +10,14 @@ preferred/primary/canonical-name term (co-equality is structural).
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, URIRef
+from pathlib import Path
+
+from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
 from rdflib.collection import Collection
 from rdflib.namespace import XSD
 
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.validate import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"
@@ -397,3 +400,51 @@ def test_personname_no_longer_double_defined_in_genealogy() -> None:
     # Re-homed under Appellation, NOT under InformationObject directly anymore.
     assert URIRef(GMEOW + "Appellation") in parents
     assert URIRef(GMEOW + "InformationObject") not in parents
+
+
+# --------------------------------------------------------------------------- #
+# Standpoint coexistence — contested name usages + audience/standpoint distinction (#51)
+# --------------------------------------------------------------------------- #
+
+EX_NAMES = Namespace("https://blackcatinformatics.ca/gmeow/examples/names/")
+COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
+
+
+def test_contested_name_usage_coexists() -> None:
+    """Two standpoint-indexed NameUsage claims on the same person load, SHACL-pass,
+    and are BOTH retained — neither is the ground truth."""
+    g = Graph().parse(COVERAGE_FIXTURES / "names-contested.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    names = set(g.objects(EX_NAMES.person, URIRef(GMEOW + "hasName")))
+    assert {EX_NAMES.chosenName, EX_NAMES.legalName} <= names
+
+
+def test_audience_and_standpoint_are_distinct() -> None:
+    """usageAudience (social scope) is not bridged to accordingTo (standpoint frame).
+    The axes are orthogonal in the ontology."""
+    g = _graph()
+    audience = URIRef(GMEOW + "usageAudience")
+    according_to = URIRef(GMEOW + "accordingTo")
+    assert (audience, RDFS.subPropertyOf, according_to) not in g
+    assert (according_to, RDFS.subPropertyOf, audience) not in g
+    assert (audience, OWL.equivalentProperty, according_to) not in g
+
+
+def test_no_preferred_or_primary_name_term_extended() -> None:
+    """Principle 9: no single slot to win — names mints no preferred/primary
+    selector for a contested appellation or name usage."""
+    g = _graph()
+    prop_types = (OWL.ObjectProperty, OWL.DatatypeProperty, OWL.AnnotationProperty)
+    for banned in (
+        "primaryName",
+        "preferredName",
+        "primaryAppellation",
+        "preferredAppellation",
+        "preferredUsage",
+        "preferredRank",
+    ):
+        node = URIRef(GMEOW + banned)
+        for pt in prop_types:
+            assert (node, RDF.type, pt) not in g, f"{banned} must not exist"
+        assert (node, RDF.type, OWL.Class) not in g
