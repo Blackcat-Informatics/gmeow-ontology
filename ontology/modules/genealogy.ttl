@@ -195,8 +195,18 @@ gmeow:hasDescendant
     skos:definition "Relates a person to a descendant — a child, a child's child, and so on; the transitive inverse of gmeow:hasAncestor. Derived by the reasoner (gmeow:hasChild is a sub-property), never asserted directly."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:hasParent rdfs:subPropertyOf gmeow:hasAncestor .
-gmeow:hasChild  rdfs:subPropertyOf gmeow:hasDescendant .
+gmeow:hasParent rdfs:subPropertyOf gmeow:hasAncestor, gmeow:connectsTo .
+gmeow:hasChild  rdfs:subPropertyOf gmeow:hasDescendant, gmeow:connectsTo .
+
+# --------------------------------------------------------------------------- #
+# Connectivity spine declarations (#80, CONN-GEN).
+# Kinship bonds are traversable links in the universal graph layer.
+# Safe because connectsTo is NOT symmetric and NOT transitive at the universal
+# level, so hasSpouse / hasSibling can keep their symmetry and hasParent /
+# hasChild can keep their directedness.
+# --------------------------------------------------------------------------- #
+gmeow:hasSpouse  rdfs:subPropertyOf gmeow:connectsTo .
+gmeow:hasSibling rdfs:subPropertyOf gmeow:connectsTo .
 
 # Relator mediation: a parent-child relationship mediates a parent and a child
 # (EL existential, open-world; closed-world cardinality is SHACL's, #39). Applies

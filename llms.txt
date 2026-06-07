@@ -24,6 +24,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:Certification (⊑ gufo:Relator): A reified attestation that a cryptographic key belongs to a given identity, made by a certifying agent (a PGP key-signature / Web-of-Trust certification). Its validity window is carried with gmeow:validFrom/validUntil; revocation sets validUntil.
 - gmeow:Citation (⊑ gmeow:InformationObject): A reference to a specific place within a source (a page, entry, image, or record locator).
 - gmeow:ConflictStrategy (⊑ gufo:QualityValue): A policy conflict-resolution strategy — the ODRL conflict values perm / prohibit / invalid.
+- gmeow:Connection (⊑ gufo:Relator): A reified traversable link between two entities, able to bear its own period, cost, weight, bandwidth, confidence, and standpoint. The flat shortcut is gmeow:connectsTo; promote to Connection when metadata matters.
 - gmeow:Constraint (⊑ gufo:Relator): The abstract base of a condition on a rights rule (odrl:Constraint) — specialised by gmeow:AtomicConstraint (a leftOperand / operator / rightOperand comparison, e.g. dateTime ≤ 2030, spatial = EU, count ≤ 5) and gmeow:LogicalConstraint (a boolean combination of constraints). A licence's temporal bound is an AtomicConstraint over the dateTime operand.
 - gmeow:ConstraintLogic (⊑ gufo:QualityValue): The boolean operator of a logical constraint — odrl:and / odrl:or / odrl:xone (exactly one) / odrl:andSequence (ordered conjunction).
 - gmeow:ConstraintOperator (⊑ gufo:QualityValue): The comparison operator of an atomic constraint — the ODRL operator vocabulary (eq, neq, lt, lteq, gt, gteq, isPartOf, isA, isAnyOf, …).
@@ -148,6 +149,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:Role (⊑ gufo:FunctionalComplex): A function or position an agent plays in some context, such as a job title or organizational role.
 - gmeow:RomanticOrientation (⊑ gmeow:IdentityFacet): A person's SELF-ASSERTED romantic orientation — the pattern of their romantic attraction — as a reified facet pointing (via gmeow:romanticOrientationValue) to an open gmeow:RomanticOrientationValue. A SEPARATE axis from sexual orientation (split-attraction model); the two are mutually independent (e.g. asexual yet biromantic).
 - gmeow:RomanticOrientationValue (⊑ gufo:QualityValue): A pattern of romantic attraction — a VALUE pointed at by gmeow:romanticOrientationValue, never a subclass. Kept separate from sexual orientation (split-attraction). Open: a fresh individual with rdfs:label when none is seeded.
+- gmeow:Route (⊑ gmeow:Entity): A traversable path through a graph of connected entities — a named, typed sequence of linked nodes with a defined start and end. Models transport lines, network paths, citation chains, social paths, and dependency chains. The actual path geometry, ordering, and cost are computed by the solver layer (Principle 12), not asserted as triples.
+- gmeow:RouteKind (⊑ gufo:QualityValue): The kind of a route — transit line, flight path, walking path, citation chain, network path, social path, dependency chain. An open value vocabulary (individuals, never subclasses) per Principle 9.
 - gmeow:Rule (⊑ gufo:Relator): The abstract base of a deontic rule in a rights statement — it binds a regulated gmeow:RightsAction to an optional target asset and assignee. Specialised by gmeow:Permission, gmeow:Prohibition and gmeow:Duty (the ODRL rule trio).
 - gmeow:SMIMESignature (⊑ gmeow:CryptographicSignature): An S/MIME signature (RFC 8551) over a message, bound to an X.509 certificate.
 - gmeow:ScalarQuantity (⊑ gmeow:Entity, gufo:Object): A scalar numeric value with a unit, determinacy model, and granularity — the entity-valued wrapper for literal observation results (temperatures, distances, counts, probabilities). Keeps gmeow:observationResult uniformly entity-valued: the scalar literal lives here, not on the observation directly.
@@ -236,7 +239,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:conferredByEvent [gmeow:Appellation → gmeow:LifeEvent]: The life event that conferred or changed an appellation — a gmeow:LifeEvent carrying a gmeow:eventType such as gmeow:eventTypeChristening, gmeow:eventTypeNameChange, gmeow:eventTypeMarriage (a married name), or gmeow:eventTypeAdoption. Non-functional. The seam joining the names module to the events module's event spine.
 - gmeow:confidence: Confidence in a claim, in the closed interval [0,1], attached to the statement it qualifies.
 - gmeow:conflictStrategy [gmeow:RightsStatement → gmeow:ConflictStrategy] (functional): How a rights statement resolves a permission/prohibition conflict over the same action (odrl:conflict): gmeow:conflictPerm (permission wins), gmeow:conflictProhibit (prohibition wins), gmeow:conflictInvalid (the policy is void). Functional.
-- gmeow:connectsTo [gmeow:Location → gmeow:Location]: Relates a location to another location it connects to.
+- gmeow:connectionSource [gmeow:Connection → gmeow:Entity] (functional): The source entity of a reified Connection.
+- gmeow:connectionTarget [gmeow:Connection → gmeow:Entity] (functional): The target entity of a reified Connection.
+- gmeow:connectsTo: Universal traversable-link relation: relates any GMEOW thing to another thing it is directly connected to in a graph, network, or path. Intentionally broad; use specialized subproperties (spatiallyConnectsTo, hasSpouse, citesWork, dependsOn, …) when the kind of connection matters. NOT symmetric and NOT transitive at this level so that subproperties can be directed or undirected and reachability can be computed by the solver layer (Principle 12).
 - gmeow:constraintLogic [gmeow:LogicalConstraint → gmeow:ConstraintLogic] (functional): The boolean operator combining a logical constraint's members — one of the gmeow:ConstraintLogic values (odrl:and / or / xone / andSequence). Functional.
 - gmeow:constraintOperator [gmeow:AtomicConstraint → gmeow:ConstraintOperator] (functional): The comparison operator of an atomic constraint — one of the gmeow:ConstraintOperator values (odrl:operator). Functional.
 - gmeow:containedInLocation [gmeow:Location → gmeow:Location]: Relates a location to a larger location that contains it; transitive. A spatial/topological specialization of the universal gmeow:partOf spine.
@@ -349,6 +354,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasRightsStatement [gmeow:Entity → gmeow:RightsStatement]: Relates an entity (typically a gmeow:CreativeWork or gmeow:InformationObject) to a machine-readable rights statement that governs it — the GMEOW analogue of odrl:hasPolicy.
 - gmeow:hasRole [gmeow:Membership → gmeow:Role]: Relates a membership to the role the member plays.
 - gmeow:hasRomanticOrientation [gmeow:Person → gmeow:RomanticOrientation]: Relates a person to a self-asserted romantic-orientation facet. Non-functional and contextual; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasSexualOrientation, gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics.
+- gmeow:hasRoute [gmeow:Entity → gmeow:Route]: Relates an entity to a route that starts from, ends at, or passes through it.
+- gmeow:hasRouteSegment [gmeow:Route → gmeow:Route]: A sub-route that is part of a larger route. A specialization of the universal gmeow:hasPart spine.
 - gmeow:hasSensitivity [? → gmeow:SensitivityLevel]: Relates a value, entity, or claim to its privacy-sensitivity level — the explicit facet that drives disclosure-control decisions (coarsenTo / displayable) at projection time under a consent guard. Domain-free (universal, like hasGranularity and hasDeterminacy). NOT functional: in a multi-source merge sources may state different sensitivity levels, and those claims coexist rather than force the reasoner to collapse distinct levels. Distinct from gmeow:confidence (epistemic certainty) and from gmeow:hasDeterminacy (ontic model).
 - gmeow:hasSexualOrientation [gmeow:Person → gmeow:SexualOrientation]: Relates a person to a self-asserted sexual-orientation facet. Non-functional and contextual; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasRomanticOrientation, gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics.
 - gmeow:hasSibling [gmeow:Person → gmeow:Person]: Relates a person to a sibling; symmetric.
@@ -532,6 +539,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:roll [gmeow:Orientation → xsd:double]: Rotation about the longitudinal (typically x) axis, in degrees or radians as indicated by the reference frame.
 - gmeow:romanization [gmeow:Appellation → rdfs:Literal]: A Latin-script transliteration of THIS SAME appellation in another script (e.g. "Yamada Tarō" for "山田太郎"; pinyin for a Chinese name). Strictly a transliteration of one name — it NEVER bridges two distinct co-equal names (a Mandarin name is not the romanization of a Latin one).
 - gmeow:romanticOrientationValue [gmeow:RomanticOrientation → gmeow:RomanticOrientationValue] (functional): The gmeow:RomanticOrientationValue a romantic-orientation facet asserts (functional per facet). A predefined individual or a fresh one with rdfs:label; the single path to the value.
+- gmeow:routeEnd [gmeow:Route → gmeow:Entity] (functional): The ending entity of a route.
+- gmeow:routeKind [gmeow:Route → gmeow:RouteKind] (functional): The kind of a route (a RouteKind individual).
+- gmeow:routeStart [gmeow:Route → gmeow:Entity] (functional): The starting entity of a route.
+- gmeow:routeVia [gmeow:Route → gmeow:Entity]: An intermediate entity that a route passes through. The order of via points is computed by the solver layer (Principle 12), not asserted in the OWL core.
 - gmeow:ruleAction [gmeow:Rule → gmeow:RightsAction] (functional): The regulated action of a rule — one of the open gmeow:RightsAction values (odrl:action). Functional: a rule regulates exactly one action; several actions are several rules.
 - gmeow:ruleAssignee [gmeow:Rule → gmeow:Agent]: The party a rule applies to (odrl:assignee). Absent means the rule applies to everyone (an open offer to the public).
 - gmeow:ruleConsequence [gmeow:Rule → gmeow:Duty]: A duty triggered when a rule is unfulfilled or violated — the ODRL consequence (on a duty) / remedy (on a prohibition). The deontic chaining that makes a policy enforceable.
@@ -554,6 +565,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:sizeEstimate [gmeow:Message → xsd:integer]: The estimated size of a message in octets.
 - gmeow:sourceLocation [gmeow:Source → rdfs:Literal]: Where the source artifact came from — a file path, original filename, or URL. Provenance/audit only; carries no reliable identity.
 - gmeow:sourceModifiedAt [gmeow:Source → xsd:dateTime]: The last-modification time of the source artifact itself (e.g. a file mtime). A terminus-ante-quem on the recording of the claims this source carries — NOT valid-time (tenure) and NOT observation-time. Advisory and resettable; the reliable identity is gmeow:contentDigest. NOT functional: because a source is identified by its content digest, copies/syncs of the same bytes may legitimately report different modification times, which must coexist rather than force an inconsistency.
+- gmeow:spatiallyConnectsTo [gmeow:Location → gmeow:Location]: Relates a location to another location it is spatially or topologically traversable to — a road segment, a network link, a portal, or a transit stop connection. Symmetric: the link can be traversed in either direction. A specialization of the universal gmeow:connectsTo spine. Distinct from gmeow:adjacentTo (RCC-8 EC: touching but not necessarily traversable) and from gmeow:containedInLocation (mereological containment).
 - gmeow:spdxLicenseId [gmeow:License → rdfs:Literal] (functional): The SPDX License List short identifier of a licence — the canonical machine-readable licence id (e.g. "MIT", "Apache-2.0", "CC-BY-4.0", "GPL-3.0-only"). The bridge to the SPDX / SBOM world (spdx:licenseId); the SPDX List also assigns each id a stable IRI under http://spdx.org/licenses/. Functional: a licence has one canonical SPDX id (a compound choice is an SPDX licence expression in the same literal).
 - gmeow:spdxLicenseName [gmeow:License → rdfs:Literal]: The full SPDX License List name of a licence (spdx:name), e.g. "Apache License 2.0".
 - gmeow:standpointModality [? → gmeow:StandpointModality]: The belief value a standpoint assigns the annotated proposition — *how* the standpoint holds it, not merely *that* it holds it. This single axis is at least as expressive as BOTH the Standpoint-Logic modal operators (□_S / ◊_S) AND the CRMinf belief value (true / false / probable / possible): gmeow:unequivocal (□, settled true), gmeow:probable (likely true), gmeow:conceivable (◊, possible), gmeow:refuted (□¬, settled false — the standpoint DENIES the proposition). Optional; ABSENT is read as unequivocal. Orthogonal to gmeow:confidence (our certainty about the standpoint's stance) and gmeow:accordingTo (whose frame). Refutation is what lets GMEOW distinguish a standpoint's explicit denial from its silence — the neutral-stance ambiguity flat models cannot resolve.
@@ -1088,6 +1100,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:referenceFrameEnglish (a gmeow:ReferenceFrame): English Language Reference Frame
 - gmeow:referenceFrameGregorian (a gmeow:ReferenceFrame): Gregorian Calendar Reference Frame
 - gmeow:referenceFrameLocalGrid (a gmeow:ReferenceFrame): Local Grid Cartesian Reference Frame
+- gmeow:referenceFrameNetworkGraph (a gmeow:ReferenceFrame): Network Graph Reference Frame
 - gmeow:referenceFrameRobotBase (a gmeow:ReferenceFrame): Robot Base Cartesian Reference Frame
 - gmeow:referenceFrameSI (a gmeow:ReferenceFrame): SI Measurement Reference Frame
 - gmeow:referenceFrameSRGB (a gmeow:ReferenceFrame): sRGB Colourspace Reference Frame
@@ -1126,6 +1139,13 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:romanticPanromantic (a gmeow:RomanticOrientationValue): panromantic
 - gmeow:romanticQueerromantic (a gmeow:RomanticOrientationValue): queerplatonic / queer-romantic
 - gmeow:romanticQuestioning (a gmeow:RomanticOrientationValue): questioning
+- gmeow:routeKindCitation (a gmeow:RouteKind): citation chain
+- gmeow:routeKindDependency (a gmeow:RouteKind): dependency chain
+- gmeow:routeKindFlight (a gmeow:RouteKind): flight path
+- gmeow:routeKindNetwork (a gmeow:RouteKind): network path
+- gmeow:routeKindSocial (a gmeow:RouteKind): social path
+- gmeow:routeKindTransit (a gmeow:RouteKind): transit route
+- gmeow:routeKindWalking (a gmeow:RouteKind): walking route
 - gmeow:saabFemale (a gmeow:SexAssignedAtBirth): assigned female
 - gmeow:saabIntersex (a gmeow:SexAssignedAtBirth): intersex
 - gmeow:saabMale (a gmeow:SexAssignedAtBirth): assigned male

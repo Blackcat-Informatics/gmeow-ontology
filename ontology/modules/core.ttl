@@ -212,3 +212,21 @@ gmeow:hasUnit
     rdfs:label "has unit"@en ;
     skos:definition "Relates a quantitative value or measurement to its QUDT unit (by reference, never imported). Domain-free: used by temporal measurements, spatial measurements, and any other quantified claim."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Universal connectivity — the traversable-link spine (#80, CONN-GEN).
+#
+# Domain-specific properties keep their exact meanings (spatial network links,
+# social acquaintance, kinship bonds, citation edges, software dependencies).
+# They specialize this universal spine so generic consumers can ask for
+# connectivity without collapsing those semantics. No domain/range is asserted
+# here: GMEOW connectivity spans endurants, information objects, locations and
+# events. NOT symmetric and NOT transitive so subproperties can be directed or
+# undirected and reachability stays in the solver layer (Principle 12).
+# --------------------------------------------------------------------------- #
+
+gmeow:connectsTo
+    a owl:ObjectProperty ;
+    rdfs:label "connects to"@en ;
+    skos:definition "Universal traversable-link relation: relates any GMEOW thing to another thing it is directly connected to in a graph, network, or path. Intentionally broad; use specialized subproperties (spatiallyConnectsTo, hasSpouse, citesWork, dependsOn, …) when the kind of connection matters. NOT symmetric and NOT transitive at this level so that subproperties can be directed or undirected and reachability can be computed by the solver layer (Principle 12)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
