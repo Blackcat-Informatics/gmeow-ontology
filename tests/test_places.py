@@ -887,3 +887,131 @@ def test_geometry_has_type_and_geojson() -> None:
         assert gt is not None, "Geometry must have a geometryType"
         gj = g.value(geom, URIRef(GMEOW + "asGeoJSON"))
         assert gj is not None, "Geometry must have an asGeoJSON serialization"
+
+
+# --------------------------------------------------------------------------- #
+# Motion — LocationState / Trajectory (#94)
+# --------------------------------------------------------------------------- #
+
+
+def test_location_state_is_entity() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "LocationState"),
+        RDFS.subClassOf,
+        URIRef(GMEOW + "Entity"),
+    ) in graph
+
+
+def test_trajectory_is_entity() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "Trajectory"),
+        RDFS.subClassOf,
+        URIRef(GMEOW + "Entity"),
+    ) in graph
+
+
+def test_location_state_properties_exist() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "stateOf"),
+        RDFS.domain,
+        URIRef(GMEOW + "LocationState"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "stateDuringInterval"),
+        RDFS.domain,
+        URIRef(GMEOW + "LocationState"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "stateAtInstant"),
+        RDFS.domain,
+        URIRef(GMEOW + "LocationState"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "stateHasVelocity"),
+        RDFS.domain,
+        URIRef(GMEOW + "LocationState"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "stateHasAngularVelocity"),
+        RDFS.domain,
+        URIRef(GMEOW + "LocationState"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "stateReferenceFrame"),
+        RDFS.domain,
+        URIRef(GMEOW + "LocationState"),
+    ) in graph
+
+
+def test_trajectory_properties_exist() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "trajectoryOf"),
+        RDFS.domain,
+        URIRef(GMEOW + "Trajectory"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasTrajectorySample"),
+        RDFS.domain,
+        URIRef(GMEOW + "Trajectory"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "trajectoryReferenceFrame"),
+        RDFS.domain,
+        URIRef(GMEOW + "Trajectory"),
+    ) in graph
+
+
+def test_velocity_range_is_scalar_quantity() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "stateHasVelocity"),
+        RDFS.range,
+        URIRef(GMEOW + "ScalarQuantity"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "stateHasAngularVelocity"),
+        RDFS.range,
+        URIRef(GMEOW + "ScalarQuantity"),
+    ) in graph
+
+
+def test_trajectory_sample_is_non_functional() -> None:
+    graph = _graph()
+    prop = URIRef(GMEOW + "hasTrajectorySample")
+    assert (prop, RDF.type, OWL.ObjectProperty) in graph
+    assert (prop, RDF.type, OWL.FunctionalProperty) not in graph
+
+
+def test_state_reference_frame_is_functional() -> None:
+    graph = _graph()
+    prop = URIRef(GMEOW + "stateReferenceFrame")
+    assert (prop, RDF.type, OWL.FunctionalProperty) in graph
+
+
+def test_trajectory_reference_frame_is_functional() -> None:
+    graph = _graph()
+    prop = URIRef(GMEOW + "trajectoryReferenceFrame")
+    assert (prop, RDF.type, OWL.FunctionalProperty) in graph
+
+
+def test_no_unsafe_motion_property_chains() -> None:
+    """Principle 12: interpolation and coordinate transforms stay in solver."""
+    graph = _graph()
+    for prop in (
+        "stateOf",
+        "stateDuringInterval",
+        "stateAtInstant",
+        "stateHasVelocity",
+        "stateHasAngularVelocity",
+        "stateReferenceFrame",
+        "trajectoryOf",
+        "hasTrajectorySample",
+        "trajectoryReferenceFrame",
+    ):
+        p = URIRef(GMEOW + prop)
+        for _, _, _o in graph.triples((p, OWL.propertyChainAxiom, None)):
+            raise AssertionError(f"{prop} must not carry a property chain axiom")

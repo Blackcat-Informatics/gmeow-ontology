@@ -331,6 +331,84 @@ gmeow:Trajectory
     skos:definition "A continuous path of motion representing the space-time history of a moving entity."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+# =========================================================================== #
+# MOTION — LocationState & Trajectory properties (#94)
+# =========================================================================== #
+
+gmeow:stateOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LocationState ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "state of"@en ;
+    skos:definition "The entity whose location state this is — the moving feature whose presence, pose, and velocity are described by this state."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:stateDuringInterval
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LocationState ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "state during interval"@en ;
+    skos:definition "The time interval over which this location state holds. For point-like states (a single instant), use gmeow:stateAtInstant instead."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:stateAtInstant
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LocationState ;
+    rdfs:range gmeow:Instant ;
+    rdfs:label "state at instant"@en ;
+    skos:definition "The instant at which this point-like location state holds. For interval-scoped states, use gmeow:stateDuringInterval instead."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:stateHasVelocity
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LocationState ;
+    rdfs:range gmeow:ScalarQuantity ;
+    rdfs:label "state has velocity"@en ;
+    skos:definition "The linear velocity of the entity at this location state, expressed as a scalar quantity (value + unit) in the state's reference frame. Non-functional: competing velocity readings from different sensors coexist (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:stateHasAngularVelocity
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LocationState ;
+    rdfs:range gmeow:ScalarQuantity ;
+    rdfs:label "state has angular velocity"@en ;
+    skos:definition "The angular velocity of the entity at this location state, expressed as a scalar quantity (value + unit) in the state's reference frame. Non-functional: competing readings coexist (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:stateReferenceFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+    rdfs:domain gmeow:LocationState ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "state reference frame"@en ;
+    skos:definition "The coordinate reference frame in which this location state's pose and velocity are expressed. Functional: a state is expressed in exactly one frame; nested-frame transformations (e.g. satellite relative to ship) are computed by the solver layer (Principle 12)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:trajectoryOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Trajectory ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "trajectory of"@en ;
+    skos:definition "The entity whose space-time path this trajectory describes."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasTrajectorySample
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Trajectory ;
+    rdfs:range gmeow:LocationState ;
+    rdfs:label "has trajectory sample"@en ;
+    skos:definition "A discrete location-state sample composing this trajectory. Non-functional: a trajectory typically has many samples, and multiple sampling strategies (e.g. GPS every second vs. radar every minute) may coexist for the same trajectory (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:trajectoryReferenceFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+    rdfs:domain gmeow:Trajectory ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "trajectory reference frame"@en ;
+    skos:definition "The coordinate reference frame in which this trajectory's samples are expressed. Functional: a trajectory is expressed in exactly one frame; frame transformation is a solver concern (Principle 12)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 # Seeds for Frame Realm
 gmeow:frameRealmTerrestrial a gmeow:FrameRealm ; rdfs:label "terrestrial"@en .
 gmeow:frameRealmIndoor     a gmeow:FrameRealm ; rdfs:label "indoor"@en .
