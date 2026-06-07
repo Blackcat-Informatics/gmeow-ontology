@@ -6,6 +6,7 @@
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix vann:    <http://purl.org/vocab/vann/> .
+@prefix qudt:    <http://qudt.org/schema/qudt/> .
 
 <https://blackcatinformatics.ca/gmeow/modules/core>
     a owl:Ontology ;
@@ -168,7 +169,6 @@ gmeow:determinacyVague         a gmeow:Determinacy ; rdfs:label "vague"@en ;    
 gmeow:determinacyFuzzy         a gmeow:Determinacy ; rdfs:label "fuzzy"@en ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:determinacyProbabilistic a gmeow:Determinacy ; rdfs:label "probabilistic"@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:determinacyDisputed      a gmeow:Determinacy ; rdfs:label "disputed"@en ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
 # --------------------------------------------------------------------------- #
 # Sensitivity — universal privacy-classification vocabulary (#73, PRIV-GEN).
 #
@@ -197,3 +197,18 @@ gmeow:sensitivityInternal          a gmeow:SensitivityLevel ; rdfs:label "intern
 gmeow:sensitivityConfidential      a gmeow:SensitivityLevel ; rdfs:label "confidential"@en ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:sensitivityRestricted        a gmeow:SensitivityLevel ; rdfs:label "restricted"@en ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:sensitivitySensitivePersonal a gmeow:SensitivityLevel ; rdfs:label "sensitive personal"@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Units — cross-cutting unit linkage for measurements (#67).
+#
+# Domain-free object property pointing to QUDT by reference. Temporal
+# measurements, spatial coordinates, and any other quantitative value can use
+# this to name their unit without importing QUDT axioms (Principle 5).
+# --------------------------------------------------------------------------- #
+
+gmeow:hasUnit
+    a owl:ObjectProperty ;
+    rdfs:range qudt:Unit ;
+    rdfs:label "has unit"@en ;
+    skos:definition "Relates a quantitative value or measurement to its QUDT unit (by reference, never imported). Domain-free: used by temporal measurements, spatial measurements, and any other quantified claim."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

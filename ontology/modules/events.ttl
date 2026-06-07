@@ -565,3 +565,35 @@ gmeow:eventAspect
     rdfs:label "event aspect"@en ;
     skos:definition "The grammatical aspect of a textual mention of the event (ISO-TimeML EVENT @aspect). Annotation-layer only; orthogonal to the event's actual temporal placement."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# TEMPORAL FRAME LINKAGE (#67)
+#
+# Events carry their temporal frame explicitly when the event's interval is
+# expressed in a non-default frame (non-Gregorian calendar, astronomical scale,
+# etc.). The default assumption is gmeow:temporalFrameUTCGregorian; this link
+# makes non-default frames explicit (Principle 11).
+# =========================================================================== #
+
+gmeow:eventTemporalFrame
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:TemporalFrame ;
+    rdfs:label "event temporal frame"@en ;
+    skos:definition "The temporal frame in which the event's date/interval is expressed — explicit for non-default frames (Principle 11)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# JEPD — Event-level Allen relations are pairwise disjoint FROM interval-level
+# Allen relations. An event occurrence cannot simultaneously stand in an event
+# relation (which is about the occurrence) and an interval relation (which is
+# about the extent) to the same target. Within each family, transitivity and
+# inverses hold; between the families, they are disjoint (#67).
+# =========================================================================== #
+
+# Event-level and interval-level Allen relations are intentionally kept in
+# separate property families.  OWL 2 DL property disjointness is NOT asserted
+# here because several event-level relations are transitive (before, after,
+# during, contains, coincidesWith) and OWL 2 DL forbids
+# DisjointObjectProperties over non-simple properties.  Cross-family separation
+# is enforced by SHACL verify queries and the solver layer (Principle 12).
