@@ -128,6 +128,10 @@ gmeow:relationshipChild rdfs:subPropertyOf gmeow:observedFeature .
 # CoupleRelationship bridge.
 gmeow:hasPartner rdfs:subPropertyOf gmeow:observedFeature .
 
+# VersionMembership bridges (declared here because the super-properties live here).
+gmeow:versionMember rdfs:subPropertyOf gmeow:observedFeature .
+gmeow:membershipAuthority rdfs:subPropertyOf gmeow:vantage .
+
 # =========================================================================== #
 # OBSERVATION → EVENT LINKAGE (lightweight — heavy form uses ObservingActivity)
 # =========================================================================== #
