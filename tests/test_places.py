@@ -1208,6 +1208,63 @@ def test_no_unsafe_motion_property_chains() -> None:
 
 
 # --------------------------------------------------------------------------- #
+# Streaming — LocationState / Trajectory / Stream (#96)
+# --------------------------------------------------------------------------- #
+
+
+def test_location_stream_to_trajectory_derivation() -> None:
+    """A Trajectory derived from a Stream of LocationStates loads and passes SHACL."""
+    from rdflib import Namespace
+
+    ex_str = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
+    g = Graph().parse(COVERAGE_FIXTURES / "places-streaming.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    # The trajectory is derived from the stream via wasDerivedFrom.
+    assert (
+        ex_str.trajectory1,
+        URIRef(GMEOW + "wasDerivedFrom"),
+        ex_str.stream1,
+    ) in g
+    # The stream has three location-state samples.
+    samples = set(g.objects(ex_str.stream1, URIRef(GMEOW + "streamSample")))
+    assert len(samples) == 3, f"Expected 3 stream samples, got {len(samples)}"
+    # The trajectory has the same samples.
+    traj_samples = set(
+        g.objects(ex_str.trajectory1, URIRef(GMEOW + "hasTrajectorySample"))
+    )
+    assert samples == traj_samples, "Stream samples and trajectory samples must match"
+
+
+def test_stream_and_trajectory_coexist() -> None:
+    """Multiple streams/trajectories on the same entity coexist (Principle 9)."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-streaming.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    streams = set(g.subjects(RDF.type, URIRef(GMEOW + "Stream")))
+    assert len(streams) >= 2, "Expected at least two co-existing streams"
+    trajectories = set(g.subjects(RDF.type, URIRef(GMEOW + "Trajectory")))
+    assert len(trajectories) >= 2, "Expected at least two co-existing trajectories"
+
+
+def test_no_preferred_stream_term() -> None:
+    """Principle 9: no single slot to win — streaming mints no preferred/primary
+    selector for a contested or competing stream."""
+    g = _graph()
+    prop_types = (OWL.ObjectProperty, OWL.DatatypeProperty, OWL.AnnotationProperty)
+    for banned in (
+        "primaryStream",
+        "preferredStream",
+        "primaryLocationStream",
+        "preferredLocationStream",
+    ):
+        node = URIRef(GMEOW + banned)
+        for pt in prop_types:
+            assert (node, RDF.type, pt) not in g, f"{banned} must not exist"
+        assert (node, RDF.type, OWL.Class) not in g
+
+
+# --------------------------------------------------------------------------- #
 # Capacity / Occupancy / Utilization — issue #100
 # --------------------------------------------------------------------------- #
 

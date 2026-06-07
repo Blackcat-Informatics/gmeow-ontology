@@ -411,6 +411,19 @@ gmeow:trajectoryReferenceFrame
     skos:definition "The coordinate reference frame in which this trajectory's samples are expressed. Functional: a trajectory is expressed in exactly one frame; frame transformation is a solver concern (Principle 12)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+# --------------------------------------------------------------------------- #
+# STREAM → TRAJECTORY DERIVATION (#96)
+# --------------------------------------------------------------------------- #
+# A Trajectory is the continuous form of a Stream of LocationStates. The
+# derivation link is gmeow:wasDerivedFrom (provenance module), not a new
+# property: Trajectory wasDerivedFrom Stream. The stream's samples are
+# LocationStates linked via gmeow:streamSample (observations module); the
+# trajectory's samples are the same LocationStates linked via
+# gmeow:hasTrajectorySample. Interpolation, coordinate transforms, and
+# reconstruction are solver-layer computations (Principle 12), never asserted
+# as triples in the OWL core.
+# --------------------------------------------------------------------------- #
+
 # Seeds for Frame Realm
 gmeow:frameRealmTerrestrial a gmeow:FrameRealm ; rdfs:label "terrestrial"@en .
 gmeow:frameRealmIndoor     a gmeow:FrameRealm ; rdfs:label "indoor"@en .

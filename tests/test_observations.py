@@ -340,3 +340,94 @@ def test_frame_inheritance_via_quantity() -> None:
 
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
     assert (EX.q1, GMEOW.hasReferenceFrame, EX.frameSI) in graph
+
+
+# --------------------------------------------------------------------------- #
+# Stream — time-ordered observation sequences (#96)
+# --------------------------------------------------------------------------- #
+
+
+def test_stream_class_exists() -> None:
+    graph = load_merged_graph(include_imports=False)
+    assert (GMEOW.Stream, RDF.type, OWL.Class) in graph
+    assert (GMEOW.Stream, RDFS.subClassOf, GMEOW.Entity) in graph
+
+
+def test_stream_properties_exist() -> None:
+    graph = load_merged_graph(include_imports=False)
+    for prop in (
+        "streamOf",
+        "hasStream",
+        "streamSample",
+        "streamPlatform",
+        "streamSensor",
+        "streamInterval",
+    ):
+        assert (GMEOW[prop], RDF.type, OWL.ObjectProperty) in graph
+
+
+def test_stream_of_is_functional() -> None:
+    graph = load_merged_graph(include_imports=False)
+    assert (GMEOW.streamOf, RDF.type, OWL.FunctionalProperty) in graph
+    assert (GMEOW.streamOf, RDFS.domain, GMEOW.Stream) in graph
+    assert (GMEOW.streamOf, RDFS.range, GMEOW.Entity) in graph
+
+
+def test_has_stream_is_inverse_of_stream_of() -> None:
+    graph = load_merged_graph(include_imports=False)
+    assert (GMEOW.hasStream, OWL.inverseOf, GMEOW.streamOf) in graph
+
+
+def test_stream_sample_is_non_functional() -> None:
+    graph = load_merged_graph(include_imports=False)
+    prop = GMEOW.streamSample
+    assert (prop, RDF.type, OWL.ObjectProperty) in graph
+    assert (prop, RDF.type, OWL.FunctionalProperty) not in graph
+    assert (prop, RDFS.domain, GMEOW.Stream) in graph
+    assert (prop, RDFS.range, GMEOW.Entity) in graph
+
+
+def test_stream_platform_is_non_functional() -> None:
+    graph = load_merged_graph(include_imports=False)
+    prop = GMEOW.streamPlatform
+    assert (prop, RDF.type, OWL.ObjectProperty) in graph
+    assert (prop, RDF.type, OWL.FunctionalProperty) not in graph
+    assert (prop, RDFS.range, GMEOW.Agent) in graph
+
+
+def test_stream_sensor_is_non_functional() -> None:
+    graph = load_merged_graph(include_imports=False)
+    prop = GMEOW.streamSensor
+    assert (prop, RDF.type, OWL.ObjectProperty) in graph
+    assert (prop, RDF.type, OWL.FunctionalProperty) not in graph
+    assert (prop, RDFS.range, GMEOW.Agent) in graph
+
+
+def test_stream_interval_is_functional() -> None:
+    graph = load_merged_graph(include_imports=False)
+    prop = GMEOW.streamInterval
+    assert (prop, RDF.type, OWL.FunctionalProperty) in graph
+    assert (prop, RDFS.domain, GMEOW.Stream) in graph
+    assert (prop, RDFS.range, GMEOW.TimeInterval) in graph
+
+
+def test_streaming_observation_type_exists() -> None:
+    graph = load_merged_graph(include_imports=False)
+    assert (GMEOW.observationTypeStreaming, RDF.type, GMEOW.ObservationType) in graph
+
+
+def test_streaming_method_exists() -> None:
+    graph = load_merged_graph(include_imports=False)
+    assert (GMEOW.methodStreaming, RDF.type, GMEOW.ObservationMethod) in graph
+
+
+def test_stream_el_axiom() -> None:
+    """A Stream individual with streamOf stays consistent under OWL RL."""
+    graph = Graph()
+    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.add((EX.stream1, RDF.type, GMEOW.Stream))
+    graph.add((EX.stream1, GMEOW.streamOf, EX.entity1))
+    graph.add((EX.entity1, RDF.type, GMEOW.Entity))
+
+    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    assert (EX.stream1, RDF.type, GMEOW.Stream) in graph

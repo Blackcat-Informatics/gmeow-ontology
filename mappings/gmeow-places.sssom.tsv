@@ -4,7 +4,7 @@
 # mapping_tool: gmeow compile-mappings
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard. placeType/storageMedium are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological "within"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here.
+# comment: Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard. placeType/storageMedium are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological "within"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream.
 # curie_map:
 #   bfo: http://purl.obolibrary.org/obo/
 #   brick: https://brickschema.org/schema/Brick#
@@ -24,6 +24,8 @@
 #   semapv: https://w3id.org/semapv/vocab/
 #   sf: http://www.opengis.net/ont/sf#
 #   skos: http://www.w3.org/2004/02/skos/core#
+#   sosa: http://www.w3.org/ns/sosa/
+#   sta: http://www.opengis.net/def/ont/sensorthings/1.1/
 #   time: http://www.w3.org/2006/time#
 #   vcard: http://www.w3.org/2006/vcard/ns#
 #   wd: http://www.wikidata.org/entity/
@@ -40,6 +42,8 @@ gmeow:Location	skos:closeMatch	bfo:BFO_0000006	spatial region	semapv:ManualMappi
 gmeow:Location	skos:closeMatch	bfo:BFO_0000029	site	semapv:ManualMappingCuration	0.8	
 gmeow:Location	skos:closeMatch	crm:E53_Place	Place	semapv:ManualMappingCuration	0.85	
 gmeow:LocationState	skos:closeMatch	mf:TemporalGeometry	temporal geometry	semapv:ManualMappingCuration	0.7	
+gmeow:LocationState	skos:closeMatch	sosa:Sample		semapv:ManualMappingCuration	0.75	A LocationState in a stream is a sample of the entity's trajectory.
+gmeow:LocationState	skos:closeMatch	sta:HistoricalLocation		semapv:ManualMappingCuration	0.8	HistoricalLocation is time-indexed location of a Thing; LocationState is the state of a moving entity at a time.
 gmeow:Occupancy	skos:closeMatch	brick:Occupancy		semapv:ManualMappingCuration	0.8	Brick Occupancy is a class for the current number of entities in a space; GMEOW Occupancy is a reified Measurement with location, scalar result, and provenance.
 gmeow:Orientation	skos:closeMatch	pos:OrientationMeasure	Orientation Measure	semapv:ManualMappingCuration	0.85	
 gmeow:Place	skos:closeMatch	crmgeo:SP5_Geometric_Place_Expression	Geometric Place Expression	semapv:ManualMappingCuration	0.7	
@@ -51,7 +55,9 @@ gmeow:Pose	skos:closeMatch	pos:QuantitativePose	Quantitative Pose	semapv:ManualM
 gmeow:Pose	skos:closeMatch	wd:Q1055020	pose	semapv:ManualMappingCuration	0.8	
 gmeow:RegulatoryOverlay	skos:closeMatch	schema:AdministrativeArea		semapv:ManualMappingCuration	0.6	schema.org AdministrativeArea is a flat Place subclass for government-defined areas; GMEOW RegulatoryOverlay is a reified, time-scoped situation that binds a place, an authority, a regulation type, and optional deontic rules. Directional lossy projection.
 gmeow:RegulatoryOverlay	skos:closeMatch	wd:Q1055894	administrative territorial entity	semapv:ManualMappingCuration	0.75	Wikidata Q1055894 is the general concept of an administrative territorial entity; GMEOW RegulatoryOverlay adds time-scoping, authority, regulation type, and deontic linkage.
+gmeow:Stream	skos:closeMatch	sta:Datastream		semapv:ManualMappingCuration	0.85	SensorThings Datastream groups observations by sensor + observed property.
 gmeow:Trajectory	skos:closeMatch	mf:TemporalTrajectory	temporal trajectory	semapv:ManualMappingCuration	0.8	
+gmeow:Trajectory	skos:relatedMatch	sta:Datastream		semapv:ManualMappingCuration	0.6	Trajectory as the continuous form of a stream; weaker alignment than Stream→Datastream.
 gmeow:VirtualLocation	skos:closeMatch	schema:VirtualLocation		semapv:ManualMappingCuration	0.9	
 gmeow:addressLocality	owl:equivalentProperty	schema:addressLocality		semapv:ManualMappingCuration	1.0	
 gmeow:addressLocality	skos:closeMatch	vcard:locality		semapv:ManualMappingCuration	0.9	
