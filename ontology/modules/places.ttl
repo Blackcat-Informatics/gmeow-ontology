@@ -622,11 +622,11 @@ gmeow:ProximityMeasurement
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:proximityTo
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:ProximityMeasurement ;
     rdfs:range gmeow:Entity ;
     rdfs:label "proximity to"@en ;
-    skos:definition "The target entity to which proximity is measured."@en ;
+    skos:definition "The target entity to which proximity is measured. Functional: a different target entity is a different proximity measurement (constitutive of the relator's identity)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:proximity

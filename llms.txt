@@ -474,7 +474,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:pronounReflexive [gmeow:PronounSet → rdfs:Literal] (functional): The reflexive form of a pronoun set, e.g. "herself", "themself", "xemself".
 - gmeow:pronounSubject [gmeow:PronounSet → rdfs:Literal] (functional): The subject (nominative) form of a pronoun set, e.g. "she", "they", "xe".
 - gmeow:proximity [gmeow:Entity → gmeow:ProximityMeasurement]: Links an entity to a proximity measurement describing its distance or dissimilarity to another entity. The measurement carries the scalar value (via observationResult → ScalarQuantity), the reference frame (via hasReferenceFrame), and the target entity (via proximityTo). Flat form for the common case; promote to full reified Measurement when vantage, confidence, temporal scope, or standpoint matter.
-- gmeow:proximityTo [gmeow:ProximityMeasurement → gmeow:Entity]: The target entity to which proximity is measured.
+- gmeow:proximityTo [gmeow:ProximityMeasurement → gmeow:Entity] (functional): The target entity to which proximity is measured. Functional: a different target entity is a different proximity measurement (constitutive of the relator's identity).
 - gmeow:quantityUncertainty [gmeow:ScalarQuantity → xsd:decimal] (functional): The uncertainty (e.g. ±1 sigma) of a scalar quantity, in the same unit as the quantity value.
 - gmeow:quantityValue [gmeow:ScalarQuantity → xsd:decimal] (functional): The numeric value of a scalar quantity.
 - gmeow:rcc8dc [gmeow:Location → gmeow:Location]: RCC-8: Disconnected (DC) — regions are disjoint and do not share any point.

@@ -1071,6 +1071,13 @@ gmeow:ProximityMeasurementShape
     rdfs:label "ProximityMeasurement well-formedness shape" ;
     sh:targetClass gmeow:ProximityMeasurement ;
     sh:property [
+        sh:path gmeow:observedFeature ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ProximityMeasurement must name exactly one starting entity (gmeow:observedFeature)." ;
+    ] ;
+    sh:property [
         sh:path gmeow:proximityTo ;
         sh:minCount 1 ;
         sh:maxCount 1 ;

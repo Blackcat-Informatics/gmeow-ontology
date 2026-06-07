@@ -170,5 +170,6 @@ def test_malformed_proximity_fixture_is_flagged() -> None:
     result = run_shacl(_fixture("proximity-malformed"))
     assert not result.ok
     report = "\n".join(result.errors + result.warnings)
+    assert "exactly one starting entity (gmeow:observedFeature)" in report
     assert "exactly one target entity (gmeow:proximityTo)" in report
     assert "exactly one scalar quantity result" in report

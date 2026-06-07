@@ -10,6 +10,7 @@ ex:office a gmeow:Place .
 ex:home a gmeow:Place .
 
 ex:commute a gmeow:ProximityMeasurement ;
+    gmeow:observedFeature ex:office ;
     gmeow:proximityTo ex:home ;
     gmeow:observationResult [
         a gmeow:ScalarQuantity ;

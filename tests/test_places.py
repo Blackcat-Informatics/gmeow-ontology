@@ -430,6 +430,11 @@ def test_has_metric_kind_on_reference_frame() -> None:
     graph = _graph()
     assert (
         URIRef(GMEOW + "hasMetricKind"),
+        RDF.type,
+        OWL.ObjectProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasMetricKind"),
         RDFS.domain,
         URIRef(GMEOW + "ReferenceFrame"),
     ) in graph
@@ -458,6 +463,11 @@ def test_proximity_property_domain_range() -> None:
     graph = _graph()
     assert (
         URIRef(GMEOW + "proximity"),
+        RDF.type,
+        OWL.ObjectProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "proximity"),
         RDFS.domain,
         URIRef(GMEOW + "Entity"),
     ) in graph
@@ -470,6 +480,16 @@ def test_proximity_property_domain_range() -> None:
 
 def test_proximity_to_property() -> None:
     graph = _graph()
+    assert (
+        URIRef(GMEOW + "proximityTo"),
+        RDF.type,
+        OWL.ObjectProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "proximityTo"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
     assert (
         URIRef(GMEOW + "proximityTo"),
         RDFS.domain,

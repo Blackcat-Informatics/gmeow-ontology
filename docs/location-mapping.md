@@ -179,6 +179,10 @@ A **`gmeow:ProximityMeasurement`** is a `gmeow:Measurement` subclass that record
 - `gmeow:observationResult` → `gmeow:ScalarQuantity` — the numeric value, unit (QUDT), and reference frame.
 
 ```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://example.org/loc/> .
+
 ex:office a gmeow:Place ; gmeow:locatedAt ex:buildingA .
 ex:home   a gmeow:Place ; gmeow:locatedAt ex:buildingB .
 
