@@ -275,6 +275,17 @@
             align:relation "<=" ;
             edoal:measure 8.5e-01 ],
         [ a align:Cell ;
+            rdfs:label "Capacity Measurement → schema:maximumAttendeeCapacity (lossy)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:compose ( [ a edoal:Relation ;
+                                edoal:uri gmeow:hasCapacity ] [ a edoal:Relation ;
+                                edoal:uri gmeow:observationResult ] [ a edoal:Relation ;
+                                edoal:uri gmeow:quantityValue ] ) ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:maximumAttendeeCapacity ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ],
+        [ a align:Cell ;
             rdfs:label "displayable fullName → schema:name"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:fullName ] ;
@@ -292,6 +303,17 @@
             align:relation "<=" ;
             edoal:measure 9e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnNicknameName ] ],
+        [ a align:Cell ;
+            rdfs:label "Occupancy Measurement → schema:occupancy (lossy)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:compose ( [ a edoal:Relation ;
+                                edoal:uri gmeow:hasOccupancy ] [ a edoal:Relation ;
+                                edoal:uri gmeow:observationResult ] [ a edoal:Relation ;
+                                edoal:uri gmeow:quantityValue ] ) ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:occupancy ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ],
         [ a align:Cell ;
             rdfs:label "Participation (organizer role) → schema:organizer"@en ;
             align:entity1 [ a edoal:Relation ;

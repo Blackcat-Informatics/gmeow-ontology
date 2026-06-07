@@ -8,6 +8,7 @@ authority link.
 
 from __future__ import annotations
 
+from decimal import Decimal
 from pathlib import Path
 
 from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
@@ -1027,3 +1028,215 @@ def test_no_unsafe_motion_property_chains() -> None:
         p = URIRef(GMEOW + prop)
         for _, _, _o in graph.triples((p, OWL.propertyChainAxiom, None)):
             raise AssertionError(f"{prop} must not carry a property chain axiom")
+
+
+# --------------------------------------------------------------------------- #
+# Capacity / Occupancy / Utilization — issue #100
+# --------------------------------------------------------------------------- #
+
+
+def test_capacity_occupancy_utilization_subclass_of_measurement() -> None:
+    graph = _graph()
+    for cls in ("Capacity", "Occupancy", "Utilization"):
+        ref = URIRef(GMEOW + cls)
+        assert (ref, RDF.type, OWL.Class) in graph
+        assert (ref, RDFS.subClassOf, URIRef(GMEOW + "Measurement")) in graph
+
+
+def test_capacity_of_property() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "capacityOf"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "capacityOf"),
+        RDFS.domain,
+        URIRef(GMEOW + "Capacity"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "capacityOf"),
+        RDFS.range,
+        URIRef(GMEOW + "Location"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "capacityOf"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "observedFeature"),
+    ) in graph
+
+
+def test_occupancy_of_property() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "occupancyOf"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "occupancyOf"),
+        RDFS.domain,
+        URIRef(GMEOW + "Occupancy"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "occupancyOf"),
+        RDFS.range,
+        URIRef(GMEOW + "Location"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "occupancyOf"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "observedFeature"),
+    ) in graph
+
+
+def test_utilization_of_property() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "utilizationOf"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "utilizationOf"),
+        RDFS.domain,
+        URIRef(GMEOW + "Utilization"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "utilizationOf"),
+        RDFS.range,
+        URIRef(GMEOW + "Location"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "utilizationOf"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "observedFeature"),
+    ) in graph
+
+
+def test_has_capacity_domain_range() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "hasCapacity"),
+        RDFS.domain,
+        URIRef(GMEOW + "Location"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasCapacity"),
+        RDFS.range,
+        URIRef(GMEOW + "Capacity"),
+    ) in graph
+
+
+def test_has_occupancy_domain_range() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "hasOccupancy"),
+        RDFS.domain,
+        URIRef(GMEOW + "Location"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasOccupancy"),
+        RDFS.range,
+        URIRef(GMEOW + "Occupancy"),
+    ) in graph
+
+
+def test_has_utilization_domain_range() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "hasUtilization"),
+        RDFS.domain,
+        URIRef(GMEOW + "Location"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasUtilization"),
+        RDFS.range,
+        URIRef(GMEOW + "Utilization"),
+    ) in graph
+
+
+def test_no_preferred_or_primary_capacity_term() -> None:
+    """Principle 9: no single slot to win — capacity/occupancy mints no
+    preferred/primary selector for a contested measurement."""
+    g = _graph()
+    prop_types = (OWL.ObjectProperty, OWL.DatatypeProperty, OWL.AnnotationProperty)
+    for banned in (
+        "primaryCapacity",
+        "preferredCapacity",
+        "primaryOccupancy",
+        "preferredOccupancy",
+        "primaryUtilization",
+        "preferredUtilization",
+    ):
+        node = URIRef(GMEOW + banned)
+        for pt in prop_types:
+            assert (node, RDF.type, pt) not in g, f"{banned} must not exist"
+        assert (node, RDF.type, OWL.Class) not in g
+
+
+def test_contested_capacity_claims_coexist() -> None:
+    """Two contradictory Capacity measurements on the same location load,
+    SHACL-pass, and are BOTH retained — neither is the ground truth (P9)."""
+    from rdflib import Namespace
+
+    ex_cap = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
+    g = Graph().parse(COVERAGE_FIXTURES / "places-capacity.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    caps = set(g.subjects(URIRef(GMEOW + "capacityOf"), ex_cap.venue))
+    assert {ex_cap.capFireCode, ex_cap.capVenueClaim} <= caps
+
+
+def test_superseded_capacity_suppressed() -> None:
+    """A superseded capacity is retained with displayable false (P10)."""
+    from rdflib import Namespace
+
+    ex_cap = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
+    g = Graph().parse(COVERAGE_FIXTURES / "places-capacity.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    assert (
+        ex_cap.capOld,
+        URIRef(GMEOW + "displayable"),
+        Literal(False),
+    ) in g
+
+
+def test_occupancy_with_unit_asserted() -> None:
+    """An Occupancy measurement carries a scalar quantity with a QUDT unit."""
+    from rdflib import Namespace
+
+    ex_cap = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
+    g = Graph().parse(COVERAGE_FIXTURES / "places-capacity.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    occs = list(g.subjects(URIRef(GMEOW + "occupancyOf"), ex_cap.venue))
+    assert len(occs) == 1, "Venue must have exactly one occupancy"
+    occ = occs[0]
+    sq = g.value(occ, URIRef(GMEOW + "observationResult"))
+    assert sq is not None, "Occupancy must have an observationResult"
+    val = g.value(sq, URIRef(GMEOW + "quantityValue"))
+    assert val is not None, "ScalarQuantity must have a quantityValue"
+    assert Decimal(str(val)) == Decimal("412")
+
+
+def test_storage_capacity_in_bytes() -> None:
+    """A StorageLocation can have a capacity in bytes (QUDT BYTE unit)."""
+    from rdflib import Namespace
+
+    ex_cap = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
+    g = Graph().parse(COVERAGE_FIXTURES / "places-capacity.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    caps = list(g.subjects(URIRef(GMEOW + "capacityOf"), ex_cap.storage))
+    assert len(caps) == 1, "Storage must have exactly one capacity"
+    cap = caps[0]
+    sq = g.value(cap, URIRef(GMEOW + "observationResult"))
+    assert sq is not None, "Capacity must have an observationResult"
+    val = g.value(sq, URIRef(GMEOW + "quantityValue"))
+    assert val is not None, "ScalarQuantity must have a quantityValue"
+    assert Decimal(str(val)) == Decimal("1099511627776")
+    unit = g.value(sq, URIRef(GMEOW + "hasUnit"))
+    assert unit == URIRef("http://qudt.org/vocab/unit/BYTE")

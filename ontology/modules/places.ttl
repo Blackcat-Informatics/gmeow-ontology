@@ -1165,3 +1165,89 @@ gmeow:ContainmentTenure rdfs:subClassOf
 # =========================================================================== #
 
 gmeow:locatedAt owl:propertyChainAxiom ( gmeow:locatedAt gmeow:containedInLocation ) .
+
+# --------------------------------------------------------------------------- #
+# Capacity / Occupancy / Utilization — cross-cutting location measurements (#100)
+# --------------------------------------------------------------------------- #
+# Capacity, occupancy, and utilization are reified Measurements following the
+# ProximityMeasurement pattern (places.ttl § Proximity / Distance). The location
+# is the observedFeature; the result is a ScalarQuantity with unit (QUDT). The
+# "what is being counted" is implicit from the location's placeType and the unit
+# (P11: frame-relativity). Utilization, overflow detection, and occupancy
+# counting from locatedAt / LocationState are solver-layer computations (P12).
+# --------------------------------------------------------------------------- #
+
+gmeow:Capacity
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Measurement ;
+    rdfs:label "Capacity"@en ;
+    skos:definition "A measurement of the maximum number of entities a location can hold. The location is the observedFeature; the result is a ScalarQuantity. The entity kind being counted is implicit from the location's placeType and the ScalarQuantity's hasUnit (P11). A contested capacity (e.g., fire code vs. venue claim) is modelled as multiple co-existing Capacity measurements, each standpoint-indexed and confidence-weighted, never collapsing to a single winner (P9). A superseded capacity (e.g., after renovation) is suppressed via displayable false, never deleted (P10)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:capacityOf
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    rdfs:domain gmeow:Capacity ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "capacity of"@en ;
+    skos:definition "The location whose capacity is measured. Functional: a capacity measurement concerns exactly one location (constitutive of the measurement's identity)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasCapacity
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:capacityOf ;
+    rdfs:domain gmeow:Location ;
+    rdfs:range gmeow:Capacity ;
+    rdfs:label "has capacity"@en ;
+    skos:definition "Links a location to a capacity measurement describing the maximum number of entities it can hold. Flat form for the common case; promote to full reified Capacity when vantage, confidence, temporal scope, or standpoint matter."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Occupancy
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Measurement ;
+    rdfs:label "Occupancy"@en ;
+    skos:definition "A measurement of the current number of entities located at or within a location. The location is the observedFeature; the result is a ScalarQuantity. Typically computed by the solver layer from locatedAt relationships and active LocationState instances (P12), but may also be asserted directly from sensor readings or manual counts."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:occupancyOf
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    rdfs:domain gmeow:Occupancy ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "occupancy of"@en ;
+    skos:definition "The location whose occupancy is measured. Functional: an occupancy measurement concerns exactly one location (constitutive of the measurement's identity)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasOccupancy
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:occupancyOf ;
+    rdfs:domain gmeow:Location ;
+    rdfs:range gmeow:Occupancy ;
+    rdfs:label "has occupancy"@en ;
+    skos:definition "Links a location to an occupancy measurement describing the current number of entities located at it. Flat form for the common case; promote to full reified Occupancy when vantage, confidence, temporal scope, or standpoint matter."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Utilization
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Measurement ;
+    rdfs:label "Utilization"@en ;
+    skos:definition "A measurement of the ratio of current occupancy to maximum capacity at a location, typically expressed as a ratio (0–1) or percentage. The location is the observedFeature; the result is a ScalarQuantity. Computed by the solver layer (P12) from capacity and occupancy measurements, not asserted directly in the canonical core."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:utilizationOf
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    rdfs:domain gmeow:Utilization ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "utilization of"@en ;
+    skos:definition "The location whose utilization is measured. Functional: a utilization measurement concerns exactly one location (constitutive of the measurement's identity)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasUtilization
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:utilizationOf ;
+    rdfs:domain gmeow:Location ;
+    rdfs:range gmeow:Utilization ;
+    rdfs:label "has utilization"@en ;
+    skos:definition "Links a location to a utilization measurement describing the ratio of occupancy to capacity. Flat form for the common case; promote to full reified Utilization when vantage, confidence, temporal scope, or standpoint matter."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

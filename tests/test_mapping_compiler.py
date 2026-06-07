@@ -91,7 +91,9 @@ def test_dsl_parses() -> None:
     # Wikidata x3).
     # Issue #94 motion: +2 (LocationState→mf:TemporalGeometry,
     # Trajectory→mf:TemporalTrajectory).
-    assert len(dsl.equivalences) == 910
+    # Issue #100 capacity/occupancy: +3 (Brick Capacity, Brick Occupancy,
+    # schema.org maximumAttendeeCapacity).
+    assert len(dsl.equivalences) == 913
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
