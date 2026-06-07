@@ -75,6 +75,7 @@ _PROFILES = (
     "vcard",
     "foaf",
     "geosparql",
+    "qb",
     "ical",
     "owl-time",
     "odrl",

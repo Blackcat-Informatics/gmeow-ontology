@@ -187,3 +187,12 @@ gmeow:mapGeoWithin a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
             [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:containedInPlace ; gmeow:objectVar "parent" ] ) ] ;
     gmeow:hasBinding [ gmeow:profile "geosparql" ; gmeow:toPredicate geo:sfWithin ; gmeow:relation "=" ] .
+
+gmeow:mapGeoContains a gmeow:ProjectionMapping ;
+    rdfs:label "containsPlace → geo:sfContains"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "parent" ; gmeow:value "place" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "parent" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "parent" ; gmeow:predicate gmeow:containsPlace ; gmeow:objectVar "place" ] ) ] ;
+    gmeow:hasBinding [ gmeow:profile "geosparql" ; gmeow:toPredicate geo:sfContains ; gmeow:relation "=" ] .

@@ -132,6 +132,15 @@ gmeow:containedInPlace
     skos:definition "Relates a place to a larger place that geographically contains it; transitive. Chains the nested granularity (room ⊂ building ⊂ city ⊂ region ⊂ country), each level a first-class place. Non-functional: contested sovereignty claims (e.g. Crimea-class) coexist as standpoint-indexed statements (gmeow:accordingTo), never collapsing to a single winner (Principle 9)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:containsPlace
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:containedInPlace ;
+    rdfs:domain gmeow:Place ;
+    rdfs:range gmeow:Place ;
+    rdfs:label "contains place"@en ;
+    skos:definition "The inverse of gmeow:containedInPlace — a place that geographically contains another place. Under OWL 2 semantics, transitivity is entailed because containedInPlace is transitive. GMEOW does not assert additional transitive property chains beyond the inverse declaration; transitive closure is a solver concern (Principle 12)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:hasCoordinates
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Place ;
