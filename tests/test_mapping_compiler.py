@@ -104,7 +104,7 @@ def test_dsl_parses() -> None:
     # overlayAuthority→schema:organizer, overlayRegulation→schema:legislation).
     # Issue #96 streaming: +10 observations (removed eqObs028 per review),
     # +4 places (eqPlaces104-107); closeMatch→broadMatch/relatedMatch per review.
-    assert len(dsl.equivalences) == 956
+    assert len(dsl.equivalences) == 952
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

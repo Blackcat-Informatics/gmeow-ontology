@@ -14,15 +14,15 @@
 #   sosa: http://www.w3.org/ns/sosa/
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:Agent	skos:broadMatch	sosa:Sensor	semapv:ManualMappingCuration	0.75	An agent acting as vantage/observer/perceiver IS a standpoint (Principle 9). sosa:Sensor is device-centric and narrower; the alignment bridges the SOSA sensor concept to the broader GMEOW agent-as-standpoint doctrine.
-gmeow:Agent	skos:closeMatch	sosa:Platform	semapv:ManualMappingCuration	0.75	An agent hosting sensors IS a platform (broader than the sosa:Sensor alignment in eqObs018).
+gmeow:Agent	skos:relatedMatch	sosa:Platform	semapv:ManualMappingCuration	0.75	An agent hosting sensors can act as a platform (broader than the sosa:Sensor alignment in eqObs018).
 gmeow:IdentityFacet	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.85	SOSA does not distinguish observation types; an identity claim (gender, expression, orientation) is a kind of observation in the universal stack.
 gmeow:KinRelationship	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.8	SOSA does not distinguish observation types; a kinship claim is a kind of observation in the universal stack.
 gmeow:Measurement	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.9	A Measurement is a kind of Observation; SOSA does not distinguish them.
 gmeow:NameUsage	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.85	SOSA does not distinguish observation types; a naming claim is a kind of observation in the universal stack.
+gmeow:Observation	skos:broadMatch	sosa:Sampling	semapv:ManualMappingCuration	0.8	A sampling act is a kind of observation; GMEOW models it through observationTypeSampling.
 gmeow:Observation	skos:closeMatch	crm:E13_Attribute_Assignment	semapv:ManualMappingCuration	0.9	CIDOC-CRM E13 is the closest CRM class: an activity of assigning an attribute to an item. GMEOW Observation generalises this to any act of observing or asserting, not only attribute assignment.
 gmeow:Observation	skos:closeMatch	prov:Entity	semapv:ManualMappingCuration	0.8	An Observation is a relator (gufo), but as a named individual it is also a prov:Entity that can be attributed, derived, and versioned.
 gmeow:Observation	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.95	
-gmeow:Observation	skos:closeMatch	sosa:Sampling	semapv:ManualMappingCuration	0.8	A sampling act is a kind of observation; GMEOW models it through observationTypeSampling.
 gmeow:ObservationMethod	skos:closeMatch	sosa:Procedure	semapv:ManualMappingCuration	0.85	
 gmeow:Quantity	skos:closeMatch	sosa:Result	semapv:ManualMappingCuration	0.7	sosa:Result is broader (any result); gmeow:Quantity is the domain-neutral alias for ScalarQuantity (#77).
 gmeow:RightsStatement	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.8	SOSA does not distinguish observation types; a rights claim is a kind of observation in the universal stack.
@@ -39,7 +39,6 @@ gmeow:observationResult	skos:closeMatch	sosa:hasResult	semapv:ManualMappingCurat
 gmeow:observedFeature	skos:closeMatch	crm:P140_assigned_attribute_to	semapv:ManualMappingCuration	0.85	
 gmeow:observedFeature	skos:closeMatch	sosa:hasFeatureOfInterest	semapv:ManualMappingCuration	0.95	
 gmeow:streamInterval	skos:closeMatch	sosa:phenomenonTime	semapv:ManualMappingCuration	0.7	Stream interval vs per-observation phenomenon time.
-gmeow:streamPlatform	skos:closeMatch	sosa:Platform	semapv:ManualMappingCuration	0.75	Property-to-class alignment on the platform axis; the stream's platform IS a SOSA Platform.
 gmeow:streamSample	skos:closeMatch	sosa:hasMember	semapv:ManualMappingCuration	0.8	Stream sample is a member of the observation collection.
 gmeow:streamSensor	skos:closeMatch	sosa:madeBySensor	semapv:ManualMappingCuration	0.75	Per-stream vs per-observation sensor attribution.
 gmeow:vantage	skos:closeMatch	crm:P14_carried_out_by	semapv:ManualMappingCuration	0.8	crm:P14 is event-centric; gmeow:vantage is relator-centric. Semantic alignment on 'who performed it'.

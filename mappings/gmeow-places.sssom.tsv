@@ -24,8 +24,9 @@
 #   semapv: https://w3id.org/semapv/vocab/
 #   sf: http://www.opengis.net/ont/sf#
 #   skos: http://www.w3.org/2004/02/skos/core#
+#   sosa: http://www.w3.org/ns/sosa/
+#   sta: http://www.opengis.net/def/ont/sensorthings/1.1/
 #   time: http://www.w3.org/2006/time#
-||||||| parent of 2514494 (feat(observations,places): add Stream class + SOSA/SensorThings alignments (#96))
 #   vcard: http://www.w3.org/2006/vcard/ns#
 #   wd: http://www.wikidata.org/entity/
 #   wdt: http://www.wikidata.org/prop/direct/
@@ -54,9 +55,9 @@ gmeow:Pose	skos:closeMatch	pos:QuantitativePose	Quantitative Pose	semapv:ManualM
 gmeow:Pose	skos:closeMatch	wd:Q1055020	pose	semapv:ManualMappingCuration	0.8	
 gmeow:RegulatoryOverlay	skos:closeMatch	schema:AdministrativeArea		semapv:ManualMappingCuration	0.6	schema.org AdministrativeArea is a flat Place subclass for government-defined areas; GMEOW RegulatoryOverlay is a reified, time-scoped situation that binds a place, an authority, a regulation type, and optional deontic rules. Directional lossy projection.
 gmeow:RegulatoryOverlay	skos:closeMatch	wd:Q1055894	administrative territorial entity	semapv:ManualMappingCuration	0.75	Wikidata Q1055894 is the general concept of an administrative territorial entity; GMEOW RegulatoryOverlay adds time-scoping, authority, regulation type, and deontic linkage.
-||||||| parent of 2514494 (feat(observations,places): add Stream class + SOSA/SensorThings alignments (#96))
+gmeow:Stream	skos:closeMatch	sta:Datastream		semapv:ManualMappingCuration	0.85	SensorThings Datastream groups observations by sensor + observed property.
 gmeow:Trajectory	skos:closeMatch	mf:TemporalTrajectory	temporal trajectory	semapv:ManualMappingCuration	0.8	
-gmeow:Trajectory	skos:closeMatch	sta:Datastream		semapv:ManualMappingCuration	0.6	Trajectory as the continuous form of a stream; weaker alignment than Stream→Datastream.
+gmeow:Trajectory	skos:relatedMatch	sta:Datastream		semapv:ManualMappingCuration	0.6	Trajectory as the continuous form of a stream; weaker alignment than Stream→Datastream.
 gmeow:VirtualLocation	skos:closeMatch	schema:VirtualLocation		semapv:ManualMappingCuration	0.9	
 gmeow:addressLocality	owl:equivalentProperty	schema:addressLocality		semapv:ManualMappingCuration	1.0	
 gmeow:addressLocality	skos:closeMatch	vcard:locality		semapv:ManualMappingCuration	0.9	
