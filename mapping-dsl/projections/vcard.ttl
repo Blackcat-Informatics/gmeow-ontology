@@ -51,7 +51,7 @@ gmeow:mapVcardFn a gmeow:ProjectionMapping ;
         gmeow:anchor "ent" ; gmeow:value "dispName" ;
         gmeow:atom (
             [ gmeow:subjectVar "ent" ;
-              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasAppellation gmeow:hasName ) ] ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasAppellation gmeow:hasName gmeow:hasOrganizationName gmeow:hasTitle gmeow:hasAgreementName gmeow:hasSoftwareName ) ] ;
               gmeow:objectVar "app" ]
             [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:fullName ; gmeow:objectVar "dispName" ] ) ;
         gmeow:suppressWhen [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
@@ -67,7 +67,7 @@ gmeow:mapVcardGivenName a gmeow:ProjectionMapping ;
         gmeow:anchor "ent" ; gmeow:value "given" ;
         gmeow:atom (
             [ gmeow:subjectVar "ent" ;
-              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasAppellation gmeow:hasName ) ] ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasAppellation gmeow:hasName gmeow:hasOrganizationName gmeow:hasTitle gmeow:hasAgreementName gmeow:hasSoftwareName ) ] ;
               gmeow:objectVar "app" ]
             [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:hasNamePart ; gmeow:objectVar "np" ]
             [ gmeow:subjectVar "np" ; gmeow:predicate gmeow:namePartType ; gmeow:objectValue gmeow:namePartGiven ]
@@ -91,7 +91,7 @@ gmeow:mapVcardFamilyName a gmeow:ProjectionMapping ;
         gmeow:anchor "ent" ; gmeow:value "family" ;
         gmeow:atom (
             [ gmeow:subjectVar "ent" ;
-              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasAppellation gmeow:hasName ) ] ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasAppellation gmeow:hasName gmeow:hasOrganizationName gmeow:hasTitle gmeow:hasAgreementName gmeow:hasSoftwareName ) ] ;
               gmeow:objectVar "app" ]
             [ gmeow:subjectVar "app" ; gmeow:predicate gmeow:hasNamePart ; gmeow:objectVar "np" ]
             [ gmeow:subjectVar "np" ; gmeow:predicate gmeow:namePartType ; gmeow:objectValue gmeow:namePartSurname ]

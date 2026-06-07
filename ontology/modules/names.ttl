@@ -209,6 +209,24 @@ gmeow:hasPlaceName
     skos:definition "Relates a geographic gmeow:Place to a structured gmeow:PlaceName (toponym) it bears; the place-scoped specialization of gmeow:hasAppellation, mirroring gmeow:hasName for persons. Non-functional — a place bears many co-equal names (endonym/exonym, multilingual, historical); none is primary, and superseded ones set gmeow:displayable false. The structured, first-class replacement for the retired flat gmeow:alternateName literal."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:hasOrganizationName
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasAppellation ;
+    rdfs:domain gmeow:Organization ;
+    rdfs:range gmeow:OrganizationName ;
+    rdfs:label "has organization name"@en ;
+    skos:definition "Relates an organization to a structured gmeow:OrganizationName it bears; the organization-scoped specialization of gmeow:hasAppellation, mirroring gmeow:hasName for persons and gmeow:hasPlaceName for places. Non-functional — an organization bears many co-equal names (legal, trading, former, multilingual); none is primary, and superseded ones set gmeow:displayable false."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasAgreementName
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasAppellation ;
+    rdfs:domain gmeow:Agreement ;
+    rdfs:range gmeow:AgreementName ;
+    rdfs:label "has agreement name"@en ;
+    skos:definition "Relates an agreement to a structured gmeow:AgreementName it bears; the agreement-scoped specialization of gmeow:hasAppellation. Non-functional — an agreement may bear many co-equal names (formal title, short name, multilingual versions); none is primary."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:hasNamePart
     a owl:ObjectProperty ;
     rdfs:subPropertyOf gmeow:hasPart ;

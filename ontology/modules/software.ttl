@@ -34,6 +34,22 @@ gmeow:hasRepository
     skos:definition "Relates a software project to a source-code repository."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:SoftwareName
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Appellation ;
+    rdfs:label "Software Name"@en ;
+    skos:definition "An appellation borne by a software project — a product name, project name, or package name. Carries its own gmeow:nameLanguage and gmeow:nameScript so co-equal multilingual names (e.g. localized product names) are separate first-class objects."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasSoftwareName
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasAppellation ;
+    rdfs:domain gmeow:SoftwareProject ;
+    rdfs:range gmeow:SoftwareName ;
+    rdfs:label "has software name"@en ;
+    skos:definition "Relates a software project to a structured gmeow:SoftwareName it bears; the software-project-scoped specialization of gmeow:hasAppellation. Non-functional — a project may bear many co-equal names (codename, product name, localized names); none is primary."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:developer
     a owl:ObjectProperty ;
     rdfs:domain gmeow:SoftwareProject ;

@@ -299,6 +299,23 @@ joint or competing authorities coexist with no privileged claimant (Principle 9)
 `fnSelectExonym` emits exonyms as `schema:alternateName`; historical/superseded and
 competing-standpoint names are dropped (documented lossy drops).
 
+## Cross-cutting multilingual labels — Organization, CreativeWork, Agreement, Software (issue #97)
+
+The Appellation pattern is not limited to persons and places. Every realm that bears names gets the same multilingual, anti-colonial machinery:
+
+| Realm | Bearer property | Appellation subclass | Flat fallback |
+|---|---|---|---|
+| **Person** | `gmeow:hasName` | `gmeow:PersonName` | — |
+| **Place** | `gmeow:hasPlaceName` | `gmeow:PlaceName` | — (replaces `alternateName`) |
+| **Organization** | `gmeow:hasOrganizationName` | `gmeow:OrganizationName` | `gmeow:name` |
+| **CreativeWork** | `gmeow:hasTitle` | `gmeow:CreativeWorkTitle` | `gmeow:title` |
+| **Agreement** | `gmeow:hasAgreementName` | `gmeow:AgreementName` | — |
+| **SoftwareProject** | `gmeow:hasSoftwareName` | `gmeow:SoftwareName` | `gmeow:name` |
+
+Each bearer property is a `subPropertyOf` `gmeow:hasAppellation`, so the full multilingual stack applies: `gmeow:nameLanguage` → first-class `gmeow:Language`, `gmeow:nameScript`, `gmeow:romanization` + `gmeow:transliterationScheme`, `gmeow:displayable`, and `gmeow:namePurpose`. Co-equal multilingual names are **separate Appellation instances** — an organization's English legal name and its French exonym are peers, not primary-vs-alternate.
+
+The flat fallbacks (`gmeow:name`, `gmeow:title`) remain for the 80 % case where multilingual depth is not needed, following the "flat-first, reify-on-demand" pattern.
+
 ## What's deliberately non-standard (and why)
 
 | GMEOW choice | The "standard" alternative | Why we reject it |

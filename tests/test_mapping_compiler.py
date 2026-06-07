@@ -95,7 +95,11 @@ def test_dsl_parses() -> None:
     # schema.org maximumAttendeeCapacity).
     # Issue #161 cross-cutting versions: +3 (versionLabel→schema:version,
     # versionLabel→doap:revision, VersionSet→doap:Project).
-    assert len(dsl.equivalences) == 917
+    # Issue #97 cross-cutting multilingual labels: +11
+    # (hasOrganizationName→schema/vcard/foaf, hasTitle→dcterms/schema/headline,
+    # CreativeWorkTitle→schema, AgreementName→schema, SoftwareName→schema,
+    # hasAgreementName→schema, hasSoftwareName→schema).
+    assert len(dsl.equivalences) == 928
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
