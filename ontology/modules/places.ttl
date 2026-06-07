@@ -40,7 +40,7 @@ gmeow:VirtualLocation
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Location ;
     rdfs:label "Virtual Location"@en ;
-    skos:definition "A non-geographic location reachable online — a video-conference room, chat space, metaverse room, website, or social media page. The specific kind is given by gmeow:virtualLocationType (a value), not a subclass. Has network addresses (gmeow:hasNetworkAddress) and an access locator (gmeow:accessUrl) rather than geographic coordinates."@en ;
+    skos:definition "A non-geographic location reachable online — a video-conference room, chat space, metaverse room, website, or social media page. The specific kind is given by gmeow:virtualLocationType (a value), not a subclass. Has network addresses (gmeow:hasNetworkAddress) and an access URL (gmeow:accessUrl) rather than geographic coordinates."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:StorageLocation
@@ -314,11 +314,11 @@ gmeow:networkAddressType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:networkAddressValue
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:NetworkAddress ;
     rdfs:range rdfs:Literal ;
     rdfs:label "network address value"@en ;
-    skos:definition "The literal string value of a network address (e.g. '192.0.2.1', '00:1B:44:11:3A:B7', 'example.com', '443')."@en ;
+    skos:definition "The literal string value of a network address (e.g. '192.0.2.1', '00:1B:44:11:3A:B7', 'example.com', '443'). Functional: an address has exactly one value string."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:networkAddressFrame

@@ -1115,7 +1115,7 @@ gmeow:eqPlaces125 a gmeow:TermEquivalence ;
 
 gmeow:eqPlaces126 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:NetworkAddress ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:broadMatch ;
     gmeow:alignObject wd:Q11135 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
@@ -1201,4 +1201,14 @@ gmeow:eqPlaces135 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
     gmeow:objectLabel "video conference" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces136 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:networkAddressTypePort ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q8187 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "port" ;
+    gmeow:comment "Wikidata Q8187 is the general port (computer networking) concept; GMEOW networkAddressTypePort refers to a transport-layer port number." ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" .

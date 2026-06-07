@@ -161,6 +161,7 @@ WHERE {
         OPTIONAL { ?vl gmeow:accessUrl ?vurl . }
     }
     UNION {
+        ?vl a gmeow:VirtualLocation .
         ?vl gmeow:hasNetworkAddress ?na .
         ?na gmeow:networkAddressType gmeow:networkAddressTypeURL .
         ?na gmeow:networkAddressValue ?nval .

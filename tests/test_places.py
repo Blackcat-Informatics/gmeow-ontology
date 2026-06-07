@@ -1691,6 +1691,29 @@ def test_contested_dns_names_coexist() -> None:
         Literal("service-corp-b.example"),
     } <= values
 
+    # Verify standpoint annotations on reified axioms (P9).
+    axioms = list(g.subjects(RDF.type, OWL.Axiom))
+    assert len(axioms) >= 2
+    has_addr = URIRef(GMEOW + "hasNetworkAddress")
+    corp_a_claims = [
+        ax
+        for ax in axioms
+        if (ax, OWL.annotatedSource, ex_vl.service) in g
+        and (ax, OWL.annotatedProperty, has_addr) in g
+        and (ax, OWL.annotatedTarget, ex_vl.addrDNSCorpA) in g
+        and (ax, URIRef(GMEOW + "accordingTo"), ex_vl["standpoint-corp-a"]) in g
+    ]
+    assert len(corp_a_claims) == 1
+    corp_b_claims = [
+        ax
+        for ax in axioms
+        if (ax, OWL.annotatedSource, ex_vl.service) in g
+        and (ax, OWL.annotatedProperty, has_addr) in g
+        and (ax, OWL.annotatedTarget, ex_vl.addrDNSCorpB) in g
+        and (ax, URIRef(GMEOW + "accordingTo"), ex_vl["standpoint-corp-b"]) in g
+    ]
+    assert len(corp_b_claims) == 1
+
 
 def test_no_preferred_or_primary_virtual_location_term() -> None:
     """Principle 9: no single slot to win — virtual locations mint no preferred/primary

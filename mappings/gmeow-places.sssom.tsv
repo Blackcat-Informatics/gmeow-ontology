@@ -48,7 +48,7 @@ gmeow:LocationState	skos:closeMatch	crmgeo:SP1_Spacetime_Volume	Spacetime Volume
 gmeow:LocationState	skos:closeMatch	mf:TemporalGeometry	temporal geometry	semapv:ManualMappingCuration	0.7	
 gmeow:LocationState	skos:closeMatch	sosa:Sample		semapv:ManualMappingCuration	0.75	A LocationState in a stream is a sample of the entity's trajectory.
 gmeow:LocationState	skos:closeMatch	sta:HistoricalLocation		semapv:ManualMappingCuration	0.8	HistoricalLocation is time-indexed location of a Thing; LocationState is the state of a moving entity at a time.
-gmeow:NetworkAddress	skos:closeMatch	wd:Q11135	IP address	semapv:ManualMappingCuration	0.8	Wikidata Q11135 is the general IP address concept; GMEOW NetworkAddress is the frame-relative coordinate abstraction that covers IPv4, IPv6, MAC, DNS, URL, port, and BGP-AS.
+gmeow:NetworkAddress	skos:broadMatch	wd:Q11135	IP address	semapv:ManualMappingCuration	0.8	Wikidata Q11135 is the general IP address concept; GMEOW NetworkAddress is the frame-relative coordinate abstraction that covers IPv4, IPv6, MAC, DNS, URL, port, and BGP-AS.
 gmeow:Occupancy	skos:closeMatch	brick:Occupancy		semapv:ManualMappingCuration	0.8	Brick Occupancy is a class for the current number of entities in a space; GMEOW Occupancy is a reified Measurement with location, scalar result, and provenance.
 gmeow:Orientation	skos:closeMatch	pos:OrientationMeasure	Orientation Measure	semapv:ManualMappingCuration	0.85	
 gmeow:Place	skos:closeMatch	bot:Zone		semapv:ManualMappingCuration	0.75	BOT Zone is a 3D spatial extent (physical or virtual); GMEOW Place is broader (includes outdoor, non-building geographic places), so the alignment is closeMatch rather than exact.
@@ -110,6 +110,7 @@ gmeow:networkAddressTypeDNS	skos:closeMatch	wd:Q32635	domain name	semapv:ManualM
 gmeow:networkAddressTypeIPv4	skos:closeMatch	wd:Q11103	IPv4	semapv:ManualMappingCuration	0.9	
 gmeow:networkAddressTypeIPv6	skos:closeMatch	wd:Q2551624	IPv6	semapv:ManualMappingCuration	0.9	
 gmeow:networkAddressTypeMAC	skos:closeMatch	wd:Q20484	MAC address	semapv:ManualMappingCuration	0.9	
+gmeow:networkAddressTypePort	skos:closeMatch	wd:Q8187	port	semapv:ManualMappingCuration	0.9	Wikidata Q8187 is the general port (computer networking) concept; GMEOW networkAddressTypePort refers to a transport-layer port number.
 gmeow:networkAddressTypeURL	skos:closeMatch	wd:Q42253	URL	semapv:ManualMappingCuration	0.9	
 gmeow:overlayAuthority	skos:closeMatch	schema:organizer		semapv:ManualMappingCuration	0.5	schema.org organizer is a loose match for the authority that imposed a regulatory overlay; GMEOW overlayAuthority is specifically the governing body (state, international organization, indigenous council) that decreed the regulation. Directional lossy projection.
 gmeow:overlayRegulation	skos:closeMatch	schema:legislation		semapv:ManualMappingCuration	0.6	schema.org legislation is a CreativeWork subclass for laws; GMEOW overlayRegulation links to a machine-readable RightsStatement (deontic rules). Directional lossy projection.

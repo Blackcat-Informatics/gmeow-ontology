@@ -195,6 +195,7 @@ gmeow:mapSchemaNetworkAddress a gmeow:ProjectionMapping ;
     gmeow:hasMappingPattern [
         gmeow:anchor "vl" ; gmeow:value "nval" ;
         gmeow:atom (
+            [ gmeow:subjectVar "vl" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:VirtualLocation ]
             [ gmeow:subjectVar "vl" ; gmeow:predicate gmeow:hasNetworkAddress ; gmeow:objectVar "na" ]
             [ gmeow:subjectVar "na" ; gmeow:predicate gmeow:networkAddressType ; gmeow:objectValue gmeow:networkAddressTypeURL ]
             [ gmeow:subjectVar "na" ; gmeow:predicate gmeow:networkAddressValue ; gmeow:objectVar "nval" ] ) ;

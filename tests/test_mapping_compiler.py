@@ -113,10 +113,10 @@ def test_dsl_parses() -> None:
     # Issue #83 indoor realm (BOT / ifcOWL): +11 (placeType* → bot/ifc x8,
     # Place→bot:Zone, containsPlace→bot:containsZone,
     # adjacentTo→bot:adjacentZone).
-    # Issue #84 virtual + network address space: +10 (NetworkAddress→Wikidata,
-    # networkAddressType*→Wikidata x5, virtualLocationType*→schema.org/Wikidata x3,
-    # networkAddressTypeBGP→Wikidata).
-    assert len(dsl.equivalences) == 984
+    # Issue #84 virtual + network address space: +11 (NetworkAddress→Wikidata,
+    # networkAddressType*→Wikidata x6 incl. port,
+    # virtualLocationType*→schema.org/Wikidata x3, networkAddressTypeBGP→Wikidata).
+    assert len(dsl.equivalences) == 985
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

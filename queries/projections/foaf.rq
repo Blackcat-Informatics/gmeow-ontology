@@ -14,7 +14,7 @@ CONSTRUCT {
     ?ent foaf:nick ?nick .
     ?ent foaf:homepage ?wp .
     ?agent foaf:based_near ?place .
-    ?vl foaf:homepage ?nval .
+    ?vl foaf:page ?nval .
 }
 WHERE {
     {
@@ -55,6 +55,7 @@ WHERE {
         ?agent gmeow:locatedAt ?place .
     }
     UNION {
+        ?vl a gmeow:VirtualLocation .
         ?vl gmeow:hasNetworkAddress ?na .
         ?na gmeow:networkAddressType gmeow:networkAddressTypeURL .
         ?na gmeow:networkAddressValue ?nval .
