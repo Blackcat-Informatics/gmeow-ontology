@@ -81,14 +81,15 @@ def test_dsl_parses() -> None:
     # containsPlace→geo:sfContains).
     # Place is intentionally NOT aligned to qb:DimensionProperty (category
     # mismatch: object class vs. metaclass of properties).
-    assert len(dsl.equivalences) == 864
-    # 25 projection transforms declared (incl. fnPronounSetToText #46,
+    # Issue #82 terrestrial realm deepening: +20 (LinkedGeoData x3, CIDOC-CRM+CRMgeo x4,
+    # Pleiades x3, WHG x2, sf: x3, Wikidata x5).
+    assert len(dsl.equivalences) == 884
+    # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
-    # fnPosePositionToWktPoint #78).
-    # 22 projection transforms declared (incl. fnPronounSetToText #46,
-    # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72).
-    assert len(dsl.functions) == 25
+    # fnPosePositionToWktPoint #78,
+    # fnRetagGeoJson + fnCoarsenToGranularityGeoJson #82).
+    assert len(dsl.functions) == 27
     # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint,
     # gmeow-events, gmeow-rights, gmeow-coreference, gmeow-determinacy, gmeow-privacy).
     # Issue #70 adds gmeow-qudt, gmeow-fibo, gmeow-temporal.

@@ -9,6 +9,22 @@
     rdfs:label "GMEOW → geosparql (EDOAL)"@en ;
     align:level "2EDOAL" ;
     align:map [ a align:Cell ;
+            rdfs:label "coarsenTo → enclosing-region GeoJSON (privacy generalization)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:coarsenTo ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri geo:Geometry ] ;
+            align:relation "<=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnCoarsenToGranularityGeoJson ] ],
+        [ a align:Cell ;
+            rdfs:label "asGeoJSON literal → geo:asGeoJSON retagged geo:geoJSONLiteral"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:asGeoJSON ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri geo:asGeoJSON ] ;
+            align:relation "=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnRetagGeoJson ] ],
+        [ a align:Cell ;
             rdfs:label "coarsenTo → enclosing-region WKT POINT (privacy generalization)"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:coarsenTo ] ;

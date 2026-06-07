@@ -238,10 +238,15 @@ PREFIXES: dict[str, str] = {
     # neither fabricates a vcard: term nor leaks a GMEOW term into a pure profile.
     "vcardx": "https://blackcatinformatics.ca/vcard-ext/",
     "geo": "http://www.opengis.net/ont/geosparql#",
+    "sf": "http://www.opengis.net/ont/sf#",
     "wgs84": "http://www.w3.org/2003/01/geo/wgs84_pos#",
     # Transit / network (#80)
     "gtfs": "http://vocab.gtfs.org/terms#",
     "tgn": "http://vocab.getty.edu/tgn/",
+    # Gazetteers / place hubs (#82)
+    "lgdo": "http://linkedgeodata.org/ontology/",
+    "pleiades": "http://pleiades.stoa.org/places/vocab#",
+    "whg": "https://whgazetteer.org/",
     "gvp": "http://vocab.getty.edu/ontology#",
     "bibo": "http://purl.org/ontology/bibo/",
     "bibframe": "http://id.loc.gov/ontologies/bibframe/",

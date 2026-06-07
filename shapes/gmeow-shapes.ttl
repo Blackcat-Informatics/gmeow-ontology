@@ -202,27 +202,6 @@ gmeow:NameUsageShape
         sh:message "A NameUsage must use exactly one appellation (gmeow:usageAppellation)." ;
     ] .
 
-# A name-usage that names a gmeow:Place is an inferred gmeow:PlaceNaming
-# (≡ NameUsage ⊓ ∃usageNamed.Place). Its appellation SHOULD be a gmeow:PlaceName.
-# Warning, not Violation, and expressed over the data (not the inferred type) so it
-# fires without OWL classification: open-world, a source may type the name later.
-gmeow:PlaceNamingAppellationShape
-    a sh:NodeShape ;
-    rdfs:label "PlaceNaming appellation-kind shape" ;
-    sh:targetClass gmeow:NameUsage ;
-    sh:sparql [
-        sh:severity sh:Warning ;
-        sh:message "A name-usage that names a gmeow:Place (an inferred gmeow:PlaceNaming) should bind a gmeow:PlaceName via gmeow:usageAppellation." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this gmeow:usageNamed ?place .
-                ?place a gmeow:Place .
-                $this gmeow:usageAppellation ?app .
-                FILTER NOT EXISTS { ?app a gmeow:PlaceName }
-            }
-        """ ;
-    ] .
-
 # --------------------------------------------------------------------------- #
 # (b) Suppression / display contract (CONSTITUTION P10 — suppression, never
 # erasure). The IdentityFacet sibling of DeadnameSuppressionShape: a facet that
@@ -1350,6 +1329,104 @@ gmeow:SupersededEntitySuppressionShape
         sh:select """
             SELECT $this WHERE {
                 $this <https://blackcatinformatics.ca/gmeow/supersededBy> ?successor .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
+                }
+            }
+        """ ;
+    ] .
+
+# =========================================================================== #
+# Places module — terrestrial realm deepening (#82)
+# --------------------------------------------------------------------------- #
+
+# JurisdictionTenure well-formedness: exactly one place, one polity, one interval.
+gmeow:JurisdictionTenureShape
+    a sh:NodeShape ;
+    rdfs:label "JurisdictionTenure well-formedness shape" ;
+    sh:targetClass gmeow:JurisdictionTenure ;
+    sh:property [
+        sh:path gmeow:jurisdictionPlace ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A JurisdictionTenure must record exactly one place (gmeow:jurisdictionPlace)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:jurisdictionPolity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A JurisdictionTenure must record exactly one governing polity (gmeow:jurisdictionPolity)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:duringInterval ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A JurisdictionTenure must record exactly one time interval (gmeow:duringInterval)." ;
+    ] .
+
+# ContainmentTenure well-formedness: exactly one child, one parent, one interval.
+gmeow:ContainmentTenureShape
+    a sh:NodeShape ;
+    rdfs:label "ContainmentTenure well-formedness shape" ;
+    sh:targetClass gmeow:ContainmentTenure ;
+    sh:property [
+        sh:path gmeow:containmentChild ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ContainmentTenure must record exactly one child place (gmeow:containmentChild)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:containmentParent ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ContainmentTenure must record exactly one parent place (gmeow:containmentParent)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:duringInterval ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ContainmentTenure must record exactly one time interval (gmeow:duringInterval)." ;
+    ] .
+
+# PlaceNaming has-players guard (Violation): a NameUsage that names a Place must bind
+# a PlaceName appellation.
+gmeow:PlaceNamingHasPlayersShape
+    a sh:NodeShape ;
+    rdfs:label "PlaceNaming player binding shape" ;
+    sh:targetClass gmeow:NameUsage ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A name-usage that names a gmeow:Place must bind a gmeow:PlaceName via gmeow:usageAppellation." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/usageNamed> ?place .
+                ?place a <https://blackcatinformatics.ca/gmeow/Place> .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/usageAppellation> ?app .
+                    ?app a <https://blackcatinformatics.ca/gmeow/PlaceName>
+                }
+            }
+        """ ;
+    ] .
+
+# Superseded place suppression (Principle 10): a place that has been superseded by
+# another place should set gmeow:displayable false. Warning — a source may lag the flag.
+gmeow:SupersededPlaceSuppressionShape
+    a sh:NodeShape ;
+    rdfs:label "Superseded place suppression shape" ;
+    sh:targetClass gmeow:Place ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        sh:message "A superseded place (one with gmeow:placeSupersededBy) should set gmeow:displayable false — suppressed from display, never deleted." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/placeSupersededBy> ?successor .
                 FILTER NOT EXISTS {
                     $this <https://blackcatinformatics.ca/gmeow/displayable> false
                 }

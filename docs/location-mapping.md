@@ -249,3 +249,74 @@ The SHACL `PoseShape` enforces exactly one position, one orientation, and one fr
 ### Projection behaviour
 
 GeoSPARQL 1.0/1.1 has no native pose model, so the `geosparql` profile projects **only the translational component** of a pose to a WKT POINT. Orientation is an intentional, documented lossy drop (`fnPosePositionToWktPoint`). Heading/bearing may be projected separately once a GeoPose JSON profile is added. The existing `Place` point projection (`mapGeoPoint`) continues to work independently.
+
+## Time-scoped jurisdiction and containment (#82)
+
+A place's **sovereignty** and **parent containment** are time-scoped, contested, and historically varying. GMEOW models them as reified `gmeow:TimeScopedRelation` subtypes:
+
+- **`gmeow:JurisdictionTenure`** — place × governing polity × interval. Non-functional on the place: contested sovereignty (Crimea-class) is *multiple co-existing tenures*, each standpoint-indexed, never a single winner (Principle 9).
+- **`gmeow:ContainmentTenure`** — child place × parent place × interval. Records border changes and re-organisations (a region that moved from one country to another in 1954).
+
+Both carry their interval via `gmeow:duringInterval` (inherited from `gmeow:TimeScopedRelation` in the temporal module). The plain transitive `gmeow:containedInPlace` remains the flat 80%-case shortcut.
+
+```turtle
+ex:crimea a gmeow:Place ; gmeow:placeType gmeow:placeTypeRegion .
+ex:russia a gmeow:Place ; gmeow:placeType gmeow:placeTypeCountry .
+ex:ukraine a gmeow:Place ; gmeow:placeType gmeow:placeTypeCountry .
+
+ex:jurisdictionRU a gmeow:JurisdictionTenure ;
+    gmeow:jurisdictionPlace ex:crimea ;
+    gmeow:jurisdictionPolity ex:russia ;
+    gmeow:jurisdictionDeterminacy gmeow:determinacyDisputed ;
+    gmeow:duringInterval [ gmeow:startedAtTime "2014-03-18T00:00:00Z"^^xsd:dateTime ] .
+
+ex:jurisdictionUA a gmeow:JurisdictionTenure ;
+    gmeow:jurisdictionPlace ex:crimea ;
+    gmeow:jurisdictionPolity ex:ukraine ;
+    gmeow:jurisdictionDeterminacy gmeow:determinacyDisputed ;
+    gmeow:duringInterval [ gmeow:startedAtTime "1991-08-24T00:00:00Z"^^xsd:dateTime ] .
+```
+
+## Geometry type and GeoJSON (#82)
+
+Every `gmeow:Geometry` may declare its structural kind via `gmeow:geometryType` (a value vocabulary aligned to GeoSPARQL simple-features) and may carry both WKT (`gmeow:asWKT`) and GeoJSON (`gmeow:asGeoJSON`) serializations:
+
+| GMEOW | GeoSPARQL |
+|---|---|
+| `gmeow:geometryTypePoint` | `sf:Point` |
+| `gmeow:geometryTypeLineString` | `sf:LineString` |
+| `gmeow:geometryTypePolygon` | `sf:Polygon` |
+| `gmeow:geometryTypeMultiPoint` | `sf:MultiPoint` |
+| `gmeow:geometryTypeMultiLineString` | `sf:MultiLineString` |
+| `gmeow:geometryTypeMultiPolygon` | `sf:MultiPolygon` |
+
+Both `asWKT` and `asGeoJSON` have OWL range `rdfs:Literal` (DL-safe); data may tag the literal with `^^geo:wktLiteral` or `^^geo:geoJSONLiteral` respectively.
+
+```turtle
+ex:cityBoundary a gmeow:Geometry ;
+    gmeow:geometryType gmeow:geometryTypePolygon ;
+    gmeow:asWKT "POLYGON((...))"^^geo:wktLiteral ;
+    gmeow:asGeoJSON '{"type":"Polygon","coordinates":[[...]]}' ;
+    gmeow:geometryDeterminacy gmeow:determinacyVague .
+```
+
+## Place determinacy and lifecycle
+
+- **`gmeow:placeDeterminacy`** — the ontic determinacy of a place's existence or boundary (crisp, vague, disputed).
+- **`gmeow:geometryDeterminacy`** — the ontic determinacy of a geometry's boundary.
+- **`gmeow:placeSupersededBy` / `gmeow:placeSupersedes`** — sub-properties of the universal `supersededBy` / `supersedes` for place-to-place succession (Constantinople → Istanbul, merged municipalities). The superseded place is retained with `gmeow:displayable false` (Principle 10), never deleted.
+
+## External alignment (maximal bridging)
+
+| GMEOW term | External alignment |
+|---|---|
+| `gmeow:JurisdictionTenure` | `crm:E4_Period` (CIDOC-CRM), `wd:Q19517` (Wikidata: sovereignty) |
+| `gmeow:ContainmentTenure` | `wdt:P131` (Wikidata: located in admin entity) |
+| `gmeow:PlaceNaming` | `crm:E41_Appellation` (CIDOC-CRM, time-spanned) |
+| `gmeow:GeometryType` values | `sf:Point`, `sf:LineString`, `sf:Polygon`, … (GeoSPARQL simple-features) |
+| `gmeow:asGeoJSON` | `geo:asGeoJSON` (GeoSPARQL) |
+| `gmeow:placeSupersedes` | `wdt:P1365` (Wikidata: replaces) |
+| `gmeow:placeSupersededBy` | `wdt:P1366` (Wikidata: replaced by) |
+| `gmeow:Place` | `pleiades:Place`, `whg:Place`, `lgdo:Place` |
+| `gmeow:hasPlaceName` | `pleiades:Name` |
+| `gmeow:authorityLink` | `whg:closeMatch` |

@@ -64,8 +64,9 @@ _PROFILE_TARGETS: dict[str, tuple[str, ...]] = {
 #: Target terms a compose/decompose transform legitimately MINTS — intermediate
 #: nodes, linking properties, composed literals and datatypes. These are outputs of
 #: declared FnO transforms (fnComposeAddress, the name-part decomposition,
-#: fnRetagWkt), not standalone term correspondences, so they have no EDOAL/SSSOM
-#: cell. Listed here so the drift check still catches genuinely-undeclared mappings.
+#: fnRetagWkt, fnRetagGeoJson, fnCoarsenToGranularityGeoJson), not standalone term
+#: correspondences, so they have no EDOAL/SSSOM cell. Listed here so the drift check
+#: still catches genuinely-undeclared mappings.
 _STRUCTURAL_OUTPUTS: frozenset[str] = frozenset(
     {
         "http://www.w3.org/2006/vcard/ns#hasName",
@@ -73,6 +74,7 @@ _STRUCTURAL_OUTPUTS: frozenset[str] = frozenset(
         "http://www.w3.org/2006/vcard/ns#hasAddress",
         "http://www.w3.org/2006/vcard/ns#label",
         "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "http://www.opengis.net/ont/geosparql#geoJSONLiteral",
     }
 )
 

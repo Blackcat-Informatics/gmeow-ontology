@@ -1,12 +1,14 @@
-# Coverage slice (#51): contested location facts — standpoint-indexed,
+# Coverage slice (#51 + #82): contested location facts — standpoint-indexed,
 # coexisting, NO winner. Exercises contested sovereignty (containedInPlace),
-# contested place names (hasPlaceName / PlaceNaming), and a superseded historical
+# contested place names (hasPlaceName / PlaceNaming), JurisdictionTenure,
+# ContainmentTenure, GeometryType, asGeoJSON, and a superseded historical
 # name suppressed with gmeow:displayable false (Principle 10). Native GMEOW terms only.
 
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix geo:   <http://www.opengis.net/ont/geosparql#> .
 
 ex:standpoint-polity-a a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
 ex:standpoint-polity-b a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
@@ -77,3 +79,75 @@ ex:namingHistorical a gmeow:NameUsage ;
     gmeow:usageAppellation ex:nameHistorical ;
     gmeow:usageRegister gmeow:registerFormal ;
     gmeow:displayable false .
+
+# --------------------------------------------------------------------------- #
+# Issue #82 — JurisdictionTenure: contested sovereignty as co-equal relators
+# --------------------------------------------------------------------------- #
+
+ex:jurisdictionA a gmeow:JurisdictionTenure ;
+    gmeow:jurisdictionPlace ex:disputedPlace ;
+    gmeow:jurisdictionPolity ex:polityA ;
+    gmeow:jurisdictionDeterminacy gmeow:determinacyDisputed ;
+    gmeow:accordingTo ex:standpoint-polity-a ;
+    gmeow:duringInterval ex:intervalOngoing .
+
+ex:jurisdictionB a gmeow:JurisdictionTenure ;
+    gmeow:jurisdictionPlace ex:disputedPlace ;
+    gmeow:jurisdictionPolity ex:polityB ;
+    gmeow:jurisdictionDeterminacy gmeow:determinacyDisputed ;
+    gmeow:accordingTo ex:standpoint-polity-b ;
+    gmeow:duringInterval ex:intervalOngoing .
+
+ex:intervalOngoing a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1991-08-24T00:00:00Z"^^xsd:dateTime .
+
+# --------------------------------------------------------------------------- #
+# Issue #82 — ContainmentTenure: border change over time
+# --------------------------------------------------------------------------- #
+
+ex:containmentEarly a gmeow:ContainmentTenure ;
+    gmeow:containmentChild ex:disputedPlace ;
+    gmeow:containmentParent ex:polityA ;
+    gmeow:accordingTo ex:standpoint-polity-a ;
+    gmeow:duringInterval ex:interval1920_1954 .
+
+ex:containmentLater a gmeow:ContainmentTenure ;
+    gmeow:containmentChild ex:disputedPlace ;
+    gmeow:containmentParent ex:polityB ;
+    gmeow:accordingTo ex:standpoint-polity-b ;
+    gmeow:duringInterval ex:interval1954_present .
+
+ex:interval1920_1954 a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1920-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "1954-02-19T00:00:00Z"^^xsd:dateTime .
+
+ex:interval1954_present a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1954-02-19T00:00:00Z"^^xsd:dateTime .
+
+# --------------------------------------------------------------------------- #
+# Issue #82 — Geometry with type and GeoJSON serialization
+# --------------------------------------------------------------------------- #
+
+ex:disputedPlace gmeow:hasGeometry ex:disputedGeom .
+
+ex:disputedGeom a gmeow:Geometry ;
+    gmeow:geometryType gmeow:geometryTypePolygon ;
+    gmeow:asWKT "POLYGON((30 10, 40 40, 20 40, 10 20, 30 10))"^^geo:wktLiteral ;
+    gmeow:asGeoJSON '{"type":"Polygon","coordinates":[[[30,10],[40,40],[20,40],[10,20],[30,10]]]}' ;
+    gmeow:geometryDeterminacy gmeow:determinacyDisputed .
+
+# --------------------------------------------------------------------------- #
+# Issue #82 — Historical place superseded by another (Principle 10)
+# --------------------------------------------------------------------------- #
+
+ex:historicalPlace a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeCity ;
+    gmeow:placeSupersededBy ex:disputedPlace ;
+    gmeow:hasGeometry ex:historicalGeom ;
+    gmeow:displayable false .
+
+ex:historicalGeom a gmeow:Geometry ;
+    gmeow:geometryType gmeow:geometryTypePoint ;
+    gmeow:asWKT "POINT(30 10)"^^geo:wktLiteral ;
+    gmeow:asGeoJSON '{"type":"Point","coordinates":[30,10]}' ;
+    gmeow:geometryDeterminacy gmeow:determinacyVague .

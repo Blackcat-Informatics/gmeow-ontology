@@ -413,6 +413,18 @@ gmeow:fnRetagWkt a gmeow:ProjectionFunction ;
     gmeow:fnInput gmeow:asWKT ;
     gmeow:fnOutput geo:asWKT ; gmeow:fnOutputType geo:wktLiteral .
 
+gmeow:fnRetagGeoJson a gmeow:ProjectionFunction ;
+    rdfs:label "retag GeoJSON literal as geo:geoJSONLiteral"@en ;
+    dcterms:description "Re-tags a gmeow:asGeoJSON value (range rdfs:Literal, for OWL 2 DL safety) with the geo:geoJSONLiteral datatype so GeoSPARQL spatial engines recognise it."@en ;
+    gmeow:fnInput gmeow:asGeoJSON ;
+    gmeow:fnOutput geo:asGeoJSON ; gmeow:fnOutputType geo:geoJSONLiteral .
+
+gmeow:fnCoarsenToGranularityGeoJson a gmeow:ProjectionFunction ;
+    rdfs:label "coarsen GeoJSON coordinates to the enclosing region (generalization, P10)"@en ;
+    dcterms:description "Disclosure control by generalization (#72, CONSTITUTION P10): a place that carries gmeow:coarsenTo a target gmeow:GranularityLevel is projected with the coordinates of the enclosing ancestor at that level INSTEAD of its precise GeoJSON — a coarser region rather than exact coordinates, never deletion. Receives the already-selected ancestor's GeoJSON and re-emitting it as the place's location. Heavier geomasking / k-anonymity stays in the solver layer (P12)."@en ;
+    gmeow:fnInput gmeow:coarsenTo , gmeow:asGeoJSON ;
+    gmeow:fnOutput geo:asGeoJSON ; gmeow:fnOutputType geo:geoJSONLiteral .
+
 gmeow:fnComposeAddress a gmeow:ProjectionFunction ;
     rdfs:label "compose address components → single label string"@en ;
     dcterms:description "Concatenates the decomposed address components (street, locality, region, postal code, country) into one single-line label string — emitted as vcard:label by the vCard projection. Lossy: formatting convention varies by locale."@en ;
