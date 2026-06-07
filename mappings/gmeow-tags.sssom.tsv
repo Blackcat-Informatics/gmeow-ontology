@@ -1,0 +1,34 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/tags
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow compile-mappings
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: Tag alignments — SKOS, schema.org, Dublin Core, FOAF, W3C Web Annotation, MOAT and the Tag Ontology. The reified gmeow:Tagging relator (with provenance, confidence, temporal scope and suppression) is canonical; flat projections are lossy downcasts.
+# curie_map:
+#   dcterms: http://purl.org/dc/terms/
+#   foaf: http://xmlns.com/foaf/0.1/
+#   gmeow: https://blackcatinformatics.ca/gmeow/
+#   moat: http://moat-project.org/ns#
+#   oa: http://www.w3.org/ns/oa#
+#   schema: https://schema.org/
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+#   tags: http://www.holygoat.co.uk/owl/redwood/0.1/tags/
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:Tag	skos:closeMatch	moat:Tag	semapv:ManualMappingCuration	0.8	MOAT distinguishes tag string from meaning URI; GMEOW's Tag IRI IS the meaning, with labels for synonyms
+gmeow:Tag	skos:closeMatch	schema:DefinedTerm	semapv:ManualMappingCuration	0.9	
+gmeow:Tag	skos:closeMatch	skos:Concept	semapv:ManualMappingCuration	0.9	A GMEOW Tag is an open value-vocabulary individual, structurally close to a skos:Concept
+gmeow:TagScheme	skos:closeMatch	schema:DefinedTermSet	semapv:ManualMappingCuration	0.9	
+gmeow:TagScheme	skos:closeMatch	skos:ConceptScheme	semapv:ManualMappingCuration	0.9	
+gmeow:Tagging	skos:closeMatch	oa:Annotation	semapv:ManualMappingCuration	0.85	GMEOW Tagging is a relator with provenance/confidence/temporal scope; oa:Annotation is a flatter annotation body — closeMatch, not exactMatch
+gmeow:Tagging	skos:closeMatch	tags:Tagging	semapv:ManualMappingCuration	0.85	Newman's Tag Ontology — GMEOW Tagging carries the same tripartite structure (tagger, resource, tag) with added provenance/confidence/temporal scope
+gmeow:broaderTag	skos:closeMatch	skos:broader	semapv:ManualMappingCuration	0.95	GMEOW broaderTag is transitive; skos:broader is the direct link (skos:broaderTransitive is transitive) — closeMatch, not exactMatch
+gmeow:hasTag	skos:closeMatch	schema:keywords	semapv:ManualMappingCuration	0.8	lossy — schema:keywords is a text or URL value; GMEOW hasTag points to a structured Tag individual
+gmeow:isAbout	skos:closeMatch	dcterms:subject	semapv:ManualMappingCuration	0.9	
+gmeow:isAbout	skos:closeMatch	foaf:topic	semapv:ManualMappingCuration	0.85	
+gmeow:isAbout	skos:closeMatch	schema:about	semapv:ManualMappingCuration	0.9	
+gmeow:relatedTag	skos:closeMatch	skos:related	semapv:ManualMappingCuration	0.95	
+gmeow:tagInScheme	skos:closeMatch	skos:inScheme	semapv:ManualMappingCuration	0.95	
+gmeow:taggingTag	skos:closeMatch	oa:hasBody	semapv:ManualMappingCuration	0.85	The tag is the body of the annotation; lossy — oa:hasBody may also be a textual body, a SpecificResource, etc.
+gmeow:taggingTagged	skos:closeMatch	oa:hasTarget	semapv:ManualMappingCuration	0.9	

@@ -1,0 +1,160 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/tags>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Tags Module"@en ;
+    rdfs:comment "Universal tagging building block — open folksonomy, aboutness, and typing as three distinct axes (Principle 9). A gmeow:Tag is an information-object value (like a skos:Concept); a gmeow:TagScheme is its namespace bucket; and gmeow:Tagging is a gufo:Relator that reifies the act of tagging with provenance, confidence, temporal scope and suppression (Principle 10). The flat gmeow:hasTag shortcut covers the 80% case; promote to Tagging when the act itself must be a node. Tags align (lossily) to SKOS, schema.org, W3C Web Annotation and MOAT."@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Core classes — Tag, TagScheme, Tagging
+# --------------------------------------------------------------------------- #
+
+gmeow:Tag
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Tag"@en ;
+    skos:definition "An open, user-minted tag — an information object whose identity is its IRI and whose surface form is carried by rdfs:label. Synonyms are multiple labels; homonyms are different IRIs. Coreference is done in data, never by collapsing into one. A tag is NOT a type (it carries no inferential weight over rdf:type) and NOT a property bag — no datatype value property is asserted on it. Part of the universal tagging building block that keeps folksonomy, aboutness and typing as three orthogonal axes."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:TagScheme
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Tag Scheme"@en ;
+    skos:definition "A namespaced set of tags — a project vocabulary, a personal tag bucket, or a controlled vocabulary. Multi-tenant: many schemes coexist, and a tag may belong to zero or more schemes (gmeow:tagInScheme). The counterpart of skos:ConceptScheme and schema:DefinedTermSet."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Tagging
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Tagging"@en ;
+    skos:definition "A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a tagger, and optionally a scheme and time interval. Bears provenance (gmeow:wasAttributedTo), confidence (gmeow:confidence), and suppression (gmeow:displayable false for retraction without deletion — Principle 10). Structurally the NameUsage/IdentityFacet idiom wearing a different hat, inheriting time-scoping, confidence-weighting, and retract-without-delete for free. The canonical form when the act of tagging must itself be a node; the flat shortcut is gmeow:hasTag."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Flat shortcut + aboutness axis
+# --------------------------------------------------------------------------- #
+
+gmeow:hasTag
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range gmeow:Tag ;
+    rdfs:label "has tag"@en ;
+    skos:definition "Relates an entity to a user-minted tag — the 80% flat shortcut. Non-functional: an entity may carry many co-equal tags. Period, confidence, tagger and suppression are carried via RDF-star statement annotations (gmeow:validFrom, gmeow:validUntil, gmeow:confidence, gmeow:displayable) on the shortcut; promote to a gmeow:Tagging relator when the act itself must be a node."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:isAbout
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "is about"@en ;
+    skos:definition "Aboutness — a resource is about another resource. Distinct from typing (rdf:type) and from tagging (gmeow:hasTag): aboutness is a semantic subject-matter relation, tagging is a user-applied label, and typing is an ontological classification. Non-functional."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# The three axes (type, aboutness, tagging) are kept disjoint at the property level.
+# OWL cannot express disjointness with rdf:type (it is not an ObjectProperty in the
+# ontology), so the trichotomy guard lives in SHACL + Python tests.
+gmeow:hasTag owl:propertyDisjointWith gmeow:isAbout .
+
+# --------------------------------------------------------------------------- #
+# Relator role properties (functional per relator)
+# --------------------------------------------------------------------------- #
+
+gmeow:taggingTagged
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Tagging ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "tagging tagged"@en ;
+    skos:definition "The entity that is tagged in a tagging act. Functional per relator: one tagged entity per Tagging."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:taggingTag
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Tagging ;
+    rdfs:range gmeow:Tag ;
+    rdfs:label "tagging tag"@en ;
+    skos:definition "The tag applied in a tagging act. Functional per relator: one tag per Tagging."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:taggingTagger
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Tagging ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "tagging tagger"@en ;
+    skos:definition "The agent who performed the tagging act. Non-functional: a tag may be co-asserted by multiple agents (e.g. a collaborative curation effort)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:taggingScheme
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Tagging ;
+    rdfs:range gmeow:TagScheme ;
+    rdfs:label "tagging scheme"@en ;
+    skos:definition "The tag scheme within which the tagging act is performed. Functional per relator: one scheme per Tagging (the tag itself may belong to multiple schemes)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:taggingInterval
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Tagging ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "tagging interval"@en ;
+    skos:definition "The time interval over which the tagging act holds. A relator carries its period this way (matching gmeow:usageInterval, gmeow:relationshipInterval) rather than via RDF-star annotations on the relator node."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Tag relations — optional, flat-first
+# --------------------------------------------------------------------------- #
+
+gmeow:broaderTag
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:domain gmeow:Tag ;
+    rdfs:range gmeow:Tag ;
+    rdfs:label "broader tag"@en ;
+    skos:definition "A broader, more general tag. Transitive. Optional: folksonomy stays flat-first."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:narrowerTag
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:broaderTag ;
+    rdfs:domain gmeow:Tag ;
+    rdfs:range gmeow:Tag ;
+    rdfs:label "narrower tag"@en ;
+    skos:definition "A narrower, more specific tag. Inverse of gmeow:broaderTag. Optional."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:relatedTag
+    a owl:ObjectProperty, owl:SymmetricProperty ;
+    rdfs:domain gmeow:Tag ;
+    rdfs:range gmeow:Tag ;
+    rdfs:label "related tag"@en ;
+    skos:definition "A tag related to this tag by an associative link. Symmetric. Optional."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:tagInScheme
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Tag ;
+    rdfs:range gmeow:TagScheme ;
+    rdfs:label "tag in scheme"@en ;
+    skos:definition "Relates a tag to a scheme it belongs to. Non-functional: a tag may reside in many schemes (cross-listing)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Seed tag individuals (illustrative anchors, not a fence)
+# --------------------------------------------------------------------------- #
+
+gmeow:tagUrgent  a gmeow:Tag ; rdfs:label "urgent"@en .
+gmeow:tagTodo    a gmeow:Tag ; rdfs:label "todo"@en .
+gmeow:tagReview  a gmeow:Tag ; rdfs:label "review"@en .
+
+# --------------------------------------------------------------------------- #
+# AXIOMATIZED DOCTRINE — relator mediation for ELK visibility
+# --------------------------------------------------------------------------- #
+
+gmeow:Tagging rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:taggingTagged ; owl:someValuesFrom gmeow:Entity ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:taggingTag ; owl:someValuesFrom gmeow:Tag ] .

@@ -1061,7 +1061,6 @@ gmeow:TemporalMeasurementShape
     ) ;
     sh:severity sh:Violation ;
     sh:message "A TemporalMeasurement must have either gmeow:measuredAge or gmeow:measuredDate (or both)." .
-
 # --------------------------------------------------------------------------- #
 # Proximity / distance shapes (#95)
 # --------------------------------------------------------------------------- #
@@ -1091,4 +1090,51 @@ gmeow:ProximityMeasurementShape
         sh:class gmeow:ScalarQuantity ;
         sh:severity sh:Violation ;
         sh:message "A ProximityMeasurement must yield exactly one scalar quantity result." ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Tags module (#27). Closed-world well-formedness for the Tagging relator;
+# suppression contract (Principle 10) for retracted taggings.
+# --------------------------------------------------------------------------- #
+
+# A Tagging must mediate exactly one tagged entity and exactly one tag —
+# the closed-world counterpart of the EL someValuesFrom mediation axiom in
+# tags.ttl (mirrors gmeow:ParticipationHasPlayersShape).
+gmeow:TaggingHasPlayersShape
+    a sh:NodeShape ;
+    rdfs:label "Tagging well-formedness shape" ;
+    sh:targetClass gmeow:Tagging ;
+    sh:property [
+        sh:path gmeow:taggingTagged ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Tagging must tag exactly one entity (gmeow:taggingTagged)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:taggingTag ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Tagging must use exactly one tag (gmeow:taggingTag)." ;
+    ] .
+
+# Suppression, never erasure (Principle 10): a retracted or superseded tagging
+# (one with gmeow:validUntil) should set gmeow:displayable false rather than
+# be deleted. Warning — a source may lag the flag.
+gmeow:RetractedTagSuppressionShape
+    a sh:NodeShape ;
+    rdfs:label "Retracted / superseded tag suppression shape" ;
+    sh:targetClass gmeow:Tagging ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        sh:message "A retracted or superseded tagging (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/validUntil> ?until .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
+                }
+            }
+        """ ;
     ] .

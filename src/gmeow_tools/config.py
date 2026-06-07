@@ -211,6 +211,8 @@ PREFIXES: dict[str, str] = {
     "crminf": "http://www.ics.forth.gr/isl/CRMinf/",
     "oa": "http://www.w3.org/ns/oa#",
     "org": "http://www.w3.org/ns/org#",
+    "moat": "http://moat-project.org/ns#",
+    "tags": "http://www.holygoat.co.uk/owl/redwood/0.1/tags/",
     "time": "http://www.w3.org/2006/time#",
     "teo": "https://sbmi.uth.edu/bsdi/TEO_1.0.0.owl#",
     # Temporal / geologic / measurement alignment (#67)
@@ -492,4 +494,6 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "lvont": AlignmentTarget(
         "Lexvo Ontology", PREFIXES["lvont"], "CC-BY-SA-3.0", "schema"
     ),
+    "moat": AlignmentTarget("MOAT", PREFIXES["moat"], "Unknown", "schema"),
+    "tags": AlignmentTarget("Tag Ontology", PREFIXES["tags"], "Unknown", "schema"),
 }
