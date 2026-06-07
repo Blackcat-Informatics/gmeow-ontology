@@ -1,0 +1,637 @@
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# =============================================================================
+# SHACL shapes for the GMEOW mapping DSL (mapping-dsl/**/*.ttl).
+#
+# These shapes validate the canonical authoring source BEFORE the Python
+# graph-walkers in gmeow_tools.mapping_dsl run. Violations surface as
+# structured per-node diagnostics (focus node, path, message, source file).
+# =============================================================================
+
+# --------------------------------------------------------------------------- #
+# TermEquivalence
+# --------------------------------------------------------------------------- #
+
+gmeow:TermEquivalenceShape
+    a sh:NodeShape ;
+    rdfs:label "TermEquivalence shape"@en ;
+    sh:targetClass gmeow:TermEquivalence ;
+    sh:property [
+        sh:path gmeow:alignSubject ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "TermEquivalence must have exactly one gmeow:alignSubject (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:alignPredicate ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "TermEquivalence must have exactly one gmeow:alignPredicate (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:alignObject ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "TermEquivalence must have exactly one gmeow:alignObject (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:sssomFile ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "TermEquivalence must have exactly one gmeow:sssomFile (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:confidence ;
+        sh:maxCount 1 ;
+        sh:minInclusive 0 ;
+        sh:maxInclusive 1 ;
+        sh:severity sh:Violation ;
+        sh:message "confidence must be a single numeric value in [0,1]"
+    ] ;
+    sh:property [
+        sh:path gmeow:justification ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "justification must be a single IRI"
+    ] .
+
+# --------------------------------------------------------------------------- #
+# ProjectionMapping
+# --------------------------------------------------------------------------- #
+
+gmeow:ProjectionMappingShape
+    a sh:NodeShape ;
+    rdfs:label "ProjectionMapping shape"@en ;
+    sh:targetClass gmeow:ProjectionMapping ;
+    sh:property [
+        sh:path gmeow:hasMappingPattern ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "ProjectionMapping must have exactly one gmeow:hasMappingPattern"
+    ] ;
+    sh:property [
+        sh:path gmeow:hasBinding ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "ProjectionMapping must have at least one gmeow:hasBinding"
+    ] ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "ProjectionMapping may have at most one rdfs:label"
+    ] .
+
+# --------------------------------------------------------------------------- #
+# MappingPattern (targeted by anchor, since patterns are typically blank nodes)
+# --------------------------------------------------------------------------- #
+
+gmeow:MappingPatternShape
+    a sh:NodeShape ;
+    rdfs:label "MappingPattern shape"@en ;
+    sh:targetSubjectsOf gmeow:anchor ;
+    sh:property [
+        sh:path gmeow:anchor ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "MappingPattern must have exactly one gmeow:anchor (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:value ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "MappingPattern may have at most one gmeow:value (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:edoalSource ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "MappingPattern may have at most one gmeow:edoalSource (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:edoalSourceKind ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "MappingPattern may have at most one gmeow:edoalSourceKind (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:edoalPath ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:severity sh:Violation ;
+        sh:message "MappingPattern may have at most one gmeow:edoalPath (boolean)"
+    ] .
+
+# --------------------------------------------------------------------------- #
+# PatternAtom
+# --------------------------------------------------------------------------- #
+
+gmeow:PatternAtomShape
+    a sh:NodeShape ;
+    rdfs:label "PatternAtom shape"@en ;
+    sh:targetSubjectsOf gmeow:subjectVar ;
+    sh:property [
+        sh:path gmeow:subjectVar ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "PatternAtom must have exactly one gmeow:subjectVar (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:predicate ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "PatternAtom may have at most one gmeow:predicate (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:predicateVar ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "PatternAtom may have at most one gmeow:predicateVar (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:path ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "PatternAtom may have at most one gmeow:path"
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "PatternAtom must have exactly one of predicate (IRI), predicateVar (string), or path (node)" ;
+        sh:select """
+            SELECT $this WHERE {
+                FILTER(
+                    (EXISTS { $this gmeow:predicate ?p } && EXISTS { $this gmeow:predicateVar ?pv }) ||
+                    (EXISTS { $this gmeow:predicate ?p } && EXISTS { $this gmeow:path ?path }) ||
+                    (EXISTS { $this gmeow:predicateVar ?pv } && EXISTS { $this gmeow:path ?path }) ||
+                    (!EXISTS { $this gmeow:predicate ?p } && !EXISTS { $this gmeow:predicateVar ?pv } && !EXISTS { $this gmeow:path ?path })
+                )
+            }
+        """
+    ] ;
+    sh:property [
+        sh:path gmeow:objectVar ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "PatternAtom may have at most one gmeow:objectVar (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:objectValue ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "PatternAtom may have at most one gmeow:objectValue (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:objectLiteral ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "PatternAtom may have at most one gmeow:objectLiteral"
+    ] ;
+    sh:property [
+        sh:path gmeow:optional ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:severity sh:Violation ;
+        sh:message "PatternAtom may have at most one gmeow:optional (boolean)"
+    ] .
+
+# --------------------------------------------------------------------------- #
+# TemplateAtom
+# --------------------------------------------------------------------------- #
+
+gmeow:TemplateAtomShape
+    a sh:NodeShape ;
+    rdfs:label "TemplateAtom shape"@en ;
+    sh:targetSubjectsOf gmeow:tSubj ;
+    sh:property [
+        sh:path gmeow:tSubj ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "TemplateAtom must have exactly one gmeow:tSubj (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:tPred ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "TemplateAtom must have exactly one gmeow:tPred (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:tObj ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "TemplateAtom may have at most one gmeow:tObj (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:tObjValue ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "TemplateAtom may have at most one gmeow:tObjValue (IRI)"
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "TemplateAtom must have exactly one of tObj (string) or tObjValue (IRI)" ;
+        sh:select """
+            SELECT $this WHERE {
+                FILTER(
+                    (EXISTS { $this gmeow:tObj ?o } && EXISTS { $this gmeow:tObjValue ?ov }) ||
+                    (!EXISTS { $this gmeow:tObj ?o } && !EXISTS { $this gmeow:tObjValue ?ov })
+                )
+            }
+        """
+    ] .
+
+# --------------------------------------------------------------------------- #
+# OptionalGroup
+# --------------------------------------------------------------------------- #
+
+gmeow:OptionalGroupShape
+    a sh:NodeShape ;
+    rdfs:label "OptionalGroup shape"@en ;
+    sh:targetClass gmeow:OptionalGroup ;
+    sh:property [
+        sh:path gmeow:optionalGroup ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "OptionalGroup must have exactly one gmeow:optionalGroup (rdf:List)"
+    ] .
+
+# --------------------------------------------------------------------------- #
+# ProfileBinding
+# --------------------------------------------------------------------------- #
+
+gmeow:ProfileBindingShape
+    a sh:NodeShape ;
+    rdfs:label "ProfileBinding shape"@en ;
+    sh:targetSubjectsOf gmeow:profile ;
+    sh:property [
+        sh:path gmeow:profile ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "ProfileBinding must have exactly one gmeow:profile (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:toPredicate ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "ProfileBinding may have at most one gmeow:toPredicate (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:toClass ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "ProfileBinding may have at most one gmeow:toClass (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:templateAtoms ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "ProfileBinding may have at most one gmeow:templateAtoms (rdf:List)"
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "ProfileBinding must have at least one output: toPredicate, toClass, templateAtoms, or valueClassMap" ;
+        sh:select """
+            SELECT $this WHERE {
+                FILTER(
+                    !EXISTS { $this gmeow:toPredicate ?p } &&
+                    !EXISTS { $this gmeow:toClass ?c } &&
+                    !EXISTS { $this gmeow:templateAtoms ?t } &&
+                    !EXISTS { $this gmeow:valueClassMap ?v }
+                )
+            }
+        """
+    ] ;
+    sh:property [
+        sh:path gmeow:relation ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "ProfileBinding may have at most one gmeow:relation (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:transform ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "ProfileBinding may have at most one gmeow:transform (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:confidence ;
+        sh:maxCount 1 ;
+        sh:minInclusive 0 ;
+        sh:maxInclusive 1 ;
+        sh:severity sh:Violation ;
+        sh:message "ProfileBinding confidence must be a single numeric value in [0,1]"
+    ] ;
+    sh:property [
+        sh:path gmeow:emitSssom ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:severity sh:Violation ;
+        sh:message "ProfileBinding may have at most one gmeow:emitSssom (boolean)"
+    ] ;
+    sh:property [
+        sh:path gmeow:sssomPredicate ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "ProfileBinding may have at most one gmeow:sssomPredicate (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:sssomFile ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "ProfileBinding may have at most one gmeow:sssomFile (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:edoalTarget ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "ProfileBinding may have at most one gmeow:edoalTarget (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:edoalTargetKind ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "ProfileBinding may have at most one gmeow:edoalTargetKind (string)"
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Bind / Mint
+# --------------------------------------------------------------------------- #
+
+gmeow:BindShape
+    a sh:NodeShape ;
+    rdfs:label "Bind/Mint shape"@en ;
+    sh:targetSubjectsOf gmeow:bindVar ;
+    sh:property [
+        sh:path gmeow:bindVar ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "Bind/Mint must have exactly one gmeow:bindVar (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:bindExpr ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Bind/Mint must have exactly one gmeow:bindExpr"
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Expression
+# --------------------------------------------------------------------------- #
+
+gmeow:ExpressionShape
+    a sh:NodeShape ;
+    rdfs:label "Expression shape"@en ;
+    sh:targetSubjectsOf gmeow:exprOp ;
+    sh:targetSubjectsOf gmeow:exprVar ;
+    sh:property [
+        sh:path gmeow:exprVar ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "Expression may have at most one gmeow:exprVar (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:exprOp ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "Expression may have at most one gmeow:exprOp (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:exprArgs ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Expression may have at most one gmeow:exprArgs (rdf:List)"
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "Expression must have exactly one of exprVar (string) or (exprOp + exprArgs)" ;
+        sh:select """
+            SELECT $this WHERE {
+                FILTER(
+                    (EXISTS { $this gmeow:exprVar ?v } && EXISTS { $this gmeow:exprOp ?op }) ||
+                    (!EXISTS { $this gmeow:exprVar ?v } && !EXISTS { $this gmeow:exprOp ?op })
+                )
+            }
+        """
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Property-path algebra
+# --------------------------------------------------------------------------- #
+
+gmeow:AltPathShape
+    a sh:NodeShape ;
+    rdfs:label "AltPath shape"@en ;
+    sh:targetClass gmeow:AltPath ;
+    sh:property [
+        sh:path gmeow:pathAlts ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "AltPath must have exactly one gmeow:pathAlts (rdf:List)"
+    ] .
+
+gmeow:SeqPathShape
+    a sh:NodeShape ;
+    rdfs:label "SeqPath shape"@en ;
+    sh:targetClass gmeow:SeqPath ;
+    sh:property [
+        sh:path gmeow:pathSteps ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "SeqPath must have exactly one gmeow:pathSteps (rdf:List)"
+    ] .
+
+gmeow:ZeroOrMorePathShape
+    a sh:NodeShape ;
+    rdfs:label "ZeroOrMorePath shape"@en ;
+    sh:targetClass gmeow:ZeroOrMorePath ;
+    sh:property [
+        sh:path gmeow:pathStep ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "ZeroOrMorePath must have exactly one gmeow:pathStep"
+    ] .
+
+gmeow:OneOrMorePathShape
+    a sh:NodeShape ;
+    rdfs:label "OneOrMorePath shape"@en ;
+    sh:targetClass gmeow:OneOrMorePath ;
+    sh:property [
+        sh:path gmeow:pathStep ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "OneOrMorePath must have exactly one gmeow:pathStep"
+    ] .
+
+gmeow:ZeroOrOnePathShape
+    a sh:NodeShape ;
+    rdfs:label "ZeroOrOnePath shape"@en ;
+    sh:targetClass gmeow:ZeroOrOnePath ;
+    sh:property [
+        sh:path gmeow:pathStep ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "ZeroOrOnePath must have exactly one gmeow:pathStep"
+    ] .
+
+gmeow:InversePathShape
+    a sh:NodeShape ;
+    rdfs:label "InversePath shape"@en ;
+    sh:targetClass gmeow:InversePath ;
+    sh:property [
+        sh:path gmeow:pathStep ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "InversePath must have exactly one gmeow:pathStep"
+    ] .
+
+gmeow:NegatedPropertySetShape
+    a sh:NodeShape ;
+    rdfs:label "NegatedPropertySet shape"@en ;
+    sh:targetClass gmeow:NegatedPropertySet ;
+    sh:property [
+        sh:path gmeow:pathSet ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "NegatedPropertySet must have exactly one gmeow:pathSet (rdf:List)"
+    ] .
+
+# --------------------------------------------------------------------------- #
+# MappingSet
+# --------------------------------------------------------------------------- #
+
+gmeow:MappingSetShape
+    a sh:NodeShape ;
+    rdfs:label "MappingSet shape"@en ;
+    sh:targetClass gmeow:MappingSet ;
+    sh:property [
+        sh:path gmeow:sssomFile ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "MappingSet must have exactly one gmeow:sssomFile (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:setId ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "MappingSet may have at most one gmeow:setId (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:license ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "MappingSet may have at most one gmeow:license (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:setComment ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "MappingSet may have at most one gmeow:setComment (string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:setTrailer ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "MappingSet may have at most one gmeow:setTrailer (string)"
+    ] .
+
+# --------------------------------------------------------------------------- #
+# ProjectionFunction
+# --------------------------------------------------------------------------- #
+
+gmeow:ProjectionFunctionShape
+    a sh:NodeShape ;
+    rdfs:label "ProjectionFunction shape"@en ;
+    sh:targetClass gmeow:ProjectionFunction ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "ProjectionFunction must have at least one rdfs:label"
+    ] ;
+    sh:property [
+        sh:path gmeow:fnOutput ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "ProjectionFunction must have exactly one gmeow:fnOutput (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:fnOutputType ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "ProjectionFunction must have exactly one gmeow:fnOutputType (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:fnInput ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "ProjectionFunction fnInput values must be IRIs"
+    ] ;
+    sh:property [
+        sh:path gmeow:fnInputOptional ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "ProjectionFunction fnInputOptional values must be IRIs"
+    ] .
+
+# --------------------------------------------------------------------------- #
+# ValueClass map entry
+# --------------------------------------------------------------------------- #
+
+gmeow:ValueClassMapEntryShape
+    a sh:NodeShape ;
+    rdfs:label "ValueClass map entry shape"@en ;
+    sh:targetSubjectsOf gmeow:whenValue ;
+    sh:property [
+        sh:path gmeow:whenValue ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "Value-class map entry must have exactly one gmeow:whenValue (IRI)"
+    ] ;
+    sh:property [
+        sh:path gmeow:toClass ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "Value-class map entry must have exactly one gmeow:toClass (IRI)"
+    ] .

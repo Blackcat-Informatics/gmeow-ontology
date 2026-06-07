@@ -27,6 +27,7 @@ from rdflib.namespace import Namespace
 from rdflib.term import Node
 
 from gmeow_tools.config import NAMESPACE, PREFIXES, STATEMENT_DSL_DIR
+from gmeow_tools.dsl_validate import validate_statement_dsl
 from gmeow_tools.mapping_dsl import CompileError
 
 GM = Namespace(PREFIXES["gmeow"])
@@ -186,7 +187,18 @@ def _cells(graph: Graph) -> list[StatementCell]:
 def load_statement_dsl(src: Path = STATEMENT_DSL_DIR) -> StatementDsl:
     """Parse the whole statement DSL into deterministically-ordered cells."""
     graph = Graph()
+    node_to_file: dict[Node, Path] = {}
     for path in sorted(src.rglob("*.ttl")):
         graph.parse(path, format="turtle")
+        # Track source file for named IRIs (second parse is harmless).
+        file_graph = Graph().parse(path, format="turtle")
+        for subject in file_graph.subjects():
+            if isinstance(subject, URIRef) and subject not in node_to_file:
+                node_to_file[subject] = path
+    violations = validate_statement_dsl(graph, node_to_file)
+    if violations:
+        raise CompileError(
+            "statement DSL SHACL violations:\n  " + "\n  ".join(violations)
+        )
     cells = sorted(_cells(graph), key=lambda c: str(c.iri))
     return StatementDsl(cells=tuple(cells))
