@@ -191,7 +191,7 @@ def test_malformed_entity_existence_is_flagged() -> None:
     result = run_shacl(_fixture("entity-existence-malformed"))
     assert not result.ok
     joined = "\n".join(result.errors)
-    assert "existenceEntity" in joined or "duringInterval" in joined
+    assert "existenceEntity" in joined and "duringInterval" in joined
 
 
 # --------------------------------------------------------------------------- #

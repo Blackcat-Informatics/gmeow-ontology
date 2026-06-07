@@ -15,6 +15,7 @@
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:eventTypeCreation	skos:closeMatch	crm:E63_Beginning_of_Existence	semapv:ManualMappingCuration	0.9	CIDOC-CRM E63 Beginning of Existence — a value-to-class alignment
 gmeow:eventTypeDestruction	skos:closeMatch	crm:E64_End_of_Existence	semapv:ManualMappingCuration	0.9	CIDOC-CRM E64 End of Existence — a value-to-class alignment
+gmeow:eventTypeDissolution	skos:closeMatch	crm:E64_End_of_Existence	semapv:ManualMappingCuration	0.9	CIDOC-CRM E64 End of Existence — dissolution as a specific kind of end-of-existence event type
 gmeow:eventTypeSupersession	skos:closeMatch	crm:E81_Transformation	semapv:ManualMappingCuration	0.9	CIDOC-CRM E81 Transformation — one entity ceases and another begins
 gmeow:hasCreationEvent	skos:closeMatch	prov:wasGeneratedBy	semapv:ManualMappingCuration	0.9	PROV-O wasGeneratedBy is entity-generation; GMEOW generalizes to any endurant's creation event
 gmeow:hasDestructionEvent	skos:closeMatch	prov:wasInvalidatedBy	semapv:ManualMappingCuration	0.9	PROV-O wasInvalidatedBy is entity-invalidation; GMEOW generalizes to any endurant's destruction event

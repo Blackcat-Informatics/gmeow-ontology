@@ -99,3 +99,12 @@ gmeow:eqLifecycle007 a gmeow:TermEquivalence ;
     gmeow:confidence 0.9 ;
     gmeow:comment "CIDOC-CRM E81 Transformation — one entity ceases and another begins" ;
     gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .
+
+gmeow:eqLifecycle008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeDissolution ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:E64_End_of_Existence ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "CIDOC-CRM E64 End of Existence — dissolution as a specific kind of end-of-existence event type" ;
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .
