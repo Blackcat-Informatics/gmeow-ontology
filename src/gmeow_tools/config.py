@@ -238,6 +238,8 @@ PREFIXES: dict[str, str] = {
     "vcardx": "https://blackcatinformatics.ca/vcard-ext/",
     "geo": "http://www.opengis.net/ont/geosparql#",
     "wgs84": "http://www.w3.org/2003/01/geo/wgs84_pos#",
+    # Transit / network (#80)
+    "gtfs": "http://vocab.gtfs.org/terms#",
     "tgn": "http://vocab.getty.edu/tgn/",
     "gvp": "http://vocab.getty.edu/ontology#",
     "bibo": "http://purl.org/ontology/bibo/",
@@ -490,6 +492,7 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     ),
     "lime": AlignmentTarget("LIME", PREFIXES["lime"], "W3C-Document", "schema"),
     "qudt": AlignmentTarget("QUDT", PREFIXES["qudt"], "CC-BY-4.0", "schema"),
+    "gtfs": AlignmentTarget("GTFS", PREFIXES["gtfs"], "CC-BY-3.0", "schema"),
     "fibo-fnd-acc-cur": AlignmentTarget(
         "FIBO CurrencyAmount", PREFIXES["fibo-fnd-acc-cur"], "MIT", "schema"
     ),
