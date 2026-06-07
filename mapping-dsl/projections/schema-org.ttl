@@ -1,6 +1,7 @@
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
 @prefix schema: <https://schema.org/> .
 
 # Projection mappings: GMEOW → pure schema.org (the richest profile). Compiled to
@@ -102,6 +103,18 @@ gmeow:mapSchemaHasPart a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:hasPart ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
         gmeow:lossyDrop "the specialized GMEOW whole-to-part subproperty, if any, is collapsed to generic schema:hasPart" ] .
+
+gmeow:mapSchemaExactAuthorityLink a gmeow:ProjectionMapping ;
+    rdfs:label "exact authority coreference → schema:sameAs"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "auth" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:authorityLink ; gmeow:objectVar "auth" ]
+            [ gmeow:subjectVar "ent" ; gmeow:predicate skos:exactMatch ; gmeow:objectVar "auth" ] ) ;
+        gmeow:edoalSource gmeow:authorityLink ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:sameAs ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "authority provenance, confidence, standpoint, and exact-vs-close match distinction collapse to a schema.org identity URL; skos:closeMatch authority links are not emitted" ] .
 
 gmeow:mapSchemaPlaceType a gmeow:ProjectionMapping ;
     rdfs:label "Place placeType value → schema target class"@en ;

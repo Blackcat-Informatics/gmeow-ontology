@@ -119,6 +119,14 @@
             align:relation "=" ;
             edoal:measure 1e+00 ],
         [ a align:Cell ;
+            rdfs:label "exact authority coreference → schema:sameAs"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:authorityLink ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:sameAs ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ],
+        [ a align:Cell ;
             rdfs:label "family-name part → schema:familyName"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:partText ] ;

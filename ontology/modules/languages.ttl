@@ -207,24 +207,9 @@ gmeow:scriptUsageInterval
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
-# Version lineage + the software bridge.
+# Version labels + the software bridge. Universal version/supersession lineage
+# lives in coreference.ttl (#74); LanguageVersion is one consumer.
 # =========================================================================== #
-
-gmeow:versionOf
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:LanguageVersion ;
-    rdfs:range gmeow:Language ;
-    rdfs:label "version of"@en ;
-    skos:definition "Relates a concrete language version to the lineage language it is a version of. Functional — a version belongs to exactly one lineage."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:supersedes
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:LanguageVersion ;
-    rdfs:range gmeow:LanguageVersion ;
-    rdfs:label "supersedes"@en ;
-    skos:definition "Relates a language version to the prior version it supersedes. Non-functional (a version may consolidate several). Orders a lineage's versions WITHOUT implying the prior is invalid — older versions remain first-class and usable."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:versionLabel
     a owl:DatatypeProperty ;
