@@ -35,6 +35,7 @@ Only **IMPORT_OK** targets (per `config.policy_for_license`) are vendored here:
 | `time.ttl` | OWL-Time | CC-BY-4.0 |
 | `geo.ttl` | GeoSPARQL | OGC |
 | `bfo.ttl` | BFO 2020 (ISO/IEC 21838-2) — *class-fact shape* | CC-BY-4.0 |
+| `bot.ttl` | BOT (Building Topology Ontology) | BSD-3-Clause |
 
 **Reference-only** targets (e.g. schema.org, CC-BY-SA) are *never* vendored;
 `refresh_snapshot` refuses them. Their axioms are fetched live under the

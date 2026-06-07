@@ -11,6 +11,20 @@
     rdfs:label "GMEOW → bot (EDOAL)"@en ;
     align:level "2EDOAL" ;
     align:map [ a align:Cell ;
+            rdfs:label "adjacentTo → bot:adjacentZone (indoor topology)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:adjacentTo ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri bot:adjacentZone ] ;
+            align:relation "=" ],
+        [ a align:Cell ;
+            rdfs:label "containsPlace → bot:containsZone (indoor topology)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:containsPlace ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri bot:containsZone ] ;
+            align:relation "=" ],
+        [ a align:Cell ;
             rdfs:label "building contains room directly → bot:hasSpace"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:inverse [ a edoal:Relation ;
@@ -37,6 +51,19 @@
                     edoal:uri bot:hasStorey ] ;
             align:relation "<=" ;
             edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "gmeow:Place [gmeow:placeTypeSite] → bot:Site"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:and ( [ a edoal:Class ;
+                                edoal:uri gmeow:Place ] [ a edoal:AttributeValueRestriction ;
+                                edoal:comparator edoal:equals ;
+                                edoal:onAttribute [ a edoal:Relation ;
+                                        edoal:uri gmeow:placeType ] ;
+                                edoal:value [ edoal:uri gmeow:placeTypeSite ] ] ) ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri bot:Site ] ;
+            align:relation "=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnPlaceTypeToClass ] ],
         [ a align:Cell ;
             rdfs:label "gmeow:Place [gmeow:placeTypeBuilding] → bot:Building"@en ;
             align:entity1 [ a edoal:Class ;

@@ -240,9 +240,11 @@ PREFIXES: dict[str, str] = {
     "schema": "https://schema.org/",
     "gedcom": "http://www.w3.org/2000/10/swap/pim/gedcom#",
     "vcard": "http://www.w3.org/2006/vcard/ns#",
-    # Building ontologies — Brick (building systems) and BOT (building topology)
+    # Building ontologies: Brick (building systems), BOT (building topology),
+    # ifcOWL (IFC4)
     "brick": "https://brickschema.org/schema/Brick#",
     "bot": "https://w3id.org/bot#",
+    "ifc": "http://www.buildingsmart-tech.org/ifcOWL/IFC4#",
     # vCard 4 RFC-9554 extension terms (PRONOUNS, …) that the W3C vCard RDF
     # ontology — based on RFC 6350 — never minted an IRI for. Deliberately a
     # vCard-extension namespace OUTSIDE the gmeow/ term space, so the projection
@@ -518,6 +520,7 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "bot": AlignmentTarget(
         "BOT (Building Topology Ontology)", PREFIXES["bot"], "BSD-3-Clause", "schema"
     ),
+    "ifc": AlignmentTarget("ifcOWL (IFC4)", PREFIXES["ifc"], "Proprietary", "schema"),
     "lvont": AlignmentTarget(
         "Lexvo Ontology", PREFIXES["lvont"], "CC-BY-SA-3.0", "schema"
     ),
