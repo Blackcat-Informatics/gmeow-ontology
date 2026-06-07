@@ -9,7 +9,7 @@
 <https://blackcatinformatics.ca/gmeow/modules/observations>
     a owl:Ontology ;
     rdfs:label "GMEOW Observations Module"@en ;
-    rdfs:comment """The universal observation stack: a reified gufo:Relator that unifies spatial measurement, temporal dating, sensory reading, and standpoint claims into one structure — realising Governing Principle #3 (Observation ≡ Measurement ≡ Standpoint). Sits in the foundational provenance/standpoint layer and is consumed by locations, temporal, sensory, and events. Aligns SOSA/SSN, PROV-O, and CIDOC E13 by reference.
+    rdfs:comment """The universal observation stack: a reified gufo:Relator that unifies spatial measurement, temporal dating, sensory reading, standpoint claims, identity claims, naming claims, rights claims, and kinship claims into one structure — realising Governing Principle #9 (Observation ≡ Measurement ≡ Standpoint ≡ IdentityFacet ≡ NameUsage ≡ RightsStatement ≡ KinRelationship). Sits in the foundational provenance/standpoint layer and is consumed by every slice. Aligns SOSA/SSN, PROV-O, and CIDOC E13 by reference.
 
 Also home to the universal Quantity / MeasuredValue construct (#77): a scalar numeric value bundled with unit/frame, determinacy, and provenance — the synthesis of FRAME-GEN + DET-GEN + OBS. gmeow:Quantity and gmeow:MeasuredValue are equivalent to gmeow:ScalarQuantity, providing domain-neutral names for the same construct."""@en ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
@@ -22,7 +22,7 @@ gmeow:Observation
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Observation"@en ;
-    skos:definition "A reified act of observing, measuring, or asserting a feature of interest — the universal stack unifying spatial measurement, temporal dating, sensory reading, and standpoint claims. Mediates between an observer (vantage), a feature (observedFeature), and a result (observationResult). Every observation carries at least a vantage and an observedFeature (EL open-world); closed-world cardinality is SHACL's concern."@en ;
+    skos:definition "A reified act of observing, measuring, or asserting a feature of interest — the universal claim construct unifying spatial measurement, temporal dating, sensory reading, standpoint claims, identity claims, naming claims, rights claims, and kinship claims. Mediates between an observer (vantage), a feature (observedFeature), and a result (observationResult). Every observation carries at least a vantage and an observedFeature (EL open-world); closed-world cardinality is SHACL's concern."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # EL axiomatisation: every Observation mediates at least one vantage and one feature.
@@ -86,6 +86,49 @@ gmeow:observationType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
+# UNIVERSAL CLAIM CONSTRUCT — property bridges (#69)
+#
+# Domain-specific relators (IdentityFacet, NameUsage, RightsStatement,
+# KinRelationship) are subclasses of Observation. Their existing properties
+# bridge to the core observation roles via rdfs:subPropertyOf so that generic
+# consumers can query "all observations about Alice" without knowing whether
+# the claim is a name, a gender identity, a right, or a coordinate.
+# =========================================================================== #
+
+gmeow:facetSubject
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    rdfs:domain gmeow:Observation ;
+    rdfs:range gmeow:Person ;
+    rdfs:label "facet subject"@en ;
+    skos:definition "The person an identity facet (gender identity, gender expression, sexual/romantic orientation) is about — the observedFeature of the claim. Domain is gmeow:Observation so it applies to any observation subclass; the shape narrows to IdentityFacet instances."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:facetVantage
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:vantage ;
+    rdfs:domain gmeow:Observation ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "facet vantage"@en ;
+    skos:definition "The agent asserting an identity facet — the vantage of the claim. When gmeow:selfAsserted is true, the facetVantage is the person themselves (Principle 9: self-assertion is top authority)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# NameUsage bridges (declared here because the super-properties live here).
+gmeow:usageNamer rdfs:subPropertyOf gmeow:vantage .
+gmeow:usageNamed rdfs:subPropertyOf gmeow:observedFeature .
+gmeow:usageAppellation rdfs:subPropertyOf gmeow:observationResult .
+
+# RightsStatement bridge.
+gmeow:statementAbout rdfs:subPropertyOf gmeow:observedFeature .
+
+# KinRelationship bridges (ParentChildRelationship properties).
+gmeow:relationshipParent rdfs:subPropertyOf gmeow:observedFeature .
+gmeow:relationshipChild rdfs:subPropertyOf gmeow:observedFeature .
+
+# CoupleRelationship bridge.
+gmeow:hasPartner rdfs:subPropertyOf gmeow:observedFeature .
+
+# =========================================================================== #
 # OBSERVATION → EVENT LINKAGE (lightweight — heavy form uses ObservingActivity)
 # =========================================================================== #
 
@@ -121,6 +164,10 @@ gmeow:observationTypeSensory      a gmeow:ObservationType ; rdfs:label "sensory 
 gmeow:observationTypeStandpoint   a gmeow:ObservationType ; rdfs:label "standpoint claim"@en ;     skos:definition "An assertion made from a specific standpoint or frame."@en .
 gmeow:observationTypeDerived      a gmeow:ObservationType ; rdfs:label "derived inference"@en ;    skos:definition "An observation produced by inference, calculation, or machine learning from other observations."@en .
 gmeow:observationTypeSimulation   a gmeow:ObservationType ; rdfs:label "simulation output"@en ;    skos:definition "An observation produced by computational simulation rather than direct measurement."@en .
+gmeow:observationTypeIdentity     a gmeow:ObservationType ; rdfs:label "identity claim"@en ;       skos:definition "An identity claim — gender identity, gender expression, sexual orientation, or romantic orientation — asserted by or about a person."@en .
+gmeow:observationTypeNaming       a gmeow:ObservationType ; rdfs:label "naming claim"@en ;         skos:definition "A claim about the appellation by which an entity is known in a given context."@en .
+gmeow:observationTypeRights       a gmeow:ObservationType ; rdfs:label "rights claim"@en ;         skos:definition "A claim about the rights, permissions, prohibitions, or duties governing an entity."@en .
+gmeow:observationTypeKinship      a gmeow:ObservationType ; rdfs:label "kinship claim"@en ;        skos:definition "A claim about a kinship or genealogical relationship between persons."@en .
 
 # Seeds — ObservationMethod (generic; domain-specific methods live in their modules)
 gmeow:methodDirectObservation     a gmeow:ObservationMethod ; rdfs:label "direct observation"@en ;   skos:definition "Observation by unaided human perception."@en .

@@ -72,7 +72,11 @@ def test_dsl_parses() -> None:
     # Issue #77 universal quantity: +4 (Quantity→qudt:QuantityValue,
     # quantityValue→qudt:quantityValue, quantityUncertainty→qudt:standardUncertainty,
     # Quantity→sosa:Result).
-    assert len(dsl.equivalences) == 854
+    # Issue #69 universal claim construct: +6 (IdentityFacet→sosa:Observation,
+    # NameUsage→sosa:Observation, RightsStatement→sosa:Observation,
+    # KinRelationship→sosa:Observation, facetSubject→sosa:hasFeatureOfInterest,
+    # facetVantage→sosa:madeBySensor).
+    assert len(dsl.equivalences) == 860
     # 25 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

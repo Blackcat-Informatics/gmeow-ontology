@@ -32,10 +32,10 @@ REUSE. gmeow:Agreement / gmeow:hasParty (agreements), gmeow:wasAttributedTo / gm
 # =========================================================================== #
 
 gmeow:RightsStatement
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gufo:Relator ;
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Observation, gufo:Relator ;
     rdfs:label "Rights Statement"@en ;
-    skos:definition "A reified, machine-readable statement of the rights situation of an entity — who may do what with it, under what licence, with what copyright, attributed to whom, over what term. The canonical superset of an ODRL Policy / Set: it bears gmeow:Permission, gmeow:Prohibition and gmeow:Duty rules and points at the asset it governs via gmeow:statementAbout. Promote a flat gmeow:hasLicense / gmeow:hasCopyright to a RightsStatement only when the deontic rules are needed."@en ;
+    skos:definition "A reified, machine-readable statement of the rights situation of an entity — an observation in the universal claim stack (#69). Who may do what with it, under what licence, with what copyright, attributed to whom, over what term. The canonical superset of an ODRL Policy / Set: it bears gmeow:Permission, gmeow:Prohibition and gmeow:Duty rules and points at the asset it governs via gmeow:statementAbout (the observedFeature). Promote a flat gmeow:hasLicense / gmeow:hasCopyright to a RightsStatement only when the deontic rules are needed."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasRightsStatement

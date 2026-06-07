@@ -4,7 +4,7 @@
 # mapping_tool: gmeow compile-mappings
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. gmeow:ScalarQuantity is canonical — no faithful external term captures the unit+determinacy+granularity bundle in one node. Added (#68): StandpointClaim → sosa:Observation; Agent → sosa:Sensor (the observer/sensor/perceiver is a standpoint). Added (#77): gmeow:Quantity and gmeow:MeasuredValue are equivalent aliases for ScalarQuantity; aligned to QUDT qudt:QuantityValue.
+# comment: Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. gmeow:ScalarQuantity is canonical — no faithful external term captures the unit+determinacy+granularity bundle in one node. Added (#68): StandpointClaim → sosa:Observation; Agent → sosa:Sensor (the observer/sensor/perceiver is a standpoint). Added (#69): IdentityFacet, NameUsage, RightsStatement, and KinRelationship → sosa:Observation (universal claim construct); facetSubject / facetVantage → sosa:hasFeatureOfInterest / sosa:madeBySensor. Added (#77): gmeow:Quantity and gmeow:MeasuredValue are equivalent aliases for ScalarQuantity; aligned to QUDT qudt:QuantityValue.
 # curie_map:
 #   crm: http://www.cidoc-crm.org/cidoc-crm/
 #   gmeow: https://blackcatinformatics.ca/gmeow/
@@ -14,14 +14,20 @@
 #   sosa: http://www.w3.org/ns/sosa/
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:Agent	skos:broadMatch	sosa:Sensor	semapv:ManualMappingCuration	0.75	An agent acting as vantage/observer/perceiver IS a standpoint (Principle 9). sosa:Sensor is device-centric and narrower; the alignment bridges the SOSA sensor concept to the broader GMEOW agent-as-standpoint doctrine.
+gmeow:IdentityFacet	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.85	SOSA does not distinguish observation types; an identity claim (gender, expression, orientation) is a kind of observation in the universal stack.
+gmeow:KinRelationship	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.8	SOSA does not distinguish observation types; a kinship claim is a kind of observation in the universal stack.
 gmeow:Measurement	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.9	A Measurement is a kind of Observation; SOSA does not distinguish them.
+gmeow:NameUsage	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.85	SOSA does not distinguish observation types; a naming claim is a kind of observation in the universal stack.
 gmeow:Observation	skos:closeMatch	crm:E13_Attribute_Assignment	semapv:ManualMappingCuration	0.9	CIDOC-CRM E13 is the closest CRM class: an activity of assigning an attribute to an item. GMEOW Observation generalises this to any act of observing or asserting, not only attribute assignment.
 gmeow:Observation	skos:closeMatch	prov:Entity	semapv:ManualMappingCuration	0.8	An Observation is a relator (gufo), but as a named individual it is also a prov:Entity that can be attributed, derived, and versioned.
 gmeow:Observation	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.95	
 gmeow:ObservationMethod	skos:closeMatch	sosa:Procedure	semapv:ManualMappingCuration	0.85	
 gmeow:Quantity	skos:closeMatch	sosa:Result	semapv:ManualMappingCuration	0.7	sosa:Result is broader (any result); gmeow:Quantity is the domain-neutral alias for ScalarQuantity (#77).
+gmeow:RightsStatement	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.8	SOSA does not distinguish observation types; a rights claim is a kind of observation in the universal stack.
 gmeow:ScalarQuantity	skos:closeMatch	sosa:Result	semapv:ManualMappingCuration	0.7	sosa:Result is broader (any result); gmeow:ScalarQuantity is specifically a scalar numeric with unit+determinacy+granularity.
 gmeow:StandpointClaim	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.9	SOSA does not distinguish observation types; a standpoint claim is a kind of observation, and the standpoint-indexed statement realises sosa:Observation.
+gmeow:facetSubject	skos:closeMatch	sosa:hasFeatureOfInterest	semapv:ManualMappingCuration	0.9	facetSubject is the observedFeature of an identity claim; aligns to SOSA's feature of interest.
+gmeow:facetVantage	skos:closeMatch	sosa:madeBySensor	semapv:ManualMappingCuration	0.75	facetVantage is the asserting agent of an identity claim; aligns to SOSA's sensor (device-centric, broader via broadMatch on Agent).
 gmeow:observationMethod	skos:closeMatch	crm:P33_used_specific_technique	semapv:ManualMappingCuration	0.85	
 gmeow:observationMethod	skos:closeMatch	sosa:usedProcedure	semapv:ManualMappingCuration	0.9	
 gmeow:observationResult	skos:closeMatch	crm:P141_assigned	semapv:ManualMappingCuration	0.85	

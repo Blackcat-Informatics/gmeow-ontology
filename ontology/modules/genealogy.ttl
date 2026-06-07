@@ -30,10 +30,10 @@ gmeow:Family
 # event types, role subproperties, or free-text eventDate.
 
 gmeow:KinRelationship
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gufo:Relator ;
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Observation, gufo:Relator ;
     rdfs:label "Kin Relationship"@en ;
-    skos:definition "A reified kinship relationship between persons, able to bear its own events, dates, sources, and standpoint-indexed claims. A disputed kinship is several coexisting gmeow:accordingTo-annotated relators, none privileged (Principle 9)."@en ;
+    skos:definition "A reified kinship relationship between persons, modelled as an observation (a claim-from-a-vantage) in the universal stack (#69). Able to bear its own events, dates, sources, and standpoint-indexed claims. A disputed kinship is several coexisting gmeow:accordingTo-annotated relators, none privileged (Principle 9). The relationshipParent and relationshipChild are co-observed features of the observation."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:CoupleRelationship

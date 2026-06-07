@@ -52,7 +52,7 @@ def _projection_source() -> Graph:
 def test_core_relators_are_grounded() -> None:
     g = _graph()
     for cls, stereo in (
-        (GM.RightsStatement, GUFO.Kind),
+        (GM.RightsStatement, GUFO.SubKind),
         (GM.Copyright, GUFO.Kind),
         (GM.Trademark, GUFO.Kind),
         (GM.Mark, GUFO.Kind),
