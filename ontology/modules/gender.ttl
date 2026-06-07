@@ -23,10 +23,10 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:IdentityFacet
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gufo:Relator ;
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Observation, gufo:Relator ;
     rdfs:label "Identity Facet"@en ;
-    skos:definition "A reified, SELF-ASSERTED claim about an aspect of a person's identity — gender identity, gender expression, or (in the sexuality module) sexual/romantic orientation — mediating the person and an open identity value. A gufo:Relator, the same idiom as gmeow:NameUsage. A person bears MANY co-equal facets (e.g. bigender); none is privileged, there is no preferred/primary marker, and a superseded facet is kept with gmeow:displayable false rather than deleted. Self-assertion (gmeow:selfAsserted) is the top authority; the optional validity period is carried by gmeow:validFrom/validUntil on the facet."@en ;
+    skos:definition "A reified, SELF-ASSERTED claim about an aspect of a person's identity — an observation in the universal claim stack (#69): gender identity, gender expression, or (in the sexuality module) sexual/romantic orientation — mediating the person (facetSubject / observedFeature) and an open identity value. A gufo:Relator and a gmeow:Observation, the same idiom as gmeow:NameUsage. A person bears MANY co-equal facets (e.g. bigender); none is privileged, there is no preferred/primary marker, and a superseded facet is kept with gmeow:displayable false rather than deleted. Self-assertion (gmeow:selfAsserted) is the top authority; the optional validity period is carried by gmeow:validFrom/validUntil on the facet."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:selfAsserted
@@ -214,11 +214,14 @@ gmeow:saabUnknown  a gmeow:SexAssignedAtBirth ; rdfs:label "unknown / not record
     owl:members ( gmeow:Gender gmeow:GenderExpressionStyle gmeow:SexAssignedAtBirth
                   gmeow:SexualOrientationValue gmeow:RomanticOrientationValue ) .
 
-# --- Relator mediation (EL existential): each concrete identity facet mediates
-# its value. This documents the relator's relatum FOR THE REASONER; it asserts
-# existence under the open-world assumption, not a violation — the closed-world
-# "exactly one" lives in SHACL (#39). The abstract base gmeow:IdentityFacet is
-# left unrestricted (the value property differs per concrete axis).
+# --- Relator mediation (EL existential): the abstract base IdentityFacet mediates
+# a subject (the person) and a vantage (the asserting agent), and each concrete
+# facet mediates its value. This documents the relator's relata FOR THE REASONER;
+# it asserts existence under the open-world assumption, not a violation — the
+# closed-world "exactly one" lives in SHACL (#39).
+gmeow:IdentityFacet rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:facetSubject ; owl:someValuesFrom gmeow:Person ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:facetVantage ; owl:someValuesFrom gmeow:Agent ] .
 gmeow:GenderIdentity rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:genderValue ; owl:someValuesFrom gmeow:Gender ] .
 gmeow:GenderExpression rdfs:subClassOf

@@ -1,13 +1,16 @@
-"""Competency and reasoning tests for the Observation module (#66).
+"""Competency and reasoning tests for the Observation module (#66, #69).
 
 The observation stack unifies spatial measurement, temporal dating, sensory
-reading, and standpoint claims into one gufo:Relator structure. These tests
-verify:
+reading, standpoint claims, identity claims, naming claims, rights claims, and
+kinship claims into one gufo:Relator structure. These tests verify:
 
 1. The TBox is well-formed (classes, properties, value vocabularies).
 2. EL axioms fire (Observation mediates at least vantage + observedFeature).
 3. Property chains fire (frame inheritance via observationResult).
 4. ScalarQuantity is reasoned correctly as an observation result wrapper.
+5. Universal claim construct (#69): NameUsage, IdentityFacet, RightsStatement,
+   and KinRelationship are inferred as Observation subclasses.
+6. Property bridges fire (usageNamer ⊑ vantage, usageNamed ⊑ observedFeature, etc.).
 """
 
 from __future__ import annotations
@@ -66,6 +69,10 @@ def test_observation_type_seeds_exist() -> None:
         "observationTypeStandpoint",
         "observationTypeDerived",
         "observationTypeSimulation",
+        "observationTypeIdentity",
+        "observationTypeNaming",
+        "observationTypeRights",
+        "observationTypeKinship",
     ):
         assert (GMEOW[term], RDF.type, GMEOW.ObservationType) in graph
 
@@ -153,6 +160,86 @@ def test_standpoint_claim_specialises_observation() -> None:
 
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
     assert (EX.c1, RDF.type, GMEOW.Observation) in graph
+
+
+# --------------------------------------------------------------------------- #
+# Universal claim construct (#69)
+# --------------------------------------------------------------------------- #
+
+
+def test_name_usage_specialises_observation() -> None:
+    """NameUsage is inferred as an Observation."""
+    graph = Graph()
+    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(ONTOLOGY_DIR / "modules" / "names.ttl", format="turtle")
+    graph.add((EX.nu1, RDF.type, GMEOW.NameUsage))
+
+    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    assert (EX.nu1, RDF.type, GMEOW.Observation) in graph
+
+
+def test_identity_facet_specialises_observation() -> None:
+    """IdentityFacet is inferred as an Observation."""
+    graph = Graph()
+    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(ONTOLOGY_DIR / "modules" / "gender.ttl", format="turtle")
+    graph.add((EX.if1, RDF.type, GMEOW.IdentityFacet))
+
+    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    assert (EX.if1, RDF.type, GMEOW.Observation) in graph
+
+
+def test_rights_statement_specialises_observation() -> None:
+    """RightsStatement is inferred as an Observation."""
+    graph = Graph()
+    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(ONTOLOGY_DIR / "modules" / "rights.ttl", format="turtle")
+    graph.add((EX.rs1, RDF.type, GMEOW.RightsStatement))
+
+    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    assert (EX.rs1, RDF.type, GMEOW.Observation) in graph
+
+
+def test_kin_relationship_specialises_observation() -> None:
+    """KinRelationship is inferred as an Observation."""
+    graph = Graph()
+    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(ONTOLOGY_DIR / "modules" / "genealogy.ttl", format="turtle")
+    graph.add((EX.kr1, RDF.type, GMEOW.KinRelationship))
+
+    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    assert (EX.kr1, RDF.type, GMEOW.Observation) in graph
+
+
+def test_property_bridges_fire() -> None:
+    """Subproperty bridges expose domain-specific properties as observation roles."""
+    graph = load_merged_graph(include_imports=False)
+    # NameUsage bridges
+    assert (GMEOW.usageNamer, RDFS.subPropertyOf, GMEOW.vantage) in graph
+    assert (GMEOW.usageNamed, RDFS.subPropertyOf, GMEOW.observedFeature) in graph
+    assert (
+        GMEOW.usageAppellation,
+        RDFS.subPropertyOf,
+        GMEOW.observationResult,
+    ) in graph
+    # RightsStatement bridge
+    assert (GMEOW.statementAbout, RDFS.subPropertyOf, GMEOW.observedFeature) in graph
+    # IdentityFacet bridges
+    assert (GMEOW.facetSubject, RDFS.subPropertyOf, GMEOW.observedFeature) in graph
+    assert (GMEOW.facetVantage, RDFS.subPropertyOf, GMEOW.vantage) in graph
+    # KinRelationship bridges
+    assert (GMEOW.relationshipParent, RDFS.subPropertyOf, GMEOW.observedFeature) in graph
+    assert (GMEOW.relationshipChild, RDFS.subPropertyOf, GMEOW.observedFeature) in graph
+    assert (GMEOW.hasPartner, RDFS.subPropertyOf, GMEOW.observedFeature) in graph
+    # IdentityFacet value bridges
+    assert (GMEOW.genderValue, RDFS.subPropertyOf, GMEOW.observationResult) in graph
+    assert (GMEOW.expressionValue, RDFS.subPropertyOf, GMEOW.observationResult) in graph
+    assert (
+        GMEOW.sexualOrientationValue, RDFS.subPropertyOf, GMEOW.observationResult
+    ) in graph
+    assert (
+        GMEOW.romanticOrientationValue, RDFS.subPropertyOf, GMEOW.observationResult
+    ) in graph
 
 
 def test_standpoint_claim_aligned_to_sosa_observation() -> None:
