@@ -47,13 +47,16 @@ def test_dsl_parses() -> None:
     # Issue #74 universal coreference: +5 authority/counterpart/version rows and
     # -1 retired places-local authorityLink row, net +4.
     # Issue #71 determinacy: +6 (Determinacy→gufo/BFO, 4 seeds→Wikidata, disputed).
-    assert len(dsl.equivalences) == 711
+    # Issue #73 privacy: +16 (SensitivityLevel↔dpv/gufo, hasSensitivity↔dpv, 2 seeds→
+    # Wikidata, DataSubject/DataController/PrivacyNotice/hasPrivacyNotice/actionProcess
+    # PersonalData↔dpv/schema.org/odrl).
+    assert len(dsl.equivalences) == 727
     # 22 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72).
     assert len(dsl.functions) == 22
     # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint,
-    # gmeow-events, gmeow-rights, gmeow-coreference, gmeow-determinacy).
-    assert len(dsl.mapping_sets) == 18
+    # gmeow-events, gmeow-rights, gmeow-coreference, gmeow-determinacy, gmeow-privacy).
+    assert len(dsl.mapping_sets) == 19
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}

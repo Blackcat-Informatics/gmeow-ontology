@@ -1,0 +1,40 @@
+# Well-formed privacy fixture (#73). A consent-governing RightsStatement with
+# exactly one data subject, one data controller, a privacy notice, and a
+# Permission for actionProcessPersonalData with purpose/recipient constraints.
+# The sensitive home location carries both hasSensitivity and coarsenTo, so the
+# SensitiveValueShape warning does not fire. run_shacl over this graph MUST conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:alice  a gmeow:Person ; rdfs:label "Alice"@en .
+ex:acme   a gmeow:Organization ; rdfs:label "Acme"@en .
+ex:co     a gmeow:Organization ; rdfs:label "Co"@en .
+
+ex:home a gmeow:Place ;
+    rdfs:label "Home"@en ;
+    gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ;
+    gmeow:displayable false .
+
+ex:notice a gmeow:PrivacyNotice ;
+    rdfs:label "Notice"@en ;
+    gmeow:wasAttributedTo ex:acme .
+
+ex:rs a gmeow:RightsStatement ;
+    gmeow:statementAbout ex:home ;
+    gmeow:hasDataSubject ex:alice ;
+    gmeow:hasDataController ex:acme ;
+    gmeow:hasPrivacyNotice ex:notice ;
+    gmeow:hasPermission ex:perm .
+
+ex:perm a gmeow:Permission ;
+    gmeow:ruleAction gmeow:actionProcessPersonalData ;
+    gmeow:ruleAssignee ex:co ;
+    gmeow:ruleConstraint ex:c1 .
+
+ex:c1 a gmeow:AtomicConstraint ;
+    gmeow:leftOperand gmeow:leftOpPurpose ;
+    gmeow:constraintOperator gmeow:operatorEq ;
+    gmeow:rightOperand "Delivery" .

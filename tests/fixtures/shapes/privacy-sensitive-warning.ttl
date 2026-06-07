@@ -1,0 +1,12 @@
+# Sensitive-value warning fixture (#73). A place carries hasSensitivity =
+# sensitivitySensitivePersonal but NEITHER coarsenTo nor displayable false.
+# The SensitiveValueShape Warning MUST fire; the graph itself MUST still pass
+# (warning-only).
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:home a gmeow:Place ;
+    rdfs:label "Home"@en ;
+    gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal .
