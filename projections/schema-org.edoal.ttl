@@ -383,7 +383,7 @@
             align:relation "=" ],
         [ a align:Cell ;
             rdfs:label "Tagging relator → schema:keywords (lossy flatten)"@en ;
-            align:entity1 [ a edoal:Relation ;
+            align:entity1 [ a edoal:Class ;
                     edoal:uri gmeow:Tagging ] ;
             align:entity2 [ a edoal:Property ;
                     edoal:uri schema:keywords ] ;

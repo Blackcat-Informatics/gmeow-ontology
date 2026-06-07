@@ -1117,21 +1117,28 @@ gmeow:TaggingHasPlayersShape
         sh:maxCount 1 ;
         sh:severity sh:Violation ;
         sh:message "A Tagging must use exactly one tag (gmeow:taggingTag)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:taggingTagger ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Tagging must have exactly one tagger (gmeow:taggingTagger)." ;
     ] .
 
 # Suppression, never erasure (Principle 10): a retracted or superseded tagging
-# (one with gmeow:validUntil) should set gmeow:displayable false rather than
-# be deleted. Warning — a source may lag the flag.
+# (one whose gmeow:taggingInterval has gmeow:endedAtTime) should set
+# gmeow:displayable false rather than be deleted. Warning — a source may lag.
 gmeow:RetractedTagSuppressionShape
     a sh:NodeShape ;
     rdfs:label "Retracted / superseded tag suppression shape" ;
     sh:targetClass gmeow:Tagging ;
     sh:severity sh:Warning ;
     sh:sparql [
-        sh:message "A retracted or superseded tagging (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
+        sh:message "A retracted or superseded tagging (one whose interval has ended) should set gmeow:displayable false — suppressed from display, never deleted." ;
         sh:select """
             SELECT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/validUntil> ?until .
+                $this <https://blackcatinformatics.ca/gmeow/taggingInterval>/<https://blackcatinformatics.ca/gmeow/endedAtTime> ?until .
                 FILTER NOT EXISTS {
                     $this <https://blackcatinformatics.ca/gmeow/displayable> false
                 }

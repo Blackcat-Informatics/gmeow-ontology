@@ -157,4 +157,5 @@ gmeow:tagReview  a gmeow:Tag ; rdfs:label "review"@en .
 
 gmeow:Tagging rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:taggingTagged ; owl:someValuesFrom gmeow:Entity ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:taggingTag ; owl:someValuesFrom gmeow:Tag ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:taggingTag ; owl:someValuesFrom gmeow:Tag ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:taggingTagger ; owl:someValuesFrom gmeow:Agent ] .

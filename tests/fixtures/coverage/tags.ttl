@@ -25,8 +25,8 @@ ex:tagML a gmeow:Tag ; rdfs:label "machine learning"@en ; gmeow:tagInScheme ex:p
 ex:tagAI a gmeow:Tag ; rdfs:label "artificial intelligence"@en ; gmeow:broaderTag ex:tagML ; gmeow:tagInScheme ex:personalScheme .
 
 # Tag hierarchy: AI is narrower than ML; todo and review are related.
-gmeow:tagTodo gmeow:relatedTag gmeow:tagReview .
-gmeow:tagReview gmeow:relatedTag gmeow:tagTodo .
+ex:tagTodo gmeow:relatedTag ex:tagReview .
+ex:tagReview gmeow:relatedTag ex:tagTodo .
 
 # --- Flat hasTag shortcut -------------------------------------------------- #
 

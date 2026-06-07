@@ -137,10 +137,6 @@ gmeow:implWebAnnotation a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/web-annotation.rq> .
 
-gmeow:outTaggingToAnnotation a fno:Output ;
-    fno:predicate gmeow:projectedAnnotation ;
-    fno:type oa:Annotation .
-
 gmeow:paramTaggingInterval a fno:Parameter ;
     fno:predicate gmeow:taggingInterval ;
     fno:required false ;
@@ -229,6 +225,10 @@ gmeow:outSubOrgToDepartment a fno:Output ;
 gmeow:outTagToKeyword a fno:Output ;
     fno:predicate gmeow:projectedTagKeyword ;
     fno:type xsd:string .
+
+gmeow:outTaggingToAnnotation a fno:Output ;
+    fno:predicate gmeow:projectedAnnotation ;
+    fno:type oa:Annotation .
 
 gmeow:paramAddressLocality a fno:Parameter ;
     fno:predicate gmeow:addressLocality ;
@@ -972,7 +972,11 @@ gmeow:implSchemaOrg a fno:Implementation ;
         [ a fnom:PropertyParameterMapping ;
             rdfs:label "paramWasAttributedTo ↦ ?attributed"@en ;
             fnom:functionParameter gmeow:paramWasAttributedTo ;
-            fnom:implementationProperty "attributed" ] .
+            fnom:implementationProperty "attributed" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnTaggingToAnnotation output ↦ ?tagging"@en ;
+            fnom:functionOutput gmeow:outTaggingToAnnotation ;
+            fnom:implementationProperty "tagging" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnWebPageToUrl → foaf (FnO mapping)"@en ;

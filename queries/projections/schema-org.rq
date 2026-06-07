@@ -334,5 +334,6 @@ WHERE {
         ?tagging gmeow:taggingTag ?tag .
         ?tag rdfs:label ?kw .
         FILTER NOT EXISTS { ?tagging gmeow:displayable false . }
+        FILTER NOT EXISTS { ?tag gmeow:displayable false . }
     }
 }

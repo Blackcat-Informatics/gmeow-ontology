@@ -125,6 +125,7 @@ def test_no_bridge_among_has_tag_is_about_and_rdf_type() -> None:
     axes = {
         "hasTag": URIRef(GMEOW + "hasTag"),
         "isAbout": URIRef(GMEOW + "isAbout"),
+        "rdf:type": RDF.type,
     }
     for a, b in combinations(axes, 2):
         na, nb = axes[a], axes[b]
