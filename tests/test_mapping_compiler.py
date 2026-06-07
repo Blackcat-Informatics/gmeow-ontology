@@ -99,7 +99,10 @@ def test_dsl_parses() -> None:
     # (hasOrganizationName→schema/vcard/foaf, hasTitle→dcterms/schema/headline,
     # CreativeWorkTitle→schema, AgreementName→schema, SoftwareName→schema,
     # hasAgreementName→schema, hasSoftwareName→schema).
-    assert len(dsl.equivalences) == 928
+    # Issue #103 regulatory overlays: +14 (RegulatoryOverlay→schema/Wikidata,
+    # overlayType*→Wikidata x8, civilTimeZone→time:TimeZone/Wikidata,
+    # overlayAuthority→schema:organizer, overlayRegulation→schema:legislation).
+    assert len(dsl.equivalences) == 942
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

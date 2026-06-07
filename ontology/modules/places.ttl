@@ -11,7 +11,9 @@
     rdfs:label "GMEOW Locations Module"@en ;
     rdfs:comment """Locations — geographic places, online (virtual) locations, and digital storage locations — with coordinates, geometry, containment, and external-gazetteer coreference (the schema.org / GeoSPARQL / GeoNames / Getty TGN / Wikidata / WGS84 superset layer). Place kinds are an open value vocabulary (gmeow:placeType), so any granularity from country to room can be a first-class, QID-bearing place chained by containedInPlace.
 
-STANDPOINT DOCTRINE (#51). Contested facts in the locations slice — sovereignty/jurisdiction disputes, competing place names (endonym vs exonym per community), boundary changes — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame asserting it — the two axes are orthogonal and must not be conflated. There is NO location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the cross-cutting #43 facility. Superseded or withdrawn claims set gmeow:displayable false, never deletion (Principle 10)."""@en ;
+STANDPOINT DOCTRINE (#51). Contested facts in the locations slice — sovereignty/jurisdiction disputes, competing place names (endonym vs exonym per community), boundary changes, regulatory overlays — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame asserting it — the two axes are orthogonal and must not be conflated. There is NO location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the cross-cutting #43 facility. Superseded or withdrawn claims set gmeow:displayable false, never deletion (Principle 10).
+
+REGULATORY OVERLAYS (#103). Legal and regulatory spatial overlays — zoning, protected areas, restricted airspace, sanctions, tax/electoral districts, postal zones, civil-time zones, fishing zones, customs zones — are modelled as reified gmeow:RegulatoryOverlay instances (⊑ gmeow:TimeScopedRelation), each binding a place, an authority, an overlay type (open value vocabulary), and an optional RightsStatement (#21) for the deontic rules. 3D bounds (altitude/depth) are frame-relative ScalarQuantity values (Principle 11). Contested overlays coexist as multiple standpoint-indexed instances, never a single winner (Principle 9)."""@en ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -1069,6 +1071,113 @@ gmeow:containmentParent
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
+# RegulatoryOverlay — legal / regulatory overlays beyond sovereignty (#103)
+# --------------------------------------------------------------------------- #
+# A reified, time-scoped situation that a specific regulation applies over a
+# place — imposed by an authority. Distinct from JurisdictionTenure (which is
+# about governance/sovereignty): an overlay is about a *specific regulation*
+# (zoning, protected area, restricted airspace, sanctions, tax district,
+# electoral district, postal zone, civil-time zone, …) applied over a geographic
+# area. Links to RightsStatement (#21) for the deontic rules that hold within
+# the overlay. Contested overlays (disputed EEZ, overlapping indigenous claims
+# vs. state zoning) coexist as multiple standpoint-indexed instances (P9).
+# --------------------------------------------------------------------------- #
+
+gmeow:RegulatoryOverlay
+    a owl:Class, gufo:SituationType ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    rdfs:label "Regulatory Overlay"@en ;
+    skos:definition "The reified, time-scoped fact that a specific regulation applies over a place — imposed by an authority. Covers zoning, protected areas, restricted airspace, sanctions, tax/electoral districts, postal zones, civil-time zones, and similar legally-defined spatial overlays. Distinct from JurisdictionTenure (governance/sovereignty): an overlay is about a specific regulatory regime applied over a geographic area. Links to RightsStatement for the deontic rules (permissions, prohibitions, duties) that hold within it. Contested overlays coexist as multiple standpoint-indexed instances, never collapsing to a single winner (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:overlayPlace
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:RegulatoryOverlay ;
+    rdfs:range gmeow:Place ;
+    rdfs:label "overlay place"@en ;
+    skos:definition "The place over which this regulatory overlay applies. Functional: an overlay concerns exactly one place (constitutive of the situation's identity). The place carries the geographic geometry; the overlay carries the regulation and temporal scope."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:overlayAuthority
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:RegulatoryOverlay ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "overlay authority"@en ;
+    skos:definition "The authority (government body, international organization, regulatory agency, or indigenous council) that imposed this regulatory overlay. Functional: a single overlay has exactly one imposing authority."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:overlayType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:RegulatoryOverlay ;
+    rdfs:range gmeow:RegulatoryOverlayType ;
+    rdfs:label "overlay type"@en ;
+    skos:definition "The kind(s) of regulatory overlay (a gmeow:RegulatoryOverlayType individual). Non-functional: a single overlay may be classified by multiple sources as different types (e.g. a zone that is both a protected area and an indigenous territory), and those claims coexist as evidence (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:overlayRegulation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:RegulatoryOverlay ;
+    rdfs:range gmeow:RightsStatement ;
+    rdfs:label "overlay regulation"@en ;
+    skos:definition "The machine-readable rights statement (permissions, prohibitions, duties) that governs activity within this overlay. Links to the #21 rights facility by reference. Non-functional: multiple legal instruments may apply to the same overlay (e.g. national law + international treaty + local ordinance)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:overlayDeterminacy
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasDeterminacy ;
+    rdfs:domain gmeow:RegulatoryOverlay ;
+    rdfs:range gmeow:Determinacy ;
+    rdfs:label "overlay determinacy"@en ;
+    skos:definition "The ontic determinacy model of this regulatory overlay's boundary — crisp (surveyed), vague (approximate), fuzzy (probabilistic), or disputed. Non-functional: sources may disagree on determinacy, and those claims coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:overlayLowerBound
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:RegulatoryOverlay ;
+    rdfs:range gmeow:ScalarQuantity ;
+    rdfs:label "overlay lower bound"@en ;
+    skos:definition "The lower bound of this regulatory overlay in a vertical dimension (altitude, depth, elevation), expressed as a ScalarQuantity with unit (QUDT) and reference frame. Optional: absent for purely 2D overlays. Frame-relative per Principle 11 (e.g. altitude above MSL, flight level, depth below sea level)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:overlayUpperBound
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:RegulatoryOverlay ;
+    rdfs:range gmeow:ScalarQuantity ;
+    rdfs:label "overlay upper bound"@en ;
+    skos:definition "The upper bound of this regulatory overlay in a vertical dimension (altitude, depth, elevation), expressed as a ScalarQuantity with unit (QUDT) and reference frame. Optional: absent for purely 2D overlays. Frame-relative per Principle 11."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# RegulatoryOverlayType — an OPEN value vocabulary (individuals, never subclasses)
+
+gmeow:RegulatoryOverlayType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Regulatory Overlay Type"@en ;
+    skos:definition "The kind of a regulatory overlay (zoning, protected area, restricted airspace, sanctions, tax district, electoral district, postal zone, civil-time zone, …). A value, not a subclass: the set is open-ended and they share all of RegulatoryOverlay's structure, so a new kind is a new individual, not a new class (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:overlayTypeZoning              a gmeow:RegulatoryOverlayType ; rdfs:label "zoning / land-use regulation"@en ;
+    skos:definition "A land-use zoning overlay designating permitted uses (residential, commercial, industrial, agricultural, mixed-use) within a geographic area."@en .
+gmeow:overlayTypeProtectedArea       a gmeow:RegulatoryOverlayType ; rdfs:label "protected area"@en ;
+    skos:definition "A legally-designated protected area such as a national park, wildlife reserve, marine protected area, or wilderness area. Management categories (IUCN Ia–VI) are carried as additional classifications, not as subclasses."@en .
+gmeow:overlayTypeRestrictedAirspace  a gmeow:RegulatoryOverlayType ; rdfs:label "restricted airspace"@en ;
+    skos:definition "An airspace restriction including prohibited areas, restricted areas, danger areas, temporary reserved airspace (TRA), temporary segregated airspace (TSA), and no-fly zones. 3D bounds (altitude/ flight levels) are carried via overlayLowerBound / overlayUpperBound."@en .
+gmeow:overlayTypeSanctions           a gmeow:RegulatoryOverlayType ; rdfs:label "sanctions / embargo"@en ;
+    skos:definition "A territory subject to international or unilateral sanctions, embargoes, or trade restrictions imposed by one or more authorities."@en .
+gmeow:overlayTypeTaxDistrict         a gmeow:RegulatoryOverlayType ; rdfs:label "tax district"@en ;
+    skos:definition "An administrative area designated for tax assessment, collection, or rate-setting purposes."@en .
+gmeow:overlayTypeElectoralDistrict   a gmeow:RegulatoryOverlayType ; rdfs:label "electoral district"@en ;
+    skos:definition "A constituency or voting district defining the geographic boundary for an election."@en .
+gmeow:overlayTypePostalZone          a gmeow:RegulatoryOverlayType ; rdfs:label "postal zone"@en ;
+    skos:definition "A postal code or ZIP delivery area — a zone designated for mail sorting and delivery by a postal authority."@en .
+gmeow:overlayTypeCivilTimeZone       a gmeow:RegulatoryOverlayType ; rdfs:label "civil time zone"@en ;
+    skos:definition "A geographic area sharing the same standard civil time, typically following political boundaries and designated by an IANA time-zone identifier. The authority is the government or international body that decreed the timezone boundary."@en .
+gmeow:overlayTypeFishingZone         a gmeow:RegulatoryOverlayType ; rdfs:label "fishing zone / EEZ"@en ;
+    skos:definition "An exclusive economic zone (EEZ), fisheries management zone, or other maritime area subject to resource-extraction regulation under UNCLOS or bilateral agreement."@en .
+gmeow:overlayTypeCustomsZone         a gmeow:RegulatoryOverlayType ; rdfs:label "customs zone"@en ;
+    skos:definition "A customs territory, free-trade zone, bonded warehouse area, or other zone with special customs/tariff regulations."@en .
+
+# --------------------------------------------------------------------------- #
 # GeometryType value vocabulary & GeoJSON support (#82)
 # --------------------------------------------------------------------------- #
 
@@ -1157,6 +1266,10 @@ gmeow:JurisdictionTenure rdfs:subClassOf
 gmeow:ContainmentTenure rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:containmentChild ; owl:someValuesFrom gmeow:Place ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:containmentParent ; owl:someValuesFrom gmeow:Place ] .
+
+gmeow:RegulatoryOverlay rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:overlayPlace ; owl:someValuesFrom gmeow:Place ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:overlayAuthority ; owl:someValuesFrom gmeow:Agent ] .
 
 # Multilingual / historical place names are NOT a flat literal: a place bears
 # co-equal gmeow:PlaceName appellations via gmeow:hasPlaceName (names module),

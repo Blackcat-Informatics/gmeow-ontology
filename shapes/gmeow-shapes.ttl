@@ -1510,6 +1510,33 @@ gmeow:ContainmentTenureShape
         sh:message "A ContainmentTenure must record exactly one time interval (gmeow:duringInterval)." ;
     ] .
 
+# RegulatoryOverlay well-formedness: exactly one place, one authority, one interval.
+gmeow:RegulatoryOverlayShape
+    a sh:NodeShape ;
+    rdfs:label "RegulatoryOverlay well-formedness shape" ;
+    sh:targetClass gmeow:RegulatoryOverlay ;
+    sh:property [
+        sh:path gmeow:overlayPlace ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A RegulatoryOverlay must record exactly one place (gmeow:overlayPlace)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:overlayAuthority ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A RegulatoryOverlay must record exactly one authority (gmeow:overlayAuthority)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:duringInterval ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A RegulatoryOverlay must record exactly one time interval (gmeow:duringInterval)." ;
+    ] .
+
 # PlaceNaming has-players guard (Violation): a NameUsage that names a Place must bind
 # a PlaceName appellation.
 gmeow:PlaceNamingHasPlayersShape
