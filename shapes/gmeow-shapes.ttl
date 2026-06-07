@@ -1088,25 +1088,25 @@ gmeow:ObservationShape
         sh:message "An Observation must record exactly one observation method (gmeow:observationMethod)." ;
     ] .
 
-# A ScalarQuantity needs a value and a unit.
+# A ScalarQuantity / Quantity / MeasuredValue needs a value and a unit.
 gmeow:ScalarQuantityShape
     a sh:NodeShape ;
-    rdfs:label "ScalarQuantity well-formedness shape" ;
-    sh:targetClass gmeow:ScalarQuantity ;
+    rdfs:label "Quantity well-formedness shape" ;
+    sh:targetClass gmeow:ScalarQuantity, gmeow:Quantity, gmeow:MeasuredValue ;
     sh:property [
         sh:path gmeow:quantityValue ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:datatype xsd:decimal ;
         sh:severity sh:Violation ;
-        sh:message "A ScalarQuantity must carry exactly one numeric gmeow:quantityValue." ;
+        sh:message "A Quantity must carry exactly one numeric gmeow:quantityValue." ;
     ] ;
     sh:property [
         sh:path gmeow:hasUnit ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:severity sh:Violation ;
-        sh:message "A ScalarQuantity must declare exactly one unit (gmeow:hasUnit)." ;
+        sh:message "A Quantity must declare exactly one unit (gmeow:hasUnit)." ;
     ] .
 
 # Suppression, never erasure (Principle 10): a superseded or withdrawn
