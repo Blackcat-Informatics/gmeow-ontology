@@ -403,3 +403,124 @@ def test_location_superset_core() -> None:
         RDFS.subPropertyOf,
         URIRef(GMEOW + "containedInLocation"),
     ) in graph
+
+
+def test_metric_kind_is_value_not_subclass() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "MetricKind"),
+        RDFS.subClassOf,
+        URIRef(GUFO + "QualityValue"),
+    ) in graph
+    for metric in (
+        "metricGeodesic",
+        "metricEuclidean",
+        "metricCosine",
+        "metricEditDistance",
+        "metricGraphHops",
+    ):
+        assert (
+            URIRef(GMEOW + metric),
+            RDF.type,
+            URIRef(GMEOW + "MetricKind"),
+        ) in graph
+
+
+def test_has_metric_kind_on_reference_frame() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "hasMetricKind"),
+        RDF.type,
+        OWL.ObjectProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasMetricKind"),
+        RDFS.domain,
+        URIRef(GMEOW + "ReferenceFrame"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasMetricKind"),
+        RDFS.range,
+        URIRef(GMEOW + "MetricKind"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasMetricKind"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+
+
+def test_proximity_measurement_subclass_of_measurement() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "ProximityMeasurement"),
+        RDFS.subClassOf,
+        URIRef(GMEOW + "Measurement"),
+    ) in graph
+
+
+def test_proximity_property_domain_range() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "proximity"),
+        RDF.type,
+        OWL.ObjectProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "proximity"),
+        RDFS.domain,
+        URIRef(GMEOW + "Entity"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "proximity"),
+        RDFS.range,
+        URIRef(GMEOW + "ProximityMeasurement"),
+    ) in graph
+
+
+def test_proximity_to_property() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "proximityTo"),
+        RDF.type,
+        OWL.ObjectProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "proximityTo"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "proximityTo"),
+        RDFS.domain,
+        URIRef(GMEOW + "ProximityMeasurement"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "proximityTo"),
+        RDFS.range,
+        URIRef(GMEOW + "Entity"),
+    ) in graph
+
+
+def test_spatial_frames_declare_metric_kind() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "referenceFrameWGS84"),
+        URIRef(GMEOW + "hasMetricKind"),
+        URIRef(GMEOW + "metricGeodesic"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "referenceFrameLocalGrid"),
+        URIRef(GMEOW + "hasMetricKind"),
+        URIRef(GMEOW + "metricEuclidean"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "referenceFrameRobotBase"),
+        URIRef(GMEOW + "hasMetricKind"),
+        URIRef(GMEOW + "metricEuclidean"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "referenceFrameCelestialEquatorial"),
+        URIRef(GMEOW + "hasMetricKind"),
+        URIRef(GMEOW + "metricGeodesic"),
+    ) in graph

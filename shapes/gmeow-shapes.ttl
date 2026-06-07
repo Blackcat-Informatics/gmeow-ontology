@@ -743,6 +743,13 @@ gmeow:FrameProfileShape
         sh:severity sh:Violation ;
         sh:message "A reference frame must declare its determinacy model." ;
     ] ;
+    sh:property [
+        sh:path gmeow:hasMetricKind ;
+        sh:maxCount 1 ;
+        sh:class gmeow:MetricKind ;
+        sh:severity sh:Violation ;
+        sh:message "A reference frame may declare at most one metric kind." ;
+    ] ;
     sh:sparql [
         sh:severity sh:Violation ;
         sh:message "A reference frame's dimension count must equal its number of coordinate axes." ;
@@ -1054,3 +1061,34 @@ gmeow:TemporalMeasurementShape
     ) ;
     sh:severity sh:Violation ;
     sh:message "A TemporalMeasurement must have either gmeow:measuredAge or gmeow:measuredDate (or both)." .
+
+# --------------------------------------------------------------------------- #
+# Proximity / distance shapes (#95)
+# --------------------------------------------------------------------------- #
+
+gmeow:ProximityMeasurementShape
+    a sh:NodeShape ;
+    rdfs:label "ProximityMeasurement well-formedness shape" ;
+    sh:targetClass gmeow:ProximityMeasurement ;
+    sh:property [
+        sh:path gmeow:observedFeature ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ProximityMeasurement must name exactly one starting entity (gmeow:observedFeature)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:proximityTo ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ProximityMeasurement must name exactly one target entity (gmeow:proximityTo)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:observationResult ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:ScalarQuantity ;
+        sh:severity sh:Violation ;
+        sh:message "A ProximityMeasurement must yield exactly one scalar quantity result." ;
+    ] .

@@ -23,7 +23,7 @@ from functools import cache
 
 import owlrl
 import pytest
-from rdflib import RDF, Graph, Namespace
+from rdflib import RDF, RDFS, Graph, Namespace
 from rdflib.term import Node
 
 from gmeow_tools.config import DIST_DIR, FIXTURES_DIR, ONTOLOGY_DIR, ROBOT_IMAGE
@@ -94,6 +94,22 @@ def test_suborganization_is_transitive() -> None:
         (EX.div, GMEOW.subOrganizationOf, EX.corp),
     )
     assert (EX.team, GMEOW.subOrganizationOf, EX.corp) in graph
+
+
+def test_proximity_measurement_is_a_measurement() -> None:
+    """ProximityMeasurement ⊑ Measurement is asserted and survives materialization."""
+    graph = _materialize(
+        "places",
+        (EX.commute, RDF.type, GMEOW.ProximityMeasurement),
+        (EX.commute, GMEOW.proximityTo, EX.home),
+        (EX.commute, GMEOW.observationResult, EX.dist),
+        (EX.dist, RDF.type, GMEOW.ScalarQuantity),
+    )
+    # The asserted subclassOf is preserved through materialization.
+    assert (GMEOW.ProximityMeasurement, RDFS.subClassOf, GMEOW.Measurement) in graph
+    # And the instance is typed in both the asserted and reasoned graph.
+    assert (EX.commute, RDF.type, GMEOW.ProximityMeasurement) in graph
+    assert (EX.commute, RDF.type, GMEOW.Measurement) in graph
 
 
 # --------------------------------------------------------------------------- #
