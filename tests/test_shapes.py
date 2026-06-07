@@ -80,6 +80,8 @@ def test_wellformed_facet_cardinality_passes() -> None:
     """A lone facet with exactly one value conforms (cardinality-shape control)."""
     ok = Graph()
     ok.add((EX.f, RDF.type, GMEOW.GenderIdentity))
+    ok.add((EX.f, GMEOW.facetSubject, EX.person))
+    ok.add((EX.f, GMEOW.facetVantage, EX.person))
     ok.add((EX.f, GMEOW.genderValue, GMEOW.genderNonBinary))
     assert run_shacl(ok).ok
 

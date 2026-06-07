@@ -16,7 +16,7 @@ gmeow:mapsetObservations a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/observations" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. gmeow:ScalarQuantity is canonical — no faithful external term captures the unit+determinacy+granularity bundle in one node. Added (#68): StandpointClaim → sosa:Observation; Agent → sosa:Sensor (the observer/sensor/perceiver is a standpoint). Added (#77): gmeow:Quantity and gmeow:MeasuredValue are equivalent aliases for ScalarQuantity; aligned to QUDT qudt:QuantityValue." .
+    gmeow:setComment "Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. gmeow:ScalarQuantity is canonical — no faithful external term captures the unit+determinacy+granularity bundle in one node. Added (#68): StandpointClaim → sosa:Observation; Agent → sosa:Sensor (the observer/sensor/perceiver is a standpoint). Added (#69): IdentityFacet, NameUsage, RightsStatement, and KinRelationship → sosa:Observation (universal claim construct); facetSubject / facetVantage → sosa:hasFeatureOfInterest / sosa:madeBySensor. Added (#77): gmeow:Quantity and gmeow:MeasuredValue are equivalent aliases for ScalarQuantity; aligned to QUDT qudt:QuantityValue." .
 
 # --------------------------------------------------------------------------- #
 # SOSA / SSN
@@ -114,6 +114,61 @@ gmeow:eqObs018 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.75 ;
     gmeow:comment "An agent acting as vantage/observer/perceiver IS a standpoint (Principle 9). sosa:Sensor is device-centric and narrower; the alignment bridges the SOSA sensor concept to the broader GMEOW agent-as-standpoint doctrine." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+# Added (#69) — universal claim construct: all relator subclasses align to SOSA.
+gmeow:eqObs020 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:IdentityFacet ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:Observation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "SOSA does not distinguish observation types; an identity claim (gender, expression, orientation) is a kind of observation in the universal stack." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs021 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:NameUsage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:Observation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "SOSA does not distinguish observation types; a naming claim is a kind of observation in the universal stack." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs022 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:RightsStatement ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:Observation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "SOSA does not distinguish observation types; a rights claim is a kind of observation in the universal stack." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs023 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:KinRelationship ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:Observation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "SOSA does not distinguish observation types; a kinship claim is a kind of observation in the universal stack." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs024 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:facetSubject ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:hasFeatureOfInterest ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "facetSubject is the observedFeature of an identity claim; aligns to SOSA's feature of interest." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs025 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:facetVantage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:madeBySensor ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "facetVantage is the asserting agent of an identity claim; aligns to SOSA's sensor (device-centric, broader via broadMatch on Agent)." ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #

@@ -84,10 +84,10 @@ gmeow:PronounSet
 # --------------------------------------------------------------------------- #
 
 gmeow:NameUsage
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gufo:Relator ;
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Observation, gufo:Relator ;
     rdfs:label "Name Usage"@en ;
-    skos:definition "A reified, context-dependent use of an appellation: a named entity is called by a given appellation, by or among a particular audience (or within a relationship scope), in a particular register, over a period, on some evidence. Perspectival — a usage is whoever's, never a global fact — so it carries no notion of a preferred or canonical name. Mint one NameUsage per (appellation, audience, register) tuple; its period is carried by gmeow:usageInterval or by validFrom/validUntil on the statement."@en ;
+    skos:definition "A reified, context-dependent use of an appellation — an observation in the universal claim stack (#69): a named entity (observedFeature) is called by a given appellation (observationResult), by or among a particular audience (or within a relationship scope), in a particular register, over a period, on some evidence. Perspectival — a usage is whoever's, never a global fact — so it carries no notion of a preferred or canonical name. Mint one NameUsage per (appellation, audience, register) tuple; its period is carried by gmeow:usageInterval or by validFrom/validUntil on the statement."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:usageNamed

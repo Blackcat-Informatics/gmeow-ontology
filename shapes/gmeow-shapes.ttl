@@ -1060,12 +1060,30 @@ gmeow:NamedPeriodShape
 # =========================================================================== #
 
 # An Observation must mediate at least a vantage and an observedFeature.
-# Closed-world cardinality: exactly one of each (the SHACL counterpart of the
-# EL someValuesFrom axioms in observations.ttl).
+# Closed-world cardinality: exactly one observed feature (the SHACL counterpart
+# of the EL someValuesFrom axioms in observations.ttl).
+#
+# #69 — Observation is now the universal claim construct. The base shape targets
+# DIRECT Observation instances only (not subclasses), because subclass-specific
+# properties (usageNamer, facetVantage, statementAbout, relationshipParent)
+# bridge to vantage/observedFeature via rdfs:subPropertyOf in the reasoned core,
+# but SHACL runs without OWL inference. Each subclass has its own shape below.
 gmeow:ObservationShape
     a sh:NodeShape ;
     rdfs:label "Observation well-formedness shape" ;
-    sh:targetClass gmeow:Observation ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            SELECT ?this WHERE {
+                ?this a <https://blackcatinformatics.ca/gmeow/Observation> .
+                FILTER NOT EXISTS {
+                    ?this a ?sub .
+                    ?sub <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ <https://blackcatinformatics.ca/gmeow/Observation> .
+                    FILTER (?sub != <https://blackcatinformatics.ca/gmeow/Observation>)
+                }
+            }
+        """ ;
+    ] ;
     sh:property [
         sh:path gmeow:vantage ;
         sh:minCount 1 ;
@@ -1078,14 +1096,67 @@ gmeow:ObservationShape
         sh:maxCount 1 ;
         sh:severity sh:Violation ;
         sh:message "An Observation must record exactly one observed feature (gmeow:observedFeature)." ;
-    ] ;
+    ] .
+
+# Core observation kinds (Measurement, SensoryObservation, StandpointClaim) still
+# require a method — they are the original observation stack.
+gmeow:CoreObservationMethodShape
+    a sh:NodeShape ;
+    rdfs:label "Core observation method shape" ;
+    sh:targetClass gmeow:Measurement ;
+    sh:targetClass gmeow:SensoryObservation ;
+    sh:targetClass gmeow:StandpointClaim ;
     sh:property [
         sh:path gmeow:observationMethod ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:class gmeow:ObservationMethod ;
         sh:severity sh:Violation ;
-        sh:message "An Observation must record exactly one observation method (gmeow:observationMethod)." ;
+        sh:message "A core observation (measurement, sensory, or standpoint claim) must record exactly one observation method (gmeow:observationMethod)." ;
+    ] .
+
+# IdentityFacet well-formedness (#69) — the universal claim construct bridges.
+gmeow:IdentityFacetShape
+    a sh:NodeShape ;
+    rdfs:label "IdentityFacet well-formedness shape" ;
+    sh:targetClass gmeow:IdentityFacet ;
+    sh:targetClass gmeow:GenderIdentity ;
+    sh:targetClass gmeow:GenderExpression ;
+    sh:targetClass gmeow:SexualOrientation ;
+    sh:targetClass gmeow:RomanticOrientation ;
+    sh:property [
+        sh:path gmeow:facetSubject ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An IdentityFacet must record exactly one subject (gmeow:facetSubject)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:facetVantage ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An IdentityFacet must record exactly one vantage (gmeow:facetVantage)." ;
+    ] .
+
+# KinRelationship well-formedness (#69) — multi-participant observation.
+gmeow:KinRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "KinRelationship well-formedness shape" ;
+    sh:targetClass gmeow:KinRelationship ;
+    sh:property [
+        sh:path gmeow:relationshipParent ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A KinRelationship must record exactly one parent (gmeow:relationshipParent)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:relationshipChild ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A KinRelationship must record exactly one child (gmeow:relationshipChild)." ;
     ] .
 
 # A ScalarQuantity / Quantity / MeasuredValue needs a value and a unit.

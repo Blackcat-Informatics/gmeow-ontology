@@ -10,6 +10,8 @@
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 ex:laggedFacet a gmeow:GenderIdentity ;
+    gmeow:facetSubject ex:laggedPerson ;
+    gmeow:facetVantage ex:laggedPerson ;
     gmeow:genderValue gmeow:genderMan ;
     gmeow:validUntil "2019-01-01T00:00:00"^^xsd:dateTime ;
     gmeow:displayable true .
