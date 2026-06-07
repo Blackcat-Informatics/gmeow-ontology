@@ -83,9 +83,13 @@ def test_dsl_parses() -> None:
     # mismatch: object class vs. metaclass of properties).
     # Issue #82 terrestrial realm deepening: +20 (LinkedGeoData x3, CIDOC-CRM+CRMgeo x4,
     # Pleiades x3, WHG x2, sf: x3, Wikidata x5).
+    # Issue #102 accessibility: +14 (hasAccessibilityFeature→schema:a11yFeature,
+    # hasBarrier→schema:a11yHazard, AccessibilityAssertion→sosa:Observation,
+    # 7 facet→ICF, 4 duplicate ICF facet alignments for step-free/auditory/cognitive
+    # /clearance bridging to shared ICF categories).
     # Issue #99 data quality: +10 (DQV x4, GeoDCAT-AP/OA x1, PROV-O lineage x1,
     # Wikidata x3).
-    assert len(dsl.equivalences) == 894
+    assert len(dsl.equivalences) == 908
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -103,8 +107,9 @@ def test_dsl_parses() -> None:
     # Issue #80 adds gmeow-connectivity.
     # Issue #81 lifecycle: +1 (gmeow-lifecycle.sssom.tsv).
     # Issue #101 spatial aggregation: +1 (gmeow-aggregation.sssom.tsv).
+    # Issue #102 accessibility: +1 (gmeow-accessibility.sssom.tsv).
     # Issue #99 data quality: +1 (gmeow-quality.sssom.tsv).
-    assert len(dsl.mapping_sets) == 28
+    assert len(dsl.mapping_sets) == 29
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}
@@ -182,6 +187,21 @@ def test_value_class_table_emitted() -> None:
     query = emit_sparql(dsl, "schema-org")
     assert "VALUES ( ?pt ?ptClass )" in query
     assert "( gmeow:placeTypeCountry schema:Country )" in query
+
+
+def test_schema_org_accessibility_predicate_separation() -> None:
+    """The schema-org projection must not cross-emit accessibility predicates:
+    hasAccessibilityFeature rows must not materialize schema:accessibilityHazard
+    and hasBarrier rows must not materialize schema:accessibilityFeature."""
+    dsl = load_dsl()
+    query = emit_sparql(dsl, "schema-org")
+    # Each branch should use a distinct variable so there is no cross-emission.
+    assert "?place schema:accessibilityFeature ?featureFacet" in query
+    assert "?place schema:accessibilityHazard ?hazardFacet" in query
+    # Ensure the value vars are distinct (not the shared "?facet" that caused
+    # the cross-emission bug).
+    assert "?featureFacet" in query
+    assert "?hazardFacet" in query
 
 
 def test_sssom_roundtrips_to_committed() -> None:

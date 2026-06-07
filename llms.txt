@@ -6,6 +6,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 
 ## Classes
 
+- gmeow:AccessibilityAssertion (⊑ gufo:Relator): A reified claim that a location or connection has a positive accessibility feature, a barrier, or a limited status for a given facet. Bears provenance (vantage, confidence, temporal scope) and suppression (displayable false — Principle 10). The flat shortcuts are gmeow:hasAccessibilityFeature and gmeow:hasBarrier; promote to AccessibilityAssertion when the claim itself must be a node.
+- gmeow:AccessibilityFacet (⊑ gufo:QualityValue): The dimension of accessibility being asserted — wheelchair, step-free, visual, auditory, cognitive, clearance, life-support. An open value vocabulary (individuals, never subclasses) per Principle 9.
+- gmeow:AccessibilityPolarity (⊑ gufo:QualityValue): The polarity of an accessibility assertion — feature (positive), barrier (negative), or limited (partial).
 - gmeow:AcquaintanceRelationship (⊑ gmeow:InterpersonalRelationship): An interpersonal relationship of social acquaintance — agents who have met and know one another (the reified form of hasMet).
 - gmeow:Activity (⊑ gmeow:Event): Something that occurs over a period of time and acts upon or with entities — creating, transforming, using, or attributing them.
 - gmeow:AddressTenure (⊑ gmeow:TimeScopedRelation): The reified, time-scoped fact that an agent held a contact point (e.g. an email address) over a particular interval.
@@ -227,6 +230,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:asGeoJSON [gmeow:Geometry → rdfs:Literal]: A GeoJSON serialization of a geometry. The range is rdfs:Literal (not geo:geoJSONLiteral) to stay within the OWL 2 DL datatype map; data may still tag the literal ^^geo:geoJSONLiteral, and the alignment to geo:asGeoJSON preserves GeoSPARQL semantics for spatial engines.
 - gmeow:asWKT [gmeow:Geometry → rdfs:Literal]: A Well-Known Text (WKT) serialization of a geometry. The range is rdfs:Literal (not geo:wktLiteral) to stay within the OWL 2 DL datatype map; data may still tag the literal ^^geo:wktLiteral, and the alignment to geo:asWKT preserves GeoSPARQL semantics for spatial engines.
 - gmeow:assertedAt [? → xsd:dateTime]: The instant an agent observed or asserted the annotated claim (e.g. an email Date header or a vCard REV) — a witness that the fact held at that instant. Distinct from validity (validFrom/validUntil) and from a source's carrier time.
+- gmeow:assertionFacet [gmeow:AccessibilityAssertion → gmeow:AccessibilityFacet] (functional): The accessibility facet being asserted. Functional per relator: one facet per AccessibilityAssertion.
+- gmeow:assertionPolarity [gmeow:AccessibilityAssertion → gmeow:AccessibilityPolarity] (functional): Whether the assertion is a positive feature, a negative barrier, or a limited/partial status. Functional per relator: one polarity per AccessibilityAssertion.
+- gmeow:assertionSubject [gmeow:AccessibilityAssertion → gmeow:Entity] (functional): The location or connection being assessed. Functional per relator: one subject per AccessibilityAssertion.
 - gmeow:assessedEntity [gmeow:QualityAssessment → gmeow:Entity]: The entity whose data quality is being assessed — the feature of interest of the quality observation. Sub-property of gmeow:observedFeature so generic consumers can query 'all observations about Alice' without knowing whether the claim is a name, a coordinate, or a quality assessment.
 - gmeow:atTime [? → xsd:dateTime]: The instant at which a point-like event or observation occurred.
 - gmeow:attributionText [gmeow:Entity → rdfs:Literal]: The credit line to display when reusing the asset (schema:creditText; cc:attributionName) — e.g. "Photo by Jane Doe / CC BY 4.0". The structured holder is gmeow:wasAttributedTo / gmeow:copyrightHolder.
@@ -325,6 +331,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:generalizesVia: Projection-compiler guidance naming the transitive part/whole property to walk when coarsening a value (e.g. gmeow:containedInPlace for places). Defaults to gmeow:partOf when absent. An annotation property — it directs generalization without imposing logical semantics, keeping the core OWL 2 DL.
 - gmeow:geometryDeterminacy [gmeow:Geometry → gmeow:Determinacy]: The ontic determinacy model of a geometry's boundary — crisp (surveyed), vague (approximate), fuzzy (probabilistic), or disputed. Non-functional: competing source classifications coexist.
 - gmeow:geometryType [gmeow:Geometry → gmeow:GeometryType]: The structural kind of a geometry (a gmeow:GeometryType individual). Non-functional: competing source classifications may differ (e.g. polygon vs multipolygon) and must coexist as evidence.
+- gmeow:hasAccessibilityFeature [gmeow:Location → gmeow:AccessibilityFacet]: Relates a location to an accessibility facet it positively provides. Non-functional: a location may support many facets. A location MAY simultaneously carry hasAccessibilityFeature and hasBarrier for the SAME facet (e.g. a ramp at the front entrance and stairs at the side entrance).
+- gmeow:hasAccessibilityNeed [gmeow:Entity → gmeow:AccessibilityFacet]: Relates an entity to an accessibility facet it requires in order to reach or use a location. Non-functional: needs are co-equal facets (Principle 9). There is no 'primary need' — all asserted needs coexist.
 - gmeow:hasAgreement [gmeow:Agent → gmeow:Agreement]: Relates an agent to an agreement it is party to. The party-ship period is carried with gmeow:validFrom/validUntil on this statement; the agreement's own term/effective dates live on the gmeow:Agreement individual (no double-modelling).
 - gmeow:hasAncestor [gmeow:Person → gmeow:Person]: Relates a person to an ancestor — a parent, a parent's parent, and so on. Transitive: an ancestor of an ancestor is an ancestor. gmeow:hasParent (hence gmeow:hasMother / hasFather) is a sub-property, so ancestry is DERIVED from parentage by the reasoner and is never asserted directly.
 - gmeow:hasAppellation [gmeow:Entity → gmeow:Appellation]: Relates an entity to an appellation (name-object) it bears. The universal name-bearing property; gmeow:hasName is the person-scoped specialization. Non-functional — entities bear many co-equal names; a bearing's period is carried with gmeow:validFrom/validUntil on the statement, or reified as a gmeow:NameUsage when audience/register/evidence must be borne.
@@ -332,6 +340,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasAuthenticationResult [gmeow:Message → gmeow:AuthenticationResult]: Relates a message to an authentication check performed on it.
 - gmeow:hasAuthor [gmeow:CreativeWork → gmeow:Agent]: Relates a creative work to an agent chiefly responsible for creating its intellectual content.
 - gmeow:hasAxis [gmeow:ReferenceFrame → gmeow:Axis]: Relates a reference frame to one of its coordinate axes.
+- gmeow:hasBarrier [gmeow:Location → gmeow:AccessibilityFacet]: Relates a location to an accessibility facet it impedes. Non-functional: a location may have multiple barriers. A location MAY simultaneously carry hasAccessibilityFeature and hasBarrier for the SAME facet (e.g. a ramp at the front entrance and stairs at the side entrance).
 - gmeow:hasBin [gmeow:SpatialAggregation → gmeow:SpatialBin]: Links a spatial aggregation to one of its constituent spatial bins. Non-functional: a bin may participate in multiple aggregations.
 - gmeow:hasBodyPart [gmeow:Message → gmeow:BodyPart]: Relates a message to a MIME part of its body. A MIME-structure specialization of the universal gmeow:hasPart spine.
 - gmeow:hasChild [gmeow:Person → gmeow:Person]: Relates a person to a child; the inverse of hasParent.
@@ -859,6 +868,13 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:expressionFluid (a gmeow:GenderExpressionStyle): fluid
 - gmeow:expressionMasculine (a gmeow:GenderExpressionStyle): masculine
 - gmeow:expressionNeutral (a gmeow:GenderExpressionStyle): neutral
+- gmeow:facetAuditory (a gmeow:AccessibilityFacet): Access for people with auditory impairments — visual alarms, induction loops, sign language.
+- gmeow:facetClearance (a gmeow:AccessibilityFacet): Sufficient physical space for passage — doorway width, corridor width, turning radius, vertical clearance.
+- gmeow:facetCognitive (a gmeow:AccessibilityFacet): Access for people with cognitive impairments — clear signage, simple wayfinding, sensory-quiet spaces.
+- gmeow:facetLifeSupport (a gmeow:AccessibilityFacet): Access for people who require life-support equipment — power outlets, oxygen, climate control, emergency protocols.
+- gmeow:facetStepFree (a gmeow:AccessibilityFacet): Access without steps or stairs — ramps, lifts, level entrances.
+- gmeow:facetVisual (a gmeow:AccessibilityFacet): Access for people with visual impairments — tactile paving, audio signals, high contrast, braille.
+- gmeow:facetWheelchair (a gmeow:AccessibilityFacet): Access for wheelchair users — level surfaces, ramps, elevators, wide doorways.
 - gmeow:frameKindCartesian (a gmeow:FrameKind): cartesian
 - gmeow:frameKindCylindrical (a gmeow:FrameKind): cylindrical
 - gmeow:frameKindGeodetic (a gmeow:FrameKind): geodetic
@@ -1121,6 +1137,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:placeTypeRegion (a gmeow:PlaceType): region / state / province
 - gmeow:placeTypeRoom (a gmeow:PlaceType): room
 - gmeow:placeTypeThoroughfare (a gmeow:PlaceType): thoroughfare / street
+- gmeow:polarityBarrier (a gmeow:AccessibilityPolarity): A negative accessibility barrier — the subject impedes the facet.
+- gmeow:polarityFeature (a gmeow:AccessibilityPolarity): A positive accessibility feature — the subject provides the facet.
+- gmeow:polarityLimited (a gmeow:AccessibilityPolarity): A partial or limited accessibility status — the subject provides the facet under some conditions but not all.
 - gmeow:precisionCirca (a gmeow:TemporalPrecision): The event's time is approximate (circa) — bounded by gmeow:earliestStart / gmeow:latestEnd.
 - gmeow:precisionDay (a gmeow:TemporalPrecision): The event's time is known to the day.
 - gmeow:precisionDecade (a gmeow:TemporalPrecision): The event's time is known only to the decade.
@@ -1212,6 +1231,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:romanticPanromantic (a gmeow:RomanticOrientationValue): panromantic
 - gmeow:romanticQueerromantic (a gmeow:RomanticOrientationValue): queerplatonic / queer-romantic
 - gmeow:romanticQuestioning (a gmeow:RomanticOrientationValue): questioning
+- gmeow:routeKindAccessible (a gmeow:RouteKind): A route computed to satisfy a set of accessibility needs. The actual path is determined by the solver layer (Principle 12), not asserted in OWL.
 - gmeow:routeKindCitation (a gmeow:RouteKind): citation chain
 - gmeow:routeKindDependency (a gmeow:RouteKind): dependency chain
 - gmeow:routeKindFlight (a gmeow:RouteKind): flight path
