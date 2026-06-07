@@ -8,6 +8,7 @@
 @prefix wdt: <http://www.wikidata.org/prop/direct/> .
 @prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
 @prefix lime:    <http://www.w3.org/ns/lemon/lime#> .
+@prefix lvont:   <http://lexvo.org/ontology#> .
 
 # Term equivalences for the languages domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-languages.sssom.tsv by `gmeow compile-mappings`.
@@ -128,4 +129,26 @@ gmeow:eqLanguages014 a gmeow:TermEquivalence ;
     gmeow:alignObject wd:Q34228 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+
+# Issue #70 — Linguistic reference frames (Lexvo alignment).
+# Contextual: a gmeow:ReferenceFrame whose frameRealm is gmeow:frameRealmLinguistic
+# corresponds to a lvont:Language.
+
+gmeow:eqLanguages015 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ReferenceFrame ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject lvont:Language ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "contextual — holds when the ReferenceFrame's frameRealm is gmeow:frameRealmLinguistic" ;
+    gmeow:sssomFile "gmeow-languages.sssom.tsv" .
+
+gmeow:eqLanguages016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasReferenceFrame ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject lvont:language ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "links a named expression or lexical entity to its language frame" ;
     gmeow:sssomFile "gmeow-languages.sssom.tsv" .

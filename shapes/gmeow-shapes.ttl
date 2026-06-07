@@ -687,9 +687,9 @@ gmeow:FrameProfileShape
         sh:path gmeow:frameRealm ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:class gmeow:SpatialRealm ;
+        sh:class gmeow:FrameRealm ;
         sh:severity sh:Violation ;
-        sh:message "A reference frame must declare its spatial realm." ;
+        sh:message "A reference frame must declare its frame realm." ;
     ] ;
     sh:property [
         sh:path gmeow:hasAxis ;
@@ -764,10 +764,10 @@ gmeow:FrameProfileShape
 gmeow:NovelRealmExtensibilityShape
     a sh:NodeShape ;
     rdfs:label "Novel realm extensibility shape" ;
-    sh:targetClass gmeow:SpatialRealm ;
+    sh:targetClass gmeow:FrameRealm ;
     sh:severity sh:Warning ;
     sh:sparql [
-        sh:message "Every defined SpatialRealm must be referenced by at least one ReferenceFrame profile." ;
+        sh:message "Every defined FrameRealm must be referenced by at least one ReferenceFrame profile." ;
         sh:select """
             SELECT $this WHERE {
                 FILTER NOT EXISTS {

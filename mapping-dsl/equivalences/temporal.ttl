@@ -1,0 +1,44 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix time: <http://www.w3.org/2006/time#> .
+
+# Term equivalences for the temporal reference frame domain — GMEOW authoring source.
+# Compiled to mappings/gmeow-temporal.sssom.tsv by `gmeow compile-mappings`.
+#
+# OWL-Time (W3C Recommendation 2022) models temporal reference systems via
+# time:TRS (Temporal Reference System) and time:hasTRS. A gmeow:ReferenceFrame
+# whose gmeow:frameRealm is gmeow:frameRealmTemporal corresponds to a time:TRS.
+# Note: interval-relation alignments (Allen algebra) live in equivalences/events.ttl.
+
+# REFUSED (Principle 5 — no faithful external term):
+#   gmeow:FrameRealm has no direct OWL-Time counterpart; the concept is GMEOW-specific.
+# REFUSED (Principle 5):
+#   gmeow:FrameKind has no direct OWL-Time counterpart.
+
+gmeow:mapsetTemporalFrames a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/temporal-frames" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "OWL-Time temporal reference system alignments. Contextual: gmeow:ReferenceFrame aligns to time:TRS only when the frame's realm is gmeow:frameRealmTemporal. Interval-relation and event-time alignments remain in equivalences/events.ttl." .
+
+gmeow:eqTemporalFrame001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ReferenceFrame ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject time:TRS ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "contextual — holds when the ReferenceFrame's frameRealm is gmeow:frameRealmTemporal" ;
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+
+gmeow:eqTemporalFrame002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasReferenceFrame ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject time:hasTRS ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "links a temporal position to its calendar/timescale frame" ;
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .

@@ -1,0 +1,44 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix fibo-fnd-acc-cur: <https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/> .
+
+# Term equivalences for the currency domain — GMEOW authoring source.
+# Compiled to mappings/gmeow-fibo.sssom.tsv by `gmeow compile-mappings`.
+#
+# FIBO (Financial Industry Business Ontology) CurrencyAmount module provides
+# authoritative modelling of currencies and monetary amounts as OMG standard.
+# The alignment is contextual: a gmeow:ReferenceFrame whose gmeow:frameRealm is
+# gmeow:frameRealmCurrency corresponds to a fibo-fnd-acc-cur:Currency.
+
+# REFUSED (Principle 5 — no faithful external term):
+#   gmeow:FrameRealm has no direct FIBO counterpart; the concept is GMEOW-specific.
+# REFUSED (Principle 5):
+#   gmeow:FrameKind has no direct FIBO counterpart.
+
+gmeow:mapsetFibo a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/fibo" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "FIBO CurrencyAmount alignments for currency reference frames. Contextual: gmeow:ReferenceFrame aligns to fibo-fnd-acc-cur:Currency only when the frame's realm is gmeow:frameRealmCurrency. FIBO is heavyweight but authoritative; the alignment layer stays lightweight via skos:closeMatch." .
+
+gmeow:eqFibo001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ReferenceFrame ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject fibo-fnd-acc-cur:Currency ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "contextual — holds when the ReferenceFrame's frameRealm is gmeow:frameRealmCurrency" ;
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
+
+gmeow:eqFibo002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasReferenceFrame ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject fibo-fnd-acc-cur:hasCurrency ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "links a monetary amount to its currency frame" ;
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
