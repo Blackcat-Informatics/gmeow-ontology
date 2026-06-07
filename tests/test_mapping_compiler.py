@@ -68,7 +68,8 @@ def test_dsl_parses() -> None:
     # Issue #80 connectivity: +2 (Route→gtfs:Route, Route→schema:Trip).
     # Issue #81 lifecycle: +8 (+7 as originally authored, +1 eventTypeDissolution
     # mapping added per review feedback).
-    assert len(dsl.equivalences) == 849
+    # Issue #75 Profile meta-pattern: +1 (gmeow:Profile skos:relatedMatch prof:Profile).
+    assert len(dsl.equivalences) == 850
     # 25 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

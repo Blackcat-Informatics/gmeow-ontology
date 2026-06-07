@@ -13,7 +13,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from rdflib import RDF, Graph, Literal, Namespace
-from rdflib.namespace import XSD
+from rdflib.namespace import RDFS, SKOS, XSD
 
 from gmeow_tools.validate import run_shacl
 
@@ -147,14 +147,28 @@ def test_malformed_reference_frame_fails() -> None:
     assert "have at least one coordinate axis" in errors
 
 
-def test_novel_realm_extensibility_guard_warns() -> None:
-    """A novel FrameRealm without a ReferenceFrame triggers a warning."""
+def test_profile_open_value_guard_warns_on_orphan() -> None:
+    """A novel open-value individual with no profile descriptor triggers a warning."""
     bad = Graph()
+    bad.add((GMEOW.profileReferenceFrame, RDF.type, GMEOW.Profile))
+    bad.add(
+        (GMEOW.profileReferenceFrame, RDFS.label, Literal("Reference Frame Profile"))
+    )
+    bad.add(
+        (
+            GMEOW.profileReferenceFrame,
+            SKOS.definition,
+            Literal("Closed descriptor schema for reference frames."),
+        )
+    )
+    bad.add((GMEOW.profileReferenceFrame, GMEOW.profileDescriptor, GMEOW.frameRealm))
+    bad.add((GMEOW.profileReferenceFrame, GMEOW.profileOpenValue, GMEOW.FrameRealm))
     bad.add((EX.customRealm, RDF.type, GMEOW.FrameRealm))
     result = run_shacl(bad)
     assert result.ok  # Warning only, so validation passes
     assert any(
-        "must be referenced by at least one ReferenceFrame" in w
+        "Open value individuals must be referenced by at least one profile descriptor"
+        in w
         for w in result.warnings
     )
 

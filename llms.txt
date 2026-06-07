@@ -135,6 +135,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:ProficiencyLevel (⊑ gufo:QualityValue): An attained proficiency level on a scale (CEFR A1–C2; native; heritage). A value carried by gmeow:proficiencyLevel; gmeow:levelScale ties it to its scale. ILR (0–5) and ACTFL levels are added as further individuals.
 - gmeow:ProficiencyModality (⊑ gufo:QualityValue): The skill channel a language proficiency rates (speaking, listening, reading, writing, signing, comprehension, overall). A value carried by gmeow:proficiencyModality.
 - gmeow:ProficiencyScale (⊑ gufo:QualityValue): A framework for rating language proficiency (CEFR, ILR, ACTFL, self-reported). A value carried by gmeow:proficiencyScale and gmeow:levelScale.
+- gmeow:Profile (⊑ gmeow:InformationObject, gufo:Object): A closed descriptor schema for an open-but-structured facet. A Profile self-describes the properties that constitute the facet and the open value vocabularies from which their values are drawn, enabling extensibility-by-construction.
 - gmeow:ProgrammingLanguage (⊑ gmeow:FormalLanguage): A formal language for expressing executable computation (Python, Rust, SQL-as-implemented). The first-class target of gmeow:writtenInLanguage, by which a software project declares the languages it is written in.
 - gmeow:Prohibition (⊑ gmeow:Rule): A rule that forbids the exercise of a gmeow:RightsAction over the governed asset (odrl:Prohibition).
 - gmeow:PronounSet (⊑ gmeow:InformationObject): A set of third-person pronouns a person goes by, in the five English forms (subject, object, possessive determiner, possessive pronoun, reflexive). Sex/gender INDEPENDENT and contextual. A known set is one of the gmeow:PronounSet value individuals; any other set is expressed by filling the five form properties on a fresh PronounSet instance.
@@ -352,6 +353,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasPoseOrientation [gmeow:Pose → gmeow:Orientation]: The rotational component of a pose.
 - gmeow:hasPosePosition [gmeow:Pose → gmeow:SpatialCoordinates]: The translational component of a pose, expressed as spatial coordinates in the pose frame.
 - gmeow:hasPrivacyNotice [? → gmeow:PrivacyNotice]: Relates an entity or rights statement to its privacy notice. Domain-free: a notice may be attached to a RightsStatement, a Licence, or directly to the governed entity.
+- gmeow:hasProfile [? → gmeow:Profile]: Links an entity, value or frame to the Profile that governs its structure.
 - gmeow:hasProhibition [gmeow:RightsStatement → gmeow:Prohibition]: Relates a rights statement to a prohibition it imposes (an odrl:prohibition rule).
 - gmeow:hasPronounSet [gmeow:Person → gmeow:PronounSet]: Relates a person to a pronoun set they go by. Non-functional and contextual (scope a context-specific set with gmeow:validFrom/validUntil on the statement, or via a NameUsage). A form of ADDRESS, sex/gender-independent — MUST NOT be inferred from gender identity/expression, sex-assigned-at-birth or orientation.
 - gmeow:hasRecurrenceRule [gmeow:EventSeries → gmeow:RecurrenceRule]: Relates an event series to the recurrence rule by which it repeats.
@@ -499,6 +501,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:proficiencyLevel [gmeow:LanguageProficiency → gmeow:ProficiencyLevel] (functional): The attained level of a language-proficiency (a gmeow:ProficiencyLevel value, e.g. cefrB2, levelNative). Functional.
 - gmeow:proficiencyModality [gmeow:LanguageProficiency → gmeow:ProficiencyModality] (functional): The skill modality a language-proficiency rates (speaking, listening, reading, writing, signing, comprehension, overall) — a gmeow:ProficiencyModality value. Functional: mint one proficiency per (agent, language, modality) so per-skill levels coexist.
 - gmeow:proficiencyScale [gmeow:LanguageProficiency → gmeow:ProficiencyScale] (functional): The framework/scale a proficiency level is measured on (CEFR, ILR, ACTFL, self-reported) — a gmeow:ProficiencyScale value. Functional.
+- gmeow:profileAppliesTo [gmeow:Profile → ?]: The class of entities to which this Profile applies.
+- gmeow:profileDescriptor [gmeow:Profile → ?]: A property that is part of this Profile's closed descriptor schema.
+- gmeow:profileOpenValue [gmeow:Profile → ?]: An open value-vocabulary class (instances are individuals, never subclasses) used by this Profile.
 - gmeow:pronounObject [gmeow:PronounSet → rdfs:Literal] (functional): The object (accusative) form of a pronoun set, e.g. "her", "them", "xem".
 - gmeow:pronounPossessive [gmeow:PronounSet → rdfs:Literal] (functional): The possessive pronoun form of a pronoun set, e.g. "hers", "theirs", "xyrs".
 - gmeow:pronounPossessiveDeterminer [gmeow:PronounSet → rdfs:Literal] (functional): The possessive determiner form of a pronoun set, e.g. "her", "their", "xyr".
@@ -1083,6 +1088,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:profModalitySigning (a gmeow:ProficiencyModality): signing
 - gmeow:profModalitySpeaking (a gmeow:ProficiencyModality): speaking
 - gmeow:profModalityWriting (a gmeow:ProficiencyModality): writing
+- gmeow:profileReferenceFrame (a gmeow:Profile): The closed descriptor schema for gmeow:ReferenceFrame instances: realm, axes, dimensionality, kind, host-dependence, determinacy, metric, and transform descriptors.
+- gmeow:profileTemporalFrame (a gmeow:Profile): The closed descriptor schema for gmeow:TemporalFrame instances: the reference-frame spine plus time scale, calendar system, and reference position.
+- gmeow:profileTemporalProvenance (a gmeow:Profile): The closed descriptor schema for statement-level temporal provenance: valid-from, valid-until, asserted-at, and recorded-no-later-than. Applies to statements, observations, and any resource whose metadata carries these annotation properties.
 - gmeow:pronounAeAer (a gmeow:PronounSet): ae/aer
 - gmeow:pronounAny (a gmeow:PronounSet): any pronouns
 - gmeow:pronounAsk (a gmeow:PronounSet): ask me

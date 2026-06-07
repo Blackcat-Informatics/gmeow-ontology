@@ -246,8 +246,9 @@ can cite them and stay consistent. They are guidance, not commitments.
 
 - **The Profile pattern** — model an open-but-structured facet as a *closed descriptor schema + open
   values + self-description (reflection)*, so extensibility is by construction and a "novel-value" guard
-  can prove it. Seen in the four-clocks (temporal provenance), the reference-frame Profile (Principle 11),
-  and the temporal scale/calendar Profile.
+  can prove it. Concretised in `ontology/modules/profiles.ttl` as `gmeow:Profile` (issue #75), and seen in
+  the four-clocks (temporal provenance), the reference-frame Profile (Principle 11), and the temporal
+  scale/calendar Profile.
 - **Flat-first, reify-on-demand** — pair a flat shortcut for the common case with a reified relator that
   carries statement-level metadata when it is needed (`gmeow:hasLicense` ↔ `gmeow:License`;
   `containedInPlace` ↔ a containment tenure; `hasParticipant` ↔ `Participation`). The flat form keeps the
