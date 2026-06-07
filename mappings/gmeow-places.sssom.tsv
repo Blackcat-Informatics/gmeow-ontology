@@ -7,6 +7,7 @@
 # comment: Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard. placeType/storageMedium are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological "within"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here.
 # curie_map:
 #   bfo: http://purl.obolibrary.org/obo/
+#   brick: https://brickschema.org/schema/Brick#
 #   crm: http://www.cidoc-crm.org/cidoc-crm/
 #   crmgeo: http://www.ics.forth.gr/isl/CRMgeo/
 #   dcterms: http://purl.org/dc/terms/
@@ -29,6 +30,7 @@
 #   wgs84: http://www.w3.org/2003/01/geo/wgs84_pos#
 #   whg: https://whgazetteer.org/
 subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
+gmeow:Capacity	skos:closeMatch	brick:Capacity		semapv:ManualMappingCuration	0.8	Brick Capacity is a class for the max number of entities a space can hold; GMEOW Capacity is a reified Measurement with location, scalar result, and provenance.
 gmeow:ContainmentTenure	skos:closeMatch	wdt:P131	located in the administrative territorial entity	semapv:ManualMappingCuration	0.7	Wikidata P131 is the flat administrative-hierarchy property; GMEOW ContainmentTenure reifies it with temporal scope and standpoint indexing.
 gmeow:Geometry	skos:closeMatch	geo:Geometry		semapv:ManualMappingCuration	0.9	
 gmeow:JurisdictionTenure	skos:closeMatch	crm:E4_Period	Period	semapv:ManualMappingCuration	0.75	CIDOC-CRM E4_Period captures the time-spanned governance period; GMEOW JurisdictionTenure adds the place×polity relator structure and standpoint indexing.
@@ -37,6 +39,7 @@ gmeow:Location	skos:closeMatch	bfo:BFO_0000006	spatial region	semapv:ManualMappi
 gmeow:Location	skos:closeMatch	bfo:BFO_0000029	site	semapv:ManualMappingCuration	0.8	
 gmeow:Location	skos:closeMatch	crm:E53_Place	Place	semapv:ManualMappingCuration	0.85	
 gmeow:LocationState	skos:closeMatch	mf:TemporalGeometry	temporal geometry	semapv:ManualMappingCuration	0.7	
+gmeow:Occupancy	skos:closeMatch	brick:Occupancy		semapv:ManualMappingCuration	0.8	Brick Occupancy is a class for the current number of entities in a space; GMEOW Occupancy is a reified Measurement with location, scalar result, and provenance.
 gmeow:Orientation	skos:closeMatch	pos:OrientationMeasure	Orientation Measure	semapv:ManualMappingCuration	0.85	
 gmeow:Place	skos:closeMatch	crmgeo:SP5_Geometric_Place_Expression	Geometric Place Expression	semapv:ManualMappingCuration	0.7	
 gmeow:Place	skos:closeMatch	lgdo:Place		semapv:ManualMappingCuration	0.8	
@@ -73,6 +76,7 @@ gmeow:geometryTypeMultiPoint	skos:closeMatch	sf:MultiPoint		semapv:ManualMapping
 gmeow:geometryTypeMultiPolygon	skos:closeMatch	sf:MultiPolygon		semapv:ManualMappingCuration	0.95	
 gmeow:geometryTypePoint	skos:closeMatch	sf:Point		semapv:ManualMappingCuration	0.95	
 gmeow:geometryTypePolygon	skos:closeMatch	sf:Polygon		semapv:ManualMappingCuration	0.95	
+gmeow:hasCapacity	skos:closeMatch	schema:maximumAttendeeCapacity		semapv:ManualMappingCuration	0.7	schema.org maximumAttendeeCapacity is a flat integer property on Place/Event; GMEOW hasCapacity links to a reified Capacity Measurement. Directional lossy projection.
 gmeow:hasCoordinates	skos:closeMatch	schema:geo		semapv:ManualMappingCuration	0.8	
 gmeow:hasGeometry	skos:closeMatch	geo:hasGeometry		semapv:ManualMappingCuration	0.9	
 gmeow:hasPlaceName	skos:closeMatch	pleiades:Name		semapv:ManualMappingCuration	0.8	
