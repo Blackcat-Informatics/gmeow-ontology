@@ -7,6 +7,8 @@ the occurrence rather than asserting them as global facts about the EmailAddress
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from rdflib import OWL, RDF, RDFS, XSD, Graph, URIRef
 from rdflib.query import ResultRow
 
@@ -89,7 +91,7 @@ def test_participant_ordinal_is_functional() -> None:
     assert (node, RDF.type, OWL.DatatypeProperty) in graph
     assert (node, RDF.type, OWL.FunctionalProperty) in graph
     assert (node, RDFS.domain, URIRef(GMEOW + "MessageParticipant")) in graph
-    assert (node, RDFS.range, XSD.integer) in graph
+    assert (node, RDFS.range, XSD.nonNegativeInteger) in graph
 
 
 def test_display_name_scoped_to_participant() -> None:
@@ -114,6 +116,9 @@ def test_stable_address_properties_on_email_address() -> None:
     for prop in ("addressValue", "localPart", "domainPart"):
         node = URIRef(GMEOW + prop)
         assert (node, RDF.type, OWL.DatatypeProperty) in graph, f"{prop} missing"
+        assert (node, RDF.type, OWL.FunctionalProperty) in graph, (
+            f"{prop} not functional"
+        )
         assert (node, RDFS.domain, URIRef(GMEOW + "EmailAddress")) in graph
 
 
@@ -124,12 +129,16 @@ def test_participant_group_is_literal() -> None:
     assert (node, RDFS.domain, URIRef(GMEOW + "MessageParticipant")) in graph
 
 
+def _fixture_path() -> str:
+    return str(Path(__file__).parent / "fixtures" / "coverage" / "email.ttl")
+
+
 def test_fixture_binds_occurrence_correctly() -> None:
     """The coverage fixture shows alice@example.org in msg1 From and msg2 To
     with different display names."""
     graph = load_merged_graph(include_imports=False)
     # Load the fixture explicitly so the instance data is present.
-    graph.parse("tests/fixtures/coverage/email.ttl", format="turtle")
+    graph.parse(_fixture_path(), format="turtle")
 
     alice = URIRef("https://example.org/mail/addrAlice")
     msg1 = URIRef("https://example.org/mail/msg1")
@@ -179,7 +188,7 @@ def test_fixture_binds_occurrence_correctly() -> None:
 
 def test_fixture_address_decomposition() -> None:
     graph = load_merged_graph(include_imports=False)
-    graph.parse("tests/fixtures/coverage/email.ttl", format="turtle")
+    graph.parse(_fixture_path(), format="turtle")
     alice = URIRef("https://example.org/mail/addrAlice")
     assert (alice, URIRef(GMEOW + "addressValue"), None) in graph
     assert (alice, URIRef(GMEOW + "localPart"), None) in graph

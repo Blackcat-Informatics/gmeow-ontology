@@ -1374,10 +1374,9 @@ gmeow:MessageParticipantHasPlayersShape
     ] ;
     sh:property [
         sh:path gmeow:participantAddress ;
-        sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:severity sh:Violation ;
-        sh:message "A MessageParticipant must reference exactly one EmailAddress (gmeow:participantAddress)." ;
+        sh:message "A MessageParticipant must reference at most one EmailAddress (gmeow:participantAddress)." ;
     ] ;
     sh:property [
         sh:path gmeow:participantRole ;

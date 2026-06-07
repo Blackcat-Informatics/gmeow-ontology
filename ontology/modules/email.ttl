@@ -356,7 +356,7 @@ gmeow:mailboxName
 # --------------------------------------------------------------------------- #
 
 gmeow:addressValue
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:EmailAddress ;
     rdfs:range rdfs:Literal ;
     rdfs:label "address value"@en ;
@@ -364,7 +364,7 @@ gmeow:addressValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:localPart
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:EmailAddress ;
     rdfs:range rdfs:Literal ;
     rdfs:label "local part"@en ;
@@ -372,7 +372,7 @@ gmeow:localPart
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:domainPart
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:EmailAddress ;
     rdfs:range rdfs:Literal ;
     rdfs:label "domain part"@en ;
@@ -439,7 +439,7 @@ gmeow:participantHeader
 gmeow:participantOrdinal
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:MessageParticipant ;
-    rdfs:range xsd:integer ;
+    rdfs:range xsd:nonNegativeInteger ;
     rdfs:label "participant ordinal"@en ;
     skos:definition "The zero-based position of this address occurrence."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

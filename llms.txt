@@ -236,7 +236,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:addressLocality [gmeow:PostalAddress → rdfs:Literal]: The locality (city or town) of a postal address.
 - gmeow:addressPlace [gmeow:PostalAddress → gmeow:Place]: The geographic place a postal address denotes (typically the premises/building) — the seam from the as-written address to the resolved place hierarchy, its coordinates/geometry, and its external identifiers.
 - gmeow:addressRegion [gmeow:PostalAddress → rdfs:Literal]: The region (state, province, or territory) of a postal address.
-- gmeow:addressValue [gmeow:EmailAddress → rdfs:Literal]: The normalized addr-spec of an email address.
+- gmeow:addressValue [gmeow:EmailAddress → rdfs:Literal] (functional): The normalized addr-spec of an email address.
 - gmeow:adjacentTo [gmeow:Location → gmeow:Location]: Relates a location to another location it is adjacent to.
 - gmeow:after [gmeow:Event → gmeow:Event]: Allen AFTER: this event begins strictly after the related event ends; the transitive inverse of gmeow:before. (= time:intervalAfter; TimeML AFTER; TEO after.)
 - gmeow:aggregationFunction [gmeow:SpatialAggregation → gmeow:AggregationFunction] (functional): The statistical function applied to the entities in the aggregation region — count, sum, average, density, minimum, maximum, or centroid.
@@ -304,7 +304,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:dimensionCount [gmeow:ReferenceFrame → xsd:nonNegativeInteger] (functional): The number of dimensions spanned by a reference frame.
 - gmeow:displayName [gmeow:MessageParticipant → rdfs:Literal]: The display name as rendered in this particular header occurrence.
 - gmeow:displayable [? → xsd:boolean]: Whether a name or identity facet may be shown in interfaces and reports. The ONLY display control in the model — across naming (gmeow:Appellation) and identity (gmeow:IdentityFacet: gender/orientation), deliberately no preferred/primary marker (display selection is locale-relative and symmetric). It is intentionally domain-free so it applies to both. Superseded names (especially deadnames) and superseded gender/orientation labels set this false; consumers MUST honour false and never surface the string. NOT functional: in a multi-source merge, sources may disagree, and those claims must coexist rather than force a global inconsistency — the cautious value (false) wins at the projection layer. Cardinality is enforced by SHACL on data, not by the logical core.
-- gmeow:domainPart [gmeow:EmailAddress → rdfs:Literal]: The domain part of an email address.
+- gmeow:domainPart [gmeow:EmailAddress → rdfs:Literal] (functional): The domain part of an email address.
 - gmeow:durationValue [gmeow:Duration → xsd:duration] (functional): The length of a gmeow:Duration as an xsd:duration literal (ISO 8601, e.g. P1Y2M / PT3H). DL-clean; the TEO hasNormalizedDuration 0Y0M0W0D0H0m0s string is a projection target.
 - gmeow:during [gmeow:Event → gmeow:Event]: Allen DURING: this event's extent falls strictly within the related event's extent (both endpoints interior). Transitive. Inverse of gmeow:contains. Distinct from gmeow:subEventOf (mereological part-of) and gmeow:containedInPlace (spatial). (= time:intervalDuring; TimeML IS_INCLUDED; TEO during.)
 - gmeow:duringInterval [gmeow:TimeScopedRelation → gmeow:TimeInterval]: Relates a time-scoped relation to the interval over which it holds.
@@ -497,7 +497,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:licensee [gmeow:License → gmeow:Agent]: The party receiving a licence (odrl:assignee). A specialisation of gmeow:hasParty. Absent on an open / public licence offered to everyone.
 - gmeow:licensor [gmeow:License → gmeow:Agent]: The party granting a licence (odrl:assigner). A specialisation of gmeow:hasParty. Non-functional: a licence may be granted jointly.
 - gmeow:listId [gmeow:Message → rdfs:Literal]: The mailing-list identifier a message was distributed through (RFC 2919 List-Id).
-- gmeow:localPart [gmeow:EmailAddress → rdfs:Literal]: The local part of an email address.
+- gmeow:localPart [gmeow:EmailAddress → rdfs:Literal] (functional): The local part of an email address.
 - gmeow:locatedAt [gmeow:Entity → gmeow:Location]: Relates an entity to a location it is situated at, resides in, or occurs at — geographic, virtual, or storage.
 - gmeow:logicConstraintMember [gmeow:LogicalConstraint → gmeow:Constraint]: A member constraint combined by a logical constraint (odrl:operand). Non-functional: a logical constraint combines two or more.
 - gmeow:longitude [gmeow:GeoCoordinates → xsd:decimal]: The longitude of a geographic point in decimal degrees.
@@ -548,7 +548,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:participantGroup [gmeow:MessageParticipant → rdfs:Literal]: The RFC 5322 group name that contains this address occurrence.
 - gmeow:participantHeader [gmeow:MessageParticipant → gmeow:MessageHeader] (functional): The RFC 5322 header field from which this occurrence was parsed.
 - gmeow:participantMessage [gmeow:MessageParticipant → gmeow:EmailMessage] (functional): The message a participant occurrence belongs to.
-- gmeow:participantOrdinal [gmeow:MessageParticipant → xsd:integer] (functional): The zero-based position of this address occurrence.
+- gmeow:participantOrdinal [gmeow:MessageParticipant → xsd:nonNegativeInteger] (functional): The zero-based position of this address occurrence.
 - gmeow:participantRole [gmeow:MessageParticipant → gmeow:MessageParticipantRole] (functional): The header or envelope role of this address occurrence.
 - gmeow:participationEvent [gmeow:Participation → gmeow:Event] (functional): The event a participation is part of (functional — one event per participation).
 - gmeow:participationInterval [gmeow:Participation → gmeow:TimeInterval]: The time interval over which the participation held. (A relator carries its period this way — matching usageInterval / relationshipInterval — rather than via duringInterval.)
