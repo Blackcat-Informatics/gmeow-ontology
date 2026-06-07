@@ -64,6 +64,45 @@ parsed, map per the `messaging-trust` module:
 | `DKIM-Signature:` | `gmeow:hasSignature` → `gmeow:DKIMSignature` (`signingDomain`/`signatureAlgorithm`/`verificationStatus`) |
 | S/MIME / PGP signature | `gmeow:SMIMESignature` / `gmeow:PGPSignature` |
 
+## Participant model: three layers
+
+GMEOW distinguishes three layers for email addresses:
+
+1. **`EmailAddress`** — the stable, normalized contact point. Carries structural
+   facts (`gmeow:addressValue`, `gmeow:localPart`, `gmeow:domainPart`) and links
+   to agents (`AddressTenure`) and accounts (`deliversToAccount`).
+2. **`MessageParticipant`** — the contextual occurrence of an address in a
+   message header or envelope. Carries `displayName`, `rawAddressValue`,
+   `participantRole`, `participantHeader`, and `participantOrdinal`. Scoped to
+   the occurrence, never a global claim about the EmailAddress.
+3. **`AddressTenure`** — the time-scoped fact that an agent held an address.
+
+### Flat shortcuts vs. reified relator
+
+The existing flat properties (`gmeow:from`, `gmeow:to`, `gmeow:cc`, `gmeow:bcc`,
+`gmeow:sender`, `gmeow:replyTo`) remain the 80% shortcut. Promote to
+`MessageParticipant` when any of the following matters:
+
+- Raw syntax, comments, or quoting must be preserved
+- Envelope vs. header distinction (e.g. envelope-from vs. From)
+- Resent-* roles
+- Display-name variance across messages
+- Ordering within a recipient list
+- Provenance, confidence, or validation status
+- Malformed or spoofed values that must not contaminate contact identity
+
+### Normalization rules (importer-side, Principle 12)
+
+- `addressValue` is the normalized addr-spec (SMTP-lower-case local part,
+  Punycode A-label for IDN domains).
+- `localPart` is the mailbox portion; case-folding and dot-removal are
+  computation-layer concerns.
+- `domainPart` is the Punycode A-label for IDN domains; the Unicode U-label
+  is a projection-downcast concern.
+- Malformed or missing addr-specs: `participantAddress` is omitted from
+  the `MessageParticipant`; the `rawAddressValue` retains the malformed text
+  for audit.
+
 ## Identity & temporal grounding
 
 - An `EmailAddress` is held by an `Agent` over time → `gmeow:AddressTenure` (a

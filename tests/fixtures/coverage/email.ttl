@@ -4,6 +4,10 @@
 # There is no public RDF email corpus, so this hand-authored slice exercises the
 # surface vocabularies a real importer would emit, plus the GMEOW-native trust
 # terms, so `gmeow coverage` can measure email-term coverage.
+#
+# Also exercises the MessageParticipant relator: alice@example.org appears in
+# msg1 From with display name "Alice Smith" and in msg2 To with display name
+# "Dr. Alice Smith", demonstrating that displayName is scoped to the occurrence.
 
 @prefix ex:     <https://example.org/mail/> .
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
@@ -26,7 +30,9 @@ ex:msg1
     gmeow:hasKeyword gmeow:keywordSeen ;
     gmeow:hasAuthenticationResult ex:auth1 ;
     gmeow:hasSignature ex:dkim1 ;
-    gmeow:hasRelayHop ex:hop1 .
+    gmeow:hasRelayHop ex:hop1 ;
+    gmeow:hasMessageParticipant ex:mpAliceFrom1 ;
+    gmeow:hasMessageParticipant ex:mpBobTo1 .
 
 ex:msg2
     a schema:EmailMessage, gmeow:EmailMessage ;
@@ -39,7 +45,9 @@ ex:msg2
     gmeow:partOfThread ex:thread1 ;
     gmeow:residesIn ex:inbox ;
     schema:messageAttachment ex:att1 ;
-    gmeow:hasAttachment ex:att1 .
+    gmeow:hasAttachment ex:att1 ;
+    gmeow:hasMessageParticipant ex:mpBobFrom2 ;
+    gmeow:hasMessageParticipant ex:mpAliceTo2 .
 
 ex:att1
     a gmeow:Attachment ;
@@ -85,9 +93,80 @@ ex:hop1
     gmeow:relayProtocol "ESMTPS" ;
     gmeow:relayAt "2026-06-01T10:00:02Z"^^xsd:dateTime .
 
-# Participants are reached through the EmailAddress seam.
-ex:addrAlice a gmeow:EmailAddress ; gmeow:email "alice@example.org" ;
+# Message headers for participant occurrences.
+ex:hdrFrom1
+    a gmeow:MessageHeader ;
+    gmeow:headerName "From" ;
+    gmeow:headerValue "\"Alice Smith\" <alice@example.org>" .
+
+ex:hdrTo1
+    a gmeow:MessageHeader ;
+    gmeow:headerName "To" ;
+    gmeow:headerValue "\"Bob Jones\" <bob@example.com>" .
+
+ex:hdrFrom2
+    a gmeow:MessageHeader ;
+    gmeow:headerName "From" ;
+    gmeow:headerValue "\"Bob Jones\" <bob@example.com>" .
+
+ex:hdrTo2
+    a gmeow:MessageHeader ;
+    gmeow:headerName "To" ;
+    gmeow:headerValue "\"Dr. Alice Smith\" <alice@example.org>" .
+
+# MessageParticipant occurrences — same address, different display names.
+ex:mpAliceFrom1
+    a gmeow:MessageParticipant ;
+    gmeow:participantMessage ex:msg1 ;
+    gmeow:participantAddress ex:addrAlice ;
+    gmeow:participantRole gmeow:messageRoleFrom ;
+    gmeow:participantHeader ex:hdrFrom1 ;
+    gmeow:participantOrdinal 0 ;
+    gmeow:displayName "Alice Smith" ;
+    gmeow:rawAddressValue "\"Alice Smith\" <alice@example.org>" .
+
+ex:mpBobTo1
+    a gmeow:MessageParticipant ;
+    gmeow:participantMessage ex:msg1 ;
+    gmeow:participantAddress ex:addrBob ;
+    gmeow:participantRole gmeow:messageRoleTo ;
+    gmeow:participantHeader ex:hdrTo1 ;
+    gmeow:participantOrdinal 0 ;
+    gmeow:displayName "Bob Jones" ;
+    gmeow:rawAddressValue "\"Bob Jones\" <bob@example.com>" .
+
+ex:mpBobFrom2
+    a gmeow:MessageParticipant ;
+    gmeow:participantMessage ex:msg2 ;
+    gmeow:participantAddress ex:addrBob ;
+    gmeow:participantRole gmeow:messageRoleFrom ;
+    gmeow:participantHeader ex:hdrFrom2 ;
+    gmeow:participantOrdinal 0 ;
+    gmeow:displayName "Bob Jones" ;
+    gmeow:rawAddressValue "\"Bob Jones\" <bob@example.com>" .
+
+ex:mpAliceTo2
+    a gmeow:MessageParticipant ;
+    gmeow:participantMessage ex:msg2 ;
+    gmeow:participantAddress ex:addrAlice ;
+    gmeow:participantRole gmeow:messageRoleTo ;
+    gmeow:participantHeader ex:hdrTo2 ;
+    gmeow:participantOrdinal 0 ;
+    gmeow:displayName "Dr. Alice Smith" ;
+    gmeow:rawAddressValue "\"Dr. Alice Smith\" <alice@example.org>" .
+
+# Stable contact points with structured decomposition.
+ex:addrAlice
+    a gmeow:EmailAddress ;
+    gmeow:addressValue "alice@example.org" ;
+    gmeow:localPart "alice" ;
+    gmeow:domainPart "example.org" ;
     gmeow:deliversToAccount ex:aliceAccount .
-ex:addrBob a gmeow:EmailAddress ; gmeow:email "bob@example.com" .
+
+ex:addrBob
+    a gmeow:EmailAddress ;
+    gmeow:addressValue "bob@example.com" ;
+    gmeow:localPart "bob" ;
+    gmeow:domainPart "example.com" .
 
 ex:summariser a gmeow:SoftwareAgent .
