@@ -98,6 +98,18 @@ gmeow:eventTypeNameChange     a gmeow:EventType ; rdfs:label "name change"@en ; 
 gmeow:eventTypeOrdination     a gmeow:EventType ; rdfs:label "ordination"@en ;     skos:definition "Ordination into religious office."@en .
 
 # --------------------------------------------------------------------------- #
+# Lifecycle event types — universal creation / destruction / supersession for any
+# entity (issue #81). Coexist with the person-scoped birth/death: a birth IS a
+# creation, a death IS a destruction — multiple type values on one event are
+# expected and non-functional (Principle 9).
+# --------------------------------------------------------------------------- #
+
+gmeow:eventTypeCreation       a gmeow:EventType ; rdfs:label "creation"@en ;       skos:definition "The event of an entity coming into existence — the universal form of birth (person), founding (organization), minting (currency), or realization (reference frame)."@en .
+gmeow:eventTypeDestruction    a gmeow:EventType ; rdfs:label "destruction"@en ;    skos:definition "The event of an entity ceasing to exist — the universal form of death (person), dissolution (organization), destruction (place), or retirement (frame, software)."@en .
+gmeow:eventTypeSupersession   a gmeow:EventType ; rdfs:label "supersession"@en ;   skos:definition "The event of one entity replacing another — a transformation, merger, or reorganization where a predecessor entity ceases and a successor entity begins (e.g. Soviet Union → Russian Federation)."@en .
+gmeow:eventTypeDissolution    a gmeow:EventType ; rdfs:label "dissolution"@en ;    skos:definition "The formal dissolution of a structured entity — an organization, agreement, polity, or marriage. Distinct from general destruction in carrying legal or procedural formality."@en .
+
+# --------------------------------------------------------------------------- #
 # Participant role — an OPEN value vocabulary. Generalizes the former genealogy
 # hasPrincipal / hasWitness / hasOfficiant subproperties into role values borne
 # on a gmeow:Participation relator.

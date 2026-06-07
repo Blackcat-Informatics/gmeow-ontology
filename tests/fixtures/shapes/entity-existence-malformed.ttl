@@ -1,0 +1,19 @@
+# Malformed EntityExistence fixture (#81). Each subject carries exactly ONE
+# deliberate violation of the lifecycle SHACL shapes in shapes/gmeow-shapes.ttl, so a
+# test can pin each shape. `run_shacl` over this graph MUST NOT conform (Violation).
+# Keep OUT of tests/fixtures/coverage/ (intentionally broken).
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# (a) EntityExistenceHasEntityShape — an EntityExistence with NO entity (minCount 1).
+ex:badNoEntity a gmeow:EntityExistence ;
+    gmeow:duringInterval ex:someInterval .
+
+ex:someInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2020-01-01T00:00:00Z"^^xsd:dateTime .
+
+# (b) EntityExistenceHasIntervalShape — an EntityExistence with NO interval (minCount 1).
+ex:badNoInterval a gmeow:EntityExistence ;
+    gmeow:existenceEntity ex:something .

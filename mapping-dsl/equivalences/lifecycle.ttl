@@ -1,0 +1,110 @@
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix prov:   <http://www.w3.org/ns/prov#> .
+@prefix crm:    <http://www.cidoc-crm.org/cidoc-crm/> .
+@prefix wd:     <http://www.wikidata.org/entity/> .
+@prefix wdt:    <http://www.wikidata.org/prop/direct/> .
+
+# Term equivalences for the universal lifecycle slice (#81) — GMEOW authoring source.
+# Compiled to mappings/gmeow-lifecycle.sssom.tsv by `gmeow compile-mappings`.
+# Alignments are BY REFERENCE (Principle 5); GMEOW never imports an external axiom.
+# The lifecycle event types (creation, destruction, supersession, dissolution) are
+# VALUE individuals (gufo:QualityValue), aligned to external classes with skos:closeMatch
+# (the value-vocabulary convention), never owl:equivalentClass.
+
+gmeow:mapsetLifecycle a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/lifecycle" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """Universal-lifecycle alignments (#81) — gmeow:hasCreationEvent / gmeow:hasDestructionEvent / gmeow:existenceInterval / gmeow:supersededBy / gmeow:supersedes, plus the open gmeow:EventType value additions (creation, destruction, supersession, dissolution), aligned to PROV-O, CIDOC-CRM and Wikidata BY REFERENCE.
+        EVENT TYPES: value individuals aligned to external classes with skos:closeMatch (a value-to-class correspondence), mirroring placeType / Gender / ParticipantRole.
+        PROV-O: hasCreationEvent generalizes prov:wasGeneratedBy from entities to any endurant; hasDestructionEvent generalizes prov:wasInvalidatedBy.
+        CIDOC-CRM: the event types align to E63 Beginning of Existence, E64 End of Existence, and E81 Transformation.
+        WIKIDATA: supersedes / supersededBy align to P1365 (replaces) / P1366 (replaced by).""" .
+
+# --------------------------------------------------------------------------- #
+# Properties — creation and destruction.
+# --------------------------------------------------------------------------- #
+
+gmeow:eqLifecycle001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasCreationEvent ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject prov:wasGeneratedBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "PROV-O wasGeneratedBy is entity-generation; GMEOW generalizes to any endurant's creation event" ;
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .
+
+gmeow:eqLifecycle002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasDestructionEvent ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject prov:wasInvalidatedBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "PROV-O wasInvalidatedBy is entity-invalidation; GMEOW generalizes to any endurant's destruction event" ;
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Properties — supersession.
+# --------------------------------------------------------------------------- #
+
+gmeow:eqLifecycle003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:supersedes ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P1365 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata P1365 'replaces' — the predecessor→successor direction" ;
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .
+
+gmeow:eqLifecycle004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:supersededBy ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P1366 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata P1366 'replaced by' — the successor←predecessor direction" ;
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Event type values — aligned to CIDOC-CRM classes (value-to-class closeMatch).
+# --------------------------------------------------------------------------- #
+
+gmeow:eqLifecycle005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeCreation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:E63_Beginning_of_Existence ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "CIDOC-CRM E63 Beginning of Existence — a value-to-class alignment" ;
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .
+
+gmeow:eqLifecycle006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeDestruction ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:E64_End_of_Existence ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "CIDOC-CRM E64 End of Existence — a value-to-class alignment" ;
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .
+
+gmeow:eqLifecycle007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeSupersession ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:E81_Transformation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "CIDOC-CRM E81 Transformation — one entity ceases and another begins" ;
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .
+
+gmeow:eqLifecycle008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeDissolution ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:E64_End_of_Existence ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "CIDOC-CRM E64 End of Existence — dissolution as a specific kind of end-of-existence event type" ;
+    gmeow:sssomFile "gmeow-lifecycle.sssom.tsv" .

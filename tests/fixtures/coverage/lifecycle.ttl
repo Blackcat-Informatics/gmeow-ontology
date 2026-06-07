@@ -1,0 +1,51 @@
+# Coverage fixture for the lifecycle module (#81).
+# A medieval village that ceased to exist, and an org that dissolved and was
+# superseded by another. All statements validate against shapes/gmeow-shapes.ttl.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lifecycle/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# A medieval village with a known destruction event.
+ex:medievalVillage a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeCity ;
+    gmeow:hasCreationEvent ex:villageFounded ;
+    gmeow:hasDestructionEvent ex:villageDestroyed ;
+    gmeow:existenceInterval ex:villageInterval .
+
+ex:villageFounded a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeCreation ;
+    gmeow:eventTime "1100-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:villageDestroyed a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeDestruction ;
+    gmeow:eventTime "1348-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:villageInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1100-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime   "1348-01-01T00:00:00Z"^^xsd:dateTime .
+
+# An organization that dissolved and was superseded.
+ex:oldCompany a gmeow:Organization ;
+    gmeow:name "OldCo Ltd" ;
+    gmeow:hasCreationEvent ex:oldCoFounded ;
+    gmeow:hasDestructionEvent ex:oldCoDissolved ;
+    gmeow:supersededBy ex:newCompany ;
+    gmeow:displayable false .
+
+ex:newCompany a gmeow:Organization ;
+    gmeow:name "NewCo Inc" ;
+    gmeow:hasCreationEvent ex:newCoFounded ;
+    gmeow:supersedes ex:oldCompany .
+
+ex:oldCoFounded a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeCreation ;
+    gmeow:eventTime "1990-03-15T00:00:00Z"^^xsd:dateTime .
+
+ex:oldCoDissolved a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeDissolution ;
+    gmeow:eventTime "2023-06-30T00:00:00Z"^^xsd:dateTime .
+
+ex:newCoFounded a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeCreation ;
+    gmeow:eventTime "2023-07-01T00:00:00Z"^^xsd:dateTime .

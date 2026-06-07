@@ -1,0 +1,28 @@
+# Contested existence fixture for the lifecycle module (#81).
+# Two standpoint-indexed existence claims for the same disputed place — both
+# retained, neither privileged. Validates against shapes/gmeow-shapes.ttl.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lifecycle/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:disputedPlace a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeRegion .
+
+# Claim A: the place existed from 1000 CE to 1500 CE (per Historian A).
+ex:existenceA a gmeow:EntityExistence ;
+    gmeow:existenceEntity ex:disputedPlace ;
+    gmeow:duringInterval ex:intervalA .
+
+ex:intervalA a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1000-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime   "1500-12-31T00:00:00Z"^^xsd:dateTime .
+
+# Claim B: the place existed from 1000 CE to 1700 CE (per Historian B).
+ex:existenceB a gmeow:EntityExistence ;
+    gmeow:existenceEntity ex:disputedPlace ;
+    gmeow:duringInterval ex:intervalB .
+
+ex:intervalB a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1000-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime   "1700-12-31T00:00:00Z"^^xsd:dateTime .
