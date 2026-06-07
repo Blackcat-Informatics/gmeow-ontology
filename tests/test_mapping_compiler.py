@@ -57,8 +57,9 @@ def test_dsl_parses() -> None:
     assert len(dsl.functions) == 22
     # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint,
     # gmeow-events, gmeow-rights, gmeow-coreference, gmeow-determinacy, gmeow-privacy).
-    # Issue #70 adds gmeow-qudt, gmeow-fibo, gmeow-temporal, gmeow-colourspace.
-    assert len(dsl.mapping_sets) == 23
+    # Issue #70 adds gmeow-qudt, gmeow-fibo, gmeow-temporal.
+    # gmeow-colourspace is intentionally omitted (no TermEquivalence entries).
+    assert len(dsl.mapping_sets) == 22
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}

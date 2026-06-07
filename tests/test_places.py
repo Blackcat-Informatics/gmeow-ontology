@@ -172,11 +172,11 @@ def test_location_superset_core() -> None:
 
     # 2. Value scaffold individuals
     for ind in (
-        "spatialRealmTerrestrial",
-        "spatialRealmIndoor",
-        "spatialRealmVirtual",
-        "spatialRealmCelestial",
-        "spatialRealmRobotic",
+        "frameRealmTerrestrial",
+        "frameRealmIndoor",
+        "frameRealmVirtual",
+        "frameRealmCelestial",
+        "frameRealmRobotic",
     ):
         assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "FrameRealm")) in graph
     for ind in (
@@ -211,6 +211,7 @@ def test_location_superset_core() -> None:
         "axisMagenta",
         "axisYellow",
         "axisKey",
+        "axisScalar",
     ):
         assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "Axis")) in graph
     for ind in (

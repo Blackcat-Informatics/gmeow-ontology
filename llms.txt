@@ -307,7 +307,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasProhibition [gmeow:RightsStatement → gmeow:Prohibition]: Relates a rights statement to a prohibition it imposes (an odrl:prohibition rule).
 - gmeow:hasPronounSet [gmeow:Person → gmeow:PronounSet]: Relates a person to a pronoun set they go by. Non-functional and contextual (scope a context-specific set with gmeow:validFrom/validUntil on the statement, or via a NameUsage). A form of ADDRESS, sex/gender-independent — MUST NOT be inferred from gender identity/expression, sex-assigned-at-birth or orientation.
 - gmeow:hasRecurrenceRule [gmeow:EventSeries → gmeow:RecurrenceRule]: Relates an event series to the recurrence rule by which it repeats.
-- gmeow:hasReferenceFrame [gmeow:Entity → gmeow:ReferenceFrame]: Relates an entity or value to the reference frame in which it is expressed.
+- gmeow:hasReferenceFrame [? → gmeow:ReferenceFrame]: Relates an entity or value to the reference frame in which it is expressed.
 - gmeow:hasRelayHop [gmeow:Message → gmeow:RelayHop]: Relates a message to a hop in its delivery path.
 - gmeow:hasRepository [gmeow:SoftwareProject → gmeow:Repository]: Relates a software project to a source-code repository.
 - gmeow:hasRightsStatement [gmeow:Entity → gmeow:RightsStatement]: Relates an entity (typically a gmeow:CreativeWork or gmeow:InformationObject) to a machine-readable rights statement that governs it — the GMEOW analogue of odrl:hasPolicy.
@@ -595,6 +595,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisMonth (a gmeow:Axis): month
 - gmeow:axisRed (a gmeow:Axis): red channel
 - gmeow:axisRightAscension (a gmeow:Axis): right ascension
+- gmeow:axisScalar (a gmeow:Axis): scalar axis
 - gmeow:axisSecond (a gmeow:Axis): second
 - gmeow:axisVirtualAddress (a gmeow:Axis): virtual address axis
 - gmeow:axisX (a gmeow:Axis): X axis
@@ -678,11 +679,16 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:frameKindPolar (a gmeow:FrameKind): polar
 - gmeow:frameKindScalar (a gmeow:FrameKind): scalar
 - gmeow:frameKindTemporal (a gmeow:FrameKind): temporal
+- gmeow:frameRealmCelestial (a gmeow:FrameRealm): celestial / astronomical
 - gmeow:frameRealmColourspace (a gmeow:FrameRealm): colourspace
 - gmeow:frameRealmCurrency (a gmeow:FrameRealm): currency
+- gmeow:frameRealmIndoor (a gmeow:FrameRealm): indoor
 - gmeow:frameRealmLinguistic (a gmeow:FrameRealm): linguistic
 - gmeow:frameRealmMeasurement (a gmeow:FrameRealm): measurement
+- gmeow:frameRealmRobotic (a gmeow:FrameRealm): robotic
 - gmeow:frameRealmTemporal (a gmeow:FrameRealm): temporal
+- gmeow:frameRealmTerrestrial (a gmeow:FrameRealm): terrestrial
+- gmeow:frameRealmVirtual (a gmeow:FrameRealm): virtual / network
 - gmeow:genderAgender (a gmeow:Gender): agender
 - gmeow:genderBigender (a gmeow:Gender): bigender
 - gmeow:genderDemiboy (a gmeow:Gender): demiboy

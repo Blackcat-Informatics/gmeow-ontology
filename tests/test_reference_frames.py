@@ -14,7 +14,7 @@ def test_measurement_reference_frame_passes() -> None:
     g = Graph()
     g.add((EX.siFrame, RDF.type, GMEOW.ReferenceFrame))
     g.add((EX.siFrame, GMEOW.frameRealm, GMEOW.frameRealmMeasurement))
-    g.add((EX.siFrame, GMEOW.hasAxis, EX.axisX))
+    g.add((EX.siFrame, GMEOW.hasAxis, EX.axisScalar))
     g.add(
         (EX.siFrame, GMEOW.dimensionCount, Literal(1, datatype=XSD.nonNegativeInteger))
     )
@@ -23,7 +23,7 @@ def test_measurement_reference_frame_passes() -> None:
     g.add((EX.siFrame, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
 
     g.add((GMEOW.frameRealmMeasurement, RDF.type, GMEOW.FrameRealm))
-    g.add((EX.axisX, RDF.type, GMEOW.Axis))
+    g.add((EX.axisScalar, RDF.type, GMEOW.Axis))
     g.add((GMEOW.frameKindScalar, RDF.type, GMEOW.FrameKind))
     g.add((GMEOW.determinacyCrisp, RDF.type, GMEOW.Determinacy))
 
@@ -36,7 +36,7 @@ def test_currency_reference_frame_passes() -> None:
     g = Graph()
     g.add((EX.usdFrame, RDF.type, GMEOW.ReferenceFrame))
     g.add((EX.usdFrame, GMEOW.frameRealm, GMEOW.frameRealmCurrency))
-    g.add((EX.usdFrame, GMEOW.hasAxis, EX.axisX))
+    g.add((EX.usdFrame, GMEOW.hasAxis, EX.axisScalar))
     g.add(
         (EX.usdFrame, GMEOW.dimensionCount, Literal(1, datatype=XSD.nonNegativeInteger))
     )
@@ -45,7 +45,7 @@ def test_currency_reference_frame_passes() -> None:
     g.add((EX.usdFrame, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
 
     g.add((GMEOW.frameRealmCurrency, RDF.type, GMEOW.FrameRealm))
-    g.add((EX.axisX, RDF.type, GMEOW.Axis))
+    g.add((EX.axisScalar, RDF.type, GMEOW.Axis))
     g.add((GMEOW.frameKindScalar, RDF.type, GMEOW.FrameKind))
     g.add((GMEOW.determinacyCrisp, RDF.type, GMEOW.Determinacy))
 
@@ -116,7 +116,7 @@ def test_linguistic_reference_frame_passes() -> None:
     g = Graph()
     g.add((EX.englishFrame, RDF.type, GMEOW.ReferenceFrame))
     g.add((EX.englishFrame, GMEOW.frameRealm, GMEOW.frameRealmLinguistic))
-    g.add((EX.englishFrame, GMEOW.hasAxis, EX.axisX))
+    g.add((EX.englishFrame, GMEOW.hasAxis, EX.axisScalar))
     g.add(
         (
             EX.englishFrame,
@@ -129,7 +129,7 @@ def test_linguistic_reference_frame_passes() -> None:
     g.add((EX.englishFrame, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
 
     g.add((GMEOW.frameRealmLinguistic, RDF.type, GMEOW.FrameRealm))
-    g.add((EX.axisX, RDF.type, GMEOW.Axis))
+    g.add((EX.axisScalar, RDF.type, GMEOW.Axis))
     g.add((GMEOW.frameKindScalar, RDF.type, GMEOW.FrameKind))
     g.add((GMEOW.determinacyCrisp, RDF.type, GMEOW.Determinacy))
 

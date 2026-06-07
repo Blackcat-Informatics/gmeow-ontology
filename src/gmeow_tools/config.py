@@ -470,4 +470,7 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "fibo-fnd-acc-cur": AlignmentTarget(
         "FIBO CurrencyAmount", PREFIXES["fibo-fnd-acc-cur"], "MIT", "schema"
     ),
+    "lvont": AlignmentTarget(
+        "Lexvo Ontology", PREFIXES["lvont"], "CC-BY-SA-3.0", "schema"
+    ),
 }

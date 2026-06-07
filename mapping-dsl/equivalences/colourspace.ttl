@@ -6,13 +6,15 @@
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 
 # Term equivalences for the colourspace domain — GMEOW authoring source.
-# Compiled to mappings/gmeow-colourspace.sssom.tsv by `gmeow compile-mappings`.
 #
 # No mature, widely-adopted RDF/OWL colourspace ontology exists. ICC profiles are
 # binary file formats; CSS Color Module is a rendering spec; ONVIF provides only
 # XML namespace strings for colourspace attributes. GMEOW therefore mints its own
 # seed ReferenceFrame individuals (sRGB, CMYK) and uses frameSolver to point to
 # authoritative procedural specs by reference (Principle 12).
+#
+# No MappingSet is declared because there are no TermEquivalence entries to
+# compile. The gap is documented here as plain comments (Principle 5).
 
 # REFUSED (Principle 5 — no faithful external term):
 #   No external ontology provides a rigorous conceptual model of colourspace as
@@ -21,9 +23,3 @@
 # REFUSED (Principle 5):
 #   gmeow:FrameRealm, gmeow:FrameKind, gmeow:Axis have no colourspace-specific
 #   external counterparts.
-
-gmeow:mapsetColourspace a gmeow:MappingSet ;
-    gmeow:sssomFile "gmeow-colourspace.sssom.tsv" ;
-    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/colourspace" ;
-    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Colourspace alignments. No mature target ontology exists; this mapping set is intentionally minimal, documenting the gap. Seed frames (sRGB, CMYK) are canonical GMEOW terms with frameSolver references to ICC specifications." .
