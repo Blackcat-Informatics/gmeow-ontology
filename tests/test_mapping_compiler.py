@@ -58,7 +58,8 @@ def test_dsl_parses() -> None:
     # determinacy x1, Wikidata x2).
     # Issue #68 standpoint enhancement: +2 (StandpointClaim→sosa:Observation,
     # Agent→sosa:Sensor).
-    assert len(dsl.equivalences) == 806
+    # Issue #95 distance/metric: +1 (proximity→schema:distance).
+    assert len(dsl.equivalences) == 807
     # 22 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72).
     assert len(dsl.functions) == 22

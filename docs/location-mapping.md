@@ -158,6 +158,54 @@ Every measured or expressed value is relative to an explicit reference system. G
 
 Seed reference frames are provided for all realms — spatial (WGS-84, local grid, celestial equatorial, robot base, virtual platform), measurement (SI), currency (USD), temporal (Gregorian, Unix epoch), colourspace (sRGB, CMYK), and linguistic (English). External ontologies are aligned by reference: QUDT and OM for measurement, FIBO for currency, OWL-Time `time:TRS` for temporal reference systems, and Lexvo for language instances.
 
+## Distance, Proximity, and Frame-Declared Metrics (#95)
+
+`gmeow:MetricKind` is a value vocabulary (individuals, never subclasses) that names the computational method by which distance or dissimilarity is calculated in a reference frame. A frame declares its metric via **`gmeow:hasMetricKind`**:
+
+- **`metricGeodesic`** — shortest path along a curved surface (great-circle on WGS-84, celestial sphere).
+- **`metricEuclidean`** — straight-line distance in Cartesian space (indoor grids, robot bases).
+- **`metricCosine`** — angular proximity in a latent vector space.
+- **`metricEditDistance`** — string or sequence dissimilarity (Levenshtein, Hamming).
+- **`metricGraphHops`** — shortest-path edge count in a network.
+
+The metric is **declared in the frame, computed by the solver** (Principle 12). The ontology never asserts numeric proximity values; it provides the structure for the solver to compute them.
+
+### ProximityMeasurement — the reified relator
+
+A **`gmeow:ProximityMeasurement`** is a `gmeow:Measurement` subclass that records distance between two entities. The flat shortcut `gmeow:proximity` links an entity to its measurement; the measurement itself carries:
+
+- `gmeow:observedFeature` — the entity measured *from* (inherited from Observation).
+- `gmeow:proximityTo` — the target entity.
+- `gmeow:observationResult` → `gmeow:ScalarQuantity` — the numeric value, unit (QUDT), and reference frame.
+
+```turtle
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://example.org/loc/> .
+
+ex:office a gmeow:Place ; gmeow:locatedAt ex:buildingA .
+ex:home   a gmeow:Place ; gmeow:locatedAt ex:buildingB .
+
+ex:commute a gmeow:ProximityMeasurement ;
+    gmeow:observedFeature ex:office ;
+    gmeow:proximityTo ex:home ;
+    gmeow:observationResult [
+        a gmeow:ScalarQuantity ;
+        gmeow:quantityValue "12.4"^^xsd:decimal ;
+        gmeow:hasUnit <http://qudt.org/vocab/unit/KM> ;
+        gmeow:hasReferenceFrame gmeow:referenceFrameWGS84
+    ] ;
+    gmeow:vantage ex:commuterApp .
+```
+
+The `hasReferenceFrame` on the `ScalarQuantity` points to `referenceFrameWGS84`, whose `hasMetricKind` is `metricGeodesic`. A GeoSPARQL solver would resolve this to `geof:distance` with the WGS-84 CRS; a graph solver would use Dijkstra for `metricGraphHops`; a vector store would compute cosine similarity for `metricCosine`.
+
+### Alignment to surface vocabularies
+
+- **schema.org**: `gmeow:proximity` `skos:closeMatch` `schema:distance` (directional lossy: schema.org uses flat `QuantitativeValue`; GMEOW uses reified Measurement with frame-declared metric).
+- **GeoSPARQL**: `geof:distance` is a function, not an assertable property. The projection layer maps `ProximityMeasurement` with `metricGeodesic`/`metricEuclidean` to the appropriate GeoSPARQL distance call pattern.
+- **QUDT**: No direct counterpart for `MetricKind` or `hasMetricKind`. QUDT models units and quantity kinds, not computational distance metrics.
+
 ### Authoring Guidance: Adding a Novel Realm
 
 To introduce a new domain (e.g. a proprietary robotic configuration space, a custom calendar, or a specialised colourspace) without modifying the core ontology classes:

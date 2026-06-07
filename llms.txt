@@ -98,6 +98,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:Message (⊑ gmeow:InformationObject): A communication sent from one agent to others — the parent of email and other message kinds.
 - gmeow:MessageHeader (⊑ gmeow:InformationObject): A single RFC 5322 header field (name and value) of a message.
 - gmeow:MessageKeyword (⊑ gufo:QualityValue): A flag/keyword applied to a message (IMAP flag or JMAP keyword) such as seen, flagged, answered, draft, forwarded, or junk.
+- gmeow:MetricKind (⊑ gufo:QualityValue): The computational method by which distance or dissimilarity is measured in a reference frame — geodesic (curved surface), Euclidean (straight-line in Cartesian space), cosine (angular similarity in latent vector space), edit-distance (Levenshtein / sequence alignment), or graph-hops (shortest-path in a network). A value vocabulary (individuals, never subclasses) per Principle 9.
 - gmeow:NamePart (⊑ gmeow:InformationObject): A reified component of a structured appellation — a given name, a surname, a patronymic, a nobiliary particle, an Arabic nisba, a filename extension. Its kind is the value gmeow:namePartType, its text is gmeow:partText, and gmeow:partOrder records its position WITHOUT implying a Western given-before-family order.
 - gmeow:NamePartType (⊑ gufo:QualityValue): The kind of a name part (given, surname, patronymic, particle, Arabic nisba, filename extension, …). A value, not a NamePart subclass: naming systems worldwide contribute an open-ended set of part kinds that share NamePart's structure.
 - gmeow:NamePurpose (⊑ gufo:QualityValue): The purpose/kind of a whole appellation (legal, birth, chosen, professional, deadname, …). A value, not a PersonName subclass; a person may simultaneously bear several co-equal names of different purposes.
@@ -133,6 +134,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:ProgrammingLanguage (⊑ gmeow:FormalLanguage): A formal language for expressing executable computation (Python, Rust, SQL-as-implemented). The first-class target of gmeow:writtenInLanguage, by which a software project declares the languages it is written in.
 - gmeow:Prohibition (⊑ gmeow:Rule): A rule that forbids the exercise of a gmeow:RightsAction over the governed asset (odrl:Prohibition).
 - gmeow:PronounSet (⊑ gmeow:InformationObject): A set of third-person pronouns a person goes by, in the five English forms (subject, object, possessive determiner, possessive pronoun, reflexive). Sex/gender INDEPENDENT and contextual. A known set is one of the gmeow:PronounSet value individuals; any other set is expressed by filling the five form properties on a fresh PronounSet instance.
+- gmeow:ProximityMeasurement (⊑ gmeow:Measurement): A measurement of distance, dissimilarity, or proximity between two entities, expressed as a scalar quantity in a reference frame that declares its metric kind. The observedFeature is the entity measured from; gmeow:proximityTo names the target entity; gmeow:observationResult points to the scalar value. Computed by the solver (Principle 12), not asserted in the OWL core.
 - gmeow:RecurrenceRule (⊑ gmeow:InformationObject): A rule by which a gmeow:EventSeries repeats — weekly, every-first-Monday, annually. Carries an RFC 5545 RRULE string via gmeow:recurrenceRuleText. (= ISO-TimeML TIMEX3 type=SET with freq/quant, iCalendar RRULE, schema:Schedule, TEO periodic time interval.)
 - gmeow:ReferenceFrame (⊑ gmeow:Entity, gufo:Object): A reference system (such as a coordinate system, datum, grid, or platform space) relative to which locations, coordinates, or measurements are expressed.
 - gmeow:ReferencePosition (⊑ gmeow:Entity, gufo:Object): The spatial locus, observatory, timezone, or planetary body relative to which a time is expressed — e.g. an observatory longitude for local sidereal time, an IANA timezone for civil time, or a planet for planetary calendars.
@@ -314,6 +316,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasLicense [gmeow:Entity → gmeow:License]: Relates an entity (a work, dataset, software project, …) to a licence granting rights in it (dcterms:license; schema:license). Named gmeow:hasLicense — gmeow:license is reserved for the mapping-DSL set-license datatype property.
 - gmeow:hasMember [gmeow:Organization → gmeow:Agent]: Relates an organization to one of its member agents; the inverse of memberOf.
 - gmeow:hasMet [gmeow:Agent → gmeow:Agent]: Records that two agents have met; symmetric. The occasion/period is carried with gmeow:validFrom/validUntil on the statement.
+- gmeow:hasMetricKind [gmeow:ReferenceFrame → gmeow:MetricKind] (functional): The distance or dissimilarity metric declared by this reference frame. Functional: a frame uses exactly one metric kind for all proximity computations expressed in it. The actual computation is performed by the solver (Principle 12), never materialised as asserted triples in the OWL core.
 - gmeow:hasMother [gmeow:Person → gmeow:Person]: Relates a person to a female parent.
 - gmeow:hasName [gmeow:Person → gmeow:PersonName]: Relates a person to a structured, typed PersonName they bear; the person-scoped specialization of gmeow:hasAppellation. Non-functional — a person bears many co-equal names.
 - gmeow:hasNamePart [gmeow:Appellation → gmeow:NamePart]: Relates an appellation to one of its reified, typed parts. Non-functional — a name has many parts. A specialized information-object component relation under the universal gmeow:hasPart spine.
@@ -470,6 +473,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:pronounPossessiveDeterminer [gmeow:PronounSet → rdfs:Literal] (functional): The possessive determiner form of a pronoun set, e.g. "her", "their", "xyr".
 - gmeow:pronounReflexive [gmeow:PronounSet → rdfs:Literal] (functional): The reflexive form of a pronoun set, e.g. "herself", "themself", "xemself".
 - gmeow:pronounSubject [gmeow:PronounSet → rdfs:Literal] (functional): The subject (nominative) form of a pronoun set, e.g. "she", "they", "xe".
+- gmeow:proximity [gmeow:Entity → gmeow:ProximityMeasurement]: Links an entity to a proximity measurement describing its distance or dissimilarity to another entity. The measurement carries the scalar value (via observationResult → ScalarQuantity), the reference frame (via hasReferenceFrame), and the target entity (via proximityTo). Flat form for the common case; promote to full reified Measurement when vantage, confidence, temporal scope, or standpoint matter.
+- gmeow:proximityTo [gmeow:ProximityMeasurement → gmeow:Entity] (functional): The target entity to which proximity is measured. Functional: a different target entity is a different proximity measurement (constitutive of the relator's identity).
 - gmeow:quantityUncertainty [gmeow:ScalarQuantity → xsd:decimal] (functional): The uncertainty (e.g. ±1 sigma) of a scalar quantity, in the same unit as the quantity value.
 - gmeow:quantityValue [gmeow:ScalarQuantity → xsd:decimal] (functional): The numeric value of a scalar quantity.
 - gmeow:rcc8dc [gmeow:Location → gmeow:Location]: RCC-8: Disconnected (DC) — regions are disjoint and do not share any point.
@@ -879,6 +884,11 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:methodInstrumentalReading (a gmeow:ObservationMethod): Observation by a calibrated instrument or sensor.
 - gmeow:methodRemoteSensing (a gmeow:ObservationMethod): Observation from a distance, typically satellite or aerial imagery.
 - gmeow:methodSurvey (a gmeow:ObservationMethod): A systematic survey or census procedure.
+- gmeow:metricCosine (a gmeow:MetricKind): Angular proximity in a latent vector space (1 − cosine distance).
+- gmeow:metricEditDistance (a gmeow:MetricKind): String or sequence dissimilarity (Levenshtein, Hamming, Damerau-Levenshtein, etc.).
+- gmeow:metricEuclidean (a gmeow:MetricKind): Straight-line distance in a Cartesian or flat space.
+- gmeow:metricGeodesic (a gmeow:MetricKind): Shortest path along a curved surface (e.g. great-circle on a spheroid).
+- gmeow:metricGraphHops (a gmeow:MetricKind): Shortest-path edge count in a network or graph.
 - gmeow:modalityMachine (a gmeow:LanguageModality): machine / programmatic
 - gmeow:modalityMultimodal (a gmeow:LanguageModality): multimodal
 - gmeow:modalitySigned (a gmeow:LanguageModality): signed

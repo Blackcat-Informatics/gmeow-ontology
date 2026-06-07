@@ -394,3 +394,12 @@ gmeow:eqPlaces049 a gmeow:TermEquivalence ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "spatial region" ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces050 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:proximity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:distance ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "schema.org:distance is a flat property with range QuantitativeValue or Text; GMEOW proximity is a reified Measurement with frame-declared metric kind. Directional lossy projection." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .

@@ -64,6 +64,7 @@ gmeow:postOfficeBox	skos:closeMatch	schema:postOfficeBoxNumber		semapv:ManualMap
 gmeow:postOfficeBox	skos:closeMatch	vcard:post-office-box		semapv:ManualMappingCuration	0.9	
 gmeow:postalCode	owl:equivalentProperty	schema:postalCode		semapv:ManualMappingCuration	1.0	
 gmeow:postalCode	skos:closeMatch	vcard:postal-code		semapv:ManualMappingCuration	0.9	
+gmeow:proximity	skos:closeMatch	schema:distance		semapv:ManualMappingCuration	0.75	schema.org:distance is a flat property with range QuantitativeValue or Text; GMEOW proximity is a reified Measurement with frame-declared metric kind. Directional lossy projection.
 gmeow:streetAddress	owl:equivalentProperty	schema:streetAddress		semapv:ManualMappingCuration	1.0	
 gmeow:streetAddress	skos:closeMatch	vcard:street-address		semapv:ManualMappingCuration	0.9	
 gmeow:timezone	skos:closeMatch	vcard:tz		semapv:ManualMappingCuration	0.9	
