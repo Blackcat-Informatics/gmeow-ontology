@@ -358,6 +358,7 @@ export enum EventTypeEnum {
 
     adoption = "eventTypeAdoption",
     annulment = "eventTypeAnnulment",
+    audit = "eventTypeAudit",
     baptism = "eventTypeBaptism",
     bar_mitzvah = "eventTypeBarMitzvah",
     bat_mitzvah = "eventTypeBatMitzvah",
@@ -365,6 +366,7 @@ export enum EventTypeEnum {
     burial = "eventTypeBurial",
     census = "eventTypeCensus",
     christening = "eventTypeChristening",
+    clinical_trial = "eventTypeClinicalTrial",
     confirmation = "eventTypeConfirmation",
     creation = "eventTypeCreation",
     cremation = "eventTypeCremation",
@@ -374,6 +376,7 @@ export enum EventTypeEnum {
     divorce = "eventTypeDivorce",
     emigration = "eventTypeEmigration",
     engagement = "eventTypeEngagement",
+    excavation = "eventTypeExcavation",
     expression_creation = "eventTypeExpressionCreation",
     first_communion = "eventTypeFirstCommunion",
     funeral = "eventTypeFuneral",
@@ -390,6 +393,7 @@ export enum EventTypeEnum {
     retirement = "eventTypeRetirement",
     separation = "eventTypeSeparation",
     supersession = "eventTypeSupersession",
+    survey = "eventTypeSurvey",
     will = "eventTypeWill",
     work_conception = "eventTypeWorkConception",
 };
@@ -2019,6 +2023,7 @@ export interface Event {
     eventAspect?: GrammaticalAspect[],
     eventInterval?: TimeInterval[],
     eventLocation?: Location[],
+    eventObservation?: Observation[],
     eventSpacetime?: LocationState[],
     eventTemporalFrame?: TemporalFrame,
     eventTense?: GrammaticalTense[],
@@ -2694,6 +2699,12 @@ export interface ObservationMethod {
 
 
 export interface ObservationType {
+}
+
+
+
+export interface ObservationalActivity extends Activity {
+    generatedObservation?: Observation[],
 }
 
 

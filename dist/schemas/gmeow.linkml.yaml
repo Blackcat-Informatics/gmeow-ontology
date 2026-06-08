@@ -505,6 +505,7 @@ classes:
     - eventAspect
     - eventInterval
     - eventLocation
+    - eventObservation
     - eventSpacetime
     - eventTemporalFrame
     - eventTense
@@ -1086,6 +1087,12 @@ classes:
   ObservationType:
     class_uri: https://blackcatinformatics.ca/gmeow/ObservationType
     title: Observation Type
+  ObservationalActivity:
+    class_uri: https://blackcatinformatics.ca/gmeow/ObservationalActivity
+    title: Observational Activity
+    is_a: Activity
+    slots:
+    - generatedObservation
   Occupancy:
     class_uri: https://blackcatinformatics.ca/gmeow/Occupancy
     title: Occupancy
@@ -2637,6 +2644,12 @@ slots:
     range: Location
     domain: Event
     multivalued: true
+  eventObservation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/eventObservation
+    title: event observation
+    range: Observation
+    domain: Event
+    multivalued: true
   eventSpacetime:
     slot_uri: https://blackcatinformatics.ca/gmeow/eventSpacetime
     title: event spacetime
@@ -2839,6 +2852,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/generalizesVia
     title: generalizes via
     range: string
+  generatedObservation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/generatedObservation
+    title: generated observation
+    range: Observation
+    domain: ObservationalActivity
+    multivalued: true
   geocodeFrame:
     slot_uri: https://blackcatinformatics.ca/gmeow/geocodeFrame
     title: geocode frame
@@ -6675,6 +6694,9 @@ enums:
       eventTypeAnnulment:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeAnnulment
         title: annulment
+      eventTypeAudit:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeAudit
+        title: audit
       eventTypeBaptism:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeBaptism
         title: baptism
@@ -6696,6 +6718,9 @@ enums:
       eventTypeChristening:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeChristening
         title: christening
+      eventTypeClinicalTrial:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeClinicalTrial
+        title: clinical trial
       eventTypeConfirmation:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeConfirmation
         title: confirmation
@@ -6723,6 +6748,9 @@ enums:
       eventTypeEngagement:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeEngagement
         title: engagement
+      eventTypeExcavation:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeExcavation
+        title: excavation
       eventTypeExpressionCreation:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeExpressionCreation
         title: expression creation
@@ -6771,6 +6799,9 @@ enums:
       eventTypeSupersession:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeSupersession
         title: supersession
+      eventTypeSurvey:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeSurvey
+        title: survey
       eventTypeWill:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeWill
         title: will
