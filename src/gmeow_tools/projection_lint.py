@@ -60,7 +60,7 @@ _PROFILE_TARGETS: dict[str, tuple[str, ...]] = {
     "cc": ("cc",),
     "dcterms": ("dcterms",),
     "spdx": ("spdx",),
-    "sosa": ("sosa",),
+    "sosa": ("sosa", "geo"),
 }
 
 #: Target terms a compose/decompose transform legitimately MINTS — intermediate
