@@ -36,7 +36,7 @@ import yaml
 from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
 from rdflib.term import BNode
 
-from gmeow_tools.config import PREFIXES, SCHEMAS_DIR
+from gmeow_tools.config import PREFIXES, SCHEMAS_DIR, VERSION
 from gmeow_tools.graph import load_merged_graph
 
 _GMEOW = Namespace(PREFIXES["gmeow"])
@@ -199,8 +199,18 @@ def emit_linkml(graph: Graph) -> tuple[dict[str, Any], list[str]]:
             key=str,
         )
         if supers:
-            super_local = _local_name(supers[0])
-            super_iri = supers[0]
+            # Prefer a GMEOW superclass already known in class_names;
+            # fall back to the first sorted superclass otherwise.
+            chosen = next(
+                (
+                    s
+                    for s in supers
+                    if _is_gmeow_iri(s) and _local_name(s) in class_names
+                ),
+                supers[0],
+            )
+            super_local = _local_name(chosen)
+            super_iri = chosen
             if super_local == local:
                 warnings.append(f"{local}: self-referential superclass — dropping is_a")
             elif _is_gmeow_iri(super_iri) and super_local in class_names:
@@ -398,7 +408,7 @@ def gen_openapi(json_schema_text: str) -> str:
                 "OpenAPI 3.1 derived from the GMEOW LinkML developer schema. "
                 "Lossy by design — see gmeow.linkml.yaml for caveats."
             ),
-            "version": "0.1.0",
+            "version": VERSION,
         },
         "paths": {
             "/entities/{id}": {
@@ -580,6 +590,8 @@ def compile_schemas(
         )
 
         if check:
+            if reconcile:
+                _reconcile_canonical(tmp_dir, warnings)
             drifted = _drift(tmp_dir, SCHEMAS_DIR)
             return SchemaCompileReport(drifted=drifted, warnings=warnings)
 

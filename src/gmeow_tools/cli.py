@@ -266,6 +266,12 @@ def compile_schemas_cmd(
     from gmeow_tools.config import PROJECT_ROOT, SCHEMAS_DIR
     from gmeow_tools.schema_compile import SchemaCompileReport, compile_schemas
 
+    if check and reconcile:
+        raise _fail(
+            "--check and --reconcile are mutually exclusive. "
+            "Use --check to verify drift, or --reconcile to cross-check context."
+        )
+
     report: SchemaCompileReport = compile_schemas(check=check, reconcile=reconcile)
 
     for warning in report.warnings:
