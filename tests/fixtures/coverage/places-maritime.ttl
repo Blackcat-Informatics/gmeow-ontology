@@ -1,0 +1,80 @@
+# Coverage slice for maritime zones (#93). Exercises contested EEZ
+# (RegulatoryOverlay + JurisdictionTenure + standpoint), 3D depth bounds
+# with maritime reference frames, and MRGID-style gazetteer coreference.
+# Native GMEOW terms only.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000-01/rdf-schema#> .
+@prefix qudt:  <http://qudt.org/vocab/unit/> .
+
+# --- Standpoints ------------------------------------------------------------- #
+ex:standpoint-state-a  a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-state-b  a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# --- Agents ------------------------------------------------------------------ #
+ex:stateA        a gmeow:Organization ; rdfs:label "State A Foreign Ministry"@en .
+ex:stateB        a gmeow:Organization ; rdfs:label "State B Foreign Ministry"@en .
+
+# --- Places ------------------------------------------------------------------ #
+ex:disputedSeaArea a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeNaturalFeature ;
+    rdfs:label "Disputed Sea Area"@en .
+
+# --- Contested EEZ — two standpoint-indexed RegulatoryOverlays on same place --- #
+
+ex:eezClaimA a gmeow:RegulatoryOverlay ;
+    gmeow:overlayPlace ex:disputedSeaArea ;
+    gmeow:overlayAuthority ex:stateA ;
+    gmeow:overlayType gmeow:overlayTypeFishingZone ;
+    gmeow:overlayDesignator "EEZ-STATE-A-01" ;
+    gmeow:overlayDeterminacy gmeow:determinacyDisputed ;
+    gmeow:overlayLowerBound ex:depth0 ;
+    gmeow:overlayUpperBound ex:depth200 ;
+    gmeow:accordingTo ex:standpoint-state-a ;
+    gmeow:duringInterval ex:intervalOngoing .
+
+ex:eezClaimB a gmeow:RegulatoryOverlay ;
+    gmeow:overlayPlace ex:disputedSeaArea ;
+    gmeow:overlayAuthority ex:stateB ;
+    gmeow:overlayType gmeow:overlayTypeFishingZone ;
+    gmeow:overlayDesignator "EEZ-STATE-B-01" ;
+    gmeow:overlayDeterminacy gmeow:determinacyDisputed ;
+    gmeow:overlayLowerBound ex:depth0 ;
+    gmeow:overlayUpperBound ex:depth200 ;
+    gmeow:accordingTo ex:standpoint-state-b ;
+    gmeow:duringInterval ex:intervalOngoing .
+
+# --- JurisdictionTenure for the same place (sovereignty claim) ---------------- #
+
+ex:jurisdictionA a gmeow:JurisdictionTenure ;
+    gmeow:jurisdictionPlace ex:disputedSeaArea ;
+    gmeow:jurisdictionPolity ex:stateA ;
+    gmeow:jurisdictionDeterminacy gmeow:determinacyDisputed ;
+    gmeow:accordingTo ex:standpoint-state-a ;
+    gmeow:duringInterval ex:intervalOngoing .
+
+ex:jurisdictionB a gmeow:JurisdictionTenure ;
+    gmeow:jurisdictionPlace ex:disputedSeaArea ;
+    gmeow:jurisdictionPolity ex:stateB ;
+    gmeow:jurisdictionDeterminacy gmeow:determinacyDisputed ;
+    gmeow:accordingTo ex:standpoint-state-b ;
+    gmeow:duringInterval ex:intervalOngoing .
+
+# --- 3D depth bounds using maritime reference frame ---------------------------- #
+
+ex:depth0 a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "0"^^xsd:decimal ;
+    gmeow:hasUnit qudt:M ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameDepthBelowSeaLevel .
+
+ex:depth200 a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "200"^^xsd:decimal ;
+    gmeow:hasUnit qudt:M ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameDepthBelowSeaLevel .
+
+# --- Time intervals ---------------------------------------------------------- #
+ex:intervalOngoing a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2020-01-01T00:00:00Z"^^xsd:dateTime .

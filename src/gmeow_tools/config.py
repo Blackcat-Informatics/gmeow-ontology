@@ -265,6 +265,7 @@ PREFIXES: dict[str, str] = {
     "pleiades": "http://pleiades.stoa.org/places/vocab#",
     "whg": "https://whgazetteer.org/",
     "gvp": "http://vocab.getty.edu/ontology#",
+    "mrg": "http://marineregions.org/ns/ontology#",
     "bibo": "http://purl.org/ontology/bibo/",
     "bibframe": "http://id.loc.gov/ontologies/bibframe/",
     "dpv": "https://w3id.org/dpv#",

@@ -151,7 +151,8 @@ def test_dsl_parses() -> None:
     #  methodGPS/TotalStation/Photogrammetry→Wikidata).
     # Issue #92 cadastral / land administration: +14 (LADM x5, INSPIRE CP x7,
     # Wikidata x2).
-    assert len(dsl.equivalences) == 1114
+    # Issue #93 maritime / aviation zones: +14 (MRGID x4, AIXM/ICAO x5, UNCLOS x5).
+    assert len(dsl.equivalences) == 1128
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

@@ -1125,6 +1125,125 @@ def test_regulatory_overlay_3d_bounds() -> None:
     )
 
 
+def test_maritime_overlay_types_are_values_not_subclasses() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "RegulatoryOverlayType"),
+        RDF.type,
+        OWL.Class,
+    ) in graph
+    for ind in (
+        "overlayTypeTerritorialSea",
+        "overlayTypeContiguousZone",
+        "overlayTypeContinentalShelf",
+        "overlayTypeHighSeas",
+        "overlayTypeMarineProtectedArea",
+    ):
+        assert (
+            URIRef(GMEOW + ind),
+            RDF.type,
+            URIRef(GMEOW + "RegulatoryOverlayType"),
+        ) in graph
+    # The rejected per-kind subclasses must NOT exist as classes.
+    for rejected in ("TerritorialSea", "ContinentalShelf", "HighSeas"):
+        assert (
+            URIRef(GMEOW + rejected),
+            RDF.type,
+            OWL.Class,
+        ) not in graph
+
+
+def test_aviation_overlay_types_are_values_not_subclasses() -> None:
+    graph = _graph()
+    for ind in (
+        "overlayTypeAirway",
+        "overlayTypeControlZone",
+        "overlayTypeTerminalControlArea",
+        "overlayTypeFlightInformationRegion",
+        "overlayTypeAerodromeTrafficZone",
+        "overlayTypeMilitaryOperationsArea",
+        "overlayTypeWarningArea",
+        "overlayTypeAlertArea",
+    ):
+        assert (
+            URIRef(GMEOW + ind),
+            RDF.type,
+            URIRef(GMEOW + "RegulatoryOverlayType"),
+        ) in graph
+    for rejected in ("Airway", "ControlZone", "FlightInformationRegion"):
+        assert (
+            URIRef(GMEOW + rejected),
+            RDF.type,
+            OWL.Class,
+        ) not in graph
+
+
+def test_notam_overlay_type_exists() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "overlayTypeNOTAM"),
+        RDF.type,
+        URIRef(GMEOW + "RegulatoryOverlayType"),
+    ) in graph
+
+
+def test_vertical_reference_frames_properly_declared() -> None:
+    graph = _graph()
+    for frame in (
+        "referenceFrameAltitudeMSL",
+        "referenceFrameFlightLevel",
+        "referenceFrameAltitudeAGL",
+        "referenceFrameDepthBelowSeaLevel",
+        "referenceFrameDepthBelowChartDatum",
+    ):
+        uri = URIRef(GMEOW + frame)
+        assert (uri, RDF.type, URIRef(GMEOW + "ReferenceFrame")) in graph
+        assert (
+            uri,
+            URIRef(GMEOW + "frameRealm"),
+            URIRef(GMEOW + "frameRealmTerrestrial"),
+        ) in graph
+        assert (
+            uri,
+            URIRef(GMEOW + "dimensionCount"),
+            Literal("1", datatype=XSD.nonNegativeInteger),
+        ) in graph
+
+
+def test_overlay_designator_grounding() -> None:
+    graph = _graph()
+    prop = URIRef(GMEOW + "overlayDesignator")
+    assert (prop, RDF.type, OWL.DatatypeProperty) in graph
+    assert (prop, RDF.type, OWL.FunctionalProperty) in graph
+    assert (prop, RDFS.domain, URIRef(GMEOW + "RegulatoryOverlay")) in graph
+    assert (prop, RDFS.range, RDFS.Literal) in graph
+
+
+def test_contested_eez_coexistence() -> None:
+    """Two contradictory EEZ RegulatoryOverlays on the same maritime place load,
+    SHACL-pass, and are BOTH retained — neither is ground truth (Principle 9)."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-maritime.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    overlays = set(g.subjects(RDF.type, URIRef(GMEOW + "RegulatoryOverlay")))
+    assert len(overlays) >= 2, "Expected at least two co-existing EEZ overlays"
+    authorities = set()
+    for overlay in overlays:
+        auth = g.value(overlay, URIRef(GMEOW + "overlayAuthority"))
+        if auth:
+            authorities.add(auth)
+    assert len(authorities) >= 2, "Expected at least two distinct authority claims"
+    # Verify depth bounds use a maritime reference frame
+    found_depth_frame = False
+    for overlay in overlays:
+        lower = g.value(overlay, URIRef(GMEOW + "overlayLowerBound"))
+        if lower:
+            frame = g.value(lower, URIRef(GMEOW + "hasReferenceFrame"))
+            if frame and frame == URIRef(GMEOW + "referenceFrameDepthBelowSeaLevel"):
+                found_depth_frame = True
+    assert found_depth_frame, "Expected at least one depth bound using maritime frame"
+
+
 def test_geometry_has_type_and_geojson() -> None:
     """A geometry may carry both a GeometryType value and a GeoJSON serialization."""
     g = Graph().parse(COVERAGE_FIXTURES / "places-contested.ttl", format="turtle")
