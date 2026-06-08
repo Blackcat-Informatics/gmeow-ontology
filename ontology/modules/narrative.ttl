@@ -1,0 +1,100 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/narrative>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Narrative Module"@en ;
+    rdfs:comment """Narrative reference frames and creative-work sourcing. Part of the #42 Location-as-reference-frame epic.
+
+DOCTRINE.
+  * A NarrativeReferenceFrame is BOTH a ReferenceFrame (canon supplies coordinate topology for in-universe locations, dates, and events) AND a Standpoint (canon is the frame under which in-universe claims hold true). This dual nature is intentional: the canon IS the frame.
+  * CreativeWorks (BookRelease, SerialInstallment) remain out-of-universe rights-bearing artifacts; they source, witness, or revise a narrative frame via gmeow:sourceFor.
+  * Characters, places, organizations, events, artifacts in a narrative are ordinary GMEOW entities whose claims are scoped gmeow:accordingTo the narrative frame.
+  * Cross-continuity variants are linked with gmeow:counterpartOf, never merged (Principle 5).
+  * Retcons and canon revisions are preserved as coexisting frame-scoped claims with gmeow:supersedes and gmeow:displayable false (Principle 10).
+  * No single canon wins (Principle 9): competing continuities coexist as separate NarrativeReferenceFrames that may sharpen one another."""@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# CORE CLASSES
+# =========================================================================== #
+
+gmeow:NarrativeReferenceFrame
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:ReferenceFrame ;
+    rdfs:label "Narrative Reference Frame"@en ;
+    skos:definition "A canon, continuity, or narrative realm that serves as a reference frame for in-universe facts (locations, dates, events) and functionally as the standpoint under which in-universe claims hold true. The Harry Potter canon, the Marvel Multiverse (Earth-616, MCU, Ultimate), and the Star Wars Legends/Canon split are all narrative reference frames. Ordinary GMEOW entities (Person, Place, Organization, Event) may carry claims according to this frame; cross-continuity variants are linked by counterpartOf, never merged."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:NarrativeFrameRelation
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Narrative Frame Relation"@en ;
+    skos:definition "The relationship of one narrative frame to another — a value vocabulary (individuals, never subclasses) spanning canon, alternate continuity, expanded universe, fanon, crossover, and adaptation. Non-functional: a frame may hold several relations to another frame from different standpoints."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# PROPERTIES
+# =========================================================================== #
+
+gmeow:sourceFor
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:NarrativeReferenceFrame ;
+    rdfs:label "source for"@en ;
+    skos:definition "Relates a creative work (a BookRelease, SerialInstallment, film, game, or other out-of-universe artifact) to the narrative reference frame it contributes to, witnesses, revises, or serves as a source for. Non-functional: a work may source several frames, and a frame may have many sources. The specific role (source, witness, revision, adaptation) is carried by gmeow:accordingTo on the claim or by a reified relator when needed."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasNarrativeFrameRelation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NarrativeReferenceFrame ;
+    rdfs:range gmeow:NarrativeFrameRelation ;
+    rdfs:label "has narrative frame relation"@en ;
+    skos:definition "The relationship(s) this narrative frame bears to another frame — canon, alternate continuity, expanded universe, fanon, crossover, adaptation. Non-functional: competing relation claims from different standpoints coexist (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:relatesToFrame
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NarrativeReferenceFrame ;
+    rdfs:range gmeow:NarrativeReferenceFrame ;
+    rdfs:label "relates to frame"@en ;
+    skos:definition "Relates a narrative reference frame to another narrative reference frame with which it stands in a relationship (the nature of which is given by gmeow:hasNarrativeFrameRelation). Non-functional: a frame may relate to many others, and competing relation claims coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# VALUE VOCABULARY SEEDS
+# =========================================================================== #
+
+gmeow:relationCanon
+    a gmeow:NarrativeFrameRelation ;
+    rdfs:label "canon"@en ;
+    skos:definition "The authoritative, settled continuity of a narrative frame."@en .
+
+gmeow:relationAlternateContinuity
+    a gmeow:NarrativeFrameRelation ;
+    rdfs:label "alternate continuity"@en ;
+    skos:definition "A divergent continuity that is not the primary canon but is officially recognised (e.g. Marvel Ultimate, Star Wars Legends)."@en .
+
+gmeow:relationExpandedUniverse
+    a gmeow:NarrativeFrameRelation ;
+    rdfs:label "expanded universe"@en ;
+    skos:definition "Officially licensed material that extends the canon but is not part of the core continuity."@en .
+
+gmeow:relationFanon
+    a gmeow:NarrativeFrameRelation ;
+    rdfs:label "fanon"@en ;
+    skos:definition "Community-generated continuity not officially recognised by the rights-holder."@en .
+
+gmeow:relationCrossover
+    a gmeow:NarrativeFrameRelation ;
+    rdfs:label "crossover"@en ;
+    skos:definition "A narrative frame that blends characters or settings from two or more distinct continuities."@en .
+
+gmeow:relationAdaptationOf
+    a gmeow:NarrativeFrameRelation ;
+    rdfs:label "adaptation of"@en ;
+    skos:definition "A narrative frame that adapts another frame into a different medium or format."@en .

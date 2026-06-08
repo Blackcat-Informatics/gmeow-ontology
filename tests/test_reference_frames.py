@@ -240,3 +240,29 @@ def test_mathematical_reference_frames_pass_shacl() -> None:
 
     result = run_shacl(g)
     assert result.ok, "\n".join(result.errors)
+
+
+def test_narrative_reference_frame_passes() -> None:
+    """A narrative reference frame (Harry Potter canon) passes SHACL."""
+    g = Graph()
+    g.add((EX.hpCanon, RDF.type, GMEOW.NarrativeReferenceFrame))
+    g.add((EX.hpCanon, GMEOW.frameRealm, GMEOW.frameRealmNarrative))
+    g.add((EX.hpCanon, GMEOW.hasAxis, EX.axisPlot))
+    g.add(
+        (
+            EX.hpCanon,
+            GMEOW.dimensionCount,
+            Literal(1, datatype=XSD.nonNegativeInteger),
+        )
+    )
+    g.add((EX.hpCanon, GMEOW.frameKind, GMEOW.frameKindNarrative))
+    g.add((EX.hpCanon, GMEOW.requiresHost, Literal(False)))
+    g.add((EX.hpCanon, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
+
+    g.add((GMEOW.frameRealmNarrative, RDF.type, GMEOW.FrameRealm))
+    g.add((EX.axisPlot, RDF.type, GMEOW.Axis))
+    g.add((GMEOW.frameKindNarrative, RDF.type, GMEOW.FrameKind))
+    g.add((GMEOW.determinacyCrisp, RDF.type, GMEOW.Determinacy))
+
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)

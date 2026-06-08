@@ -61,7 +61,9 @@ org:FormalOrganization	rdfs:subClassOf	gmeow:Organization	semapv:ManualMappingCu
 prov:Entity	skos:closeMatch	gmeow:Entity	semapv:ManualMappingCuration	0.7	
 schema:AudioObject	rdfs:subClassOf	gmeow:MediaObject	semapv:ManualMappingCuration	1.0	
 schema:BlogPosting	rdfs:subClassOf	gmeow:Article	semapv:ManualMappingCuration	0.9	
+schema:Book	skos:closeMatch	gmeow:BookRelease	semapv:ManualMappingCuration	0.8	schema:Book is broader (may denote abstract work); gmeow:BookRelease is a concrete published edition.
 schema:Country	rdfs:subClassOf	gmeow:Place	semapv:ManualMappingCuration	1.0	
+schema:Episode	rdfs:subClassOf	gmeow:SerialInstallment	semapv:ManualMappingCuration	0.9	schema:Episode is TV/radio-specific; gmeow:SerialInstallment is broader (comics, magazines).
 schema:ImageObject	rdfs:subClassOf	gmeow:MediaObject	semapv:ManualMappingCuration	1.0	
 schema:NewsArticle	rdfs:subClassOf	gmeow:Article	semapv:ManualMappingCuration	1.0	
 schema:OrganizationRole	rdfs:subClassOf	gmeow:Role	semapv:ManualMappingCuration	0.9	

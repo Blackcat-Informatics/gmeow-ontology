@@ -747,6 +747,27 @@ gmeow:FrameProfileShape
         """ ;
     ] .
 
+gmeow:NarrativeReferenceFrameShape
+    a sh:NodeShape ;
+    rdfs:label "Narrative Reference Frame Shape" ;
+    sh:targetClass gmeow:NarrativeReferenceFrame ;
+    sh:property [
+        sh:path gmeow:frameRealm ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:hasValue gmeow:frameRealmNarrative ;
+        sh:severity sh:Violation ;
+        sh:message "A NarrativeReferenceFrame must declare gmeow:frameRealmNarrative." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:frameKind ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:hasValue gmeow:frameKindNarrative ;
+        sh:severity sh:Violation ;
+        sh:message "A NarrativeReferenceFrame must declare gmeow:frameKindNarrative." ;
+    ] .
+
 gmeow:PoseShape
     a sh:NodeShape ;
     rdfs:label "Pose well-formedness shape" ;
