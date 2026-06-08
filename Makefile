@@ -17,7 +17,7 @@ MESSAGE ?= "chore: regenerate checked-in artifacts"
 .PHONY: help install fmt lint validate reason reason-hermit explain verify extract compile-mappings \
         compile-check compile-statements statements-check compile-statements-pyoxigraph statements-check-pyoxigraph \
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit lint-alignment refresh-target-axioms \
-        metadata apache docs docs-full rdf12 rdf12-pyoxigraph quality normalize build export project test check \
+        metadata apache docs docs-full rdf12 rdf12-pyoxigraph quality normalize build export lpg project test check \
         release regenerate commit clean pull-images
 
 help: ## Show this help.
@@ -136,6 +136,9 @@ export: ## Generate flattened exports (CSV/CSVW, Markdown, JSONL, llms.txt) into
 	uv run gmeow export
 	cp dist/llms.txt llms.txt
 
+lpg: ## Export GMEOW to LPG formats (CSV, Neo4j, Cypher, GraphML) into dist/lpg/.
+	uv run gmeow export lpg
+
 project: compile-mappings ## Project GMEOW data to pure schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profiles (FnO/EDOAL).
 	uv run gmeow project
 
@@ -160,6 +163,7 @@ regenerate: ## Rebuild all checked-in generated artifacts from canonical sources
 	$(MAKE) metadata
 	$(MAKE) apache
 	$(MAKE) export
+	$(MAKE) lpg
 
 commit: regenerate ## Regenerate artifacts, stage them, and commit.
 	git add $(REGENERATED_PATHS)

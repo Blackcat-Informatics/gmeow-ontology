@@ -557,17 +557,74 @@ def build() -> None:
         console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
 
 
-@app.command()
-def export() -> None:
+export_app = typer.Typer(
+    name="export",
+    help="Generate flattened export views and property-graph exports.",
+    invoke_without_command=True,
+)
+app.add_typer(export_app, name="export")
+
+
+@export_app.callback(invoke_without_command=True)
+def export_callback(ctx: typer.Context) -> None:
     """Generate flattened export views (CSV/CSVW, Markdown, JSONL, llms.txt).
 
     Pure-Python (no reasoning/Docker): projects the asserted vocabulary +
     alignments into broadly-consumable tabular and LLM-ingestable forms in dist/.
     """
+    if ctx.invoked_subcommand is not None:
+        return
     from gmeow_tools.export import export_all
 
     for path in export_all():
         console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
+
+
+@export_app.command()
+def lpg(
+    target: str = typer.Option(
+        "all",
+        help="Target format: all|csv|neo4j|cypher|graphml.",
+    ),
+    check: bool = typer.Option(
+        False,
+        "--check",
+        help="Verify committed artifacts match a fresh export; write nothing.",
+    ),
+) -> None:
+    """Export GMEOW to Labeled Property Graph (LPG) formats.
+
+    Consumes the canonical RDF 1.2 artifact via pyoxigraph and emits
+    Neo4j / openCypher / GraphML / generic CSV into dist/lpg/.
+    Statement metadata becomes native edge properties — the RDF-1.2-first payoff.
+    """
+    from gmeow_tools.lpg import export_lpg
+
+    valid_targets = {"all", "csv", "neo4j", "cypher", "graphml"}
+    if target not in valid_targets:
+        raise _fail(
+            f"unknown target: {target!r}. Use: {', '.join(sorted(valid_targets))}"
+        )
+
+    report = export_lpg(target=target, check=check)
+
+    if check:
+        if report.drifted:
+            for rel in sorted(report.drifted):
+                err_console.print(f"[red]drift[/red] {rel}")
+            raise _fail(
+                f"✗ {len(report.drifted)} artifact(s) out of date — "
+                "run `gmeow export lpg`"
+            )
+        console.print(
+            "[green]✓ committed LPG artifacts match canonical sources "
+            "(no drift)[/green]"
+        )
+        return
+
+    for path in report.written:
+        console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
+    console.print(f"[green]✓ exported {len(report.written)} LPG artifact(s)[/green]")
 
 
 @app.command()
