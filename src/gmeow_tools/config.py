@@ -123,6 +123,8 @@ CATALOG_FILE = PROJECT_ROOT / "catalog-v001.xml"
 #: Generated outputs (git-ignored, published on release).
 DIST_DIR = PROJECT_ROOT / "dist"
 DOCS_DIR = PROJECT_ROOT / "docs" / "_generated"
+#: LPG (Labeled Property Graph) export outputs.
+LPG_DIR = DIST_DIR / "lpg"
 
 # --------------------------------------------------------------------------- #
 # Pinned Docker images (the Java toolchain — see plan)
