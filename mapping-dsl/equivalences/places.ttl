@@ -1470,7 +1470,7 @@ gmeow:eqPlaces163 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "SemanticEnvironmentMap" ;
-    gmeow:comment "KnowRob SemanticEnvironmentMap is a robot-built map of the environment; GMEOW referenceFrameRobotSLAM is the reference frame in which such a map is expressed. The alignment is close because both are robot-centric spatial representations with probabilistic occupancy semantics." ;
+    gmeow:comment "KnowRob SemanticEnvironmentMap is a robot-built map of the environment; GMEOW referenceFrameRobotSLAM is the reference frame in which such a map is expressed. The alignment is related because both are robot-centric spatial representations with probabilistic occupancy semantics, but a map and a reference frame are different ontological categories." ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" .
 
 gmeow:eqPlaces164 a gmeow:TermEquivalence ;
