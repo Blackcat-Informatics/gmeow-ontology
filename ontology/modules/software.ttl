@@ -14,9 +14,9 @@
 
 gmeow:SoftwareProject
     a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:CreativeWork ;
+    rdfs:subClassOf gmeow:Work ;
     rdfs:label "Software Project"@en ;
-    skos:definition "A software project: a body of source code developed and released as a unit, with repositories, releases, and contributors."@en ;
+    skos:definition "A software project: a body of source code developed and released as a unit, with repositories, releases, and contributors. A specialization of gmeow:Work."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Repository

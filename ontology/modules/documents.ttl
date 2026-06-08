@@ -13,66 +13,66 @@
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:CreativeWork
-    a owl:Class, gufo:Kind ;
+    a owl:Class, gufo:Category ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Creative Work"@en ;
-    skos:definition "An information artifact resulting from creative or intellectual effort — a document, article, dataset, media object, or web page."@en ;
+    skos:definition "The abstract umbrella category for intellectual and artistic creations in the WEMI spine — a Work, Expression, Manifestation, or Item. Formerly a flat gufo:Kind (pre-#208); now a Category so that the four tiers with distinct identity criteria can each be a gufo:Kind beneath it."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Document
     a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:CreativeWork ;
+    rdfs:subClassOf gmeow:Work ;
     rdfs:label "Document"@en ;
-    skos:definition "A bounded textual or digital document — a file, record, or report."@en ;
+    skos:definition "A bounded textual or digital document — a file, record, or report. A specialization of gmeow:Work."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Article
     a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:CreativeWork ;
+    rdfs:subClassOf gmeow:Work ;
     rdfs:label "Article"@en ;
-    skos:definition "A written work published in a periodical, blog, or scholarly venue."@en ;
+    skos:definition "A written work published in a periodical, blog, or scholarly venue. A specialization of gmeow:Work."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Patent
     a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:CreativeWork ;
+    rdfs:subClassOf gmeow:Work ;
     rdfs:label "Patent"@en ;
-    skos:definition "A granted or filed patent describing an invention."@en ;
+    skos:definition "A granted or filed patent describing an invention. A specialization of gmeow:Work."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Dataset
     a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:CreativeWork ;
+    rdfs:subClassOf gmeow:Work ;
     rdfs:label "Dataset"@en ;
-    skos:definition "A collection of data published as a unit."@en ;
+    skos:definition "A collection of data published as a unit. A specialization of gmeow:Work."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:MediaObject
     a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:CreativeWork ;
+    rdfs:subClassOf gmeow:Manifestation ;
     rdfs:label "Media Object"@en ;
-    skos:definition "An image, audio, or video media file."@en ;
+    skos:definition "An image, audio, or video media file — a concrete published artifact. A specialization of gmeow:Manifestation."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:WebPage
     a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:CreativeWork ;
+    rdfs:subClassOf gmeow:Manifestation ;
     rdfs:label "Web Page"@en ;
-    skos:definition "A page on the web identified by a URL."@en ;
+    skos:definition "A page on the web identified by a URL — a concrete published artifact. A specialization of gmeow:Manifestation."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:BookRelease
     a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:CreativeWork ;
+    rdfs:subClassOf gmeow:Manifestation ;
     rdfs:label "Book Release"@en ;
-    skos:definition "A concrete published edition or release of a book — an out-of-universe information object and rights-bearing publication artifact. Distinct from the in-universe narrative frame it contributes to; linked via gmeow:sourceFor."@en ;
+    skos:definition "A concrete published edition or release of a book — an out-of-universe information object and rights-bearing publication artifact. A specialization of gmeow:Manifestation. Distinct from the in-universe narrative frame it contributes to; linked via gmeow:sourceFor."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:SerialInstallment
     a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:CreativeWork ;
+    rdfs:subClassOf gmeow:Manifestation ;
     rdfs:label "Serial Installment"@en ;
-    skos:definition "A single issue, episode, or chapter of a serial creative work — a comic issue, TV episode, magazine issue, or serial chapter. An out-of-universe publication artifact distinct from the narrative frame it sources."@en ;
+    skos:definition "A single issue, episode, or chapter of a serial creative work — a comic issue, TV episode, magazine issue, or serial chapter. An out-of-universe publication artifact distinct from the narrative frame it sources. A specialization of gmeow:Manifestation."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:CreativeWorkTitle
@@ -93,10 +93,11 @@ gmeow:hasTitle
 
 gmeow:hasAuthor
     a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasContributor ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range gmeow:Agent ;
     rdfs:label "has author"@en ;
-    skos:definition "Relates a creative work to an agent chiefly responsible for creating its intellectual content."@en ;
+    skos:definition "Relates a creative work to an agent chiefly responsible for creating its intellectual content. A flat shortcut subproperty of gmeow:hasContributor."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:title

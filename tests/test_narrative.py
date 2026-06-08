@@ -45,7 +45,7 @@ def test_narrative_reference_frame_is_not_standpoint_subclass() -> None:
 def test_book_release_and_serial_installment_are_creative_works() -> None:
     graph = _graph()
     for cls in (GMEOW.BookRelease, GMEOW.SerialInstallment):
-        assert (cls, RDFS.subClassOf, GMEOW.CreativeWork) in graph
+        assert GMEOW.CreativeWork in graph.transitive_objects(cls, RDFS.subClassOf)
 
 
 def test_frame_realm_narrative_and_frame_kind_narrative_exist() -> None:

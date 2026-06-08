@@ -1,0 +1,391 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix schema: <https://schema.org/> .
+@prefix frbr: <http://purl.org/vocab/frbr/core#> .
+@prefix fabio: <http://purl.org/spar/fabio/> .
+@prefix lrmoo: <http://iflastandards.info/ns/lrm/lrmoo/> .
+@prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
+@prefix bibframe: <http://id.loc.gov/ontologies/bibframe/> .
+@prefix wd: <http://www.wikidata.org/entity/> .
+
+# Creative-works WEMI spine alignments.
+# Compiled to mappings/gmeow-creative-works.sssom.tsv by `gmeow compile-mappings`.
+
+gmeow:mapsetCreativeWorks a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/creative-works" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "WEMI spine alignments to FRBRcore, FaBiO, LRMoo, CIDOC-CRM, BIBFRAME, schema.org, and Wikidata. GMEOW rebuilds the distinction natively and bridges by reference (Principle 5)." .
+
+# --------------------------------------------------------------------------- #
+# FRBRcore — the canonical WEMI vocabulary
+# --------------------------------------------------------------------------- #
+
+gmeow:eqCw001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Work ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject frbr:Work ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "FRBR Work — abstract intellectual creation." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Expression ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject frbr:Expression ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "FRBR Expression — realization in language/notation." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Manifestation ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject frbr:Manifestation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "FRBR Manifestation — edition/format/release." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Item ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject frbr:Item ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "FRBR Item — single exemplar." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:realizes ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject frbr:realization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "Expression realizes Work." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:embodies ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject frbr:embodiment ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "Manifestation embodies Expression." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:exemplifies ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject frbr:exemplar ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "Item exemplifies Manifestation." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# FaBiO — SPAR ontologies for scholarly works
+# --------------------------------------------------------------------------- #
+
+gmeow:eqCw008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Work ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject fabio:Work ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "FaBiO Work is scholarly-publication-scoped; GMEOW Work is universal." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Expression ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject fabio:Expression ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "FaBiO Expression is scholarly-scoped." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Manifestation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject fabio:Manifestation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "FaBiO Manifestation is scholarly-scoped." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Item ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject fabio:Item ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "FaBiO Item is scholarly-scoped." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# LRMoo — object-oriented LRM (ex-FRBRoo)
+# --------------------------------------------------------------------------- #
+
+gmeow:eqCw012 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Work ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject lrmoo:F1_Work ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "LRMoo F1 Work — aligned by reference, not axiom import." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Expression ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject lrmoo:F2_Expression ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "LRMoo F2 Expression." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw014 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Manifestation ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject lrmoo:F3_Manifestation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "LRMoo F3 Manifestation." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw015 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Item ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject lrmoo:F5_Item ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "LRMoo F5 Item." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeWorkConception ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject lrmoo:F27_Work_Conception ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "LRMoo F27 Work Conception ≈ GMEOW event type value." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw017 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeExpressionCreation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject lrmoo:F28_Expression_Creation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "LRMoo F28 Expression Creation ≈ GMEOW event type value." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# CIDOC-CRM — creation events
+# --------------------------------------------------------------------------- #
+
+gmeow:eqCw018 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeWorkConception ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:E65_Creation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "CIDOC E65 Creation is broader than work conception." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# BIBFRAME 2.0 — Library of Congress
+# --------------------------------------------------------------------------- #
+
+gmeow:eqCw019 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Work ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bibframe:Work ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "Lossy: BIBFRAME conflates Work+Expression by design." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw020 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Manifestation ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject bibframe:Instance ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "BIBFRAME Instance ≈ FRBR Manifestation." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw021 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Item ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject bibframe:Item ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "BIBFRAME Item ≈ FRBR Item." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# schema.org — lossy projection layer
+# --------------------------------------------------------------------------- #
+
+gmeow:eqCw022 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:CreativeWork ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:CreativeWork ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "Lossy: schema.org collapses WEMI into one flat node." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw023 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Work ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:CreativeWork ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "Lossy: schema.org has no Work/Expression distinction." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw024 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:BookRelease ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:Book ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "schema:Book is broader (may denote abstract work); BookRelease is concrete." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw025 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:MediaObject ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:MediaObject ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Direct correspondence." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw026 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:WebPage ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject schema:WebPage ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "Direct correspondence." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Wikidata — hub via authorityLink + skos:*Match (never owl:sameAs, P5)
+# --------------------------------------------------------------------------- #
+
+gmeow:eqCw027 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Work ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q386724 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "Wikidata 'work' (Q386724)." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw028 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Manifestation ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject wd:Q3331189 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "Wikidata 'version, edition or translation' (Q3331189) — lossy: muddles edition (Manifestation) and translation (Expression)." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw029 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Document ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q571 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Wikidata 'book' (Q571) — close match to Document/Work." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw030 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:workTypeLiterary ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q7725634 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'literary work' (Q7725634)." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw031 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:workTypeWritten ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q47461344 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'written work' (Q47461344)." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw032 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:workTypeNarrative ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1318295 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'narrative' (Q1318295)." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw033 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:workTypeMusical ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q2188189 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'musical work' (Q2188189)." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw034 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:workTypeComposedMusical ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q207628 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'composed musical work' (Q207628)." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw035 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:workTypeVisual ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q4502142 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'visual artwork' (Q4502142)." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw036 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:workTypePhotographic ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q125191 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Wikidata 'photograph' (Q125191)." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw037 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:workTypeAudiovisual ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q478798 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Wikidata 'image' (Q478798) — broader than audiovisual." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+gmeow:eqCw038 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:workTypeFilm ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q11424 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "Wikidata 'film' (Q11424)." ;
+    gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
