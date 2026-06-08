@@ -154,7 +154,9 @@ def test_dsl_parses() -> None:
     # Issue #93 maritime / aviation zones: +14 (MRGID x4, AIXM/ICAO x5, UNCLOS x5).
     # Issue #162 cross-cutting attestations: +14 (PROV-O x7, W3C VC/DID x5,
     # WOT x1, DQV x1).
-    assert len(dsl.equivalences) == 1152
+    # Issue #126 sensory module: +14 (SOSA/SSN x6, OBOE x3, PATO x1, OBI x2,
+    # QB x1, OM x1).
+    assert len(dsl.equivalences) == 1166
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

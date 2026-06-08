@@ -25,7 +25,7 @@
     dcterms:publisher "Blackcat Informatics Inc." ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
     dcterms:created "2026-06-03"^^xsd:date ;
-    dcterms:modified "2026-06-07"^^xsd:date ;
+    dcterms:modified "2026-06-08"^^xsd:date ;
     dc:rights "Copyright © 2026 Blackcat Informatics® Inc. Licensed under CC BY 4.0; also available under separate proprietary terms from Blackcat Informatics Inc." ;
     rdfs:label "GMEOW"@en ;
     vann:preferredNamespacePrefix "gmeow" ;
@@ -65,6 +65,7 @@
         <https://blackcatinformatics.ca/gmeow/modules/observations> ,
         <https://blackcatinformatics.ca/gmeow/modules/quality> ,
         <https://blackcatinformatics.ca/gmeow/modules/sensory-environment> ,
+        <https://blackcatinformatics.ca/gmeow/modules/sensory> ,
         <https://blackcatinformatics.ca/gmeow/modules/tags> ,
         <https://blackcatinformatics.ca/gmeow/modules/connectivity> ,
         <https://blackcatinformatics.ca/gmeow/modules/aggregation> ,
