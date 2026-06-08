@@ -187,10 +187,12 @@ def test_contribution_is_relator_kind() -> None:
 def test_contribution_properties_exist() -> None:
     """
     Verify that contribution-related properties are declared as functional object
-    properties.
+    properties (contributor, contributionTarget, contributionRole) and that
+    contributionDegree is an object property.
 
     Asserts that GMEOW.contributor, GMEOW.contributionTarget, and GMEOW.contributionRole
-    each have both rdf:type owl:ObjectProperty and rdf:type owl:FunctionalProperty.
+    each have both rdf:type owl:ObjectProperty and rdf:type owl:FunctionalProperty,
+    and that GMEOW.contributionDegree is an owl:ObjectProperty.
     """
     graph = _graph()
     for prop in (
@@ -200,6 +202,7 @@ def test_contribution_properties_exist() -> None:
     ):
         assert (prop, RDF.type, OWL.ObjectProperty) in graph
         assert (prop, RDF.type, OWL.FunctionalProperty) in graph
+    assert (GMEOW.contributionDegree, RDF.type, OWL.ObjectProperty) in graph
 
 
 def test_has_contributor_exists() -> None:
@@ -283,8 +286,8 @@ def test_contribution_role_value_vocab() -> None:
     members are individuals.
 
     Asserts that `GMEOW.ContributionRole` is a subclass of `gufo:QualityValue` and that
-    each expected contribution role (e.g., `roleAuthor`, `roleEditor`, `roleTranslator`,
-    etc.) is typed as an instance of `GMEOW.ContributionRole`.
+    each expected contribution role (creative roles + CRediT roles) is typed as an
+    instance of `GMEOW.ContributionRole`.
     """
     graph = _graph()
     assert (GMEOW.ContributionRole, RDFS.subClassOf, GUFO.QualityValue) in graph
@@ -300,8 +303,37 @@ def test_contribution_role_value_vocab() -> None:
         GMEOW.roleCoverArtist,
         GMEOW.roleLetterer,
         GMEOW.roleLLMAssistedEditor,
+        GMEOW.roleConceptualization,
+        GMEOW.roleDataCuration,
+        GMEOW.roleFormalAnalysis,
+        GMEOW.roleFundingAcquisition,
+        GMEOW.roleInvestigation,
+        GMEOW.roleMethodology,
+        GMEOW.roleProjectAdministration,
+        GMEOW.roleResources,
+        GMEOW.roleSoftware,
+        GMEOW.roleSupervision,
+        GMEOW.roleValidation,
+        GMEOW.roleVisualization,
+        GMEOW.roleWritingOriginalDraft,
+        GMEOW.roleWritingReviewEditing,
     ):
         assert (ind, RDF.type, GMEOW.ContributionRole) in graph
+
+
+def test_contribution_degree_value_vocab() -> None:
+    """
+    Verify the contribution-degree vocabulary is modeled as a value class and that its
+    members are individuals.
+    """
+    graph = _graph()
+    assert (GMEOW.ContributionDegree, RDFS.subClassOf, GUFO.QualityValue) in graph
+    for ind in (
+        GMEOW.degreeLead,
+        GMEOW.degreeEqual,
+        GMEOW.degreeSupporting,
+    ):
+        assert (ind, RDF.type, GMEOW.ContributionDegree) in graph
 
 
 def test_manifestation_format_value_vocab() -> None:

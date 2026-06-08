@@ -1,5 +1,5 @@
 # Synthetic coverage fixture for the import-provenance / carrier-time slice.
-# An "envelope" import: a vCard file (a gmeow:Source) carrying a bundle of claims
+# An "envelope" import: a vCard file (a gmeow:Manifestation) carrying a bundle of claims
 # about Bob, ingested by an import activity. The file's mtime is carrier metadata
 # (a terminus-ante-quem), the BLAKE3 digest is its reliable identity, and the
 # import activity carries the ingestion (transaction) time. The per-claim
@@ -10,9 +10,9 @@
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
 @prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
 
-# The envelope: the imported vCard file as a Source artifact.
+# The envelope: the imported vCard file as a Manifestation artifact.
 ex:vcard1
-    a gmeow:Source ;
+    a gmeow:Manifestation ;
     gmeow:sourceLocation "/imports/contacts/bob.vcf" ;
     gmeow:sourceModifiedAt "2009-03-14T08:22:00Z"^^xsd:dateTime ;
     gmeow:contentDigest "blake3:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08" .
@@ -34,6 +34,6 @@ ex:bob
     a gmeow:Person ;
     gmeow:name "Bob" ;
     gmeow:email "bob@bob.dob" ;
-    gmeow:hasSource ex:vcard1 ;
+    gmeow:cites ex:vcard1 ;
     gmeow:wasDerivedFrom ex:vcard1 ;
     gmeow:wasGeneratedBy ex:import1 .

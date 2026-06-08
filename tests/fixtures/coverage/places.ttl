@@ -101,7 +101,7 @@ ex:hdd a gmeow:StorageLocation ;
     gmeow:storageService "local" ;
     gmeow:physicalPlace ex:homeOffice .
 
-ex:vcardSource a gmeow:Source ;
+ex:vcardSource a gmeow:Manifestation ;
     gmeow:storedIn ex:drive .
 
 ex:patrick a gmeow:Person ;

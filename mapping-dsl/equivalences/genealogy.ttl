@@ -84,19 +84,21 @@ gmeow:eqGenealogy050 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
 
 gmeow:eqGenealogy051 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Source ;
+    gmeow:alignSubject gmeow:CreativeWork ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject gxv:SourceDescription ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
+    gmeow:comment "Source-hood is anti-rigid; the described thing is a CreativeWork (WEMI) bearing SourceRole." ;
     gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
 
 gmeow:eqGenealogy052 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Citation ;
+    gmeow:alignSubject gmeow:Selector ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject gxv:SourceReference ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
+    gmeow:comment "The retired gmeow:Citation locator is replaced by gmeow:Selector." ;
     gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
 
 gmeow:eqGenealogy053 a gmeow:TermEquivalence ;

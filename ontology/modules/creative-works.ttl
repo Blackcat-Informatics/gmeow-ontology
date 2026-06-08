@@ -137,7 +137,7 @@ gmeow:Contribution
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Contribution"@en ;
-    skos:definition "A reified relator binding a contributor (Agent), a contribution target (a Work, Expression, Manifestation, or Item), and a contribution role, carrying provenance, period, and confidence. The canonical form when role/period/confidence matters; flat shortcuts (gmeow:hasAuthor, gmeow:hasTranslator, …) cover the 80% query case."@en ;
+    skos:definition "A reified relator binding a contributor (Agent), a contribution target (a Work, Expression, Manifestation, or Item), a contribution role, and an optional degree, carrying provenance, period, and confidence. THE universal credit construct; creative authorship, CRediT research roles, and mapping/software authorship are all Contributions. Flat shortcuts (gmeow:hasAuthor, gmeow:hasTranslator, …) cover the 80% query case."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:contributor
@@ -162,6 +162,14 @@ gmeow:contributionRole
     rdfs:range gmeow:ContributionRole ;
     rdfs:label "contribution role"@en ;
     skos:definition "The role the contributor played in this Contribution — a value from the open gmeow:ContributionRole vocabulary. Functional per relator: one role per Contribution."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:contributionDegree
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Contribution ;
+    rdfs:range gmeow:ContributionDegree ;
+    rdfs:label "contribution degree"@en ;
+    skos:definition "The degree or weight of the contribution — lead, equal, or supporting. Optional (≤1 per Contribution). A value from the open gmeow:ContributionDegree vocabulary."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasContributor
@@ -291,6 +299,22 @@ gmeow:rolePhotographer        a gmeow:ContributionRole ; rdfs:label "photographe
 gmeow:roleCoverArtist         a gmeow:ContributionRole ; rdfs:label "cover artist"@en ;        skos:definition "An agent who created cover art for a manifestation."@en .
 gmeow:roleLetterer            a gmeow:ContributionRole ; rdfs:label "letterer"@en ;            skos:definition "An agent who lettered or calligraphed text in a visual work."@en .
 gmeow:roleLLMAssistedEditor   a gmeow:ContributionRole ; rdfs:label "LLM-assisted editor"@en ; skos:definition "An agent who edited with substantial assistance from a large language model."@en .
+
+# CRediT roles (NISO Z39.104-2022) — bridged by reference, not imported
+gmeow:roleConceptualization     a gmeow:ContributionRole ; rdfs:label "conceptualization"@en ;     skos:definition "Ideas, formulation or evolution of overarching research goals and aims."@en .
+gmeow:roleDataCuration          a gmeow:ContributionRole ; rdfs:label "data curation"@en ;          skos:definition "Management activities to annotate, scrub data and maintain research data."@en .
+gmeow:roleFormalAnalysis        a gmeow:ContributionRole ; rdfs:label "formal analysis"@en ;        skos:definition "Application of statistical, mathematical, computational, or other formal techniques to analyse or synthesize study data."@en .
+gmeow:roleFundingAcquisition    a gmeow:ContributionRole ; rdfs:label "funding acquisition"@en ;    skos:definition "Acquisition of the financial support for the project leading to this publication."@en .
+gmeow:roleInvestigation         a gmeow:ContributionRole ; rdfs:label "investigation"@en ;         skos:definition "Conducting a research and investigation process, specifically performing the experiments, or data/evidence collection."@en .
+gmeow:roleMethodology           a gmeow:ContributionRole ; rdfs:label "methodology"@en ;           skos:definition "Development or design of methodology; creation of models."@en .
+gmeow:roleProjectAdministration a gmeow:ContributionRole ; rdfs:label "project administration"@en ; skos:definition "Management and coordination responsibility for the research activity planning and execution."@en .
+gmeow:roleResources             a gmeow:ContributionRole ; rdfs:label "resources"@en ;              skos:definition "Provision of study materials, reagents, materials, patients, laboratory samples, animals, instrumentation, computing resources, or other analysis tools."@en .
+gmeow:roleSoftware              a gmeow:ContributionRole ; rdfs:label "software"@en ;              skos:definition "Programming, software development; designing computer programs; implementation of the computer code and supporting algorithms."@en .
+gmeow:roleSupervision           a gmeow:ContributionRole ; rdfs:label "supervision"@en ;            skos:definition "Oversight and leadership responsibility for the research activity planning and execution, including mentorship external to the core team."@en .
+gmeow:roleValidation            a gmeow:ContributionRole ; rdfs:label "validation"@en ;             skos:definition "Verification, whether as a part of the activity or separate, of the overall replication/reproducibility of results/experiments and other research outputs."@en .
+gmeow:roleVisualization         a gmeow:ContributionRole ; rdfs:label "visualization"@en ;          skos:definition "Preparation, creation and/or presentation of the published work, specifically visualization/data presentation."@en .
+gmeow:roleWritingOriginalDraft  a gmeow:ContributionRole ; rdfs:label "writing – original draft"@en ;  skos:definition "Creation and/or presentation of the published work, specifically writing the initial draft."@en .
+gmeow:roleWritingReviewEditing  a gmeow:ContributionRole ; rdfs:label "writing – review & editing"@en ; skos:definition "Critical review, commentary or revision – including pre- or post-publication stages."@en .
 
 # --------------------------------------------------------------------------- #
 # ManifestationFormat seeds

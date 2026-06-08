@@ -1,12 +1,14 @@
 # Competency question: "What carrier metadata does GMEOW record about an imported
 # source (the import envelope)?" Expected: the datatype properties domained on
-# gmeow:Source — sourceModifiedAt (carrier time), contentDigest (identity),
-# sourceLocation (origin).
+# gmeow:CreativeWork (typically Manifestation or Item) — sourceModifiedAt (carrier time),
+# contentDigest (identity), sourceLocation (origin).
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT ?property WHERE {
-    ?property rdfs:domain gmeow:Source .
+    ?property rdfs:domain gmeow:CreativeWork .
+    FILTER(STRSTARTS(STR(?property), STR(gmeow:)))
+    VALUES ?property { gmeow:sourceModifiedAt gmeow:contentDigest gmeow:sourceLocation }
 }
 ORDER BY ?property
