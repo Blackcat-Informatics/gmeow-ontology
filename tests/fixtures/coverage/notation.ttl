@@ -6,8 +6,9 @@
 
 @prefix ex:     <https://example.org/notation/> .
 @prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
-@prefix owl:    <http://www.w3.org/2002/07/rdf-schema#> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
 
 # --- Languages --------------------------------------------------------------- #
 
@@ -39,43 +40,71 @@ ex:morseCode a gmeow:NotationSystem ;
 ex:platformMemes a gmeow:SymbolicSystem ;
     gmeow:symbolicSystemKind gmeow:symbolicKindPlatformConvention .
 
+# --- Time intervals ---------------------------------------------------------- #
+
+ex:ipaInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1888-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:greggInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1888-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "2024-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:mathInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1600-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:staffInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1800-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:aesInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2024-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:morseInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1838-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "1999-12-31T00:00:00Z"^^xsd:dateTime .
+
 # --- Notation system usages -------------------------------------------------- #
 
 ex:englishUsesIpa a gmeow:NotationSystemUsage ;
     gmeow:notationUsageTarget ex:english ;
     gmeow:notationUsageNotationSystem ex:ipa ;
-    gmeow:notationUsageRole gmeow:notationRoleTranscription .
+    gmeow:notationUsageRole gmeow:notationRoleTranscription ;
+    gmeow:notationUsageInterval ex:ipaInterval .
 
 ex:englishUsesGregg a gmeow:NotationSystemUsage ;
     gmeow:notationUsageTarget ex:english ;
     gmeow:notationUsageNotationSystem ex:greggShorthand ;
-    gmeow:notationUsageRole gmeow:notationRoleShorthand .
+    gmeow:notationUsageRole gmeow:notationRoleShorthand ;
+    gmeow:notationUsageInterval ex:greggInterval .
 
 ex:mathExpression a gmeow:InformationObject .
 
 ex:mathUsesNotation a gmeow:NotationSystemUsage ;
     gmeow:notationUsageTarget ex:mathExpression ;
     gmeow:notationUsageNotationSystem ex:mathNotation ;
-    gmeow:notationUsageRole gmeow:notationRoleRepresentation .
+    gmeow:notationUsageRole gmeow:notationRoleRepresentation ;
+    gmeow:notationUsageInterval ex:mathInterval .
 
 ex:sonataOpus a gmeow:CreativeWork .
 
 ex:sonataUsesStaff a gmeow:NotationSystemUsage ;
     gmeow:notationUsageTarget ex:sonataOpus ;
     gmeow:notationUsageNotationSystem ex:staffNotation ;
-    gmeow:notationUsageRole gmeow:notationRoleRepresentation .
+    gmeow:notationUsageRole gmeow:notationRoleRepresentation ;
+    gmeow:notationUsageInterval ex:staffInterval .
 
 ex:plaintext a gmeow:InformationObject .
 
 ex:plaintextUsesAes a gmeow:NotationSystemUsage ;
     gmeow:notationUsageTarget ex:plaintext ;
     gmeow:notationUsageNotationSystem ex:aes256 ;
-    gmeow:notationUsageRole gmeow:notationRoleCipher .
+    gmeow:notationUsageRole gmeow:notationRoleCipher ;
+    gmeow:notationUsageInterval ex:aesInterval .
 
 ex:plaintextUsesMorse a gmeow:NotationSystemUsage ;
     gmeow:notationUsageTarget ex:plaintext ;
     gmeow:notationUsageNotationSystem ex:morseCode ;
-    gmeow:notationUsageRole gmeow:notationRoleEncoding .
+    gmeow:notationUsageRole gmeow:notationRoleEncoding ;
+    gmeow:notationUsageInterval ex:morseInterval .
 
 # --- WritingSystem ↔ NotationSystem bridge ----------------------------------- #
 

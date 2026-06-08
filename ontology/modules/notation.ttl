@@ -39,16 +39,18 @@ gmeow:NotationSystem
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:NotationSystemUsage
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gufo:Relator ;
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Observation, gufo:Relator ;
     rdfs:label "Notation System Usage"@en ;
-    skos:definition "A reified, role- and period-scoped use of a notation system by an entity — the gufo:Relator binding {entity} × {notation system} × {role} × {period}, mirroring names' NameUsage and languages' WritingSystemUsage. Lets a language use IPA for phonetic transcription, a musical work use Western staff notation, or a text use Morse code for encoding, each co-equally and standpoint-scoped."@en ;
+    skos:definition "A reified, role- and period-scoped use of a notation system by an entity — an observation in the universal claim stack (#69): the gufo:Relator binding {entity} × {notation system} × {role} × {period}, mirroring names' NameUsage and languages' WritingSystemUsage. Lets a language use IPA for phonetic transcription, a musical work use Western staff notation, or a text use Morse code for encoding, each co-equally and standpoint-scoped."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-# EL axiomatisation: every NotationSystemUsage mediates at least one target and one notation system.
+# EL axiomatisation: every NotationSystemUsage mediates at least one target, one notation system, one role, and one interval.
 gmeow:NotationSystemUsage rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:notationUsageTarget ; owl:someValuesFrom gmeow:Entity ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:notationUsageNotationSystem ; owl:someValuesFrom gmeow:NotationSystem ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:notationUsageNotationSystem ; owl:someValuesFrom gmeow:NotationSystem ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:notationUsageRole ; owl:someValuesFrom gmeow:NotationUsageRole ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:notationUsageInterval ; owl:someValuesFrom gmeow:TimeInterval ] .
 
 # =========================================================================== #
 # PROPERTIES — SymbolicSystem / NotationSystem

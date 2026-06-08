@@ -715,6 +715,7 @@ classes:
     slots:
     - bcp47Tag
     - designGoal
+    - hasNotationSystem
     - languageCode
     - languageModality
     - languageOrigin
@@ -1045,6 +1046,24 @@ classes:
   NetworkAddressType:
     class_uri: https://blackcatinformatics.ca/gmeow/NetworkAddressType
     title: Network Address Type
+  NotationSystem:
+    class_uri: https://blackcatinformatics.ca/gmeow/NotationSystem
+    title: Notation System
+    is_a: SymbolicSystem
+    slots:
+    - notationSystemFor
+    - notationSystemKind
+  NotationSystemUsage:
+    class_uri: https://blackcatinformatics.ca/gmeow/NotationSystemUsage
+    title: Notation System Usage
+    slots:
+    - notationUsageInterval
+    - notationUsageNotationSystem
+    - notationUsageRole
+    - notationUsageTarget
+  NotationUsageRole:
+    class_uri: https://blackcatinformatics.ca/gmeow/NotationUsageRole
+    title: Notation Usage Role
   ObservableProperty:
     class_uri: https://blackcatinformatics.ca/gmeow/ObservableProperty
     title: Observable Property
@@ -1620,6 +1639,15 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Summary
     title: Summary
     is_a: InformationObject
+  SymbolicSystem:
+    class_uri: https://blackcatinformatics.ca/gmeow/SymbolicSystem
+    title: Symbolic System
+    is_a: InformationObject
+    slots:
+    - symbolicSystemKind
+  SymbolicSystemKind:
+    class_uri: https://blackcatinformatics.ca/gmeow/SymbolicSystemKind
+    title: Symbolic System Kind
   Tag:
     class_uri: https://blackcatinformatics.ca/gmeow/Tag
     title: Tag
@@ -1827,6 +1855,7 @@ classes:
     slots:
     - scriptCode
     - textDirection
+    - writingSystemAsNotation
     - writingSystemType
   WritingSystemType:
     class_uri: https://blackcatinformatics.ca/gmeow/WritingSystemType
@@ -3189,6 +3218,12 @@ slots:
     range: NetworkAddress
     domain: VirtualLocation
     multivalued: true
+  hasNotationSystem:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasNotationSystem
+    title: has notation system
+    range: NotationSystem
+    domain: Language
+    multivalued: true
   hasOccupancy:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasOccupancy
     title: has occupancy
@@ -4149,6 +4184,42 @@ slots:
     title: Nostr public key
     range: string
     domain: OnlineAccount
+  notationSystemFor:
+    slot_uri: https://blackcatinformatics.ca/gmeow/notationSystemFor
+    title: notation system for
+    range: Language
+    domain: NotationSystem
+    multivalued: true
+  notationSystemKind:
+    slot_uri: https://blackcatinformatics.ca/gmeow/notationSystemKind
+    title: notation system kind
+    range: SymbolicSystemKind
+    domain: NotationSystem
+    multivalued: true
+  notationUsageInterval:
+    slot_uri: https://blackcatinformatics.ca/gmeow/notationUsageInterval
+    title: notation usage interval
+    range: TimeInterval
+    domain: NotationSystemUsage
+    multivalued: false
+  notationUsageNotationSystem:
+    slot_uri: https://blackcatinformatics.ca/gmeow/notationUsageNotationSystem
+    title: notation usage notation system
+    range: NotationSystem
+    domain: NotationSystemUsage
+    multivalued: false
+  notationUsageRole:
+    slot_uri: https://blackcatinformatics.ca/gmeow/notationUsageRole
+    title: notation usage role
+    range: NotationUsageRole
+    domain: NotationSystemUsage
+    multivalued: false
+  notationUsageTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/notationUsageTarget
+    title: notation usage target
+    range: Entity
+    domain: NotationSystemUsage
+    multivalued: false
   observationEvent:
     slot_uri: https://blackcatinformatics.ca/gmeow/observationEvent
     title: observation event
@@ -5280,6 +5351,12 @@ slots:
     range: Entity
     domain: Entity
     multivalued: true
+  symbolicSystemKind:
+    slot_uri: https://blackcatinformatics.ca/gmeow/symbolicSystemKind
+    title: symbolic system kind
+    range: SymbolicSystemKind
+    domain: SymbolicSystem
+    multivalued: true
   tagInScheme:
     slot_uri: https://blackcatinformatics.ca/gmeow/tagInScheme
     title: tag in scheme
@@ -5689,6 +5766,12 @@ slots:
     range: string
     domain: Geocode
     multivalued: false
+  writingSystemAsNotation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/writingSystemAsNotation
+    title: writing system as notation
+    range: NotationSystem
+    domain: WritingSystem
+    multivalued: true
   writingSystemType:
     slot_uri: https://blackcatinformatics.ca/gmeow/writingSystemType
     title: writing system type
@@ -7778,6 +7861,30 @@ enums:
       networkAddressTypeURL:
         meaning: https://blackcatinformatics.ca/gmeow/networkAddressTypeURL
         title: URL
+  NotationUsageRoleEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/NotationUsageRole
+    permissible_values:
+      notationRoleCipher:
+        meaning: https://blackcatinformatics.ca/gmeow/notationRoleCipher
+        title: cipher
+      notationRoleCommunication:
+        meaning: https://blackcatinformatics.ca/gmeow/notationRoleCommunication
+        title: communication
+      notationRoleEncoding:
+        meaning: https://blackcatinformatics.ca/gmeow/notationRoleEncoding
+        title: encoding
+      notationRoleExpression:
+        meaning: https://blackcatinformatics.ca/gmeow/notationRoleExpression
+        title: expression
+      notationRoleRepresentation:
+        meaning: https://blackcatinformatics.ca/gmeow/notationRoleRepresentation
+        title: representation
+      notationRoleShorthand:
+        meaning: https://blackcatinformatics.ca/gmeow/notationRoleShorthand
+        title: shorthand
+      notationRoleTranscription:
+        meaning: https://blackcatinformatics.ca/gmeow/notationRoleTranscription
+        title: transcription
   ObservablePropertyEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ObservableProperty
     permissible_values:
@@ -8816,6 +8923,39 @@ enums:
       strandReverse:
         meaning: https://blackcatinformatics.ca/gmeow/strandReverse
         title: reverse / Crick strand
+  SymbolicSystemKindEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/SymbolicSystemKind
+    permissible_values:
+      symbolicKindCommunicationConvention:
+        meaning: https://blackcatinformatics.ca/gmeow/symbolicKindCommunicationConvention
+        title: communication convention
+      symbolicKindCryptographic:
+        meaning: https://blackcatinformatics.ca/gmeow/symbolicKindCryptographic
+        title: cryptographic
+      symbolicKindEmoji:
+        meaning: https://blackcatinformatics.ca/gmeow/symbolicKindEmoji
+        title: emoji
+      symbolicKindEncoding:
+        meaning: https://blackcatinformatics.ca/gmeow/symbolicKindEncoding
+        title: encoding
+      symbolicKindGesture:
+        meaning: https://blackcatinformatics.ca/gmeow/symbolicKindGesture
+        title: gesture
+      symbolicKindMathematical:
+        meaning: https://blackcatinformatics.ca/gmeow/symbolicKindMathematical
+        title: mathematical
+      symbolicKindMusical:
+        meaning: https://blackcatinformatics.ca/gmeow/symbolicKindMusical
+        title: musical
+      symbolicKindPlatformConvention:
+        meaning: https://blackcatinformatics.ca/gmeow/symbolicKindPlatformConvention
+        title: platform convention
+      symbolicKindStenographic:
+        meaning: https://blackcatinformatics.ca/gmeow/symbolicKindStenographic
+        title: stenographic
+      symbolicKindTranscription:
+        meaning: https://blackcatinformatics.ca/gmeow/symbolicKindTranscription
+        title: transcription
   TagEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Tag
     permissible_values:

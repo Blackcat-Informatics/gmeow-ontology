@@ -854,6 +854,17 @@ export enum NetworkAddressTypeEnum {
     URL = "networkAddressTypeURL",
 };
 
+export enum NotationUsageRoleEnum {
+
+    cipher = "notationRoleCipher",
+    communication = "notationRoleCommunication",
+    encoding = "notationRoleEncoding",
+    expression = "notationRoleExpression",
+    representation = "notationRoleRepresentation",
+    shorthand = "notationRoleShorthand",
+    transcription = "notationRoleTranscription",
+};
+
 export enum ObservablePropertyEnum {
 
     air_quality_index = "observablePropertyAirQualityIndex",
@@ -1288,6 +1299,20 @@ export enum StrandOrientationEnum {
     both_strands = "strandBoth",
     forward_SOLIDUS_Watson_strand = "strandForward",
     reverse_SOLIDUS_Crick_strand = "strandReverse",
+};
+
+export enum SymbolicSystemKindEnum {
+
+    communication_convention = "symbolicKindCommunicationConvention",
+    cryptographic = "symbolicKindCryptographic",
+    emoji = "symbolicKindEmoji",
+    encoding = "symbolicKindEncoding",
+    gesture = "symbolicKindGesture",
+    mathematical = "symbolicKindMathematical",
+    musical = "symbolicKindMusical",
+    platform_convention = "symbolicKindPlatformConvention",
+    stenographic = "symbolicKindStenographic",
+    transcription = "symbolicKindTranscription",
 };
 
 export enum TagEnum {
@@ -2239,6 +2264,7 @@ export interface LandTenureType {
 export interface Language extends InformationObject {
     bcp47Tag?: string,
     designGoal?: string,
+    hasNotationSystem?: NotationSystem[],
     languageCode?: string,
     languageModality?: LanguageModality[],
     languageOrigin?: LanguageOrigin[],
@@ -2618,6 +2644,27 @@ export interface NetworkAddress extends Entity {
 
 
 export interface NetworkAddressType {
+}
+
+
+
+export interface NotationSystem extends SymbolicSystem {
+    notationSystemFor?: Language[],
+    notationSystemKind?: SymbolicSystemKind[],
+}
+
+
+
+export interface NotationSystemUsage {
+    notationUsageInterval?: TimeInterval,
+    notationUsageNotationSystem?: NotationSystem,
+    notationUsageRole?: NotationUsageRole,
+    notationUsageTarget?: Entity,
+}
+
+
+
+export interface NotationUsageRole {
 }
 
 
@@ -3279,6 +3326,17 @@ export interface Summary extends InformationObject {
 
 
 
+export interface SymbolicSystem extends InformationObject {
+    symbolicSystemKind?: SymbolicSystemKind[],
+}
+
+
+
+export interface SymbolicSystemKind {
+}
+
+
+
 export interface Tag extends InformationObject {
     broaderTag?: Tag[],
     narrowerTag?: Tag[],
@@ -3511,6 +3569,7 @@ export interface Work extends CreativeWork {
 export interface WritingSystem extends InformationObject {
     scriptCode?: string,
     textDirection?: TextDirection[],
+    writingSystemAsNotation?: NotationSystem[],
     writingSystemType?: WritingSystemType[],
 }
 

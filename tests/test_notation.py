@@ -93,12 +93,17 @@ def test_language_is_sibling_not_subclass_of_symbolic() -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_notation_system_usage_relor() -> None:
+def test_notation_system_usage_relator() -> None:
     graph = _graph()
     assert (
         URIRef(GMEOW + "NotationSystemUsage"),
         RDFS.subClassOf,
         URIRef(GUFO + "Relator"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "NotationSystemUsage"),
+        RDFS.subClassOf,
+        URIRef(GMEOW + "Observation"),
     ) in graph
     for role in (
         "notationUsageTarget",

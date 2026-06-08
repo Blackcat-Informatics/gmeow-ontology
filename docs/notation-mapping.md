@@ -51,7 +51,7 @@ approach keeps each class minimal and lets explicit bridging properties
 | **MusicXML / MEI** | `FormalLanguage` **or** `NotationSystem` | Grammar-defined encoding; also musical notation — **co-modelable via standpoint** |
 | **MIDI** | `FormalLanguage` **or** `NotationSystem` | Protocol with defined structure; also encoding — **co-modelable via standpoint** |
 | **ABC notation** | `FormalLanguage` **or** `NotationSystem` | Text-based music notation with grammar — **co-modelable via standpoint** |
-| **LilyPond** | `FormalLanguage` | Programming language for music engraving |
+| **LilyPond** | `FormalLanguage` **or** `NotationSystem` | Programming language for music engraving; also music notation — **co-modelable via standpoint** |
 
 ### Boundary rules
 
@@ -94,7 +94,8 @@ ex:ipa a gmeow:NotationSystem ;
 ex:englishUsesIpa a gmeow:NotationSystemUsage ;
     gmeow:notationUsageTarget ex:english ;
     gmeow:notationUsageNotationSystem ex:ipa ;
-    gmeow:notationUsageRole gmeow:notationRoleTranscription .
+    gmeow:notationUsageRole gmeow:notationRoleTranscription ;
+    gmeow:notationUsageInterval ex:ipaUsageInterval .
 ```
 
 A musical work using staff notation:
@@ -108,7 +109,8 @@ ex:staffNotation a gmeow:NotationSystem ;
 ex:beethoven9UsesStaff a gmeow:NotationSystemUsage ;
     gmeow:notationUsageTarget ex:beethoven9 ;
     gmeow:notationUsageNotationSystem ex:staffNotation ;
-    gmeow:notationUsageRole gmeow:notationRoleRepresentation .
+    gmeow:notationUsageRole gmeow:notationRoleRepresentation ;
+    gmeow:notationUsageInterval ex:staffUsageInterval .
 ```
 
 ## Co-modeling: when a system is both language and notation

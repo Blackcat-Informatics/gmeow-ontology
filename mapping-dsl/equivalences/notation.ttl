@@ -40,20 +40,20 @@ gmeow:eqNotation001 a gmeow:TermEquivalence ;
 gmeow:eqNotation002 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:SymbolicSystem ;
     gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q179237 ;
+    gmeow:alignObject wd:Q80071 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
-    gmeow:comment "Wikidata 'symbol' (Q179237) is the individual symbol, not the system; related match only." ;
+    gmeow:comment "Wikidata 'symbol' (Q80071) — the general concept of a symbol, not a specific system; related match only." ;
     gmeow:sssomFile "gmeow-notation.sssom.tsv" .
 
 # NotationSystem — structured symbol system
 gmeow:eqNotation003 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:NotationSystem ;
     gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject wd:Q3258247 ;
+    gmeow:alignObject wd:Q2001982 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
-    gmeow:comment "Wikidata 'notation' (Q3258247) covers mathematical, musical, and other notations — a close related match." ;
+    gmeow:comment "Wikidata 'notation' (Q2001982) — a system of symbols to represent facts or quantities; a close related match." ;
     gmeow:sssomFile "gmeow-notation.sssom.tsv" .
 
 # WritingSystem — already mapped in languages.ttl; bridge here for completeness
@@ -70,38 +70,38 @@ gmeow:eqNotation004 a gmeow:TermEquivalence ;
 gmeow:eqNotation005 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:symbolicKindMathematical ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q274808 ;
+    gmeow:alignObject wd:Q1140046 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Mathematical notation (Wikidata Q274808)." ;
+    gmeow:comment "Mathematical notation (Wikidata Q1140046)." ;
     gmeow:sssomFile "gmeow-notation.sssom.tsv" .
 
 # Musical notation
 gmeow:eqNotation006 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:symbolicKindMusical ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q170406 ;
+    gmeow:alignObject wd:Q233861 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Musical notation (Wikidata Q170406)." ;
+    gmeow:comment "Musical notation (Wikidata Q233861)." ;
     gmeow:sssomFile "gmeow-notation.sssom.tsv" .
 
 # Stenography / shorthand
 gmeow:eqNotation007 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:symbolicKindStenographic ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q181444 ;
+    gmeow:alignObject wd:Q181066 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Shorthand / stenography (Wikidata Q181444)." ;
+    gmeow:comment "Shorthand / stenography (Wikidata Q181066)." ;
     gmeow:sssomFile "gmeow-notation.sssom.tsv" .
 
 # Cryptography
 gmeow:eqNotation008 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:symbolicKindCryptographic ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q878946 ;
+    gmeow:alignObject wd:Q8789 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "Cryptography (Wikidata Q878946) — broader than notation, but the closest match." ;
+    gmeow:comment "Cryptography (Wikidata Q8789) — broader than notation, but the closest match." ;
     gmeow:sssomFile "gmeow-notation.sssom.tsv" .
