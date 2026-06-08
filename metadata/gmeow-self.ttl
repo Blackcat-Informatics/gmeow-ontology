@@ -1,0 +1,140 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+
+@prefix :        <https://blackcatinformatics.ca/gmeow/self#> .
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+
+<https://blackcatinformatics.ca/gmeow/self>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Self-Description"@en ;
+    owl:imports <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# WORK — the abstract intellectual creation
+# =========================================================================== #
+
+<https://blackcatinformatics.ca/gmeow>
+    a gmeow:Work ;
+    rdfs:label "GMEOW — Global Metadata and Entity Ontology for the Web"@en ;
+    skos:definition "A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that unifies document metadata, entity descriptions, legal agreements, contacts, and person-centric data."@en ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    foaf:homepage <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:datePublished "2026-06-03"^^xsd:date .
+
+# =========================================================================== #
+# EXPRESSION — a specific realization of the Work
+# =========================================================================== #
+
+:expression
+    a gmeow:Expression ;
+    gmeow:realizes <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# MANIFESTATION — a concrete, versioned publication
+# =========================================================================== #
+
+<https://blackcatinformatics.ca/gmeow/0.1.0>
+    a gmeow:Manifestation ;
+    gmeow:embodies :expression ;
+    gmeow:versionFingerprint "0.1.0" ;
+    gmeow:datePublished "2026-06-03"^^xsd:date ;
+    dcterms:identifier "10.XXXXX/gmeow" ;
+    dcterms:publisher <https://blackcatinformatics.ca/#bii> .
+
+<https://blackcatinformatics.ca/#bii>
+    a foaf:Organization ;
+    foaf:name "Blackcat Informatics Inc."@en ;
+    foaf:mbox <mailto:doi@blackcatinformatics.ca> .
+
+# =========================================================================== #
+# CONTRIBUTION — creator credit with CRediT role and degree
+# =========================================================================== #
+
+:contribution-bii
+    a gmeow:Contribution ;
+    gmeow:contributor <https://blackcatinformatics.ca/#bii> ;
+    gmeow:contributionTarget <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:contributionRole gmeow:roleAuthor ;
+    gmeow:contributionDegree gmeow:degreeLead .
+
+# =========================================================================== #
+# CITATION ACTS — credit to standards GMEOW bridges (representative set)
+# =========================================================================== #
+
+:citation-schema-org
+    a gmeow:CitationAct ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:citedEntity <https://schema.org/> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference .
+
+:citation-foaf
+    a gmeow:CitationAct ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:citedEntity <http://xmlns.com/foaf/0.1/> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference .
+
+:citation-dcterms
+    a gmeow:CitationAct ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:citedEntity <http://purl.org/dc/terms/> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference .
+
+:citation-time
+    a gmeow:CitationAct ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:citedEntity <http://www.w3.org/2006/time#> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference .
+
+:citation-geosparql
+    a gmeow:CitationAct ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:citedEntity <http://www.opengis.net/ont/geosparql#> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference .
+
+:citation-prov
+    a gmeow:CitationAct ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:citedEntity <http://www.w3.org/ns/prov#> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference .
+
+:citation-skos
+    a gmeow:CitationAct ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:citedEntity <http://www.w3.org/2004/02/skos/core#> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference .
+
+:citation-vcard
+    a gmeow:CitationAct ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:citedEntity <http://www.w3.org/2006/vcard/ns#> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference .
+
+:citation-bibo
+    a gmeow:CitationAct ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:citedEntity <http://purl.org/ontology/bibo/> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference .
+
+:citation-frbr
+    a gmeow:CitationAct ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:citedEntity <http://purl.org/vocab/frbr/core#> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference .
+
+:citation-doap
+    a gmeow:CitationAct ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:citedEntity <http://usefulinc.com/ns/doap#> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference .
+
+:citation-ical
+    a gmeow:CitationAct ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:citedEntity <http://www.w3.org/2002/12/cal/icaltzd#> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference .

@@ -312,17 +312,19 @@ def gmeow_llms_txt() -> str:
     classes = [t for t in terms if t.category == "class"]
     properties = [t for t in terms if t.category == "property"]
     individuals = [t for t in terms if t.category == "individual"]
-    from gmeow_tools.config import NAMESPACE, TITLE, VERSION
+    from gmeow_tools.config import NAMESPACE
+    from gmeow_tools.self_desc import load_self_description
 
+    meta = load_self_description()
     lines = [
-        f"# {TITLE}",
+        f"# {meta.title}",
         "",
         "> A reasoning-centric, OWL 2 DL, gUFO-grounded super-vocabulary that "
         "unifies a person's or organization's digital existence (entities, "
         "contacts, email, trust/keys, time) and aligns it to schema.org, FOAF, "
         "PROV, the WOT schema, Wikidata, and more.",
         "",
-        f"Vocabulary {VERSION}. Namespace: {NAMESPACE}. Each term below is "
+        f"Vocabulary {meta.version}. Namespace: {NAMESPACE}. Each term below is "
         "`curie` — definition; the OWL source is canonical.",
         "",
         "## Classes",

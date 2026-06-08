@@ -41,8 +41,6 @@ from gmeow_tools.config import (
     PREFIXES,
     PROJECTION_QUERY_DIR,
     PROJECTIONS_DIR,
-    RELEASE_DATE,
-    VERSION,
 )
 from gmeow_tools.graph import bind_prefixes, load_merged_graph
 from gmeow_tools.mapping_dsl import (
@@ -64,6 +62,7 @@ from gmeow_tools.projection_lint import (
     fno_type_mismatches,
     projection_spec_drift,
 )
+from gmeow_tools.self_desc import load_self_description
 
 GM = Namespace(PREFIXES["gmeow"])
 FNO = Namespace(PREFIXES["fno"])
@@ -637,14 +636,15 @@ _SSSOM_ALWAYS = frozenset(
 
 def _sssom_header(meta: MappingSet | None, prefixes: list[str]) -> list[str]:
     """The SSSOM YAML metadata header: set id, license, provenance, curie_map."""
+    _meta = load_self_description()
     lines: list[str] = []
     if meta is not None and meta.set_id:
         lines.append(f"# mapping_set_id: {meta.set_id}")
-        lines.append(f"# mapping_set_version: {VERSION}")
+        lines.append(f"# mapping_set_version: {_meta.version}")
         lines.append(f"# license: {meta.license}")
     lines.append("# mapping_tool: gmeow compile-mappings")
-    lines.append(f"# mapping_tool_version: {VERSION}")
-    lines.append(f"# mapping_date: {RELEASE_DATE}")
+    lines.append(f"# mapping_tool_version: {_meta.version}")
+    lines.append(f"# mapping_date: {_meta.release_date}")
     if meta is not None and meta.comment:
         # Collapse any whitespace run (incl. the newlines of a multi-line Turtle
         # """...""" source literal) to single spaces, so the comment stays on one
