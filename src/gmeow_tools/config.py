@@ -206,6 +206,7 @@ PREFIXES: dict[str, str] = {
     "qb": "http://purl.org/linked-data/cube#",
     "mf": "http://www.opengis.net/ont/movingfeatures#",
     "sta": "http://www.opengis.net/def/ont/sensorthings/1.1/",
+    "iso19156": "http://www.isotc211.org/iso19156/",
     "oboe": "http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#",
     "obi": "http://purl.obolibrary.org/obo/OBI_",
     "iao": "http://purl.obolibrary.org/obo/IAO_",

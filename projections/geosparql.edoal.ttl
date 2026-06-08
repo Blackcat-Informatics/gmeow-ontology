@@ -17,6 +17,22 @@
             align:relation "=" ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnRetagWkt ] ],
         [ a align:Cell ;
+            rdfs:label "CoordinateObservation coordinateResult → geo:Geometry with WKT POINT"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:CoordinateObservation ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri geo:Geometry ] ;
+            align:relation "<=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnLatLongToWktPoint ] ],
+        [ a align:Cell ;
+            rdfs:label "CoordinateObservation geometryResult → geo:hasGeometry with WKT"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:CoordinateObservation ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri geo:hasGeometry ] ;
+            align:relation "=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnRetagWkt ] ],
+        [ a align:Cell ;
             rdfs:label "coarsenTo → enclosing-region GeoJSON (privacy generalization)"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:coarsenTo ] ;

@@ -741,3 +741,42 @@ gmeow:mapSchemaPlaceAllNames a gmeow:ProjectionMapping ;
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:name ; gmeow:relation "<=" ;
         gmeow:confidence 0.8 ;
         gmeow:lossyDrop "namePurpose (endonym/exonym/superseded) is ignored; every displayable name is emitted as schema:name. The consumer receives all co-equal claims without privileging." ] .
+
+# --------------------------------------------------------------------------- #
+# Issue #125 — CoordinateObservation projections to schema.org
+# --------------------------------------------------------------------------- #
+# These project the reified observation path to schema.org, complementing the
+# flat shortcut projections above. Both branches respect coarsenTo suppression
+# and displayable false on the observation (Principle 10).
+# --------------------------------------------------------------------------- #
+
+# CoordinateObservation with coordinateResult → schema:geo / schema:GeoCoordinates
+gmeow:mapSchemaCoordinateObservation a gmeow:ProjectionMapping ;
+    rdfs:label "CoordinateObservation coordinateResult → schema:geo (suppressed under coarsenTo)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "place" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ]
+            [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:hasCoordinateObservation ; gmeow:objectVar "obs" ]
+            [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:coordinateResult ; gmeow:objectVar "coords" ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:latitude ; gmeow:objectVar "lat" ] ) ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:longitude ; gmeow:objectVar "lon" ] ) ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "coords" ; gmeow:predicate gmeow:elevation ; gmeow:objectVar "elev" ] ) ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:coarsenTo ; gmeow:objectVar "anyLvl" ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "the CoordinateObservation relator (vantage, confidence, reference frame, temporal scope) collapses to a flat schema:geo edge; non-displayable/superseded observations are suppressed" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "place" ; gmeow:tPred schema:geo ; gmeow:tObj "coords" ]
+            [ gmeow:tSubj "coords" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:GeoCoordinates ]
+            [ gmeow:tSubj "coords" ; gmeow:tPred schema:latitude ; gmeow:tObj "lat" ]
+            [ gmeow:tSubj "coords" ; gmeow:tPred schema:longitude ; gmeow:tObj "lon" ]
+            [ gmeow:tSubj "coords" ; gmeow:tPred schema:elevation ; gmeow:tObj "elev" ] ) ] .
+
+# NOTE: geometryResult → schema.org is intentionally deferred. WKT geometries
+# (polygon, linestring) cannot be losslessly projected to schema:GeoCoordinates
+# without centroid extraction, and schema:GeoShape polygon format differs from
+# WKT. Consumers needing complex geometries should use the GeoSPARQL projection.
+# The CoordinateObservation coordinateResult mapping above already handles
+# point coordinates (lat/lon) as schema:GeoCoordinates.

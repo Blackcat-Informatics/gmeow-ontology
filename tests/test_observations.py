@@ -431,3 +431,90 @@ def test_stream_el_axiom() -> None:
 
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
     assert (EX.stream1, RDF.type, GMEOW.Stream) in graph
+
+
+# --------------------------------------------------------------------------- #
+# SpatialMeasurement / CoordinateObservation (#125)
+# --------------------------------------------------------------------------- #
+
+
+def test_spatial_measurement_infers_observation() -> None:
+    """SpatialMeasurement is inferred as an Observation under OWL RL."""
+    graph = Graph()
+    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
+    graph.add((EX.sm1, RDF.type, GMEOW.SpatialMeasurement))
+
+    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    assert (EX.sm1, RDF.type, GMEOW.Observation) in graph
+
+
+def test_coordinate_observation_infers_spatial_measurement() -> None:
+    """CoordinateObservation is inferred as SpatialMeasurement
+    (and thus Observation)."""
+    graph = Graph()
+    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
+    graph.add((EX.co1, RDF.type, GMEOW.CoordinateObservation))
+
+    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    assert (EX.co1, RDF.type, GMEOW.SpatialMeasurement) in graph
+    assert (EX.co1, RDF.type, GMEOW.Observation) in graph
+
+
+def test_coordinate_observation_frame_inheritance() -> None:
+    """A CoordinateObservation's result inherits the observation's reference frame."""
+    graph = Graph()
+    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
+
+    graph.add((EX.co2, RDF.type, GMEOW.CoordinateObservation))
+    graph.add((EX.co2, GMEOW.coordinateResult, EX.coords2))
+    graph.add((EX.co2, GMEOW.hasReferenceFrame, EX.frameWGS84))
+    graph.add((EX.coords2, RDF.type, GMEOW.GeoCoordinates))
+    graph.add((EX.frameWGS84, RDF.type, GMEOW.ReferenceFrame))
+
+    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    # isResultOf is inverse of observationResult, so coords2 --isResultOf-- co2
+    # Then the chain isResultOf ∘ hasReferenceFrame ⊑ hasReferenceFrame fires.
+    assert (EX.coords2, GMEOW.hasReferenceFrame, EX.frameWGS84) in graph
+
+
+def test_coordinate_observation_el_axioms() -> None:
+    """A CoordinateObservation individual with required properties stays consistent."""
+    graph = Graph()
+    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
+
+    graph.add((EX.co3, RDF.type, GMEOW.CoordinateObservation))
+    graph.add((EX.co3, GMEOW.vantage, EX.agent3))
+    graph.add((EX.co3, GMEOW.observedFeature, EX.place3))
+    graph.add((EX.agent3, RDF.type, GMEOW.Agent))
+    graph.add((EX.place3, RDF.type, GMEOW.Place))
+
+    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    assert (EX.co3, RDF.type, GMEOW.CoordinateObservation) in graph
+
+
+def test_coordinate_observation_mapped_to_sosa() -> None:
+    """CoordinateObservation is aligned to sosa:Observation in the mappings."""
+    from gmeow_tools.mappings import load_mappings
+
+    mappings = load_mappings()
+    co_mappings = [m for m in mappings if m.subject_id == "gmeow:CoordinateObservation"]
+    assert co_mappings, "CoordinateObservation must have at least one mapping"
+    sosa_matches = [m for m in co_mappings if m.object_id == "sosa:Observation"]
+    assert sosa_matches, "CoordinateObservation must map to sosa:Observation"
+    assert sosa_matches[0].predicate_id == "skos:closeMatch"
+
+
+def test_spatial_measurement_mapped_to_sosa() -> None:
+    """SpatialMeasurement is aligned to sosa:Observation in the mappings."""
+    from gmeow_tools.mappings import load_mappings
+
+    mappings = load_mappings()
+    sm_mappings = [m for m in mappings if m.subject_id == "gmeow:SpatialMeasurement"]
+    assert sm_mappings, "SpatialMeasurement must have at least one mapping"
+    sosa_matches = [m for m in sm_mappings if m.object_id == "sosa:Observation"]
+    assert sosa_matches, "SpatialMeasurement must map to sosa:Observation"
+    assert sosa_matches[0].predicate_id == "skos:closeMatch"
