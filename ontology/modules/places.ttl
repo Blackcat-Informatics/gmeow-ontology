@@ -318,7 +318,7 @@ gmeow:hasCoordinates
     rdfs:domain gmeow:Place ;
     rdfs:range gmeow:GeoCoordinates ;
     rdfs:label "has coordinates"@en ;
-    skos:definition "Relates a place to its geographic point coordinates."@en ;
+    skos:definition "Relates a place to its geographic point coordinates. Flat shortcut for the common case; the full relator form is a CoordinateObservation linking the place to a GeoCoordinates result via gmeow:coordinateResult, carrying provenance, reference frame, confidence, and standpoint (Principle 3). Non-simple: derived via property chain from the reified observation path."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasGeometry
@@ -326,7 +326,7 @@ gmeow:hasGeometry
     rdfs:domain gmeow:Place ;
     rdfs:range gmeow:Geometry ;
     rdfs:label "has geometry"@en ;
-    skos:definition "Relates a place to its spatial geometry (point, line, or polygon)."@en ;
+    skos:definition "Relates a place to its spatial geometry (point, line, or polygon). Flat shortcut for the common case; the full relator form is a CoordinateObservation linking the place to a Geometry result via gmeow:geometryResult, carrying provenance, reference frame, confidence, and standpoint (Principle 3). Non-simple: derived via property chain from the reified observation path."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:placeType
@@ -1487,6 +1487,99 @@ gmeow:proximity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
+# Spatial Measurement — reified coordinate/geometry assignment (#125)
+# --------------------------------------------------------------------------- #
+# Realises Principle 3 (Observation ≡ Measurement ≡ Standpoint) for the
+# spatial domain. SpatialMeasurement is the parent of CoordinateObservation
+# and other spatial measurement specialisations. CoordinateObservation reifies
+# the act of assigning coordinates or geometry to a place so that multiple
+# surveys (GPS 2023, LiDAR 2024) coexist as standpoint-indexed claims,
+# none privileged (Principle 9). The reference frame is explicit on the
+# observation (Principle 11) and propagates to the result via the existing
+# isResultOf ∘ hasReferenceFrame chain in observations.ttl.
+# --------------------------------------------------------------------------- #
+
+gmeow:SpatialMeasurement
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Measurement ;
+    rdfs:label "Spatial Measurement"@en ;
+    skos:definition "A measurement that assigns a spatial property — coordinates, geometry, pose, or spatial extent — to a feature of interest. The parent of CoordinateObservation and other spatial measurement specialisations. Realises the spatial side of Principle 3 (Observation ≡ Measurement ≡ Standpoint)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:CoordinateObservation
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:SpatialMeasurement ;
+    rdfs:label "Coordinate Observation"@en ;
+    skos:definition "A spatial measurement that assigns geographic coordinates or geometry to a place. Reifies the act of coordinate assignment so that multiple surveys (GPS 2023, LiDAR 2024) coexist as standpoint-indexed observations (Principle 9), each carrying its own reference frame, confidence, and temporal scope. Neither observation is 'the' coordinates. Superseded surveys are suppressed via gmeow:displayable false, never deleted (Principle 10)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# EL axiomatisation: every SpatialMeasurement mediates at least one vantage and one feature.
+gmeow:SpatialMeasurement rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage ;         owl:someValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:someValuesFrom gmeow:Entity ] .
+
+# EL axiomatisation: every CoordinateObservation mediates at least one vantage and one place.
+gmeow:CoordinateObservation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage ;         owl:someValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:someValuesFrom gmeow:Place ] .
+
+# Domain-specific properties bridging to the universal observation stack.
+gmeow:spatialMeasurementOf
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    rdfs:domain gmeow:SpatialMeasurement ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "spatial measurement of"@en ;
+    skos:definition "The entity whose spatial property is being measured — the observedFeature of a spatial measurement. Subproperty of gmeow:observedFeature so generic consumers can query all observations without knowing the domain."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasSpatialMeasurement
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:spatialMeasurementOf ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range gmeow:SpatialMeasurement ;
+    rdfs:label "has spatial measurement"@en ;
+    skos:definition "Links an entity to a spatial measurement describing its coordinates, geometry, pose, or spatial extent. Flat form for the common case; promote to full reified SpatialMeasurement when vantage, confidence, temporal scope, or standpoint matter."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:coordinateObservationOf
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:spatialMeasurementOf ;
+    rdfs:domain gmeow:CoordinateObservation ;
+    rdfs:range gmeow:Place ;
+    rdfs:label "coordinate observation of"@en ;
+    skos:definition "The place whose coordinates or geometry are being observed — the observedFeature of a coordinate observation. Subproperty of gmeow:spatialMeasurementOf (itself a subproperty of gmeow:observedFeature) so generic consumers can query all observations without knowing the domain."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasCoordinateObservation
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:coordinateObservationOf ;
+    rdfs:subPropertyOf gmeow:hasSpatialMeasurement ;
+    rdfs:domain gmeow:Place ;
+    rdfs:range gmeow:CoordinateObservation ;
+    rdfs:label "has coordinate observation"@en ;
+    skos:definition "Links a place to a coordinate observation that assigned coordinates or geometry to it. Non-functional: multiple surveys (GPS, LiDAR, total station) may coexist for the same place (Principle 9), and no observation is privileged."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:coordinateResult
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:observationResult ;
+    rdfs:domain gmeow:CoordinateObservation ;
+    rdfs:range gmeow:GeoCoordinates ;
+    rdfs:label "coordinate result"@en ;
+    skos:definition "The GeoCoordinates result of a coordinate observation — a point expressed as latitude, longitude, and optional elevation. The reference frame in which the coordinates are expressed is carried on the observation via gmeow:hasReferenceFrame and propagates to the result via the existing isResultOf ∘ hasReferenceFrame chain."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:geometryResult
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:observationResult ;
+    rdfs:domain gmeow:CoordinateObservation ;
+    rdfs:range gmeow:Geometry ;
+    rdfs:label "geometry result"@en ;
+    skos:definition "The Geometry result of a coordinate observation — a point, line, or polygon expressed as WKT or GeoJSON. The reference frame is carried on the observation and propagates to the result via the existing property chain."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
 # Centroid — flat shortcut for the common case (#101)
 # --------------------------------------------------------------------------- #
 
@@ -1905,6 +1998,23 @@ gmeow:RegulatoryOverlay rdfs:subClassOf
 
 gmeow:locatedAt owl:propertyChainAxiom ( gmeow:locatedAt gmeow:containedInLocation ) .
 
+# =========================================================================== #
+# AXIOMATIZED DOCTRINE (#125) — property chains for coordinate/geometry
+#
+# hasCoordinates and hasGeometry are flat shortcuts derived from the reified
+# CoordinateObservation path. Expressed as:
+#   hasCoordinateObservation ∘ coordinateResult ⊑ hasCoordinates
+#   hasCoordinateObservation ∘ geometryResult   ⊑ hasGeometry
+#
+# These are OWL 2 DL regular because coordinateResult and geometryResult are
+# simple properties (no transitivity, symmetry, or inverse), and the chains
+# are the regular R ∘ S ⊑ T form. hasCoordinates and hasGeometry thereby
+# become non-simple and are kept out of all cardinality axioms.
+# =========================================================================== #
+
+gmeow:hasCoordinates owl:propertyChainAxiom ( gmeow:hasCoordinateObservation gmeow:coordinateResult ) .
+gmeow:hasGeometry    owl:propertyChainAxiom ( gmeow:hasCoordinateObservation gmeow:geometryResult ) .
+
 # --------------------------------------------------------------------------- #
 # Capacity / Occupancy / Utilization — cross-cutting location measurements (#100)
 # --------------------------------------------------------------------------- #
@@ -2274,3 +2384,20 @@ gmeow:referenceFrameMileMarker
     gmeow:requiresHost true ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricEuclidean .
+
+# --------------------------------------------------------------------------- #
+# Spatial observation method seeds (#125) — domain-specific ObservationMethod
+# individuals for coordinate-assignment protocols. These are plain individuals
+# (a gmeow:ObservationMethod, never a subclass) per Principle 9.
+# --------------------------------------------------------------------------- #
+
+gmeow:methodGPS a gmeow:ObservationMethod ; rdfs:label "GPS survey"@en ;
+    skos:definition "Coordinate assignment via Global Positioning System satellite ranging."@en .
+gmeow:methodLiDAR a gmeow:ObservationMethod ; rdfs:label "LiDAR survey"@en ;
+    skos:definition "Coordinate assignment via light detection and ranging (airborne or terrestrial laser scanning)."@en .
+gmeow:methodTotalStation a gmeow:ObservationMethod ; rdfs:label "total station survey"@en ;
+    skos:definition "Coordinate assignment via electronic theodolite integrated with electronic distance measurement."@en .
+gmeow:methodPhotogrammetry a gmeow:ObservationMethod ; rdfs:label "photogrammetry"@en ;
+    skos:definition "Coordinate assignment via stereo-photographic image triangulation."@en .
+gmeow:methodGNSSRTK a gmeow:ObservationMethod ; rdfs:label "GNSS RTK survey"@en ;
+    skos:definition "Coordinate assignment via real-time kinematic GNSS with centimetre-level precision."@en .

@@ -11,9 +11,11 @@ from __future__ import annotations
 from decimal import Decimal
 from pathlib import Path
 
+import owlrl
 from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
 from rdflib.namespace import XSD
 
+from gmeow_tools.config import ONTOLOGY_DIR
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.validate import run_shacl
 
@@ -2327,3 +2329,248 @@ def test_geocode_shape_invalid_two_codes() -> None:
     g.add((EX_PLACES.pc1, URIRef(GMEOW + "geohash"), Literal("u4pruydqqvj")))
     result = run_shacl(g)
     assert not result.ok
+
+
+# --------------------------------------------------------------------------- #
+# SpatialMeasurement / CoordinateObservation (#125)
+# --------------------------------------------------------------------------- #
+
+
+def test_spatial_measurement_subclass_of_measurement() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "SpatialMeasurement"),
+        RDFS.subClassOf,
+        URIRef(GMEOW + "Measurement"),
+    ) in graph
+
+
+def test_coordinate_observation_subclass_of_spatial_measurement() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "CoordinateObservation"),
+        RDFS.subClassOf,
+        URIRef(GMEOW + "SpatialMeasurement"),
+    ) in graph
+
+
+def test_has_coordinate_observation_domain_range() -> None:
+    graph = _graph()
+    prop = URIRef(GMEOW + "hasCoordinateObservation")
+    assert (prop, RDF.type, OWL.ObjectProperty) in graph
+    assert (prop, RDFS.domain, URIRef(GMEOW + "Place")) in graph
+    assert (prop, RDFS.range, URIRef(GMEOW + "CoordinateObservation")) in graph
+    assert (prop, RDF.type, OWL.FunctionalProperty) not in graph
+
+
+def test_coordinate_observation_of_subproperty() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "coordinateObservationOf"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "spatialMeasurementOf"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "coordinateObservationOf"),
+        RDFS.domain,
+        URIRef(GMEOW + "CoordinateObservation"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "coordinateObservationOf"),
+        RDFS.range,
+        URIRef(GMEOW + "Place"),
+    ) in graph
+
+
+def test_coordinate_result_subproperty() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "coordinateResult"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "observationResult"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "coordinateResult"),
+        RDFS.domain,
+        URIRef(GMEOW + "CoordinateObservation"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "coordinateResult"),
+        RDFS.range,
+        URIRef(GMEOW + "GeoCoordinates"),
+    ) in graph
+
+
+def test_geometry_result_subproperty() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "geometryResult"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "observationResult"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "geometryResult"),
+        RDFS.domain,
+        URIRef(GMEOW + "CoordinateObservation"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "geometryResult"),
+        RDFS.range,
+        URIRef(GMEOW + "Geometry"),
+    ) in graph
+
+
+def test_has_coordinates_property_chain() -> None:
+    graph = _graph()
+    chain_head = graph.value(URIRef(GMEOW + "hasCoordinates"), OWL.propertyChainAxiom)
+    assert chain_head is not None
+    chain_elements = list(graph.items(chain_head))
+    assert chain_elements == [
+        URIRef(GMEOW + "hasCoordinateObservation"),
+        URIRef(GMEOW + "coordinateResult"),
+    ]
+
+
+def test_has_geometry_property_chain() -> None:
+    graph = _graph()
+    chain_head = graph.value(URIRef(GMEOW + "hasGeometry"), OWL.propertyChainAxiom)
+    assert chain_head is not None
+    chain_elements = list(graph.items(chain_head))
+    assert chain_elements == [
+        URIRef(GMEOW + "hasCoordinateObservation"),
+        URIRef(GMEOW + "geometryResult"),
+    ]
+
+
+def test_coordinate_observation_chain_fires() -> None:
+    """A Place with a CoordinateObservation that has a GeoCoordinates result
+    infers hasCoordinates via the property chain."""
+    graph = Graph()
+    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
+    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+
+    graph.add((EX_PLACES.testPlace, RDF.type, URIRef(GMEOW + "Place")))
+    graph.add(
+        (
+            EX_PLACES.testPlace,
+            URIRef(GMEOW + "hasCoordinateObservation"),
+            EX_PLACES.testObs,
+        )
+    )
+    graph.add(
+        (
+            EX_PLACES.testObs,
+            RDF.type,
+            URIRef(GMEOW + "CoordinateObservation"),
+        )
+    )
+    graph.add(
+        (
+            EX_PLACES.testObs,
+            URIRef(GMEOW + "coordinateResult"),
+            EX_PLACES.testCoords,
+        )
+    )
+    graph.add(
+        (
+            EX_PLACES.testCoords,
+            RDF.type,
+            URIRef(GMEOW + "GeoCoordinates"),
+        )
+    )
+
+    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    assert (
+        EX_PLACES.testPlace,
+        URIRef(GMEOW + "hasCoordinates"),
+        EX_PLACES.testCoords,
+    ) in graph
+
+
+def test_geometry_observation_chain_fires() -> None:
+    """A Place with a CoordinateObservation that has a Geometry result infers
+    hasGeometry via the property chain."""
+    graph = Graph()
+    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
+    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+
+    graph.add((EX_PLACES.testPlace2, RDF.type, URIRef(GMEOW + "Place")))
+    graph.add(
+        (
+            EX_PLACES.testPlace2,
+            URIRef(GMEOW + "hasCoordinateObservation"),
+            EX_PLACES.testObs2,
+        )
+    )
+    graph.add(
+        (
+            EX_PLACES.testObs2,
+            RDF.type,
+            URIRef(GMEOW + "CoordinateObservation"),
+        )
+    )
+    graph.add(
+        (
+            EX_PLACES.testObs2,
+            URIRef(GMEOW + "geometryResult"),
+            EX_PLACES.testGeom2,
+        )
+    )
+    graph.add(
+        (
+            EX_PLACES.testGeom2,
+            RDF.type,
+            URIRef(GMEOW + "Geometry"),
+        )
+    )
+
+    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    assert (
+        EX_PLACES.testPlace2,
+        URIRef(GMEOW + "hasGeometry"),
+        EX_PLACES.testGeom2,
+    ) in graph
+
+
+def test_coordinate_observations_coexist() -> None:
+    """Multiple CoordinateObservations on the same place load, SHACL-pass,
+    and are BOTH retained — neither is the ground truth (Principle 9)."""
+    g = Graph().parse(
+        COVERAGE_FIXTURES / "coordinate-observations.ttl", format="turtle"
+    )
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    observations = set(
+        g.subjects(URIRef(GMEOW + "coordinateObservationOf"), EX_PLACES.surveyedPlace)
+    )
+    assert {EX_PLACES.gpsObservation, EX_PLACES.lidarObservation} <= observations
+
+
+def test_superseded_coordinate_observation_suppressed() -> None:
+    """A superseded coordinate observation is retained with displayable false."""
+    g = Graph().parse(
+        COVERAGE_FIXTURES / "coordinate-observations.ttl", format="turtle"
+    )
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    assert (
+        EX_PLACES.oldObservation,
+        URIRef(GMEOW + "displayable"),
+        Literal(False),
+    ) in g
+
+
+def test_spatial_method_seeds_exist() -> None:
+    graph = _graph()
+    for method in (
+        "methodGPS",
+        "methodLiDAR",
+        "methodTotalStation",
+        "methodPhotogrammetry",
+        "methodGNSSRTK",
+    ):
+        assert (
+            URIRef(GMEOW + method),
+            RDF.type,
+            URIRef(GMEOW + "ObservationMethod"),
+        ) in graph

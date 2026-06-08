@@ -7,16 +7,20 @@
 @prefix sosa: <http://www.w3.org/ns/sosa/> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
+@prefix iso19156: <http://www.isotc211.org/iso19156/> .
+@prefix crmarc: <http://www.cidoc-crm.org/crmarchaeo/> .
+@prefix om: <http://www.wurvoc.org/vocabularies/om-1.8/> .
 
 # Term equivalences for the observation domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-observations.sssom.tsv by `gmeow compile-mappings`.
-# Aligns SOSA/SSN (W3C/OGC), PROV-O (W3C), and CIDOC-CRM E13 (ISO 21127).
+# Aligns SOSA/SSN (W3C/OGC), PROV-O (W3C), CIDOC-CRM E13 (ISO 21127),
+# O&M (ISO 19156), CRMarchaeo, and OM (Ontology of Units of Measure).
 
 gmeow:mapsetObservations a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/observations" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. gmeow:ScalarQuantity is canonical — no faithful external term captures the unit+determinacy+granularity bundle in one node. Added (#68): StandpointClaim → sosa:Observation; Agent → sosa:Sensor (the observer/sensor/perceiver is a standpoint). Added (#69): IdentityFacet, NameUsage, RightsStatement, and KinRelationship → sosa:Observation (universal claim construct); facetSubject / facetVantage → sosa:hasFeatureOfInterest / sosa:madeBySensor. Added (#77): gmeow:Quantity and gmeow:MeasuredValue are equivalent aliases for ScalarQuantity; aligned to QUDT qudt:QuantityValue. Added (#96): Stream → sosa:ObservationCollection; streamSample → sosa:hasMember; Agent → sosa:Platform; streamSensor → sosa:madeBySensor; streamInterval → sosa:phenomenonTime; Observation → sosa:Sampling." .
+    gmeow:setComment "Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. gmeow:ScalarQuantity is canonical — no faithful external term captures the unit+determinacy+granularity bundle in one node. Added (#68): StandpointClaim → sosa:Observation; Agent → sosa:Sensor (the observer/sensor/perceiver is a standpoint). Added (#69): IdentityFacet, NameUsage, RightsStatement, and KinRelationship → sosa:Observation (universal claim construct); facetSubject / facetVantage → sosa:hasFeatureOfInterest / sosa:madeBySensor. Added (#77): gmeow:Quantity and gmeow:MeasuredValue are equivalent aliases for ScalarQuantity; aligned to QUDT qudt:QuantityValue. Added (#96): Stream → sosa:ObservationCollection; streamSample → sosa:hasMember; Agent → sosa:Platform; streamSensor → sosa:madeBySensor; streamInterval → sosa:phenomenonTime; Observation → sosa:Sampling. Added (#125): SpatialMeasurement and CoordinateObservation → sosa:Observation, iso19156:OM_Observation / OM_GeometryObservation, crmarc:S4_Observation; coordinateResult / geometryResult → sosa:hasResult." .
 
 # --------------------------------------------------------------------------- #
 # SOSA / SSN
@@ -303,4 +307,88 @@ gmeow:eqObs016 a gmeow:TermEquivalence ;
     gmeow:alignObject crm:P33_used_specific_technique ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Issue #125 — SpatialMeasurement / CoordinateObservation alignments
+# --------------------------------------------------------------------------- #
+
+# SOSA
+
+gmeow:eqObs033 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SpatialMeasurement ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:Observation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "SOSA does not distinguish spatial measurement types; SpatialMeasurement is a kind of Observation." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs034 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:CoordinateObservation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:Observation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "SOSA does not distinguish coordinate observation types; CoordinateObservation is a kind of Observation." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs035 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:coordinateResult ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:hasResult ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "coordinateResult is the GeoCoordinates-specific subproperty of observationResult; aligns to SOSA's generic hasResult." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs036 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:geometryResult ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:hasResult ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "geometryResult is the Geometry-specific subproperty of observationResult; aligns to SOSA's generic hasResult." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+# O&M (ISO 19156)
+
+gmeow:eqObs037 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SpatialMeasurement ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject iso19156:OM_Observation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "ISO 19156 O&M is the conceptual geographic standard that inspired SOSA/SSN. SpatialMeasurement aligns to the generic OM_Observation." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs038 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:CoordinateObservation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject iso19156:OM_GeometryObservation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "ISO 19156 O&M GeometryObservation is the closest O&M class for coordinate/geometry assignment." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+# CRMarchaeo
+
+gmeow:eqObs039 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:CoordinateObservation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crmarc:S4_Observation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "CRMarchaeo S4 Observation covers stratigraphic and spatial observations in archaeological context." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+# OM (Ontology of Units of Measure)
+
+gmeow:eqObs040 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ScalarQuantity ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject om:Measure ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "OM Measure is a broader concept; GMEOW ScalarQuantity bundles value, unit, determinacy, and granularity in one node. Related match for coordinate precision and uncertainty." ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" .

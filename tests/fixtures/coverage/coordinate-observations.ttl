@@ -1,0 +1,60 @@
+# Coverage slice (#125): multiple CoordinateObservations on a single place —
+# standpoint-indexed, coexisting, NO winner. Exercises GPS vs LiDAR surveys,
+# reference frame propagation, and a superseded survey suppressed with
+# gmeow:displayable false (Principle 10). Native GMEOW terms only.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:surveyTeamA a gmeow:Organization .
+ex:surveyTeamB a gmeow:Organization .
+
+ex:surveyedPlace a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeSite .
+
+# GPS survey in 2023 — WGS84 frame.
+ex:gpsObservation a gmeow:CoordinateObservation ;
+    gmeow:coordinateObservationOf ex:surveyedPlace ;
+    gmeow:vantage ex:surveyTeamA ;
+    gmeow:observationMethod gmeow:methodGPS ;
+    gmeow:coordinateResult ex:gpsCoords ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ;
+    gmeow:confidence 0.92 ;
+    gmeow:assertedAt "2023-06-15T00:00:00Z"^^xsd:dateTime .
+
+ex:gpsCoords a gmeow:GeoCoordinates ;
+    gmeow:latitude  "51.5074"^^xsd:decimal ;
+    gmeow:longitude "-0.1278"^^xsd:decimal ;
+    gmeow:elevation "11.0"^^xsd:decimal .
+
+# LiDAR survey in 2024 — local grid frame, slightly different coordinates.
+ex:lidarObservation a gmeow:CoordinateObservation ;
+    gmeow:coordinateObservationOf ex:surveyedPlace ;
+    gmeow:vantage ex:surveyTeamB ;
+    gmeow:observationMethod gmeow:methodLiDAR ;
+    gmeow:coordinateResult ex:lidarCoords ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameLocalGrid ;
+    gmeow:confidence 0.98 ;
+    gmeow:assertedAt "2024-03-22T00:00:00Z"^^xsd:dateTime .
+
+ex:lidarCoords a gmeow:GeoCoordinates ;
+    gmeow:latitude  "51.5075"^^xsd:decimal ;
+    gmeow:longitude "-0.1277"^^xsd:decimal ;
+    gmeow:elevation "11.2"^^xsd:decimal .
+
+# A superseded total-station survey — suppressed, never deleted (Principle 10).
+ex:oldObservation a gmeow:CoordinateObservation ;
+    gmeow:coordinateObservationOf ex:surveyedPlace ;
+    gmeow:vantage ex:surveyTeamA ;
+    gmeow:observationMethod gmeow:methodTotalStation ;
+    gmeow:geometryResult ex:oldGeom ;
+    gmeow:hasReferenceFrame gmeow:referenceFrameLocalGrid ;
+    gmeow:confidence 0.75 ;
+    gmeow:assertedAt "2019-01-10T00:00:00Z"^^xsd:dateTime ;
+    gmeow:validUntil "2020-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:displayable false .
+
+ex:oldGeom a gmeow:Geometry ;
+    gmeow:geometryType gmeow:geometryTypePolygon ;
+    gmeow:asWKT "POLYGON((-0.128 51.507, -0.127 51.507, -0.127 51.508, -0.128 51.508, -0.128 51.507))" .

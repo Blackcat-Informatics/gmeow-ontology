@@ -142,7 +142,14 @@ def test_dsl_parses() -> None:
     # Wikidata x5).
     # Issue #91 geocoding frames: +9 (Geocode→Wikidata, 6 ReferenceFrame→Wikidata,
     # plusCode→Wikidata P3826, geohash→Wikidata P2506).
-    assert len(dsl.equivalences) == 1087
+    # Issue #125 spatial measurement / coordinate observation: +13
+    # (SpatialMeasurement→sosa/O&M/CRMarchaeo/OM,
+    #  CoordinateObservation→sosa/O&M/CRMarchaeo,
+    #  coordinateResult→sosa:hasResult/geo:asWKT,
+    #  geometryResult→sosa:hasResult/geo:hasGeometry,
+    #  hasCoordinateObservation→geo:hasGeometry,
+    #  methodGPS/TotalStation/Photogrammetry→Wikidata).
+    assert len(dsl.equivalences) == 1100
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
