@@ -126,7 +126,8 @@ def test_dsl_parses() -> None:
     # SensoryPerception→mf:perceptual process,
     # referenceFrameAffectiveCircumplex→mfoem:affective process,
     # referenceFrameAffectiveCircumplex→mfoem:emotion process).
-    assert len(dsl.equivalences) == 1017
+    # Issue #88 robotic realm: +9 (Wikidata x2, CORA x2, KnowRob x4, SOMA x1).
+    assert len(dsl.equivalences) == 1026
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

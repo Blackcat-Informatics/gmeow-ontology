@@ -28,6 +28,9 @@
 @prefix time: <http://www.w3.org/2006/time#> .
 @prefix sta: <http://www.opengis.net/def/ont/sensorthings/1.1/> .
 @prefix sosa: <http://www.w3.org/ns/sosa/> .
+@prefix cora: <http://purl.org/ieee1872-owl/cora#> .
+@prefix knowrob: <http://knowrob.org/kb/knowrob.owl#> .
+@prefix soma: <http://www.ease-crc.org/ont/SOMA.owl#> .
 
 # Term equivalences for the places domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-places.sssom.tsv by `gmeow compile-mappings`.
@@ -36,7 +39,7 @@ gmeow:mapsetPlaces a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/places" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET. placeType/storageMedium/celestialObjectType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (#85): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl." .
+    gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET, IEEE 1872-2015 CORA, KnowRob, SOMA. placeType/storageMedium/celestialObjectType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (#85): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl. Added (#88): Robotic realm bridging to IEEE 1872-2015 CORA (Robot, RoboticSystem), KnowRob (SemanticEnvironmentMap, RobotBaseTrajectory, Joint, FrameOfReference), and SOMA (ArtificialAgent)." .
 
 gmeow:eqPlaces001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:VirtualLocation ;
@@ -1413,4 +1416,100 @@ gmeow:eqPlaces158 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:objectLabel "Feature" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Issue #88 — Robotic realm: IEEE 1872-2015 CORA / KnowRob / SOMA bridging
+# --------------------------------------------------------------------------- #
+
+# Wikidata concept alignments for robotic realm terms
+gmeow:eqPlaces159 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:frameRealmRobotic ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q170978 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "robotics" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces160 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:frameKindConfigurationSpace ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1156912 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "configuration space" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# IEEE 1872-2015 CORA — robot taxonomy
+gmeow:eqPlaces161 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameRobotBase ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject cora:Robot ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "Robot" ;
+    gmeow:comment "CORA Robot is the physical device; GMEOW referenceFrameRobotBase is the Cartesian coordinate frame anchored to that device. The alignment is structural, not identity." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces162 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameRobotBase ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject cora:RoboticSystem ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "RoboticSystem" ;
+    gmeow:comment "CORA RoboticSystem is the system-level concept; GMEOW referenceFrameRobotBase is its spatial reference frame. Structural alignment only." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# KnowRob — robot knowledge base
+gmeow:eqPlaces163 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameRobotSLAM ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject knowrob:SemanticEnvironmentMap ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "SemanticEnvironmentMap" ;
+    gmeow:comment "KnowRob SemanticEnvironmentMap is a robot-built map of the environment; GMEOW referenceFrameRobotSLAM is the reference frame in which such a map is expressed. The alignment is related because both are robot-centric spatial representations with probabilistic occupancy semantics, but a map and a reference frame are different ontological categories." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces164 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Trajectory ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject knowrob:RobotBaseTrajectory ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "RobotBaseTrajectory" ;
+    gmeow:comment "KnowRob RobotBaseTrajectory is a time-ordered path of robot base poses; GMEOW Trajectory is the generalised time-ordered path of LocationStates for any entity." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces165 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameRobotCspace6DOF ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject knowrob:Joint ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:objectLabel "Joint" ;
+    gmeow:comment "KnowRob Joint represents a single mechanical joint; GMEOW referenceFrameRobotCspace6DOF is the 6-dimensional configuration-space frame whose axes are joint angles. The alignment is compositional: a C-space frame is defined by its joints." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces166 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ReferenceFrame ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject knowrob:FrameOfReference ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "FrameOfReference" ;
+    gmeow:comment "KnowRob FrameOfReference is a general spatial reference frame; GMEOW ReferenceFrame is the upper-ontology-grounded, realm-typed equivalent." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# SOMA — agent ontology
+gmeow:eqPlaces167 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameRobotBase ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject soma:ArtificialAgent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "ArtificialAgent" ;
+    gmeow:comment "SOMA ArtificialAgent is the agent-level concept; GMEOW referenceFrameRobotBase is the spatial reference frame attached to that agent. Structural alignment only." ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" .

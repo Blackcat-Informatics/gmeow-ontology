@@ -226,6 +226,9 @@ PREFIXES: dict[str, str] = {
     "teo": "https://sbmi.uth.edu/bsdi/TEO_1.0.0.owl#",
     # Robotics / pose alignment (#78)
     "pos": "http://purl.org/ieee1872-owl/pos#",
+    "cora": "http://purl.org/ieee1872-owl/cora#",
+    "knowrob": "http://knowrob.org/kb/knowrob.owl#",
+    "soma": "http://www.ease-crc.org/ont/SOMA.owl#",
     # Temporal / geologic / measurement alignment (#67)
     "qudt": "http://qudt.org/schema/qudt/",
     "unit": "http://qudt.org/vocab/unit/",

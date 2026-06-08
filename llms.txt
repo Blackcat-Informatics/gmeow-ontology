@@ -852,6 +852,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:aspectProgressive (a gmeow:GrammaticalAspect): ISO-TimeML aspect PROGRESSIVE.
 - gmeow:axisAllocentricX (a gmeow:Axis): The X axis of an allocentric (world-centred) cognitive map.
 - gmeow:axisAllocentricY (a gmeow:Axis): The Y axis of an allocentric (world-centred) cognitive map.
+- gmeow:axisAngularVelocityX (a gmeow:Axis): angular velocity X axis
+- gmeow:axisAngularVelocityY (a gmeow:Axis): angular velocity Y axis
+- gmeow:axisAngularVelocityZ (a gmeow:Axis): angular velocity Z axis
 - gmeow:axisArousal (a gmeow:Axis): The activation-deactivation dimension of affect (Russell circumplex).
 - gmeow:axisAstar (a gmeow:Axis): CIE a* red-green
 - gmeow:axisBGPAS (a gmeow:Axis): BGP autonomous system axis
@@ -859,6 +862,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisBlue (a gmeow:Axis): blue channel
 - gmeow:axisBstar (a gmeow:Axis): CIE b* blue-yellow
 - gmeow:axisConceptualSimilarity (a gmeow:Axis): The similarity or distance between concepts in a Gärdenfors-style conceptual space.
+- gmeow:axisConfigurationVector (a gmeow:Axis): A generic n-dimensional configuration vector axis for variable-DOF robots. The actual dimensionality is pushed to the solver layer via CoordinateMatrix.matrixShape (Principle 12).
 - gmeow:axisCyan (a gmeow:Axis): cyan channel
 - gmeow:axisDNSName (a gmeow:Axis): DNS name axis
 - gmeow:axisDay (a gmeow:Axis): day
@@ -890,6 +894,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisLatentVector (a gmeow:Axis): A single axis representing a point in a learned latent vector space. The embedding dimension is a solver-layer attribute (Principle 12).
 - gmeow:axisLatitude (a gmeow:Axis): latitude
 - gmeow:axisLightness (a gmeow:Axis): CIE L* lightness
+- gmeow:axisLinearVelocityX (a gmeow:Axis): linear velocity X axis
+- gmeow:axisLinearVelocityY (a gmeow:Axis): linear velocity Y axis
+- gmeow:axisLinearVelocityZ (a gmeow:Axis): linear velocity Z axis
 - gmeow:axisLongitude (a gmeow:Axis): longitude
 - gmeow:axisMACAddress (a gmeow:Axis): MAC address axis
 - gmeow:axisMagenta (a gmeow:Axis): magenta channel
@@ -1032,6 +1039,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:facetVisual (a gmeow:AccessibilityFacet): Access for people with visual impairments — tactile paving, audio signals, high contrast, braille.
 - gmeow:facetWheelchair (a gmeow:AccessibilityFacet): Access for wheelchair users — level surfaces, ramps, elevators, wide doorways.
 - gmeow:frameKindCartesian (a gmeow:FrameKind): cartesian
+- gmeow:frameKindConfigurationSpace (a gmeow:FrameKind): A smooth manifold representing the set of all possible configurations of a robot mechanism, with joint-limit boundaries constraining valid regions. Distance is measured along geodesics on the manifold surface, subject to joint limits. The actual manifold geometry and collision-aware path planning live in the solver layer (Principle 12).
 - gmeow:frameKindCylindrical (a gmeow:FrameKind): cylindrical
 - gmeow:frameKindGeodetic (a gmeow:FrameKind): geodetic
 - gmeow:frameKindGrid (a gmeow:FrameKind): grid
@@ -1195,7 +1203,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:metricEuclidean (a gmeow:MetricKind): Straight-line distance in a Cartesian or flat space.
 - gmeow:metricGeodesic (a gmeow:MetricKind): Shortest path along a curved surface (e.g. great-circle on a spheroid).
 - gmeow:metricGraphHops (a gmeow:MetricKind): Shortest-path edge count in a network or graph.
-- gmeow:metricSymplectic (a gmeow:MetricKind): The natural metric on a phase space, preserving the symplectic form ω = Σ dqᵢ ∧ dpᵢ. Used in Hamiltonian mechanics.
+- gmeow:metricSymplectic (a gmeow:MetricKind): Standard Euclidean distance metric on a finite-dimensional Hamiltonian phase space, treating the concatenated (q,p) state vector as a point in ℝ²ⁿ.
 - gmeow:modalityMachine (a gmeow:LanguageModality): machine / programmatic
 - gmeow:modalityMultimodal (a gmeow:LanguageModality): multimodal
 - gmeow:modalitySigned (a gmeow:LanguageModality): signed
@@ -1416,10 +1424,14 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:referenceFrameLocalGrid (a gmeow:ReferenceFrame): Local Grid Cartesian Reference Frame
 - gmeow:referenceFrameMAC (a gmeow:ReferenceFrame): MAC Address Space Reference Frame
 - gmeow:referenceFrameNetworkGraph (a gmeow:ReferenceFrame): Network Graph Reference Frame
-- gmeow:referenceFramePhaseSpace3DOF (a gmeow:ReferenceFrame): 3-DOF Phase Space Reference Frame
+- gmeow:referenceFramePhaseSpace3DOF (a gmeow:ReferenceFrame): Abstract Phase Space Reference Frame (q,p axes)
 - gmeow:referenceFramePort (a gmeow:ReferenceFrame): Port Number Space Reference Frame
 - gmeow:referenceFrameRobotArm6DOF (a gmeow:ReferenceFrame): 6-DOF Robot Arm Configuration Space
 - gmeow:referenceFrameRobotBase (a gmeow:ReferenceFrame): Robot Base Cartesian Reference Frame
+- gmeow:referenceFrameRobotCspace6DOF (a gmeow:ReferenceFrame): 6-DOF Robot Configuration Space Reference Frame
+- gmeow:referenceFrameRobotSLAM (a gmeow:ReferenceFrame): Robot SLAM Occupancy Grid Reference Frame
+- gmeow:referenceFrameRobotTaskSpace (a gmeow:ReferenceFrame): Robot End-Effector Task Space Reference Frame
+- gmeow:referenceFrameRobotVelocity (a gmeow:ReferenceFrame): Robot Velocity Reference Frame
 - gmeow:referenceFrameSI (a gmeow:ReferenceFrame): SI Measurement Reference Frame
 - gmeow:referenceFrameSRGB (a gmeow:ReferenceFrame): sRGB Colourspace Reference Frame
 - gmeow:referenceFrameThermalComfort (a gmeow:MentalReferenceFrame): ASHRAE Thermal Comfort Reference Frame
