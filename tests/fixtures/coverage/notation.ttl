@@ -1,0 +1,86 @@
+# Coverage fixture for the notation and symbolic systems layer (#172).
+# Worked examples: IPA as transcription notation for English, mathematical
+# notation as domain-specific representation, musical staff notation for a
+# work, stenography as shorthand, cryptographic encoding, emoji as platform
+# convention, and Morse code as signal encoding.
+
+@prefix ex:     <https://example.org/notation/> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:    <http://www.w3.org/2002/07/rdf-schema#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- Languages --------------------------------------------------------------- #
+
+ex:english a gmeow:Language ; gmeow:languageCode "en" .
+
+# --- Notation systems -------------------------------------------------------- #
+
+ex:ipa a gmeow:NotationSystem ;
+    gmeow:notationSystemKind gmeow:symbolicKindTranscription .
+
+ex:mathNotation a gmeow:NotationSystem ;
+    gmeow:notationSystemKind gmeow:symbolicKindMathematical .
+
+ex:staffNotation a gmeow:NotationSystem ;
+    gmeow:notationSystemKind gmeow:symbolicKindMusical .
+
+ex:greggShorthand a gmeow:NotationSystem ;
+    gmeow:notationSystemKind gmeow:symbolicKindStenographic .
+
+ex:aes256 a gmeow:NotationSystem ;
+    gmeow:notationSystemKind gmeow:symbolicKindCryptographic .
+
+ex:emojiUnicode a gmeow:SymbolicSystem ;
+    gmeow:symbolicSystemKind gmeow:symbolicKindEmoji .
+
+ex:morseCode a gmeow:NotationSystem ;
+    gmeow:notationSystemKind gmeow:symbolicKindEncoding .
+
+ex:platformMemes a gmeow:SymbolicSystem ;
+    gmeow:symbolicSystemKind gmeow:symbolicKindPlatformConvention .
+
+# --- Notation system usages -------------------------------------------------- #
+
+ex:englishUsesIpa a gmeow:NotationSystemUsage ;
+    gmeow:notationUsageTarget ex:english ;
+    gmeow:notationUsageNotationSystem ex:ipa ;
+    gmeow:notationUsageRole gmeow:notationRoleTranscription .
+
+ex:englishUsesGregg a gmeow:NotationSystemUsage ;
+    gmeow:notationUsageTarget ex:english ;
+    gmeow:notationUsageNotationSystem ex:greggShorthand ;
+    gmeow:notationUsageRole gmeow:notationRoleShorthand .
+
+ex:mathExpression a gmeow:InformationObject .
+
+ex:mathUsesNotation a gmeow:NotationSystemUsage ;
+    gmeow:notationUsageTarget ex:mathExpression ;
+    gmeow:notationUsageNotationSystem ex:mathNotation ;
+    gmeow:notationUsageRole gmeow:notationRoleRepresentation .
+
+ex:sonataOpus a gmeow:CreativeWork .
+
+ex:sonataUsesStaff a gmeow:NotationSystemUsage ;
+    gmeow:notationUsageTarget ex:sonataOpus ;
+    gmeow:notationUsageNotationSystem ex:staffNotation ;
+    gmeow:notationUsageRole gmeow:notationRoleRepresentation .
+
+ex:plaintext a gmeow:InformationObject .
+
+ex:plaintextUsesAes a gmeow:NotationSystemUsage ;
+    gmeow:notationUsageTarget ex:plaintext ;
+    gmeow:notationUsageNotationSystem ex:aes256 ;
+    gmeow:notationUsageRole gmeow:notationRoleCipher .
+
+ex:plaintextUsesMorse a gmeow:NotationSystemUsage ;
+    gmeow:notationUsageTarget ex:plaintext ;
+    gmeow:notationUsageNotationSystem ex:morseCode ;
+    gmeow:notationUsageRole gmeow:notationRoleEncoding .
+
+# --- WritingSystem ↔ NotationSystem bridge ----------------------------------- #
+
+ex:braille a gmeow:WritingSystem ;
+    gmeow:writingSystemAsNotation ex:brailleAsNotation .
+
+ex:brailleAsNotation a gmeow:NotationSystem ;
+    gmeow:notationSystemKind gmeow:symbolicKindTranscription .

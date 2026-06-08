@@ -142,6 +142,13 @@ gmeow:attestedForm       rdfs:subPropertyOf gmeow:observedFeature .
 gmeow:derivationTarget   rdfs:subPropertyOf gmeow:observedFeature .
 gmeow:derivationSource   rdfs:subPropertyOf gmeow:observedFeature .
 
+# Notation bridges (declared here because the super-properties live here).
+# Only notationUsageTarget is subsumed under observedFeature because its
+# domain (NotationSystemUsage) is a subclass of Observation. hasNotationSystem
+# and notationSystemFor have domain Language / NotationSystem respectively,
+# which are NOT subclasses of Observation, so they cannot be subproperties.
+gmeow:notationUsageTarget   rdfs:subPropertyOf gmeow:observedFeature .
+
 # =========================================================================== #
 # OBSERVATION → EVENT LINKAGE (lightweight — heavy form uses ObservingActivity)
 # =========================================================================== #

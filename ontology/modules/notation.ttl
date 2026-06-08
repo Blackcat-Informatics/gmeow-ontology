@@ -1,0 +1,271 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/notation>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Notation and Symbolic Systems Module"@en ;
+    rdfs:comment """Symbolic systems, notation systems, and their usage — the
+    representational layer beneath and alongside natural/formal languages.
+    Models mathematical notation, musical notation, emoji conventions, gesture
+    systems, stenography, cryptographic encodings, and other non-alphabetic
+    symbol systems as first-class information objects. A symbolic system is
+    NOT a language by default; a standpointed claim may reclassify it
+    (Principle 9). Builds on the languages module (#169) and the lexicon
+    module (#171)."""@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# CORE CLASSES
+# =========================================================================== #
+
+gmeow:SymbolicSystem
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Symbolic System"@en ;
+    skos:definition "A system of symbols, signs, or conventions used for communication, representation, or expression. Broad umbrella covering notation systems, gesture systems, emoji conventions, platform conventions, and other non-linguistic symbol systems. NOT a language by default; a standpointed claim may classify a symbolic system as a language (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:NotationSystem
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:SymbolicSystem ;
+    rdfs:label "Notation System"@en ;
+    skos:definition "A structured symbolic system with defined rules for representing information in a specific domain — mathematical notation, musical notation, stenography, phonetic transcription, or cryptographic encoding. Distinguished from a language by lacking independent generative syntax/semantics; parasitic on or encoding for an existing language or domain (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:NotationSystemUsage
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Notation System Usage"@en ;
+    skos:definition "A reified, role- and period-scoped use of a notation system by an entity — the gufo:Relator binding {entity} × {notation system} × {role} × {period}, mirroring names' NameUsage and languages' WritingSystemUsage. Lets a language use IPA for phonetic transcription, a musical work use Western staff notation, or a text use Morse code for encoding, each co-equally and standpoint-scoped."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# EL axiomatisation: every NotationSystemUsage mediates at least one target and one notation system.
+gmeow:NotationSystemUsage rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:notationUsageTarget ; owl:someValuesFrom gmeow:Entity ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:notationUsageNotationSystem ; owl:someValuesFrom gmeow:NotationSystem ] .
+
+# =========================================================================== #
+# PROPERTIES — SymbolicSystem / NotationSystem
+# =========================================================================== #
+
+gmeow:symbolicSystemKind
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:SymbolicSystem ;
+    rdfs:range gmeow:SymbolicSystemKind ;
+    rdfs:label "symbolic system kind"@en ;
+    skos:definition "The kind(s) of a symbolic system (gmeow:SymbolicSystemKind values). Non-functional — a system may serve multiple domains simultaneously."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:notationSystemKind
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:symbolicSystemKind ;
+    rdfs:domain gmeow:NotationSystem ;
+    rdfs:range gmeow:SymbolicSystemKind ;
+    rdfs:label "notation system kind"@en ;
+    skos:definition "The kind(s) of a notation system (gmeow:SymbolicSystemKind values). Subproperty of symbolicSystemKind for convenience; non-functional."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasNotationSystem
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Language ;
+    rdfs:range gmeow:NotationSystem ;
+    rdfs:label "has notation system"@en ;
+    skos:definition "A notation system used by a language — e.g. IPA for phonetic transcription, a stenographic system for shorthand. NON-FUNCTIONAL: a language may use many notation systems, and different standpoints may assign different notations (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:notationSystemFor
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationSystem ;
+    rdfs:range gmeow:Language ;
+    rdfs:label "notation system for"@en ;
+    skos:definition "The language(s) a notation system is used for or parasitic on. NON-FUNCTIONAL: a notation may serve multiple languages (e.g. IPA), and domain-specific notations (mathematical, musical) may have no single language target."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:writingSystemAsNotation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:WritingSystem ;
+    rdfs:range gmeow:NotationSystem ;
+    rdfs:label "writing system as notation"@en ;
+    skos:definition "When a writing system is also a notation system — e.g. Braille as a tactile notation, or a bespoke conlang script that doubles as a featural notation. NON-FUNCTIONAL: a writing system may be classified as a notation by some standpoints and not by others (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# PROPERTIES — NotationSystemUsage (functional relator roles)
+# =========================================================================== #
+
+gmeow:notationUsageTarget
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NotationSystemUsage ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "notation usage target"@en ;
+    skos:definition "The entity that uses the notation system — a language, lexical form, expression, work, or information object. Functional per relator: one target per NotationSystemUsage."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:notationUsageNotationSystem
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NotationSystemUsage ;
+    rdfs:range gmeow:NotationSystem ;
+    rdfs:label "notation usage notation system"@en ;
+    skos:definition "The notation system being used. Functional per relator: one notation system per NotationSystemUsage."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:notationUsageRole
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NotationSystemUsage ;
+    rdfs:range gmeow:NotationUsageRole ;
+    rdfs:label "notation usage role"@en ;
+    skos:definition "The role the notation plays in this usage — transcription, encoding, representation, communication, expression, shorthand, cipher. Functional per relator: one role per NotationSystemUsage."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:notationUsageInterval
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NotationSystemUsage ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "notation usage interval"@en ;
+    skos:definition "The time interval over which the notation usage is asserted to hold. Functional per relator: one interval per NotationSystemUsage."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# VALUE VOCABULARIES
+# =========================================================================== #
+
+gmeow:SymbolicSystemKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Symbolic System Kind"@en ;
+    skos:definition "The domain or kind of a symbolic or notation system — a value, never an Entity subclass. The seed list is an anchor, not a fence; new domains may introduce further kinds without ontology modification."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:symbolicKindMathematical
+    a gmeow:SymbolicSystemKind ;
+    rdfs:label "mathematical"@en ;
+    skos:definition "A notation system for representing mathematical objects, relations, and proofs."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:symbolicKindMusical
+    a gmeow:SymbolicSystemKind ;
+    rdfs:label "musical"@en ;
+    skos:definition "A notation system for representing musical structure, performance, or sound."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:symbolicKindStenographic
+    a gmeow:SymbolicSystemKind ;
+    rdfs:label "stenographic"@en ;
+    skos:definition "A shorthand notation system for rapid recording of spoken language."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:symbolicKindCryptographic
+    a gmeow:SymbolicSystemKind ;
+    rdfs:label "cryptographic"@en ;
+    skos:definition "A transform scheme for concealing or securing information through encryption or encoding."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:symbolicKindTranscription
+    a gmeow:SymbolicSystemKind ;
+    rdfs:label "transcription"@en ;
+    skos:definition "A notation system for recording spoken or signed language in a structured visual form."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:symbolicKindEncoding
+    a gmeow:SymbolicSystemKind ;
+    rdfs:label "encoding"@en ;
+    skos:definition "A scheme for mapping information from one representation to another."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:symbolicKindGesture
+    a gmeow:SymbolicSystemKind ;
+    rdfs:label "gesture"@en ;
+    skos:definition "A system of physical gestures or movements used for communication or expression."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:symbolicKindEmoji
+    a gmeow:SymbolicSystemKind ;
+    rdfs:label "emoji"@en ;
+    skos:definition "A convention-based system of pictographic symbols used in digital communication."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:symbolicKindPlatformConvention
+    a gmeow:SymbolicSystemKind ;
+    rdfs:label "platform convention"@en ;
+    skos:definition "A symbol or communication convention specific to a platform, community, or digital environment."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:symbolicKindCommunicationConvention
+    a gmeow:SymbolicSystemKind ;
+    rdfs:label "communication convention"@en ;
+    skos:definition "A broad social or cultural convention for communication that does not rise to the level of a full language or notation system."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:NotationUsageRole
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Notation Usage Role"@en ;
+    skos:definition "The role a notation system plays in a specific usage — a value, never an Entity subclass. Open-ended: new analytical frameworks may introduce further roles without ontology modification."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:notationRoleTranscription
+    a gmeow:NotationUsageRole ;
+    rdfs:label "transcription"@en ;
+    skos:definition "Using a notation to record spoken or signed language in a structured form."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:notationRoleEncoding
+    a gmeow:NotationUsageRole ;
+    rdfs:label "encoding"@en ;
+    skos:definition "Using a notation to map information into a different representation or signal system."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:notationRoleRepresentation
+    a gmeow:NotationUsageRole ;
+    rdfs:label "representation"@en ;
+    skos:definition "Using a notation to represent domain-specific objects, relations, or structures."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:notationRoleCommunication
+    a gmeow:NotationUsageRole ;
+    rdfs:label "communication"@en ;
+    skos:definition "Using a notation as a medium of communication between agents."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:notationRoleExpression
+    a gmeow:NotationUsageRole ;
+    rdfs:label "expression"@en ;
+    skos:definition "Using a notation for artistic, emotional, or creative expression."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:notationRoleShorthand
+    a gmeow:NotationUsageRole ;
+    rdfs:label "shorthand"@en ;
+    skos:definition "Using a notation for abbreviated or rapid recording of language or information."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:notationRoleCipher
+    a gmeow:NotationUsageRole ;
+    rdfs:label "cipher"@en ;
+    skos:definition "Using a notation to conceal or encrypt information."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# CROSS-CUTTING REUSE DECLARATION
+# =========================================================================== #
+
+# The following properties and classes are defined in other modules and are
+# reused here without redefinition. They are listed for documentation only.
+#
+#   gmeow:Language           (languages.ttl)   — natural/formal language
+#   gmeow:FormalLanguage     (languages.ttl)   — grammar-defined language
+#   gmeow:WritingSystem      (languages.ttl)   — script system
+#   gmeow:Entity             (entities.ttl)    — universal entity class
+#   gmeow:InformationObject  (core.ttl)        — information-object kind
+#   gmeow:TimeInterval       (temporal.ttl)    — temporal interval
+#   gmeow:confidence         (provenance.ttl)  — epistemic confidence [0,1]
+#   gmeow:accordingTo        (standpoint.ttl)  — standpoint axis
+#   gmeow:validFrom          (temporal.ttl)    — validity start
+#   gmeow:validUntil         (temporal.ttl)    — validity end
+#   gmeow:displayable        (core.ttl)        — suppression, never erasure (P10)
