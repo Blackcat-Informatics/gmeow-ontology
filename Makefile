@@ -141,7 +141,7 @@ build: ## Build all serializations + JSON-LD context + apache.conf into dist/.
 export: ## Generate flattened exports (CSV/CSVW, Markdown, JSONL, llms.txt) into dist/.
 	uv run gmeow export
 
-lpg: ## Export GMEOW to LPG formats (CSV, Neo4j, Cypher, GraphML) into dist/lpg/ dist/schemas/.
+lpg: ## Export GMEOW to LPG formats (CSV, Neo4j, Cypher, GraphML) into dist/lpg/.
 	uv run gmeow export lpg
 
 project: compile-mappings ## Project GMEOW data to pure schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profiles (FnO/EDOAL).
