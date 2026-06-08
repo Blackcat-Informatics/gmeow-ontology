@@ -612,6 +612,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:overlappedBy [gmeow:Event → gmeow:Event]: Allen OVERLAPPED-BY: inverse of gmeow:overlaps. (= time:intervalOverlappedBy; TEO overlappedBy.)
 - gmeow:overlaps [gmeow:Event → gmeow:Event]: Allen OVERLAPS: this event begins before, and ends during, the related event (their extents partially overlap). NOT transitive. Inverse of gmeow:overlappedBy. (= time:intervalOverlaps; TEO overlaps.)
 - gmeow:overlayAuthority [gmeow:RegulatoryOverlay → gmeow:Agent] (functional): The authority (government body, international organization, regulatory agency, or indigenous council) that imposed this regulatory overlay. Functional: a single overlay has exactly one imposing authority.
+- gmeow:overlayDesignator [gmeow:RegulatoryOverlay → rdfs:Literal] (functional): The code or designator assigned to this regulatory overlay by its authority — an ICAO airspace identifier, a NOTAM number, a fisheries zone code, etc. Functional: the designator is constitutive of the overlay's administrative identity.
 - gmeow:overlayDeterminacy [gmeow:RegulatoryOverlay → gmeow:Determinacy]: The ontic determinacy model of this regulatory overlay's boundary — crisp (surveyed), vague (approximate), fuzzy (probabilistic), or disputed. Non-functional: sources may disagree on determinacy, and those claims coexist.
 - gmeow:overlayLowerBound [gmeow:RegulatoryOverlay → gmeow:ScalarQuantity]: The lower bound of this regulatory overlay in a vertical dimension (altitude, depth, elevation), expressed as a ScalarQuantity with unit (QUDT) and reference frame. Optional: absent for purely 2D overlays. Frame-relative per Principle 11 (e.g. altitude above MSL, flight level, depth below sea level).
 - gmeow:overlayPlace [gmeow:RegulatoryOverlay → gmeow:Place] (functional): The place over which this regulatory overlay applies. Functional: an overlay concerns exactly one place (constitutive of the situation's identity). The place carries the geographic geometry; the overlay carries the regulation and temporal scope.
@@ -911,6 +912,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisAddressRegion (a gmeow:Axis): address region axis
 - gmeow:axisAllocentricX (a gmeow:Axis): The X axis of an allocentric (world-centred) cognitive map.
 - gmeow:axisAllocentricY (a gmeow:Axis): The Y axis of an allocentric (world-centred) cognitive map.
+- gmeow:axisAltitude (a gmeow:Axis): The vertical axis above a reference datum — mean sea level, ground level, or another vertical reference surface. Used for aviation and terrestrial elevation bounds.
 - gmeow:axisAngularVelocityX (a gmeow:Axis): angular velocity X axis
 - gmeow:axisAngularVelocityY (a gmeow:Axis): angular velocity Y axis
 - gmeow:axisAngularVelocityZ (a gmeow:Axis): angular velocity Z axis
@@ -927,10 +929,12 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisDNSName (a gmeow:Axis): DNS name axis
 - gmeow:axisDay (a gmeow:Axis): day
 - gmeow:axisDeclination (a gmeow:Axis): declination
+- gmeow:axisDepth (a gmeow:Axis): The vertical axis below a reference datum — mean sea level, chart datum, or another vertical reference surface. Used for maritime depth bounds and bathymetry.
 - gmeow:axisEgocentricForward (a gmeow:Axis): The forward/backward axis of an egocentric cognitive map, relative to the agent's facing direction.
 - gmeow:axisEgocentricLateral (a gmeow:Axis): The left/right axis of an egocentric cognitive map, relative to the agent's facing direction.
 - gmeow:axisElevation (a gmeow:Axis): elevation
 - gmeow:axisExtendedAddress (a gmeow:Axis): extended address axis
+- gmeow:axisFlightLevel (a gmeow:Axis): The pressure-altitude axis expressed as ICAO flight level (standard atmosphere 1013.25 hPa). Independent of local QNH; used for en-route airspace bounds.
 - gmeow:axisFrequency (a gmeow:Axis): frequency
 - gmeow:axisGalacticLatitude (a gmeow:Axis): galactic latitude
 - gmeow:axisGalacticLongitude (a gmeow:Axis): galactic longitude
@@ -1393,15 +1397,29 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:originProgramming (a gmeow:LanguageOrigin): programming
 - gmeow:originQuery (a gmeow:LanguageOrigin): query
 - gmeow:originReconstructed (a gmeow:LanguageOrigin): reconstructed (proto-language)
+- gmeow:overlayTypeAerodromeTrafficZone (a gmeow:RegulatoryOverlayType): An area of protected airspace established around an aerodrome for the protection of aerodrome traffic.
+- gmeow:overlayTypeAirway (a gmeow:RegulatoryOverlayType): A control area or portion thereof established in the form of a corridor equipped with navigation aids, designated by ICAO for channelling the flow of traffic.
+- gmeow:overlayTypeAlertArea (a gmeow:RegulatoryOverlayType): Airspace which may contain a high volume of pilot training or an unusual type of aerial activity, neither of which is hazardous to aircraft.
 - gmeow:overlayTypeCivilTimeZone (a gmeow:RegulatoryOverlayType): A geographic area sharing the same standard civil time, typically following political boundaries and designated by an IANA time-zone identifier. The authority is the government or international body that decreed the timezone boundary.
+- gmeow:overlayTypeContiguousZone (a gmeow:RegulatoryOverlayType): A band of water extending from the outer edge of the territorial sea to up to 24 nautical miles from the baseline, in which the coastal state may exercise control to prevent infringement of its customs, fiscal, immigration, or sanitary laws (UNCLOS Article 33).
+- gmeow:overlayTypeContinentalShelf (a gmeow:RegulatoryOverlayType): The seabed and subsoil of the submarine areas that extend beyond the territorial sea to the outer edge of the continental margin, or to 200 nautical miles from the baseline where the margin does not extend that far (UNCLOS Article 76).
+- gmeow:overlayTypeControlZone (a gmeow:RegulatoryOverlayType): A controlled airspace extending upwards from the surface of the earth to a specified upper limit, established around an aerodrome (ICAO).
 - gmeow:overlayTypeCustomsZone (a gmeow:RegulatoryOverlayType): A customs territory, free-trade zone, bonded warehouse area, or other zone with special customs/tariff regulations.
 - gmeow:overlayTypeElectoralDistrict (a gmeow:RegulatoryOverlayType): A constituency or voting district defining the geographic boundary for an election.
 - gmeow:overlayTypeFishingZone (a gmeow:RegulatoryOverlayType): An exclusive economic zone (EEZ), fisheries management zone, or other maritime area subject to resource-extraction regulation under UNCLOS or bilateral agreement.
+- gmeow:overlayTypeFlightInformationRegion (a gmeow:RegulatoryOverlayType): An airspace of defined dimensions within which flight information service and alerting service are provided (ICAO).
+- gmeow:overlayTypeHighSeas (a gmeow:RegulatoryOverlayType): All parts of the sea that are not included in the exclusive economic zone, territorial sea, or internal waters of a state (UNCLOS Article 86).
+- gmeow:overlayTypeMarineProtectedArea (a gmeow:RegulatoryOverlayType): A clearly defined geographical space in the marine environment recognised, dedicated and managed through legal or other effective means to achieve the long-term conservation of nature with associated ecosystem services and cultural values (IUCN definition).
+- gmeow:overlayTypeMilitaryOperationsArea (a gmeow:RegulatoryOverlayType): Airspace established outside controlled airspace to segregate certain military activities from IFR traffic and to identify for VFR traffic where these activities are conducted.
+- gmeow:overlayTypeNOTAM (a gmeow:RegulatoryOverlayType): A temporary, dynamic regulatory overlay issued to notify pilots of potential hazards or changes to aeronautical facilities, services, or procedures. Typically short-validity; modeled as a RegulatoryOverlay with brief duringInterval.
 - gmeow:overlayTypePostalZone (a gmeow:RegulatoryOverlayType): A postal code or ZIP delivery area — a zone designated for mail sorting and delivery by a postal authority.
 - gmeow:overlayTypeProtectedArea (a gmeow:RegulatoryOverlayType): A legally-designated protected area such as a national park, wildlife reserve, marine protected area, or wilderness area. Management categories (IUCN Ia–VI) are carried as additional classifications, not as subclasses.
 - gmeow:overlayTypeRestrictedAirspace (a gmeow:RegulatoryOverlayType): An airspace restriction including prohibited areas, restricted areas, danger areas, temporary reserved airspace (TRA), temporary segregated airspace (TSA), and no-fly zones. 3D bounds (altitude/ flight levels) are carried via overlayLowerBound / overlayUpperBound.
 - gmeow:overlayTypeSanctions (a gmeow:RegulatoryOverlayType): A territory subject to international or unilateral sanctions, embargoes, or trade restrictions imposed by one or more authorities.
 - gmeow:overlayTypeTaxDistrict (a gmeow:RegulatoryOverlayType): An administrative area designated for tax assessment, collection, or rate-setting purposes.
+- gmeow:overlayTypeTerminalControlArea (a gmeow:RegulatoryOverlayType): A controlled airspace normally established at the confluence of ATS routes in the vicinity of one or more major aerodromes (ICAO).
+- gmeow:overlayTypeTerritorialSea (a gmeow:RegulatoryOverlayType): A belt of coastal waters extending up to 12 nautical miles from the baseline of a coastal state, over which the state exercises sovereignty (UNCLOS Article 3).
+- gmeow:overlayTypeWarningArea (a gmeow:RegulatoryOverlayType): Airspace of defined dimensions, extending from 3 NM outward from the coast of the United States, that contains activity which may be hazardous to non-participating aircraft.
 - gmeow:overlayTypeZoning (a gmeow:RegulatoryOverlayType): A land-use zoning overlay designating permitted uses (residential, commercial, industrial, agricultural, mixed-use) within a geographic area.
 - gmeow:periodCenozoic (a gmeow:NamedPeriod): Cenozoic Era
 - gmeow:periodHolocene (a gmeow:NamedPeriod): Holocene Epoch
@@ -1484,6 +1502,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:refOriginHeliocentric (a gmeow:CelestialReferenceOrigin): heliocentric
 - gmeow:refOriginTopocentric (a gmeow:CelestialReferenceOrigin): topocentric (observatory site)
 - gmeow:referenceFrameAffectiveCircumplex (a gmeow:MentalReferenceFrame): Russell Affective Circumplex Reference Frame
+- gmeow:referenceFrameAltitudeAGL (a gmeow:ReferenceFrame): Altitude Above Ground Level Reference Frame
+- gmeow:referenceFrameAltitudeMSL (a gmeow:ReferenceFrame): Altitude Above Mean Sea Level Reference Frame
 - gmeow:referenceFrameAudioSpectrum (a gmeow:ReferenceFrame): Audio Spectrum Reference Frame
 - gmeow:referenceFrameBGP (a gmeow:ReferenceFrame): BGP Autonomous System Reference Frame
 - gmeow:referenceFrameCIELAB (a gmeow:ReferenceFrame): CIE L*a*b* Perceptually-Uniform Reference Frame
@@ -1494,8 +1514,11 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:referenceFrameCognitiveMapEgocentric (a gmeow:MentalReferenceFrame): Egocentric Cognitive Map Reference Frame
 - gmeow:referenceFrameConceptualSpace (a gmeow:MentalReferenceFrame): A generic conceptual space frame after Gärdenfors — domains are convex regions in a similarity metric space. The actual domain-specific axes (colour, taste, shape, etc.) are added per-domain; this seed carries the similarity axis as a placeholder.
 - gmeow:referenceFrameDNS (a gmeow:ReferenceFrame): DNS Name Space Reference Frame
+- gmeow:referenceFrameDepthBelowChartDatum (a gmeow:ReferenceFrame): Depth Below Chart Datum Reference Frame
+- gmeow:referenceFrameDepthBelowSeaLevel (a gmeow:ReferenceFrame): Depth Below Mean Sea Level Reference Frame
 - gmeow:referenceFrameEnglish (a gmeow:ReferenceFrame): English Language Reference Frame
 - gmeow:referenceFrameFK5 (a gmeow:ReferenceFrame): FK5 Equatorial Reference Frame
+- gmeow:referenceFrameFlightLevel (a gmeow:ReferenceFrame): ICAO Flight Level Reference Frame
 - gmeow:referenceFrameGRCh38 (a gmeow:ReferenceFrame): GRCh38 Human Reference Assembly
 - gmeow:referenceFrameGalactic (a gmeow:ReferenceFrame): Galactic Coordinate Reference Frame
 - gmeow:referenceFrameGeohash (a gmeow:ReferenceFrame): Geohash Reference Frame

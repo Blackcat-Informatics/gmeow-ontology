@@ -35,6 +35,7 @@
 @prefix so: <http://purl.obolibrary.org/obo/SO_> .
 @prefix ladm: <http://www.opengis.net/ont/ladm#> .
 @prefix cp: <http://inspire.ec.europa.eu/ont/cp#> .
+@prefix mrg: <http://marineregions.org/ns/ontology#> .
 
 # Term equivalences for the places domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-places.sssom.tsv by `gmeow compile-mappings`.
@@ -43,7 +44,7 @@ gmeow:mapsetPlaces a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/places" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET, IEEE 1872-2015 CORA, KnowRob, SOMA, FALDO, Sequence Ontology. placeType/storageMedium/celestialObjectType/sequenceFeatureType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (#85): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl. Added (#88): Robotic realm bridging to IEEE 1872-2015 CORA (Robot, RoboticSystem), KnowRob (SemanticEnvironmentMap, RobotBaseTrajectory, Joint, FrameOfReference), and SOMA (ArtificialAgent). Added (#90): Biological-sequence realm bridging to FALDO (Region, begin, end, ForwardStrandPosition, ReverseStrandPosition, reference), Sequence Ontology (sequence_feature, gene, exon, intron, CDS, SNP, chromosome), and Wikidata (GRCh38, genomic location, sense/antisense strand). Added (#91): Geocode and geocoding ReferenceFrames (Plus Code, what3words, geohash, MGRS, UN/LOCODE, mile-marker) aligned to Wikidata QIDs. Added (#125): SpatialMeasurement / CoordinateObservation bridging to GeoSPARQL geo:Feature and schema.org GeoCoordinates. Added (#92): Cadastral / land-administration realm bridging to ISO 19152 LADM (LA_SpatialUnit, LA_RRR, LA_Party, LA_BoundaryFace) and INSPIRE Cadastral Parcels (CadastralParcel, CadastralBoundary, CadastralZoning, BasicPropertyUnit, nationalCadastralReference) by reference." .
+    gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET, IEEE 1872-2015 CORA, KnowRob, SOMA, FALDO, Sequence Ontology. placeType/storageMedium/celestialObjectType/sequenceFeatureType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (#85): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl. Added (#88): Robotic realm bridging to IEEE 1872-2015 CORA (Robot, RoboticSystem), KnowRob (SemanticEnvironmentMap, RobotBaseTrajectory, Joint, FrameOfReference), and SOMA (ArtificialAgent). Added (#90): Biological-sequence realm bridging to FALDO (Region, begin, end, ForwardStrandPosition, ReverseStrandPosition, reference), Sequence Ontology (sequence_feature, gene, exon, intron, CDS, SNP, chromosome), and Wikidata (GRCh38, genomic location, sense/antisense strand). Added (#91): Geocode and geocoding ReferenceFrames (Plus Code, what3words, geohash, MGRS, UN/LOCODE, mile-marker) aligned to Wikidata QIDs. Added (#125): SpatialMeasurement / CoordinateObservation bridging to GeoSPARQL geo:Feature and schema.org GeoCoordinates. Added (#92): Cadastral / land-administration realm bridging to ISO 19152 LADM (LA_SpatialUnit, LA_RRR, LA_Party, LA_BoundaryFace) and INSPIRE Cadastral Parcels (CadastralParcel, CadastralBoundary, CadastralZoning, BasicPropertyUnit, nationalCadastralReference) by reference. Added (#93): Maritime / aviation zones aligned to MRGID ontology (direct), AIXM / UNCLOS / IHO S-100 via Wikidata hub; vertical-dimension reference frames (altitude MSL, flight level, AGL, depth MSL, chart datum)." .
 
 gmeow:eqPlaces001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:VirtualLocation ;
@@ -1960,4 +1961,154 @@ gmeow:eqPlaces214 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "easement" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Issue #93 — Maritime / aviation zones: AIXM / UNCLOS / MRGID / IHO S-100
+# --------------------------------------------------------------------------- #
+
+# MRGID (Marine Regions) — direct ontology alignment
+
+gmeow:eqPlaces215 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Place ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject mrg:Place ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "Place" ;
+    gmeow:comment "Marine Regions Place is a geographic feature in the marine domain; GMEOW Place is the general geographic location superclass. Directional lossy projection." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces216 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasGeometry ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject mrg:hasGeometry ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "hasGeometry" ;
+    gmeow:comment "Marine Regions hasGeometry links a place to its geometry; aligned to GMEOW hasGeometry." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces217 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:containedInPlace ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject mrg:isPartOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "isPartOf" ;
+    gmeow:comment "Marine Regions isPartOf expresses administrative/mereological containment; GMEOW containedInPlace is the transitive geographic containment relation. Directional lossy projection." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces218 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:RegulatoryOverlay ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject mrg:MaritimeBoundary ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "MaritimeBoundary" ;
+    gmeow:comment "Marine Regions MaritimeBoundary is a maritime-specific regulatory boundary; GMEOW RegulatoryOverlay is the general time-scoped regulatory overlay. Directional lossy projection." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# AIXM / aviation alignments (via Wikidata hub — AIXM has no canonical RDF)
+
+gmeow:eqPlaces219 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:overlayTypeControlZone ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1419773 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "control zone" ;
+    gmeow:comment "ICAO control zone (CTR); AIXM airspace type aligned via Wikidata hub." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces220 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:overlayTypeTerminalControlArea ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1419800 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "terminal control area" ;
+    gmeow:comment "ICAO terminal control area (TMA/TCA); AIXM airspace type aligned via Wikidata hub." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces221 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:overlayTypeFlightInformationRegion ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1419640 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "flight information region" ;
+    gmeow:comment "ICAO flight information region (FIR); AIXM airspace type aligned via Wikidata hub." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces222 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:overlayTypeNOTAM ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1067111 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "NOTAM" ;
+    gmeow:comment "Notice to Airmen (NOTAM) — temporary aeronautical information; aligned to Wikidata." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces223 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:overlayTypeAirway ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1419606 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "airway" ;
+    gmeow:comment "ICAO airway; AIXM route/airspace type aligned via Wikidata hub." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# UNCLOS / maritime alignments (via Wikidata)
+
+gmeow:eqPlaces224 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:overlayTypeTerritorialSea ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q161645 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "territorial sea" ;
+    gmeow:comment "UNCLOS Article 3 territorial sea; aligned to Wikidata." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces225 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:overlayTypeContiguousZone ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q194341 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "contiguous zone" ;
+    gmeow:comment "UNCLOS Article 33 contiguous zone; aligned to Wikidata." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces226 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:overlayTypeContinentalShelf ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q182658 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "continental shelf" ;
+    gmeow:comment "UNCLOS Article 76 continental shelf; aligned to Wikidata." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces227 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:overlayTypeHighSeas ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q165182 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "high seas" ;
+    gmeow:comment "UNCLOS Article 86 high seas; aligned to Wikidata." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces228 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:overlayTypeMarineProtectedArea ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1041938 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "protected area" ;
+    gmeow:comment "Marine protected area (IUCN / OSPAR); aligned to Wikidata protected area. Directional lossy: the Wikidata item is broader than marine-only." ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" .
