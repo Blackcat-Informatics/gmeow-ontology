@@ -1,0 +1,52 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix schema: <https://schema.org/> .
+@prefix wd: <http://www.wikidata.org/entity/> .
+
+# Narrative reference frame and creative-work alignments.
+# Compiled to mappings/gmeow-narrative.sssom.tsv by `gmeow compile-mappings`.
+
+gmeow:mapsetNarrative a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/narrative" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Narrative reference frame and creative-work alignments to schema.org and Wikidata. OntoMedia/GOLEM/TEI/LTO projections deferred to follow-up issues." .
+
+gmeow:eqNarrative001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject schema:Book ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gmeow:BookRelease ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "schema:Book is broader (may denote abstract work); gmeow:BookRelease is a concrete published edition." ;
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+
+gmeow:eqNarrative002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject schema:Episode ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:SerialInstallment ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "schema:Episode is TV/radio-specific; gmeow:SerialInstallment is broader (comics, magazines)." ;
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+
+gmeow:eqNarrative003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject wd:Q1774138 ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gmeow:NarrativeReferenceFrame ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "Wikidata 'fictional universe' is broader than a single canon frame." ;
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+
+gmeow:eqNarrative004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject wd:Q15706943 ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gmeow:NarrativeReferenceFrame ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "Wikidata 'fictional world' — close match to narrative frame." ;
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .

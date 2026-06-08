@@ -61,6 +61,20 @@ gmeow:WebPage
     skos:definition "A page on the web identified by a URL."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:BookRelease
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:CreativeWork ;
+    rdfs:label "Book Release"@en ;
+    skos:definition "A concrete published edition or release of a book — an out-of-universe information object and rights-bearing publication artifact. Distinct from the in-universe narrative frame it contributes to; linked via gmeow:sourceFor."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:SerialInstallment
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:CreativeWork ;
+    rdfs:label "Serial Installment"@en ;
+    skos:definition "A single issue, episode, or chapter of a serial creative work — a comic issue, TV episode, magazine issue, or serial chapter. An out-of-universe publication artifact distinct from the narrative frame it sources."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:CreativeWorkTitle
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Appellation ;

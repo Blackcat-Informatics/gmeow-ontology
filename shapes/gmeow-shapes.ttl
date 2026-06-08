@@ -747,6 +747,56 @@ gmeow:FrameProfileShape
         """ ;
     ] .
 
+gmeow:NarrativeReferenceFrameShape
+    a sh:NodeShape ;
+    rdfs:label "Narrative Reference Frame Shape" ;
+    sh:targetClass gmeow:NarrativeReferenceFrame ;
+    sh:property [
+        sh:path gmeow:frameRealm ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:hasValue gmeow:frameRealmNarrative ;
+        sh:severity sh:Violation ;
+        sh:message "A NarrativeReferenceFrame must declare gmeow:frameRealmNarrative." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:frameKind ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:hasValue gmeow:frameKindNarrative ;
+        sh:severity sh:Violation ;
+        sh:message "A NarrativeReferenceFrame must declare gmeow:frameKindNarrative." ;
+    ] .
+
+gmeow:NarrativeFrameLinkShape
+    a sh:NodeShape ;
+    rdfs:label "Narrative Frame Link Shape" ;
+    sh:targetClass gmeow:NarrativeFrameLink ;
+    sh:property [
+        sh:path gmeow:narrativeFrameLinkSource ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:NarrativeReferenceFrame ;
+        sh:severity sh:Violation ;
+        sh:message "A NarrativeFrameLink must have exactly one gmeow:narrativeFrameLinkSource." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:narrativeFrameLinkTarget ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:NarrativeReferenceFrame ;
+        sh:severity sh:Violation ;
+        sh:message "A NarrativeFrameLink must have exactly one gmeow:narrativeFrameLinkTarget." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:narrativeFrameLinkRelation ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:NarrativeFrameRelation ;
+        sh:severity sh:Violation ;
+        sh:message "A NarrativeFrameLink must have exactly one gmeow:narrativeFrameLinkRelation." ;
+    ] .
+
 gmeow:PoseShape
     a sh:NodeShape ;
     rdfs:label "Pose well-formedness shape" ;
