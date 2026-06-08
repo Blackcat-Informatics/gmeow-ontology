@@ -483,6 +483,23 @@ def test_bbc_projection_emits_news_event() -> None:
 
 
 # --------------------------------------------------------------------------- #
+# Issue #170 — Language variety standpoint coexistence
+# --------------------------------------------------------------------------- #
+
+
+def test_variety_coexistence_fixture_conforms() -> None:
+    """Contradictory varietyKind assertions COEXIST with no violation (Principle 9)."""
+    g = _fixture("variety-coexistence")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    ex_lang = Namespace("https://example.org/lang/")
+    kinds = set(g.objects(ex_lang.scots, GM.varietyKind))
+    assert {GM.kindLanguage, GM.kindDialect} <= kinds, (
+        f"both varietyKind values must be retained: {kinds}"
+    )
+
+
+# --------------------------------------------------------------------------- #
 # Mapping alignment tests (#127)
 # --------------------------------------------------------------------------- #
 
