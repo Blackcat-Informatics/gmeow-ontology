@@ -28,12 +28,12 @@ WHERE {
     UNION
     { ?claim a gmeow:StandpointClaim ;
         gmeow:vantage ?sp ;
-        gmeow:claimModality ?mod ;
         gmeow:observedFeature ?ax .
       ?ax a owl:Axiom ;
           owl:annotatedSource ?s ;
           owl:annotatedProperty ?p ;
-          owl:annotatedTarget ?o . }
+          owl:annotatedTarget ?o .
+      OPTIONAL { ?claim gmeow:claimModality ?mod } }
     FILTER(!BOUND(?mod) || ?mod != gmeow:refuted)
     BIND(IF(!BOUND(?sp) || ?sp = gmeow:universalStandpoint, "*", STR(?sp)) AS ?spName)
     BIND(IF(BOUND(?mod) && (?mod = gmeow:conceivable || ?mod = gmeow:probable), "Diamond", "Box") AS ?op)

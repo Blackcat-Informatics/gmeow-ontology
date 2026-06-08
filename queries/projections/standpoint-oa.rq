@@ -30,17 +30,17 @@ WHERE {
     UNION
     { ?ax a gmeow:StandpointClaim ;
         gmeow:vantage ?sp ;
-        gmeow:claimModality ?mod ;
         gmeow:observedFeature ?stmt .
       ?stmt owl:annotatedSource ?s ;
             owl:annotatedProperty ?p ;
-            owl:annotatedTarget ?o . }
+            owl:annotatedTarget ?o .
+      OPTIONAL { ?ax gmeow:claimModality ?mod } }
     UNION
     { ?ax a gmeow:StandpointClaim ;
         gmeow:vantage ?sp ;
-        gmeow:claimModality ?mod ;
         gmeow:observedFeature ?feature .
-      FILTER NOT EXISTS { ?feature owl:annotatedSource ?s } }
+      FILTER NOT EXISTS { ?feature owl:annotatedSource ?s }
+      OPTIONAL { ?ax gmeow:claimModality ?mod } }
     BIND(COALESCE(?sp, gmeow:universalStandpoint) AS ?holder)
     BIND(COALESCE(?s, ?feature) AS ?target)
     BIND(IRI(CONCAT(STR(?ax), "/annotation")) AS ?ann)

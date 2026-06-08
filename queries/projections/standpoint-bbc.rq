@@ -13,9 +13,9 @@ CONSTRUCT {
 WHERE {
     ?ax a gmeow:StandpointClaim ;
         gmeow:vantage ?sp ;
-        gmeow:claimModality ?mod ;
         gmeow:observedFeature ?event .
     ?event a gmeow:Event .
+    OPTIONAL { ?ax gmeow:claimModality ?mod }
     BIND(COALESCE(?sp, gmeow:universalStandpoint) AS ?holder)
     BIND(IRI(CONCAT(STR(?event), "/news-event")) AS ?newsEvent)
 }
