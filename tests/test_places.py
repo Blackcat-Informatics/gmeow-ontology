@@ -1887,3 +1887,45 @@ def test_reference_frame_has_refpos_and_timescale() -> None:
         URIRef(GMEOW + "hasTimeScale"),
         URIRef(GMEOW + "timeScaleTDB"),
     ) in graph
+
+
+# =========================================================================== #
+# Issue #87 — Psychological / cognitive realm structural guards
+# =========================================================================== #
+
+
+def test_is_hosted_by_property_exists() -> None:
+    """Issue #87: isHostedBy links a ReferenceFrame to its hosting Entity."""
+    graph = _graph()
+    prop = URIRef(GMEOW + "isHostedBy")
+    assert (prop, RDF.type, OWL.ObjectProperty) in graph
+    assert (prop, RDFS.domain, URIRef(GMEOW + "ReferenceFrame")) in graph
+    assert (prop, RDFS.range, URIRef(GMEOW + "Entity")) in graph
+
+
+def test_psychological_frame_realm_exists() -> None:
+    """Issue #87: frameRealmPsychological is present for mental reference frames."""
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "frameRealmPsychological"),
+        RDF.type,
+        URIRef(GMEOW + "FrameRealm"),
+    ) in graph
+
+
+def test_psychological_axes_exist() -> None:
+    """Issue #87: psychological / cognitive axes are present."""
+    graph = _graph()
+    for axis in (
+        "axisValence",
+        "axisArousal",
+        "axisConceptualSimilarity",
+        "axisEgocentricForward",
+        "axisEgocentricLateral",
+        "axisAllocentricX",
+        "axisAllocentricY",
+        "axisImaginedSpaceX",
+        "axisImaginedSpaceY",
+        "axisImaginedSpaceZ",
+    ):
+        assert (URIRef(GMEOW + axis), RDF.type, URIRef(GMEOW + "Axis")) in graph

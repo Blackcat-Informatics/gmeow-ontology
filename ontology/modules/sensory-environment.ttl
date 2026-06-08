@@ -34,8 +34,11 @@ gmeow:MentalReferenceFrame
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:ReferenceFrame ;
     rdfs:label "Mental Reference Frame"@en ;
-    skos:definition "A perceptual or subjective reference frame in which standpoint-indexed values are expressed — e.g. a thermal comfort scale, an olfactory quality space ('musty'/'muted'), or a subjective loudness frame. A MentalReferenceFrame is a ReferenceFrame whose realm is perceptual and whose axes describe qualitative or semi-quantitative dimensions of human (or animal, or AI) sensory experience. Distinct from measurement frames: two perceivers may map the same physical measurement to different mental-frame coordinates (Principle 11)."@en ;
+    skos:definition "A subjective or internal reference frame in which standpoint-indexed values are expressed — e.g. a thermal comfort scale, an olfactory quality space, a subjective loudness frame, an affective valence/arousal space (Russell circumplex), a conceptual geometry (Gärdenfors), a cognitive map (egocentric or allocentric), or an imagined space (memory palace, dream). A MentalReferenceFrame is a ReferenceFrame whose realm is perceptual or psychological and whose axes describe qualitative or semi-quantitative dimensions of human, animal, or AI experience. Requires a host (the perceiver, thinker, or dreamer); the frame deactivates when its host ceases to exist. Distinct from measurement frames: two hosts may map the same external stimulus to different mental-frame coordinates (Principle 11)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:MentalReferenceFrame rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:isHostedBy ; owl:someValuesFrom gmeow:Entity ] .
 
 gmeow:SensoryPerception
     a owl:Class, gufo:SubKind ;
@@ -205,9 +208,66 @@ gmeow:referenceFrameThermalComfort
     gmeow:hasAxis gmeow:axisPredictedMeanVote, gmeow:axisPredictedPercentageDissatisfied ;
     gmeow:dimensionCount "2"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindCartesian ;
-    gmeow:requiresHost false ;
+    gmeow:requiresHost true ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricEuclidean .
+
+gmeow:referenceFrameAffectiveCircumplex
+    a gmeow:MentalReferenceFrame ;
+    rdfs:label "Russell Affective Circumplex Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmPsychological ;
+    gmeow:hasAxis gmeow:axisValence, gmeow:axisArousal ;
+    gmeow:dimensionCount "2"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindCartesian ;
+    gmeow:requiresHost true ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricEuclidean .
+
+gmeow:referenceFrameConceptualSpace
+    a gmeow:MentalReferenceFrame ;
+    rdfs:label "Gärdenfors Conceptual Space Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmPsychological ;
+    gmeow:hasAxis gmeow:axisConceptualSimilarity ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindCartesian ;
+    gmeow:requiresHost true ;
+    gmeow:determinacyModel gmeow:determinacyVague ;
+    gmeow:hasMetricKind gmeow:metricCosine ;
+    skos:definition "A generic conceptual space frame after Gärdenfors — domains are convex regions in a similarity metric space. The actual domain-specific axes (colour, taste, shape, etc.) are added per-domain; this seed carries the similarity axis as a placeholder."@en .
+
+gmeow:referenceFrameCognitiveMapEgocentric
+    a gmeow:MentalReferenceFrame ;
+    rdfs:label "Egocentric Cognitive Map Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmPsychological ;
+    gmeow:hasAxis gmeow:axisEgocentricForward, gmeow:axisEgocentricLateral ;
+    gmeow:dimensionCount "2"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindCartesian ;
+    gmeow:requiresHost true ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricEuclidean .
+
+gmeow:referenceFrameCognitiveMapAllocentric
+    a gmeow:MentalReferenceFrame ;
+    rdfs:label "Allocentric Cognitive Map Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmPsychological ;
+    gmeow:hasAxis gmeow:axisAllocentricX, gmeow:axisAllocentricY ;
+    gmeow:dimensionCount "2"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindCartesian ;
+    gmeow:requiresHost true ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricEuclidean .
+
+gmeow:referenceFrameImaginedSpace
+    a gmeow:MentalReferenceFrame ;
+    rdfs:label "Imagined Space Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmPsychological ;
+    gmeow:hasAxis gmeow:axisImaginedSpaceX, gmeow:axisImaginedSpaceY, gmeow:axisImaginedSpaceZ ;
+    gmeow:dimensionCount "3"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindCartesian ;
+    gmeow:requiresHost true ;
+    gmeow:determinacyModel gmeow:determinacyVague ;
+    gmeow:hasMetricKind gmeow:metricEuclidean ;
+    skos:definition "An imagined or dream-space reference frame — e.g. a memory palace, a dream landscape, or a fictional world. Coordinates are relative to the imaginer's internal representation, not to any external geographic frame."@en .
 
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE — EL open-world restrictions
