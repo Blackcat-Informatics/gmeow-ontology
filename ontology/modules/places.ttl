@@ -795,6 +795,15 @@ gmeow:axisURL              a gmeow:Axis ; rdfs:label "URL axis"@en .
 gmeow:axisPortNumber       a gmeow:Axis ; rdfs:label "port number axis"@en .
 gmeow:axisBGPAS            a gmeow:Axis ; rdfs:label "BGP autonomous system axis"@en .
 
+# Postal address axes (#107)
+gmeow:axisStreetAddress    a gmeow:Axis ; rdfs:label "street address axis"@en .
+gmeow:axisExtendedAddress  a gmeow:Axis ; rdfs:label "extended address axis"@en .
+gmeow:axisPostOfficeBox    a gmeow:Axis ; rdfs:label "post office box axis"@en .
+gmeow:axisAddressLocality  a gmeow:Axis ; rdfs:label "address locality axis"@en .
+gmeow:axisAddressRegion    a gmeow:Axis ; rdfs:label "address region axis"@en .
+gmeow:axisPostalCode       a gmeow:Axis ; rdfs:label "postal code axis"@en .
+gmeow:axisCountryCode      a gmeow:Axis ; rdfs:label "country code axis"@en .
+
 # Sensory-environment axes (#104)
 gmeow:axisTristimulusX     a gmeow:Axis ; rdfs:label "CIE X tristimulus"@en .
 gmeow:axisTristimulusY     a gmeow:Axis ; rdfs:label "CIE Y tristimulus"@en .
@@ -1177,6 +1186,25 @@ gmeow:referenceFrameBGP
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricGraphHops ;
     gmeow:parentFrame gmeow:referenceFrameInternet .
+
+# Postal Address Reference Frame (#107)
+# A topological frame whose axes are the as-written surface-form components
+# of a postal address.  Containment is administrative (street ⊂ locality ⊂
+# region ⊂ country), not geometric; distance is measured in graph-hops along
+# the administrative hierarchy (Principle 12 — the actual resolution/geocoding
+# math lives in the solver layer).
+gmeow:referenceFramePostalAddress
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Postal Address Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+    gmeow:hasAxis gmeow:axisStreetAddress, gmeow:axisExtendedAddress, gmeow:axisPostOfficeBox,
+                  gmeow:axisAddressLocality, gmeow:axisAddressRegion, gmeow:axisPostalCode,
+                  gmeow:axisCountryCode ;
+    gmeow:dimensionCount "7"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTopological ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGraphHops .
 
 # Reference Frame Profile Properties
 gmeow:frameRealm

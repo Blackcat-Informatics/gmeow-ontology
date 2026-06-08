@@ -76,6 +76,7 @@ ex:wbGeo a gmeow:Geometry ;
 
 # Decomposed postal address (surface form) bridged to the resolved premises.
 ex:addr a gmeow:PostalAddress ;
+    gmeow:postalAddressFrame gmeow:referenceFramePostalAddress ;
     gmeow:streetAddress "112 Westbourne Rd" ;
     gmeow:addressLocality "Spruce Grove" ;
     gmeow:addressRegion "AB" ;

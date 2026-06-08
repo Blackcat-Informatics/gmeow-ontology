@@ -219,6 +219,7 @@ gmeow:mapSchemaAddress a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "addr" ; gmeow:predicate gmeow:countryCode ; gmeow:objectVar "ccode" ; gmeow:optional true ] ) ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "the postal reference frame (axes, topological kind, metric) is dropped; only the flat schema:PostalAddress component values survive" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "holder" ; gmeow:tPred schema:address ; gmeow:tObj "addr" ]
             [ gmeow:tSubj "addr" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:PostalAddress ]
