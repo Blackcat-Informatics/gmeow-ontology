@@ -26,6 +26,7 @@ gmeow:mapSosaSensoryObservation a gmeow:ProjectionMapping ;
     gmeow:hasMappingPattern [
         gmeow:anchor "obs" ;
         gmeow:atom ( [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensoryObservation ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
         gmeow:edoalSource gmeow:SensoryObservation ; gmeow:edoalSourceKind "class" ] ;
     gmeow:hasBinding [
         gmeow:profile "sosa" ; gmeow:toClass sosa:Observation ; gmeow:relation "<=" ;
@@ -70,6 +71,7 @@ gmeow:mapSosaObservedProperty a gmeow:ProjectionMapping ;
     gmeow:hasMappingPattern [
         gmeow:anchor "obs" ; gmeow:value "prop" ;
         gmeow:atom ( [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:sensoryProperty ; gmeow:objectVar "prop" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
         gmeow:edoalSource gmeow:sensoryProperty ] ;
     gmeow:hasBinding [
         gmeow:profile "sosa" ; gmeow:toPredicate sosa:observedProperty ; gmeow:relation "=" ;

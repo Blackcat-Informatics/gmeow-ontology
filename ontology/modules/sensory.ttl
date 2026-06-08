@@ -47,7 +47,7 @@ gmeow:platformLocation
     rdfs:domain gmeow:SensorPlatform ;
     rdfs:range gmeow:Place ;
     rdfs:label "platform location"@en ;
-    skos:definition "The geographic place where a sensor platform is situated. A platform may have only one location at a time; historical locations are modelled as past SensoryObservations or LocationStates, not by changing this property (Principle 9)."@en ;
+    skos:definition "The geographic place where a sensor platform is situated. A platform typically has one location at a time; historical locations are modelled as past SensoryObservations or LocationStates, not by changing this property (Principle 9)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #

@@ -18,6 +18,7 @@ CONSTRUCT {
 WHERE {
     {
         ?obs a gmeow:SensoryObservation .
+        FILTER NOT EXISTS { ?obs gmeow:displayable false . }
     }
     UNION {
         ?sensor a gmeow:Sensor .
@@ -30,6 +31,7 @@ WHERE {
     }
     UNION {
         ?obs gmeow:sensoryProperty ?prop .
+        FILTER NOT EXISTS { ?obs gmeow:displayable false . }
     }
     UNION {
         ?platform gmeow:platformLocation ?place .
