@@ -13222,6 +13222,15 @@
                         "null"
                     ]
                 },
+                "hasNotationSystem": {
+                    "items": {
+                        "$ref": "#/$defs/NotationSystem"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -16842,6 +16851,15 @@
                         "null"
                     ]
                 },
+                "hasNotationSystem": {
+                    "items": {
+                        "$ref": "#/$defs/NotationSystem"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -18046,6 +18064,15 @@
                         "null"
                     ]
                 },
+                "hasNotationSystem": {
+                    "items": {
+                        "$ref": "#/$defs/NotationSystem"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasPose": {
                     "items": {
                         "$ref": "#/$defs/Pose"
@@ -18500,6 +18527,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasNotationSystem": {
+                    "items": {
+                        "$ref": "#/$defs/NotationSystem"
                     },
                     "type": [
                         "array",
@@ -27214,6 +27250,457 @@
             "title": "NetworkAddressTypeEnum",
             "type": "string"
         },
+        "NotationSystem": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "acquireLicensePage": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionText": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionUrl": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "authorityLink": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "counterpartOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "detectedMediaType": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "existenceInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAccessibilityNeed": {
+                    "items": {
+                        "$ref": "#/$defs/AccessibilityFacet"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAppellation": {
+                    "items": {
+                        "$ref": "#/$defs/Appellation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAttestation": {
+                    "items": {
+                        "$ref": "#/$defs/Attestation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCopyright": {
+                    "items": {
+                        "$ref": "#/$defs/Copyright"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCreationEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDestructionEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLicense": {
+                    "items": {
+                        "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasPose": {
+                    "items": {
+                        "$ref": "#/$defs/Pose"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasRightsStatement": {
+                    "items": {
+                        "$ref": "#/$defs/RightsStatement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryObservation": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryObservation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryQuantity": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryQuantity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSpatialMeasurement": {
+                    "items": {
+                        "$ref": "#/$defs/SpatialMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasStream": {
+                    "items": {
+                        "$ref": "#/$defs/Stream"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTag": {
+                    "items": {
+                        "$ref": "#/$defs/Tag"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTrademark": {
+                    "items": {
+                        "$ref": "#/$defs/Trademark"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasWebPage": {
+                    "items": {
+                        "$ref": "#/$defs/WebPage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAccessibleForFree": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "isResultOf": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "locatedAt": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "notationSystemFor": {
+                    "items": {
+                        "$ref": "#/$defs/Language"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "notationSystemKind": {
+                    "items": {
+                        "$ref": "#/$defs/SymbolicSystemKind"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "proximity": {
+                    "items": {
+                        "$ref": "#/$defs/ProximityMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "storedIn": {
+                    "items": {
+                        "$ref": "#/$defs/StorageLocation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersededBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersedes": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "symbolicSystemKind": {
+                    "items": {
+                        "$ref": "#/$defs/SymbolicSystemKind"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "usageInfo": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionFingerprint": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionLabel": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "wasAttributedTo": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasDerivedFrom": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasGeneratedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Activity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "NotationSystem",
+            "type": "object"
+        },
+        "NotationSystemUsage": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "notationUsageInterval": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TimeInterval"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "notationUsageNotationSystem": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/NotationSystem"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "notationUsageRole": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/NotationUsageRole"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "notationUsageTarget": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                }
+            },
+            "title": "NotationSystemUsage",
+            "type": "object"
+        },
+        "NotationUsageRole": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "NotationUsageRole",
+            "type": "object"
+        },
+        "NotationUsageRoleEnum": {
+            "description": "",
+            "enum": [
+                "notationRoleCipher",
+                "notationRoleCommunication",
+                "notationRoleEncoding",
+                "notationRoleExpression",
+                "notationRoleRepresentation",
+                "notationRoleShorthand",
+                "notationRoleTranscription"
+            ],
+            "title": "NotationUsageRoleEnum",
+            "type": "string"
+        },
         "ObservableProperty": {
             "additionalProperties": false,
             "description": "",
@@ -32861,6 +33348,15 @@
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasNotationSystem": {
+                    "items": {
+                        "$ref": "#/$defs/NotationSystem"
                     },
                     "type": [
                         "array",
@@ -45680,6 +46176,394 @@
             "title": "Summary",
             "type": "object"
         },
+        "SymbolicSystem": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "acquireLicensePage": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionText": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionUrl": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "authorityLink": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "counterpartOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "detectedMediaType": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "existenceInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAccessibilityNeed": {
+                    "items": {
+                        "$ref": "#/$defs/AccessibilityFacet"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAppellation": {
+                    "items": {
+                        "$ref": "#/$defs/Appellation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAttestation": {
+                    "items": {
+                        "$ref": "#/$defs/Attestation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCopyright": {
+                    "items": {
+                        "$ref": "#/$defs/Copyright"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCreationEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDestructionEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLicense": {
+                    "items": {
+                        "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasPose": {
+                    "items": {
+                        "$ref": "#/$defs/Pose"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasRightsStatement": {
+                    "items": {
+                        "$ref": "#/$defs/RightsStatement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryObservation": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryObservation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryQuantity": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryQuantity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSpatialMeasurement": {
+                    "items": {
+                        "$ref": "#/$defs/SpatialMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasStream": {
+                    "items": {
+                        "$ref": "#/$defs/Stream"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTag": {
+                    "items": {
+                        "$ref": "#/$defs/Tag"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTrademark": {
+                    "items": {
+                        "$ref": "#/$defs/Trademark"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasWebPage": {
+                    "items": {
+                        "$ref": "#/$defs/WebPage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAccessibleForFree": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "isResultOf": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "locatedAt": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "proximity": {
+                    "items": {
+                        "$ref": "#/$defs/ProximityMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "storedIn": {
+                    "items": {
+                        "$ref": "#/$defs/StorageLocation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersededBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersedes": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "symbolicSystemKind": {
+                    "items": {
+                        "$ref": "#/$defs/SymbolicSystemKind"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "usageInfo": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionFingerprint": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionLabel": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "wasAttributedTo": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasDerivedFrom": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasGeneratedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Activity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "SymbolicSystem",
+            "type": "object"
+        },
+        "SymbolicSystemKind": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "SymbolicSystemKind",
+            "type": "object"
+        },
+        "SymbolicSystemKindEnum": {
+            "description": "",
+            "enum": [
+                "symbolicKindCommunicationConvention",
+                "symbolicKindCryptographic",
+                "symbolicKindEmoji",
+                "symbolicKindEncoding",
+                "symbolicKindGesture",
+                "symbolicKindMathematical",
+                "symbolicKindMusical",
+                "symbolicKindPlatformConvention",
+                "symbolicKindStenographic",
+                "symbolicKindTranscription"
+            ],
+            "title": "SymbolicSystemKindEnum",
+            "type": "string"
+        },
         "Tag": {
             "additionalProperties": false,
             "description": "",
@@ -52806,6 +53690,15 @@
                 "wasGeneratedBy": {
                     "items": {
                         "$ref": "#/$defs/Activity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "writingSystemAsNotation": {
+                    "items": {
+                        "$ref": "#/$defs/NotationSystem"
                     },
                     "type": [
                         "array",

@@ -168,7 +168,10 @@ def test_dsl_parses() -> None:
     # CIDOC-CRM x1, BIBFRAME x3, schema.org x4, Wikidata x13).
     # Issue #211 citation & credit module: +29 (CRediT x14, PAV x2, CiTO x10,
     # Web Annotation x1, PROV-O x2).
-    assert len(dsl.equivalences) == 1233
+    # Issue #172 notation and symbolic systems: +8 (NotationSystem→schema/Wikidata x2,
+    # NotationSystemUsage→sosa:Observation, hasNotationSystem→schema/Wikidata x2,
+    # notationSystemFor→schema/Wikidata x2, writingSystemAsNotation→schema).
+    assert len(dsl.equivalences) == 1241
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -193,7 +196,8 @@ def test_dsl_parses() -> None:
     # Issue #89 narrative realm: +1 (gmeow-narrative.sssom.tsv).
     # Issue #208 creative-works WEMI spine: +1 (gmeow-creative-works.sssom.tsv).
     # Issue #211 citation & credit module: +1 (gmeow-citations.sssom.tsv).
-    assert len(dsl.mapping_sets) == 35
+    # Issue #172 notation and symbolic systems: +1 (gmeow-notation.sssom.tsv).
+    assert len(dsl.mapping_sets) == 36
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}

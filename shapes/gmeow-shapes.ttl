@@ -202,6 +202,41 @@ gmeow:NameUsageShape
         sh:message "A NameUsage must use exactly one appellation (gmeow:usageAppellation)." ;
     ] .
 
+# A NotationSystemUsage mediates exactly one target and one notation system
+# (mirrors the someValuesFrom on notationUsageTarget and notationUsageNotationSystem).
+gmeow:NotationSystemUsageShape
+    a sh:NodeShape ;
+    rdfs:label "NotationSystemUsage well-formedness shape" ;
+    sh:targetClass gmeow:NotationSystemUsage ;
+    sh:property [
+        sh:path gmeow:notationUsageTarget ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A NotationSystemUsage must target exactly one entity (gmeow:notationUsageTarget)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:notationUsageNotationSystem ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A NotationSystemUsage must bind exactly one notation system (gmeow:notationUsageNotationSystem)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:notationUsageRole ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A NotationSystemUsage must declare exactly one role (gmeow:notationUsageRole)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:notationUsageInterval ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A NotationSystemUsage must bind exactly one time interval (gmeow:notationUsageInterval)." ;
+    ] .
+
 # --------------------------------------------------------------------------- #
 # (b) Suppression / display contract (CONSTITUTION P10 — suppression, never
 # erasure). The IdentityFacet sibling of DeadnameSuppressionShape: a facet that
