@@ -185,6 +185,7 @@ def test_location_superset_core() -> None:
         "frameRealmIndoor",
         "frameRealmVirtual",
         "frameRealmCelestial",
+        "frameRealmMathematical",
         "frameRealmRobotic",
     ):
         assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "FrameRealm")) in graph
@@ -196,6 +197,10 @@ def test_location_superset_core() -> None:
         "frameKindScalar",
         "frameKindTemporal",
         "frameKindCylindrical",
+        "frameKindHilbert",
+        "frameKindManifold",
+        "frameKindPhaseSpace",
+        "frameKindLatentSpace",
     ):
         assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "FrameKind")) in graph
     for ind in (
@@ -230,6 +235,19 @@ def test_location_superset_core() -> None:
         "axisQuaternionW",
         "axisHeading",
         "axisBearing",
+        "axisGeneralizedCoordinate",
+        "axisGeneralizedMomentum",
+        "axisMomentumX",
+        "axisMomentumY",
+        "axisMomentumZ",
+        "axisHilbertState",
+        "axisLatentVector",
+        "axisJointAngle1",
+        "axisJointAngle2",
+        "axisJointAngle3",
+        "axisJointAngle4",
+        "axisJointAngle5",
+        "axisJointAngle6",
     ):
         assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + "Axis")) in graph
     for ind in (
@@ -240,6 +258,10 @@ def test_location_superset_core() -> None:
         "referenceFrameSRGB",
         "referenceFrameCMYK",
         "referenceFrameEnglish",
+        "referenceFramePhaseSpace3DOF",
+        "referenceFrameHilbertSpace",
+        "referenceFrameLatentVectorSpace",
+        "referenceFrameRobotArm6DOF",
     ):
         assert (
             URIRef(GMEOW + ind),
@@ -361,7 +383,7 @@ def test_location_superset_core() -> None:
         RDFS.subPropertyOf,
         URIRef(GMEOW + "hasReferenceFrame"),
     ) in graph
-    # hasCoordinateMatrix domain is an owl:unionOf(Axis, Pose).
+    # hasCoordinateMatrix domain is an owl:unionOf(Axis, Pose, SpatialCoordinates).
     hcm_domain = graph.value(URIRef(GMEOW + "hasCoordinateMatrix"), RDFS.domain)
     assert hcm_domain is not None
     assert (hcm_domain, RDF.type, OWL.Class) in graph
@@ -371,6 +393,7 @@ def test_location_superset_core() -> None:
     assert union_members == {
         URIRef(GMEOW + "Axis"),
         URIRef(GMEOW + "Pose"),
+        URIRef(GMEOW + "SpatialCoordinates"),
     }
     assert (URIRef(GMEOW + "hasCoordinateMatrix"), RDFS.range, RDFS.Literal) in graph
 
@@ -518,6 +541,7 @@ def test_metric_kind_is_value_not_subclass() -> None:
         "metricCosine",
         "metricEditDistance",
         "metricGraphHops",
+        "metricSymplectic",
     ):
         assert (
             URIRef(GMEOW + metric),

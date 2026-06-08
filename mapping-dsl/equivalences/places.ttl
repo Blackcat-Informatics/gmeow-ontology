@@ -18,6 +18,7 @@
 @prefix pos: <http://purl.org/ieee1872-owl/pos#> .
 @prefix sf: <http://www.opengis.net/ont/sf#> .
 @prefix lgdo: <http://linkedgeodata.org/ontology/> .
+@prefix mls: <http://www.w3.org/ns/mls#> .
 @prefix pleiades: <http://pleiades.stoa.org/places/vocab#> .
 @prefix whg: <https://whgazetteer.org/> .
 @prefix mf: <http://www.opengis.net/ont/movingfeatures#> .
@@ -1331,3 +1332,85 @@ gmeow:eqPlaces149 a gmeow:TermEquivalence ;
 # Alignments are documented as comment-only placeholders following the
 # sensory-environment.ttl precedent for sources without resolvable term IRIs.
 # If SWEET or SLSO publish stable IRIs in future, add TermEquivalence rows here.
+
+# Mathematical / n-D reference frames (#86)
+gmeow:eqPlaces150 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:frameRealmMathematical ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q395 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "mathematics" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces151 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:frameKindManifold ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q203920 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:objectLabel "manifold" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces152 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:frameKindHilbert ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q190056 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:objectLabel "Hilbert space" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces153 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:frameKindPhaseSpace ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q185821 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:objectLabel "phase space" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces154 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFramePhaseSpace3DOF ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q185821 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "phase space" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces155 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameHilbertSpace ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q190056 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Hilbert space" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces156 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameRobotArm6DOF ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q2151981 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "robotic arm" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces157 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameLatentVectorSpace ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q65054223 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "latent space" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces158 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:CoordinateMatrix ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject mls:Feature ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "Feature" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
