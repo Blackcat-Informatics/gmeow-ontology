@@ -100,8 +100,8 @@ GMEOW answers each challenge with a deliberate architectural choice:
   register); GMEOW makes the frame explicit and first-class, separating frame-independent
   *structure* from frame-relative *value* ([Principle 11](../CONSTITUTION.md)), with heavy
   conversion computed in an external solver, never asserted ([Principle 12](../CONSTITUTION.md)).
-  *(Addresses lossless capture and cross-system coreference; in progress — the Location
-  reference-frame epic.)*
+  *(Addresses lossless capture and cross-system coreference; now spans 13+ realms from
+  terrestrial to celestial to biological-sequence to fictional.)*
 
 ## How it grows: slices
 
@@ -112,14 +112,17 @@ exactly how much of the slice GMEOW covers and lists the remaining gaps.
 
 **Built so far** — the identity, naming, language, gender/sexuality, contact, email,
 account, genealogy, organization, document, source, software, expertise, agreement,
-rights, place, temporal, event, provenance, and standpoint modules, plus the reasoning
-spine (axiomatized doctrine, the OWL+SHACL split, the gUFO↔BFO foundational bridge).
+rights, place, temporal, event, provenance, standpoint, and observation modules, plus the
+Location universal reference-frame epic (13+ realms: terrestrial, indoor, virtual/network,
+celestial, mathematical/n-D, psychological, robotic, fictional, biological-sequence,
+geocoding, cadastral, maritime/aviation, sensory), cross-cutting foundations
+(frame-relativity, determinacy, granularity, accessibility, spatial aggregation,
+regulatory overlays, data quality, attestation), and the reasoning spine (axiomatized
+doctrine, the OWL+SHACL split, the gUFO↔BFO foundational bridge).
 **Planned, tracked as issues** — calendar, notes, finance, employment, images, tagging,
 and an AI / RAG claim-provenance layer; broad-consumption tooling (developer schemas,
-property-graph and ML-dataset exports, a maximal DOI strategy); and the
-**Location-as-universal-reference-frame** epic, which generalises into cross-cutting
-foundations: observation (claim-from-a-vantage), frame-relativity, determinacy,
-privacy/consent, and the self-describing *Profile* meta-pattern.
+property-graph and ML-dataset exports, a maximal DOI strategy); and quality/performance
+hardening.
 
 Because coverage is measured against real data, "have we modelled digital existence
 yet?" stops being a vibe and becomes a number with an explicit, shrinking gap list.
