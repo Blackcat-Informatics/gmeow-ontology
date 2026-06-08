@@ -1790,3 +1790,87 @@ gmeow:GeocodeShape
     ) ;
     sh:severity sh:Violation ;
     sh:message "A Geocode must carry exactly one code value: geocodeValue, plusCode, what3words, geohash, mgrs, unLocode, mileMarker, or hasCoordinateMatrix." .
+
+
+# =========================================================================== #
+# Creative-works module (#208) — WEMI spine well-formedness
+# =========================================================================== #
+
+# Contribution relator well-formedness — closed-world cardinality.
+# Mirrors ParticipationHasPlayersShape and NameUsageShape.
+gmeow:ContributionHasPlayersShape
+    a sh:NodeShape ;
+    rdfs:label "Contribution well-formedness shape" ;
+    sh:targetClass gmeow:Contribution ;
+    sh:property [
+        sh:path gmeow:contributor ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Contribution must have exactly one contributor (gmeow:contributor)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:contributionTarget ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Contribution must target exactly one creative work (gmeow:contributionTarget)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:contributionRole ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Contribution must specify exactly one role (gmeow:contributionRole)." ;
+    ] .
+
+# Spine integrity: every Expression realizes at least one Work.
+gmeow:ExpressionRealizesWorkShape
+    a sh:NodeShape ;
+    rdfs:label "Expression realizes Work shape" ;
+    sh:targetClass gmeow:Expression ;
+    sh:property [
+        sh:path gmeow:realizes ;
+        sh:minCount 1 ;
+        sh:class gmeow:Work ;
+        sh:severity sh:Violation ;
+        sh:message "Every Expression must realize at least one Work (gmeow:realizes)." ;
+    ] .
+
+# Spine integrity: every Manifestation embodies at least one Expression.
+gmeow:ManifestationEmbodiesExpressionShape
+    a sh:NodeShape ;
+    rdfs:label "Manifestation embodies Expression shape" ;
+    sh:targetClass gmeow:Manifestation ;
+    sh:property [
+        sh:path gmeow:embodies ;
+        sh:minCount 1 ;
+        sh:class gmeow:Expression ;
+        sh:severity sh:Violation ;
+        sh:message "Every Manifestation must embody at least one Expression (gmeow:embodies)." ;
+    ] .
+
+# Spine integrity: every Item exemplifies at least one Manifestation.
+gmeow:ItemExemplifiesManifestationShape
+    a sh:NodeShape ;
+    rdfs:label "Item exemplifies Manifestation shape" ;
+    sh:targetClass gmeow:Item ;
+    sh:property [
+        sh:path gmeow:exemplifies ;
+        sh:minCount 1 ;
+        sh:class gmeow:Manifestation ;
+        sh:severity sh:Violation ;
+        sh:message "Every Item must exemplify at least one Manifestation (gmeow:exemplifies)." ;
+    ] .
+
+# Expression well-formedness: carries a reference frame (language/notation/arrangement).
+gmeow:ExpressionHasFrameShape
+    a sh:NodeShape ;
+    rdfs:label "Expression reference-frame shape" ;
+    sh:targetClass gmeow:Expression ;
+    sh:property [
+        sh:path gmeow:hasReferenceFrame ;
+        sh:minCount 1 ;
+        sh:severity sh:Warning ;
+        sh:message "An Expression should carry at least one reference frame (gmeow:hasReferenceFrame) — language, script, notation, or arrangement." ;
+    ] .

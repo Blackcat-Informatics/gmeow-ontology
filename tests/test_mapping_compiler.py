@@ -31,6 +31,14 @@ EDOAL = Namespace(PREFIXES["edoal"])
 
 
 def test_dsl_parses() -> None:
+    """
+    Validate that the mapping DSL loads correctly and contains the expected
+    counts and profiles.
+
+    Asserts that the loaded DSL has 1204 term equivalences, 28 functions,
+    34 mapping sets, more than 30 projection cells, and that the set of
+    profiles used in projection bindings equals the module-level `_PROFILES`.
+    """
     dsl = load_dsl()
     # Every SSSOM data row became a TermEquivalence cell (incl. the 7 gUFO↔BFO
     # foundational-spine cells, issue #40, the 13 standpoint cells — PROV-O x3,
@@ -156,7 +164,9 @@ def test_dsl_parses() -> None:
     # WOT x1, DQV x1).
     # Issue #126 sensory module: +14 (SOSA/SSN x6, OBOE x3, PATO x1, OBI x2,
     # QB x1, OM x1).
-    assert len(dsl.equivalences) == 1166
+    # Issue #208 creative-works WEMI spine: +38 (FRBRcore x7, FaBiO x4, LRMoo x6,
+    # CIDOC-CRM x1, BIBFRAME x3, schema.org x4, Wikidata x13).
+    assert len(dsl.equivalences) == 1204
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -179,7 +189,8 @@ def test_dsl_parses() -> None:
     # Issue #161 versions: +1 (gmeow-versions.sssom.tsv).
     # Issue #104 sensory environment: +1 (gmeow-sensory-environment.sssom.tsv).
     # Issue #89 narrative realm: +1 (gmeow-narrative.sssom.tsv).
-    assert len(dsl.mapping_sets) == 33
+    # Issue #208 creative-works WEMI spine: +1 (gmeow-creative-works.sssom.tsv).
+    assert len(dsl.mapping_sets) == 34
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}

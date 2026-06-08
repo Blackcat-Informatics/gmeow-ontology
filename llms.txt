@@ -18,7 +18,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:Agreement (⊑ gufo:Relator): A mutual understanding between two or more agents that creates obligations or rights, reified as a relator connecting its parties.
 - gmeow:AgreementName (⊑ gmeow:Appellation): An appellation borne by an agreement — a formal title, short name, or multilingual version of a contract or legal instrument. Carries its own gmeow:nameLanguage and gmeow:nameScript so co-equal multilingual names are separate first-class objects.
 - gmeow:Appellation (⊑ gmeow:InformationObject, ontolex:LexicalEntry): A name as an information object borne by an entity — a person's name, a filename, a place name, an organization name. It carries the surface form (gmeow:fullName) and the structured parts (gmeow:hasNamePart); who uses it, toward whom, in what register and over what period is carried by gmeow:NameUsage. The universal superclass reconciling the scattered naming terms. Multiple appellations on one entity are CO-EQUAL — none is canonical or 'primary'.
-- gmeow:Article (⊑ gmeow:CreativeWork): A written work published in a periodical, blog, or scholarly venue.
+- gmeow:Article (⊑ gmeow:Work): A written work published in a periodical, blog, or scholarly venue. A specialization of gmeow:Work.
 - gmeow:AtomicConstraint (⊑ gmeow:Constraint): A single ODRL constraint comparison: a gmeow:leftOperand (the dimension tested), a gmeow:constraintOperator (the comparison), and a gmeow:rightOperand (the value). E.g. leftOperand dateTime, operator lteq, rightOperand 2030-01-01 — 'valid until 2030'.
 - gmeow:Attachment (⊑ gmeow:BodyPart): A non-inline body part presented as an attached file. An attachment may also be a gmeow:Document or gmeow:MediaObject (the two are not disjoint), and its text extraction or summary is a derived object linked by gmeow:wasDerivedFrom.
 - gmeow:Attestation (⊑ gufo:Relator): A reified assertion envelope that an attester vouches for a claim, artifact, identity binding, process, quality report, or ledger claim under a specific policy. Mediates between an attester, an attested subject, and optionally an attested claim or artifact. Distinct from Observation: an attestation is a vouching act, not a measurement or sensory reading. Its validity window is carried with gmeow:validFrom/validUntil; revocation sets validUntil (Principle 10).
@@ -33,11 +33,12 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:BlockchainAccount (⊑ gmeow:Entity): An address-controlled account on a blockchain or distributed ledger — the entity that holds assets, signs transactions, or controls a smart contract. Aligns to CAIP-10 account identifiers and did:pkh.
 - gmeow:BlockchainNetwork (⊑ gmeow:Entity): A blockchain network identified by a chain identifier (e.g. CAIP-2 chainId).
 - gmeow:BodyPart (⊑ gmeow:InformationObject): A MIME part of a message's body, with a media type and content.
-- gmeow:BookRelease (⊑ gmeow:CreativeWork): A concrete published edition or release of a book — an out-of-universe information object and rights-bearing publication artifact. Distinct from the in-universe narrative frame it contributes to; linked via gmeow:sourceFor.
+- gmeow:BookRelease (⊑ gmeow:Manifestation): A concrete published edition or release of a book — an out-of-universe information object and rights-bearing publication artifact. A specialization of gmeow:Manifestation. Distinct from the in-universe narrative frame it contributes to; linked via gmeow:sourceFor.
 - gmeow:CadastralReference (⊑ gmeow:InformationObject): A structured identifier for a land-administration record — a parcel number, folio identifier, title number, lot reference, or survey plan reference issued by a cadastral registry. Carries the reference value, its type, the issuing authority, and the jurisdiction under which it is valid. Temporal validity (re-survey, re-numbering) is carried with validFrom / validUntil on the reference itself.
 - gmeow:CadastralReferenceType (⊑ gufo:QualityValue): The kind of a cadastral reference (parcel identifier, folio number, title number, lot number, survey plan reference, etc.). A value, not a subclass: the set is open-ended and they share all of CadastralReference's structure, so a new kind is a new individual, not a new class (Principle 9).
 - gmeow:CalendarSystem (⊑ gmeow:Entity, gufo:Object): The rules mapping a time scale to human-readable dates. Co-equal: Gregorian is one peer among Julian, Hebrew, Islamic, Chinese, Persian, Ethiopian, Coptic, ISO week, and others (Principle 9).
 - gmeow:Capacity (⊑ gmeow:Measurement): A measurement of the maximum number of entities a location can hold. The location is the observedFeature; the result is a ScalarQuantity. The entity kind being counted is implicit from the location's placeType and the ScalarQuantity's hasUnit (P11). A contested capacity (e.g., fire code vs. venue claim) is modelled as multiple co-existing Capacity measurements, each standpoint-indexed and confidence-weighted, never collapsing to a single winner (P9). A superseded capacity (e.g., after renovation) is suppressed via displayable false, never deleted (P10).
+- gmeow:CarrierMedium (⊑ gufo:QualityValue): The medium of a physical carrier — a VALUE vocabulary (individuals, never subclasses). Print, e-ink file, optical disc, and server object are examples; the set is open.
 - gmeow:CelestialCoordinates (⊑ gmeow:Entity, gufo:Object): A point on the celestial sphere expressed as right ascension, declination, and an optional epoch — frame-relative per Principle 11. The reference frame (ICRS, FK5, Galactic, etc.) is declared via gmeow:coordinateFrame.
 - gmeow:CelestialLocation (⊑ gmeow:Location): An astronomical location — a position on the celestial sphere, a solar-system body, a spacecraft, or a deep-sky object. The specific kind is given by gmeow:celestialObjectType (a value), not a subclass, so any astronomical object from star to galaxy cluster can be a first-class entity with its own coordinates and external identifiers (SIMBAD, NED, VizieR).
 - gmeow:CelestialObjectType (⊑ gufo:QualityValue): The kind of an astronomical object (star, galaxy, nebula, planet, asteroid, spacecraft, etc.). A value, not a CelestialLocation subclass: the set is open-ended (IVOA object-type vocabulary lists ~100 types) and they share the same structure.
@@ -52,21 +53,24 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:ContactPoint (⊑ gmeow:Entity, gufo:Object): A means of reaching an agent: an email address, telephone number, or postal address.
 - gmeow:ContainmentTenure (⊑ gmeow:TimeScopedRelation): The reified, time-scoped fact that a place was contained in a larger place over an interval — for boundary changes, re-organisations, and disputed parallel parents. Reifies containedInPlace over time; the plain transitive property remains the flat shortcut.
 - gmeow:Contract (⊑ gmeow:Agreement): A legally enforceable agreement.
+- gmeow:Contribution (⊑ gufo:Relator): A reified relator binding a contributor (Agent), a contribution target (a Work, Expression, Manifestation, or Item), and a contribution role, carrying provenance, period, and confidence. The canonical form when role/period/confidence matters; flat shortcuts (gmeow:hasAuthor, gmeow:hasTranslator, …) cover the 80% query case.
+- gmeow:ContributionRole (⊑ gufo:QualityValue): The role an agent played in contributing to a creative work — a VALUE vocabulary (individuals, never subclasses). Author, editor, translator, illustrator, narrator, composer, performer, director, photographer, and cover-artist are examples; the set is open.
 - gmeow:CoordinateMatrix (⊑ gmeow:Entity, gufo:Object): A multi-dimensional numeric value expressed as a coordinate matrix or vector — the generalisation of ScalarQuantity to vector, matrix, and tensor results. Carries a serialised matrix literal (matrixValue), shape descriptor (matrixShape), reference frame (hasReferenceFrame), unit (hasUnit), and determinacy (hasDeterminacy). Used for colourspace tuples [j,k,l]+intensity, audio spectra, thermal images, and air-quality compound readings. The actual matrix algebra (dot products, transforms, decompositions) lives in the solver layer (Principle 12).
 - gmeow:CoordinateObservation (⊑ gmeow:SpatialMeasurement): A spatial measurement that assigns geographic coordinates or geometry to a place. Reifies the act of coordinate assignment so that multiple surveys (GPS 2023, LiDAR 2024) coexist as standpoint-indexed observations (Principle 9), each carrying its own reference frame, confidence, and temporal scope. Neither observation is 'the' coordinates. Superseded surveys are suppressed via gmeow:displayable false, never deleted (Principle 10).
 - gmeow:Copyright (⊑ gufo:Relator): The reified copyright over a work — binding the work, its holder(s), the copyright year and the human-readable notice. Its status (in-copyright, public-domain, …) is a gmeow:copyrightStatus value aligned to RightsStatements.org / PREMIS.
 - gmeow:CopyrightStatus (⊑ gufo:QualityValue): The copyright standing of a work — a VALUE aligned to the RightsStatements.org standardized statements and PREMIS copyright status. Open: a finer-grained statement is a fresh individual.
 - gmeow:CoupleRelationship (⊑ gmeow:KinRelationship): A reified couple relationship (marriage, civil union, or partnership) between two persons; bears marriage, divorce and related events.
-- gmeow:CreativeWork (⊑ gmeow:InformationObject): An information artifact resulting from creative or intellectual effort — a document, article, dataset, media object, or web page.
+- gmeow:CreativeWork (⊑ gmeow:InformationObject): The abstract umbrella category for intellectual and artistic creations in the WEMI spine — a Work, Expression, Manifestation, or Item. Formerly a flat gufo:Kind (pre-#208); now a Category so that the four tiers with distinct identity criteria can each be a gufo:Kind beneath it.
 - gmeow:CreativeWorkTitle (⊑ gmeow:Appellation): An appellation borne by a creative work — a document title, article headline, dataset name, or media title. Carries its own gmeow:nameLanguage and gmeow:nameScript so co-equal multilingual titles (e.g. 'The Matrix' / '黑客帝国') are separate first-class objects, never alternateName subordinates.
+- gmeow:CreativeWorkType (⊑ gufo:QualityValue): The kind of a creative work — a VALUE vocabulary (individuals, never subclasses) characterizing a gmeow:Work. Literary, musical, visual, and software are examples; the set is open.
 - gmeow:Credential (⊑ gmeow:Entity): An educational or occupational credential held by an agent — a degree, certification, or license.
 - gmeow:CryptographicKey (⊑ gmeow:InformationObject): A public key, certificate, or key material bound to an agent's identity — the thing a signature is made with and a certification vouches for.
 - gmeow:CryptographicSignature (⊑ gmeow:InformationObject): A cryptographic signature over a message or its headers, asserting origin and integrity.
 - gmeow:DKIMSignature (⊑ gmeow:CryptographicSignature): A DomainKeys Identified Mail signature (RFC 6376) over selected headers and the body.
-- gmeow:Dataset (⊑ gmeow:CreativeWork): A collection of data published as a unit.
+- gmeow:Dataset (⊑ gmeow:Work): A collection of data published as a unit. A specialization of gmeow:Work.
 - gmeow:DatingMethod (⊑ gmeow:ObservationMethod, gufo:QualityValue): The method used to derive a temporal measurement — radiocarbon, dendrochronology, thermoluminescence, etc. A value, never a subclass. Specialises gmeow:ObservationMethod for the temporal dating domain.
 - gmeow:Determinacy (⊑ gufo:QualityValue): The model of ontic determinacy or indeterminacy for a value — whether it is inherently crisp, vague, fuzzy, probabilistic, or disputed. Distinct from epistemic confidence (how sure we are of a claim); determinacy records the nature of the value itself. Applies universally: a gender may be fuzzy, a date approximate, a boundary vague, a SLAM cell probabilistic, a contested fact disputed.
-- gmeow:Document (⊑ gmeow:CreativeWork): A bounded textual or digital document — a file, record, or report.
+- gmeow:Document (⊑ gmeow:Work): An abstract intellectual work of bounded textual or digital content — the conceptual document, independent of any particular file, record, or report. A specialization of gmeow:Work.
 - gmeow:Duration (⊑ gmeow:Entity): A length of time as a quantity, independent of when it occurs — the running time of an event, a gap, a recurrence period. Carries an xsd:duration via gmeow:durationValue. (= time:Duration / time:TemporalDuration, schema:Duration, ISO-TimeML TIMEX3 type=DURATION, TEO Duration.)
 - gmeow:Duty (⊑ gmeow:Rule): A rule that obliges the discharge of a gmeow:RightsAction (e.g. attribute, share-alike, obtain-consent) as a condition of a permission (odrl:Duty / odrl:obligation; CC REL cc:requires).
 - gmeow:EmailAddress (⊑ gmeow:ContactPoint): A contact point reachable via the Simple Mail Transfer Protocol (SMTP).
@@ -76,6 +80,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:Event (⊑ gufo:Event): A temporal occurrence in which entities participate in roles, over possibly fuzzy time, at possibly several locations, asserted by possibly conflicting sources. The universal event of the model: gmeow:Activity (provenance) and gmeow:LifeEvent re-parent onto it. The kind of occurrence is a gmeow:eventType value, never a subclass.
 - gmeow:EventSeries (⊑ gmeow:Entity): A recurrence or schedule that issues a series of concrete gmeow:Event occurrences — a weekly standup, an annual conference. Distinct from any one occurrence; the recurrence rule is a projection concern (iCalendar RRULE), not a core property.
 - gmeow:EventType (⊑ gufo:QualityValue): The kind of an event — a VALUE, never a gmeow:Event subclass. The set is open; a kind not among the seed individuals is a FRESH gmeow:EventType individual carrying rdfs:label, not a new class. Pointed at by gmeow:eventType (non-functional).
+- gmeow:Expression (⊑ gmeow:CreativeWork): A realization of a gmeow:Work in a specific language, script, notation, or arrangement. The original-language text, a translation, and an audiobook narration are distinct Expressions of one Work. The realizing language/notation is carried as a reference frame (gmeow:hasReferenceFrame), not as a subclass. Identity changes when the language, notation, or arrangement differs.
 - gmeow:Family (⊑ gmeow:Group): A kinship group of persons related by descent, marriage, or adoption.
 - gmeow:Filename (⊑ gmeow:Appellation): An appellation borne by a digital file — a stem and an extension. The extension CLAIMS a content type (gmeow:claimedMediaType) which may disagree with the type detected from the bytes (gmeow:detectedMediaType); the disagreement is recorded as coexisting claims with confidence, never reasoned into a contradiction.
 - gmeow:FormalLanguage (⊑ gmeow:Language): A grammar-defined language with a machine modality and no human native speakers — programming, markup, query, logic, schema, and configuration languages. A thin structural split from gmeow:Language (the sociolinguistic facets — endonym/exonym, co-mingled scripts, native-speaker status — do not apply), complemented by the gmeow:languageOrigin value for fine-grained classification.
@@ -102,6 +107,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:InformationObject (⊑ gmeow:Entity, gufo:Object): An entity whose nature is to carry information content: a document, dataset, software artifact, online account, or message. The shared parent of the document, software and account layers.
 - gmeow:Instant (⊑ gufo:AbstractIndividual): A zero-duration point in time, distinct from a TimeInterval. Carries a crisp instantValue (xsd:dateTime) and/or an edtfValue (EDTF literal) relative to a TemporalFrame.
 - gmeow:InterpersonalRelationship (⊑ gufo:Relator): A reified standing relationship between agents (acquaintance, collaboration, …), able to bear its own time interval, confidence, and source evidence.
+- gmeow:Item (⊑ gmeow:CreativeWork): A single exemplar of a gmeow:Manifestation — one copy. An InformationObject; a physical copy is linked via gmeow:hasCarrier to a gmeow:PhysicalObject, keeping informational identity distinct from the physical carrier. Library circulation/holdings detail is out of scope for this base (carrier hook only). Identity changes when you hold a different physical or digital copy.
 - gmeow:JurisdictionTenure (⊑ gmeow:TimeScopedRelation): The reified, time-scoped fact that a place was governed by a particular polity over an interval — a sovereignty or administrative jurisdiction claim. Non-functional on the place: contested sovereignty (e.g. Crimea-class) is modelled as multiple co-existing JurisdictionTenures, each standpoint-indexed and confidence-weighted, never collapsing to a single winner (Principle 9).
 - gmeow:KeyScheme (⊑ gufo:QualityValue): The cryptographic scheme/format of a key (OpenPGP, X.509, SSH, Nostr, …). Modelled as a value, not a key subclass: the set of schemes is open-ended and they carry no distinct key structure here, so a new scheme is a new individual, not a new class.
 - gmeow:KinRelationship (⊑ gmeow:Observation, gufo:Relator): A reified kinship relationship between persons, modelled as an observation (a claim-from-a-vantage) in the universal stack (#69). Able to bear its own events, dates, sources, and standpoint-indexed claims. A disputed kinship is several coexisting gmeow:accordingTo-annotated relators, none privileged (Principle 9). The relationshipParent and relationshipChild are co-observed features of the observation.
@@ -131,10 +137,12 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:LogicalConstraint (⊑ gmeow:Constraint): A boolean combination of constraints under a gmeow:constraintLogic operator (odrl:and / odrl:or / odrl:xone / odrl:andSequence) over its gmeow:logicConstraintMember constraints — the ODRL LogicalConstraint, modelling the deontic constraint logic.
 - gmeow:Mailbox (⊑ gmeow:InformationObject): A named container of messages within an account — a folder, JMAP mailbox, or Gmail label.
 - gmeow:MailboxResidence (⊑ gmeow:TimeScopedRelation): The reified, time-scoped fact that a message resided in a mailbox/label over an interval (membership is time-varying — messages move between folders and labels).
+- gmeow:Manifestation (⊑ gmeow:CreativeWork): A concrete edition, format, or release that embodies a gmeow:Expression — a rights-bearing publication artifact (the 2003 Penguin paperback, the 2011 Kindle EPUB). gmeow:BookRelease, gmeow:SerialInstallment, gmeow:MediaObject, and gmeow:WebPage are specializations. Identity changes when the publication/format/edition differs.
+- gmeow:ManifestationFormat (⊑ gufo:QualityValue): The physical or digital format of a Manifestation — a VALUE vocabulary (individuals, never subclasses). Hardcover, paperback, EPUB, PDF, audiobook, vinyl, and web-page are examples; the set is open.
 - gmeow:Mark (⊑ gmeow:InformationObject): A brand / sign / name / logo that can be trademarked — the thing a gmeow:Trademark protects (schema:Brand). An information object: it may itself bear a gmeow:RightsStatement (logos are also copyright works).
 - gmeow:MeasuredValue (⊑ gmeow:Entity, gufo:Object): An alias for gmeow:Quantity — the measured-value perspective on the same value×unit/frame×determinacy×provenance bundle (#77). Equivalent to gmeow:Quantity and gmeow:ScalarQuantity. Provided for consumers who prefer the 'measured value' terminology common in metrology and sensor standards.
 - gmeow:Measurement (⊑ gmeow:Observation): An observation that assigns a quantitative or qualitative value to a feature of interest, typically carrying a unit, uncertainty, and determinacy model. The parent of temporal dating, spatial coordinate assignment, and scalar quantity measurements.
-- gmeow:MediaObject (⊑ gmeow:CreativeWork): An image, audio, or video media file.
+- gmeow:MediaObject (⊑ gmeow:Manifestation): An image, audio, or video media file — a concrete published artifact. A specialization of gmeow:Manifestation.
 - gmeow:Membership (⊑ gufo:Relator): The reified relationship by which an agent is a member of an organization, optionally playing a role over a period of time.
 - gmeow:MentalReferenceFrame (⊑ gmeow:ReferenceFrame): A subjective or internal reference frame in which standpoint-indexed values are expressed — e.g. a thermal comfort scale, an olfactory quality space, a subjective loudness frame, an affective valence/arousal space (Russell circumplex), a conceptual geometry (Gärdenfors), a cognitive map (egocentric or allocentric), or an imagined space (memory palace, dream). A MentalReferenceFrame is a ReferenceFrame whose realm is perceptual or psychological and whose axes describe qualitative or semi-quantitative dimensions of human, animal, or AI experience. Requires a host (the perceiver, thinker, or dreamer); the frame deactivates when its host ceases to exist. Distinct from measurement frames: two hosts may map the same external stimulus to different mental-frame coordinates (Principle 11).
 - gmeow:Message (⊑ gmeow:InformationObject): A communication sent from one agent to others — the parent of email and other message kinds.
@@ -168,7 +176,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:ParentChildRelationship (⊑ gmeow:KinRelationship): A reified parent-child relationship, typed by its nature (biological, adoptive, step, or foster).
 - gmeow:ParticipantRole (⊑ gufo:QualityValue): The role an entity plays in an event — a VALUE, never a participation subproperty. The set is open; a role not among the seeds is a FRESH gmeow:ParticipantRole individual with rdfs:label. Carried by gmeow:participationRole on a gmeow:Participation.
 - gmeow:Participation (⊑ gufo:Relator): A reified participation of an entity in an event, in a role, over a period, on some evidence — the same relator idiom as gmeow:NameUsage. Mint one Participation per (event, participant, role) tuple when role / period / confidence / evidence must be recorded; the 80% case uses the flat gmeow:hasParticipant. Perspectival and co-equal: a disputed role is several standpoint-indexed Participations that coexist, none privileged; a withdrawn one is kept with gmeow:displayable false, never deleted.
-- gmeow:Patent (⊑ gmeow:CreativeWork): A granted or filed patent describing an invention.
+- gmeow:Patent (⊑ gmeow:Work): An abstract intellectual work describing an invention — the inventive concept as claimed, independent of any granted or filed document. A specialization of gmeow:Work.
 - gmeow:PeriodType (⊑ gufo:QualityValue): The kind of a named period (geologic eon, era, period, epoch, age; historical dynasty, era; fiscal year). A value, never a subclass.
 - gmeow:Permission (⊑ gmeow:Rule): A rule that grants the ability to exercise a gmeow:RightsAction over the governed asset (odrl:Permission). Its required duties ride gmeow:hasDuty.
 - gmeow:Person (⊑ gmeow:Agent): An individual human being, living or deceased.
@@ -223,7 +231,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:SequenceCoordinates (⊑ gmeow:Entity, gufo:Object): Frame-relative coordinates on a biological sequence: a start position, an end position, and a strand orientation, all expressed relative to an explicit reference assembly (Principle 11).
 - gmeow:SequenceFeature (⊑ gmeow:Entity, gufo:Object): A feature or annotation on a biological sequence — a range with start, end, strand, and type, expressed in a reference assembly frame. The first-class entity that carries the coordinates and type; linked to a BiologicalSequenceLocation via gmeow:hasSequenceFeature.
 - gmeow:SequenceFeatureType (⊑ gufo:QualityValue): The kind of a sequence feature (gene, exon, intron, CDS, SNP, chromosome, etc.). A value, not a subclass: the set is open-ended (Sequence Ontology lists ~2000 types) and they share all of SequenceFeature's structure, so a new kind is a new individual, not a new class (Principle 9).
-- gmeow:SerialInstallment (⊑ gmeow:CreativeWork): A single issue, episode, or chapter of a serial creative work — a comic issue, TV episode, magazine issue, or serial chapter. An out-of-universe publication artifact distinct from the narrative frame it sources.
+- gmeow:SerialInstallment (⊑ gmeow:Manifestation): A single issue, episode, or chapter of a serial creative work — a comic issue, TV episode, magazine issue, or serial chapter. An out-of-universe publication artifact distinct from the narrative frame it sources. A specialization of gmeow:Manifestation.
 - gmeow:SexAssignedAtBirth (⊑ gufo:QualityValue): A recorded sex-assigned-at-birth value pointed at by gmeow:sexAssignedAtBirth — a VALUE, never a subclass. Deliberately coarse and inclusive (incl. intersex); finer sex-characteristic detail is an optional free-text gmeow:intersexVariation note, not a clinical taxonomy.
 - gmeow:SexualOrientation (⊑ gmeow:IdentityFacet): A person's SELF-ASSERTED sexual orientation — the pattern of their sexual attraction — as a reified facet pointing (via gmeow:sexualOrientationValue) to an open gmeow:SexualOrientationValue. A SEPARATE axis from romantic orientation (split-attraction model) and from gender identity/expression; nothing infers one from another.
 - gmeow:SexualOrientationValue (⊑ gufo:QualityValue): A pattern of sexual attraction — a VALUE pointed at by gmeow:sexualOrientationValue, never a subclass. Open: an orientation not seeded here is a fresh individual with rdfs:label.
@@ -232,7 +240,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:SmartContract (⊑ gmeow:Entity): A deployed program on a blockchain or distributed ledger, identified by a contract address.
 - gmeow:SoftwareAgent (⊑ gmeow:Agent): A software process or autonomous program that acts on behalf of a person or organization.
 - gmeow:SoftwareName (⊑ gmeow:Appellation): An appellation borne by a software project — a product name, project name, or package name. Carries its own gmeow:nameLanguage and gmeow:nameScript so co-equal multilingual names (e.g. localized product names) are separate first-class objects.
-- gmeow:SoftwareProject (⊑ gmeow:CreativeWork): A software project: a body of source code developed and released as a unit, with repositories, releases, and contributors.
+- gmeow:SoftwareProject (⊑ gmeow:Work): An abstract intellectual work representing a software project — the design, architecture, and functionality, independent of any source-code repository, release, or concrete artifact. A specialization of gmeow:Work.
 - gmeow:Source (⊑ gmeow:InformationObject): A source from which evidence is drawn: a record, certificate, register, archive entry, or publication.
 - gmeow:SpatialAggregation (⊑ gmeow:Measurement): A measurement that aggregates entities located within a spatial region, yielding a scalar result such as a count, density, or average. The aggregation region is the observedFeature; the result is a ScalarQuantity. The actual computation is performed by the solver layer (Principle 12), not materialised as asserted triples in the OWL core.
 - gmeow:SpatialBin (⊑ gmeow:Place): A place that serves as a spatial bin in an aggregation grid — a generated region used to partition space for statistical summarisation. Its geometry defines the bin boundary; its aggregation result is a SpatialAggregation.
@@ -277,7 +285,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:VersionSet (⊑ gmeow:InformationObject): A first-class information object representing a version family or release lineage — the set of all concrete artifacts that are versions of a common stable entity. A VersionSet is an InformationObject (a kind of Entity) so it can carry identifiers, provenance, and authority links. Examples: the lineage of a software project, the edition chain of a book, the variant family of an email thread, the DOI concept record.
 - gmeow:VirtualLocation (⊑ gmeow:Location): A non-geographic location reachable online — a video-conference room, chat space, metaverse room, website, or social media page. The specific kind is given by gmeow:virtualLocationType (a value), not a subclass. Has network addresses (gmeow:hasNetworkAddress) and an access URL (gmeow:accessUrl) rather than geographic coordinates.
 - gmeow:VirtualLocationType (⊑ gufo:QualityValue): The kind of a virtual location (video conference, chat space, metaverse room, website, social media page, …). A value, not a subclass: the set is open-ended and they share all of VirtualLocation's structure, so a new kind is a new individual, not a new class (Principle 9).
-- gmeow:WebPage (⊑ gmeow:CreativeWork): A page on the web identified by a URL.
+- gmeow:WebPage (⊑ gmeow:Manifestation): A page on the web identified by a URL — a concrete published artifact. A specialization of gmeow:Manifestation.
+- gmeow:Work (⊑ gmeow:CreativeWork): A distinct abstract intellectual or artistic creation, independent of any language, notation, edition, or copy — the story, the composition, the visual conception. The most abstract tier of the WEMI spine; realized through one or more gmeow:Expression. Identity changes when the creative content itself differs.
 - gmeow:WritingSystem (⊑ gmeow:InformationObject): A first-class system for visually or tactilely representing language — a script: Latin, Han (kanji), Hiragana, Katakana, Arabic, Braille, or a bespoke conlang/AI script. Carries gmeow:scriptCode (ISO 15924 when one exists, else a bespoke identifier), a type (gmeow:writingSystemType) and a direction (gmeow:textDirection). Bound to the languages that use it — co-equally and simultaneously — through gmeow:WritingSystemUsage; bespoke and non-linear scripts (Ithkuil) are first-class.
 - gmeow:WritingSystemType (⊑ gufo:QualityValue): The structural kind of a writing system (alphabet, abjad, abugida, syllabary, logographic, featural, ideographic, pictographic, non-linear, mixed). A value carried by gmeow:writingSystemType.
 - gmeow:WritingSystemUsage (⊑ gufo:Relator): A reified, role- and period-scoped use of a writing system by a language — the gufo:Relator binding {language} × {writing system} × {role} × {period}, mirroring names' gmeow:NameUsage. Lets Japanese co-mingle Han (logographic content), Hiragana (syllabic grammar), Katakana (loanwords) and Latin (transliteration) co-equally, and models script changes over time (Turkish Arabic→Latin, 1928) via the usage's validity. Mint one usage per (language, writing system, role) tuple.
@@ -361,6 +370,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:containsPlace [gmeow:Place → gmeow:Place]: The inverse of gmeow:containedInPlace — a place that geographically contains another place. Under OWL 2 semantics, transitivity is entailed because containedInPlace is transitive. GMEOW does not assert additional transitive property chains beyond the inverse declaration; transitive closure is a solver concern (Principle 12).
 - gmeow:contentDigest [gmeow:Source → rdfs:Literal]: A content hash of the source's bytes (e.g. "blake3:…") — the reliable carrier identity (two imports of the same bytes are the same source, regardless of mtime or path). Not functional: a source may carry digests under several algorithms.
 - gmeow:contractAddress [gmeow:SmartContract → rdfs:Literal] (functional): The address at which a smart contract is deployed.
+- gmeow:contributionRole [gmeow:Contribution → gmeow:ContributionRole] (functional): The role the contributor played in this Contribution — a value from the open gmeow:ContributionRole vocabulary. Functional per relator: one role per Contribution.
+- gmeow:contributionTarget [gmeow:Contribution → gmeow:CreativeWork] (functional): The creative-work target of this Contribution — a Work, Expression, Manifestation, or Item. Functional per relator: one target per Contribution.
+- gmeow:contributor [gmeow:Contribution → gmeow:Agent] (functional): The agent that contributed to the target in this Contribution. Functional per relator: one contributor per Contribution.
 - gmeow:coordinateFrame [gmeow:SpatialCoordinates → gmeow:ReferenceFrame] (functional): Relates a set of coordinates to the reference frame they are expressed in.
 - gmeow:coordinateMatrixFrame [gmeow:CoordinateMatrix → gmeow:ReferenceFrame] (functional): The reference frame in which this CoordinateMatrix is expressed. Functional: a matrix is expressed in exactly one frame; frame transformation is a solver concern (Principle 12). Sub-property of gmeow:hasReferenceFrame so the frame-inheritance property chain (isResultOf ∘ hasReferenceFrame ⊑ hasReferenceFrame) applies automatically.
 - gmeow:coordinateObservationOf [gmeow:CoordinateObservation → gmeow:Place]: The place whose coordinates or geometry are being observed — the observedFeature of a coordinate observation. Subproperty of gmeow:spatialMeasurementOf (itself a subproperty of gmeow:observedFeature) so generic consumers can query all observations without knowing the domain.
@@ -392,6 +404,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:edtfValue [? → rdfs:Literal] (functional): An ISO 8601-2 (EDTF) expression of an instant or interval, stored as a plain literal. EDTF parsing and normalization are solver-layer concerns (Principle 12).
 - gmeow:elevation [gmeow:GeoCoordinates → xsd:decimal]: Elevation above sea level in metres.
 - gmeow:email [gmeow:Agent → rdfs:Literal]: An email address at which an agent can be reached.
+- gmeow:embodiedIn [gmeow:Expression → gmeow:Manifestation]: Relates an Expression to a Manifestation that embodies it. Non-functional: an Expression may be embodied in many Manifestations (hardcover, paperback, EPUB). Inverse of gmeow:embodies.
+- gmeow:embodies [gmeow:Manifestation → gmeow:Expression]: Relates a Manifestation to the Expression it embodies. Non-functional: a collected edition may embody multiple Expressions. Inverse of gmeow:embodiedIn.
 - gmeow:endedAtTime [gmeow:TimeInterval → xsd:dateTime] (functional): The instant at which a time interval ends; absent if the interval is still open.
 - gmeow:endorses [gmeow:Agent → gmeow:Agent]: A convenience shortcut recording that one agent vouches for another. Deliberately NOT symmetric (endorsement is directional) and NOT transitive (trust must not propagate inside the reasoner — that is the metric the perspectival TrustAssertion bounds). Use gmeow:TrustAssertion for leveled, dated, perspectival trust.
 - gmeow:environmentAtInstant [gmeow:SensoryEnvironment → gmeow:Instant]: The instant at which this point-like SensoryEnvironment holds. For interval-scoped environments, use gmeow:environmentDuringInterval instead.
@@ -407,6 +421,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:eventTime [gmeow:Event → xsd:dateTime]: The instant at which a point-like event occurred (xsd:dateTime — DL-clean, never xsd:date). Replaces the former free-text gmeow:eventDate. Non-functional: competing standpoint-indexed dates coexist as confidence-weighted statements.
 - gmeow:eventTrajectory [gmeow:Event → gmeow:Trajectory]: The trajectory of a moving event — a parade, march, migration, or procession — describing its continuous space-time path. Reuses the gmeow:Trajectory facility from the locations module (#94). Non-functional: competing trajectory claims from different sources coexist (Principle 9).
 - gmeow:eventType [gmeow:Event → gmeow:EventType]: The kind(s) of an event, drawn from the open gmeow:EventType value vocabulary. Non-functional: an occurrence may carry several types (a wedding that is also a religious rite), and competing standpoint-indexed type claims coexist rather than contradict.
+- gmeow:exemplifiedBy [gmeow:Manifestation → gmeow:Item]: Relates a Manifestation to an Item that exemplifies it. Non-functional: a Manifestation may have many Items (copies). Inverse of gmeow:exemplifies.
+- gmeow:exemplifies [gmeow:Item → gmeow:Manifestation]: Relates an Item to the Manifestation it exemplifies. Non-functional: a single Item may exemplify multiple Manifestations when catalogued as a bound volume. Inverse of gmeow:exemplifiedBy.
 - gmeow:existenceCreationEvent [gmeow:EntityExistence → gmeow:Event]: The creation event associated with this existence record. Optional: an EntityExistence may record only an interval when the creation event is unknown.
 - gmeow:existenceDestructionEvent [gmeow:EntityExistence → gmeow:Event]: The destruction event associated with this existence record. Optional: an EntityExistence for a still-extant entity has no destruction event.
 - gmeow:existenceEntity [gmeow:EntityExistence → gmeow:Entity] (functional): The entity whose existence is recorded by this EntityExistence. Functional: an EntityExistence concerns exactly one entity (constitutive of the situation's identity).
@@ -445,17 +461,19 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasAttachment [gmeow:Message → gmeow:Attachment]: Relates a message to one of its attachments.
 - gmeow:hasAttestation [gmeow:Entity → gmeow:Attestation]: Relates an entity to an attestation about it — the inverse of gmeow:attestedSubject. Non-functional: an entity may have many co-existing attestations from different attesters (Principle 9).
 - gmeow:hasAuthenticationResult [gmeow:Message → gmeow:AuthenticationResult]: Relates a message to an authentication check performed on it.
-- gmeow:hasAuthor [gmeow:CreativeWork → gmeow:Agent]: Relates a creative work to an agent chiefly responsible for creating its intellectual content.
+- gmeow:hasAuthor [gmeow:CreativeWork → gmeow:Agent]: Relates a creative work to an agent chiefly responsible for creating its intellectual content. A flat shortcut subproperty of gmeow:hasContributor.
 - gmeow:hasAxis [gmeow:ReferenceFrame → gmeow:Axis]: Relates a reference frame to one of its coordinate axes.
 - gmeow:hasBarrier [gmeow:Location → gmeow:AccessibilityFacet]: Relates a location to an accessibility facet it impedes. Non-functional: a location may have multiple barriers. A location MAY simultaneously carry hasAccessibilityFeature and hasBarrier for the SAME facet (e.g. a ramp at the front entrance and stairs at the side entrance).
 - gmeow:hasBin [gmeow:SpatialAggregation → gmeow:SpatialBin]: Links a spatial aggregation to one of its constituent spatial bins. Non-functional: a bin may participate in multiple aggregations.
 - gmeow:hasBodyPart [gmeow:Message → gmeow:BodyPart]: Relates a message to a MIME part of its body. A MIME-structure specialization of the universal gmeow:hasPart spine.
 - gmeow:hasCadastralReference [gmeow:Place → gmeow:CadastralReference]: Relates a place (typically a parcel, lot, or spatial unit) to a structured cadastral reference issued by a registry.
 - gmeow:hasCapacity [gmeow:Location → gmeow:Capacity]: Links a location to a capacity measurement describing the maximum number of entities it can hold. Flat form for the common case; promote to full reified Capacity when vantage, confidence, temporal scope, or standpoint matter.
+- gmeow:hasCarrier [gmeow:Item → gmeow:PhysicalObject]: Relates an Item to the PhysicalObject that carries it — a printed book, a vinyl disc, a sculpture. Optional: a born-digital Item may have no carrier, or its carrier may be a server object modelled as a PhysicalObject. Keeps informational identity (the Item) distinct from physical substrate (Principle 11).
 - gmeow:hasCelestialCoordinates [gmeow:CelestialLocation → gmeow:CelestialCoordinates]: Relates a celestial location to its equatorial or other sky coordinates.
 - gmeow:hasCentroid [gmeow:Place → gmeow:Geometry]: The geometric centroid of a place — a flat shortcut for the common case. The full relator form is a SpatialAggregation with aggregationFunction aggCentroid, carrying provenance, frame, and solver reference.
 - gmeow:hasChild [gmeow:Person → gmeow:Person]: Relates a person to a child; the inverse of hasParent.
 - gmeow:hasContactPoint [gmeow:Agent → gmeow:ContactPoint]: Relates an agent to a means of contacting it.
+- gmeow:hasContributor [gmeow:CreativeWork → gmeow:Agent]: Relates a creative work to an agent that contributed to it — the flat 80%-case shortcut. Non-functional: a work may have many contributors. Promote to a gmeow:Contribution node when the role, period, confidence, or evidence of the contribution must be recorded.
 - gmeow:hasCoordinateMatrix [gmeow:Axis | gmeow:Pose | gmeow:SpatialCoordinates | gmeow:Geocode → rdfs:Literal]: Specifies a transformation or projection matrix associated with a coordinate axis, a homogeneous 4×4 pose matrix combining translation and rotation, a general n-D coordinate matrix (e.g. latent vector, configuration-space joint angles) on a SpatialCoordinates instance, or a geocode identifier string on a Geocode instance (treated as a 1×1 identifier matrix, Principle 11).
 - gmeow:hasCoordinateObservation [gmeow:Place → gmeow:CoordinateObservation]: Links a place to a coordinate observation that assigned coordinates or geometry to it. Non-functional: multiple surveys (GPS, LiDAR, total station) may coexist for the same place (Principle 9), and no observation is privileged.
 - gmeow:hasCoordinates [gmeow:Place → gmeow:GeoCoordinates]: Relates a place to its geographic point coordinates. Flat shortcut for the common case; the full relator form is a CoordinateObservation linking the place to a GeoCoordinates result via gmeow:coordinateResult, carrying provenance, reference frame, confidence, and standpoint (Principle 3). Non-simple: derived via property chain from the reified observation path.
@@ -468,6 +486,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasDeterminacy [? → gmeow:Determinacy]: Relates a value, entity, or claim to its ontic determinacy model — the explicit facet recording whether the value is crisp, vague, fuzzy, probabilistic, or disputed. Domain-free (universal, like hasGranularity). NOT functional: in a multi-source merge sources may state different determinacy models, and those claims coexist rather than force the reasoner to collapse distinct models. Distinct from gmeow:confidence (epistemic certainty) and from gmeow:determinacyModel (the frame-level default for a ReferenceFrame).
 - gmeow:hasDuration [gmeow:Event → gmeow:Duration]: Relates an event to its duration (a gmeow:Duration). Distinct from gmeow:eventInterval (which anchors the event in time); a duration is a length only.
 - gmeow:hasDuty [gmeow:RightsStatement | gmeow:Permission → gmeow:Duty]: Relates a rights statement (or a permission) to a duty / obligation that must be discharged (an odrl:duty / odrl:obligation rule). The domain is the union of gmeow:RightsStatement and gmeow:Permission, so a permission may carry its own duties without being misclassified as a rights statement.
+- gmeow:hasEditor [gmeow:CreativeWork → gmeow:Agent]: Relates a creative work to an agent that edited, compiled, or curated its content. A flat shortcut subproperty of gmeow:hasContributor.
 - gmeow:hasEndInstant [gmeow:TimeInterval → gmeow:Instant] (functional): The end instant of a time interval; absent if the interval is open-ended.
 - gmeow:hasFather [gmeow:Person → gmeow:Person]: Relates a person to a male parent.
 - gmeow:hasGenderExpression [gmeow:Person → gmeow:GenderExpression]: Relates a person to a self-asserted gender-expression facet. Non-functional and contextual. MUST NOT be inferred from gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics.
@@ -476,6 +495,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasGeometry [gmeow:Place → gmeow:Geometry]: Relates a place to its spatial geometry (point, line, or polygon). Flat shortcut for the common case; the full relator form is a CoordinateObservation linking the place to a Geometry result via gmeow:geometryResult, carrying provenance, reference frame, confidence, and standpoint (Principle 3). Non-simple: derived via property chain from the reified observation path.
 - gmeow:hasGranularity [? → gmeow:GranularityLevel]: Relates a value, place, period, coordinate or measurement to its own resolution level — the explicit 'no silent precision' facet, queryable independently of any disclosure control. Domain-free. NOT functional: in a multi-source merge sources may state different resolutions, and those claims coexist rather than force the reasoner to collapse distinct levels.
 - gmeow:hasHeader [gmeow:Message → gmeow:MessageHeader]: Relates a message to one of its RFC 5322 headers.
+- gmeow:hasIllustrator [gmeow:CreativeWork → gmeow:Agent]: Relates a creative work to an agent that contributed visual illustrations. A flat shortcut subproperty of gmeow:hasContributor.
 - gmeow:hasKeyword [gmeow:Message → gmeow:MessageKeyword]: Relates a message to a flag/keyword applied to it.
 - gmeow:hasLicense [gmeow:Entity → gmeow:License]: Relates an entity (a work, dataset, software project, …) to a licence granting rights in it (dcterms:license; schema:license). Named gmeow:hasLicense — gmeow:license is reserved for the mapping-DSL set-license datatype property.
 - gmeow:hasMeasuredCondition [gmeow:SensoryEnvironment → gmeow:CoordinateMatrix]: An objective measurement of the ambient conditions, expressed as a CoordinateMatrix in a measurement reference frame. Non-functional: multiple instruments may produce competing measurements, and those claims coexist rather than collapse (Principle 9).
@@ -487,6 +507,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasName [gmeow:Person → gmeow:PersonName]: Relates a person to a structured, typed PersonName they bear; the person-scoped specialization of gmeow:hasAppellation. Non-functional — a person bears many co-equal names.
 - gmeow:hasNamePart [gmeow:Appellation → gmeow:NamePart]: Relates an appellation to one of its reified, typed parts. Non-functional — a name has many parts. A specialized information-object component relation under the universal gmeow:hasPart spine.
 - gmeow:hasNarrativeFrameRelation [gmeow:NarrativeReferenceFrame → gmeow:NarrativeFrameRelation]: The relationship(s) this narrative frame bears to another frame — canon, alternate continuity, expanded universe, fanon, crossover, adaptation. Non-functional: competing relation claims from different standpoints coexist (Principle 9). Flat shortcut; promote to gmeow:NarrativeFrameLink when the binding between source, target, and relation type must be explicit.
+- gmeow:hasNarrator [gmeow:CreativeWork → gmeow:Agent]: Relates a creative work to an agent that narrated or performed an audiobook, podcast, or other spoken-word rendition. A flat shortcut subproperty of gmeow:hasContributor.
 - gmeow:hasNetworkAddress [gmeow:VirtualLocation → gmeow:NetworkAddress]: Relates a virtual location to a network address that locates it within a network topology.
 - gmeow:hasOccupancy [gmeow:Location → gmeow:Occupancy]: Links a location to an occupancy measurement describing the current number of entities located at it. Flat form for the common case; promote to full reified Occupancy when vantage, confidence, temporal scope, or standpoint matter.
 - gmeow:hasOccupation [gmeow:Person → gmeow:Occupation]: Relates a person to an occupation they hold or have held.
@@ -539,6 +560,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasTitle [gmeow:CreativeWork → gmeow:CreativeWorkTitle]: Relates a creative work to a structured gmeow:CreativeWorkTitle it bears; the creative-work-scoped specialization of gmeow:hasAppellation. Non-functional — a work bears many co-equal titles (original, translated, transliterated, regional); none is primary, and superseded ones set gmeow:displayable false. The structured replacement for the flat gmeow:title literal when multilingual or statement-level metadata is needed.
 - gmeow:hasTrademark [gmeow:Entity → gmeow:Trademark]: Relates an entity (a mark, product or organization) to a trademark right over it.
 - gmeow:hasTrajectorySample [gmeow:Trajectory → gmeow:LocationState]: A discrete location-state sample composing this trajectory. Non-functional: a trajectory typically has many samples, and multiple sampling strategies (e.g. GPS every second vs. radar every minute) may coexist for the same trajectory (Principle 9).
+- gmeow:hasTranslator [gmeow:CreativeWork → gmeow:Agent]: Relates a creative work to an agent that translated it into another language or notation. A flat shortcut subproperty of gmeow:hasContributor.
 - gmeow:hasUnit [? → qudt:Unit] (functional): Relates a quantitative value or measurement to its QUDT unit (by reference, never imported). Domain-free: used by temporal measurements, spatial measurements, and any other quantified claim.
 - gmeow:hasUsed [gmeow:Agent → gmeow:Entity]: Records that an agent has used some entity (a tool, service, or work). The period is carried with gmeow:validFrom/validUntil on the statement.
 - gmeow:hasUtilization [gmeow:Location → gmeow:Utilization]: Links a location to a utilization measurement describing the ratio of occupancy to capacity. Flat form for the common case; promote to full reified Utilization when vantage, confidence, temporal scope, or standpoint matter.
@@ -738,6 +760,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:rcc8po [gmeow:Location → gmeow:Location]: RCC-8: Partial Overlap (PO) — regions overlap but neither is part of the other.
 - gmeow:rcc8tpp [gmeow:Location → gmeow:Location]: RCC-8: Tangential Proper Part (TPP) — region is a proper part of another, sharing part of its boundary.
 - gmeow:rcc8tppi [gmeow:Location → gmeow:Location]: RCC-8: Tangential Proper Part Inverse (TPPi) — inverse of TPP.
+- gmeow:realizedThrough [gmeow:Work → gmeow:Expression]: Relates a Work to an Expression that realizes it. Non-functional: a Work may have many Expressions (translations, arrangements, narrations). Inverse of gmeow:realizes.
+- gmeow:realizes [gmeow:Expression → gmeow:Work]: Relates an Expression to the Work it realizes. Non-functional: an omnibus or aggregate Expression may realize multiple Works (e.g. an anthology). Inverse of gmeow:realizedThrough.
 - gmeow:receivedAt [gmeow:Message → xsd:dateTime]: When a message was received by the storing system (JMAP receivedAt / Gmail internalDate).
 - gmeow:recordedNoLaterThan [? → xsd:dateTime]: A DERIVED upper bound (terminus ante quem) on when the annotated claim was committed to a record — typically taken from the modification time of its source carrier (gmeow:sourceModifiedAt) when no stronger observation time is known. Carries low gmeow:confidence; it is neither valid-time nor a point observation. Populate it in the importer/query layer, not by OWL inference.
 - gmeow:recurrenceRuleText [gmeow:RecurrenceRule → xsd:string] (functional): The recurrence rule as an RFC 5545 RRULE string (e.g. FREQ=WEEKLY;BYDAY=MO). Projected directly to iCalendar RRULE; a SET-typed TIMEX3 in ISO-TimeML.
@@ -1182,10 +1206,12 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:eventTypeDivorce (a gmeow:EventType): The legal dissolution of a marriage.
 - gmeow:eventTypeEmigration (a gmeow:EventType): A person's emigration from a country.
 - gmeow:eventTypeEngagement (a gmeow:EventType): A betrothal or engagement to marry.
+- gmeow:eventTypeExpressionCreation (a gmeow:EventType): The event of realizing a work in a specific language, script, notation, or arrangement — the act that brings a gmeow:Expression into existence. ≈ LRMoo F28 Expression Creation.
 - gmeow:eventTypeFirstCommunion (a gmeow:EventType): A first communion.
 - gmeow:eventTypeFuneral (a gmeow:EventType): A funeral or memorial service.
 - gmeow:eventTypeGraduation (a gmeow:EventType): Graduation from an educational program.
 - gmeow:eventTypeImmigration (a gmeow:EventType): A person's immigration into a country.
+- gmeow:eventTypeManifestationProduction (a gmeow:EventType): The event of producing a concrete edition, format, or release — the act that brings a gmeow:Manifestation into existence (printing, pressing, digital publishing).
 - gmeow:eventTypeMarriage (a gmeow:EventType): The event of two persons entering into marriage.
 - gmeow:eventTypeMilitaryService (a gmeow:EventType): A period of military service.
 - gmeow:eventTypeNameChange (a gmeow:EventType): A formal change of name.
@@ -1197,6 +1223,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:eventTypeSeparation (a gmeow:EventType): A legal or informal marital separation.
 - gmeow:eventTypeSupersession (a gmeow:EventType): The event of one entity replacing another — a transformation, merger, or reorganization where a predecessor entity ceases and a successor entity begins (e.g. Soviet Union → Russian Federation).
 - gmeow:eventTypeWill (a gmeow:EventType): The making of a will.
+- gmeow:eventTypeWorkConception (a gmeow:EventType): The event of conceiving an abstract intellectual or artistic work — the creative act that brings a gmeow:Work into existence. ≈ LRMoo F27 / CIDOC-CRM E65 Creation scoped to the Work tier.
 - gmeow:expressionAndrogynous (a gmeow:GenderExpressionStyle): androgynous
 - gmeow:expressionFeminine (a gmeow:GenderExpressionStyle): feminine
 - gmeow:expressionFluid (a gmeow:GenderExpressionStyle): fluid
@@ -1214,6 +1241,14 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:finalityStatusOrphaned (a gmeow:LedgerFinalityStatus): orphaned
 - gmeow:finalityStatusPending (a gmeow:LedgerFinalityStatus): pending
 - gmeow:finalityStatusReorged (a gmeow:LedgerFinalityStatus): reorged
+- gmeow:formatAudiobook (a gmeow:ManifestationFormat): An audiobook audio format.
+- gmeow:formatDigitalFile (a gmeow:ManifestationFormat): A generic digital file format.
+- gmeow:formatEPUB (a gmeow:ManifestationFormat): An EPUB electronic book format.
+- gmeow:formatHardcover (a gmeow:ManifestationFormat): A hardcover book edition.
+- gmeow:formatPDF (a gmeow:ManifestationFormat): A PDF document format.
+- gmeow:formatPaperback (a gmeow:ManifestationFormat): A paperback book edition.
+- gmeow:formatVinyl (a gmeow:ManifestationFormat): A vinyl phonograph record.
+- gmeow:formatWebPage (a gmeow:ManifestationFormat): A web page or online document.
 - gmeow:frameKindCartesian (a gmeow:FrameKind): cartesian
 - gmeow:frameKindConfigurationSpace (a gmeow:FrameKind): A smooth manifold representing the set of all possible configurations of a robot mechanism, with joint-limit boundaries constraining valid regions. Distance is measured along geodesics on the manifold surface, subject to joint limits. The actual manifold geometry and collision-aware path planning live in the solver layer (Principle 12).
 - gmeow:frameKindCylindrical (a gmeow:FrameKind): cylindrical
@@ -1371,6 +1406,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:measurementHoloceneStart (a gmeow:TemporalMeasurement): Holocene start age
 - gmeow:measurementPhanerozoicStart (a gmeow:TemporalMeasurement): Phanerozoic start age
 - gmeow:measurementQuaternaryStart (a gmeow:TemporalMeasurement): Quaternary start age
+- gmeow:mediumEInkFile (a gmeow:CarrierMedium): An electronic-ink file or e-book file.
+- gmeow:mediumOpticalDisc (a gmeow:CarrierMedium): An optical disc — CD, DVD, Blu-ray.
+- gmeow:mediumPrint (a gmeow:CarrierMedium): A printed paper medium.
+- gmeow:mediumServerObject (a gmeow:CarrierMedium): A digital object stored on a server.
 - gmeow:messageRoleBcc (a gmeow:MessageParticipantRole): bcc
 - gmeow:messageRoleCc (a gmeow:MessageParticipantRole): cc
 - gmeow:messageRoleDeliveredTo (a gmeow:MessageParticipantRole): delivered-to
@@ -1704,20 +1743,31 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:rightsTypeTrademark (a gmeow:RightsType): The trademark kind of intellectual-property right (wd:Q167270).
 - gmeow:roleAgent (a gmeow:ParticipantRole): An agent that carried out or caused the event (the active party).
 - gmeow:roleAttendee (a gmeow:ParticipantRole): An agent who attended the event.
+- gmeow:roleAuthor (a gmeow:ContributionRole): The creator of the intellectual content of a work.
 - gmeow:roleBeneficiary (a gmeow:ParticipantRole): An entity that benefited from the event.
 - gmeow:roleCanonical (a gmeow:VersionRole): canonical
 - gmeow:roleCollected (a gmeow:VersionRole): collected
+- gmeow:roleComposer (a gmeow:ContributionRole): An agent who composed the musical content.
+- gmeow:roleCoverArtist (a gmeow:ContributionRole): An agent who created cover art for a manifestation.
 - gmeow:roleDeprecated (a gmeow:VersionRole): deprecated
+- gmeow:roleDirector (a gmeow:ContributionRole): An agent who directed a film, theatre, or choreographic production.
 - gmeow:roleDraft (a gmeow:VersionRole): draft
+- gmeow:roleEditor (a gmeow:ContributionRole): An agent who edited, compiled, or curated the content.
+- gmeow:roleIllustrator (a gmeow:ContributionRole): An agent who contributed visual illustrations.
+- gmeow:roleLLMAssistedEditor (a gmeow:ContributionRole): An agent who edited with substantial assistance from a large language model.
 - gmeow:roleLTS (a gmeow:VersionRole): long-term support (LTS)
 - gmeow:roleLatest (a gmeow:VersionRole): latest
+- gmeow:roleLetterer (a gmeow:ContributionRole): An agent who lettered or calligraphed text in a visual work.
+- gmeow:roleNarrator (a gmeow:ContributionRole): An agent who narrated or performed a spoken-word rendition.
 - gmeow:roleOfficiant (a gmeow:ParticipantRole): A person who officiated at the event. Generalizes the former gmeow:hasOfficiant.
 - gmeow:roleOrganizer (a gmeow:ParticipantRole): An agent that organized or convened the event.
 - gmeow:roleParticipantPrincipal (a gmeow:ParticipantRole): The entity an event is principally about (e.g. the child in a birth, the deceased in a death). Generalizes the former gmeow:hasPrincipal.
 - gmeow:rolePerformer (a gmeow:ParticipantRole): An agent who performed at the event.
+- gmeow:rolePhotographer (a gmeow:ContributionRole): An agent who created photographic content.
 - gmeow:rolePublished (a gmeow:VersionRole): published
 - gmeow:roleRevised (a gmeow:VersionRole): revised
 - gmeow:roleStable (a gmeow:VersionRole): stable
+- gmeow:roleTranslator (a gmeow:ContributionRole): An agent who translated the work into another language or notation.
 - gmeow:roleVariant (a gmeow:VersionRole): variant
 - gmeow:roleVictim (a gmeow:ParticipantRole): An entity harmed by the event — distinct from, and never inferred from, any other role.
 - gmeow:roleWithdrawn (a gmeow:VersionRole): withdrawn
@@ -1856,6 +1906,19 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:virtualLocationTypeVideoConference (a gmeow:VirtualLocationType): video conference
 - gmeow:virtualLocationTypeVirtualEventSpace (a gmeow:VirtualLocationType): virtual event space
 - gmeow:virtualLocationTypeWebsite (a gmeow:VirtualLocationType): website
+- gmeow:workTypeAudiovisual (a gmeow:CreativeWorkType): A work combining moving images and sound — a film, television program, or video.
+- gmeow:workTypeCartographic (a gmeow:CreativeWorkType): A cartographic work — a map, atlas, or geospatial representation.
+- gmeow:workTypeChoreographic (a gmeow:CreativeWorkType): A choreographic work — a dance piece or movement composition.
+- gmeow:workTypeComposedMusical (a gmeow:CreativeWorkType): A notated musical work — a score, sheet music, or composition in written form.
+- gmeow:workTypeDataset (a gmeow:CreativeWorkType): A dataset work — a structured collection of data published as a unit.
+- gmeow:workTypeFilm (a gmeow:CreativeWorkType): A cinematic work — a feature film, short film, or documentary.
+- gmeow:workTypeLiterary (a gmeow:CreativeWorkType): A work of literature — fiction, poetry, drama, or literary non-fiction.
+- gmeow:workTypeMusical (a gmeow:CreativeWorkType): A work of music — a song, symphony, or composition.
+- gmeow:workTypeNarrative (a gmeow:CreativeWorkType): A work whose primary content is a story or narrative.
+- gmeow:workTypePhotographic (a gmeow:CreativeWorkType): A photographic work — a still photograph or photo essay.
+- gmeow:workTypeSoftware (a gmeow:CreativeWorkType): A software work — a program, library, or application.
+- gmeow:workTypeVisual (a gmeow:CreativeWorkType): A visual artwork — a painting, drawing, or digital image.
+- gmeow:workTypeWritten (a gmeow:CreativeWorkType): A primarily written work — scholarly, journalistic, or technical.
 - gmeow:wsTypeAbjad (a gmeow:WritingSystemType): abjad
 - gmeow:wsTypeAbugida (a gmeow:WritingSystemType): abugida
 - gmeow:wsTypeAlphabet (a gmeow:WritingSystemType): alphabet
