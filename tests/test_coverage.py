@@ -162,6 +162,26 @@ def test_languages_slice_covered() -> None:
         assert GMEOW + prop in report.covered_predicates
 
 
+def test_lexicon_slice_covered() -> None:
+    report = run_coverage()
+    # The lexicon fixture exercises lexical items, forms, attestations,
+    # etymological derivations, and the evidence-vs-claim separation (#171).
+    for cls in (
+        "LexicalItem",
+        "LexicalForm",
+        "UsageAttestation",
+        "EtymologicalDerivation",
+    ):
+        assert GMEOW + cls in report.covered_classes
+    for prop in (
+        "hasLexicalForm",
+        "formRepresentation",
+        "attestedForm",
+        "derivationKind",
+    ):
+        assert GMEOW + prop in report.covered_predicates
+
+
 def test_language_varieties_slice_covered() -> None:
     report = run_coverage()
     # The language-varieties fixture exercises the diachronic and sociolinguistic

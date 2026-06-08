@@ -1,0 +1,45 @@
+# Coexistence fixture (#171) — two CONTRADICTORY standpoint-indexed etymological
+# derivations over the same target lexical item (algebra: borrowing from Arabic
+# per etymologist A; reanalysis per etymologist B), in the OWL-downcast
+# reified form (owl:Axiom + annotatedSource/Property/Target + gmeow:accordingTo).
+# Both base triples are asserted and both are RETAINED; NEITHER is privileged.
+# run_shacl must report NO violation — coexistence is explicitly permitted
+# (Principle 9).
+
+@prefix ex:    <https://example.org/lex/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:algebra a gmeow:LexicalItem .
+
+ex:alJabr a gmeow:LexicalItem .
+
+ex:derivationAlgebraBorrowing a gmeow:EtymologicalDerivation ;
+    gmeow:derivationSource ex:alJabr ;
+    gmeow:derivationTarget ex:algebra ;
+    gmeow:derivationKind gmeow:derivationBorrowing .
+
+ex:derivationAlgebraReanalysis a gmeow:EtymologicalDerivation ;
+    gmeow:derivationSource ex:algebra ;
+    gmeow:derivationTarget ex:algebra ;
+    gmeow:derivationKind gmeow:derivationReanalysis .
+
+ex:standpoint-etymologist-a a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-etymologist-b a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+ex:ax-derivation-borrowing a owl:Axiom ;
+    owl:annotatedSource   ex:derivationAlgebraBorrowing ;
+    owl:annotatedProperty gmeow:derivationKind ;
+    owl:annotatedTarget   gmeow:derivationBorrowing ;
+    gmeow:accordingTo ex:standpoint-etymologist-a ;
+    gmeow:confidence 0.85 ;
+    gmeow:validFrom "0800-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:ax-derivation-reanalysis a owl:Axiom ;
+    owl:annotatedSource   ex:derivationAlgebraReanalysis ;
+    owl:annotatedProperty gmeow:derivationKind ;
+    owl:annotatedTarget   gmeow:derivationReanalysis ;
+    gmeow:accordingTo ex:standpoint-etymologist-b ;
+    gmeow:confidence 0.30 ;
+    gmeow:validFrom "1900-01-01T00:00:00Z"^^xsd:dateTime .

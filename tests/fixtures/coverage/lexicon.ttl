@@ -1,0 +1,194 @@
+# Coverage fixture for the lexicon layer (#171).
+# Worked examples: lexical item with multiple forms (cat), competing
+# etymological derivations (algebra), slang/community usage attestation (yeet),
+# reconstructed proto-form without universal acceptance (PIE water), and one
+# attestation supporting two competing readings (oracle bone inscription).
+
+@prefix ex:     <https://example.org/lex/> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix time:   <http://www.w3.org/2006/time#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Standpoint individuals -------------------------------------------------- #
+
+ex:standpoint-etymologist-a a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-etymologist-b a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-linguist-reconstructionist a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-epigrapher-a  a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-epigrapher-b  a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# --- Languages --------------------------------------------------------------- #
+
+ex:english a gmeow:Language ; gmeow:languageCode "en" .
+ex:arabic  a gmeow:Language ; gmeow:languageCode "ar" .
+ex:greek   a gmeow:Language ; gmeow:languageCode "el" .
+
+# --- Lexical item with multiple forms: "cat" -------------------------------- #
+
+ex:cat a gmeow:LexicalItem ;
+    gmeow:lexicalItemLanguage ex:english ;
+    gmeow:hasLexicalForm ex:catWritten, ex:catSpoken, ex:catReconstructed .
+
+ex:catWritten a gmeow:LexicalForm ;
+    gmeow:formRepresentation "cat" ;
+    gmeow:formType gmeow:formWritten ;
+    gmeow:formOf ex:cat .
+
+ex:catSpoken a gmeow:LexicalForm ;
+    gmeow:formRepresentation "/kæt/" ;
+    gmeow:formType gmeow:formSpoken ;
+    gmeow:formOf ex:cat .
+
+ex:catReconstructed a gmeow:LexicalForm ;
+    gmeow:formRepresentation "*kattōn" ;
+    gmeow:formType gmeow:formReconstructed ;
+    gmeow:formOf ex:cat .
+
+# --- Competing etymological derivations: "algebra" -------------------------- #
+
+ex:algebra a gmeow:LexicalItem ;
+    gmeow:lexicalItemLanguage ex:english ;
+    gmeow:hasLexicalForm ex:algebraWritten .
+
+ex:algebraWritten a gmeow:LexicalForm ;
+    gmeow:formRepresentation "algebra" ;
+    gmeow:formType gmeow:formWritten ;
+    gmeow:formOf ex:algebra .
+
+ex:alJabr a gmeow:LexicalItem ;
+    gmeow:lexicalItemLanguage ex:arabic ;
+    gmeow:hasLexicalForm ex:alJabrWritten .
+
+ex:alJabrWritten a gmeow:LexicalForm ;
+    gmeow:formRepresentation "الجبر" ;
+    gmeow:formType gmeow:formWritten ;
+    gmeow:formOf ex:alJabr .
+
+ex:derivationAlgebraBorrowing a gmeow:EtymologicalDerivation ;
+    gmeow:derivationSource ex:alJabr ;
+    gmeow:derivationTarget ex:algebra ;
+    gmeow:derivationKind gmeow:derivationBorrowing ;
+    gmeow:confidence 0.85 .
+
+ex:ax-derivation-borrowing a owl:Axiom ;
+    owl:annotatedSource   ex:derivationAlgebraBorrowing ;
+    owl:annotatedProperty gmeow:derivationKind ;
+    owl:annotatedTarget   gmeow:derivationBorrowing ;
+    gmeow:accordingTo ex:standpoint-etymologist-a ;
+    gmeow:confidence 0.85 ;
+    gmeow:validFrom "0800-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:derivationAlgebraReanalysis a gmeow:EtymologicalDerivation ;
+    gmeow:derivationSource ex:algebra ;
+    gmeow:derivationTarget ex:algebra ;
+    gmeow:derivationKind gmeow:derivationReanalysis ;
+    gmeow:confidence 0.30 .
+
+ex:ax-derivation-reanalysis a owl:Axiom ;
+    owl:annotatedSource   ex:derivationAlgebraReanalysis ;
+    owl:annotatedProperty gmeow:derivationKind ;
+    owl:annotatedTarget   gmeow:derivationReanalysis ;
+    gmeow:accordingTo ex:standpoint-etymologist-b ;
+    gmeow:confidence 0.30 ;
+    gmeow:validFrom "1900-01-01T00:00:00Z"^^xsd:dateTime .
+
+# --- Slang/community usage attestation: "yeet" ------------------------------ #
+
+ex:yeet a gmeow:LexicalItem ;
+    gmeow:lexicalItemLanguage ex:english ;
+    gmeow:hasLexicalForm ex:yeetSpoken, ex:yeetWritten .
+
+ex:yeetSpoken a gmeow:LexicalForm ;
+    gmeow:formRepresentation "/jiːt/" ;
+    gmeow:formType gmeow:formSpoken ;
+    gmeow:formOf ex:yeet .
+
+ex:yeetWritten a gmeow:LexicalForm ;
+    gmeow:formRepresentation "yeet" ;
+    gmeow:formType gmeow:formWritten ;
+    gmeow:formOf ex:yeet .
+
+ex:twitterCorpus2020 a gmeow:Source ;
+    gmeow:sourceLocation "https://example.org/corpus/yeet-2020" .
+
+ex:genZCommunity a gmeow:Entity ;
+    rdfs:label "Gen Z English-speaking online community"@en .
+
+ex:yeetInterval a gmeow:TimeInterval ;
+    time:hasBeginning [ time:inXSDDateTime "2018-01-01T00:00:00Z"^^xsd:dateTime ] ;
+    time:hasEnd       [ time:inXSDDateTime "2024-01-01T00:00:00Z"^^xsd:dateTime ] .
+
+ex:yeetAttestation a gmeow:UsageAttestation ;
+    gmeow:attestedForm ex:yeetSpoken ;
+    gmeow:attestedInLanguage ex:english ;
+    gmeow:attestedInSource ex:twitterCorpus2020 ;
+    gmeow:attestedInContext ex:genZCommunity ;
+    gmeow:attestationInterval ex:yeetInterval ;
+    gmeow:confidence 0.95 .
+
+# --- Reconstructed proto-form without universal acceptance: PIE *wódr̥ ------- #
+
+ex:protoIndoEuropeanWater a gmeow:LexicalItem ;
+    gmeow:lexicalItemLanguage ex:english ;
+    gmeow:hasLexicalForm ex:pieWaterForm .
+
+ex:pieWaterForm a gmeow:LexicalForm ;
+    gmeow:formRepresentation "*wódr̥" ;
+    gmeow:formType gmeow:formReconstructed ;
+    gmeow:formOf ex:protoIndoEuropeanWater .
+
+# The reconstruction is a standpointed claim, not universal truth.
+ex:ax-reconstruction-claim a owl:Axiom ;
+    owl:annotatedSource   ex:pieWaterForm ;
+    owl:annotatedProperty gmeow:formType ;
+    owl:annotatedTarget   gmeow:formReconstructed ;
+    gmeow:accordingTo ex:standpoint-linguist-reconstructionist ;
+    gmeow:confidence 0.70 ;
+    gmeow:standpointModality gmeow:probable .
+
+# --- One attestation, two competing readings: oracle bone inscription ------- #
+
+ex:oracleBoneInscription a gmeow:LexicalForm ;
+    gmeow:formRepresentation "象形文字A" ;
+    gmeow:formType gmeow:formWritten ;
+    gmeow:formOf ex:oracleBoneItem .
+
+ex:oracleBoneItem a gmeow:LexicalItem ;
+    gmeow:lexicalItemLanguage ex:english .
+
+ex:sourceShangArchive a gmeow:Source ;
+    gmeow:sourceLocation "https://example.org/archive/shang-oracle-bones" .
+
+ex:inscriptionAttestation a gmeow:UsageAttestation ;
+    gmeow:attestedForm ex:oracleBoneInscription ;
+    gmeow:attestedInSource ex:sourceShangArchive ;
+    gmeow:attestationInterval [ time:hasBeginning [ time:inXSDDateTime "-1200-01-01T00:00:00Z"^^xsd:dateTime ] ] .
+
+# Competing readings derived from the same attestation.
+ex:readingA a gmeow:LexicalForm ;
+    gmeow:formRepresentation "reading-A (sun)" ;
+    gmeow:formType gmeow:formNormalized ;
+    gmeow:formOf ex:oracleBoneItem ;
+    gmeow:wasDerivedFrom ex:oracleBoneInscription .
+
+ex:readingB a gmeow:LexicalForm ;
+    gmeow:formRepresentation "reading-B (day)" ;
+    gmeow:formType gmeow:formNormalized ;
+    gmeow:formOf ex:oracleBoneItem ;
+    gmeow:wasDerivedFrom ex:oracleBoneInscription .
+
+ex:ax-reading-a a owl:Axiom ;
+    owl:annotatedSource   ex:readingA ;
+    owl:annotatedProperty gmeow:wasDerivedFrom ;
+    owl:annotatedTarget   ex:oracleBoneInscription ;
+    gmeow:accordingTo ex:standpoint-epigrapher-a ;
+    gmeow:confidence 0.80 .
+
+ex:ax-reading-b a owl:Axiom ;
+    owl:annotatedSource   ex:readingB ;
+    owl:annotatedProperty gmeow:wasDerivedFrom ;
+    owl:annotatedTarget   ex:oracleBoneInscription ;
+    gmeow:accordingTo ex:standpoint-epigrapher-b ;
+    gmeow:confidence 0.75 .

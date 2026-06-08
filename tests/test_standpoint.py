@@ -500,6 +500,27 @@ def test_variety_coexistence_fixture_conforms() -> None:
 
 
 # --------------------------------------------------------------------------- #
+# Issue #171 — Etymology derivation coexistence
+# --------------------------------------------------------------------------- #
+
+
+def test_etymology_coexistence_fixture_conforms() -> None:
+    """Contradictory derivationKind assertions COEXIST with no violation
+    (Principle 9)."""
+    g = _fixture("etymology-coexistence")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    all_kinds: set[URIRef] = set()
+    for deriv in g.subjects(RDF.type, GM.EtymologicalDerivation):
+        for kind in g.objects(deriv, GM.derivationKind):
+            if isinstance(kind, URIRef):
+                all_kinds.add(kind)
+    assert {GM.derivationBorrowing, GM.derivationReanalysis} <= all_kinds, (
+        f"both derivationKind values must be retained: {all_kinds}"
+    )
+
+
+# --------------------------------------------------------------------------- #
 # Mapping alignment tests (#127)
 # --------------------------------------------------------------------------- #
 

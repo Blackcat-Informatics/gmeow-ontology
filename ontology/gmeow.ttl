@@ -48,6 +48,7 @@
         <https://blackcatinformatics.ca/gmeow/modules/gender> ,
         <https://blackcatinformatics.ca/gmeow/modules/sexuality> ,
         <https://blackcatinformatics.ca/gmeow/modules/languages> ,
+        <https://blackcatinformatics.ca/gmeow/modules/lexicon> ,
         <https://blackcatinformatics.ca/gmeow/modules/agreements> ,
         <https://blackcatinformatics.ca/gmeow/modules/contacts> ,
         <https://blackcatinformatics.ca/gmeow/modules/places> ,

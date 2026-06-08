@@ -162,3 +162,78 @@ Generated or partially generated areas:
 * `queries/projections/` — Generated projection CONSTRUCT queries.
 * `statements/` — Generated RDF 1.2 lead artifact and OWL 2 downcast from `statement-dsl/`.
 * `dist/` and `docs/_generated/` — Build, documentation, metadata, export, and release artifacts.
+
+---
+
+## 5. PR Lifecycle: Rebase, Review, Push
+
+When a PR is open and feedback arrives, follow this cycle strictly.
+
+### Rebase onto latest main
+
+```bash
+git fetch origin main
+git rebase origin/main
+```
+
+If conflicts involve generated files (especially `dist/llms.txt`), **always resolve by accepting the main branch version** and regenerating afterward:
+
+```bash
+git checkout --theirs dist/llms.txt   # or other generated file
+git add dist/llms.txt
+git rebase --continue
+make regenerate
+```
+
+### Pull review feedback
+
+Use the GitHub CLI to inspect all comments and reviews:
+
+```bash
+gh pr view <PR_NUMBER> --json reviews
+gh api repos/<owner>/<repo>/pulls/<PR_NUMBER>/comments \
+    | jq -r '.[] | "File: \(.path)\nLine: \(.line)\nBody: \(.body)\n---"'
+```
+
+Read both automated (CodeRabbit, Gemini) and human reviews. Treat actionable automated feedback as binding unless it contradicts the ontology design principles in [CONSTITUTION.md](./CONSTITUTION.md).
+
+### Address feedback
+
+Apply fixes **only in canonical source files** (Principle 4):
+
+| Review target | Canonical source to edit |
+|---|---|
+| SSSOM / EDOAL / FnO / projection queries | `mapping-dsl/` |
+| RDF 1.2 / OWL statement artifacts | `statement-dsl/` |
+| Ontology terms, axioms, observation bridges | `ontology/modules/` |
+| SHACL shapes | `shapes/` |
+| Tests, fixtures | `tests/` |
+
+Never patch generated artifacts by hand. After editing canonical sources, regenerate:
+
+```bash
+make compile-mappings    # if mapping-dsl/ changed
+make compile-statements  # if statement-dsl/ changed
+make regenerate          # full rebuild of all generated artifacts
+```
+
+### Validate before pushing
+
+```bash
+make check
+```
+
+All gates must pass: lint, validate, compilation drift check, ELK reasoning, HermiT reasoning, verify, tests.
+
+### Push
+
+Amend the commit to keep the branch history clean:
+
+```bash
+git add -A
+git commit --amend --no-edit
+git push --force-with-lease origin <branch-name>
+```
+
+> [!IMPORTANT]
+> Always use `--force-with-lease`, never bare `--force`. This prevents overwriting commits you have not yet fetched.
