@@ -399,21 +399,3 @@ gmeow:eqClasses047 a gmeow:TermEquivalence ;
     gmeow:confidence 0.8 ;
     gmeow:comment "GMEOW Profile is a narrower closed-descriptor-schema construct; PROF is a broader specification-profile vocabulary." ;
     gmeow:sssomFile "gmeow-classes.sssom.tsv" .
-
-gmeow:eqClasses048 a gmeow:TermEquivalence ;
-    gmeow:alignSubject schema:Book ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject gmeow:BookRelease ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "schema:Book is broader (may denote abstract work); gmeow:BookRelease is a concrete published edition." ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
-
-gmeow:eqClasses049 a gmeow:TermEquivalence ;
-    gmeow:alignSubject schema:Episode ;
-    gmeow:alignPredicate rdfs:subClassOf ;
-    gmeow:alignObject gmeow:SerialInstallment ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "schema:Episode is TV/radio-specific; gmeow:SerialInstallment is broader (comics, magazines)." ;
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" .

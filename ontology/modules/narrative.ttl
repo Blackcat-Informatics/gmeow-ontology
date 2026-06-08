@@ -11,7 +11,7 @@
     rdfs:comment """Narrative reference frames and creative-work sourcing. Part of the #42 Location-as-reference-frame epic.
 
 DOCTRINE.
-  * A NarrativeReferenceFrame is BOTH a ReferenceFrame (canon supplies coordinate topology for in-universe locations, dates, and events) AND a Standpoint (canon is the frame under which in-universe claims hold true). This dual nature is intentional: the canon IS the frame.
+  * A NarrativeReferenceFrame is a ReferenceFrame (canon supplies coordinate topology for in-universe locations, dates, and events) and functionally serves as the standpoint under which in-universe claims hold true, without subclassing gmeow:Standpoint (gUFO MixIden enforces exactly-one-Kind inheritance).
   * CreativeWorks (BookRelease, SerialInstallment) remain out-of-universe rights-bearing artifacts; they source, witness, or revise a narrative frame via gmeow:sourceFor.
   * Characters, places, organizations, events, artifacts in a narrative are ordinary GMEOW entities whose claims are scoped gmeow:accordingTo the narrative frame.
   * Cross-continuity variants are linked with gmeow:counterpartOf, never merged (Principle 5).
@@ -37,6 +37,13 @@ gmeow:NarrativeFrameRelation
     skos:definition "The relationship of one narrative frame to another — a value vocabulary (individuals, never subclasses) spanning canon, alternate continuity, expanded universe, fanon, crossover, and adaptation. Non-functional: a frame may hold several relations to another frame from different standpoints."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:NarrativeFrameLink
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Narrative Frame Link"@en ;
+    skos:definition "A reified relator that binds a source narrative frame, a target narrative frame, and the relation type between them into a single node. The canonical form when the specific frame-to-frame relation must itself be a node (e.g. to attach provenance, confidence, temporal scope, or standpoint); the flat shortcuts are gmeow:hasNarrativeFrameRelation and gmeow:relatesToFrame. Structurally the Tagging/NameUsage idiom wearing a different hat."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 # =========================================================================== #
 # PROPERTIES
 # =========================================================================== #
@@ -54,7 +61,7 @@ gmeow:hasNarrativeFrameRelation
     rdfs:domain gmeow:NarrativeReferenceFrame ;
     rdfs:range gmeow:NarrativeFrameRelation ;
     rdfs:label "has narrative frame relation"@en ;
-    skos:definition "The relationship(s) this narrative frame bears to another frame — canon, alternate continuity, expanded universe, fanon, crossover, adaptation. Non-functional: competing relation claims from different standpoints coexist (Principle 9)."@en ;
+    skos:definition "The relationship(s) this narrative frame bears to another frame — canon, alternate continuity, expanded universe, fanon, crossover, adaptation. Non-functional: competing relation claims from different standpoints coexist (Principle 9). Flat shortcut; promote to gmeow:NarrativeFrameLink when the binding between source, target, and relation type must be explicit."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:relatesToFrame
@@ -62,7 +69,31 @@ gmeow:relatesToFrame
     rdfs:domain gmeow:NarrativeReferenceFrame ;
     rdfs:range gmeow:NarrativeReferenceFrame ;
     rdfs:label "relates to frame"@en ;
-    skos:definition "Relates a narrative reference frame to another narrative reference frame with which it stands in a relationship (the nature of which is given by gmeow:hasNarrativeFrameRelation). Non-functional: a frame may relate to many others, and competing relation claims coexist."@en ;
+    skos:definition "Relates a narrative reference frame to another narrative reference frame with which it stands in a relationship (the nature of which is given by gmeow:hasNarrativeFrameRelation). Non-functional: a frame may relate to many others, and competing relation claims coexist. Flat shortcut; promote to gmeow:NarrativeFrameLink when the binding between source, target, and relation type must be explicit."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:narrativeFrameLinkSource
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NarrativeFrameLink ;
+    rdfs:range gmeow:NarrativeReferenceFrame ;
+    rdfs:label "narrative frame link source"@en ;
+    skos:definition "The source narrative reference frame in a link. Functional per relator: one source per NarrativeFrameLink."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:narrativeFrameLinkTarget
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NarrativeFrameLink ;
+    rdfs:range gmeow:NarrativeReferenceFrame ;
+    rdfs:label "narrative frame link target"@en ;
+    skos:definition "The target narrative reference frame in a link. Functional per relator: one target per NarrativeFrameLink."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:narrativeFrameLinkRelation
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NarrativeFrameLink ;
+    rdfs:range gmeow:NarrativeFrameRelation ;
+    rdfs:label "narrative frame link relation"@en ;
+    skos:definition "The relation type (canon, adaptation, crossover, etc.) that holds between the source and target frames in this link. Functional per relator: one relation type per NarrativeFrameLink."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
