@@ -33,6 +33,8 @@
 @prefix soma: <http://www.ease-crc.org/ont/SOMA.owl#> .
 @prefix faldo: <http://biohackathon.org/resource/faldo#> .
 @prefix so: <http://purl.obolibrary.org/obo/SO_> .
+@prefix ladm: <http://www.opengis.net/ont/ladm#> .
+@prefix cp: <http://inspire.ec.europa.eu/ont/cp#> .
 
 # Term equivalences for the places domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-places.sssom.tsv by `gmeow compile-mappings`.
@@ -41,7 +43,7 @@ gmeow:mapsetPlaces a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/places" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET, IEEE 1872-2015 CORA, KnowRob, SOMA, FALDO, Sequence Ontology. placeType/storageMedium/celestialObjectType/sequenceFeatureType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (#85): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl. Added (#88): Robotic realm bridging to IEEE 1872-2015 CORA (Robot, RoboticSystem), KnowRob (SemanticEnvironmentMap, RobotBaseTrajectory, Joint, FrameOfReference), and SOMA (ArtificialAgent). Added (#90): Biological-sequence realm bridging to FALDO (Region, begin, end, ForwardStrandPosition, ReverseStrandPosition, reference), Sequence Ontology (sequence_feature, gene, exon, intron, CDS, SNP, chromosome), and Wikidata (GRCh38, genomic location, sense/antisense strand). Added (#91): Geocode and geocoding ReferenceFrames (Plus Code, what3words, geohash, MGRS, UN/LOCODE, mile-marker) aligned to Wikidata QIDs. Added (#125): SpatialMeasurement / CoordinateObservation bridging to GeoSPARQL geo:Feature and schema.org GeoCoordinates." .
+    gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET, IEEE 1872-2015 CORA, KnowRob, SOMA, FALDO, Sequence Ontology. placeType/storageMedium/celestialObjectType/sequenceFeatureType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (#85): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl. Added (#88): Robotic realm bridging to IEEE 1872-2015 CORA (Robot, RoboticSystem), KnowRob (SemanticEnvironmentMap, RobotBaseTrajectory, Joint, FrameOfReference), and SOMA (ArtificialAgent). Added (#90): Biological-sequence realm bridging to FALDO (Region, begin, end, ForwardStrandPosition, ReverseStrandPosition, reference), Sequence Ontology (sequence_feature, gene, exon, intron, CDS, SNP, chromosome), and Wikidata (GRCh38, genomic location, sense/antisense strand). Added (#91): Geocode and geocoding ReferenceFrames (Plus Code, what3words, geohash, MGRS, UN/LOCODE, mile-marker) aligned to Wikidata QIDs. Added (#125): SpatialMeasurement / CoordinateObservation bridging to GeoSPARQL geo:Feature and schema.org GeoCoordinates. Added (#92): Cadastral / land-administration realm bridging to ISO 19152 LADM (LA_SpatialUnit, LA_RRR, LA_Party, LA_BoundaryFace) and INSPIRE Cadastral Parcels (CadastralParcel, CadastralBoundary, CadastralZoning, BasicPropertyUnit, nationalCadastralReference) by reference." .
 
 gmeow:eqPlaces001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:VirtualLocation ;
@@ -1828,4 +1830,134 @@ gmeow:eqPlaces199 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:comment "geometryResult points to a Geometry entity; geo:hasGeometry links a feature to its geometry. Related match because the subject roles differ (observation vs. feature)." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Cadastral / land administration — ISO 19152 LADM + INSPIRE CP (#92)
+# --------------------------------------------------------------------------- #
+
+gmeow:eqPlaces200 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Place ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject ladm:LA_SpatialUnit ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "GMEOW Place is broader: it covers any geographic location, while LADM LA_SpatialUnit is specifically a spatial unit in a land-administration context. A Place typed as placeTypeParcel is the closest match." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces201 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:placeTypeParcel ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject cp:CadastralParcel ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "A GMEOW Place with placeTypeParcel corresponds to an INSPIRE CadastralParcel — a single area of Earth surface under homogeneous real property rights." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces202 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:LandTenure ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject ladm:LA_RRR ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "GMEOW LandTenure bridges Place × Agent × RightsStatement, while LADM LA_RRR covers rights, restrictions, and responsibilities over a spatial unit. Close semantic match but different structural decomposition." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces203 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:LandTenure ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject cp:BasicPropertyUnit ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "INSPIRE BasicPropertyUnit represents a unit of property with homogeneous rights; GMEOW LandTenure is the time-scoped rights relationship itself. Related but not identical scope." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces204 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:RightsStatement ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject ladm:LA_RRR ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "GMEOW RightsStatement (deontic rules: permissions, prohibitions, duties) maps to LADM LA_RRR (rights, restrictions, responsibilities). Both are machine-readable statements of the rights situation." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces205 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Geometry ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject cp:CadastralBoundary ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "GMEOW Geometry is the general geometric construct; INSPIRE CadastralBoundary is a specific geometry type representing a parcel boundary." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces206 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Geometry ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject ladm:LA_BoundaryFace ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "GMEOW Geometry is the general geometric construct; LADM LA_BoundaryFace is a specific 2D boundary face element." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces207 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Agent ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject ladm:LA_Party ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "GMEOW Agent is broader (any entity capable of action), but within the land-administration context it aligns to LADM LA_Party (a person or organisation with rights)." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces208 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:RegulatoryOverlay ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject cp:CadastralZoning ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "INSPIRE CadastralZoning is a specific kind of spatial regulatory overlay (cadastral hierarchy); GMEOW RegulatoryOverlay with overlayTypeZoning is the closest general match." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces209 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:CadastralReference ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject cp:nationalCadastralReference ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "GMEOW CadastralReference is the reified structured identifier; INSPIRE nationalCadastralReference is the property carrying the identifier. Close structural match." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces210 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceValue ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject cp:nationalCadastralReference ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "The literal value of a GMEOW CadastralReference directly corresponds to INSPIRE's nationalCadastralReference property value." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces211 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasCadastralReference ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject cp:referencePoint ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "Weak match: GMEOW hasCadastralReference links a Place to its cadastral identifier; INSPIRE referencePoint is a geometric point within the cadastral object. Different semantics." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces212 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:tenureTypeOwnership ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1406325 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "ownership" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces214 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:tenureTypeEasement ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q188814 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "easement" ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" .

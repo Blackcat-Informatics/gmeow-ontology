@@ -149,7 +149,9 @@ def test_dsl_parses() -> None:
     #  geometryResult→sosa:hasResult/geo:hasGeometry,
     #  hasCoordinateObservation→geo:hasGeometry,
     #  methodGPS/TotalStation/Photogrammetry→Wikidata).
-    assert len(dsl.equivalences) == 1100
+    # Issue #92 cadastral / land administration: +14 (LADM x5, INSPIRE CP x7,
+    # Wikidata x2).
+    assert len(dsl.equivalences) == 1114
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

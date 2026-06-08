@@ -1602,6 +1602,72 @@ gmeow:RegulatoryOverlayShape
         sh:message "A RegulatoryOverlay must record exactly one time interval (gmeow:duringInterval)." ;
     ] .
 
+# LandTenure well-formedness: exactly one place, one party, one interval; at least one type.
+gmeow:LandTenureShape
+    a sh:NodeShape ;
+    rdfs:label "LandTenure well-formedness shape" ;
+    sh:targetClass gmeow:LandTenure ;
+    sh:property [
+        sh:path gmeow:tenurePlace ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A LandTenure must record exactly one place (gmeow:tenurePlace)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:tenureParty ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A LandTenure must record exactly one party (gmeow:tenureParty)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:tenureType ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A LandTenure must record at least one tenure type (gmeow:tenureType)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:duringInterval ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A LandTenure must record exactly one time interval (gmeow:duringInterval)." ;
+    ] .
+
+# CadastralReference well-formedness: exactly one value, at least one type, one authority, one jurisdiction.
+gmeow:CadastralReferenceShape
+    a sh:NodeShape ;
+    rdfs:label "CadastralReference well-formedness shape" ;
+    sh:targetClass gmeow:CadastralReference ;
+    sh:property [
+        sh:path gmeow:referenceValue ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A CadastralReference must record exactly one reference value (gmeow:referenceValue)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:referenceType ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A CadastralReference must record at least one reference type (gmeow:referenceType)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:referenceAuthority ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A CadastralReference must record exactly one issuing authority (gmeow:referenceAuthority)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:referenceJurisdiction ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A CadastralReference must record exactly one jurisdiction (gmeow:referenceJurisdiction)." ;
+    ] .
+
 # PlaceNaming has-players guard (Violation): a NameUsage that names a Place must bind
 # a PlaceName appellation.
 gmeow:PlaceNamingHasPlayersShape
