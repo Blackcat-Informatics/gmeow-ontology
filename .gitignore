@@ -13,6 +13,7 @@ htmlcov/
 /dist/*
 !/dist/lpg/
 /docs/_generated/
+/llms.txt
 
 # Editor/OS noise
 .DS_Store

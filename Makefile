@@ -9,7 +9,7 @@ SHELL := /bin/bash
 TARGET ?= foaf
 
 # Checked-in generated artifacts (refreshed by make regenerate).
-REGENERATED_PATHS := mappings/ projections/ queries/projections/ statements/ metadata/ apache/gmeow.conf llms.txt dist/lpg/
+REGENERATED_PATHS := mappings/ projections/ queries/projections/ statements/ metadata/ apache/gmeow.conf dist/lpg/
 
 # Override: make commit MESSAGE="feat: add foaf alignment"
 MESSAGE ?= "chore: regenerate checked-in artifacts"
@@ -138,9 +138,8 @@ normalize: ## Canonicalize the authored ontology sources (rewrites files).
 build: ## Build all serializations + JSON-LD context + apache.conf into dist/.
 	uv run gmeow build
 
-export: ## Generate flattened exports (CSV/CSVW, Markdown, JSONL, llms.txt) into dist/ and copy llms.txt to root.
+export: ## Generate flattened exports (CSV/CSVW, Markdown, JSONL, llms.txt) into dist/.
 	uv run gmeow export
-	cp dist/llms.txt llms.txt
 
 lpg: ## Export GMEOW to LPG formats (CSV, Neo4j, Cypher, GraphML) into dist/lpg/.
 	uv run gmeow export lpg
