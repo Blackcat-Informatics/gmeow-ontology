@@ -627,8 +627,8 @@ gmeow:metricEditDistance a gmeow:MetricKind ; rdfs:label "edit distance"@en ;
     skos:definition "String or sequence dissimilarity (Levenshtein, Hamming, Damerau-Levenshtein, etc.)."@en .
 gmeow:metricGraphHops   a gmeow:MetricKind ; rdfs:label "graph hops"@en ;
     skos:definition "Shortest-path edge count in a network or graph."@en .
-gmeow:metricSymplectic  a gmeow:MetricKind ; rdfs:label "symplectic"@en ;
-    skos:definition "The natural metric on a phase space, preserving the symplectic form ω = Σ dqᵢ ∧ dpᵢ. Used in Hamiltonian mechanics."@en .
+gmeow:metricSymplectic  a gmeow:MetricKind ; rdfs:label "phase-space Euclidean"@en ;
+    skos:definition "Standard Euclidean distance metric on a finite-dimensional Hamiltonian phase space, treating the concatenated (q,p) state vector as a point in ℝ²ⁿ."@en .
 
 # Seeds for GranularityLevel — the spatial resolution axis (#79; class in core).
 # Ordered coarse→fine by gmeow:coarserThan (transitive, so country is coarser than
@@ -874,7 +874,7 @@ gmeow:referenceFrameRobotVelocity
     gmeow:hasMetricKind gmeow:metricEuclidean .
 
 gmeow:referenceFrameRobotSLAM
-    a gmeow:ReferenceFrame ;
+    a gmeow:ReferenceFrame, gmeow:MentalReferenceFrame ;
     rdfs:label "Robot SLAM Occupancy Grid Reference Frame"@en ;
     gmeow:frameRealm gmeow:frameRealmRobotic ;
     gmeow:hasAxis gmeow:axisX, gmeow:axisY, gmeow:axisZ ;
@@ -1884,7 +1884,7 @@ gmeow:refOriginHeliocentric a gmeow:CelestialReferenceOrigin ; rdfs:label "helio
 
 gmeow:referenceFramePhaseSpace3DOF
     a gmeow:ReferenceFrame ;
-    rdfs:label "3-DOF Phase Space Reference Frame"@en ;
+    rdfs:label "Abstract Phase Space Reference Frame (q,p axes)"@en ;
     gmeow:frameRealm gmeow:frameRealmMathematical ;
     gmeow:hasAxis gmeow:axisGeneralizedCoordinate, gmeow:axisGeneralizedMomentum ;
     gmeow:dimensionCount "2"^^xsd:nonNegativeInteger ;

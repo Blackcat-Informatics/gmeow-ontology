@@ -1465,7 +1465,7 @@ gmeow:eqPlaces162 a gmeow:TermEquivalence ;
 # KnowRob — robot knowledge base
 gmeow:eqPlaces163 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:referenceFrameRobotSLAM ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject knowrob:SemanticEnvironmentMap ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
@@ -1475,7 +1475,7 @@ gmeow:eqPlaces163 a gmeow:TermEquivalence ;
 
 gmeow:eqPlaces164 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:Trajectory ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:broadMatch ;
     gmeow:alignObject knowrob:RobotBaseTrajectory ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;

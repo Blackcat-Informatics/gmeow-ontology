@@ -1203,7 +1203,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:metricEuclidean (a gmeow:MetricKind): Straight-line distance in a Cartesian or flat space.
 - gmeow:metricGeodesic (a gmeow:MetricKind): Shortest path along a curved surface (e.g. great-circle on a spheroid).
 - gmeow:metricGraphHops (a gmeow:MetricKind): Shortest-path edge count in a network or graph.
-- gmeow:metricSymplectic (a gmeow:MetricKind): The natural metric on a phase space, preserving the symplectic form ω = Σ dqᵢ ∧ dpᵢ. Used in Hamiltonian mechanics.
+- gmeow:metricSymplectic (a gmeow:MetricKind): Standard Euclidean distance metric on a finite-dimensional Hamiltonian phase space, treating the concatenated (q,p) state vector as a point in ℝ²ⁿ.
 - gmeow:modalityMachine (a gmeow:LanguageModality): machine / programmatic
 - gmeow:modalityMultimodal (a gmeow:LanguageModality): multimodal
 - gmeow:modalitySigned (a gmeow:LanguageModality): signed
@@ -1424,7 +1424,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:referenceFrameLocalGrid (a gmeow:ReferenceFrame): Local Grid Cartesian Reference Frame
 - gmeow:referenceFrameMAC (a gmeow:ReferenceFrame): MAC Address Space Reference Frame
 - gmeow:referenceFrameNetworkGraph (a gmeow:ReferenceFrame): Network Graph Reference Frame
-- gmeow:referenceFramePhaseSpace3DOF (a gmeow:ReferenceFrame): 3-DOF Phase Space Reference Frame
+- gmeow:referenceFramePhaseSpace3DOF (a gmeow:ReferenceFrame): Abstract Phase Space Reference Frame (q,p axes)
 - gmeow:referenceFramePort (a gmeow:ReferenceFrame): Port Number Space Reference Frame
 - gmeow:referenceFrameRobotArm6DOF (a gmeow:ReferenceFrame): 6-DOF Robot Arm Configuration Space
 - gmeow:referenceFrameRobotBase (a gmeow:ReferenceFrame): Robot Base Cartesian Reference Frame
