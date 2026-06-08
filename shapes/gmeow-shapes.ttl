@@ -1135,13 +1135,14 @@ gmeow:CoreObservationMethodShape
     sh:targetClass gmeow:Measurement ;
     sh:targetClass gmeow:SensoryObservation ;
     sh:targetClass gmeow:StandpointClaim ;
+    sh:targetClass gmeow:TemporalMeasurement ;
     sh:property [
         sh:path gmeow:observationMethod ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:class gmeow:ObservationMethod ;
         sh:severity sh:Violation ;
-        sh:message "A core observation (measurement, sensory, or standpoint claim) must record exactly one observation method (gmeow:observationMethod)." ;
+        sh:message "A core observation (measurement, sensory, standpoint claim, or temporal measurement) must record exactly one observation method (gmeow:observationMethod)." ;
     ] .
 
 # IdentityFacet well-formedness (#69) — the universal claim construct bridges.
@@ -1232,18 +1233,32 @@ gmeow:SupersededObservationSuppressionShape
 # Temporal kernel data shapes (#67)
 # --------------------------------------------------------------------------- #
 
-# A TemporalMeasurement needs a method and either an age or a date.
+# A TemporalMeasurement is an Observation: it needs vantage, observedFeature,
+# observationMethod, and either an observationResult (Instant) or a measuredAge.
 gmeow:TemporalMeasurementShape
     a sh:NodeShape ;
     rdfs:label "TemporalMeasurement well-formedness shape" ;
     sh:targetClass gmeow:TemporalMeasurement ;
     sh:property [
-        sh:path gmeow:measurementMethod ;
+        sh:path gmeow:vantage ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A TemporalMeasurement must record at least one vantage (gmeow:vantage)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:observedFeature ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A TemporalMeasurement must record exactly one observed feature (gmeow:observedFeature)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:observationMethod ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:class gmeow:DatingMethod ;
         sh:severity sh:Violation ;
-        sh:message "A TemporalMeasurement must record exactly one gmeow:measurementMethod." ;
+        sh:message "A TemporalMeasurement must record exactly one observation method (gmeow:observationMethod, range DatingMethod)." ;
     ] ;
     sh:or (
         [ sh:path gmeow:measuredAge ; sh:minCount 1 ; sh:datatype xsd:decimal ]
