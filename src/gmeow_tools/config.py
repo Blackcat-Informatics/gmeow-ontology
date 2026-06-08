@@ -270,6 +270,9 @@ PREFIXES: dict[str, str] = {
     "bibo": "http://purl.org/ontology/bibo/",
     "bibframe": "http://id.loc.gov/ontologies/bibframe/",
     "dpv": "https://w3id.org/dpv#",
+    "frbr": "http://purl.org/vocab/frbr/core#",
+    "fabio": "http://purl.org/spar/fabio/",
+    "lrmoo": "http://iflastandards.info/ns/lrm/lrmoo/",
     "sioc": "http://rdfs.org/sioc/ns#",
     "mads": "http://www.loc.gov/mads/rdf/v1#",
     "esco": "http://data.europa.eu/esco/model#",
@@ -477,6 +480,9 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "gvp": AlignmentTarget(
         "Getty Vocabulary Program", PREFIXES["gvp"], "ODC-BY-1.0", "concept_scheme"
     ),
+    "frbr": AlignmentTarget("FRBRcore", PREFIXES["frbr"], "CC-BY-3.0", "schema"),
+    "fabio": AlignmentTarget("FaBiO", PREFIXES["fabio"], "CC-BY-3.0", "schema"),
+    "lrmoo": AlignmentTarget("LRMoo", PREFIXES["lrmoo"], "CC-BY-3.0", "schema"),
     "bibo": AlignmentTarget("BIBO", PREFIXES["bibo"], "CC-BY-3.0", "schema"),
     "bibframe": AlignmentTarget("BIBFRAME", PREFIXES["bibframe"], "CC0-1.0", "schema"),
     "sioc": AlignmentTarget("SIOC", PREFIXES["sioc"], "W3C-Document", "schema"),
