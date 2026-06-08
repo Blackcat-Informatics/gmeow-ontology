@@ -588,7 +588,10 @@ gmeow:frameRealmTemporal     a gmeow:FrameRealm ; rdfs:label "temporal"@en .
 gmeow:frameRealmColourspace  a gmeow:FrameRealm ; rdfs:label "colourspace"@en .
 gmeow:frameRealmLinguistic   a gmeow:FrameRealm ; rdfs:label "linguistic"@en .
 gmeow:frameRealmPerceptual   a gmeow:FrameRealm ; rdfs:label "perceptual"@en ;
-    skos:definition "A perceptual or subjective domain in which values are expressed relative to a perceiver's sensory or cognitive frame (e.g. thermal comfort, olfactory quality, subjective loudness)."@en .
+    skos:definition "A perceptual or subjective domain in which values are expressed relative to a perceiver's sensory frame (e.g. thermal comfort, olfactory quality, subjective loudness)."@en .
+
+gmeow:frameRealmPsychological a gmeow:FrameRealm ; rdfs:label "psychological / cognitive"@en ;
+    skos:definition "A psychological or cognitive domain in which values are expressed relative to a mind's internal representational frame — conceptual spaces, affective states, cognitive maps, or imagined spaces (e.g. memory palace, dream). Hosted by the perceiver, thinker, or dreamer; the frame deactivates when its host does."@en .
 
 # Seeds for Frame Kind
 gmeow:frameKindGeodetic      a gmeow:FrameKind ; rdfs:label "geodetic"@en .
@@ -708,6 +711,18 @@ gmeow:axisJointAngle3     a gmeow:Axis ; rdfs:label "joint angle 3"@en .
 gmeow:axisJointAngle4     a gmeow:Axis ; rdfs:label "joint angle 4"@en .
 gmeow:axisJointAngle5     a gmeow:Axis ; rdfs:label "joint angle 5"@en .
 gmeow:axisJointAngle6     a gmeow:Axis ; rdfs:label "joint angle 6"@en .
+
+# Psychological / cognitive axes (#87)
+gmeow:axisValence              a gmeow:Axis ; rdfs:label "valence"@en ; skos:definition "The pleasure-displeasure dimension of affect (Russell circumplex)."@en .
+gmeow:axisArousal              a gmeow:Axis ; rdfs:label "arousal"@en ; skos:definition "The activation-deactivation dimension of affect (Russell circumplex)."@en .
+gmeow:axisConceptualSimilarity a gmeow:Axis ; rdfs:label "conceptual similarity"@en ; skos:definition "The similarity or distance between concepts in a Gärdenfors-style conceptual space."@en .
+gmeow:axisEgocentricForward    a gmeow:Axis ; rdfs:label "egocentric forward"@en ; skos:definition "The forward/backward axis of an egocentric cognitive map, relative to the agent's facing direction."@en .
+gmeow:axisEgocentricLateral    a gmeow:Axis ; rdfs:label "egocentric lateral"@en ; skos:definition "The left/right axis of an egocentric cognitive map, relative to the agent's facing direction."@en .
+gmeow:axisAllocentricX         a gmeow:Axis ; rdfs:label "allocentric X"@en ; skos:definition "The X axis of an allocentric (world-centred) cognitive map."@en .
+gmeow:axisAllocentricY         a gmeow:Axis ; rdfs:label "allocentric Y"@en ; skos:definition "The Y axis of an allocentric (world-centred) cognitive map."@en .
+gmeow:axisImaginedSpaceX       a gmeow:Axis ; rdfs:label "imagined space X"@en ; skos:definition "The X axis of an imagined or dream space (memory palace, dream landscape)."@en .
+gmeow:axisImaginedSpaceY       a gmeow:Axis ; rdfs:label "imagined space Y"@en ; skos:definition "The Y axis of an imagined or dream space (memory palace, dream landscape)."@en .
+gmeow:axisImaginedSpaceZ       a gmeow:Axis ; rdfs:label "imagined space Z"@en ; skos:definition "The Z axis of an imagined or dream space (memory palace, dream landscape)."@en .
 
 # Default Reference Frames for the seed realms
 gmeow:referenceFrameWGS84
@@ -1019,6 +1034,14 @@ gmeow:requiresHost
     rdfs:range xsd:boolean ;
     rdfs:label "requires host"@en ;
     skos:definition "Asserts whether a reference frame requires a hosting entity to exist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:isHostedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ReferenceFrame ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "is hosted by"@en ;
+    skos:definition "Relates a reference frame to the entity that hosts it — the entity whose existence bounds the frame's existence. A local grid is hosted by its building; a robot base frame by its robot; a mental reference frame by its perceiver (person, animal, or AI agent). When the host ceases to exist, the hosted frame deactivates (destruction event or existenceInterval end). Non-functional: contested authorship or multi-agent shared frames may have multiple host claims that coexist (Principle 9)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:parentFrame

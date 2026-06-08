@@ -5,6 +5,8 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix semapv:  <https://w3id.org/semapv/vocab/> .
 @prefix sosa:    <http://www.w3.org/ns/sosa/> .
+@prefix mfoem:   <http://purl.obolibrary.org/obo/MFOEM_> .
+@prefix mf:      <http://purl.obolibrary.org/obo/MF_> .
 
 # Term equivalences for the sensory environment layer — GMEOW authoring source.
 # Compiled to mappings/gmeow-sensory-environment.sssom.tsv by `gmeow compile-mappings`.
@@ -40,6 +42,28 @@
 #                PMV/PPD thermal comfort model in Standard 55 — Thermal
 #                Environmental Conditions for Human Occupancy.
 #                https://www.ashrae.org/technical-resources/bookstore/standard-55
+#
+# Issue #87 — Psychological / cognitive realm alignments.
+#
+#   CSO (Conceptual Space Ontology, Gärdenfors) — no stable resolvable RDF
+#                ontology with term IRIs. gmeow:referenceFrameConceptualSpace
+#                aligns structurally to CSO conceptual-space geometry.
+#                https://conceptualspaces.org/  https://github.com/ICLDisco/CSO
+#   Cognitive Atlas — a web-based knowledge base for cognitive neuroscience;
+#                no stable RDF/OWL ontology with resolvable term IRIs.
+#                gmeow:referenceFrameCognitiveMapEgocentric and
+#                referenceFrameCognitiveMapAllocentric align conceptually to
+#                Cognitive Atlas task/concept terms for egocentric and
+#                allocentric spatial processing.
+#                https://www.cognitiveatlas.org/
+#   Russell Circumplex — a psychological model, not an RDF ontology.
+#                gmeow:referenceFrameAffectiveCircumplex directly models the
+#                Russell 1980 valence×arousal 2D space.
+#                https://psycnet.apa.org/record/1980-26599-001
+#   MFOEM      — Emotion Ontology (OBO Foundry). Aligned via TermEquivalence
+#                below; term IDs are stable OBO PURLs.
+#   MF         — Mental Functioning Ontology (OBO Foundry). Aligned via
+#                TermEquivalence below; term IDs are stable OBO PURLs.
 
 gmeow:mapsetSensoryEnvironment a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" ;
@@ -94,4 +118,48 @@ gmeow:eqSenv005 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:comment "A SensoryPerception is a standpoint-indexed observation; SOSA does not distinguish observation types. The vantage (perceiver) aligns to sosa:madeBySensor." ;
+    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Issue #87 — Mental Functioning Ontology (MF) and Emotion Ontology (MFOEM)
+# --------------------------------------------------------------------------- #
+
+gmeow:eqSenv006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:MentalReferenceFrame ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject mf:0000020 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "mental process" ;
+    gmeow:comment "A MentalReferenceFrame is a reference system for mental/subjective coordinates, not a process itself; it is related to the mental processes (MF) that produce or consume coordinates in it." ;
+    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" .
+
+gmeow:eqSenv007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SensoryPerception ;
+    gmeow:alignPredicate skos:broadMatch ;
+    gmeow:alignObject mf:0000019 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "perceptual process" ;
+    gmeow:comment "A SensoryPerception is a standpoint-indexed perceptual claim; mf:perceptual process is the broader BFO-based process class. Directional: GMEOW adds the reference-frame coordinate result and standpoint indexing." ;
+    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" .
+
+gmeow:eqSenv008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameAffectiveCircumplex ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject mfoem:000195 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:objectLabel "affective process" ;
+    gmeow:comment "The Russell affective circumplex frame models the valence×arousal space in which affective processes (MFOEM) are situated. The frame is the reference system, not the process itself." ;
+    gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" .
+
+gmeow:eqSenv009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameAffectiveCircumplex ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject mfoem:000001 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "emotion process" ;
+    gmeow:comment "The affective circumplex frame is a coordinate reference system for emotion processes (MFOEM); the frame itself is not an emotion." ;
     gmeow:sssomFile "gmeow-sensory-environment.sssom.tsv" .
