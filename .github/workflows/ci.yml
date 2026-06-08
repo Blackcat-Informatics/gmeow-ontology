@@ -183,12 +183,40 @@ jobs:
       - name: RDF 1.2 round-trip / lossless / reasoning tests
         run: uv run pytest -q -m docker tests/test_statements.py
 
+  statements-pyoxigraph:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Sync environment
+        run: uv sync --frozen
+
+      - name: Build the pinned Jena image (RDF 1.2 engine) + pull ROBOT
+        run: |
+          JENA_IMAGE=$(uv run python -c "from gmeow_tools.config import JENA_IMAGE; print(JENA_IMAGE)")
+          docker build -t "$JENA_IMAGE" docker/jena
+          ROBOT_IMAGE=$(uv run python -c "from gmeow_tools.config import ROBOT_IMAGE; print(ROBOT_IMAGE)")
+          docker pull "$ROBOT_IMAGE"
+
+      - name: RDF 1.2 + OWL-form no-drift gate (pyoxigraph cross-check)
+        run: uv run gmeow compile-statements-pyoxigraph --check
+
+      - name: pyoxigraph projection / normalization / round-trip tests
+        run: uv run pytest -q tests/test_pyoxigraph_crosscheck.py
+
   # Aggregator gate. Branch protection requires the "quality" context; this job
   # keeps that single required check stable while the work runs in parallel
   # above. `if: always()` guarantees it reports a definite success/failure
   # (never a merge-blocking "skipped") and fails if any parallel job did not.
   quality:
-    needs: [lint, python, ontology, reason, reason-hermit, statements]
+    needs: [lint, python, ontology, reason, reason-hermit, statements, statements-pyoxigraph]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -200,9 +228,10 @@ jobs:
           REASON: ${{ needs.reason.result }}
           REASON_HERMIT: ${{ needs.reason-hermit.result }}
           STATEMENTS: ${{ needs.statements.result }}
+          STATEMENTS_PYOXIGRAPH: ${{ needs.statements-pyoxigraph.result }}
         run: |
-          echo "results: lint=$LINT python=$PYTHON ontology=$ONTOLOGY reason=$REASON reason-hermit=$REASON_HERMIT statements=$STATEMENTS"
-          for r in "$LINT" "$PYTHON" "$ONTOLOGY" "$REASON" "$REASON_HERMIT" "$STATEMENTS"; do
+          echo "results: lint=$LINT python=$PYTHON ontology=$ONTOLOGY reason=$REASON reason-hermit=$REASON_HERMIT statements=$STATEMENTS statements-pyoxigraph=$STATEMENTS_PYOXIGRAPH"
+          for r in "$LINT" "$PYTHON" "$ONTOLOGY" "$REASON" "$REASON_HERMIT" "$STATEMENTS" "$STATEMENTS_PYOXIGRAPH"; do
             if [ "$r" != "success" ]; then
               echo "::error::a quality job did not succeed ($r)"
               exit 1
