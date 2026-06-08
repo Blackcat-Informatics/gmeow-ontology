@@ -47,6 +47,23 @@ This skill guides the agent in running common development task runner commands.
   make check
   ```
 
+- **Refresh Checked-In Generated Artifacts**:
+  Regenerate all committed generated files from their canonical sources when you suspect drift:
+
+  ```bash
+  make regenerate
+  ```
+
+- **Commit with Auto-Refresh**:
+  Regenerate all checked-in generated artifacts, stage them, and commit in one step:
+
+  ```bash
+  make commit
+  make commit MESSAGE="feat: add foaf alignment"  # custom message
+  ```
+
+  `make commit` only stages the generated artifacts. If you also modified canonical source files, stage them with `git add` before running `make commit`, or amend the commit afterward.
+
 - **Clean Generated Artifacts**:
 
   ```bash
