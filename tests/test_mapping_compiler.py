@@ -13,6 +13,7 @@ from gmeow_tools.config import MAPPINGS_DIR, PREFIXES
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.mapping_compile import (
     _PROFILES,
+    _validate_sssom,
     emit_edoal,
     emit_fno,
     emit_sparql,
@@ -461,6 +462,26 @@ def test_sssom_object_label_and_provenance() -> None:
     assert "# mapping_tool: gmeow compile-mappings" in wikidata
     assert "# mapping_date:" in wikidata
     assert "# curie_map:" in wikidata
+
+
+def test_sssom_validates_with_sssom_toolkit() -> None:
+    """Every generated SSSOM file passes sssom-py schema validation."""
+    errors = _validate_sssom(emit_sssom(load_dsl()))
+    assert not errors, "\n".join(errors)
+
+
+def test_malformed_sssom_fails_validation() -> None:
+    """An invalid SSSOM TSV (unknown prefix) is caught by the validation gate."""
+    bad = (
+        "# mapping_tool: gmeow compile-mappings\n"
+        "# curie_map:\n"
+        "#   gmeow: https://example.org/\n"
+        "subject_id\tpredicate_id\tobject_id\n"
+        "unknown:Foo\tskos:closeMatch\tgmeow:B\n"
+    )
+    problems = _validate_sssom({"mappings/bad.sssom.tsv": bad})
+    assert problems
+    assert any("Missing prefix" in p for p in problems)
 
 
 def test_drift_flags_orphaned_sssom(tmp_path: Path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
