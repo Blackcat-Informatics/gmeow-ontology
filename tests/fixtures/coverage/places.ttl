@@ -117,7 +117,7 @@ ex:wgs84Frame a gmeow:ReferenceFrame ;
     gmeow:hasAxis gmeow:axisLatitude, gmeow:axisLongitude, gmeow:axisElevation ;
     gmeow:dimensionCount 3 ;
     gmeow:requiresHost false ;
-    gmeow:determinacyModel gmeow:determinacyExact .
+    gmeow:determinacyModel gmeow:determinacyCrisp .
 
 ex:drone a gmeow:PhysicalObject ;
     gmeow:hasPose ex:dronePose .

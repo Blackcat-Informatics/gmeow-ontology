@@ -118,7 +118,7 @@ Signature metadata (signer key, algorithm) is on the signature object itself via
 - **Not a truth guarantee.** `Attestation` records *who asserted what*; truth is a
   standpoint-indexed claim (`gmeow:StandpointClaim`) handled by the coreference module.
 - **Not a replacement for Certification.** `gmeow:Certification` (trust module) binds a
-  public key to an identity via a `gmeow:Certifier`; its property shape is different from
+  public key to an identity via a `gmeow:certifier`; its property shape is different from
   `Attestation` (which uses `attester`/`attestedSubject`/`attestedClaim`).  Certification is
   documented as a *specialisation* of attestation via `skos:scopeNote`, not a subclass.
 - **Not a trust score.** Verification yields a discrete status (`verified`/`failed`/
