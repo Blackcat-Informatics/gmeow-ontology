@@ -556,17 +556,21 @@ def apache() -> None:
 @app.command()
 def crossref() -> None:
     """Generate the CrossRef DOI deposit XML (deposit schema 5.4.0)."""
-    from gmeow_tools.config import CROSSREF_DOI_PREFIX, full_doi
     from gmeow_tools.crossref import write_deposit
+    from gmeow_tools.self_desc import load_self_description
 
+    try:
+        meta = load_self_description()
+    except (FileNotFoundError, ValueError) as exc:
+        raise _fail(f"✗ self-description unavailable: {exc}") from exc
     path = write_deposit()
     console.print(
-        f"[green]✓ {path.relative_to(path.parents[1])} (DOI {full_doi()})[/green]"
+        f"[green]✓ {path.relative_to(path.parents[1])} (DOI {meta.doi})[/green]"
     )
-    if CROSSREF_DOI_PREFIX == "10.XXXXX":
+    if meta.doi.startswith("10.XXXXX/"):
         err_console.print(
             "[yellow]note:[/yellow] DOI prefix is a placeholder — set "
-            "CROSSREF_DOI_PREFIX in config once CrossRef membership is finalized."
+            "the DOI in metadata/gmeow-self.ttl once CrossRef membership is finalized."
         )
 
 

@@ -18,14 +18,14 @@
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:AdoptiveParentChild	skos:closeMatch	gx:AdoptiveParent	semapv:ManualMappingCuration	0.9	
 gmeow:BiologicalParentChild	skos:closeMatch	gx:BiologicalParent	semapv:ManualMappingCuration	0.9	
-gmeow:Citation	skos:closeMatch	gxv:SourceReference	semapv:ManualMappingCuration	0.85	
 gmeow:CoupleRelationship	skos:closeMatch	gx:Couple	semapv:ManualMappingCuration	0.95	
+gmeow:CreativeWork	skos:closeMatch	gxv:SourceDescription	semapv:ManualMappingCuration	0.85	Source-hood is anti-rigid; the described thing is a CreativeWork (WEMI) bearing SourceRole.
 gmeow:FosterParentChild	skos:closeMatch	gx:FosterParent	semapv:ManualMappingCuration	0.9	
 gmeow:ParentChildRelationship	skos:closeMatch	gx:ParentChild	semapv:ManualMappingCuration	0.95	
 gmeow:Person	skos:closeMatch	gxv:Person	semapv:ManualMappingCuration	0.9	
 gmeow:PersonName	skos:closeMatch	gxv:Name	semapv:ManualMappingCuration	0.9	
 gmeow:Place	skos:closeMatch	gn:Feature	semapv:ManualMappingCuration	0.7	GeoNames feature
-gmeow:Source	skos:closeMatch	gxv:SourceDescription	semapv:ManualMappingCuration	0.85	
+gmeow:Selector	skos:closeMatch	gxv:SourceReference	semapv:ManualMappingCuration	0.85	The retired gmeow:Citation locator is replaced by gmeow:Selector.
 gmeow:StepParentChild	skos:closeMatch	gx:StepParent	semapv:ManualMappingCuration	0.9	
 gmeow:hasChild	skos:closeMatch	bio:child	semapv:ManualMappingCuration	0.9	
 gmeow:hasChild	skos:closeMatch	gedcom:child	semapv:ManualMappingCuration	0.8	legacy W3C gedcom

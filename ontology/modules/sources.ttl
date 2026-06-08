@@ -9,64 +9,43 @@
 <https://blackcatinformatics.ca/gmeow/modules/sources>
     a owl:Ontology ;
     rdfs:label "GMEOW Sources Module"@en ;
-    rdfs:comment "Sources, citations, and the evidence layer — a cross-cutting facility (reused by genealogy and every other slice) for evidence-based, source-cited claims. Per-claim confidence is carried by gmeow:confidence (provenance module)."@en ;
+    rdfs:comment """Sources, citations, and the evidence layer — a cross-cutting facility
+(reused by genealogy and every other slice) for evidence-based, source-cited claims.
+Refactored in #211: the anti-rigid Source Kind is retired; source-hood is mediated by
+CitationAct or borne as SourceRole. The Citation locator is retired in favor of Selector
+(in the citations module). Carrier metadata now applies to Manifestation/Item."""@en ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:Source
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Source"@en ;
-    skos:definition "A source from which evidence is drawn: a record, certificate, register, archive entry, or publication."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:Citation
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Citation"@en ;
-    skos:definition "A reference to a specific place within a source (a page, entry, image, or record locator)."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:hasSource
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Entity ;
-    rdfs:range gmeow:Source ;
-    rdfs:label "has source"@en ;
-    skos:definition "Relates an entity or reified claim to a source that provides evidence for it. The strength of that evidence is recorded with gmeow:confidence on the supported statement."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:citesSource
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Citation ;
-    rdfs:range gmeow:Source ;
-    rdfs:label "cites source"@en ;
-    skos:definition "Relates a citation to the source it points into."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-# Carrier metadata — when a source is an import "envelope" (a file carrying a
+# Carrier metadata — when a creative work is an import "envelope" (a file carrying a
 # bundle of claims), these describe the artifact itself, not the claims. The
 # carrier's modification time is a terminus-ante-quem on the recording of its
 # claims (see gmeow:recordedNoLaterThan), never their tenure or observation time.
+# Re-homed from the retired gmeow:Source Kind to CreativeWork (#211);
+# typically asserted on Manifestation or Item.
 
 gmeow:sourceModifiedAt
     a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Source ;
+    rdfs:domain gmeow:CreativeWork ;
     rdfs:range xsd:dateTime ;
     rdfs:label "source modified at"@en ;
     skos:definition "The last-modification time of the source artifact itself (e.g. a file mtime). A terminus-ante-quem on the recording of the claims this source carries — NOT valid-time (tenure) and NOT observation-time. Advisory and resettable; the reliable identity is gmeow:contentDigest. NOT functional: because a source is identified by its content digest, copies/syncs of the same bytes may legitimately report different modification times, which must coexist rather than force an inconsistency."@en ;
+    skos:scopeNote "Typically asserted on a Manifestation or Item."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:contentDigest
     a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Source ;
+    rdfs:domain gmeow:CreativeWork ;
     rdfs:range rdfs:Literal ;
     rdfs:label "content digest"@en ;
     skos:definition "A content hash of the source's bytes (e.g. \"blake3:…\") — the reliable carrier identity (two imports of the same bytes are the same source, regardless of mtime or path). Not functional: a source may carry digests under several algorithms."@en ;
+    skos:scopeNote "Typically asserted on a Manifestation or Item."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:sourceLocation
     a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Source ;
+    rdfs:domain gmeow:CreativeWork ;
     rdfs:range rdfs:Literal ;
     rdfs:label "source location"@en ;
     skos:definition "Where the source artifact came from — a file path, original filename, or URL. Provenance/audit only; carries no reliable identity."@en ;
+    skos:scopeNote "Typically asserted on a Manifestation or Item."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

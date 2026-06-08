@@ -26,16 +26,12 @@ from typing import TypeGuard
 
 from rdflib import OWL, RDF, RDFS, SKOS, BNode, Graph, URIRef
 
-from gmeow_tools.config import (
-    DIST_DIR,
-    NAMESPACE,
-    ONTOLOGY_IRI,
-    PREFIXES,
-    TITLE,
-    VERSION,
-)
+from gmeow_tools.config import DIST_DIR, NAMESPACE, ONTOLOGY_IRI, PREFIXES
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
+from gmeow_tools.self_desc import load_self_description
+
+_meta = load_self_description()
 
 #: Property rdf:type → short kind label.
 _PROPERTY_KINDS: dict[URIRef, str] = {
@@ -380,7 +376,7 @@ def write_csvw(dist_dir: Path) -> Path:
 
     descriptor: dict[str, object] = {
         "@context": "http://www.w3.org/ns/csvw",
-        "dc:title": f"{TITLE} — term dictionaries",
+        "dc:title": f"{_meta.title} — term dictionaries",
         "dc:source": ONTOLOGY_IRI,
         "tables": [
             table("gmeow-classes.csv", _CLASS_COLUMNS),
@@ -409,9 +405,9 @@ def write_markdown(terms: list[Term], dist_dir: Path) -> Path:
     properties = [t for t in terms if t.category == "property"]
     individuals = [t for t in terms if t.category == "individual"]
     lines = [
-        f"# {TITLE} — term reference",
+        f"# {_meta.title} — term reference",
         "",
-        f"Generated from the GMEOW {VERSION} vocabulary "
+        f"Generated from the GMEOW {_meta.version} vocabulary "
         f"({len(classes)} classes, {len(properties)} properties, "
         f"{len(individuals)} individuals). The OWL source is canonical.",
         "",
@@ -461,14 +457,14 @@ def write_llms_txt(terms: list[Term], dist_dir: Path) -> Path:
     properties = [t for t in terms if t.category == "property"]
     individuals = [t for t in terms if t.category == "individual"]
     lines = [
-        f"# {TITLE}",
+        f"# {_meta.title}",
         "",
         "> A reasoning-centric, OWL 2 DL, gUFO-grounded super-vocabulary that "
         "unifies a person's or organization's digital existence (entities, "
         "contacts, email, trust/keys, time) and aligns it to schema.org, FOAF, "
         "PROV, the WOT schema, Wikidata, and more.",
         "",
-        f"Vocabulary {VERSION}. Namespace: {NAMESPACE}. Each term below is "
+        f"Vocabulary {_meta.version}. Namespace: {NAMESPACE}. Each term below is "
         "`curie` — definition; the OWL source is canonical.",
         "",
         "## Classes",

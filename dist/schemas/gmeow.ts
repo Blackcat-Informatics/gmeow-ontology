@@ -198,6 +198,20 @@ export enum CelestialReferenceOriginEnum {
     topocentric_LEFT_PARENTHESISobservatory_siteRIGHT_PARENTHESIS = "refOriginTopocentric",
 };
 
+export enum CitationIntentEnum {
+
+    bridged_by_reference = "intentBridgedByReference",
+    cites_as_data_source = "intentCitesAsDataSource",
+    conforms_to = "intentConformsTo",
+    derived_from = "intentDerivedFrom",
+    disagrees_with = "intentDisagreesWith",
+    documents = "intentDocuments",
+    extends = "intentExtends",
+    is_inspired_by = "intentIsInspiredBy",
+    supports = "intentSupports",
+    uses_method_in = "intentUsesMethodIn",
+};
+
 export enum ConflictStrategyEnum {
 
     policy_void_on_conflict = "conflictInvalid",
@@ -229,19 +243,40 @@ export enum ConstraintOperatorEnum {
     not_equal_to = "operatorNeq",
 };
 
+export enum ContributionDegreeEnum {
+
+    equal = "degreeEqual",
+    lead = "degreeLead",
+    supporting = "degreeSupporting",
+};
+
 export enum ContributionRoleEnum {
 
     author = "roleAuthor",
     composer = "roleComposer",
+    conceptualization = "roleConceptualization",
     cover_artist = "roleCoverArtist",
+    data_curation = "roleDataCuration",
     director = "roleDirector",
     editor = "roleEditor",
+    formal_analysis = "roleFormalAnalysis",
+    funding_acquisition = "roleFundingAcquisition",
     illustrator = "roleIllustrator",
+    investigation = "roleInvestigation",
     LLM_assisted_editor = "roleLLMAssistedEditor",
     letterer = "roleLetterer",
+    methodology = "roleMethodology",
     narrator = "roleNarrator",
     photographer = "rolePhotographer",
+    project_administration = "roleProjectAdministration",
+    resources = "roleResources",
+    software = "roleSoftware",
+    supervision = "roleSupervision",
     translator = "roleTranslator",
+    validation = "roleValidation",
+    visualization = "roleVisualization",
+    writing_EN_DASH_original_draft = "roleWritingOriginalDraft",
+    writing_EN_DASH_review_AMPERSAND_editing = "roleWritingReviewEditing",
 };
 
 export enum CopyrightStatusEnum {
@@ -1653,8 +1688,16 @@ export interface Certification {
 
 
 
-export interface Citation extends InformationObject {
-    citesSource?: Source,
+export interface CitationAct {
+    citationIntent?: CitationIntent,
+    citedEntity?: CreativeWork,
+    citingEntity?: Entity,
+    viaSelector?: Selector[],
+}
+
+
+
+export interface CitationIntent {
 }
 
 
@@ -1704,9 +1747,15 @@ export interface Contract extends Agreement {
 
 
 export interface Contribution {
+    contributionDegree?: ContributionDegree,
     contributionRole?: ContributionRole,
     contributionTarget?: CreativeWork,
     contributor?: Agent,
+}
+
+
+
+export interface ContributionDegree {
 }
 
 
@@ -1754,6 +1803,7 @@ export interface CoupleRelationship extends KinRelationship {
 
 
 export interface CreativeWork extends InformationObject {
+    contentDigest?: string,
     datePublished?: string,
     editionOf?: CreativeWork,
     hasAuthor?: Agent[],
@@ -1765,6 +1815,8 @@ export interface CreativeWork extends InformationObject {
     hasTranslator?: Agent[],
     identifier?: string,
     sourceFor?: NarrativeReferenceFrame[],
+    sourceLocation?: string,
+    sourceModifiedAt?: string,
     title?: string,
 }
 
@@ -1874,6 +1926,7 @@ export interface Entity {
     attributionText?: string,
     attributionUrl?: string,
     authorityLink?: string[],
+    cites?: CreativeWork[],
     conditionsOfAccess?: string,
     counterpartOf?: Entity[],
     description?: string,
@@ -1889,7 +1942,6 @@ export interface Entity {
     hasRightsStatement?: RightsStatement[],
     hasSensoryObservation?: SensoryObservation[],
     hasSensoryQuantity?: SensoryQuantity[],
-    hasSource?: Source[],
     hasSpatialMeasurement?: SpatialMeasurement[],
     hasStream?: Stream[],
     hasTag?: Tag[],
@@ -2996,6 +3048,15 @@ export interface ScriptRole {
 
 
 
+export interface Selector extends InformationObject {
+    selectorLocator?: string,
+    selectorPage?: string,
+    selectorTextPosition?: string,
+    selectorTextQuote?: string,
+}
+
+
+
 export interface SensitivityLevel {
 }
 
@@ -3124,10 +3185,7 @@ export interface SoftwareProject extends Work {
 
 
 
-export interface Source extends InformationObject {
-    contentDigest?: string,
-    sourceLocation?: string,
-    sourceModifiedAt?: string,
+export interface SourceRole extends CreativeWork {
 }
 
 
@@ -3371,7 +3429,7 @@ export interface UsageAttestation extends Observation {
     attestedForm?: LexicalForm,
     attestedInContext?: Entity[],
     attestedInLanguage?: Language[],
-    attestedInSource?: Source[],
+    attestedInSource?: CreativeWork[],
 }
 
 

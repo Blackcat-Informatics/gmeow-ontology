@@ -40,15 +40,15 @@ def test_activity_agent_link_is_event_safe() -> None:
 
 def test_carrier_and_ingestion_props() -> None:
     graph = _graph()
-    # sourceModifiedAt: on the Source (carrier time), and NOT functional — copies
-    # of the same content-addressed source may report different mtimes, which must
+    # sourceModifiedAt: on the CreativeWork (carrier time), and NOT functional — copies
+    # of the same content-addressed artifact may report different mtimes, which must
     # coexist rather than force a global inconsistency.
     src_modified = URIRef(GMEOW + "sourceModifiedAt")
     assert (src_modified, RDF.type, OWL.FunctionalProperty) not in graph
-    assert (src_modified, RDFS.domain, URIRef(GMEOW + "Source")) in graph
+    assert (src_modified, RDFS.domain, URIRef(GMEOW + "CreativeWork")) in graph
     # ingestedAt: functional (transaction time).
     assert (URIRef(GMEOW + "ingestedAt"), RDF.type, OWL.FunctionalProperty) in graph
-    # contentDigest is NOT functional (a source may carry several algorithms).
+    # contentDigest is NOT functional (an artifact may carry several algorithms).
     assert (
         URIRef(GMEOW + "contentDigest"),
         RDF.type,

@@ -28,13 +28,13 @@ provenance bug:
 |---|---|---|---|
 | **Valid time** | when the fact holds in the world (tenure) | `gmeow:validFrom` / `gmeow:validUntil` | the claim (RDF-star) |
 | **Assertion time** | when an agent observed/asserted it (email `Date`, vCard `REV`) | `gmeow:assertedAt` | the claim (RDF-star) |
-| **Carrier time** | when the artifact bearing the claim was last written (`mtime`) | `gmeow:sourceModifiedAt` | the **`gmeow:Source`** (the file) |
+| **Carrier time** | when the artifact bearing the claim was last written (`mtime`) | `gmeow:sourceModifiedAt` | the **`gmeow:Manifestation`** (the file) |
 | **Transaction time** | when *we* recorded it | `gmeow:ingestedAt` | the **`gmeow:ImportActivity`** |
 
 A plain vCard gives you only **carrier time** (and you stamp transaction time at
 import). It is silent on validity and observation. The cardinal rule:
 
-> **`mtime` is carrier metadata, not claim metadata.** Put it on the `Source`,
+> **`mtime` is carrier metadata, not claim metadata.** Put it on the `Manifestation`,
 > never in a claim's `validFrom` or `assertedAt` slot — that would fabricate
 > precision you don't have.
 
@@ -57,7 +57,7 @@ not a point:
 
 ## The new terms
 
-### On the `Source` (the envelope) — `sources` module
+### On the `Manifestation` (the envelope) — `sources` module
 
 - **`gmeow:sourceModifiedAt`** (`xsd:dateTime`) — the carrier's last-modification
   time (the file `mtime`). A terminus-ante-quem on the recording of the claims it
@@ -66,8 +66,8 @@ not a point:
   different mtimes, which must coexist rather than force an inconsistency.
 - **`gmeow:contentDigest`** (`xsd:string`-ish literal) — a content hash, e.g.
   `"blake3:9f86…"`. **This is the reliable identity** of the carrier: two imports
-  of the same bytes are the same `Source` regardless of `mtime` or path. (Not
-  functional — a source may carry digests under several algorithms.)
+  of the same bytes are the same `Manifestation` regardless of `mtime` or path. (Not
+  functional — an artifact may carry digests under several algorithms.)
 - **`gmeow:sourceLocation`** — the origin path / filename / URL. Audit only; no
   identity value.
 
@@ -99,7 +99,7 @@ provenance:
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://example.org/import/> .
 
-ex:bob-vcf a gmeow:Source ;
+ex:bob-vcf a gmeow:Manifestation ;
     gmeow:sourceLocation   "/imports/contacts/bob.vcf" ;
     gmeow:sourceModifiedAt "2009-03-14T08:22:00Z"^^xsd:dateTime ;  # carrier time
     gmeow:contentDigest    "blake3:9f86d081…" .                     # reliable id
@@ -114,7 +114,7 @@ ex:import-2026-06-05 a gmeow:ImportActivity ;
 ex:bob a gmeow:Person ;
     gmeow:name  "Bob" ;
     gmeow:email "bob@bob.dob" ;
-    gmeow:hasSource      ex:bob-vcf ;          # evidence
+    gmeow:cites          ex:bob-vcf ;          # evidence
     gmeow:wasDerivedFrom ex:bob-vcf ;          # provenance
     gmeow:wasGeneratedBy ex:import-2026-06-05 .
 ```
@@ -126,7 +126,7 @@ so each statement carries its own evidence, confidence, and clocks:
 # "Bob's email is bob@bob.dob" — derived from the vCard, recorded no later than
 # the file's mtime, with low confidence in that bound.
 << ex:bob gmeow:email "bob@bob.dob" >>
-    gmeow:hasSource            ex:bob-vcf ;
+    gmeow:cites                ex:bob-vcf ;
     gmeow:recordedNoLaterThan  "2009-03-14T08:22:00Z"^^xsd:dateTime ;
     gmeow:confidence           0.3 .
 ```
@@ -139,17 +139,17 @@ and the derived `recordedNoLaterThan` becomes redundant.
 
 | vCard / file fact | GMEOW term | Clock / role |
 |---|---|---|
-| file `mtime` | `gmeow:sourceModifiedAt` (on the `Source`) | carrier time |
+| file `mtime` | `gmeow:sourceModifiedAt` (on the `Manifestation`) | carrier time |
 | file path / original name | `gmeow:sourceLocation` | provenance |
 | BLAKE3 of bytes | `gmeow:contentDigest` | **identity** |
 | the import run | `gmeow:ImportActivity` + `gmeow:ingestedAt` | transaction time |
 | `REV` (if present) | `gmeow:assertedAt` (on the claim) | observation |
 | *(no `REV`)* → derive from `mtime` | `gmeow:recordedNoLaterThan` (low confidence) | derived bound |
-| `FN`, `EMAIL`, … | the claims, linked by `gmeow:hasSource` / `gmeow:wasDerivedFrom` | — |
+| `FN`, `EMAIL`, … | the claims, linked by `gmeow:cites` / `gmeow:wasDerivedFrom` | — |
 
 ## Using the bound well
 
-- **Audit / dedup:** always link claims to their `Source`; identify the source by
+- **Audit / dedup:** always link claims to their `Manifestation`; identify the source by
   `contentDigest`, not `sourceLocation` or `sourceModifiedAt`.
 - **Cross-import recency:** when two envelopes disagree, the carrier with the
   later `sourceModifiedAt` is a *tiebreaker* for which claim was recorded more

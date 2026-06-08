@@ -56,11 +56,12 @@ gmeow:eqProvenance005 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
 
 gmeow:eqProvenance006 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Source ;
+    gmeow:alignSubject gmeow:CreativeWork ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject prov:Entity ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
+    gmeow:comment "Source-hood is anti-rigid; the described thing is a CreativeWork (WEMI)." ;
     gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
 
 gmeow:eqProvenance007 a gmeow:TermEquivalence ;

@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from xml.etree import ElementTree as ET
 
-from gmeow_tools.config import ONTOLOGY_IRI, full_doi
+from gmeow_tools.config import ONTOLOGY_IRI
 from gmeow_tools.crossref import CR_NS, build_deposit_xml
+from gmeow_tools.self_desc import full_doi
 
 
 def _parse(xml: str) -> ET.Element:

@@ -12,20 +12,6 @@ from enum import StrEnum
 from pathlib import Path
 
 # --------------------------------------------------------------------------- #
-# Version
-# --------------------------------------------------------------------------- #
-
-#: Semantic version of the ontology release. Drives ``owl:versionIRI`` and the
-#: CITATION/DOI metadata. Bump on every release (releases are immutable).
-VERSION = "0.1.0"
-
-#: Release date (ISO-8601). Used for the DOI deposit publication date.
-RELEASE_DATE = "2026-06-03"
-
-#: Human-readable title (shared by metadata, citation, and DOI deposit).
-TITLE = "GMEOW — Global Metadata and Entity Ontology for the Web"
-
-# --------------------------------------------------------------------------- #
 # IRIs (slash namespace, schema.org style — see plan)
 # --------------------------------------------------------------------------- #
 
@@ -39,11 +25,11 @@ NAMESPACE = ONTOLOGY_IRI + "/"
 VOID_DATASET_IRI = ONTOLOGY_IRI + "/.well-known/void.ttl#dataset"
 
 
-def version_iri(version: str = VERSION) -> str:
+def version_iri(version: str) -> str:
     """Return the ``owl:versionIRI`` for a given semantic version.
 
     Args:
-        version: Semantic version string (defaults to :data:`VERSION`).
+        version: Semantic version string.
 
     Returns:
         The immutable, version-specific IRI for the release artifact.
@@ -140,31 +126,6 @@ WIDOCO_IMAGE = "ghcr.io/dgarijo/widoco:v1.4.25"
 JENA_IMAGE = "stain/jena:5.4.0"
 
 # --------------------------------------------------------------------------- #
-# CrossRef DOI deposit
-#
-# Blackcat Informatics mints GMEOW's DOI as a CrossRef member (its own prefix),
-# rather than via Zenodo. The values below are the registrant-specific deposit
-# parameters; the prefix is a placeholder until membership is finalized.
-# --------------------------------------------------------------------------- #
-
-#: CrossRef DOI prefix assigned to the registrant. PLACEHOLDER — replace with the
-#: real prefix (e.g. "10.71234") once CrossRef membership is finalized.
-CROSSREF_DOI_PREFIX = "10.XXXXX"
-#: DOI suffix for the ontology (DOI = ``{prefix}/{suffix}``).
-CROSSREF_DOI_SUFFIX = "gmeow"
-#: Depositor / registrant identity for the deposit batch.
-CROSSREF_DEPOSITOR_NAME = "Blackcat Informatics Inc."
-#: Depositor email registered with CrossRef. PLACEHOLDER — set to the real one.
-CROSSREF_DEPOSITOR_EMAIL = "doi@blackcatinformatics.ca"
-CROSSREF_REGISTRANT = "Blackcat Informatics Inc."
-
-
-def full_doi() -> str:
-    """Return the full GMEOW DOI (``{prefix}/{suffix}``)."""
-    return f"{CROSSREF_DOI_PREFIX}/{CROSSREF_DOI_SUFFIX}"
-
-
-# --------------------------------------------------------------------------- #
 # Namespace prefixes (single registry — drives serialization + JSON-LD context)
 # --------------------------------------------------------------------------- #
 
@@ -224,6 +185,9 @@ PREFIXES: dict[str, str] = {
     "crm": "http://www.cidoc-crm.org/cidoc-crm/",
     "crminf": "http://www.ics.forth.gr/isl/CRMinf/",
     "oa": "http://www.w3.org/ns/oa#",
+    "cito": "http://purl.org/spar/cito/",
+    "credit": "https://credit.niso.org/contributor-roles/",
+    "pav": "http://purl.org/pav/",
     "org": "http://www.w3.org/ns/org#",
     "moat": "http://moat-project.org/ns#",
     "tags": "http://www.holygoat.co.uk/owl/redwood/0.1/tags/",

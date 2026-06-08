@@ -50,7 +50,7 @@ gmeow:UsageAttestation
 # EL axiomatisation: every UsageAttestation mediates at least one form and one source.
 gmeow:UsageAttestation rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:attestedForm ;     owl:someValuesFrom gmeow:LexicalForm ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:attestedInSource ; owl:someValuesFrom gmeow:Source ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:attestedInSource ; owl:someValuesFrom gmeow:CreativeWork ] .
 
 gmeow:EtymologicalDerivation
     a owl:Class, gufo:SubKind ;
@@ -145,9 +145,9 @@ gmeow:attestedInLanguage
 gmeow:attestedInSource
     a owl:ObjectProperty ;
     rdfs:domain gmeow:UsageAttestation ;
-    rdfs:range gmeow:Source ;
+    rdfs:range gmeow:CreativeWork ;
     rdfs:label "attested in source"@en ;
-    skos:definition "The bibliographic or documentary source in which the attested form was observed. NON-FUNCTIONAL: an attestation may be supported by multiple sources, and competing source attributions coexist (Principle 9). Reuses the existing Source class from the sources module."@en ;
+    skos:definition "The bibliographic or documentary source in which the attested form was observed. NON-FUNCTIONAL: an attestation may be supported by multiple sources, and competing source attributions coexist (Principle 9). Targets a CreativeWork (the retired Source Kind was greenfield-refactored in #211)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:attestedInContext

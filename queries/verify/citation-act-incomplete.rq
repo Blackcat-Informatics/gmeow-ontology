@@ -1,0 +1,23 @@
+# ROBOT verify QC (#211) — Every CitationAct must have exactly one
+# citingEntity, one citedEntity, and one citationIntent.
+# Any returned row is a FAILURE.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?citation ?missing WHERE {
+    ?citation a gmeow:CitationAct .
+    {
+        BIND("citingEntity" AS ?missing)
+        FILTER NOT EXISTS { ?citation gmeow:citingEntity ?e }
+    }
+    UNION
+    {
+        BIND("citedEntity" AS ?missing)
+        FILTER NOT EXISTS { ?citation gmeow:citedEntity ?w }
+    }
+    UNION
+    {
+        BIND("citationIntent" AS ?missing)
+        FILTER NOT EXISTS { ?citation gmeow:citationIntent ?i }
+    }
+}
