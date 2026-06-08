@@ -21,10 +21,17 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:Article (⊑ gmeow:CreativeWork): A written work published in a periodical, blog, or scholarly venue.
 - gmeow:AtomicConstraint (⊑ gmeow:Constraint): A single ODRL constraint comparison: a gmeow:leftOperand (the dimension tested), a gmeow:constraintOperator (the comparison), and a gmeow:rightOperand (the value). E.g. leftOperand dateTime, operator lteq, rightOperand 2030-01-01 — 'valid until 2030'.
 - gmeow:Attachment (⊑ gmeow:BodyPart): A non-inline body part presented as an attached file. An attachment may also be a gmeow:Document or gmeow:MediaObject (the two are not disjoint), and its text extraction or summary is a derived object linked by gmeow:wasDerivedFrom.
+- gmeow:Attestation (⊑ gufo:Relator): A reified assertion envelope that an attester vouches for a claim, artifact, identity binding, process, quality report, or ledger claim under a specific policy. Mediates between an attester, an attested subject, and optionally an attested claim or artifact. Distinct from Observation: an attestation is a vouching act, not a measurement or sensory reading. Its validity window is carried with gmeow:validFrom/validUntil; revocation sets validUntil (Principle 10).
+- gmeow:AttestationArtifact (⊑ gmeow:InformationObject): A concrete carrier of an attestation — in-toto JSON, SLSA provenance, W3C Verifiable Credential, DSSE envelope, C2PA manifest, EAT token, signed RDF graph, SCITT signed statement, nanopublication, signed git tag, release manifest, or signed blockchain payload. The artifact is the serialization; the Attestation is the logical vouching act that the artifact carries.
+- gmeow:AttestationPolicy (⊑ gufo:QualityValue): The policy or framework under which an attestation was issued — a value vocabulary (individuals, never subclasses). Open-ended; specific policies are minted as needed.
+- gmeow:AttestationType (⊑ gufo:QualityValue): The kind of attestation being made — a value vocabulary (individuals, never subclasses). Distinguishes SLSA provenance, in-toto attestation, VC, DSSE envelope, C2PA manifest, EAT token, signed RDF, SCITT statement, nanopublication, blockchain claim, git signed tag, release manifest, quality report attestation, and AI output attestation.
 - gmeow:AuthenticationResult (⊑ gmeow:InformationObject): The outcome of an email authentication check (RFC 8601 Authentication-Results) — a method (DKIM, SPF, DMARC, ARC), a verdict, and the verifying server.
 - gmeow:Axis (⊑ gmeow:Entity, gufo:Object): A coordinate axis or dimension of a reference frame (e.g. X, Y, Z, latitude, longitude, elevation, time).
 - gmeow:BiologicalParentChild (⊑ gmeow:ParentChildRelationship): A parent-child relationship by biological descent.
 - gmeow:BiologicalSequenceLocation (⊑ gmeow:Location): A sequence-level container locus — a chromosome, contig, scaffold, or the sequence itself — that hosts SequenceFeature annotations via gmeow:hasSequenceFeature. The features themselves (genes, exons, SNPs, etc.) are SequenceFeature instances with their own coordinates and types; they are not BiologicalSequenceLocation instances.
+- gmeow:Block (⊑ gmeow:InformationObject): A block of transactions on a distributed ledger or blockchain.
+- gmeow:BlockchainAccount (⊑ gmeow:Entity): An address-controlled account on a blockchain or distributed ledger — the entity that holds assets, signs transactions, or controls a smart contract. Aligns to CAIP-10 account identifiers and did:pkh.
+- gmeow:BlockchainNetwork (⊑ gmeow:Entity): A blockchain network identified by a chain identifier (e.g. CAIP-2 chainId).
 - gmeow:BodyPart (⊑ gmeow:InformationObject): A MIME part of a message's body, with a media type and content.
 - gmeow:BookRelease (⊑ gmeow:CreativeWork): A concrete published edition or release of a book — an out-of-universe information object and rights-bearing publication artifact. Distinct from the in-universe narrative frame it contributes to; linked via gmeow:sourceFor.
 - gmeow:CadastralReference (⊑ gmeow:InformationObject): A structured identifier for a land-administration record — a parcel number, folio identifier, title number, lot reference, or survey plan reference issued by a cadastral registry. Carries the reference value, its type, the issuing authority, and the jurisdiction under which it is valid. Temporal validity (re-survey, re-numbering) is carried with validFrom / validUntil on the reference itself.
@@ -107,6 +114,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:LanguageProficiency (⊑ gufo:Relator): A reified, leveled proficiency of an agent in a language, in a particular skill modality — the gufo:Relator binding {agent} × {language} × {skill modality} × {level on a scale}, mirroring names' gmeow:NameUsage. Mint one per (agent, language, modality) so 'native overall' and 'B2 writing' coexist. The base gmeow:knowsLanguage relation states that an agent knows a language; this relator adds the level and the skill.
 - gmeow:LanguageStatus (⊑ gufo:QualityValue): The vitality status of a language (living, historical, extinct, dormant, revived, emerging, proposed, constructed-active). A value carried by gmeow:languageStatus.
 - gmeow:LanguageVersion (⊑ gmeow:Language): A concrete, dated revision of a language that is itself a fully usable language (Ithkuil 1993 / 2011 / New Ithkuil; an AI language v1 / v2). Subclass of gmeow:Language so a version bears its own scripts, names and status; gmeow:versionOf links it to the lineage language, gmeow:supersedes orders versions, and gmeow:wasDerivedFrom records derivation. Forward-looking for rapidly-versioned AI languages.
+- gmeow:LedgerEvent (⊑ gmeow:Event): An event emitted by a smart contract or recorded on a ledger — a log entry, oracle callback, or bridge message.
+- gmeow:LedgerFinalityStatus (⊑ gufo:QualityValue): The finality state of a ledger transaction or block — a value vocabulary (individuals, never subclasses).
+- gmeow:LedgerTransaction (⊑ gmeow:InformationObject): A transaction recorded on a distributed ledger or blockchain — the information-object representation of the payload, not the on-chain bytes themselves.
 - gmeow:LeftOperand (⊑ gufo:QualityValue): The dimension an atomic constraint tests — an OPEN value vocabulary mirroring the ODRL leftOperand vocabulary (dateTime, spatial, count, purpose, recipient, industry, …).
 - gmeow:License (⊑ gmeow:Agreement): A licence granting rights in a work — modelled as a gmeow:Agreement (it binds licensor and licensee and creates permissions / duties). The canonical superset of cc:License / an ODRL Offer / dcterms:LicenseDocument. Its validity window rides gmeow:validFrom / gmeow:validUntil; its family is a gmeow:licenseFamily value.
 - gmeow:LicenseFamily (⊑ gufo:QualityValue): The family of a licence — public-domain, Creative Commons, permissive, copyleft, proprietary, or dual. An OPEN value vocabulary; the ontology-side reflection of the config.py license classification, not a duplicate of it.
@@ -207,7 +217,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:SexAssignedAtBirth (⊑ gufo:QualityValue): A recorded sex-assigned-at-birth value pointed at by gmeow:sexAssignedAtBirth — a VALUE, never a subclass. Deliberately coarse and inclusive (incl. intersex); finer sex-characteristic detail is an optional free-text gmeow:intersexVariation note, not a clinical taxonomy.
 - gmeow:SexualOrientation (⊑ gmeow:IdentityFacet): A person's SELF-ASSERTED sexual orientation — the pattern of their sexual attraction — as a reified facet pointing (via gmeow:sexualOrientationValue) to an open gmeow:SexualOrientationValue. A SEPARATE axis from romantic orientation (split-attraction model) and from gender identity/expression; nothing infers one from another.
 - gmeow:SexualOrientationValue (⊑ gufo:QualityValue): A pattern of sexual attraction — a VALUE pointed at by gmeow:sexualOrientationValue, never a subclass. Open: an orientation not seeded here is a fresh individual with rdfs:label.
+- gmeow:SignatureScheme (⊑ gufo:QualityValue): The cryptographic signature scheme used — a value vocabulary (individuals, never subclasses). Distinct from gmeow:KeyScheme: a key scheme names the key format (OpenPGP, X.509), while a signature scheme names the algorithm (RSA-SHA256, Ed25519).
 - gmeow:Skill (⊑ gmeow:Entity): A competency or ability an agent possesses.
+- gmeow:SmartContract (⊑ gmeow:Entity): A deployed program on a blockchain or distributed ledger, identified by a contract address.
 - gmeow:SoftwareAgent (⊑ gmeow:Agent): A software process or autonomous program that acts on behalf of a person or organization.
 - gmeow:SoftwareName (⊑ gmeow:Appellation): An appellation borne by a software project — a product name, project name, or package name. Carries its own gmeow:nameLanguage and gmeow:nameScript so co-equal multilingual names (e.g. localized product names) are separate first-class objects.
 - gmeow:SoftwareProject (⊑ gmeow:CreativeWork): A software project: a body of source code developed and released as a unit, with repositories, releases, and contributors.
@@ -243,8 +255,12 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:TrademarkStatus (⊑ gufo:QualityValue): The registration status of a trademark — a VALUE: unregistered (™), registered (®), pending, expired, or cancelled. Open vocabulary.
 - gmeow:Trajectory (⊑ gmeow:Entity, gufo:Object): A continuous path of motion representing the space-time history of a moving entity.
 - gmeow:TransliterationScheme (⊑ gufo:QualityValue): A named transliteration/romanization/transcription system (Hepburn, Pinyin, ISO 233, IPA, …). A value carried by gmeow:transliterationScheme; the major schemes are catalogued as FnO functions in the projection layer (projections/transforms.fno.ttl).
+- gmeow:TransparencyLogEntry (⊑ gmeow:InformationObject): An append-only registry evidence record such as a Rekor entry, SCITT receipt, certificate-transparency log entry, or timestamp/notary log entry. Proves inclusion at a point in time, not correctness (Principle 1).
 - gmeow:TrustAssertion (⊑ gufo:Relator): A reified, perspectival assertion that one agent (the trustor) trusts another (the trustee), optionally as an introducer to a given depth — the OpenPGP owner-trust notion. Its validity window is carried with gmeow:validFrom/validUntil.
 - gmeow:Utilization (⊑ gmeow:Measurement): A measurement of the ratio of current occupancy to maximum capacity at a location, typically expressed as a ratio (0–1) or percentage. The location is the observedFeature; the result is a ScalarQuantity. Computed by the solver layer (P12) from capacity and occupancy measurements, not asserted directly in the canonical core.
+- gmeow:VerificationActivity (⊑ gmeow:Activity): An activity that checks a signature, attestation, artifact, or ledger inclusion proof — performed by a verifier agent or software. The outcome is a gmeow:VerificationResult, not a global truth assertion.
+- gmeow:VerificationResult (⊑ gmeow:InformationObject): An information object recording the outcome of a verification activity — verified, failed, unverified, expired, revoked, policy-failed, finality-pending, etc. A verification result is an observation output, not an axiom of correctness (Principle 12).
+- gmeow:VerificationStatus (⊑ gufo:QualityValue): The outcome status of a verification result — a value vocabulary (individuals, never subclasses).
 - gmeow:VersionMembership (⊑ gmeow:Observation, gufo:Relator): A reified, standpoint-scoped claim that a concrete entity belongs to a version set with a particular role and/or scale — an observation in the universal claim stack (#69). Mediates between an entity (versionMember), a version set (versionSet), and an optional role/scale asserted by an authority (membershipAuthority / vantage). Mint one VersionMembership per (entity, versionSet, role, authority) tuple; when a role changes over time, close the old membership's interval or mint a fresh one — never overwrite (Principle 10). Inherits confidence, displayable, and temporal scope from Observation.
 - gmeow:VersionRole (⊑ gufo:QualityValue): A role or status that an entity holds within a version set according to an authority — a VALUE, never an Entity subclass. Standpoint-scoped: 'latest' according to a package registry may differ from 'latest' according to a downstream mirror. The seed list is an anchor, not a fence.
 - gmeow:VersionScale (⊑ gufo:QualityValue): The magnitude scale of a version change — a VALUE, never an Entity subclass. Used for SemVer-style classification and analogous schemes in non-software domains.
@@ -272,6 +288,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:adjacentTo [gmeow:Location → gmeow:Location]: Relates a location to another location it is adjacent to.
 - gmeow:after [gmeow:Event → gmeow:Event]: Allen AFTER: this event begins strictly after the related event ends; the transitive inverse of gmeow:before. (= time:intervalAfter; TimeML AFTER; TEO after.)
 - gmeow:aggregationFunction [gmeow:SpatialAggregation → gmeow:AggregationFunction] (functional): The statistical function applied to the entities in the aggregation region — count, sum, average, density, minimum, maximum, or centroid.
+- gmeow:artifactMediaType [gmeow:AttestationArtifact → rdfs:Literal] (functional): The media type of the attestation artifact's serialization (e.g. application/vnd.in-toto+json, application/vc+ld+json).
 - gmeow:asGeoJSON [gmeow:Geometry → rdfs:Literal]: A GeoJSON serialization of a geometry. The range is rdfs:Literal (not geo:geoJSONLiteral) to stay within the OWL 2 DL datatype map; data may still tag the literal ^^geo:geoJSONLiteral, and the alignment to geo:asGeoJSON preserves GeoSPARQL semantics for spatial engines.
 - gmeow:asWKT [gmeow:Geometry → rdfs:Literal]: A Well-Known Text (WKT) serialization of a geometry. The range is rdfs:Literal (not geo:wktLiteral) to stay within the OWL 2 DL datatype map; data may still tag the literal ^^geo:wktLiteral, and the alignment to geo:asWKT preserves GeoSPARQL semantics for spatial engines.
 - gmeow:assertedAt [? → xsd:dateTime]: The instant an agent observed or asserted the annotated claim (e.g. an email Date header or a vCard REV) — a witness that the fact held at that instant. Distinct from validity (validFrom/validUntil) and from a source's carrier time.
@@ -280,6 +297,12 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:assertionSubject [gmeow:AccessibilityAssertion → gmeow:Entity] (functional): The location or connection being assessed. Functional per relator: one subject per AccessibilityAssertion.
 - gmeow:assessedEntity [gmeow:QualityAssessment → gmeow:Entity]: The entity whose data quality is being assessed — the feature of interest of the quality observation. Sub-property of gmeow:observedFeature so generic consumers can query 'all observations about Alice' without knowing whether the claim is a name, a coordinate, or a quality assessment.
 - gmeow:atTime [? → xsd:dateTime]: The instant at which a point-like event or observation occurred.
+- gmeow:attestationArtifact [gmeow:Attestation → gmeow:AttestationArtifact]: The concrete carrier (in-toto JSON, VC, DSSE envelope, C2PA manifest, etc.) that embodies an attestation. Non-functional: an attestation may be carried by multiple equivalent artifacts under different formats.
+- gmeow:attestationPolicy [gmeow:Attestation → gmeow:AttestationPolicy]: The policy under which an attestation was issued — a value vocabulary individual naming the rules or framework the attester followed. Non-functional: competing policy interpretations coexist (Principle 9).
+- gmeow:attestationType [gmeow:Attestation → gmeow:AttestationType]: The type of attestation being made — a value vocabulary individual from gmeow:AttestationType. Non-functional: an attestation may carry multiple type tags (e.g. both SLSA provenance and DSSE envelope).
+- gmeow:attestedClaim [gmeow:Attestation → gmeow:Observation]: The observation or claim that an attestation vouches for, when the subject of the attestation is itself a claim rather than a bare entity. Non-functional: an attestation may vouch for several related claims simultaneously.
+- gmeow:attestedSubject [gmeow:Attestation → gmeow:Entity]: The entity that an attestation is about — the thing being vouched for. Non-functional: an attestation may concern multiple subjects (e.g. a key↔identity binding certifies both a key and an identity), and competing subject claims coexist (Principle 9).
+- gmeow:attester [gmeow:Attestation → gmeow:Agent] (functional): The agent that issued an attestation — the vouching party. Functional within the relator: one attester per Attestation (co-authorship is modelled as multiple Attestations).
 - gmeow:attributionText [gmeow:Entity → rdfs:Literal]: The credit line to display when reusing the asset (schema:creditText; cc:attributionName) — e.g. "Photo by Jane Doe / CC BY 4.0". The structured holder is gmeow:wasAttributedTo / gmeow:copyrightHolder.
 - gmeow:attributionUrl [gmeow:Entity → xsd:anyURI]: The URL the attribution credit should link to when reusing the asset (cc:attributionURL).
 - gmeow:authMethod [gmeow:AuthenticationResult → rdfs:Literal] (functional): The authentication method checked: dkim, spf, dmarc, arc, iprev, or auth.
@@ -290,6 +313,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:bcp47Tag [gmeow:Language → xsd:language]: An OPTIONAL external BCP-47 language tag used only when projecting GMEOW's internal private-use literals into vocabularies that require standard language-tag literals. Non-functional because a language may expose several valid BCP-47 tags across script, region, or variant contexts; broad registry alignments such as ISO 639-3 codes and Glottocodes remain gmeow:languageCode values.
 - gmeow:bearing [gmeow:Orientation → xsd:double]: The angle between an entity's forward direction and a reference direction (typically north), in degrees.
 - gmeow:before [gmeow:Event → gmeow:Event]: Allen BEFORE: this event ends strictly before the related event begins (a gap between them). Transitive. Inverse of gmeow:after. (= time:intervalBefore over the events' extents; TimeML TLINK relType BEFORE; TEO before.)
+- gmeow:blockHash [gmeow:Block → rdfs:Literal] (functional): The hash of a ledger block.
+- gmeow:blockNumber [gmeow:Block → xsd:integer] (functional): The sequential number of a ledger block.
 - gmeow:broaderTag [gmeow:Tag → gmeow:Tag]: A broader, more general tag. Transitive. Optional: folksonomy stays flat-first.
 - gmeow:capacityOf [gmeow:Capacity → gmeow:Location] (functional): The location whose capacity is measured. Functional: a capacity measurement concerns exactly one location (constitutive of the measurement's identity).
 - gmeow:cc [gmeow:EmailMessage → gmeow:EmailAddress]: A carbon-copy recipient address of a message (RFC 5322 Cc).
@@ -299,6 +324,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:certifiedIdentity [gmeow:Certification → gmeow:Agent] (functional): The agent identity a certification binds the key to.
 - gmeow:certifiedKey [gmeow:Certification → gmeow:CryptographicKey] (functional): The cryptographic key a certification vouches for.
 - gmeow:certifier [gmeow:Certification → gmeow:Agent] (functional): The agent that made a certification.
+- gmeow:chainId [gmeow:BlockchainNetwork → rdfs:Literal] (functional): The chain identifier of a blockchain network (e.g. CAIP-2 chainId, eip155:1).
 - gmeow:citesSource [gmeow:Citation → gmeow:Source] (functional): Relates a citation to the source it points into.
 - gmeow:claimedMediaType [gmeow:Filename → rdfs:Literal]: The MIME media type CLAIMED by a filename's extension (e.g. ".pdf" → "application/pdf"). A claim by the name, which may disagree with gmeow:detectedMediaType. Non-functional.
 - gmeow:coarsenTo [? → gmeow:GranularityLevel]: Disclosure control: marks a value/relator so that at projection time it is generalized to no finer than the named gmeow:GranularityLevel — a coarser ancestor is emitted instead of the precise value (e.g. an enclosing city rather than exact coordinates), never by deletion. The generalization sibling of gmeow:displayable false (withhold); together they are the single 'withhold or coarsen under a trigger' mechanism of CONSTITUTION P10. Domain-free, like gmeow:displayable. The coarse value is obtained by walking gmeow:generalizesVia (default gmeow:partOf); any geometry/geomask computation stays in the solver layer (P12). When both apply, displayable false (withhold) wins over coarsen.
@@ -307,6 +333,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:conditionsOfAccess [gmeow:Entity → rdfs:Literal]: Human-readable conditions under which the asset may be accessed (schema:conditionsOfAccess), e.g. "on-site access only".
 - gmeow:conferredByEvent [gmeow:Appellation → gmeow:LifeEvent]: The life event that conferred or changed an appellation — a gmeow:LifeEvent carrying a gmeow:eventType such as gmeow:eventTypeChristening, gmeow:eventTypeNameChange, gmeow:eventTypeMarriage (a married name), or gmeow:eventTypeAdoption. Non-functional. The seam joining the names module to the events module's event spine.
 - gmeow:confidence: Confidence in a claim, in the closed interval [0,1], attached to the statement it qualifies.
+- gmeow:confirmationDepth [? → xsd:integer]: The number of blocks confirming a transaction or log entry since its inclusion. Domain-free.
 - gmeow:conflictStrategy [gmeow:RightsStatement → gmeow:ConflictStrategy] (functional): How a rights statement resolves a permission/prohibition conflict over the same action (odrl:conflict): gmeow:conflictPerm (permission wins), gmeow:conflictProhibit (prohibition wins), gmeow:conflictInvalid (the policy is void). Functional.
 - gmeow:connectionSource [gmeow:Connection → owl:Thing] (functional): The source of a reified Connection.
 - gmeow:connectionTarget [gmeow:Connection → owl:Thing] (functional): The target of a reified Connection.
@@ -320,6 +347,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:contains [gmeow:Event → gmeow:Event]: Allen CONTAINS: this event's extent strictly contains the related event's extent; the transitive inverse of gmeow:during. A TEMPORAL relation only — not spatial (gmeow:containedInPlace) nor mereological (gmeow:hasSubEvent). (= time:intervalContains; TimeML INCLUDES; TEO contains.)
 - gmeow:containsPlace [gmeow:Place → gmeow:Place]: The inverse of gmeow:containedInPlace — a place that geographically contains another place. Under OWL 2 semantics, transitivity is entailed because containedInPlace is transitive. GMEOW does not assert additional transitive property chains beyond the inverse declaration; transitive closure is a solver concern (Principle 12).
 - gmeow:contentDigest [gmeow:Source → rdfs:Literal]: A content hash of the source's bytes (e.g. "blake3:…") — the reliable carrier identity (two imports of the same bytes are the same source, regardless of mtime or path). Not functional: a source may carry digests under several algorithms.
+- gmeow:contractAddress [gmeow:SmartContract → rdfs:Literal] (functional): The address at which a smart contract is deployed.
 - gmeow:coordinateFrame [gmeow:SpatialCoordinates → gmeow:ReferenceFrame] (functional): Relates a set of coordinates to the reference frame they are expressed in.
 - gmeow:coordinateMatrixFrame [gmeow:CoordinateMatrix → gmeow:ReferenceFrame] (functional): The reference frame in which this CoordinateMatrix is expressed. Functional: a matrix is expressed in exactly one frame; frame transformation is a solver concern (Principle 12). Sub-property of gmeow:hasReferenceFrame so the frame-inheritance property chain (isResultOf ∘ hasReferenceFrame ⊑ hasReferenceFrame) applies automatically.
 - gmeow:coordinateObservationOf [gmeow:CoordinateObservation → gmeow:Place]: The place whose coordinates or geometry are being observed — the observedFeature of a coordinate observation. Subproperty of gmeow:spatialMeasurementOf (itself a subproperty of gmeow:observedFeature) so generic consumers can query all observations without knowing the domain.
@@ -375,6 +403,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:facetSubject [gmeow:Observation → gmeow:Person]: The person an identity facet (gender identity, gender expression, sexual/romantic orientation) is about — the observedFeature of the claim. Domain is gmeow:Observation so it applies to any observation subclass; the shape narrows to IdentityFacet instances.
 - gmeow:facetVantage [gmeow:Observation → gmeow:Agent]: The agent asserting an identity facet — the vantage of the claim. When gmeow:selfAsserted is true, the facetVantage is the person themselves (Principle 9: self-assertion is top authority).
 - gmeow:filename [gmeow:Attachment → rdfs:Literal] (functional): The filename of an attachment.
+- gmeow:finalityStatus [? → gmeow:LedgerFinalityStatus]: The finality status of a ledger transaction or block. Domain-free.
 - gmeow:fingerprint [gmeow:CryptographicKey → rdfs:Literal]: A fingerprint (hash) identifying a key. Not functional: different sources may report differing or differently-formatted fingerprints for the same key.
 - gmeow:finishedBy [gmeow:Event → gmeow:Event]: Allen FINISHED-BY: inverse of gmeow:finishes. (= time:intervalFinishedBy; TimeML ENDED_BY; TEO finishedBy.)
 - gmeow:finishes [gmeow:Event → gmeow:Event]: Allen FINISHES: this event and the related event end together, and this one began later (it is a final sub-span). NOT transitive. Inverse of gmeow:finishedBy. (= time:intervalFinishes; TimeML ENDS; TEO finishes.)
@@ -401,6 +430,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasAncestor [gmeow:Person → gmeow:Person]: Relates a person to an ancestor — a parent, a parent's parent, and so on. Transitive: an ancestor of an ancestor is an ancestor. gmeow:hasParent (hence gmeow:hasMother / hasFather) is a sub-property, so ancestry is DERIVED from parentage by the reasoner and is never asserted directly.
 - gmeow:hasAppellation [gmeow:Entity → gmeow:Appellation]: Relates an entity to an appellation (name-object) it bears. The universal name-bearing property; gmeow:hasName is the person-scoped specialization. Non-functional — entities bear many co-equal names; a bearing's period is carried with gmeow:validFrom/validUntil on the statement, or reified as a gmeow:NameUsage when audience/register/evidence must be borne.
 - gmeow:hasAttachment [gmeow:Message → gmeow:Attachment]: Relates a message to one of its attachments.
+- gmeow:hasAttestation [gmeow:Entity → gmeow:Attestation]: Relates an entity to an attestation about it — the inverse of gmeow:attestedSubject. Non-functional: an entity may have many co-existing attestations from different attesters (Principle 9).
 - gmeow:hasAuthenticationResult [gmeow:Message → gmeow:AuthenticationResult]: Relates a message to an authentication check performed on it.
 - gmeow:hasAuthor [gmeow:CreativeWork → gmeow:Agent]: Relates a creative work to an agent chiefly responsible for creating its intellectual content.
 - gmeow:hasAxis [gmeow:ReferenceFrame → gmeow:Axis]: Relates a reference frame to one of its coordinate axes.
@@ -478,7 +508,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasSequenceFeature [gmeow:BiologicalSequenceLocation → gmeow:SequenceFeature]: Links a biological sequence location to a feature annotation on that sequence. Non-functional: a single location may carry multiple features (overlapping genes, nested exons, multiple SNPs).
 - gmeow:hasSexualOrientation [gmeow:Person → gmeow:SexualOrientation]: Relates a person to a self-asserted sexual-orientation facet. Non-functional and contextual; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasRomanticOrientation, gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics.
 - gmeow:hasSibling [gmeow:Person → gmeow:Person]: Relates a person to a sibling; symmetric.
-- gmeow:hasSignature [gmeow:Message → gmeow:CryptographicSignature]: Relates a message to a cryptographic signature over it.
+- gmeow:hasSignature [? → gmeow:CryptographicSignature]: Relates an entity, attestation, or artifact to a cryptographic signature over it. Domain-free (universal spine): anything may carry a signature. The message-specific convenience property with domain gmeow:Message lives in the messaging-trust module as a historical subproperty.
 - gmeow:hasSkill [gmeow:Agent → gmeow:Skill]: Relates an agent to a skill it possesses.
 - gmeow:hasSoftwareName [gmeow:SoftwareProject → gmeow:SoftwareName]: Relates a software project to a structured gmeow:SoftwareName it bears; the software-project-scoped specialization of gmeow:hasAppellation. Non-functional — a project may bear many co-equal names (codename, product name, localized names); none is primary.
 - gmeow:hasSource [gmeow:Entity → gmeow:Source]: Relates an entity or reified claim to a source that provides evidence for it. The strength of that evidence is recorded with gmeow:confidence on the supported statement.
@@ -497,6 +527,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasUnit [? → qudt:Unit] (functional): Relates a quantitative value or measurement to its QUDT unit (by reference, never imported). Domain-free: used by temporal measurements, spatial measurements, and any other quantified claim.
 - gmeow:hasUsed [gmeow:Agent → gmeow:Entity]: Records that an agent has used some entity (a tool, service, or work). The period is carried with gmeow:validFrom/validUntil on the statement.
 - gmeow:hasUtilization [gmeow:Location → gmeow:Utilization]: Links a location to a utilization measurement describing the ratio of occupancy to capacity. Flat form for the common case; promote to full reified Utilization when vantage, confidence, temporal scope, or standpoint matter.
+- gmeow:hasVerificationStatus [gmeow:VerificationResult → gmeow:VerificationStatus]: The categorical outcome of a verification result. Non-functional: a single result may carry multiple status interpretations (e.g. 'verified but expired').
 - gmeow:hasWebPage [gmeow:Entity → gmeow:WebPage]: Relates an entity to a web page representing it — a homepage, a profile page, a project site. The structured form of a 'website / URL' field: the page is a first-class gmeow:WebPage (documents module) whose IRI is its URL, so it can itself carry a title, language, and rights. Non-functional — an entity may have several pages.
 - gmeow:hasWorkedWith [gmeow:Agent → gmeow:Agent]: Records that two agents have worked together; symmetric. The period is carried with gmeow:validFrom/validUntil on the statement, or reified as a gmeow:ProfessionalRelationship.
 - gmeow:headerName [gmeow:MessageHeader → rdfs:Literal] (functional): The field name of a message header.
@@ -536,6 +567,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:isHostedBy [gmeow:ReferenceFrame → gmeow:Entity]: Relates a reference frame to the entity that hosts it — the entity whose existence bounds the frame's existence. A local grid is hosted by its building; a robot base frame by its robot; a mental reference frame by its perceiver (person, animal, or AI agent). When the host ceases to exist, the hosted frame deactivates (destruction event or existenceInterval end). Non-functional: contested authorship or multi-agent shared frames may have multiple host claims that coexist (Principle 9).
 - gmeow:isOsiApproved [gmeow:License → xsd:boolean]: Whether the licence is approved by the Open Source Initiative (spdx:isOsiApproved).
 - gmeow:isResultOf [gmeow:Entity → gmeow:Observation]: Relates an entity (typically an observation result such as a quantity, coordinate set, or quality value) back to the Observation that produced it — the explicit provenance axis of the value×unit/frame×determinacy×provenance bundle (#77). Domain is gmeow:Entity (universal, matching the range of observationResult) so any result type can carry provenance. Non-functional: a result entity may be produced by multiple observations (e.g. a consensus value derived from several readings), and those claims coexist rather than collapse.
+- gmeow:issuedAt [gmeow:Attestation → xsd:dateTime] (functional): The instant an attestation was issued. Functional: the issue time is constitutive of the attestation's identity.
 - gmeow:jurisdictionDeterminacy [gmeow:JurisdictionTenure → gmeow:Determinacy]: The ontic determinacy model of this jurisdiction claim — crisp (well-defined border), vague (approximate boundary), fuzzy (probabilistic membership), or disputed (competing claims). Non-functional: sources may disagree on determinacy, and those claims coexist.
 - gmeow:jurisdictionPlace [gmeow:JurisdictionTenure → gmeow:Place] (functional): The place whose governance is recorded by this JurisdictionTenure. Functional: a tenure concerns exactly one place (constitutive of the situation's identity).
 - gmeow:jurisdictionPolity [gmeow:JurisdictionTenure → gmeow:Agent] (functional): The governing polity (state, administrative body, or organization) that held jurisdiction over the place during this tenure. Functional: a single tenure has exactly one governing polity.
@@ -552,6 +584,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:languageTag [gmeow:Language → xsd:string] (functional): The internal private-use BCP-47 language tag (e.g., 'x-gmeow-japanese') used for @lang annotations on string literals representing this language.
 - gmeow:latestEnd [gmeow:Event → xsd:dateTime]: The latest instant by which an event must have ended — the upper bound of a fuzzy / approximate date (xsd:dateTime). Pairs with gmeow:earliestStart and a gmeow:temporalPrecision value.
 - gmeow:latitude [gmeow:GeoCoordinates → xsd:decimal]: The latitude of a geographic point in decimal degrees.
+- gmeow:ledgerInclusionProof [? → rdfs:Literal]: A cryptographic inclusion proof for a transaction, event, or transparency log entry. Domain-free: applies to LedgerTransaction, LedgerEvent, TransparencyLogEntry, and Block.
 - gmeow:leftOperand [gmeow:AtomicConstraint → gmeow:LeftOperand] (functional): The dimension an atomic constraint tests — one of the gmeow:LeftOperand values (odrl:leftOperand). Functional.
 - gmeow:levelScale [gmeow:ProficiencyLevel → gmeow:ProficiencyScale] (functional): The scale a proficiency-level individual belongs to (e.g. cefrB2 levelScale scaleCEFR). Functional.
 - gmeow:licenseFamily [gmeow:License → gmeow:LicenseFamily] (functional): The family a licence belongs to — one of the gmeow:LicenseFamily values. Functional.
@@ -562,6 +595,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:listId [gmeow:Message → rdfs:Literal]: The mailing-list identifier a message was distributed through (RFC 2919 List-Id).
 - gmeow:localPart [gmeow:EmailAddress → rdfs:Literal] (functional): The local part of an email address.
 - gmeow:locatedAt [gmeow:Entity → gmeow:Location]: Relates an entity to a location it is situated at, resides in, or occurs at — geographic, virtual, or storage.
+- gmeow:logEntryIndex [gmeow:TransparencyLogEntry → xsd:integer] (functional): The sequential index of the entry within its transparency log.
+- gmeow:logEntryUrl [gmeow:TransparencyLogEntry → rdfs:Literal]: A URL at which the transparency log entry can be retrieved. Non-functional: multiple mirrors may exist.
+- gmeow:logIndex [gmeow:LedgerEvent → xsd:integer] (functional): The index of a ledger event within its containing block or transaction.
 - gmeow:logicConstraintMember [gmeow:LogicalConstraint → gmeow:Constraint]: A member constraint combined by a logical constraint (odrl:operand). Non-functional: a logical constraint combines two or more.
 - gmeow:longitude [gmeow:GeoCoordinates → xsd:decimal]: The longitude of a geographic point in decimal degrees.
 - gmeow:mailboxName [gmeow:Mailbox → rdfs:Literal]: The display name of a mailbox or label.
@@ -743,6 +779,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:sexualOrientationValue [gmeow:SexualOrientation → gmeow:SexualOrientationValue] (functional): The gmeow:SexualOrientationValue a sexual-orientation facet asserts (functional per facet). A predefined individual or a fresh one with rdfs:label; the single path to the value.
 - gmeow:sharpens [gmeow:Standpoint → gmeow:Standpoint]: S1 sharpens S2: every precisification S1 admits is also admitted by S2, so S1 is the more specific frame (the standpoint ⊆ / refinement relation of Standpoint Logic; CKR's coverage relation). Transitive. Every standpoint sharpens gmeow:universalStandpoint.
 - gmeow:signatureAlgorithm [gmeow:CryptographicSignature → rdfs:Literal] (functional): The algorithm used for a signature (e.g. rsa-sha256, ed25519).
+- gmeow:signatureOf [gmeow:CryptographicSignature → ?]: The entity, attestation, or artifact that a cryptographic signature is over — the inverse of gmeow:hasSignature.
+- gmeow:signatureRecoveryAddress [? → rdfs:Literal]: The blockchain address recovered from a signature's recovery data. Domain-free: may apply to CryptographicSignature or BlockchainAccount.
 - gmeow:signedBy [gmeow:CryptographicSignature → gmeow:Agent]: The agent (or signing identity) that produced a signature.
 - gmeow:signingDomain [gmeow:CryptographicSignature → rdfs:Literal] (functional): The domain asserted by a signature (e.g. the DKIM d= tag).
 - gmeow:signingKey [gmeow:CryptographicSignature → gmeow:CryptographicKey] (functional): The cryptographic key that produced a signature (the trust module's CryptographicKey). Complements gmeow:signedBy: signedBy gives the identity, signingKey gives the key — the pair a gmeow:Certification attests.
@@ -805,8 +843,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:trademarkStatus [gmeow:Trademark → gmeow:TrademarkStatus] (functional): The status of a trademark — one of the gmeow:TrademarkStatus values (unregistered ™ / registered ® / pending / expired / cancelled). Functional.
 - gmeow:trajectoryOf [gmeow:Trajectory → gmeow:Entity] (functional): The entity whose space-time path this trajectory describes. Functional: a trajectory belongs to exactly one entity.
 - gmeow:trajectoryReferenceFrame [gmeow:Trajectory → gmeow:ReferenceFrame] (functional): The coordinate reference frame in which this trajectory's samples are expressed. Functional: a trajectory is expressed in exactly one frame; frame transformation is a solver concern (Principle 12).
+- gmeow:transactionHash [gmeow:LedgerTransaction → rdfs:Literal] (functional): The hash of a ledger transaction.
 - gmeow:transformsTo [gmeow:ReferenceFrame → gmeow:ReferenceFrame]: Relates a reference frame to another frame it can be mathematically transformed to.
 - gmeow:transliterationScheme [gmeow:Appellation → gmeow:TransliterationScheme]: The named transliteration/romanization system that produced an appellation's gmeow:romanization (Hepburn vs Kunrei for Japanese; Pinyin vs Wade-Giles for Mandarin). Records HOW the romanization was derived. Non-functional. Domain gmeow:Appellation retrofits the names module; the scheme individuals are catalogued as FnO functions in the projection layer.
+- gmeow:transparencyLogEntry [gmeow:Attestation → gmeow:TransparencyLogEntry]: A transparency log entry associated with an attestation. Non-functional: an attestation may have entries in multiple logs.
 - gmeow:trustLevel [gmeow:TrustAssertion → rdfs:Literal] (functional): The degree of owner-trust expressed: ultimate, full, marginal, or none.
 - gmeow:trustee [gmeow:TrustAssertion → gmeow:Agent] (functional): The agent that is trusted by the trustor in a trust-assertion.
 - gmeow:trustor [gmeow:TrustAssertion → gmeow:Agent] (functional): The agent whose (subjective) trust a trust-assertion expresses — the perspective holder.
@@ -827,7 +867,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:validFrom [? → xsd:dateTime]: The instant from which the annotated statement is asserted to hold.
 - gmeow:validUntil [? → xsd:dateTime]: The instant until which the annotated statement is asserted to hold.
 - gmeow:vantage [gmeow:Observation → gmeow:Agent]: The agent or standpoint from which the observation is made — the reified-object-property counterpart of gmeow:accordingTo. Semantically, gmeow:vantage ⊑ gmeow:accordingTo: when an annotated statement is promoted to a reified Observation, its gmeow:accordingTo becomes the gmeow:vantage of the relator. The agent in the vantage role — an observer, a sensor, a perceiver — IS a standpoint (Principle 9): no frame is privileged, and every vantage is a co-equal facet from which the claim is held. Range is gmeow:Agent (person, organization, software agent, sensor) rather than only gmeow:Standpoint, because the common case is a bare agent; use a gmeow:Standpoint individual when the frame needs its own identity. Non-functional: joint observations (a reading co-authored by two agencies) are valid.
+- gmeow:verificationActivity [gmeow:Attestation → gmeow:VerificationActivity]: The verification activity performed on an attestation. Non-functional: an attestation may be verified multiple times by different verifiers.
+- gmeow:verificationResult [gmeow:Attestation → gmeow:VerificationResult]: The result of a verification activity applied to an attestation. Non-functional: multiple verification results may coexist from different verifiers or at different times.
 - gmeow:verificationStatus [gmeow:CryptographicSignature → rdfs:Literal] (functional): The verification outcome of a signature: verified, failed, or unverified.
+- gmeow:verifiedBy [gmeow:VerificationResult → gmeow:Agent]: The agent that produced a verification result. Non-functional: joint verification by multiple agents is valid.
 - gmeow:versionFingerprint [gmeow:Entity → rdfs:Literal]: A content fingerprint of the versioned entity — a hash, SWHID, content digest, or semantic identifier. Broader than gmeow:contentDigest (which is byte-exact and domain gmeow:Source): versionFingerprint covers semantic fingerprints where exact bytes are not the identity criterion (e.g. a normalized form, a canonicalized serialization). Non-functional: a single entity may carry several fingerprints under different algorithms or schemes.
 - gmeow:versionLabel [gmeow:Entity → rdfs:Literal]: The version designation of an entity as a literal ("1993", "2011", "v2.1.0-beta", "3rd Edition"). Domain is gmeow:Entity so any versioned artifact — a language, a software release, a book edition, a dataset, an email variant — may carry its designation. Non-functional.
 - gmeow:versionMember [gmeow:VersionMembership → gmeow:Entity] (functional): The concrete entity that participates in a version set via this membership — a software release, a book edition, an email variant, a dataset snapshot. Functional per relator: one member per VersionMembership.
@@ -908,6 +951,20 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:aspectPerfective (a gmeow:GrammaticalAspect): ISO-TimeML aspect PERFECTIVE.
 - gmeow:aspectPerfectiveProgressive (a gmeow:GrammaticalAspect): ISO-TimeML aspect PERFECTIVE_PROGRESSIVE.
 - gmeow:aspectProgressive (a gmeow:GrammaticalAspect): ISO-TimeML aspect PROGRESSIVE.
+- gmeow:attestationTypeAIOutput (a gmeow:AttestationType): AI output attestation
+- gmeow:attestationTypeBlockchainClaim (a gmeow:AttestationType): blockchain claim
+- gmeow:attestationTypeC2PA (a gmeow:AttestationType): C2PA manifest
+- gmeow:attestationTypeDSSE (a gmeow:AttestationType): DSSE envelope
+- gmeow:attestationTypeEAT (a gmeow:AttestationType): EAT token
+- gmeow:attestationTypeGitSignedTag (a gmeow:AttestationType): git signed tag
+- gmeow:attestationTypeInToto (a gmeow:AttestationType): in-toto attestation
+- gmeow:attestationTypeNanopublication (a gmeow:AttestationType): nanopublication
+- gmeow:attestationTypeQualityReport (a gmeow:AttestationType): quality report attestation
+- gmeow:attestationTypeReleaseManifest (a gmeow:AttestationType): release manifest
+- gmeow:attestationTypeSCITT (a gmeow:AttestationType): SCITT signed statement
+- gmeow:attestationTypeSLSAProvenance (a gmeow:AttestationType): SLSA provenance
+- gmeow:attestationTypeSignedRDF (a gmeow:AttestationType): signed RDF graph
+- gmeow:attestationTypeVerifiableCredential (a gmeow:AttestationType): verifiable credential
 - gmeow:axisAddressLocality (a gmeow:Axis): address locality axis
 - gmeow:axisAddressRegion (a gmeow:Axis): address region axis
 - gmeow:axisAllocentricX (a gmeow:Axis): The X axis of an allocentric (world-centred) cognitive map.
@@ -1113,6 +1170,11 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:facetStepFree (a gmeow:AccessibilityFacet): Access without steps or stairs — ramps, lifts, level entrances.
 - gmeow:facetVisual (a gmeow:AccessibilityFacet): Access for people with visual impairments — tactile paving, audio signals, high contrast, braille.
 - gmeow:facetWheelchair (a gmeow:AccessibilityFacet): Access for wheelchair users — level surfaces, ramps, elevators, wide doorways.
+- gmeow:finalityStatusConfirmed (a gmeow:LedgerFinalityStatus): confirmed
+- gmeow:finalityStatusFinalized (a gmeow:LedgerFinalityStatus): finalized
+- gmeow:finalityStatusOrphaned (a gmeow:LedgerFinalityStatus): orphaned
+- gmeow:finalityStatusPending (a gmeow:LedgerFinalityStatus): pending
+- gmeow:finalityStatusReorged (a gmeow:LedgerFinalityStatus): reorged
 - gmeow:frameKindCartesian (a gmeow:FrameKind): cartesian
 - gmeow:frameKindConfigurationSpace (a gmeow:FrameKind): A smooth manifold representing the set of all possible configurations of a robot mechanism, with joint-limit boundaries constraining valid regions. Distance is measured along geodesics on the manifold surface, subject to joint limits. The actual manifold geometry and collision-aware path planning live in the solver layer (Principle 12).
 - gmeow:frameKindCylindrical (a gmeow:FrameKind): cylindrical
@@ -1666,6 +1728,11 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:sequenceFeatureTypeGene (a gmeow:SequenceFeatureType): gene
 - gmeow:sequenceFeatureTypeIntron (a gmeow:SequenceFeatureType): intron
 - gmeow:sequenceFeatureTypeSNP (a gmeow:SequenceFeatureType): single nucleotide polymorphism (SNP)
+- gmeow:signatureSchemeBLS12-381 (a gmeow:SignatureScheme): BLS12-381
+- gmeow:signatureSchemeECDSAP256 (a gmeow:SignatureScheme): ECDSA-P256
+- gmeow:signatureSchemeECDSASecp256k1 (a gmeow:SignatureScheme): ECDSA-secp256k1
+- gmeow:signatureSchemeEd25519 (a gmeow:SignatureScheme): Ed25519
+- gmeow:signatureSchemeRSASHA256 (a gmeow:SignatureScheme): RSA-SHA256
 - gmeow:statusConstructedActive (a gmeow:LanguageStatus): constructed — actively used
 - gmeow:statusDormant (a gmeow:LanguageStatus): dormant
 - gmeow:statusEmerging (a gmeow:LanguageStatus): emerging
@@ -1714,6 +1781,13 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:trademarkStatusUnregistered (a gmeow:TrademarkStatus): An unregistered common-law trademark, asserted with the ™ symbol.
 - gmeow:unequivocal (a gmeow:StandpointModality): □_S — settled / necessary true according to the standpoint: the proposition holds in every precisification the standpoint admits (CRMinf belief value 'true'). The default when no gmeow:standpointModality is given.
 - gmeow:universalStandpoint (a gmeow:Standpoint): The universal standpoint * — the top of the poset, admitting every precisification: the uncontested global facts every standpoint shares. A statement with no gmeow:accordingTo is held according to the universal standpoint; every standpoint gmeow:sharpens it.
+- gmeow:verificationStatusExpired (a gmeow:VerificationStatus): expired
+- gmeow:verificationStatusFailed (a gmeow:VerificationStatus): failed
+- gmeow:verificationStatusFinalityPending (a gmeow:VerificationStatus): finality pending
+- gmeow:verificationStatusPolicyFailed (a gmeow:VerificationStatus): policy failed
+- gmeow:verificationStatusRevoked (a gmeow:VerificationStatus): revoked
+- gmeow:verificationStatusUnverified (a gmeow:VerificationStatus): unverified
+- gmeow:verificationStatusVerified (a gmeow:VerificationStatus): verified
 - gmeow:virtualLocationTypeChatSpace (a gmeow:VirtualLocationType): chat space
 - gmeow:virtualLocationTypeMetaverseRoom (a gmeow:VirtualLocationType): metaverse room
 - gmeow:virtualLocationTypeOnlineForum (a gmeow:VirtualLocationType): online forum
