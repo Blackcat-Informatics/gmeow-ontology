@@ -175,7 +175,7 @@ reference. There are two cell types.
 `mapping-dsl/equivalences/<domain>.ttl`:
 
 ```turtle
-gmeow:eqPersonFoaf a gmeow:TermEquivalence ;
+ex:eqPersonFoaf a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:Person ;
     gmeow:alignPredicate owl:equivalentClass ;   # or skos:exactMatch / closeMatch …
     gmeow:alignObject   foaf:Person ;

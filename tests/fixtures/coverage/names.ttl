@@ -123,7 +123,7 @@ ex:arGiven a gmeow:NamePart ;
     gmeow:partOrder 0 .
 
 ex:arSurname a gmeow:NamePart ;
-    gmeow:namePartType gmeow:namePartFamily ;
+    gmeow:namePartType gmeow:namePartSurname ;
     gmeow:partText "Rivera"@x-gmeow-english ;
     gmeow:partOrder 1 .
 

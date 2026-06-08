@@ -514,6 +514,7 @@ gmeow:namePurposeDeadname     a gmeow:NamePurpose ; rdfs:label "deadname (histor
 # exonym are different-purpose, equally-valid names, not a preferred-vs-alternate pair.
 gmeow:namePurposeEndonym      a gmeow:NamePurpose ; rdfs:label "endonym (name used by a place's own inhabitants / a language's own speakers)"@en .
 gmeow:namePurposeExonym       a gmeow:NamePurpose ; rdfs:label "exonym (name used by outsiders / in another language)"@en .
+gmeow:namePurposeGlossonym    a gmeow:NamePurpose ; rdfs:label "glossonym (name of a language)"@en .
 
 # --- Name register — the social register of a USAGE ------------------------- #
 

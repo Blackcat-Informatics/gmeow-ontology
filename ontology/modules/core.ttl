@@ -53,6 +53,14 @@ gmeow:InformationObject
     skos:definition "An entity whose nature is to carry information content: a document, dataset, software artifact, online account, or message. The shared parent of the document, software and account layers."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:PhysicalObject
+    a owl:Class, gufo:Category ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    owl:disjointWith gmeow:Agent, gmeow:InformationObject ;
+    rdfs:label "Physical Object"@en ;
+    skos:definition "An entity that is a material thing occupying space and time — a device, instrument, vehicle, building, or natural body. Distinct from Agent (which acts and bears responsibility) and InformationObject (which carries information content). The sortal for pose-bearing, sensor-hosting, and spatially-located things that are not agents."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 # --------------------------------------------------------------------------- #
 # Universal mereology — the broad part/whole spine (#76).
 #
