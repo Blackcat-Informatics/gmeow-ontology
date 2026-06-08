@@ -788,5 +788,17 @@ def quality(
             err_console.print(f"[yellow]FOOPS! skipped: {exc}[/yellow]")
 
 
+@app.command(name="mcp")
+def mcp_start() -> None:
+    """Start the GMEOW MCP server (stdio transport).
+
+    Exposes validation, compilation, reasoning, and term-lookup tools plus
+    ontology resources to AI agents via the Model Context Protocol.
+    """
+    from gmeow_tools.mcp_server import run
+
+    run()
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()
