@@ -115,9 +115,10 @@ ex:memLatest a gmeow:VersionMembership ;
     gmeow:versionRole gmeow:roleLatest ;
     gmeow:membershipAuthority ex:npmRegistry .
 
-# #162 (future): the attestation evidence
-ex:sig a gmeow:ReleaseSignature ;          # term from #162
-    gmeow:signatureArtifact "base64..." ;
+# #162: the attestation evidence
+ex:sig a gmeow:AttestationArtifact ;
+    gmeow:artifactMediaType "application/vnd.dsse+json" ;
+    gmeow:hasSignature [ a gmeow:CryptographicSignature ] ;
     gmeow:wasAttributedTo ex:npmRegistry .
 ```
 
