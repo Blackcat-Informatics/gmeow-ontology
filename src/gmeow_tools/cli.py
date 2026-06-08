@@ -662,6 +662,40 @@ def _compile_statements(check: bool) -> None:
     )
 
 
+def _compile_statements_pyoxigraph(check: bool) -> None:
+    """Shared driver for ``compile-statements-pyoxigraph`` and its alias."""
+    from gmeow_tools.config import PROJECT_ROOT
+    from gmeow_tools.mapping_dsl import CompileError
+    from gmeow_tools.statement_compile_pyoxigraph import (
+        compile_statements_pyoxigraph as run,
+    )
+
+    try:
+        report = run(check=check)
+    except CompileError as exc:
+        raise _fail(f"✗ {exc}") from exc
+
+    if check:
+        if report.drifted:
+            for rel in sorted(report.drifted):
+                err_console.print(f"[red]drift[/red] {rel}")
+            raise _fail(
+                f"✗ {len(report.drifted)} statement artifact(s) out of date — "
+                "run `gmeow compile-statements-pyoxigraph`"
+            )
+        console.print(
+            "[green]✓ pyoxigraph cross-check: committed artifacts match "
+            "statement-dsl/ (no drift)[/green]"
+        )
+        return
+    for path in report.written:
+        console.print(f"[green]✓[/green] {path.relative_to(PROJECT_ROOT)}")
+    console.print(
+        f"[green]✓ pyoxigraph compiled {len(report.written)} artifacts from "
+        f"statement-dsl/[/green]"
+    )
+
+
 @app.command(name="compile-statements")
 def compile_statements(
     check: bool = typer.Option(
@@ -691,6 +725,34 @@ def rdf12() -> None:
     artifact — RDF 1.2 is GMEOW's canonical statement-level model, not an add-on.
     """
     _compile_statements(check=False)
+
+
+@app.command(name="compile-statements-pyoxigraph")
+def compile_statements_pyoxigraph(
+    check: bool = typer.Option(
+        False,
+        "--check",
+        help="Verify committed artifacts match a fresh pyoxigraph compile; "
+        "write nothing.",
+    ),
+) -> None:
+    """Compile statement-dsl/ → RDF 1.2 + OWL downcast (pyoxigraph cross-check).
+
+    Non-authoritative mirror of ``compile-statements`` that uses pyoxigraph
+    instead of Apache Jena for the RDF 1.2 projection and normalization.
+    Proves the round-trip is engine-independent (CONSTITUTION Principle 7).
+    Jena remains the canonical artifact writer.
+    """
+    _compile_statements_pyoxigraph(check)
+
+
+@app.command()
+def rdf12_pyoxigraph() -> None:
+    """Emit the RDF 1.2 / RDF* lead artifact + OWL downcast (pyoxigraph).
+
+    A convenience alias of ``compile-statements-pyoxigraph``.
+    """
+    _compile_statements_pyoxigraph(check=False)
 
 
 @app.command()
