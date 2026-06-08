@@ -358,13 +358,16 @@ enum EventTypeEnum
   {
     eventTypeAdoption
     eventTypeAnnulment
+    eventTypeAudit
     eventTypeBaptism
     eventTypeBarMitzvah
     eventTypeBatMitzvah
     eventTypeBirth
     eventTypeBurial
     eventTypeCensus
+    eventTypeCensusActivity
     eventTypeChristening
+    eventTypeClinicalTrial
     eventTypeConfirmation
     eventTypeCreation
     eventTypeCremation
@@ -374,6 +377,7 @@ enum EventTypeEnum
     eventTypeDivorce
     eventTypeEmigration
     eventTypeEngagement
+    eventTypeExcavation
     eventTypeExpressionCreation
     eventTypeFirstCommunion
     eventTypeFuneral
@@ -390,6 +394,7 @@ enum EventTypeEnum
     eventTypeRetirement
     eventTypeSeparation
     eventTypeSupersession
+    eventTypeSurvey
     eventTypeWill
     eventTypeWorkConception
   }
@@ -1485,6 +1490,7 @@ type Activity
     eventAspect: [GrammaticalAspect]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
+    eventObservation: [Observation]
     eventSpacetime: [LocationState]
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
@@ -3023,6 +3029,7 @@ type Event
     eventAspect: [GrammaticalAspect]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
+    eventObservation: [Observation]
     eventSpacetime: [LocationState]
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
@@ -3549,6 +3556,7 @@ type ImportActivity
     eventAspect: [GrammaticalAspect]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
+    eventObservation: [Observation]
     eventSpacetime: [LocationState]
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
@@ -3791,6 +3799,7 @@ type LanguageChangeEvent
     eventAspect: [GrammaticalAspect]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
+    eventObservation: [Observation]
     eventSpacetime: [LocationState]
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
@@ -3832,6 +3841,7 @@ type LanguageCreation
     eventAspect: [GrammaticalAspect]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
+    eventObservation: [Observation]
     eventSpacetime: [LocationState]
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
@@ -4013,6 +4023,7 @@ type LedgerEvent
     eventAspect: [GrammaticalAspect]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
+    eventObservation: [Observation]
     eventSpacetime: [LocationState]
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
@@ -4223,6 +4234,7 @@ type LifeEvent
     eventAspect: [GrammaticalAspect]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
+    eventObservation: [Observation]
     eventSpacetime: [LocationState]
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
@@ -5179,6 +5191,43 @@ type Observation
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
     vantage: [Entity]
+  }
+
+type ObservationalActivity
+  {
+    after: [Event]
+    before: [Event]
+    coincidesWith: [Event]
+    contains: [Event]
+    during: [Event]
+    earliestStart: String
+    eventAspect: [GrammaticalAspect]
+    eventInterval: [TimeInterval]
+    eventLocation: [Location]
+    eventObservation: [Observation]
+    eventSpacetime: [LocationState]
+    eventTemporalFrame: TemporalFrame
+    eventTense: [GrammaticalTense]
+    eventTime: String
+    eventTrajectory: [Trajectory]
+    eventType: [EventType]
+    finishedBy: [Event]
+    finishes: [Event]
+    hasDuration: [Duration]
+    hasParticipant: [Agent]
+    hasSubEvent: [Event]
+    latestEnd: String
+    meets: [Event]
+    metBy: [Event]
+    occurrenceOfSeries: [EventSeries]
+    overlappedBy: [Event]
+    overlaps: [Event]
+    startedBy: [Event]
+    starts: [Event]
+    subEventOf: [Event]
+    temporalPrecision: [TemporalPrecision]
+    wasAssociatedWith: [Agent]
+    generatedObservation: [Observation]
   }
 
 type ObservationMethod
@@ -8194,6 +8243,7 @@ type VerificationActivity
     eventAspect: [GrammaticalAspect]
     eventInterval: [TimeInterval]
     eventLocation: [Location]
+    eventObservation: [Observation]
     eventSpacetime: [LocationState]
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
