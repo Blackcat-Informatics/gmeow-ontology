@@ -97,7 +97,7 @@ def test_rights_slice_covered() -> None:
 def test_import_provenance_slice_covered() -> None:
     report = run_coverage()
     expected_covered = {
-        GMEOW + "Source",
+        GMEOW + "Manifestation",
         GMEOW + "ImportActivity",
         GMEOW + "SoftwareAgent",
     }

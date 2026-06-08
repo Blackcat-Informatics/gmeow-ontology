@@ -321,3 +321,44 @@ def test_qc_missing_definitions_is_empty() -> None:
     query = (QC_DIR / "missing-definitions.rq").read_text(encoding="utf-8")
     offenders = list(graph.query(query))
     assert offenders == [], f"classes missing definitions: {offenders}"
+
+
+def test_competency_citation_intents_query() -> None:
+    terms = _query_terms("citation-intents.rq")
+    for term in (
+        "intentCitesAsDataSource",
+        "intentUsesMethodIn",
+        "intentExtends",
+        "intentIsInspiredBy",
+        "intentConformsTo",
+        "intentDerivedFrom",
+        "intentDocuments",
+        "intentSupports",
+        "intentDisagreesWith",
+        "intentBridgedByReference",
+    ):
+        assert NAMESPACE + term in terms
+    assert len(terms) >= 10
+
+
+def test_competency_contribution_roles_query() -> None:
+    terms = _query_terms("contribution-roles.rq")
+    for term in (
+        "roleAuthor",
+        "roleConceptualization",
+        "roleDataCuration",
+        "roleFormalAnalysis",
+        "roleFundingAcquisition",
+        "roleInvestigation",
+        "roleMethodology",
+        "roleProjectAdministration",
+        "roleResources",
+        "roleSoftware",
+        "roleSupervision",
+        "roleValidation",
+        "roleVisualization",
+        "roleWritingOriginalDraft",
+        "roleWritingReviewEditing",
+    ):
+        assert NAMESPACE + term in terms
+    assert len(terms) >= 15

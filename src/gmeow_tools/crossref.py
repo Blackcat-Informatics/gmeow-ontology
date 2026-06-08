@@ -5,11 +5,10 @@ not via Zenodo. CrossRef registration is by depositing XML conforming to the
 CrossRef deposit schema (5.4.0); an ontology is deposited as a ``<database>`` /
 ``<dataset>`` record whose DOI resolves to the ontology landing page.
 
-This module builds that deposit XML from the ontology metadata in ``config``.
-The output is well-formed and follows the schema's element model; validate it
-against the official XSD (and test on the CrossRef *test* system) before a
-production deposit. The DOI prefix and depositor email in ``config`` are
-placeholders until CrossRef membership is finalized.
+This module builds that deposit XML from the ontology self-description in
+``metadata/gmeow-self.ttl``. The output is well-formed and follows the schema's
+element model; validate it against the official XSD (and test on the CrossRef
+*test* system) before a production deposit.
 """
 
 from __future__ import annotations
@@ -18,17 +17,8 @@ import datetime
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
-from gmeow_tools.config import (
-    CROSSREF_DEPOSITOR_EMAIL,
-    CROSSREF_DEPOSITOR_NAME,
-    CROSSREF_REGISTRANT,
-    DIST_DIR,
-    ONTOLOGY_IRI,
-    RELEASE_DATE,
-    TITLE,
-    VERSION,
-    full_doi,
-)
+from gmeow_tools.config import DIST_DIR, ONTOLOGY_IRI
+from gmeow_tools.self_desc import load_self_description
 
 #: CrossRef deposit schema namespace (version 5.4.0).
 CR_NS = "http://www.crossref.org/schema/5.4.0"
@@ -51,12 +41,12 @@ def build_deposit_xml(
     doi: str | None = None,
     timestamp: str | None = None,
     batch_id: str | None = None,
-    release_date: str = RELEASE_DATE,
+    release_date: str | None = None,
 ) -> str:
     """Build the CrossRef deposit XML for the GMEOW DOI.
 
     Args:
-        doi: The DOI to register (defaults to ``config.full_doi()``).
+        doi: The DOI to register (defaults to the DOI from self-description).
         timestamp: CrossRef batch timestamp (``YYYYMMDDHHMMSS``); defaults to the
             current UTC time. CrossRef uses it to order competing submissions.
         batch_id: Unique submission id (defaults to ``gmeow-{version}-{timestamp}``).
@@ -65,10 +55,12 @@ def build_deposit_xml(
     Returns:
         The deposit document as an XML string (with declaration).
     """
-    doi = doi or full_doi()
+    meta = load_self_description()
+    doi = doi or meta.doi
     if timestamp is None:
         timestamp = datetime.datetime.now(datetime.UTC).strftime("%Y%m%d%H%M%S")
-    batch_id = batch_id or f"gmeow-{VERSION}-{timestamp}"
+    batch_id = batch_id or f"gmeow-{meta.version}-{timestamp}"
+    release_date = release_date or meta.release_date
     year, month, day = release_date.split("-")
 
     ET.register_namespace("", CR_NS)
@@ -85,25 +77,25 @@ def build_deposit_xml(
     _child(head, "doi_batch_id", batch_id)
     _child(head, "timestamp", timestamp)
     depositor = _child(head, "depositor")
-    _child(depositor, "depositor_name", CROSSREF_DEPOSITOR_NAME)
-    _child(depositor, "email_address", CROSSREF_DEPOSITOR_EMAIL)
-    _child(head, "registrant", CROSSREF_REGISTRANT)
+    _child(depositor, "depositor_name", meta.depositor_name)
+    _child(depositor, "email_address", meta.depositor_email)
+    _child(head, "registrant", meta.registrant)
 
     body = _child(root, "body")
     database = _child(body, "database")
     db_metadata = _child(database, "database_metadata", language="en")
-    _child(_child(db_metadata, "titles"), "title", TITLE)
+    _child(_child(db_metadata, "titles"), "title", meta.title)
 
     dataset = _child(database, "dataset", dataset_type="record")
     contributors = _child(dataset, "contributors")
     _child(
         contributors,
         "organization",
-        CROSSREF_REGISTRANT,
+        meta.registrant,
         sequence="first",
         contributor_role="author",
     )
-    _child(_child(dataset, "titles"), "title", f"{TITLE} (version {VERSION})")
+    _child(_child(dataset, "titles"), "title", f"{meta.title} (version {meta.version})")
     publication_date = _child(
         _child(dataset, "database_date"), "publication_date", media_type="online"
     )

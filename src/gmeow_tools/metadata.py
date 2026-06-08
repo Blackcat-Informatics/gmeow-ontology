@@ -18,12 +18,12 @@ from gmeow_tools.config import (
     NAMESPACE,
     ONTOLOGY_IRI,
     PREFIXES,
-    VERSION,
     VOID_DATASET_IRI,
     VOID_FILE,
 )
 from gmeow_tools.graph import bind_prefixes
 from gmeow_tools.mappings import build_linksets, load_mappings
+from gmeow_tools.self_desc import load_self_description
 
 _CC_BY = URIRef("https://creativecommons.org/licenses/by/4.0/")
 _PUBLISHER = URIRef("https://blackcatinformatics.ca/#bii")
@@ -75,7 +75,7 @@ def build_void_graph() -> Graph:
     graph.add((dataset, DCTERMS.publisher, _PUBLISHER))
     graph.add((dataset, DCTERMS.creator, _PUBLISHER))
     graph.add((dataset, FOAF.homepage, URIRef(ONTOLOGY_IRI)))
-    graph.add((dataset, DCTERMS.hasVersion, Literal(VERSION)))
+    graph.add((dataset, DCTERMS.hasVersion, Literal(load_self_description().version)))
     graph.add((dataset, VOID.uriSpace, Literal(NAMESPACE)))
     graph.add((dataset, VOID.exampleResource, URIRef(NAMESPACE + "Person")))
 
@@ -108,7 +108,7 @@ def build_dcat_graph() -> Graph:
     graph.add((dataset, DCTERMS.license, _CC_BY))
     graph.add((dataset, DCTERMS.publisher, _PUBLISHER))
     graph.add((dataset, DCAT.landingPage, URIRef(ONTOLOGY_IRI)))
-    graph.add((dataset, DCTERMS.hasVersion, Literal(VERSION)))
+    graph.add((dataset, DCTERMS.hasVersion, Literal(load_self_description().version)))
     for ext, media in _MEDIA_TYPE.items():
         dist = URIRef(f"{ONTOLOGY_IRI}#dist-{ext}")
         graph.add((dist, RDF.type, DCAT.Distribution))

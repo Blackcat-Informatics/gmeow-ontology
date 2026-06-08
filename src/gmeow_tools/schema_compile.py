@@ -36,8 +36,9 @@ import yaml
 from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
 from rdflib.term import BNode
 
-from gmeow_tools.config import PREFIXES, SCHEMAS_DIR, VERSION
+from gmeow_tools.config import PREFIXES, SCHEMAS_DIR
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.self_desc import load_self_description
 
 _GMEOW = Namespace(PREFIXES["gmeow"])
 _XSD = Namespace(PREFIXES["xsd"])
@@ -408,7 +409,7 @@ def gen_openapi(json_schema_text: str) -> str:
                 "OpenAPI 3.1 derived from the GMEOW LinkML developer schema. "
                 "Lossy by design — see gmeow.linkml.yaml for caveats."
             ),
-            "version": VERSION,
+            "version": load_self_description().version,
         },
         "paths": {
             "/entities/{id}": {

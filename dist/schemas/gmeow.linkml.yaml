@@ -236,12 +236,17 @@ classes:
     - certifiedIdentity
     - certifiedKey
     - certifier
-  Citation:
-    class_uri: https://blackcatinformatics.ca/gmeow/Citation
-    title: Citation
-    is_a: InformationObject
+  CitationAct:
+    class_uri: https://blackcatinformatics.ca/gmeow/CitationAct
+    title: Citation Act
     slots:
-    - citesSource
+    - citationIntent
+    - citedEntity
+    - citingEntity
+    - viaSelector
+  CitationIntent:
+    class_uri: https://blackcatinformatics.ca/gmeow/CitationIntent
+    title: Citation Intent
   ConflictStrategy:
     class_uri: https://blackcatinformatics.ca/gmeow/ConflictStrategy
     title: Conflict Strategy
@@ -278,9 +283,13 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Contribution
     title: Contribution
     slots:
+    - contributionDegree
     - contributionRole
     - contributionTarget
     - contributor
+  ContributionDegree:
+    class_uri: https://blackcatinformatics.ca/gmeow/ContributionDegree
+    title: Contribution Degree
   ContributionRole:
     class_uri: https://blackcatinformatics.ca/gmeow/ContributionRole
     title: Contribution Role
@@ -322,6 +331,7 @@ classes:
     title: Creative Work
     is_a: InformationObject
     slots:
+    - contentDigest
     - datePublished
     - editionOf
     - hasAuthor
@@ -333,6 +343,8 @@ classes:
     - hasTranslator
     - identifier
     - sourceFor
+    - sourceLocation
+    - sourceModifiedAt
     - title
   CreativeWorkTitle:
     class_uri: https://blackcatinformatics.ca/gmeow/CreativeWorkTitle
@@ -427,6 +439,7 @@ classes:
     - attributionText
     - attributionUrl
     - authorityLink
+    - cites
     - conditionsOfAccess
     - counterpartOf
     - description
@@ -442,7 +455,6 @@ classes:
     - hasRightsStatement
     - hasSensoryObservation
     - hasSensoryQuantity
-    - hasSource
     - hasSpatialMeasurement
     - hasStream
     - hasTag
@@ -1405,6 +1417,15 @@ classes:
   ScriptRole:
     class_uri: https://blackcatinformatics.ca/gmeow/ScriptRole
     title: Script Role
+  Selector:
+    class_uri: https://blackcatinformatics.ca/gmeow/Selector
+    title: Selector
+    is_a: InformationObject
+    slots:
+    - selectorLocator
+    - selectorPage
+    - selectorTextPosition
+    - selectorTextQuote
   SensitivityLevel:
     class_uri: https://blackcatinformatics.ca/gmeow/SensitivityLevel
     title: Sensitivity Level
@@ -1515,14 +1536,10 @@ classes:
     - hasRepository
     - hasSoftwareName
     - writtenInLanguage
-  Source:
-    class_uri: https://blackcatinformatics.ca/gmeow/Source
-    title: Source
-    is_a: InformationObject
-    slots:
-    - contentDigest
-    - sourceLocation
-    - sourceModifiedAt
+  SourceRole:
+    class_uri: https://blackcatinformatics.ca/gmeow/SourceRole
+    title: Source Role
+    is_a: CreativeWork
   SpatialAggregation:
     class_uri: https://blackcatinformatics.ca/gmeow/SpatialAggregation
     title: Spatial Aggregation
@@ -2004,7 +2021,7 @@ slots:
   attestedInSource:
     slot_uri: https://blackcatinformatics.ca/gmeow/attestedInSource
     title: attested in source
-    range: Source
+    range: CreativeWork
     domain: UsageAttestation
     multivalued: true
   attestedSubject:
@@ -2152,11 +2169,29 @@ slots:
     range: LanguageChangeType
     domain: LanguageChangeEvent
     multivalued: true
-  citesSource:
-    slot_uri: https://blackcatinformatics.ca/gmeow/citesSource
-    title: cites source
-    range: Source
-    domain: Citation
+  citationIntent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/citationIntent
+    title: citation intent
+    range: CitationIntent
+    domain: CitationAct
+    multivalued: false
+  citedEntity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/citedEntity
+    title: cited entity
+    range: CreativeWork
+    domain: CitationAct
+    multivalued: false
+  cites:
+    slot_uri: https://blackcatinformatics.ca/gmeow/cites
+    title: cites
+    range: CreativeWork
+    domain: Entity
+    multivalued: true
+  citingEntity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/citingEntity
+    title: citing entity
+    range: Entity
+    domain: CitationAct
     multivalued: false
   claimModality:
     slot_uri: https://blackcatinformatics.ca/gmeow/claimModality
@@ -2280,12 +2315,18 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/contentDigest
     title: content digest
     range: string
-    domain: Source
+    domain: CreativeWork
   contractAddress:
     slot_uri: https://blackcatinformatics.ca/gmeow/contractAddress
     title: contract address
     range: string
     domain: SmartContract
+    multivalued: false
+  contributionDegree:
+    slot_uri: https://blackcatinformatics.ca/gmeow/contributionDegree
+    title: contribution degree
+    range: ContributionDegree
+    domain: Contribution
     multivalued: false
   contributionRole:
     slot_uri: https://blackcatinformatics.ca/gmeow/contributionRole
@@ -3368,12 +3409,6 @@ slots:
     title: has software name
     range: SoftwareName
     domain: SoftwareProject
-    multivalued: true
-  hasSource:
-    slot_uri: https://blackcatinformatics.ca/gmeow/hasSource
-    title: has source
-    range: Source
-    domain: Entity
     multivalued: true
   hasSpatialMeasurement:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement
@@ -4879,6 +4914,26 @@ slots:
     range: TimeInterval
     domain: WritingSystemUsage
     multivalued: true
+  selectorLocator:
+    slot_uri: https://blackcatinformatics.ca/gmeow/selectorLocator
+    title: selector locator
+    range: string
+    domain: Selector
+  selectorPage:
+    slot_uri: https://blackcatinformatics.ca/gmeow/selectorPage
+    title: selector page
+    range: string
+    domain: Selector
+  selectorTextPosition:
+    slot_uri: https://blackcatinformatics.ca/gmeow/selectorTextPosition
+    title: selector text position
+    range: string
+    domain: Selector
+  selectorTextQuote:
+    slot_uri: https://blackcatinformatics.ca/gmeow/selectorTextQuote
+    title: selector text quote
+    range: string
+    domain: Selector
   selfAsserted:
     slot_uri: https://blackcatinformatics.ca/gmeow/selfAsserted
     title: self-asserted
@@ -5016,12 +5071,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/sourceLocation
     title: source location
     range: string
-    domain: Source
+    domain: CreativeWork
   sourceModifiedAt:
     slot_uri: https://blackcatinformatics.ca/gmeow/sourceModifiedAt
     title: source modified at
     range: datetime
-    domain: Source
+    domain: CreativeWork
   spatialMeasurementOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/spatialMeasurementOf
     title: spatial measurement of
@@ -5587,6 +5642,12 @@ slots:
     range: VersionSet
     domain: VersionMembership
     multivalued: false
+  viaSelector:
+    slot_uri: https://blackcatinformatics.ca/gmeow/viaSelector
+    title: via selector
+    range: Selector
+    domain: CitationAct
+    multivalued: true
   virtualLocationType:
     slot_uri: https://blackcatinformatics.ca/gmeow/virtualLocationType
     title: virtual location type
@@ -6153,6 +6214,39 @@ enums:
       refOriginTopocentric:
         meaning: https://blackcatinformatics.ca/gmeow/refOriginTopocentric
         title: topocentric (observatory site)
+  CitationIntentEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/CitationIntent
+    permissible_values:
+      intentBridgedByReference:
+        meaning: https://blackcatinformatics.ca/gmeow/intentBridgedByReference
+        title: bridged by reference
+      intentCitesAsDataSource:
+        meaning: https://blackcatinformatics.ca/gmeow/intentCitesAsDataSource
+        title: cites as data source
+      intentConformsTo:
+        meaning: https://blackcatinformatics.ca/gmeow/intentConformsTo
+        title: conforms to
+      intentDerivedFrom:
+        meaning: https://blackcatinformatics.ca/gmeow/intentDerivedFrom
+        title: derived from
+      intentDisagreesWith:
+        meaning: https://blackcatinformatics.ca/gmeow/intentDisagreesWith
+        title: disagrees with
+      intentDocuments:
+        meaning: https://blackcatinformatics.ca/gmeow/intentDocuments
+        title: documents
+      intentExtends:
+        meaning: https://blackcatinformatics.ca/gmeow/intentExtends
+        title: extends
+      intentIsInspiredBy:
+        meaning: https://blackcatinformatics.ca/gmeow/intentIsInspiredBy
+        title: is inspired by
+      intentSupports:
+        meaning: https://blackcatinformatics.ca/gmeow/intentSupports
+        title: supports
+      intentUsesMethodIn:
+        meaning: https://blackcatinformatics.ca/gmeow/intentUsesMethodIn
+        title: uses method in
   ConflictStrategyEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ConflictStrategy
     permissible_values:
@@ -6219,6 +6313,18 @@ enums:
       operatorNeq:
         meaning: https://blackcatinformatics.ca/gmeow/operatorNeq
         title: not equal to
+  ContributionDegreeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ContributionDegree
+    permissible_values:
+      degreeEqual:
+        meaning: https://blackcatinformatics.ca/gmeow/degreeEqual
+        title: equal
+      degreeLead:
+        meaning: https://blackcatinformatics.ca/gmeow/degreeLead
+        title: lead
+      degreeSupporting:
+        meaning: https://blackcatinformatics.ca/gmeow/degreeSupporting
+        title: supporting
   ContributionRoleEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ContributionRole
     permissible_values:
@@ -6228,33 +6334,75 @@ enums:
       roleComposer:
         meaning: https://blackcatinformatics.ca/gmeow/roleComposer
         title: composer
+      roleConceptualization:
+        meaning: https://blackcatinformatics.ca/gmeow/roleConceptualization
+        title: conceptualization
       roleCoverArtist:
         meaning: https://blackcatinformatics.ca/gmeow/roleCoverArtist
         title: cover artist
+      roleDataCuration:
+        meaning: https://blackcatinformatics.ca/gmeow/roleDataCuration
+        title: data curation
       roleDirector:
         meaning: https://blackcatinformatics.ca/gmeow/roleDirector
         title: director
       roleEditor:
         meaning: https://blackcatinformatics.ca/gmeow/roleEditor
         title: editor
+      roleFormalAnalysis:
+        meaning: https://blackcatinformatics.ca/gmeow/roleFormalAnalysis
+        title: formal analysis
+      roleFundingAcquisition:
+        meaning: https://blackcatinformatics.ca/gmeow/roleFundingAcquisition
+        title: funding acquisition
       roleIllustrator:
         meaning: https://blackcatinformatics.ca/gmeow/roleIllustrator
         title: illustrator
+      roleInvestigation:
+        meaning: https://blackcatinformatics.ca/gmeow/roleInvestigation
+        title: investigation
       roleLLMAssistedEditor:
         meaning: https://blackcatinformatics.ca/gmeow/roleLLMAssistedEditor
         title: LLM-assisted editor
       roleLetterer:
         meaning: https://blackcatinformatics.ca/gmeow/roleLetterer
         title: letterer
+      roleMethodology:
+        meaning: https://blackcatinformatics.ca/gmeow/roleMethodology
+        title: methodology
       roleNarrator:
         meaning: https://blackcatinformatics.ca/gmeow/roleNarrator
         title: narrator
       rolePhotographer:
         meaning: https://blackcatinformatics.ca/gmeow/rolePhotographer
         title: photographer
+      roleProjectAdministration:
+        meaning: https://blackcatinformatics.ca/gmeow/roleProjectAdministration
+        title: project administration
+      roleResources:
+        meaning: https://blackcatinformatics.ca/gmeow/roleResources
+        title: resources
+      roleSoftware:
+        meaning: https://blackcatinformatics.ca/gmeow/roleSoftware
+        title: software
+      roleSupervision:
+        meaning: https://blackcatinformatics.ca/gmeow/roleSupervision
+        title: supervision
       roleTranslator:
         meaning: https://blackcatinformatics.ca/gmeow/roleTranslator
         title: translator
+      roleValidation:
+        meaning: https://blackcatinformatics.ca/gmeow/roleValidation
+        title: validation
+      roleVisualization:
+        meaning: https://blackcatinformatics.ca/gmeow/roleVisualization
+        title: visualization
+      roleWritingOriginalDraft:
+        meaning: https://blackcatinformatics.ca/gmeow/roleWritingOriginalDraft
+        title: writing – original draft
+      roleWritingReviewEditing:
+        meaning: https://blackcatinformatics.ca/gmeow/roleWritingReviewEditing
+        title: writing – review & editing
   CopyrightStatusEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CopyrightStatus
     permissible_values:

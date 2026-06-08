@@ -1822,6 +1822,40 @@ gmeow:ContributionHasPlayersShape
         sh:maxCount 1 ;
         sh:severity sh:Violation ;
         sh:message "A Contribution must specify exactly one role (gmeow:contributionRole)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:contributionDegree ;
+        sh:minCount 0 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Contribution may have at most one degree (gmeow:contributionDegree)." ;
+    ] .
+
+# CitationAct relator well-formedness — closed-world cardinality.
+gmeow:CitationActShape
+    a sh:NodeShape ;
+    rdfs:label "CitationAct well-formedness shape" ;
+    sh:targetClass gmeow:CitationAct ;
+    sh:property [
+        sh:path gmeow:citingEntity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A CitationAct must have exactly one citing entity (gmeow:citingEntity)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:citedEntity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A CitationAct must have exactly one cited entity (gmeow:citedEntity)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:citationIntent ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A CitationAct must specify exactly one citation intent (gmeow:citationIntent)." ;
     ] .
 
 # Spine integrity: every Expression realizes at least one Work.

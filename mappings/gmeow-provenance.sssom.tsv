@@ -13,8 +13,8 @@
 #   skos: http://www.w3.org/2004/02/skos/core#
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:Activity	skos:closeMatch	prov:Activity	semapv:ManualMappingCuration	0.9	
+gmeow:CreativeWork	skos:closeMatch	prov:Entity	semapv:ManualMappingCuration	0.6	Source-hood is anti-rigid; the described thing is a CreativeWork (WEMI).
 gmeow:ImportActivity	skos:closeMatch	prov:Activity	semapv:ManualMappingCuration	0.8	
-gmeow:Source	skos:closeMatch	prov:Entity	semapv:ManualMappingCuration	0.6	
 gmeow:assertedAt	skos:closeMatch	prov:generatedAtTime	semapv:ManualMappingCuration	0.85	
 gmeow:ingestedAt	skos:closeMatch	prov:endedAtTime	semapv:ManualMappingCuration	0.85	
 gmeow:sourceLocation	skos:closeMatch	dcterms:source	semapv:ManualMappingCuration	0.6	
