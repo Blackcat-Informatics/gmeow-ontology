@@ -27,6 +27,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:BodyPart (⊑ gmeow:InformationObject): A MIME part of a message's body, with a media type and content.
 - gmeow:CalendarSystem (⊑ gmeow:Entity, gufo:Object): The rules mapping a time scale to human-readable dates. Co-equal: Gregorian is one peer among Julian, Hebrew, Islamic, Chinese, Persian, Ethiopian, Coptic, ISO week, and others (Principle 9).
 - gmeow:Capacity (⊑ gmeow:Measurement): A measurement of the maximum number of entities a location can hold. The location is the observedFeature; the result is a ScalarQuantity. The entity kind being counted is implicit from the location's placeType and the ScalarQuantity's hasUnit (P11). A contested capacity (e.g., fire code vs. venue claim) is modelled as multiple co-existing Capacity measurements, each standpoint-indexed and confidence-weighted, never collapsing to a single winner (P9). A superseded capacity (e.g., after renovation) is suppressed via displayable false, never deleted (P10).
+- gmeow:CelestialCoordinates (⊑ gmeow:Entity, gufo:Object): A point on the celestial sphere expressed as right ascension, declination, and an optional epoch — frame-relative per Principle 11. The reference frame (ICRS, FK5, Galactic, etc.) is declared via gmeow:coordinateFrame.
+- gmeow:CelestialLocation (⊑ gmeow:Location): An astronomical location — a position on the celestial sphere, a solar-system body, a spacecraft, or a deep-sky object. The specific kind is given by gmeow:celestialObjectType (a value), not a subclass, so any astronomical object from star to galaxy cluster can be a first-class entity with its own coordinates and external identifiers (SIMBAD, NED, VizieR).
+- gmeow:CelestialObjectType (⊑ gufo:QualityValue): The kind of an astronomical object (star, galaxy, nebula, planet, asteroid, spacecraft, etc.). A value, not a CelestialLocation subclass: the set is open-ended (IVOA object-type vocabulary lists ~100 types) and they share the same structure.
+- gmeow:CelestialReferenceOrigin (⊑ gufo:QualityValue): The origin of a celestial coordinate system (topocentric, geocentric, barycentric, heliocentric, etc.). A value vocabulary aligned to IVOA refposition.
 - gmeow:Certification (⊑ gufo:Relator): A reified attestation that a cryptographic key belongs to a given identity, made by a certifying agent (a PGP key-signature / Web-of-Trust certification). Its validity window is carried with gmeow:validFrom/validUntil; revocation sets validUntil.
 - gmeow:Citation (⊑ gmeow:InformationObject): A reference to a specific place within a source (a page, entry, image, or record locator).
 - gmeow:ConflictStrategy (⊑ gufo:QualityValue): A policy conflict-resolution strategy — the ODRL conflict values perm / prohibit / invalid.
@@ -99,7 +103,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:License (⊑ gmeow:Agreement): A licence granting rights in a work — modelled as a gmeow:Agreement (it binds licensor and licensee and creates permissions / duties). The canonical superset of cc:License / an ODRL Offer / dcterms:LicenseDocument. Its validity window rides gmeow:validFrom / gmeow:validUntil; its family is a gmeow:licenseFamily value.
 - gmeow:LicenseFamily (⊑ gufo:QualityValue): The family of a licence — public-domain, Creative Commons, permissive, copyleft, proprietary, or dual. An OPEN value vocabulary; the ontology-side reflection of the config.py license classification, not a duplicate of it.
 - gmeow:LifeEvent (⊑ gmeow:Event): An event in the life of a person or family — a birth, death, marriage, christening, name change, and so on — to which sources and confidence can be attached. A thin, person-scoped phase of gmeow:Event (NOT a type taxonomy): the specific kind is a gmeow:eventType value (gmeow:eventTypeBirth, …). The seam joining the names module to the event spine: gmeow:conferredByEvent ranges over it.
-- gmeow:Location (⊑ gmeow:Entity, gufo:Object): A locus where an entity can be situated, reside, or occur — a geographic place, an online (virtual) location, or a digital storage location.
+- gmeow:Location (⊑ gmeow:Entity, gufo:Object): A locus where an entity can be situated, reside, or occur — a geographic place, an online (virtual) location, a digital storage location, or an astronomical/celestial position.
 - gmeow:LocationState (⊑ gmeow:Entity, gufo:Object): The state of a moving entity at a specific point or period in time, including its location, velocity, and pose (position + orientation).
 - gmeow:LogicalConstraint (⊑ gmeow:Constraint): A boolean combination of constraints under a gmeow:constraintLogic operator (odrl:and / odrl:or / odrl:xone / odrl:andSequence) over its gmeow:logicConstraintMember constraints — the ODRL LogicalConstraint, modelling the deontic constraint logic.
 - gmeow:Mailbox (⊑ gmeow:InformationObject): A named container of messages within an account — a folder, JMAP mailbox, or Gmail label.
@@ -272,6 +276,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:broaderTag [gmeow:Tag → gmeow:Tag]: A broader, more general tag. Transitive. Optional: folksonomy stays flat-first.
 - gmeow:capacityOf [gmeow:Capacity → gmeow:Location] (functional): The location whose capacity is measured. Functional: a capacity measurement concerns exactly one location (constitutive of the measurement's identity).
 - gmeow:cc [gmeow:EmailMessage → gmeow:EmailAddress]: A carbon-copy recipient address of a message (RFC 5322 Cc).
+- gmeow:celestialEpoch [gmeow:CelestialCoordinates → xsd:decimal]: The epoch (Julian year, e.g. 2000.0) for which the coordinates are expressed. Required for proper-motion propagation; frame-relative per Principle 11.
+- gmeow:celestialObjectType [gmeow:CelestialLocation → gmeow:CelestialObjectType]: The kind(s) of a celestial location (one or more gmeow:CelestialObjectType individuals). Non-functional: multi-source classifications may differ (e.g. a source classified as both 'star' and 'variable star') and must coexist as evidence.
 - gmeow:certificationLevel [gmeow:Certification → rdfs:Literal] (functional): How carefully the binding was verified (OpenPGP certification level): generic, persona, casual, or positive.
 - gmeow:certifiedIdentity [gmeow:Certification → gmeow:Agent] (functional): The agent identity a certification binds the key to.
 - gmeow:certifiedKey [gmeow:Certification → gmeow:CryptographicKey] (functional): The cryptographic key a certification vouches for.
@@ -307,6 +313,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:counterpartOf [gmeow:Entity → gmeow:Entity]: Relates two GMEOW entities that are recognisable counterparts across realms, frames, datasets, editions, or modelling contexts without being safely mergeable. Symmetric but deliberately not transitive: counterparts preserve cross-realm linkage while avoiding owl:sameAs collapse of contested, standpoint-indexed, or context-dependent claims.
 - gmeow:countryCode [gmeow:PostalAddress → rdfs:Literal]: The country of a postal address. The intended value is an ISO 3166-1 alpha-2 code (e.g. "CA"), but this is a convention, not an enforced datatype facet. Non-functional: sources vary ("CA" / "Canada" / "CAN").
 - gmeow:datePublished [gmeow:CreativeWork → xsd:dateTime]: The date a creative work was published or issued.
+- gmeow:declination [gmeow:CelestialCoordinates → xsd:decimal]: Declination in degrees (−90 to +90). Frame-relative: the meaning depends on the coordinateFrame.
 - gmeow:deliversToAccount [gmeow:EmailAddress → gmeow:OnlineAccount]: Relates an email address to the online account it delivers to — the seam joining an address (held by an agent) to the account a message resides in.
 - gmeow:description [gmeow:Entity → rdfs:Literal]: A free-text note or description about an entity — the unstructured NOTE field (a biography, a remark, an annotation). Genuinely flat: unlike names, dates or roles, a note has no structure to reify. Distinct from skos:definition, which documents ontology TERMS rather than instances. Language-tag the literal where applicable; non-functional.
 - gmeow:designGoal [gmeow:Language → rdfs:Literal]: The stated design goal/purpose of an engineered or constructed language (Lojban's syntactic unambiguity, Ithkuil's cognitive precision, an IAL's ease of learning). A literal; non-functional.
@@ -378,6 +385,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasBin [gmeow:SpatialAggregation → gmeow:SpatialBin]: Links a spatial aggregation to one of its constituent spatial bins. Non-functional: a bin may participate in multiple aggregations.
 - gmeow:hasBodyPart [gmeow:Message → gmeow:BodyPart]: Relates a message to a MIME part of its body. A MIME-structure specialization of the universal gmeow:hasPart spine.
 - gmeow:hasCapacity [gmeow:Location → gmeow:Capacity]: Links a location to a capacity measurement describing the maximum number of entities it can hold. Flat form for the common case; promote to full reified Capacity when vantage, confidence, temporal scope, or standpoint matter.
+- gmeow:hasCelestialCoordinates [gmeow:CelestialLocation → gmeow:CelestialCoordinates]: Relates a celestial location to its equatorial or other sky coordinates.
 - gmeow:hasCentroid [gmeow:Place → gmeow:Geometry]: The geometric centroid of a place — a flat shortcut for the common case. The full relator form is a SpatialAggregation with aggregationFunction aggCentroid, carrying provenance, frame, and solver reference.
 - gmeow:hasChild [gmeow:Person → gmeow:Person]: Relates a person to a child; the inverse of hasParent.
 - gmeow:hasContactPoint [gmeow:Agent → gmeow:ContactPoint]: Relates an agent to a means of contacting it.
@@ -430,6 +438,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasPronounSet [gmeow:Person → gmeow:PronounSet]: Relates a person to a pronoun set they go by. Non-functional and contextual (scope a context-specific set with gmeow:validFrom/validUntil on the statement, or via a NameUsage). A form of ADDRESS, sex/gender-independent — MUST NOT be inferred from gender identity/expression, sex-assigned-at-birth or orientation.
 - gmeow:hasRecurrenceRule [gmeow:EventSeries → gmeow:RecurrenceRule]: Relates an event series to the recurrence rule by which it repeats.
 - gmeow:hasReferenceFrame [? → gmeow:ReferenceFrame]: Relates an entity or value to the reference frame in which it is expressed.
+- gmeow:hasReferencePosition [gmeow:ReferenceFrame → gmeow:CelestialReferenceOrigin] (functional): The origin position of a celestial reference frame (topocentric, geocentric, barycentric, heliocentric). Functional: a frame has exactly one reference position.
 - gmeow:hasRelayHop [gmeow:Message → gmeow:RelayHop]: Relates a message to a hop in its delivery path.
 - gmeow:hasRepository [gmeow:SoftwareProject → gmeow:Repository]: Relates a software project to a source-code repository.
 - gmeow:hasRightsStatement [gmeow:Entity → gmeow:RightsStatement]: Relates an entity (typically a gmeow:CreativeWork or gmeow:InformationObject) to a machine-readable rights statement that governs it — the GMEOW analogue of odrl:hasPolicy.
@@ -451,6 +460,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasTag [gmeow:Entity → gmeow:Tag]: Relates an entity to a user-minted tag — the 80% flat shortcut. Non-functional: an entity may carry many co-equal tags. Period, confidence, tagger and suppression are carried via RDF-star statement annotations (gmeow:validFrom, gmeow:validUntil, gmeow:confidence, gmeow:displayable) on the shortcut; promote to a gmeow:Tagging relator when the act itself must be a node.
 - gmeow:hasTemporalFrame [gmeow:TimeInterval → gmeow:TemporalFrame]: Relates a time interval to the temporal frame in which its bounds are expressed.
 - gmeow:hasTemporalMeasurement [? → gmeow:TemporalMeasurement]: Relates an entity (event, artifact, place, sample) to a temporal measurement assigned to it.
+- gmeow:hasTimeScale [gmeow:ReferenceFrame → gmeow:TimeScale] (functional): The time standard associated with a celestial reference frame. Functional: a frame uses exactly one time scale.
 - gmeow:hasTitle [gmeow:CreativeWork → gmeow:CreativeWorkTitle]: Relates a creative work to a structured gmeow:CreativeWorkTitle it bears; the creative-work-scoped specialization of gmeow:hasAppellation. Non-functional — a work bears many co-equal titles (original, translated, transliterated, regional); none is primary, and superseded ones set gmeow:displayable false. The structured replacement for the flat gmeow:title literal when multilingual or statement-level metadata is needed.
 - gmeow:hasTrademark [gmeow:Entity → gmeow:Trademark]: Relates an entity (a mark, product or organization) to a trademark right over it.
 - gmeow:hasTrajectorySample [gmeow:Trajectory → gmeow:LocationState]: A discrete location-state sample composing this trajectory. Non-functional: a trajectory typically has many samples, and multiple sampling strategies (e.g. GPS every second vs. radar every minute) may coexist for the same trajectory (Principle 9).
@@ -656,6 +666,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:residentMessage [gmeow:MailboxResidence → gmeow:Message] (functional): The message a mailbox-residence concerns.
 - gmeow:residesIn [gmeow:Message → gmeow:Mailbox]: Relates a message to a mailbox/label it currently resides in. Time-varying residence is reified as gmeow:MailboxResidence; on this convenience property the period may be carried with gmeow:validFrom/validUntil.
 - gmeow:rfcMessageId [gmeow:Message → rdfs:Literal] (functional): The RFC 5322 Message-ID of a message.
+- gmeow:rightAscension [gmeow:CelestialCoordinates → xsd:decimal]: Right ascension in degrees (0–360). Frame-relative: the meaning depends on the coordinateFrame (ICRS, FK5, etc.).
 - gmeow:rightOperand [gmeow:AtomicConstraint → rdfs:Literal] (functional): The value an atomic constraint tests against (odrl:rightOperand), e.g. "2030-01-01", "EU", "5". For an IRI-valued operand use gmeow:rightOperandReference.
 - gmeow:rightOperandReference [gmeow:AtomicConstraint → gmeow:Entity]: An IRI-valued right operand (odrl:rightOperandReference) — e.g. a place, party, or vocabulary individual the constraint tests against.
 - gmeow:rightsType [gmeow:RightsStatement → gmeow:RightsType]: The kind(s) of intellectual-property right a statement concerns — one of the open gmeow:RightsType values (copyright, trademark, patent, industrial design, trade secret, related rights, moral rights, database right, plant breeders' rights). Non-functional: a statement may span several.
@@ -849,6 +860,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisDeclination (a gmeow:Axis): declination
 - gmeow:axisElevation (a gmeow:Axis): elevation
 - gmeow:axisFrequency (a gmeow:Axis): frequency
+- gmeow:axisGalacticLatitude (a gmeow:Axis): galactic latitude
+- gmeow:axisGalacticLongitude (a gmeow:Axis): galactic longitude
 - gmeow:axisGreen (a gmeow:Axis): green channel
 - gmeow:axisHeading (a gmeow:Axis): heading axis
 - gmeow:axisHour (a gmeow:Axis): hour
@@ -902,6 +915,14 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:cefrB2 (a gmeow:ProficiencyLevel): CEFR B2
 - gmeow:cefrC1 (a gmeow:ProficiencyLevel): CEFR C1
 - gmeow:cefrC2 (a gmeow:ProficiencyLevel): CEFR C2
+- gmeow:celestialObjectTypeAsteroid (a gmeow:CelestialObjectType): asteroid
+- gmeow:celestialObjectTypeCluster (a gmeow:CelestialObjectType): star cluster
+- gmeow:celestialObjectTypeComet (a gmeow:CelestialObjectType): comet
+- gmeow:celestialObjectTypeGalaxy (a gmeow:CelestialObjectType): galaxy
+- gmeow:celestialObjectTypeNebula (a gmeow:CelestialObjectType): nebula
+- gmeow:celestialObjectTypePlanet (a gmeow:CelestialObjectType): planet
+- gmeow:celestialObjectTypeSpacecraft (a gmeow:CelestialObjectType): spacecraft / artificial satellite
+- gmeow:celestialObjectTypeStar (a gmeow:CelestialObjectType): star
 - gmeow:conceivable (a gmeow:StandpointModality): ◊_S — possible according to the standpoint: the proposition holds in some precisification the standpoint admits, but is not settled (CRMinf belief value 'possible').
 - gmeow:conflictInvalid (a gmeow:ConflictStrategy): The ODRL invalid conflict-resolution strategy (odrl:invalid).
 - gmeow:conflictPerm (a gmeow:ConflictStrategy): The ODRL perm conflict-resolution strategy (odrl:perm).
@@ -1335,6 +1356,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:qualityDimensionTemporalAccuracy (a gmeow:QualityDimension): Correctness of the temporal references of a feature (e.g. date, time, period) relative to the true temporal value (ISO 19157).
 - gmeow:qualityDimensionThematicAccuracy (a gmeow:QualityDimension): Accuracy of quantitative and qualitative attribute values, including classification correctness and non-quantitative attribute correctness (ISO 19157).
 - gmeow:qualityDimensionTopologicalConsistency (a gmeow:QualityDimension): Correctness of the explicitly encoded topological characteristics of a dataset, typically expressed as error counts or conformance to a topological rule set (ISO 19157).
+- gmeow:refOriginBarycentric (a gmeow:CelestialReferenceOrigin): barycentric (solar system)
+- gmeow:refOriginGeocentric (a gmeow:CelestialReferenceOrigin): geocentric
+- gmeow:refOriginHeliocentric (a gmeow:CelestialReferenceOrigin): heliocentric
+- gmeow:refOriginTopocentric (a gmeow:CelestialReferenceOrigin): topocentric (observatory site)
 - gmeow:referenceFrameAudioSpectrum (a gmeow:ReferenceFrame): Audio Spectrum Reference Frame
 - gmeow:referenceFrameBGP (a gmeow:ReferenceFrame): BGP Autonomous System Reference Frame
 - gmeow:referenceFrameCIELAB (a gmeow:ReferenceFrame): CIE L*a*b* Perceptually-Uniform Reference Frame
@@ -1343,7 +1368,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:referenceFrameCelestialEquatorial (a gmeow:ReferenceFrame): Celestial Equatorial Reference Frame
 - gmeow:referenceFrameDNS (a gmeow:ReferenceFrame): DNS Name Space Reference Frame
 - gmeow:referenceFrameEnglish (a gmeow:ReferenceFrame): English Language Reference Frame
+- gmeow:referenceFrameFK5 (a gmeow:ReferenceFrame): FK5 Equatorial Reference Frame
+- gmeow:referenceFrameGalactic (a gmeow:ReferenceFrame): Galactic Coordinate Reference Frame
 - gmeow:referenceFrameGregorian (a gmeow:ReferenceFrame): Gregorian Calendar Reference Frame
+- gmeow:referenceFrameICRS (a gmeow:ReferenceFrame): ICRS Celestial Reference Frame
 - gmeow:referenceFrameIPv4 (a gmeow:ReferenceFrame): IPv4 Address Space Reference Frame
 - gmeow:referenceFrameIPv6 (a gmeow:ReferenceFrame): IPv6 Address Space Reference Frame
 - gmeow:referenceFrameInternet (a gmeow:ReferenceFrame): Internet Topology Reference Frame

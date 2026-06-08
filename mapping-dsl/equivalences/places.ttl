@@ -35,7 +35,7 @@ gmeow:mapsetPlaces a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/places" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL. placeType/storageMedium are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference." .
+    gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET. placeType/storageMedium/celestialObjectType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (#85): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl." .
 
 gmeow:eqPlaces001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:VirtualLocation ;
@@ -1212,3 +1212,122 @@ gmeow:eqPlaces136 a gmeow:TermEquivalence ;
     gmeow:objectLabel "port" ;
     gmeow:comment "Wikidata Q8187 is the general port (computer networking) concept; GMEOW networkAddressTypePort refers to a transport-layer port number." ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Issue #85 — Celestial realm: IVOA / UAT / SWEET / SIMBAD bridging
+# --------------------------------------------------------------------------- #
+
+# IVOA refframe — direct vocabulary matches
+gmeow:eqPlaces137 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameICRS ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/refframe/ICRS> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces138 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameFK5 ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/refframe/FK5> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces139 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameGalactic ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/refframe/galactic> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# IVOA refposition — direct vocabulary matches
+gmeow:eqPlaces140 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:refOriginTopocentric ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/refposition/TOPOCENTER> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces141 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:refOriginGeocentric ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/refposition/GEOCENTER> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces142 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:refOriginBarycentric ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/refposition/BARYCENTER> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces143 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:refOriginHeliocentric ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/refposition/HELIOCENTER> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# IVOA object-type (SIMBAD) — direct vocabulary matches
+gmeow:eqPlaces144 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:celestialObjectTypeStar ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/object-type/star> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces145 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:celestialObjectTypeGalaxy ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/object-type/galaxy> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces146 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:celestialObjectTypePlanet ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/object-type/planet> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces147 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:celestialObjectTypeNebula ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/object-type/nebula> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# UAT — conceptual alignments (published by IVOA)
+gmeow:eqPlaces148 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:CelestialLocation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/uat#astronomical-objects> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "astronomical objects" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces149 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:celestialObjectTypePlanet ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.ivoa.net/rdf/uat#planets> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "planets" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# SWEET and SLSO: no stable published RDF IRIs found at the time of authoring.
+# Alignments are documented as comment-only placeholders following the
+# sensory-environment.ttl precedent for sources without resolvable term IRIs.
+# If SWEET or SLSO publish stable IRIs in future, add TermEquivalence rows here.

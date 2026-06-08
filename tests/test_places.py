@@ -1732,3 +1732,134 @@ def test_no_preferred_or_primary_virtual_location_term() -> None:
         for pt in prop_types:
             assert (node, RDF.type, pt) not in g, f"{banned} must not exist"
         assert (node, RDF.type, OWL.Class) not in g
+
+
+# =========================================================================== #
+# Issue #85 — Celestial realm structural guards
+# =========================================================================== #
+
+
+def test_celestial_location_subclass_of_location() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "CelestialLocation"),
+        RDFS.subClassOf,
+        URIRef(GMEOW + "Location"),
+    ) in graph
+
+
+def test_celestial_coordinates_subclass_of_entity() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "CelestialCoordinates"),
+        RDFS.subClassOf,
+        URIRef(GMEOW + "Entity"),
+    ) in graph
+
+
+def test_celestial_object_type_is_value_not_subclass() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "CelestialObjectType"),
+        RDFS.subClassOf,
+        URIRef(GUFO + "QualityValue"),
+    ) in graph
+    celestial_type = URIRef(GMEOW + "celestialObjectType")
+    assert (celestial_type, RDF.type, OWL.ObjectProperty) in graph
+    assert (celestial_type, RDF.type, OWL.FunctionalProperty) not in graph
+    for ind in (
+        "celestialObjectTypeStar",
+        "celestialObjectTypeGalaxy",
+        "celestialObjectTypePlanet",
+        "celestialObjectTypeNebula",
+        "celestialObjectTypeAsteroid",
+        "celestialObjectTypeComet",
+        "celestialObjectTypeCluster",
+        "celestialObjectTypeSpacecraft",
+    ):
+        assert (
+            URIRef(GMEOW + ind),
+            RDF.type,
+            URIRef(GMEOW + "CelestialObjectType"),
+        ) in graph
+    for rejected in ("Star", "Galaxy", "Nebula", "Planet"):
+        assert (URIRef(GMEOW + rejected), RDF.type, OWL.Class) not in graph
+
+
+def test_reference_position_and_timescale_are_values() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "CelestialReferenceOrigin"),
+        RDFS.subClassOf,
+        URIRef(GUFO + "QualityValue"),
+    ) in graph
+    for ind in (
+        "refOriginTopocentric",
+        "refOriginGeocentric",
+        "refOriginBarycentric",
+        "refOriginHeliocentric",
+    ):
+        assert (
+            URIRef(GMEOW + ind),
+            RDF.type,
+            URIRef(GMEOW + "CelestialReferenceOrigin"),
+        ) in graph
+
+
+def test_icrs_fk5_galactic_frames_exist() -> None:
+    graph = _graph()
+    for frame in ("referenceFrameICRS", "referenceFrameFK5", "referenceFrameGalactic"):
+        frame_uri = URIRef(GMEOW + frame)
+        assert (frame_uri, RDF.type, URIRef(GMEOW + "ReferenceFrame")) in graph
+        assert (
+            frame_uri,
+            URIRef(GMEOW + "frameRealm"),
+            URIRef(GMEOW + "frameRealmCelestial"),
+        ) in graph
+        assert (
+            frame_uri,
+            URIRef(GMEOW + "hasMetricKind"),
+            URIRef(GMEOW + "metricGeodesic"),
+        ) in graph
+
+
+def test_celestial_coords_have_ra_dec_epoch() -> None:
+    graph = _graph()
+    for prop in ("rightAscension", "declination", "celestialEpoch"):
+        node = URIRef(GMEOW + prop)
+        assert (node, RDF.type, OWL.DatatypeProperty) in graph
+        assert (node, RDFS.domain, URIRef(GMEOW + "CelestialCoordinates")) in graph
+
+
+def test_celestial_location_has_coords_property() -> None:
+    graph = _graph()
+    node = URIRef(GMEOW + "hasCelestialCoordinates")
+    assert (node, RDF.type, OWL.ObjectProperty) in graph
+    assert (node, RDFS.domain, URIRef(GMEOW + "CelestialLocation")) in graph
+    assert (node, RDFS.range, URIRef(GMEOW + "CelestialCoordinates")) in graph
+
+
+def test_reference_frame_has_refpos_and_timescale() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "hasReferencePosition"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasTimeScale"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+    # Verify actual frame bindings: ICRS uses BARYCENTER + TDB
+    icrs = URIRef(GMEOW + "referenceFrameICRS")
+    assert (
+        icrs,
+        URIRef(GMEOW + "hasReferencePosition"),
+        URIRef(GMEOW + "refOriginBarycentric"),
+    ) in graph
+    assert (
+        icrs,
+        URIRef(GMEOW + "hasTimeScale"),
+        URIRef(GMEOW + "timeScaleTDB"),
+    ) in graph
