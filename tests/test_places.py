@@ -542,6 +542,7 @@ def test_metric_kind_is_value_not_subclass() -> None:
         "metricEditDistance",
         "metricGraphHops",
         "metricSymplectic",
+        "metricPositionalDistance",
     ):
         assert (
             URIRef(GMEOW + metric),
@@ -1929,3 +1930,206 @@ def test_psychological_axes_exist() -> None:
         "axisImaginedSpaceZ",
     ):
         assert (URIRef(GMEOW + axis), RDF.type, URIRef(GMEOW + "Axis")) in graph
+
+
+# --------------------------------------------------------------------------- #
+# Biological-sequence realm — FALDO / Sequence Ontology / GFF3 (#90)
+# --------------------------------------------------------------------------- #
+
+
+def test_biological_sequence_location_subclass_of_location() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "BiologicalSequenceLocation"),
+        RDFS.subClassOf,
+        URIRef(GMEOW + "Location"),
+    ) in graph
+
+
+def test_sequence_feature_type_is_value_not_subclass() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "SequenceFeatureType"),
+        RDFS.subClassOf,
+        URIRef(GUFO + "QualityValue"),
+    ) in graph
+    for sft in (
+        "sequenceFeatureTypeGene",
+        "sequenceFeatureTypeExon",
+        "sequenceFeatureTypeIntron",
+        "sequenceFeatureTypeCDS",
+        "sequenceFeatureTypeSNP",
+        "sequenceFeatureTypeChromosome",
+    ):
+        assert (
+            URIRef(GMEOW + sft),
+            RDF.type,
+            URIRef(GMEOW + "SequenceFeatureType"),
+        ) in graph
+    for rejected in ("Gene", "Exon", "Intron", "CDS", "SNP"):
+        assert (URIRef(GMEOW + rejected), RDF.type, OWL.Class) not in graph
+
+
+def test_strand_orientation_values() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "StrandOrientation"),
+        RDFS.subClassOf,
+        URIRef(GUFO + "QualityValue"),
+    ) in graph
+    for strand in ("strandForward", "strandReverse", "strandBoth"):
+        assert (
+            URIRef(GMEOW + strand),
+            RDF.type,
+            URIRef(GMEOW + "StrandOrientation"),
+        ) in graph
+
+
+def test_sequence_coordinates_properties() -> None:
+    graph = _graph()
+    # sequenceStart — positiveInteger, functional, domain SequenceCoordinates
+    start = URIRef(GMEOW + "sequenceStart")
+    assert (start, RDF.type, OWL.DatatypeProperty) in graph
+    assert (start, RDF.type, OWL.FunctionalProperty) in graph
+    assert (start, RDFS.domain, URIRef(GMEOW + "SequenceCoordinates")) in graph
+    assert (start, RDFS.range, XSD.positiveInteger) in graph
+
+    # sequenceEnd — positiveInteger, functional, domain SequenceCoordinates
+    end = URIRef(GMEOW + "sequenceEnd")
+    assert (end, RDF.type, OWL.DatatypeProperty) in graph
+    assert (end, RDF.type, OWL.FunctionalProperty) in graph
+    assert (end, RDFS.domain, URIRef(GMEOW + "SequenceCoordinates")) in graph
+    assert (end, RDFS.range, XSD.positiveInteger) in graph
+
+    # sequenceStrand — StrandOrientation, functional, domain SequenceCoordinates
+    strand = URIRef(GMEOW + "sequenceStrand")
+    assert (strand, RDF.type, OWL.ObjectProperty) in graph
+    assert (strand, RDF.type, OWL.FunctionalProperty) in graph
+    assert (strand, RDFS.domain, URIRef(GMEOW + "SequenceCoordinates")) in graph
+    assert (strand, RDFS.range, URIRef(GMEOW + "StrandOrientation")) in graph
+
+    # inReferenceAssembly — ReferenceFrame, functional, subPropertyOf hasReferenceFrame
+    ref = URIRef(GMEOW + "inReferenceAssembly")
+    assert (ref, RDF.type, OWL.ObjectProperty) in graph
+    assert (ref, RDF.type, OWL.FunctionalProperty) in graph
+    assert (ref, RDFS.domain, URIRef(GMEOW + "SequenceCoordinates")) in graph
+    assert (ref, RDFS.range, URIRef(GMEOW + "ReferenceFrame")) in graph
+    assert (
+        ref,
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "hasReferenceFrame"),
+    ) in graph
+
+    # hasSequenceCoordinates — domain SequenceFeature, range SequenceCoordinates
+    hsc = URIRef(GMEOW + "hasSequenceCoordinates")
+    assert (hsc, RDF.type, OWL.ObjectProperty) in graph
+    assert (hsc, RDFS.domain, URIRef(GMEOW + "SequenceFeature")) in graph
+    assert (hsc, RDFS.range, URIRef(GMEOW + "SequenceCoordinates")) in graph
+    assert (hsc, RDF.type, OWL.FunctionalProperty) not in graph
+
+    # sequenceFeatureType — non-functional, co-equal classifications
+    sft = URIRef(GMEOW + "sequenceFeatureType")
+    assert (sft, RDF.type, OWL.ObjectProperty) in graph
+    assert (sft, RDFS.domain, URIRef(GMEOW + "SequenceFeature")) in graph
+    assert (sft, RDFS.range, URIRef(GMEOW + "SequenceFeatureType")) in graph
+    assert (sft, RDF.type, OWL.FunctionalProperty) not in graph
+
+    # hasSequenceFeature — domain BiologicalSequenceLocation, range SequenceFeature
+    hsf = URIRef(GMEOW + "hasSequenceFeature")
+    assert (hsf, RDF.type, OWL.ObjectProperty) in graph
+    assert (hsf, RDFS.domain, URIRef(GMEOW + "BiologicalSequenceLocation")) in graph
+    assert (hsf, RDFS.range, URIRef(GMEOW + "SequenceFeature")) in graph
+
+
+def test_grch38_reference_frame_seeded() -> None:
+    graph = _graph()
+    grch38 = URIRef(GMEOW + "referenceFrameGRCh38")
+    assert (grch38, RDF.type, URIRef(GMEOW + "ReferenceFrame")) in graph
+    assert (
+        grch38,
+        URIRef(GMEOW + "frameRealm"),
+        URIRef(GMEOW + "frameRealmBiological"),
+    ) in graph
+    assert (
+        grch38,
+        URIRef(GMEOW + "frameKind"),
+        URIRef(GMEOW + "frameKindLinearSequence"),
+    ) in graph
+    assert (
+        grch38,
+        URIRef(GMEOW + "hasAxis"),
+        URIRef(GMEOW + "axisSequencePosition"),
+    ) in graph
+    assert (
+        grch38,
+        URIRef(GMEOW + "dimensionCount"),
+        Literal(1, datatype=XSD.nonNegativeInteger),
+    ) in graph
+    assert (
+        grch38,
+        URIRef(GMEOW + "determinacyModel"),
+        URIRef(GMEOW + "determinacyCrisp"),
+    ) in graph
+    assert (
+        grch38,
+        URIRef(GMEOW + "hasMetricKind"),
+        URIRef(GMEOW + "metricPositionalDistance"),
+    ) in graph
+
+
+def test_frame_realm_biological_seeded() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "frameRealmBiological"),
+        RDF.type,
+        URIRef(GMEOW + "FrameRealm"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "frameKindLinearSequence"),
+        RDF.type,
+        URIRef(GMEOW + "FrameKind"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "axisSequencePosition"),
+        RDF.type,
+        URIRef(GMEOW + "Axis"),
+    ) in graph
+
+
+def test_sequence_feature_has_coordinates_and_type() -> None:
+    """A SequenceFeature can bear coordinates and a feature type."""
+    graph = _graph()
+    assert (URIRef(GMEOW + "SequenceFeature"), RDF.type, OWL.Class) in graph
+    assert (
+        URIRef(GMEOW + "hasSequenceCoordinates"),
+        RDFS.domain,
+        URIRef(GMEOW + "SequenceFeature"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "sequenceFeatureType"),
+        RDFS.domain,
+        URIRef(GMEOW + "SequenceFeature"),
+    ) in graph
+
+
+def test_biological_coverage_passes_shacl() -> None:
+    """A biological-sequence coverage fixture with GRCh38 features loads and
+    passes SHACL validation."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-biological.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+
+
+def test_biological_standpoint_coordinate_claims_coexist() -> None:
+    """Two standpoint-indexed SequenceCoordinates on the same gene load,
+    SHACL-pass, and are BOTH retained (Principle 9)."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-biological.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    coords = set(
+        g.objects(
+            URIRef("https://blackcatinformatics.ca/gmeow/examples/places/geneBRCA1Alt"),
+            URIRef(GMEOW + "hasSequenceCoordinates"),
+        )
+    )
+    assert len(coords) >= 2, "Expected at least two co-existing coordinate claims"

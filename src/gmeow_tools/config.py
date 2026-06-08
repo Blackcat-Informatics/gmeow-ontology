@@ -307,6 +307,9 @@ PREFIXES: dict[str, str] = {
     "fibo-fnd-acc-cur": "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/",
     # Machine Learning (ML-Schema)
     "mls": "http://www.w3.org/ns/mls#",
+    # Biological-sequence realm (FALDO, Sequence Ontology)
+    "faldo": "http://biohackathon.org/resource/faldo#",
+    "so": "http://purl.obolibrary.org/obo/SO_",
 }
 
 # --------------------------------------------------------------------------- #
@@ -533,4 +536,9 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "tags": AlignmentTarget("Tag Ontology", PREFIXES["tags"], "Unknown", "schema"),
     "qb": AlignmentTarget("RDF Data Cube", PREFIXES["qb"], "W3C-Document", "schema"),
     "mf": AlignmentTarget("OGC Moving Features", PREFIXES["mf"], "OGC", "schema"),
+    # Biological-sequence realm (#90)
+    "faldo": AlignmentTarget("FALDO", PREFIXES["faldo"], "Unknown", "schema"),
+    "so": AlignmentTarget(
+        "Sequence Ontology", PREFIXES["so"], "CC-BY-SA-4.0", "concept_scheme"
+    ),
 }

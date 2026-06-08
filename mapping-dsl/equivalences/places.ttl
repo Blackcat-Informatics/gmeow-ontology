@@ -31,6 +31,8 @@
 @prefix cora: <http://purl.org/ieee1872-owl/cora#> .
 @prefix knowrob: <http://knowrob.org/kb/knowrob.owl#> .
 @prefix soma: <http://www.ease-crc.org/ont/SOMA.owl#> .
+@prefix faldo: <http://biohackathon.org/resource/faldo#> .
+@prefix so: <http://purl.obolibrary.org/obo/SO_> .
 
 # Term equivalences for the places domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-places.sssom.tsv by `gmeow compile-mappings`.
@@ -39,7 +41,7 @@ gmeow:mapsetPlaces a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/places" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET, IEEE 1872-2015 CORA, KnowRob, SOMA. placeType/storageMedium/celestialObjectType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (#85): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl. Added (#88): Robotic realm bridging to IEEE 1872-2015 CORA (Robot, RoboticSystem), KnowRob (SemanticEnvironmentMap, RobotBaseTrajectory, Joint, FrameOfReference), and SOMA (ArtificialAgent)." .
+    gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET, IEEE 1872-2015 CORA, KnowRob, SOMA, FALDO, Sequence Ontology. placeType/storageMedium/celestialObjectType/sequenceFeatureType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (#85): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl. Added (#88): Robotic realm bridging to IEEE 1872-2015 CORA (Robot, RoboticSystem), KnowRob (SemanticEnvironmentMap, RobotBaseTrajectory, Joint, FrameOfReference), and SOMA (ArtificialAgent). Added (#90): Biological-sequence realm bridging to FALDO (Region, begin, end, ForwardStrandPosition, ReverseStrandPosition, reference), Sequence Ontology (sequence_feature, gene, exon, intron, CDS, SNP, chromosome), and Wikidata (GRCh38, genomic location, sense/antisense strand)." .
 
 gmeow:eqPlaces001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:VirtualLocation ;
@@ -1512,4 +1514,179 @@ gmeow:eqPlaces167 a gmeow:TermEquivalence ;
     gmeow:confidence 0.7 ;
     gmeow:objectLabel "ArtificialAgent" ;
     gmeow:comment "SOMA ArtificialAgent is the agent-level concept; GMEOW referenceFrameRobotBase is the spatial reference frame attached to that agent. Structural alignment only." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Issue #90 — Biological-sequence realm: FALDO / Sequence Ontology / GFF3
+# --------------------------------------------------------------------------- #
+
+# FALDO alignments
+gmeow:eqPlaces168 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SequenceCoordinates ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject faldo:Region ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "Region" ;
+    gmeow:comment "FALDO Region models interval coordinates via begin/end; GMEOW SequenceCoordinates carries explicit start/end/strand and reference-assembly linkage." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces169 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:sequenceStart ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject faldo:begin ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "begin" ;
+    gmeow:comment "FALDO begin is a property on a Region; GMEOW sequenceStart is an explicit positiveInteger property on SequenceCoordinates." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces170 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:sequenceEnd ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject faldo:end ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "end" ;
+    gmeow:comment "FALDO end is a property on a Region; GMEOW sequenceEnd is an explicit positiveInteger property on SequenceCoordinates." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces171 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:strandForward ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject faldo:ForwardStrandPosition ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:objectLabel "ForwardStrandPosition" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces172 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:strandReverse ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject faldo:ReverseStrandPosition ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:objectLabel "ReverseStrandPosition" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces173 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:inReferenceAssembly ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject faldo:reference ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "reference" ;
+    gmeow:comment "FALDO reference links a Position to its sequence; GMEOW inReferenceAssembly links SequenceCoordinates to a ReferenceFrame (the assembly)." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# Sequence Ontology alignments
+gmeow:eqPlaces174 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SequenceFeatureType ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject so:0000110 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "sequence_feature" ;
+    gmeow:comment "SO sequence_feature is the root class for all sequence features; GMEOW SequenceFeatureType is the open value vocabulary of feature kinds." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces175 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:sequenceFeatureTypeGene ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject so:0000704 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:objectLabel "gene" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces176 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:sequenceFeatureTypeExon ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject so:0000147 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:objectLabel "exon" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces177 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:sequenceFeatureTypeIntron ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject so:0000188 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:objectLabel "intron" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces178 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:sequenceFeatureTypeCDS ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject so:0000316 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:objectLabel "CDS" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces179 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:sequenceFeatureTypeSNP ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject so:0000694 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:objectLabel "SNP" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces180 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:sequenceFeatureTypeChromosome ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject so:0000340 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:objectLabel "chromosome" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# Wikidata alignments
+gmeow:eqPlaces181 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:BiologicalSequenceLocation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q106227 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "genomic location" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces182 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SequenceFeature ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q7187 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:objectLabel "gene" ;
+    gmeow:comment "Wikidata Q7187 is the prototypical sequence feature (gene); GMEOW SequenceFeature is the general class for any feature on a biological sequence." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces183 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameGRCh38 ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q20966585 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:objectLabel "GRCh38" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces184 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:strandForward ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q6432361 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "sense strand" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces185 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:strandReverse ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q22809711 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "antisense strand" ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" .
