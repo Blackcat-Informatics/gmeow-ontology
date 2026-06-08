@@ -389,7 +389,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasCentroid [gmeow:Place → gmeow:Geometry]: The geometric centroid of a place — a flat shortcut for the common case. The full relator form is a SpatialAggregation with aggregationFunction aggCentroid, carrying provenance, frame, and solver reference.
 - gmeow:hasChild [gmeow:Person → gmeow:Person]: Relates a person to a child; the inverse of hasParent.
 - gmeow:hasContactPoint [gmeow:Agent → gmeow:ContactPoint]: Relates an agent to a means of contacting it.
-- gmeow:hasCoordinateMatrix [gmeow:Axis | gmeow:Pose → rdfs:Literal]: Specifies a transformation or projection matrix associated with a coordinate axis, or a homogeneous 4×4 pose matrix combining translation and rotation.
+- gmeow:hasCoordinateMatrix [gmeow:Axis | gmeow:Pose | gmeow:SpatialCoordinates → rdfs:Literal]: Specifies a transformation or projection matrix associated with a coordinate axis, a homogeneous 4×4 pose matrix combining translation and rotation, or a general n-D coordinate matrix (e.g. latent vector, configuration-space joint angles) on a SpatialCoordinates instance.
 - gmeow:hasCoordinates [gmeow:Place → gmeow:GeoCoordinates]: Relates a place to its geographic point coordinates.
 - gmeow:hasCopyright [gmeow:Entity → gmeow:Copyright]: Relates a work to its reified copyright.
 - gmeow:hasCreationEvent [gmeow:Entity → gmeow:Event]: Links an entity to the event that brought it into existence — the general form of birth (person), founding (organization), minting (currency), or realization (reference frame). Non-functional: competing standpoint-indexed creation claims coexist, none privileged. A Person's birth event is ALSO typed gmeow:eventTypeBirth (co-equal value, not a subclass).
@@ -862,12 +862,22 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisFrequency (a gmeow:Axis): frequency
 - gmeow:axisGalacticLatitude (a gmeow:Axis): galactic latitude
 - gmeow:axisGalacticLongitude (a gmeow:Axis): galactic longitude
+- gmeow:axisGeneralizedCoordinate (a gmeow:Axis): A generalized position coordinate qᵢ in a Lagrangian or Hamiltonian formulation.
+- gmeow:axisGeneralizedMomentum (a gmeow:Axis): The conjugate momentum pᵢ = ∂L/∂q̇ᵢ corresponding to a generalized coordinate qᵢ.
 - gmeow:axisGreen (a gmeow:Axis): green channel
 - gmeow:axisHeading (a gmeow:Axis): heading axis
+- gmeow:axisHilbertState (a gmeow:Axis): A single axis representing the state vector in a Hilbert space. The actual infinite-dimensional structure is a solver-layer attribute (Principle 12).
 - gmeow:axisHour (a gmeow:Axis): hour
 - gmeow:axisIPv4Address (a gmeow:Axis): IPv4 address axis
 - gmeow:axisIPv6Address (a gmeow:Axis): IPv6 address axis
+- gmeow:axisJointAngle1 (a gmeow:Axis): joint angle 1
+- gmeow:axisJointAngle2 (a gmeow:Axis): joint angle 2
+- gmeow:axisJointAngle3 (a gmeow:Axis): joint angle 3
+- gmeow:axisJointAngle4 (a gmeow:Axis): joint angle 4
+- gmeow:axisJointAngle5 (a gmeow:Axis): joint angle 5
+- gmeow:axisJointAngle6 (a gmeow:Axis): joint angle 6
 - gmeow:axisKey (a gmeow:Axis): key (black) channel
+- gmeow:axisLatentVector (a gmeow:Axis): A single axis representing a point in a learned latent vector space. The embedding dimension is a solver-layer attribute (Principle 12).
 - gmeow:axisLatitude (a gmeow:Axis): latitude
 - gmeow:axisLightness (a gmeow:Axis): CIE L* lightness
 - gmeow:axisLongitude (a gmeow:Axis): longitude
@@ -875,6 +885,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisMagenta (a gmeow:Axis): magenta channel
 - gmeow:axisMagnitude (a gmeow:Axis): magnitude
 - gmeow:axisMinute (a gmeow:Axis): minute
+- gmeow:axisMomentumX (a gmeow:Axis): momentum X
+- gmeow:axisMomentumY (a gmeow:Axis): momentum Y
+- gmeow:axisMomentumZ (a gmeow:Axis): momentum Z
 - gmeow:axisMonth (a gmeow:Axis): month
 - gmeow:axisPitch (a gmeow:Axis): pitch axis
 - gmeow:axisPortNumber (a gmeow:Axis): port number axis
@@ -1011,6 +1024,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:frameKindCylindrical (a gmeow:FrameKind): cylindrical
 - gmeow:frameKindGeodetic (a gmeow:FrameKind): geodetic
 - gmeow:frameKindGrid (a gmeow:FrameKind): grid
+- gmeow:frameKindHilbert (a gmeow:FrameKind): An inner-product space that is complete with respect to the norm induced by the inner product; may be infinite-dimensional. The ontology models this with dimensionCount 1 and a single axis, leaving actual dimensionality to solver-layer matrix attributes (Principle 12).
+- gmeow:frameKindLatentSpace (a gmeow:FrameKind): A compressed, lower-dimensional representation space learned by a neural network or other statistical model. Similarity is measured by cosine or Euclidean metrics.
+- gmeow:frameKindManifold (a gmeow:FrameKind): A topological space that locally resembles Euclidean space. Coordinate charts and tangent spaces are solver-layer constructs (Principle 12), not asserted as OWL axioms.
+- gmeow:frameKindPhaseSpace (a gmeow:FrameKind): A space in which all possible states of a dynamical system are represented, with each state corresponding to one unique point. Typically 2n-dimensional for n degrees of freedom (generalized coordinates + conjugate momenta).
 - gmeow:frameKindPolar (a gmeow:FrameKind): polar
 - gmeow:frameKindScalar (a gmeow:FrameKind): scalar
 - gmeow:frameKindTemporal (a gmeow:FrameKind): temporal
@@ -1020,6 +1037,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:frameRealmCurrency (a gmeow:FrameRealm): currency
 - gmeow:frameRealmIndoor (a gmeow:FrameRealm): indoor
 - gmeow:frameRealmLinguistic (a gmeow:FrameRealm): linguistic
+- gmeow:frameRealmMathematical (a gmeow:FrameRealm): mathematical / n-D
 - gmeow:frameRealmMeasurement (a gmeow:FrameRealm): measurement
 - gmeow:frameRealmPerceptual (a gmeow:FrameRealm): A perceptual or subjective domain in which values are expressed relative to a perceiver's sensory or cognitive frame (e.g. thermal comfort, olfactory quality, subjective loudness).
 - gmeow:frameRealmRobotic (a gmeow:FrameRealm): robotic
@@ -1165,6 +1183,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:metricEuclidean (a gmeow:MetricKind): Straight-line distance in a Cartesian or flat space.
 - gmeow:metricGeodesic (a gmeow:MetricKind): Shortest path along a curved surface (e.g. great-circle on a spheroid).
 - gmeow:metricGraphHops (a gmeow:MetricKind): Shortest-path edge count in a network or graph.
+- gmeow:metricSymplectic (a gmeow:MetricKind): The natural metric on a phase space, preserving the symplectic form ω = Σ dqᵢ ∧ dpᵢ. Used in Hamiltonian mechanics.
 - gmeow:modalityMachine (a gmeow:LanguageModality): machine / programmatic
 - gmeow:modalityMultimodal (a gmeow:LanguageModality): multimodal
 - gmeow:modalitySigned (a gmeow:LanguageModality): signed
@@ -1371,14 +1390,18 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:referenceFrameFK5 (a gmeow:ReferenceFrame): FK5 Equatorial Reference Frame
 - gmeow:referenceFrameGalactic (a gmeow:ReferenceFrame): Galactic Coordinate Reference Frame
 - gmeow:referenceFrameGregorian (a gmeow:ReferenceFrame): Gregorian Calendar Reference Frame
+- gmeow:referenceFrameHilbertSpace (a gmeow:ReferenceFrame): Hilbert Space Reference Frame
 - gmeow:referenceFrameICRS (a gmeow:ReferenceFrame): ICRS Celestial Reference Frame
 - gmeow:referenceFrameIPv4 (a gmeow:ReferenceFrame): IPv4 Address Space Reference Frame
 - gmeow:referenceFrameIPv6 (a gmeow:ReferenceFrame): IPv6 Address Space Reference Frame
 - gmeow:referenceFrameInternet (a gmeow:ReferenceFrame): Internet Topology Reference Frame
+- gmeow:referenceFrameLatentVectorSpace (a gmeow:ReferenceFrame): Latent Vector Space Reference Frame
 - gmeow:referenceFrameLocalGrid (a gmeow:ReferenceFrame): Local Grid Cartesian Reference Frame
 - gmeow:referenceFrameMAC (a gmeow:ReferenceFrame): MAC Address Space Reference Frame
 - gmeow:referenceFrameNetworkGraph (a gmeow:ReferenceFrame): Network Graph Reference Frame
+- gmeow:referenceFramePhaseSpace3DOF (a gmeow:ReferenceFrame): 3-DOF Phase Space Reference Frame
 - gmeow:referenceFramePort (a gmeow:ReferenceFrame): Port Number Space Reference Frame
+- gmeow:referenceFrameRobotArm6DOF (a gmeow:ReferenceFrame): 6-DOF Robot Arm Configuration Space
 - gmeow:referenceFrameRobotBase (a gmeow:ReferenceFrame): Robot Base Cartesian Reference Frame
 - gmeow:referenceFrameSI (a gmeow:ReferenceFrame): SI Measurement Reference Frame
 - gmeow:referenceFrameSRGB (a gmeow:ReferenceFrame): sRGB Colourspace Reference Frame

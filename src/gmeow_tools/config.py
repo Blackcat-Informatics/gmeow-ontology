@@ -302,6 +302,8 @@ PREFIXES: dict[str, str] = {
     "lime": "http://www.w3.org/ns/lemon/lime#",
     # Currency (FIBO CurrencyAmount)
     "fibo-fnd-acc-cur": "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/",
+    # Machine Learning (ML-Schema)
+    "mls": "http://www.w3.org/ns/mls#",
 }
 
 # --------------------------------------------------------------------------- #
