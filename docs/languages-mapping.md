@@ -155,7 +155,7 @@ Dialect, sociolect, register, idiolect, localized variant, generational slang, s
 
 ```turtle
 ex:scots a gmeow:LanguageVariety ;
-    gmeow:bcp47Tag "sco" ;
+    gmeow:languageTag "sco" ;
     gmeow:varietyKind gmeow:kindLanguage , gmeow:kindDialect ;
     gmeow:varietyOf ex:english .
 

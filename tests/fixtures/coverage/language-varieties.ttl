@@ -144,11 +144,14 @@ ex:ithkuil2011 a gmeow:LanguageVersion ;
     gmeow:versionOf ex:ithkuil ;
     gmeow:versionLabel "2011" .
 
+ex:ithkuil2011Interval a gmeow:TimeInterval ;
+    time:hasBeginning [ time:inXSDDateTime "2011-01-01T00:00:00Z"^^xsd:dateTime ] .
+
 ex:ithkuil2011State a gmeow:LanguageState ;
     gmeow:stateLanguage ex:ithkuil2011 ;
     gmeow:stateStatusValue gmeow:statusConstructedActive ;
     gmeow:stateAuthority ex:standpoint-academic ;
-    gmeow:stateInterval ex:modernEnglishInterval .
+    gmeow:stateInterval ex:ithkuil2011Interval .
 
 # --- Change event: Great Vowel Shift ---------------------------------------- #
 

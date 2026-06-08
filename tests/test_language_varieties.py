@@ -10,7 +10,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
+from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
+from rdflib.namespace import XSD
 from rdflib.query import ResultRow
 from rdflib.term import Identifier
 
@@ -19,6 +20,7 @@ from gmeow_tools.graph import load_merged_graph
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"
 GM = Namespace(GMEOW)
+GUFO_NS = Namespace(GUFO)
 COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
 
 
@@ -33,11 +35,7 @@ def _graph() -> Graph:
 
 def test_variety_hierarchy() -> None:
     g = _graph()
-    assert (
-        URIRef(GMEOW + "LanguageVariety"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "Language"),
-    ) in g
+    assert (GM.LanguageVariety, RDFS.subClassOf, GM.Language) in g
 
 
 def test_variety_kind_is_non_functional() -> None:
@@ -54,13 +52,9 @@ def test_variety_of_is_non_functional() -> None:
 
 def test_variety_kind_value_vocabulary() -> None:
     g = _graph()
-    assert (
-        URIRef(GMEOW + "LanguageVarietyKind"),
-        RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
-    ) in g
+    assert (GM.LanguageVarietyKind, RDFS.subClassOf, GUFO_NS.QualityValue) in g
     for individual in ("kindDialect", "kindSociolect", "kindRegister"):
-        assert (URIRef(GMEOW + individual), RDF.type, GM.LanguageVarietyKind) in g
+        assert (GM[individual], RDF.type, GM.LanguageVarietyKind) in g
 
 
 # --------------------------------------------------------------------------- #
@@ -72,7 +66,7 @@ def test_language_state_is_observation_relator() -> None:
     g = _graph()
     assert (GM.LanguageState, RDF.type, OWL.Class) in g
     assert (GM.LanguageState, RDFS.subClassOf, GM.Observation) in g
-    assert (GM.LanguageState, RDFS.subClassOf, URIRef(GUFO + "Relator")) in g
+    assert (GM.LanguageState, RDFS.subClassOf, GUFO_NS.Relator) in g
 
 
 def test_language_state_functional_role() -> None:
@@ -100,13 +94,9 @@ def test_change_event_is_activity() -> None:
 
 def test_change_type_value_vocabulary() -> None:
     g = _graph()
-    assert (
-        URIRef(GMEOW + "LanguageChangeType"),
-        RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
-    ) in g
+    assert (GM.LanguageChangeType, RDFS.subClassOf, GUFO_NS.QualityValue) in g
     for individual in ("changeSoundShift", "changeBorrowing", "changeExtinction"):
-        assert (URIRef(GMEOW + individual), RDF.type, GM.LanguageChangeType) in g
+        assert (GM[individual], RDF.type, GM.LanguageChangeType) in g
 
 
 # --------------------------------------------------------------------------- #
@@ -122,19 +112,13 @@ def test_language_state_bitemporal_query() -> None:
         Path(__file__).parent.parent / "queries" / "temporal" / "bitemporal.rq"
     ).read_text(encoding="utf-8")
     # Middle English spans 1150-1500; 1200 CE falls inside it.
-    # rdflib requires injecting the binding via string substitution
-    # for datetime literals.
-    query_with_binding = query_text.replace(
-        "    BIND(COALESCE(?aa, ?rnlt) AS ?observed)",
-        (
-            '    BIND("1200-01-01T00:00:00Z"^^'
-            "<http://www.w3.org/2001/XMLSchema#dateTime> AS ?validAt)\n"
-            '    BIND("2100-01-01T00:00:00Z"^^'
-            "<http://www.w3.org/2001/XMLSchema#dateTime> AS ?asOf)\n"
-            "    BIND(COALESCE(?aa, ?rnlt) AS ?observed)"
-        ),
+    result = data.query(
+        query_text,
+        initBindings={
+            "validAt": Literal("1200-01-01T00:00:00Z", datatype=XSD.dateTime),
+            "asOf": Literal("2100-01-01T00:00:00Z", datatype=XSD.dateTime),
+        },
     )
-    result = data.query(query_with_binding)
     states: set[Identifier] = set()
     for row in result:
         assert isinstance(row, ResultRow)
