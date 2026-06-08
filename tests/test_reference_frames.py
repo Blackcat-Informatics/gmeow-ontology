@@ -266,3 +266,60 @@ def test_narrative_reference_frame_passes() -> None:
 
     result = run_shacl(g)
     assert result.ok, "\n".join(result.errors)
+
+
+def test_biological_reference_frame_passes() -> None:
+    """A biological reference frame (GRCh38) and a SequenceFeature with
+    SequenceCoordinates pass SHACL."""
+    g = Graph()
+    g.add((GMEOW.frameRealmBiological, RDF.type, GMEOW.FrameRealm))
+    g.add((GMEOW.frameKindLinearSequence, RDF.type, GMEOW.FrameKind))
+    g.add((GMEOW.axisSequencePosition, RDF.type, GMEOW.Axis))
+    g.add((GMEOW.determinacyCrisp, RDF.type, GMEOW.Determinacy))
+    g.add((GMEOW.metricPositionalDistance, RDF.type, GMEOW.MetricKind))
+    g.add((GMEOW.strandForward, RDF.type, GMEOW.StrandOrientation))
+    g.add((GMEOW.sequenceFeatureTypeGene, RDF.type, GMEOW.SequenceFeatureType))
+
+    # GRCh38 reference frame
+    g.add((EX.grch38, RDF.type, GMEOW.ReferenceFrame))
+    g.add((EX.grch38, GMEOW.frameRealm, GMEOW.frameRealmBiological))
+    g.add((EX.grch38, GMEOW.hasAxis, GMEOW.axisSequencePosition))
+    g.add(
+        (
+            EX.grch38,
+            GMEOW.dimensionCount,
+            Literal(1, datatype=XSD.nonNegativeInteger),
+        )
+    )
+    g.add((EX.grch38, GMEOW.frameKind, GMEOW.frameKindLinearSequence))
+    g.add((EX.grch38, GMEOW.requiresHost, Literal(False)))
+    g.add((EX.grch38, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
+    g.add((EX.grch38, GMEOW.hasMetricKind, GMEOW.metricPositionalDistance))
+
+    # A gene on chromosome 1
+    g.add((EX.gene1, RDF.type, GMEOW.SequenceFeature))
+    g.add((EX.gene1, GMEOW.sequenceFeatureType, GMEOW.sequenceFeatureTypeGene))
+
+    # Sequence coordinates
+    g.add((EX.coords1, RDF.type, GMEOW.SequenceCoordinates))
+    g.add(
+        (
+            EX.coords1,
+            GMEOW.sequenceStart,
+            Literal(1000000, datatype=XSD.positiveInteger),
+        )
+    )
+    g.add(
+        (
+            EX.coords1,
+            GMEOW.sequenceEnd,
+            Literal(1100000, datatype=XSD.positiveInteger),
+        )
+    )
+    g.add((EX.coords1, GMEOW.sequenceStrand, GMEOW.strandForward))
+    g.add((EX.coords1, GMEOW.inReferenceAssembly, EX.grch38))
+
+    g.add((EX.gene1, GMEOW.hasSequenceCoordinates, EX.coords1))
+
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)

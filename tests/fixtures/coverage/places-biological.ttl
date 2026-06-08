@@ -1,0 +1,85 @@
+# Coverage slice for biological-sequence realm (#90).
+# Exercises BiologicalSequenceLocation, SequenceFeature, SequenceCoordinates,
+# StrandOrientation, SequenceFeatureType, inReferenceAssembly, sequenceStart,
+# sequenceEnd, sequenceStrand, hasSequenceFeature, hasSequenceCoordinates,
+# sequenceFeatureType, and the GRCh38 seed reference frame.
+# Native GMEOW terms only.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/rdf-schema#> .
+
+# --- Standpoints ------------------------------------------------------------- #
+ex:standpoint-ensembl a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-refseq  a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# --- SequenceFeatureType values (exercising the open value vocabulary) --------- #
+gmeow:sequenceFeatureTypeGene       a gmeow:SequenceFeatureType ; rdfs:label "gene"@en .
+gmeow:sequenceFeatureTypeExon       a gmeow:SequenceFeatureType ; rdfs:label "exon"@en .
+gmeow:sequenceFeatureTypeChromosome a gmeow:SequenceFeatureType ; rdfs:label "chromosome"@en .
+
+# --- StrandOrientation values ------------------------------------------------ #
+gmeow:strandForward a gmeow:StrandOrientation ; rdfs:label "forward strand"@en .
+gmeow:strandReverse a gmeow:StrandOrientation ; rdfs:label "reverse strand"@en .
+
+# --- Reference frame (GRCh38 — seeded in places.ttl) ------------------------ #
+# gmeow:referenceFrameGRCh38 is the canonical seed; we use it directly.
+
+# --- Chromosome 1 as a BiologicalSequenceLocation ---------------------------- #
+ex:chr1 a gmeow:BiologicalSequenceLocation ;
+    rdfs:label "Homo sapiens chromosome 1 (GRCh38)"@en .
+
+# --- A protein-coding gene on chromosome 1 ----------------------------------- #
+ex:geneBRCA1 a gmeow:SequenceFeature ;
+    rdfs:label "BRCA1 DNA repair associated"@en ;
+    gmeow:sequenceFeatureType gmeow:sequenceFeatureTypeGene .
+
+ex:geneBRCA1Coords a gmeow:SequenceCoordinates ;
+    gmeow:sequenceStart "43044295"^^xsd:positiveInteger ;
+    gmeow:sequenceEnd "43125364"^^xsd:positiveInteger ;
+    gmeow:sequenceStrand gmeow:strandReverse ;
+    gmeow:inReferenceAssembly gmeow:referenceFrameGRCh38 .
+
+ex:geneBRCA1 gmeow:hasSequenceCoordinates ex:geneBRCA1Coords .
+ex:chr1 gmeow:hasSequenceFeature ex:geneBRCA1 .
+
+# --- An exon of BRCA1 (nested feature) --------------------------------------- #
+ex:exon11 a gmeow:SequenceFeature ;
+    rdfs:label "BRCA1 exon 11"@en ;
+    gmeow:sequenceFeatureType gmeow:sequenceFeatureTypeExon .
+
+ex:exon11Coords a gmeow:SequenceCoordinates ;
+    gmeow:sequenceStart "43047900"^^xsd:positiveInteger ;
+    gmeow:sequenceEnd "43049121"^^xsd:positiveInteger ;
+    gmeow:sequenceStrand gmeow:strandReverse ;
+    gmeow:inReferenceAssembly gmeow:referenceFrameGRCh38 .
+
+ex:exon11 gmeow:hasSequenceCoordinates ex:exon11Coords .
+ex:chr1 gmeow:hasSequenceFeature ex:exon11 .
+
+# --- Standpoint-indexed coordinate claims (coexist, neither privileged) ------ #
+# Ensembl claims one coordinate set; RefSeq claims a slightly different set.
+# Both coexist (Principle 9); neither is the ground truth.
+
+ex:geneBRCA1CoordsEnsembl a gmeow:SequenceCoordinates ;
+    gmeow:sequenceStart "43044295"^^xsd:positiveInteger ;
+    gmeow:sequenceEnd "43125364"^^xsd:positiveInteger ;
+    gmeow:sequenceStrand gmeow:strandReverse ;
+    gmeow:inReferenceAssembly gmeow:referenceFrameGRCh38 ;
+    gmeow:accordingTo ex:standpoint-ensembl .
+
+ex:geneBRCA1CoordsRefSeq a gmeow:SequenceCoordinates ;
+    gmeow:sequenceStart "43045643"^^xsd:positiveInteger ;
+    gmeow:sequenceEnd "43124092"^^xsd:positiveInteger ;
+    gmeow:sequenceStrand gmeow:strandReverse ;
+    gmeow:inReferenceAssembly gmeow:referenceFrameGRCh38 ;
+    gmeow:accordingTo ex:standpoint-refseq .
+
+# The gene carries BOTH coordinate claims.
+ex:geneBRCA1Alt a gmeow:SequenceFeature ;
+    rdfs:label "BRCA1 (standpoint-indexed)"@en ;
+    gmeow:sequenceFeatureType gmeow:sequenceFeatureTypeGene ;
+    gmeow:hasSequenceCoordinates ex:geneBRCA1CoordsEnsembl ;
+    gmeow:hasSequenceCoordinates ex:geneBRCA1CoordsRefSeq .

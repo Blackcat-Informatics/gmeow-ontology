@@ -9,7 +9,7 @@
 <https://blackcatinformatics.ca/gmeow/modules/places>
     a owl:Ontology ;
     rdfs:label "GMEOW Locations Module"@en ;
-    rdfs:comment """Locations — geographic places, online (virtual) locations, digital storage locations, and celestial / astronomical locations — with coordinates, geometry, containment, and external-gazetteer coreference (the schema.org / GeoSPARQL / GeoNames / Getty TGN / Wikidata / WGS84 / BOT / ifcOWL / IVOA / UAT / SWEET superset layer). Place kinds and celestial object kinds are open value vocabularies (gmeow:placeType, gmeow:celestialObjectType), so any granularity from country to room, or from star to galaxy cluster, can be a first-class, QID-bearing entity chained by containedInPlace or locatedAt.
+    rdfs:comment """Locations — geographic places, online (virtual) locations, digital storage locations, celestial / astronomical locations, and biological-sequence loci — with coordinates, geometry, containment, and external-gazetteer coreference (the schema.org / GeoSPARQL / GeoNames / Getty TGN / Wikidata / WGS84 / BOT / ifcOWL / IVOA / UAT / SWEET / FALDO / Sequence Ontology superset layer). Place kinds, celestial object kinds, and sequence feature kinds are open value vocabularies (gmeow:placeType, gmeow:celestialObjectType, gmeow:sequenceFeatureType), so any granularity from country to room, from star to galaxy cluster, or from chromosome to SNP, can be a first-class, QID-bearing entity chained by containedInPlace or locatedAt.
 
 STANDPOINT DOCTRINE (#51). Contested facts in the locations slice — sovereignty/jurisdiction disputes, competing place names (endonym vs exonym per community), boundary changes, regulatory overlays — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame asserting it — the two axes are orthogonal and must not be conflated. There is NO location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the cross-cutting #43 facility. Superseded or withdrawn claims set gmeow:displayable false, never deletion (Principle 10).
 
@@ -19,7 +19,9 @@ VIRTUAL LOCATIONS + NETWORK ADDRESS SPACE (#84). Virtual locations (video confer
 
 MATHEMATICAL / n-D REFERENCE FRAMES (#86). Hilbert spaces, smooth manifolds, phase spaces, and latent vector spaces are first-class gmeow:ReferenceFrame instances under gmeow:frameRealmMathematical. A finite-dimensional vector space (ℝⁿ, ℂⁿ, latent embedding) uses one gmeow:Axis with gmeow:hasCoordinateMatrix encoding the full column/row matrix via gmeow:CoordinateMatrix.matrixShape, not n separate axis individuals (Principle 12 — the ontology carries structure, solver carries cardinality). A configuration space (C-space, e.g. 6-DOF robot arm joint angles) uses one axis per joint. A phase space uses paired generalized-coordinate and generalized-momentum axes (qᵢ, pᵢ) and carries gmeow:hasMetricKind gmeow:metricSymplectic. A Hilbert space (∞-D) and latent vector spaces are modelled with gmeow:dimensionCount 1 and a single axis, leaving actual dimensionality to the matrix shape attribute, since the ontology does not assert infinite-dimensional structures as OWL individuals (Principle 12). OpenMath / Content-MathML encoding of coordinates is handled by the value-space layer (gmeow:coordinateValue typed by gmeow:CoordinateEncoding), not by per-expression ontology axioms.
 
-ROBOTIC REALM — C-SPACE / TF / SLAM (#88). Robot configuration spaces (C-space) are modelled as gmeow:ReferenceFrame instances in the gmeow:frameRealmRobotic realm, with joint-angle axes and geodesic metrics on a configuration-space manifold. Task-space and velocity frames are Cartesian seeds under the same realm. The TF transform tree is a hierarchy of nested frames linked via gmeow:parentFrame; static vs dynamic transforms are distinguished by statement-level temporal metadata (statement DSL), not by new ontology properties — the actual homogeneous-transform matrix math lives in the solver layer (Principle 12). SLAM occupancy maps are probabilistic occupancy-grid reference frames hosted by the robot, with gmeow:determinacyProbabilistic and gmeow:confidence carried on the observation results (CoordinateMatrix or SpatialCoordinates), not on the frame itself."""@en ;
+ROBOTIC REALM — C-SPACE / TF / SLAM (#88). Robot configuration spaces (C-space) are modelled as gmeow:ReferenceFrame instances in the gmeow:frameRealmRobotic realm, with joint-angle axes and geodesic metrics on a configuration-space manifold. Task-space and velocity frames are Cartesian seeds under the same realm. The TF transform tree is a hierarchy of nested frames linked via gmeow:parentFrame; static vs dynamic transforms are distinguished by statement-level temporal metadata (statement DSL), not by new ontology properties — the actual homogeneous-transform matrix math lives in the solver layer (Principle 12). SLAM occupancy maps are probabilistic occupancy-grid reference frames hosted by the robot, with gmeow:determinacyProbabilistic and gmeow:confidence carried on the observation results (CoordinateMatrix or SpatialCoordinates), not on the frame itself.
+
+BIOLOGICAL-SEQUENCE REALM — FALDO / SEQUENCE ONTOLOGY / GFF3 (#90). Biological sequences (DNA, RNA, protein) are modelled as gmeow:ReferenceFrame instances in the gmeow:frameRealmBiological realm. A reference assembly (e.g. GRCh38) is a versioned, linear 1-D reference frame with a single position axis; a sequence feature (gene, exon, SNP, CDS) is a gmeow:BiologicalSequenceLocation bearing gmeow:SequenceCoordinates with explicit start, end, and strand in that frame. Feature types are an open value vocabulary (gmeow:sequenceFeatureType) aligned by reference to Sequence Ontology (SO) terms. FALDO positions map to gmeow:SequenceCoordinates; liftover (coordinate conversion between assemblies) is declared via gmeow:transformsTo on the ReferenceFrame but executed by an external solver (Principle 12)."""@en ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -598,6 +600,8 @@ gmeow:frameRealmPsychological a gmeow:FrameRealm ; rdfs:label "psychological / c
 gmeow:frameRealmNarrative    a gmeow:FrameRealm ; rdfs:label "narrative / fictional"@en ;
     skos:definition "A fictional, literary, or narrative domain in which in-universe claims hold relative to a canon or continuity frame."@en .
 
+gmeow:frameRealmBiological a gmeow:FrameRealm ; rdfs:label "biological / genomic sequence"@en ;
+    skos:definition "A biological sequence domain (DNA, RNA, protein) in which positions and features are expressed relative to a reference assembly or sequence."@en .
 # Seeds for Frame Kind
 gmeow:frameKindGeodetic      a gmeow:FrameKind ; rdfs:label "geodetic"@en .
 gmeow:frameKindCartesian     a gmeow:FrameKind ; rdfs:label "cartesian"@en .
@@ -621,6 +625,9 @@ gmeow:frameKindLatentSpace   a gmeow:FrameKind ; rdfs:label "latent vector space
 gmeow:frameKindConfigurationSpace a gmeow:FrameKind ; rdfs:label "configuration space"@en ;
     skos:definition "A smooth manifold representing the set of all possible configurations of a robot mechanism, with joint-limit boundaries constraining valid regions. Distance is measured along geodesics on the manifold surface, subject to joint limits. The actual manifold geometry and collision-aware path planning live in the solver layer (Principle 12)."@en .
 
+gmeow:frameKindLinearSequence a gmeow:FrameKind ; rdfs:label "linear sequence"@en ;
+    skos:definition "A one-dimensional coordinate system along a linear biological sequence (DNA, RNA, protein). Positions are integer offsets from a sequence origin; distance is measured in base pairs or amino-acid residues (edit-distance / sequence-alignment metric)."@en .
+
 # Seeds for MetricKind
 gmeow:metricGeodesic     a gmeow:MetricKind ; rdfs:label "geodesic"@en ;
     skos:definition "Shortest path along a curved surface (e.g. great-circle on a spheroid)."@en .
@@ -630,6 +637,9 @@ gmeow:metricCosine      a gmeow:MetricKind ; rdfs:label "cosine similarity"@en ;
     skos:definition "Angular proximity in a latent vector space (1 − cosine distance)."@en .
 gmeow:metricEditDistance a gmeow:MetricKind ; rdfs:label "edit distance"@en ;
     skos:definition "String or sequence dissimilarity (Levenshtein, Hamming, Damerau-Levenshtein, etc.)."@en .
+
+gmeow:metricPositionalDistance a gmeow:MetricKind ; rdfs:label "positional distance"@en ;
+    skos:definition "Absolute difference between coordinates on a linear 1-D frame (base pairs, amino-acid residues, sequence indices). Interval length (|end - start| + 1 for inclusive ranges) is a distinct metric."@en .
 gmeow:metricGraphHops   a gmeow:MetricKind ; rdfs:label "graph hops"@en ;
     skos:definition "Shortest-path edge count in a network or graph."@en .
 gmeow:metricSymplectic  a gmeow:MetricKind ; rdfs:label "phase-space Euclidean"@en ;
@@ -748,6 +758,10 @@ gmeow:axisLinearVelocityZ       a gmeow:Axis ; rdfs:label "linear velocity Z axi
 gmeow:axisAngularVelocityX      a gmeow:Axis ; rdfs:label "angular velocity X axis"@en .
 gmeow:axisAngularVelocityY      a gmeow:Axis ; rdfs:label "angular velocity Y axis"@en .
 gmeow:axisAngularVelocityZ      a gmeow:Axis ; rdfs:label "angular velocity Z axis"@en .
+
+# Biological-sequence axis (#90)
+gmeow:axisSequencePosition     a gmeow:Axis ; rdfs:label "sequence position"@en ;
+    skos:definition "The linear position axis along a biological sequence (DNA, RNA, protein), measured in base pairs or amino-acid residues from a sequence origin."@en .
 
 # Default Reference Frames for the seed realms
 gmeow:referenceFrameWGS84
@@ -1931,3 +1945,129 @@ gmeow:referenceFrameRobotArm6DOF
     gmeow:requiresHost true ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricEuclidean .
+
+# =========================================================================== #
+# BIOLOGICAL-SEQUENCE REALM — FALDO / Sequence Ontology / GFF3 (#90)
+# =========================================================================== #
+# A reference assembly (GRCh38) is a versioned ReferenceFrame / datum;
+# a feature is a range (SequenceCoordinates with start, end, strand) in that
+# frame. FALDO = positions, SO = feature types; liftover = solver (P12).
+# =========================================================================== #
+
+gmeow:BiologicalSequenceLocation
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Location ;
+    rdfs:label "Biological Sequence Location"@en ;
+    skos:definition "A sequence-level container locus — a chromosome, contig, scaffold, or the sequence itself — that hosts SequenceFeature annotations via gmeow:hasSequenceFeature. The features themselves (genes, exons, SNPs, etc.) are SequenceFeature instances with their own coordinates and types; they are not BiologicalSequenceLocation instances."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:SequenceFeature
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Sequence Feature"@en ;
+    skos:definition "A feature or annotation on a biological sequence — a range with start, end, strand, and type, expressed in a reference assembly frame. The first-class entity that carries the coordinates and type; linked to a BiologicalSequenceLocation via gmeow:hasSequenceFeature."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:SequenceCoordinates
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Sequence Coordinates"@en ;
+    skos:definition "Frame-relative coordinates on a biological sequence: a start position, an end position, and a strand orientation, all expressed relative to an explicit reference assembly (Principle 11)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:StrandOrientation
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Strand Orientation"@en ;
+    skos:definition "The strand direction of a feature on a double-stranded biological sequence (forward / Watson, reverse / Crick, or both). A value, not a subclass: the set is closed and they share the same structure."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:SequenceFeatureType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Sequence Feature Type"@en ;
+    skos:definition "The kind of a sequence feature (gene, exon, intron, CDS, SNP, chromosome, etc.). A value, not a subclass: the set is open-ended (Sequence Ontology lists ~2000 types) and they share all of SequenceFeature's structure, so a new kind is a new individual, not a new class (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasSequenceFeature
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:BiologicalSequenceLocation ;
+    rdfs:range gmeow:SequenceFeature ;
+    rdfs:label "has sequence feature"@en ;
+    skos:definition "Links a biological sequence location to a feature annotation on that sequence. Non-functional: a single location may carry multiple features (overlapping genes, nested exons, multiple SNPs)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasSequenceCoordinates
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:SequenceFeature ;
+    rdfs:range gmeow:SequenceCoordinates ;
+    rdfs:label "has sequence coordinates"@en ;
+    skos:definition "Links a sequence feature to its frame-relative coordinates. Non-functional: competing coordinate claims from different assemblies or alignment methods coexist as evidence (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:inReferenceAssembly
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+    rdfs:domain gmeow:SequenceCoordinates ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "in reference assembly"@en ;
+    skos:definition "The reference assembly (e.g. GRCh38) in which these sequence coordinates are expressed. Functional: a coordinate tuple is expressed in exactly one assembly; coordinates in another assembly are a different SequenceCoordinates instance (Principle 11)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sequenceStart
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:SequenceCoordinates ;
+    rdfs:range xsd:positiveInteger ;
+    rdfs:label "sequence start"@en ;
+    skos:definition "The 1-based inclusive start position of a feature on a biological sequence. Frame-relative: the meaning depends on the inReferenceAssembly (Principle 11)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sequenceEnd
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:SequenceCoordinates ;
+    rdfs:range xsd:positiveInteger ;
+    rdfs:label "sequence end"@en ;
+    skos:definition "The 1-based inclusive end position of a feature on a biological sequence. Frame-relative: the meaning depends on the inReferenceAssembly (Principle 11)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sequenceStrand
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:SequenceCoordinates ;
+    rdfs:range gmeow:StrandOrientation ;
+    rdfs:label "sequence strand"@en ;
+    skos:definition "The strand orientation of a feature on a double-stranded biological sequence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sequenceFeatureType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:SequenceFeature ;
+    rdfs:range gmeow:SequenceFeatureType ;
+    rdfs:label "sequence feature type"@en ;
+    skos:definition "The kind(s) of a sequence feature (one or more gmeow:SequenceFeatureType individuals). Non-functional: multi-source classifications may differ (a feature classified as both 'gene' and 'pseudogene' by different sources) and must coexist as evidence (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Seeds for StrandOrientation
+gmeow:strandForward a gmeow:StrandOrientation ; rdfs:label "forward / Watson strand"@en .
+gmeow:strandReverse a gmeow:StrandOrientation ; rdfs:label "reverse / Crick strand"@en .
+gmeow:strandBoth    a gmeow:StrandOrientation ; rdfs:label "both strands"@en ;
+    skos:definition "Applies to both strands, e.g. some regulatory regions."@en .
+
+# Seeds for SequenceFeatureType (aligned to Sequence Ontology by reference)
+gmeow:sequenceFeatureTypeGene       a gmeow:SequenceFeatureType ; rdfs:label "gene"@en .
+gmeow:sequenceFeatureTypeExon       a gmeow:SequenceFeatureType ; rdfs:label "exon"@en .
+gmeow:sequenceFeatureTypeIntron     a gmeow:SequenceFeatureType ; rdfs:label "intron"@en .
+gmeow:sequenceFeatureTypeCDS        a gmeow:SequenceFeatureType ; rdfs:label "coding sequence (CDS)"@en .
+gmeow:sequenceFeatureTypeSNP        a gmeow:SequenceFeatureType ; rdfs:label "single nucleotide polymorphism (SNP)"@en .
+gmeow:sequenceFeatureTypeChromosome a gmeow:SequenceFeatureType ; rdfs:label "chromosome"@en .
+
+# Seed ReferenceFrame — GRCh38 human reference assembly
+gmeow:referenceFrameGRCh38
+    a gmeow:ReferenceFrame ;
+    rdfs:label "GRCh38 Human Reference Assembly"@en ;
+    gmeow:frameRealm gmeow:frameRealmBiological ;
+    gmeow:hasAxis gmeow:axisSequencePosition ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindLinearSequence ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricPositionalDistance .

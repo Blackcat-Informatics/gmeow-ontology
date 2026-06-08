@@ -4,7 +4,7 @@
 # mapping_tool: gmeow compile-mappings
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET, IEEE 1872-2015 CORA, KnowRob, SOMA. placeType/storageMedium/celestialObjectType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological "within"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (#85): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl. Added (#88): Robotic realm bridging to IEEE 1872-2015 CORA (Robot, RoboticSystem), KnowRob (SemanticEnvironmentMap, RobotBaseTrajectory, Joint, FrameOfReference), and SOMA (ArtificialAgent).
+# comment: Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET, IEEE 1872-2015 CORA, KnowRob, SOMA, FALDO, Sequence Ontology. placeType/storageMedium/celestialObjectType/sequenceFeatureType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological "within"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (#85): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl. Added (#88): Robotic realm bridging to IEEE 1872-2015 CORA (Robot, RoboticSystem), KnowRob (SemanticEnvironmentMap, RobotBaseTrajectory, Joint, FrameOfReference), and SOMA (ArtificialAgent). Added (#90): Biological-sequence realm bridging to FALDO (Region, begin, end, ForwardStrandPosition, ReverseStrandPosition, reference), Sequence Ontology (sequence_feature, gene, exon, intron, CDS, SNP, chromosome), and Wikidata (GRCh38, genomic location, sense/antisense strand).
 # curie_map:
 #   bfo: http://purl.obolibrary.org/obo/
 #   bot: https://w3id.org/bot#
@@ -13,6 +13,7 @@
 #   crm: http://www.cidoc-crm.org/cidoc-crm/
 #   crmgeo: http://www.ics.forth.gr/isl/CRMgeo/
 #   dcterms: http://purl.org/dc/terms/
+#   faldo: http://biohackathon.org/resource/faldo#
 #   geo: http://www.opengis.net/ont/geosparql#
 #   gmeow: https://blackcatinformatics.ca/gmeow/
 #   gn: http://www.geonames.org/ontology#
@@ -30,6 +31,7 @@
 #   semapv: https://w3id.org/semapv/vocab/
 #   sf: http://www.opengis.net/ont/sf#
 #   skos: http://www.w3.org/2004/02/skos/core#
+#   so: http://purl.obolibrary.org/obo/SO_
 #   soma: http://www.ease-crc.org/ont/SOMA.owl#
 #   sosa: http://www.w3.org/ns/sosa/
 #   sta: http://www.opengis.net/def/ont/sensorthings/1.1/
@@ -40,6 +42,7 @@
 #   wgs84: http://www.w3.org/2003/01/geo/wgs84_pos#
 #   whg: https://whgazetteer.org/
 subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
+gmeow:BiologicalSequenceLocation	skos:closeMatch	wd:Q106227	genomic location	semapv:ManualMappingCuration	0.85	
 gmeow:Capacity	skos:closeMatch	brick:Capacity		semapv:ManualMappingCuration	0.8	Brick Capacity is a class for the max number of entities a space can hold; GMEOW Capacity is a reified Measurement with location, scalar result, and provenance.
 gmeow:CelestialLocation	skos:closeMatch	ivoa:uat#astronomical-objects	astronomical objects	semapv:ManualMappingCuration	0.8	
 gmeow:ContainmentTenure	skos:closeMatch	wdt:P131	located in the administrative territorial entity	semapv:ManualMappingCuration	0.7	Wikidata P131 is the flat administrative-hierarchy property; GMEOW ContainmentTenure reifies it with temporal scope and standpoint indexing.
@@ -69,6 +72,9 @@ gmeow:Pose	skos:closeMatch	wd:Q1055020	pose	semapv:ManualMappingCuration	0.8
 gmeow:ReferenceFrame	skos:closeMatch	knowrob:FrameOfReference	FrameOfReference	semapv:ManualMappingCuration	0.85	KnowRob FrameOfReference is a general spatial reference frame; GMEOW ReferenceFrame is the upper-ontology-grounded, realm-typed equivalent.
 gmeow:RegulatoryOverlay	skos:closeMatch	schema:AdministrativeArea		semapv:ManualMappingCuration	0.6	schema.org AdministrativeArea is a flat Place subclass for government-defined areas; GMEOW RegulatoryOverlay is a reified, time-scoped situation that binds a place, an authority, a regulation type, and optional deontic rules. Directional lossy projection.
 gmeow:RegulatoryOverlay	skos:closeMatch	wd:Q1055894	administrative territorial entity	semapv:ManualMappingCuration	0.75	Wikidata Q1055894 is the general concept of an administrative territorial entity; GMEOW RegulatoryOverlay adds time-scoping, authority, regulation type, and deontic linkage.
+gmeow:SequenceCoordinates	skos:closeMatch	faldo:Region	Region	semapv:ManualMappingCuration	0.85	FALDO Region models interval coordinates via begin/end; GMEOW SequenceCoordinates carries explicit start/end/strand and reference-assembly linkage.
+gmeow:SequenceFeature	skos:relatedMatch	wd:Q7187	gene	semapv:ManualMappingCuration	0.75	Wikidata Q7187 is the prototypical sequence feature (gene); GMEOW SequenceFeature is the general class for any feature on a biological sequence.
+gmeow:SequenceFeatureType	skos:closeMatch	so:0000110	sequence_feature	semapv:ManualMappingCuration	0.9	SO sequence_feature is the root class for all sequence features; GMEOW SequenceFeatureType is the open value vocabulary of feature kinds.
 gmeow:Stream	skos:closeMatch	sta:Datastream		semapv:ManualMappingCuration	0.85	SensorThings Datastream groups observations by sensor + observed property.
 gmeow:Trajectory	skos:broadMatch	knowrob:RobotBaseTrajectory	RobotBaseTrajectory	semapv:ManualMappingCuration	0.8	KnowRob RobotBaseTrajectory is a time-ordered path of robot base poses; GMEOW Trajectory is the generalised time-ordered path of LocationStates for any entity.
 gmeow:Trajectory	skos:closeMatch	mf:TemporalTrajectory	temporal trajectory	semapv:ManualMappingCuration	0.8	
@@ -122,6 +128,7 @@ gmeow:hasPose	skos:closeMatch	pos:pose		semapv:ManualMappingCuration	0.85
 gmeow:hasPoseOrientation	skos:closeMatch	pos:poseOrientation		semapv:ManualMappingCuration	0.85	
 gmeow:hasPosePosition	skos:closeMatch	pos:posePosition		semapv:ManualMappingCuration	0.85	
 gmeow:heading	skos:closeMatch	wd:Q41154	heading	semapv:ManualMappingCuration	0.8	
+gmeow:inReferenceAssembly	skos:closeMatch	faldo:reference	reference	semapv:ManualMappingCuration	0.8	FALDO reference links a Position to its sequence; GMEOW inReferenceAssembly links SequenceCoordinates to a ReferenceFrame (the assembly).
 gmeow:latitude	skos:closeMatch	wgs84:lat		semapv:ManualMappingCuration	0.9	
 gmeow:locatedAt	skos:closeMatch	schema:location		semapv:ManualMappingCuration	0.7	
 gmeow:longitude	skos:closeMatch	wgs84:long		semapv:ManualMappingCuration	0.9	
@@ -182,6 +189,7 @@ gmeow:refOriginGeocentric	skos:closeMatch	ivoa:refposition/GEOCENTER		semapv:Man
 gmeow:refOriginHeliocentric	skos:closeMatch	ivoa:refposition/HELIOCENTER		semapv:ManualMappingCuration	0.95	
 gmeow:refOriginTopocentric	skos:closeMatch	ivoa:refposition/TOPOCENTER		semapv:ManualMappingCuration	0.95	
 gmeow:referenceFrameFK5	skos:closeMatch	ivoa:refframe/FK5		semapv:ManualMappingCuration	0.95	
+gmeow:referenceFrameGRCh38	skos:exactMatch	wd:Q20966585	GRCh38	semapv:ManualMappingCuration	0.95	
 gmeow:referenceFrameGalactic	skos:closeMatch	ivoa:refframe/galactic		semapv:ManualMappingCuration	0.95	
 gmeow:referenceFrameHilbertSpace	skos:closeMatch	wd:Q190056	Hilbert space	semapv:ManualMappingCuration	0.9	
 gmeow:referenceFrameICRS	skos:closeMatch	ivoa:refframe/ICRS		semapv:ManualMappingCuration	0.95	
@@ -194,6 +202,18 @@ gmeow:referenceFrameRobotBase	skos:relatedMatch	soma:ArtificialAgent	ArtificialA
 gmeow:referenceFrameRobotCspace6DOF	skos:relatedMatch	knowrob:Joint	Joint	semapv:ManualMappingCuration	0.75	KnowRob Joint represents a single mechanical joint; GMEOW referenceFrameRobotCspace6DOF is the 6-dimensional configuration-space frame whose axes are joint angles. The alignment is compositional: a C-space frame is defined by its joints.
 gmeow:referenceFrameRobotSLAM	skos:relatedMatch	knowrob:SemanticEnvironmentMap	SemanticEnvironmentMap	semapv:ManualMappingCuration	0.8	KnowRob SemanticEnvironmentMap is a robot-built map of the environment; GMEOW referenceFrameRobotSLAM is the reference frame in which such a map is expressed. The alignment is related because both are robot-centric spatial representations with probabilistic occupancy semantics, but a map and a reference frame are different ontological categories.
 gmeow:roll	skos:closeMatch	wd:Q465493	Euler angles	semapv:ManualMappingCuration	0.8	
+gmeow:sequenceEnd	skos:closeMatch	faldo:end	end	semapv:ManualMappingCuration	0.9	FALDO end is a property on a Region; GMEOW sequenceEnd is an explicit positiveInteger property on SequenceCoordinates.
+gmeow:sequenceFeatureTypeCDS	skos:exactMatch	so:0000316	CDS	semapv:ManualMappingCuration	0.95	
+gmeow:sequenceFeatureTypeChromosome	skos:exactMatch	so:0000340	chromosome	semapv:ManualMappingCuration	0.95	
+gmeow:sequenceFeatureTypeExon	skos:exactMatch	so:0000147	exon	semapv:ManualMappingCuration	0.95	
+gmeow:sequenceFeatureTypeGene	skos:exactMatch	so:0000704	gene	semapv:ManualMappingCuration	0.95	
+gmeow:sequenceFeatureTypeIntron	skos:exactMatch	so:0000188	intron	semapv:ManualMappingCuration	0.95	
+gmeow:sequenceFeatureTypeSNP	skos:exactMatch	so:0000694	SNP	semapv:ManualMappingCuration	0.95	
+gmeow:sequenceStart	skos:closeMatch	faldo:begin	begin	semapv:ManualMappingCuration	0.9	FALDO begin is a property on a Region; GMEOW sequenceStart is an explicit positiveInteger property on SequenceCoordinates.
+gmeow:strandForward	skos:closeMatch	wd:Q6432361	sense strand	semapv:ManualMappingCuration	0.9	
+gmeow:strandForward	skos:exactMatch	faldo:ForwardStrandPosition	ForwardStrandPosition	semapv:ManualMappingCuration	0.95	
+gmeow:strandReverse	skos:closeMatch	wd:Q22809711	antisense strand	semapv:ManualMappingCuration	0.9	
+gmeow:strandReverse	skos:exactMatch	faldo:ReverseStrandPosition	ReverseStrandPosition	semapv:ManualMappingCuration	0.95	
 gmeow:streetAddress	owl:equivalentProperty	schema:streetAddress		semapv:ManualMappingCuration	1.0	
 gmeow:streetAddress	skos:closeMatch	vcard:street-address		semapv:ManualMappingCuration	0.9	
 gmeow:timezone	skos:closeMatch	vcard:tz		semapv:ManualMappingCuration	0.9	

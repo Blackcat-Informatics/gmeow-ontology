@@ -138,7 +138,9 @@ def test_dsl_parses() -> None:
     # Divorce/Adoption/Graduation, TelephoneNumber, EmailAddress, Mailbox, Credential,
     # CryptographicKey, Certification, CalendarSystem, languageCode, Occupation, Skill,
     # Group, Activity).
-    assert len(dsl.equivalences) == 1060
+    # Issue #90 biological-sequence realm: +18 (FALDO x6, Sequence Ontology x7,
+    # Wikidata x5).
+    assert len(dsl.equivalences) == 1078
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
