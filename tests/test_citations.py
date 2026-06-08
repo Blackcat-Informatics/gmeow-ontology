@@ -161,3 +161,23 @@ def test_contribution_with_degree_shacl_passes() -> None:
 
     result = run_shacl(g)
     assert result.ok, "\n".join(result.errors)
+
+
+# =========================================================================== #
+# Self-description loader
+# =========================================================================== #
+
+
+def test_self_description_loader() -> None:
+    from gmeow_tools.self_desc import load_self_description
+
+    meta = load_self_description()
+    assert meta.title.startswith("GMEOW")
+    assert meta.version == "0.1.0"
+    assert meta.release_date == "2026-06-03"
+    assert meta.doi == "10.XXXXX/gmeow"
+    assert meta.depositor_name == "Blackcat Informatics Inc."
+    assert meta.depositor_email == "doi@blackcatinformatics.ca"
+    assert meta.registrant == "Blackcat Informatics Inc."
+    assert meta.license_uri == "https://creativecommons.org/licenses/by/4.0/"
+    assert meta.homepage == "https://blackcatinformatics.ca/gmeow"
