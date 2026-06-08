@@ -119,7 +119,7 @@ def test_dsl_parses() -> None:
     # Issue #85 celestial realm: +19 (IVOA refframe x3, refposition x4 incl.
     # heliocentric, object-type x4, UAT x2 in places.ttl; IVOA timescale x6 in
     # temporal.ttl).
-    assert len(dsl.equivalences) == 1004
+    assert len(dsl.equivalences) == 1013
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

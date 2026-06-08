@@ -135,3 +135,108 @@ def test_linguistic_reference_frame_passes() -> None:
 
     result = run_shacl(g)
     assert result.ok, "\n".join(result.errors)
+
+
+def test_mathematical_reference_frames_pass_shacl() -> None:
+    """Mathematical reference frames (phase space, Hilbert, latent,
+    C-space) pass SHACL."""
+    g = Graph()
+    g.add((GMEOW.frameRealmMathematical, RDF.type, GMEOW.FrameRealm))
+    g.add((GMEOW.determinacyCrisp, RDF.type, GMEOW.Determinacy))
+
+    # Phase space 3-DOF
+    g.add((EX.phaseSpace3DOF, RDF.type, GMEOW.ReferenceFrame))
+    g.add((EX.phaseSpace3DOF, GMEOW.frameRealm, GMEOW.frameRealmMathematical))
+    g.add((EX.phaseSpace3DOF, GMEOW.hasAxis, EX.axisGeneralizedCoordinate))
+    g.add((EX.phaseSpace3DOF, GMEOW.hasAxis, EX.axisGeneralizedMomentum))
+    g.add(
+        (
+            EX.phaseSpace3DOF,
+            GMEOW.dimensionCount,
+            Literal(2, datatype=XSD.nonNegativeInteger),
+        )
+    )
+    g.add((EX.phaseSpace3DOF, GMEOW.frameKind, GMEOW.frameKindPhaseSpace))
+    g.add((EX.phaseSpace3DOF, GMEOW.requiresHost, Literal(False)))
+    g.add((EX.phaseSpace3DOF, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
+    g.add((EX.phaseSpace3DOF, GMEOW.hasMetricKind, GMEOW.metricSymplectic))
+
+    # Hilbert space
+    g.add((EX.hilbertSpace, RDF.type, GMEOW.ReferenceFrame))
+    g.add((EX.hilbertSpace, GMEOW.frameRealm, GMEOW.frameRealmMathematical))
+    g.add((EX.hilbertSpace, GMEOW.hasAxis, EX.axisHilbertState))
+    g.add(
+        (
+            EX.hilbertSpace,
+            GMEOW.dimensionCount,
+            Literal(1, datatype=XSD.nonNegativeInteger),
+        )
+    )
+    g.add((EX.hilbertSpace, GMEOW.frameKind, GMEOW.frameKindHilbert))
+    g.add((EX.hilbertSpace, GMEOW.requiresHost, Literal(False)))
+    g.add((EX.hilbertSpace, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
+    g.add((EX.hilbertSpace, GMEOW.hasMetricKind, GMEOW.metricEuclidean))
+
+    # Latent vector space
+    g.add((EX.latentVectorSpace, RDF.type, GMEOW.ReferenceFrame))
+    g.add((EX.latentVectorSpace, GMEOW.frameRealm, GMEOW.frameRealmMathematical))
+    g.add((EX.latentVectorSpace, GMEOW.hasAxis, EX.axisLatentVector))
+    g.add(
+        (
+            EX.latentVectorSpace,
+            GMEOW.dimensionCount,
+            Literal(1, datatype=XSD.nonNegativeInteger),
+        )
+    )
+    g.add((EX.latentVectorSpace, GMEOW.frameKind, GMEOW.frameKindLatentSpace))
+    g.add((EX.latentVectorSpace, GMEOW.requiresHost, Literal(False)))
+    g.add((EX.latentVectorSpace, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
+    g.add((EX.latentVectorSpace, GMEOW.hasMetricKind, GMEOW.metricCosine))
+
+    # Robot arm C-space
+    g.add((EX.robotArm6DOF, RDF.type, GMEOW.ReferenceFrame))
+    g.add((EX.robotArm6DOF, GMEOW.frameRealm, GMEOW.frameRealmMathematical))
+    g.add((EX.robotArm6DOF, GMEOW.hasAxis, EX.axisJointAngle1))
+    g.add((EX.robotArm6DOF, GMEOW.hasAxis, EX.axisJointAngle2))
+    g.add((EX.robotArm6DOF, GMEOW.hasAxis, EX.axisJointAngle3))
+    g.add((EX.robotArm6DOF, GMEOW.hasAxis, EX.axisJointAngle4))
+    g.add((EX.robotArm6DOF, GMEOW.hasAxis, EX.axisJointAngle5))
+    g.add((EX.robotArm6DOF, GMEOW.hasAxis, EX.axisJointAngle6))
+    g.add(
+        (
+            EX.robotArm6DOF,
+            GMEOW.dimensionCount,
+            Literal(6, datatype=XSD.nonNegativeInteger),
+        )
+    )
+    g.add((EX.robotArm6DOF, GMEOW.frameKind, GMEOW.frameKindManifold))
+    g.add((EX.robotArm6DOF, GMEOW.requiresHost, Literal(True)))
+    g.add((EX.robotArm6DOF, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
+    g.add((EX.robotArm6DOF, GMEOW.hasMetricKind, GMEOW.metricEuclidean))
+
+    # Type declarations for value individuals
+    for axis in (
+        EX.axisGeneralizedCoordinate,
+        EX.axisGeneralizedMomentum,
+        EX.axisHilbertState,
+        EX.axisLatentVector,
+        EX.axisJointAngle1,
+        EX.axisJointAngle2,
+        EX.axisJointAngle3,
+        EX.axisJointAngle4,
+        EX.axisJointAngle5,
+        EX.axisJointAngle6,
+    ):
+        g.add((axis, RDF.type, GMEOW.Axis))
+    for kind in (
+        GMEOW.frameKindPhaseSpace,
+        GMEOW.frameKindHilbert,
+        GMEOW.frameKindLatentSpace,
+        GMEOW.frameKindManifold,
+    ):
+        g.add((kind, RDF.type, GMEOW.FrameKind))
+    for metric in (GMEOW.metricSymplectic, GMEOW.metricEuclidean, GMEOW.metricCosine):
+        g.add((metric, RDF.type, GMEOW.MetricKind))
+
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
