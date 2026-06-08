@@ -35,6 +35,7 @@ gmeow:mapVcardAddress a gmeow:ProjectionMapping ;
         gmeow:profile "vcard" ; gmeow:relation "=" ;
         gmeow:edoalTarget vcard:Address ; gmeow:edoalTargetKind "class" ;
         gmeow:transform gmeow:fnComposeAddress ;
+        gmeow:lossyDrop "the postal reference frame (axes, topological kind, metric) is dropped; only the flat vcard:Address component values and composed label survive" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "holder" ; gmeow:tPred vcard:hasAddress ; gmeow:tObj "addr" ]
             [ gmeow:tSubj "addr" ; gmeow:tPred rdf:type ; gmeow:tObjValue vcard:Address ]

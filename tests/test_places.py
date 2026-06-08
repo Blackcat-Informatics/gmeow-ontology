@@ -123,6 +123,49 @@ def test_address_components_present_and_nonfunctional() -> None:
         RDFS.range,
         URIRef(GMEOW + "Place"),
     ) in graph
+    assert (
+        URIRef(GMEOW + "PostalAddress"),
+        RDFS.subClassOf,
+        URIRef(GMEOW + "ContactPoint"),
+    ) in graph
+
+
+def test_postal_address_frame() -> None:
+    """The postal reference frame exists with topological kind and 7 axes."""
+    graph = _graph()
+    frame = URIRef(GMEOW + "referenceFramePostalAddress")
+    assert (frame, RDF.type, URIRef(GMEOW + "ReferenceFrame")) in graph
+    assert (
+        frame,
+        URIRef(GMEOW + "frameKind"),
+        URIRef(GMEOW + "frameKindTopological"),
+    ) in graph
+    assert (
+        frame,
+        URIRef(GMEOW + "dimensionCount"),
+        Literal("7", datatype=XSD.nonNegativeInteger),
+    ) in graph
+    for axis in (
+        "axisStreetAddress",
+        "axisExtendedAddress",
+        "axisPostOfficeBox",
+        "axisAddressLocality",
+        "axisAddressRegion",
+        "axisPostalCode",
+        "axisCountryCode",
+    ):
+        assert (frame, URIRef(GMEOW + "hasAxis"), URIRef(GMEOW + axis)) in graph
+
+
+def test_postal_address_frame_property() -> None:
+    """postalAddressFrame is a functional sub-property of hasReferenceFrame."""
+    graph = _graph()
+    prop = URIRef(GMEOW + "postalAddressFrame")
+    assert (prop, RDF.type, OWL.ObjectProperty) in graph
+    assert (prop, RDF.type, OWL.FunctionalProperty) in graph
+    assert (prop, RDFS.subPropertyOf, URIRef(GMEOW + "hasReferenceFrame")) in graph
+    assert (prop, RDFS.domain, URIRef(GMEOW + "PostalAddress")) in graph
+    assert (prop, RDFS.range, URIRef(GMEOW + "ReferenceFrame")) in graph
 
 
 def test_containedinplace_transitive_not_symmetric() -> None:
