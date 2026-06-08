@@ -135,6 +135,13 @@ gmeow:membershipAuthority rdfs:subPropertyOf gmeow:vantage .
 gmeow:stateLanguage rdfs:subPropertyOf gmeow:observedFeature .
 gmeow:stateAuthority rdfs:subPropertyOf gmeow:vantage .
 
+# Lexicon bridges (declared here because the super-properties live here).
+# Note: attestedInContext is deliberately NOT subsumed under vantage;
+# context (corpus, platform, community) is not the asserting standpoint.
+gmeow:attestedForm       rdfs:subPropertyOf gmeow:observedFeature .
+gmeow:derivationTarget   rdfs:subPropertyOf gmeow:observedFeature .
+gmeow:derivationSource   rdfs:subPropertyOf gmeow:observedFeature .
+
 # =========================================================================== #
 # OBSERVATION → EVENT LINKAGE (lightweight — heavy form uses ObservingActivity)
 # =========================================================================== #
