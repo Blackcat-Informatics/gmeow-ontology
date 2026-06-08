@@ -595,6 +595,9 @@ gmeow:frameRealmPerceptual   a gmeow:FrameRealm ; rdfs:label "perceptual"@en ;
 gmeow:frameRealmPsychological a gmeow:FrameRealm ; rdfs:label "psychological / cognitive"@en ;
     skos:definition "A psychological or cognitive domain in which values are expressed relative to a mind's internal representational frame — conceptual spaces, affective states, cognitive maps, or imagined spaces (e.g. memory palace, dream). Hosted by the perceiver, thinker, or dreamer; the frame deactivates when its host does."@en .
 
+gmeow:frameRealmNarrative    a gmeow:FrameRealm ; rdfs:label "narrative / fictional"@en ;
+    skos:definition "A fictional, literary, or narrative domain in which in-universe claims hold relative to a canon or continuity frame."@en .
+
 # Seeds for Frame Kind
 gmeow:frameKindGeodetic      a gmeow:FrameKind ; rdfs:label "geodetic"@en .
 gmeow:frameKindCartesian     a gmeow:FrameKind ; rdfs:label "cartesian"@en .
@@ -609,6 +612,8 @@ gmeow:frameKindHilbert       a gmeow:FrameKind ; rdfs:label "Hilbert space"@en ;
     skos:definition "An inner-product space that is complete with respect to the norm induced by the inner product; may be infinite-dimensional. The ontology models this with dimensionCount 1 and a single axis, leaving actual dimensionality to solver-layer matrix attributes (Principle 12)."@en .
 gmeow:frameKindManifold      a gmeow:FrameKind ; rdfs:label "manifold"@en ;
     skos:definition "A topological space that locally resembles Euclidean space. Coordinate charts and tangent spaces are solver-layer constructs (Principle 12), not asserted as OWL axioms."@en .
+gmeow:frameKindNarrative     a gmeow:FrameKind ; rdfs:label "narrative"@en ;
+    skos:definition "A frame whose structure is defined by canon, continuity, and narrative topology rather than geometric coordinates. Distance is measured in narrative proximity (plot relevance, character interaction), not metres or degrees."@en .
 gmeow:frameKindPhaseSpace    a gmeow:FrameKind ; rdfs:label "phase space"@en ;
     skos:definition "A space in which all possible states of a dynamical system are represented, with each state corresponding to one unique point. Typically 2n-dimensional for n degrees of freedom (generalized coordinates + conjugate momenta)."@en .
 gmeow:frameKindLatentSpace   a gmeow:FrameKind ; rdfs:label "latent vector space"@en ;

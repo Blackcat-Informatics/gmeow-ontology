@@ -30,6 +30,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/modules/temporal" uri="ontology/modules/temporal.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/email" uri="ontology/modules/email.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/messaging-trust" uri="ontology/modules/messaging-trust.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/narrative" uri="ontology/modules/narrative.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/trust" uri="ontology/modules/trust.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/provenance" uri="ontology/modules/provenance.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/standpoint" uri="ontology/modules/standpoint.ttl"/>

@@ -1,0 +1,19 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/narrative
+# mapping_set_version: 0.1.0
+# license: https://creativecommons.org/licenses/by/4.0/
+# mapping_tool: gmeow compile-mappings
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# comment: Narrative reference frame and creative-work alignments to schema.org and Wikidata. OntoMedia/GOLEM/TEI/LTO projections deferred to follow-up issues.
+# curie_map:
+#   gmeow: https://blackcatinformatics.ca/gmeow/
+#   rdfs: http://www.w3.org/2000/01/rdf-schema#
+#   schema: https://schema.org/
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+#   wd: http://www.wikidata.org/entity/
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+schema:Book	skos:closeMatch	gmeow:BookRelease	semapv:ManualMappingCuration	0.8	schema:Book is broader (may denote abstract work); gmeow:BookRelease is a concrete published edition.
+schema:Episode	rdfs:subClassOf	gmeow:SerialInstallment	semapv:ManualMappingCuration	0.9	schema:Episode is TV/radio-specific; gmeow:SerialInstallment is broader (comics, magazines).
+wd:Q15706943	skos:closeMatch	gmeow:NarrativeReferenceFrame	semapv:ManualMappingCuration	0.8	Wikidata 'fictional world' — close match to narrative frame.
+wd:Q1774138	skos:closeMatch	gmeow:NarrativeReferenceFrame	semapv:ManualMappingCuration	0.8	Wikidata 'fictional universe' is broader than a single canon frame.

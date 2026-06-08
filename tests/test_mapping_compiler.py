@@ -128,7 +128,9 @@ def test_dsl_parses() -> None:
     # referenceFrameAffectiveCircumplex→mfoem:affective process,
     # referenceFrameAffectiveCircumplex→mfoem:emotion process).
     # Issue #88 robotic realm: +9 (Wikidata x2, CORA x2, KnowRob x4, SOMA x1).
-    assert len(dsl.equivalences) == 1026
+    # Issue #89 narrative realm: +4 (schema:Book, schema:Episode in
+    # narrative.ttl; wd:Q1774138, wd:Q15706943 in narrative.ttl).
+    assert len(dsl.equivalences) == 1030
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -150,7 +152,8 @@ def test_dsl_parses() -> None:
     # Issue #99 data quality: +1 (gmeow-quality.sssom.tsv).
     # Issue #161 versions: +1 (gmeow-versions.sssom.tsv).
     # Issue #104 sensory environment: +1 (gmeow-sensory-environment.sssom.tsv).
-    assert len(dsl.mapping_sets) == 31
+    # Issue #89 narrative realm: +1 (gmeow-narrative.sssom.tsv).
+    assert len(dsl.mapping_sets) == 32
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}
