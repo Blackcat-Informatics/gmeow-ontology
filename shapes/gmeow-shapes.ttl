@@ -321,6 +321,14 @@ gmeow:StandpointTenureShape
         sh:maxCount 1 ;
         sh:severity sh:Violation ;
         sh:message "A StandpointTenure must record exactly one standpoint (gmeow:tenureStandpoint)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:standpointClaim ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:StandpointClaim ;
+        sh:severity sh:Violation ;
+        sh:message "A StandpointTenure must record exactly one generated StandpointClaim (gmeow:standpointClaim)." ;
     ] .
 
 # (c) No preferred / primary claim (Principle 9). Fires on any GMEOW-namespace

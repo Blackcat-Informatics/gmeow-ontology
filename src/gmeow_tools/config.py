@@ -213,6 +213,7 @@ PREFIXES: dict[str, str] = {
     "pato": "http://purl.obolibrary.org/obo/PATO_",
     "crmarc": "http://www.cidoc-crm.org/crmarchaeo/",
     "iptc": "http://iptc.org/std/NewsML-G2/",
+    "bbc": "http://www.bbc.co.uk/ontologies/news/",
     "obscore": "http://www.ivoa.net/rdf/ObsCore#",
     "ppsr": "https://purl.org/ppsr/core#",
     "loinc": "http://loinc.org/rdf/",

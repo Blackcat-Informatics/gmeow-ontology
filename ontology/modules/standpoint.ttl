@@ -108,7 +108,7 @@ gmeow:StandpointTenure
     a owl:Class, gufo:SituationType ;
     rdfs:subClassOf gmeow:TimeScopedRelation ;
     rdfs:label "Standpoint Tenure"@en ;
-    skos:definition "The reified, time-scoped fact that a standpoint held a particular position over an interval — recognition granted in 2008 and withdrawn in 2030 is an opened-then-closed tenure, never a deletion (Principle 10). Use only when the adoption / withdrawal of the position is itself worth modelling; the common case is a bare gmeow:accordingTo annotation. Carries its standpoint-time interval via gmeow:duringInterval (temporal module)."@en ;
+    skos:definition "The reified, time-scoped fact that a standpoint held a particular position over an interval — recognition granted in 2008 and withdrawn in 2030 is an opened-then-closed tenure, never a deletion (Principle 10). Use only when the adoption / withdrawal of the position is itself worth modelling; the common case is a bare gmeow:accordingTo annotation. Carries its standpoint-time interval via gmeow:duringInterval (temporal module). A StandpointTenure generates a gmeow:standpointClaim observation. The tenure is the time-scoped fact; the claim is the observation of that fact. The tenureStandpoint maps to the claim's vantage; the tenurePosition maps to the claim's observedFeature."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:tenureStandpoint
@@ -116,21 +116,43 @@ gmeow:tenureStandpoint
     rdfs:domain gmeow:StandpointTenure ;
     rdfs:range gmeow:Standpoint ;
     rdfs:label "tenure standpoint"@en ;
-    skos:definition "The standpoint whose position a standpoint-tenure records."@en ;
+    skos:definition "The standpoint whose position a standpoint-tenure records. When a StandpointTenure generates a StandpointClaim observation, the tenureStandpoint becomes the vantage of the claim."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:tenurePosition
     a owl:ObjectProperty ;
     rdfs:domain gmeow:StandpointTenure ;
     rdfs:label "tenure position"@en ;
-    skos:definition "The standpoint-indexed claim the tenure says the standpoint held over its interval — a reified statement (a gmeow:StatementMetadata cell in the statement DSL). The range is intentionally left open: the statement-DSL spec layer is not part of the reasoned import closure, so asserting it as rdfs:range would dangle in the merged graph."@en ;
+    skos:definition "The standpoint-indexed claim the tenure says the standpoint held over its interval — a reified statement (a gmeow:StatementMetadata cell in the statement DSL). The range is intentionally left open: the statement-DSL spec layer is not part of the reasoned import closure, so asserting it as rdfs:range would dangle in the merged graph. When a StandpointTenure generates a StandpointClaim observation, the tenurePosition becomes the observedFeature of the claim."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# StandpointClaim integration — the tenure generates an Observation (#127).
+# --------------------------------------------------------------------------- #
+
+gmeow:standpointClaim
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:StandpointTenure ;
+    rdfs:range gmeow:StandpointClaim ;
+    rdfs:label "standpoint claim"@en ;
+    skos:definition "The StandpointClaim observation that a StandpointTenure generates — the reified observation of the tenure's time-scoped fact. The tenure is the time-scoped situation; the claim is the observation of that fact. Functional: a tenure generates exactly one claim."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:claimModality
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:StandpointClaim ;
+    rdfs:range gmeow:StandpointModality ;
+    rdfs:label "claim modality"@en ;
+    skos:definition "The modality (unequivocal, probable, conceivable, refuted) assigned to a StandpointClaim. Semantically equivalent to observationResult for StandpointClaims, but not declared rdfs:subPropertyOf because StandpointModality (a gufo:QualityValue / abstract individual) is disjoint from gmeow:Entity (a gufo:Endurant) in the DL profile. When a StandpointClaim is flattened to an annotated statement, claimModality becomes standpointModality."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE (#38) — relator / situation mediation. A standpoint
 # tenure mediates at least one standpoint (EL someValuesFrom, open-world);
 # closed-world "exactly one" is SHACL's (gmeow:StandpointTenureShape).
+# Added (#127): a StandpointTenure generates at least one StandpointClaim.
 # =========================================================================== #
 
 gmeow:StandpointTenure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:tenureStandpoint ; owl:someValuesFrom gmeow:Standpoint ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureStandpoint ; owl:someValuesFrom gmeow:Standpoint ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:standpointClaim ; owl:someValuesFrom gmeow:StandpointClaim ] .

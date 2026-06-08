@@ -392,3 +392,14 @@ gmeow:eqObs040 a gmeow:TermEquivalence ;
     gmeow:confidence 0.7 ;
     gmeow:comment "OM Measure is a broader concept; GMEOW ScalarQuantity bundles value, unit, determinacy, and granularity in one node. Related match for coordinate precision and uncertainty." ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+# Issue #127 — StandpointClaim as Observation: claimModality maps to SOSA result.
+
+gmeow:eqObs041 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:claimModality ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject sosa:hasResult ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "the modality result of a standpoint claim is the SOSA result of the observation (#127)" ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .

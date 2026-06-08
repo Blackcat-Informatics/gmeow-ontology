@@ -41,6 +41,7 @@ STANDPOINT_CRMINF_QUERY = _PROJ_Q / "standpoint-crminf.rq"
 STANDPOINT_PROV_QUERY = _PROJ_Q / "standpoint-prov.rq"
 STANDPOINT_OA_QUERY = _PROJ_Q / "standpoint-oa.rq"
 STANDPOINT_SCHEMA_QUERY = _PROJ_Q / "standpoint-schema.rq"
+STANDPOINT_BBC_QUERY = _PROJ_Q / "standpoint-bbc.rq"
 CRMINF = Namespace("http://www.ics.forth.gr/isl/CRMinf/")
 CRM = Namespace("http://www.cidoc-crm.org/cidoc-crm/")
 PROV = Namespace("http://www.w3.org/ns/prov#")
@@ -375,3 +376,178 @@ def test_schema_projection_emits_per_standpoint_claims() -> None:
     assert ex["standpoint-intl-law"] not in authors
     # No base triple asserted.
     assert (ex.crimea, GM.containedInPlace, ex.russia) not in out
+
+
+# --------------------------------------------------------------------------- #
+# Issue #127 — StandpointClaim as Observation specialization
+# --------------------------------------------------------------------------- #
+
+
+def test_standpoint_claim_property_exists() -> None:
+    """gmeow:standpointClaim links StandpointTenure to StandpointClaim."""
+    g = _graph()
+    assert (GM.standpointClaim, RDF.type, OWL.ObjectProperty) in g
+    assert (GM.standpointClaim, RDF.type, OWL.FunctionalProperty) in g
+    assert (GM.standpointClaim, RDFS.domain, GM.StandpointTenure) in g
+    assert (GM.standpointClaim, RDFS.range, GM.StandpointClaim) in g
+
+
+def test_claim_modality_property_exists() -> None:
+    """gmeow:claimModality carries the belief value of a StandpointClaim.
+
+    Not declared subPropertyOf observationResult because StandpointModality
+    (gufo:QualityValue, abstract individual) is disjoint from Entity
+    (gufo:Endurant) in the DL profile — the semantic equivalence is documented
+    instead of axiomatised.
+    """
+    g = _graph()
+    assert (GM.claimModality, RDF.type, OWL.ObjectProperty) in g
+    assert (GM.claimModality, RDF.type, OWL.FunctionalProperty) in g
+    assert (GM.claimModality, RDFS.domain, GM.StandpointClaim) in g
+    assert (GM.claimModality, RDFS.range, GM.StandpointModality) in g
+
+
+def test_standpoint_tenure_generates_claim_restriction() -> None:
+    """StandpointTenure has an EL restriction requiring at least one standpointClaim."""
+    g = _graph()
+    restrictions = list(g.objects(GM.StandpointTenure, RDFS.subClassOf))
+    assert any(
+        (r, OWL.onProperty, GM.standpointClaim) in g
+        and (r, OWL.someValuesFrom, GM.StandpointClaim) in g
+        for r in restrictions
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Projection competency tests — StandpointClaim individuals (#127)
+# --------------------------------------------------------------------------- #
+
+
+def test_standpoint_crminf_projection_from_standpoint_claim_reified() -> None:
+    """Branch B: StandpointClaim with reified-statement observedFeature produces
+    the same CRMinf structure as the annotation-form fixture."""
+    data = Graph().parse(
+        COVERAGE_FIXTURES / "standpoint-claim-reified.ttl", format="turtle"
+    )
+    out = data.query(STANDPOINT_CRMINF_QUERY.read_text(encoding="utf-8")).graph
+    assert out is not None
+
+    assert set(out.subjects(RDF.type, CRMINF.I1_Argumentation))
+    assert set(out.subjects(RDF.type, CRMINF.I2_Belief))
+    values = {str(o) for o in out.objects(None, CRMINF.J5_holds_to_be)}
+    assert {"true", "possible", "false"} <= values
+
+
+def test_standpoint_crminf_projection_from_standpoint_claim_entity() -> None:
+    """Branch C: StandpointClaim with generic-entity observedFeature produces
+    CRMinf with crm:P67_refers_to pointing to the entity."""
+    ex = Namespace("https://example.org/test/")
+    data = Graph().parse(
+        COVERAGE_FIXTURES / "standpoint-claim-entity.ttl", format="turtle"
+    )
+    out = data.query(STANDPOINT_CRMINF_QUERY.read_text(encoding="utf-8")).graph
+    assert out is not None
+
+    assert set(out.subjects(RDF.type, CRMINF.I1_Argumentation))
+    assert ex.place1 in set(out.objects(None, CRM.P67_refers_to))
+
+
+def test_standpoint_schema_projection_from_standpoint_claim_entity() -> None:
+    """Branch C: schema projection renders the entity IRI as schema:text."""
+    ex = Namespace("https://example.org/test/")
+    data = Graph().parse(
+        COVERAGE_FIXTURES / "standpoint-claim-entity.ttl", format="turtle"
+    )
+    out = data.query(STANDPOINT_SCHEMA_QUERY.read_text(encoding="utf-8")).graph
+    assert out is not None
+
+    texts = {str(o) for o in out.objects(None, SCHEMA.text)}
+    assert str(ex.place1) in texts
+
+
+def test_bbc_projection_exists() -> None:
+    """The BBC News Ontology projection is generated and ships with the repo."""
+    assert STANDPOINT_BBC_QUERY.exists()
+
+
+def test_bbc_projection_emits_news_event() -> None:
+    """A StandpointClaim about an Event produces a bbc:NewsEvent."""
+    ex = Namespace("https://example.org/test/")
+    bbc_ns = Namespace("http://www.bbc.co.uk/ontologies/news/")
+    data = Graph().parse(COVERAGE_FIXTURES / "standpoint-bbc.ttl", format="turtle")
+    out = data.query(STANDPOINT_BBC_QUERY.read_text(encoding="utf-8")).graph
+    assert out is not None
+
+    assert set(out.subjects(RDF.type, bbc_ns.NewsEvent))
+    assert ex.event1 in set(out.objects(None, bbc_ns.about))
+
+
+# --------------------------------------------------------------------------- #
+# Mapping alignment tests (#127)
+# --------------------------------------------------------------------------- #
+
+
+def test_standpoint_claim_maps_to_crminf_i5() -> None:
+    """SSSOM row exists for StandpointClaim → crminf:I5_Inference_Making."""
+    from gmeow_tools.mappings import load_mappings
+
+    mappings = load_mappings()
+    matches = [
+        m
+        for m in mappings
+        if m.subject_id == "gmeow:StandpointClaim"
+        and m.object_id == "crminf:I5_Inference_Making"
+    ]
+    assert matches, "StandpointClaim must map to crminf:I5_Inference_Making"
+
+
+def test_standpoint_claim_maps_to_iao_assertion() -> None:
+    """SSSOM row exists for StandpointClaim → iao:assertion."""
+    from gmeow_tools.mappings import load_mappings
+
+    mappings = load_mappings()
+    matches = [
+        m
+        for m in mappings
+        if m.subject_id == "gmeow:StandpointClaim" and m.object_id == "iao:assertion"
+    ]
+    assert matches, "StandpointClaim must map to iao:assertion"
+
+
+def test_standpoint_claim_maps_to_oa_annotation() -> None:
+    """SSSOM row exists for StandpointClaim → oa:Annotation."""
+    from gmeow_tools.mappings import load_mappings
+
+    mappings = load_mappings()
+    matches = [
+        m
+        for m in mappings
+        if m.subject_id == "gmeow:StandpointClaim" and m.object_id == "oa:Annotation"
+    ]
+    assert matches, "StandpointClaim must map to oa:Annotation"
+
+
+def test_standpoint_maps_to_iptc_assertor() -> None:
+    """SSSOM row exists for Standpoint → iptc:Assertor."""
+    from gmeow_tools.mappings import load_mappings
+
+    mappings = load_mappings()
+    matches = [
+        m
+        for m in mappings
+        if m.subject_id == "gmeow:Standpoint" and m.object_id == "iptc:Assertor"
+    ]
+    assert matches, "Standpoint must map to iptc:Assertor"
+
+
+def test_claim_modality_maps_to_sosa_has_result() -> None:
+    """SSSOM row exists for claimModality → sosa:hasResult."""
+    from gmeow_tools.mappings import load_mappings
+
+    mappings = load_mappings()
+    matches = [
+        m
+        for m in mappings
+        if m.subject_id == "gmeow:claimModality" and m.object_id == "sosa:hasResult"
+    ]
+    assert matches, "claimModality must map to sosa:hasResult"

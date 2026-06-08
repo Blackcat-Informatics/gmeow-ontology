@@ -38,6 +38,7 @@ gmeow:SpatialMeasurement	skos:closeMatch	iso19156:OM_Observation	semapv:ManualMa
 gmeow:SpatialMeasurement	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.9	SOSA does not distinguish spatial measurement types; SpatialMeasurement is a kind of Observation.
 gmeow:StandpointClaim	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.9	SOSA does not distinguish observation types; a standpoint claim is a kind of observation, and the standpoint-indexed statement realises sosa:Observation.
 gmeow:Stream	skos:closeMatch	sosa:ObservationCollection	semapv:ManualMappingCuration	0.85	SOSA has no first-class Stream; ObservationCollection is the closest grouping construct.
+gmeow:claimModality	skos:closeMatch	sosa:hasResult	semapv:ManualMappingCuration	0.75	the modality result of a standpoint claim is the SOSA result of the observation (#127)
 gmeow:coordinateResult	skos:closeMatch	sosa:hasResult	semapv:ManualMappingCuration	0.9	coordinateResult is the GeoCoordinates-specific subproperty of observationResult; aligns to SOSA's generic hasResult.
 gmeow:facetSubject	skos:closeMatch	sosa:hasFeatureOfInterest	semapv:ManualMappingCuration	0.9	facetSubject is the observedFeature of an identity claim; aligns to SOSA's feature of interest.
 gmeow:facetVantage	skos:closeMatch	sosa:madeBySensor	semapv:ManualMappingCuration	0.75	facetVantage is the asserting agent of an identity claim; aligns to SOSA's sensor (device-centric, broader via broadMatch on Agent).

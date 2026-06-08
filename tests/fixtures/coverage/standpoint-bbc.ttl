@@ -1,0 +1,16 @@
+# Coverage slice (#127): StandpointClaim about an Event for BBC projection.
+
+@prefix ex:    <https://example.org/test/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+ex:standpoint-news a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+ex:event1 a gmeow:Event .
+
+gmeow:methodStreaming a gmeow:ObservationMethod .
+
+ex:claim-news a gmeow:StandpointClaim ;
+    gmeow:vantage ex:standpoint-news ;
+    gmeow:claimModality gmeow:probable ;
+    gmeow:observedFeature ex:event1 ;
+    gmeow:observationMethod gmeow:methodStreaming .
