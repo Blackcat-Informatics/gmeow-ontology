@@ -5,9 +5,16 @@
 # GMEOW — Global Metadata and Entity Ontology for the Web
 
 GMEOW is a **reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary**
-that unifies document metadata, entity descriptions, legal agreements, contacts and
-person-centric data — a "super" FOAF + REL + DOAP + GEDCOM + PROV-O. It is grounded in
-**gUFO** and aligned to FOAF, REL, DOAP, PROV-O, ORG, schema.org, OntoLex-Lemon and **Wikidata**.
+that unifies document metadata, entity descriptions, legal agreements, contacts,
+person-centric data — *and now scientific observation & measurement* — into one coherent,
+inference-friendly graph. It began as a "super" FOAF + REL + DOAP + GEDCOM + PROV-O; it has
+since grown a universal frame-relative **Location**, **Observation**, and **Quantity** spine
+that locates and measures anything from a contact card to a gene on a genome to a star.
+It is grounded in **gUFO**, **projected** down to 15+ consumer vocabularies (schema.org,
+FOAF, GeoSPARQL, vCard, iCalendar, OWL-Time, ODRL, …) and **aligned by reference** to dozens
+more (PROV-O, ORG, OntoLex-Lemon, Wikidata, BFO, QUDT, FALDO, IVOA, CIDOC-CRM, …) — see the
+[projection](#projection-targets) and [alignment](#aligned-by-reference) tables below. The
+full guide set is indexed in the [documentation map](#documentation-map).
 
 **Why does this exist?** GMEOW unifies the sprawl of overlapping vocabularies used to
 record a person's or organization's *digital existence*. See [`docs/RATIONALE.md`](./docs/RATIONALE.md)
@@ -44,18 +51,50 @@ Cite them by number in issues and PRs.
 > contacts, email, accounts), content & evidence (documents, sources, software), trust & crypto
 > (trust, messaging-trust), skills & legal (expertise, agreements, rights), place / time / events
 > (places, temporal, events, with Location now a universal reference-frame spanning 13+ realms),
-> the epistemics spine (provenance, standpoint, observation), and cross-cutting foundations
-> (frame-relativity, determinacy, granularity, accessibility, data quality, attestation). The
-> reasoning stack is in place — axiomatized doctrine (disjointness, relator mediation, kinship/containment
-> property chains), the [OWL-infers / SHACL-validates split](./docs/reasoning.md) with
-> entailment-based competency tests, and a gUFO↔BFO foundational bridge. Constitution Principles
-> 11 (frame-relativity) and 12 (solver boundary) are ratified. Planned work is tracked
-> as issues: new domain slices (calendar, notes, finance, employment, images, tagging, an
-> AI / RAG claim-provenance layer), broad-consumption tooling (developer schemas, LPG / Croissant /
-> RO-Crate exports, a maximal DOI strategy), and quality/performance hardening. Each slice adds
-> canonical terms, SSSOM alignment tables, projections, and a vendored fixture, and `make coverage`
-> reports how much GMEOW covers and what gaps remain. The full toolchain (validate → reason →
-> mappings → coverage → build → docs → publish) runs green at every step.
+> the **unified epistemics & measurement spine** (provenance, standpoint, observation — where a
+> standpoint-indexed claim *is* an observation-from-a-vantage), and cross-cutting foundations
+> (frame-relativity, determinacy, granularity, privacy, accessibility, spatial aggregation,
+> regulatory overlays, data quality, attestation). Recent work has sharply expanded GMEOW's
+> **scientific utility** — Observation (SOSA/SensorThings), QUDT quantities, and frame-relative
+> measurement across astronomy, genomics, robotics and n-D mathematics (see
+> [Scientific & measurement utility](#scientific--measurement-utility)). The reasoning stack is
+> in place — axiomatized doctrine (disjointness, relator mediation, kinship/containment property
+> chains), the [OWL-infers / SHACL-validates split](./docs/reasoning.md) with entailment-based
+> competency tests, and a gUFO↔BFO foundational bridge. Constitution Principles 11
+> (frame-relativity) and 12 (solver boundary) are ratified. Each slice adds canonical terms,
+> SSSOM alignment tables, projections, and a vendored fixture, and `make coverage` reports how
+> much GMEOW covers and what gaps remain. The full toolchain (validate → reason → mappings →
+> coverage → build → docs → publish) runs green at every step. **Where it's heading next** is
+> tracked as issues — see the [Roadmap](#roadmap).
+
+## Documentation map
+
+Every guide under [`docs/`](./docs/) (plus the two root governance documents). **Doctrine**
+docs explain a cross-cutting design commitment; **domain guides** (`*-mapping.md`) teach one
+slice's model *and* how it aligns/projects.
+
+| Guide | Kind | What it covers |
+|---|---|---|
+| [`CONSTITUTION.md`](./CONSTITUTION.md) | Governance | The twelve normative principles every design decision and PR is measured against |
+| [`docs/RATIONALE.md`](./docs/RATIONALE.md) | Doctrine | Why GMEOW exists — the nine challenges of digital existence and the architectural answers |
+| [`docs/reasoning.md`](./docs/reasoning.md) | Doctrine | The OWL-infers / SHACL-validates split, the four verification lanes, and why OWL cardinality is avoided |
+| [`docs/projections.md`](./docs/projections.md) | Doctrine | The four-artifact alignment stack (SSSOM / EDOAL / FnO / SPARQL) and how lossy down-projection works |
+| [`docs/foundational-bridging.md`](./docs/foundational-bridging.md) | Doctrine | The gUFO ↔ BFO 2020 foundational-spine bridge, by reference (Principle 5 applied recursively) |
+| [`docs/import-provenance.md`](./docs/import-provenance.md) | Doctrine | How external vocabularies are sourced; the IMPORT_OK vs reference-only license policy and carrier-time |
+| [`docs/standpoints.md`](./docs/standpoints.md) | Doctrine | Contested facts as coexisting, standpoint-indexed claims — no privileged winner |
+| [`docs/rights.md`](./docs/rights.md) | Doctrine | Rights / IP / licensing as reified, temporally-bound, machine-readable claims (ODRL superset) |
+| [`docs/temporal-queries.md`](./docs/temporal-queries.md) | Reference | TQL — the parameterized temporal query algebra (Allen relations) over the events/temporal model |
+| [`docs/names-mapping.md`](./docs/names-mapping.md) | Domain guide | Names as reified, co-equal, anti-colonial relationships; pronouns & honorifics as first-class facets |
+| [`docs/identity-mapping.md`](./docs/identity-mapping.md) | Domain guide | Gender & sexuality as orthogonal, self-asserted, co-equal facets (the 7-axis matrix) |
+| [`docs/languages-mapping.md`](./docs/languages-mapping.md) | Domain guide | Languages as registry-independent first-class entities; co-mingled writing systems; proficiency |
+| [`docs/email-mapping.md`](./docs/email-mapping.md) | Domain guide | Email message/header structure, participants, and RFC 5322 mapping; time-scoped address tenure |
+| [`docs/location-mapping.md`](./docs/location-mapping.md) | Domain guide | The universal reference-frame: 13+ realms, RCC-8 topology, pose/trajectory, frame-relativity |
+| [`docs/attestation-mapping.md`](./docs/attestation-mapping.md) | Domain guide | Signed-claim envelopes, verification results, and append-only transparency logs (cross-cutting) |
+| [`docs/rights-mapping.md`](./docs/rights-mapping.md) | Domain guide | Alignment/projection companion to `rights.md` — ODRL, CC REL, Dublin Core, SPDX, schema.org |
+| [`docs/standpoint-mapping.md`](./docs/standpoint-mapping.md) | Domain guide | Alignment/projection companion to `standpoints.md` — CRMinf, PROV-O, Web Annotation, schema:Claim |
+| [`docs/versions-mapping.md`](./docs/versions-mapping.md) | Domain guide | Versions as standpoint-scoped claims (latest / stable / yanked / canonical are not intrinsic) |
+| [`docs/wikidata-mapping.md`](./docs/wikidata-mapping.md) | Domain guide | The Wikidata integration policy — `wd:` / `wdt:` / `ps:` / `pq:` semantics; QID/PID syntax gates |
+| [`docs/BRAND.md`](./docs/BRAND.md) | Brand | Logo usage and trademark guidelines |
 
 ## Quick start
 
@@ -166,6 +205,55 @@ gate. The compiler uses each target language to its full extent (EDOAL
 provenance + labels, the full SPARQL path/expression algebra) — all expressed as
 GMEOW vocabulary, never raw SPARQL. Full reference + authoring guide:
 [`docs/projections.md`](./docs/projections.md).
+
+### Projection targets
+
+GMEOW **projects down** to the vocabularies people actually consume — a deliberately lossy,
+directional export that downgrades the rich canonical model into a target consumer's terms
+without corrupting it ([Principle 4](./CONSTITUTION.md)). Each target below is authored in
+`mapping-dsl/projections/`, compiled to an EDOAL spec (`projections/*.edoal.ttl`) + a SPARQL
+CONSTRUCT executor (`queries/projections/*.rq`), and run by `gmeow project` /
+`make project`. The full set with worked examples lives in
+[`docs/projections.md`](./docs/projections.md).
+
+| Target | Spec | GMEOW exports… |
+|---|---|---|
+| **schema.org** | <https://schema.org> | The flat contact-card surface: `Person`/`Organization`/`Place`, reconstructed `name`/`birthDate`/`jobTitle`/`gender` from reified structures, plus `accessibilityFeature`/`accessibilityHazard` from the accessibility facet layer |
+| **FOAF** | <http://xmlns.com/foaf/0.1/> | The lowest-common-denominator person/agent graph: `name`, `nick`, `homepage`, `mbox`, `knows` |
+| **vCard (RDF)** | <https://www.w3.org/TR/vcard-rdf/> | Contact cards: `fn`, `nickname`, `BDAY`, `TITLE`, `hasURL`, `PRONOUNS` (RFC 9554), geo |
+| **GeoSPARQL** | <https://www.ogc.org/standard/geosparql/> | `geo:asWKT` geometry literals and topology from `Place`/`Location` + frame-relative coordinates |
+| **iCalendar (RDF)** | <https://www.w3.org/TR/rdfcal/> | Calendar projections of events — `Vevent`, `dtstart`/`dtend`, summary |
+| **OWL-Time** | <https://www.w3.org/TR/owl-time/> | `time:Instant`/`Interval` and Allen relations from the temporal model |
+| **ODRL** | <https://www.w3.org/TR/odrl-model/> | Pure ODRL policies — `Permission`/`Prohibition`/`Duty`, the action vocabulary + constraint algebra |
+| **Creative Commons REL** | <https://creativecommons.org/ns> | `cc:license`/`cc:permits`/`cc:prohibits`/`cc:requires` from rights statements |
+| **SPDX** | <https://spdx.org/rdf/terms/> | SPDX license identifiers and licensing facts for software/data artifacts |
+| **Dublin Core Terms** | <https://www.dublincore.org/specifications/dublin-core/dcmi-terms/> | `dcterms:` metadata — title, creator, date, rights, license |
+| **BOT** | <https://w3id.org/bot> | Building-topology projection of indoor places — `bot:Zone`/`Element`/`hasSpace` |
+| **RDF Data Cube** | <https://www.w3.org/TR/vocab-data-cube/> | `qb:Observation`/`DataSet` statistical-cube projection of spatial aggregations |
+| **OntoLex-Lemon** | <https://www.w3.org/2016/05/ontolex/> | `ontolex:LexicalEntry`/`Form`/`writtenRep` from appellations and language data |
+| **W3C Web Annotation** | <https://www.w3.org/TR/annotation-vocab/> | `oa:Annotation` body/target projection (tags, standpoints) |
+| **Standpoint projections** | [`docs/standpoints.md`](./docs/standpoints.md) | Five frame-preserving exports of contested claims: **CRMinf**, **PROV-O**, **schema:Claim**, **Web Annotation**, **Standpoint-OWL 2** — never one that picks a winner |
+
+### Aligned by reference
+
+Beyond what it projects, GMEOW **aligns by reference** (`skos:exactMatch` / `closeMatch` /
+`owl:equivalentClass`, copying no axioms — [Principle 5](./CONSTITUTION.md)) to dozens more
+vocabularies, so data already published elsewhere is covered without rewriting. The
+**exhaustive, authoritative list is the SSSOM tables** in
+[`mappings/*.sssom.tsv`](./mappings/) (one per module); this is a representative, grouped
+sample:
+
+| Domain | Aligned vocabularies (by reference) |
+|---|---|
+| **Foundational** | gUFO, **BFO 2020** (ISO/IEC 21838-2), DOLCE/SUMO (planned) |
+| **Hub & coreference** | **Wikidata**, schema.org, FOAF, ORG, PROV-O |
+| **Identity & language** | GSSO, Homosaurus, FHIR, FOAF, OntoLex-Lemon, LIME, Glottolog, CEFR/ILR/ACTFL |
+| **Geospatial & place** | GeoSPARQL, CIDOC-CRM + CRMgeo, BOT/ifcOWL, LADM, INSPIRE, AIXM, UNCLOS, MRGID, OGC GeoPose, OGC Moving Features |
+| **Scientific & measurement** | **QUDT**, SOSA/SSN + SensorThings, **IVOA**/UAT/SWEET (astronomy), **FALDO**/Sequence Ontology/GFF3 (genomics), IEEE 1872-2015 (robotics), OpenMath/MEX (mathematics), W3C DQV + ISO 19157 (data quality) |
+| **Rights & provenance** | ODRL, CC REL, Dublin Core, SPDX, RightsStatements.org (all 12), PREMIS 3, WIPO, W3C Media Resources |
+| **Trust & attestation** | PROV-O, in-toto, SLSA, DSSE, Sigstore/Rekor, SCITT, nanopublications |
+| **Privacy & content** | W3C DPV, SKOS, MOAT, Web Annotation, RDF Data Cube |
+| **Finance (seed)** | FIBO (by reference; the full Finance slice is [planned](#roadmap)) |
 
 ### RDF 1.2 / RDF\* — the canonical statement-level model
 
@@ -358,6 +446,43 @@ wizard's tower (full rationale in [`docs/location-mapping.md`](./docs/location-m
   SWEET, FALDO, Sequence Ontology, LADM, AIXM, UNCLOS, IEEE 1872-2015, OGC GeoPose, schema.org,
   vCard, WGS84, Wikidata — all by reference, never imported (Principle 5).
 
+### Scientific & measurement utility
+
+What began as a person-and-document vocabulary has, over the recent Location/Observation
+epics, become a genuine **frame-relative observation and measurement ontology** — GMEOW can
+now carry scientific data as first-class, attributed, frame-aware claims, not afterthoughts.
+This is the fastest-growing edge of the project, and it composes cleanly with the
+provenance/confidence/standpoint layer every other slice already uses:
+
+- **Observation as a top-level claim-from-a-vantage.** `gmeow:Observation` (aligned to
+  **SOSA/SSN** and **SensorThings**) makes every measurement an attributed claim with a
+  result, a procedure, a time, and a vantage — so a sensor reading, a survey, and a model
+  output are all first-class and comparable. Standpoint-indexed claims are themselves a
+  *specialization* of observation (claim-from-a-vantage), unifying the epistemics spine.
+- **Quantities carry their units and their uncertainty.** A universal `gmeow:Quantity` /
+  `MeasuredValue` (value × unit × determinacy × provenance) aligns to **QUDT**, so "5 nm" and
+  "5 µm" are never confused, and `SpatialMeasurement` + `CoordinateObservation` capture
+  position *in an explicit reference frame*.
+- **Frame-relativity is the law, not a convention ([Principle 11](./CONSTITUTION.md)).** Every
+  coordinate, date, price, colour, or measurement is expressed against an explicit
+  `gmeow:ReferenceFrame` (CRS, calendar + timescale, currency, colourspace, unit system),
+  and heavy conversion is delegated to an external solver, never asserted into the logic
+  ([Principle 12](./CONSTITUTION.md)). The reasoned graph stays decidable while the data stays
+  honest about its frame.
+- **Two orthogonal uncertainty axes.** Ontic **`gmeow:Determinacy`** (the thing itself is
+  vague/indeterminate) is held apart from epistemic **`gmeow:confidence`** (how sure the
+  recorder is) — a distinction scientific data needs and most vocabularies collapse.
+- **Quality is measured, not assumed.** A data-quality layer aligned to **W3C DQV** and
+  **ISO 19157** records completeness, accuracy, and lineage as structured, queryable claims.
+- **Domain realms for real disciplines.** The reference-frame kernel now spans
+  **astronomy** (celestial frames ICRS/FK5/Galactic; IVOA/UAT/SWEET), **genomics**
+  (biological-sequence locations on GRCh38; FALDO/Sequence Ontology/GFF3, with liftover left
+  to the solver), **robotics** (C-space, TF transform trees, SLAM occupancy grids;
+  IEEE 1872-2015), and **mathematics/n-D** (Hilbert spaces, latent vectors, phase spaces;
+  OpenMath/MEX) — each *data over the same kernel*, never a schema fork. Forthcoming
+  domain-specific **Observation profiles** (archaeology, astronomy, clinical, media) extend
+  this further — see the [roadmap](#roadmap).
+
 ## Publishing
 
 1. **DOI (CrossRef).** Blackcat Informatics mints the DOI as a CrossRef member (its own prefix).
@@ -374,6 +499,42 @@ wizard's tower (full rationale in [`docs/location-mapping.md`](./docs/location-m
    it negotiates `Accept` → Turtle / RDF-XML / JSON-LD with an HTML fallback and per-term slash
    dereferencing. Releases are **immutable** — fix issues in a new version, never in place
    ([Principle 6](./CONSTITUTION.md)).
+
+## Roadmap
+
+GMEOW grows one slice at a time; the direction is tracked entirely in
+[GitHub issues](https://github.com/Blackcat-Informatics/gmeow-ontology/issues). The current
+themes (cite the issue number in PRs):
+
+- **Deepen Languages → diachronic, sociolinguistic, symbolic, archaeological** — language
+  varieties/states/change events (#170), lexical items, forms, usage attestations & etymology
+  (#171), notation and symbolic systems (#172), and archaeological evidence, inscriptions &
+  cultural-heritage readings (#173), under the strengthening umbrella (#169); canonical
+  private-use tags with public BCP 47 projection (#164) and an exhaustive reference language
+  catalog (#111).
+- **Complete the Email ontology** — full coverage of stored mail (#141): mailbox hierarchy
+  (#132), MIME body parts (#133), address structure & envelope headers (#134), provenance &
+  raw bytes (#135), versioning/variants (#136), status/bounces/auto-generated (#137), thread
+  subject normalization (#138), calendar-invite seam (#139), JMAP body structure (#140), and
+  mailing-list vocabulary (#131).
+- **Scientific Observation profiles & unification** — domain-specific Observation profiles for
+  archaeology, astronomy, media, and clinical data (#129), Event–Observation unification (#128),
+  and the sensory-environment module (#126). *(Standpoint-Claim-as-Observation #127 — merged.)*
+- **New domain slices** — Finance (accounts, transactions, REA/double-entry; FIBO/ISO 20022)
+  (#64), Calendar & scheduling (#62), Notes / PKM with Web Annotation (#63), Employment / CV
+  (#23), Images as a layered super-ontology (#22), Books (works/releases/serials) (#156), and
+  Projects / software / verifiable git provenance (#47).
+- **AI / RAG, hallucination-resistant knowledge graphs** — LLM output as *claim-not-truth*
+  with evidence-bound claims and contradiction-as-standpoint (#54), the
+  Source→Chunk→EvidenceSpan→Claim pattern + a `gmeow audit` CLI (#55), and a
+  maximally-interlinked multi-ontology transpiler from a canonical A-Box (#34).
+- **Broad-consumption tooling & FAIR reach** — developer schemas via LinkML → JSON Schema /
+  Pydantic / TypeScript / GraphQL / OpenAPI (#57), labeled-property-graph export
+  (Neo4j / Memgraph / Kùzu / TinkerPop) where the RDF-1.2-first design pays off (#59),
+  ML-dataset & research-object interop (Croissant + RO-Crate + DataCite/DCAT) (#58), maximal
+  Dublin Core in both layers (#60), a maximal DOI strategy (concept+version chains,
+  Signposting) (#44), broadly-consumable export variants (#12), and a Model Context Protocol
+  (MCP) server interface to the `gmeow` CLI (#113).
 
 ## Licensing
 
