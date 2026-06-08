@@ -29,6 +29,7 @@ dev = [
     "pytest-xdist>=3.6",
     "pre-commit>=4.0",
     "owlrl>=6.0.2",  # pure-Python OWL 2 RL — fast, Docker-free entailment tests (#38)
+    "pyoxigraph>=0.5.8",  # in-process RDF 1.2 cross-check (#177)
 ]
 
 [build-system]
@@ -80,7 +81,7 @@ files = ["src", "tests"]
 
 [[tool.mypy.overrides]]
 # Third-party libraries without complete type information.
-module = ["pylode.*", "sssom.*", "pyshacl.*", "owlrl.*"]
+module = ["pylode.*", "sssom.*", "pyshacl.*", "owlrl.*", "pyoxigraph.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
