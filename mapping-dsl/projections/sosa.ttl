@@ -1,0 +1,141 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sosa:  <http://www.w3.org/ns/sosa/> .
+@prefix geo:   <http://www.opengis.net/ont/geosparql#> .
+
+# Projection mappings: GMEOW → SOSA/SSN (Sensor, Observation, ObservableProperty,
+# Platform). Compiled to projections/sosa.edoal.ttl + queries/projections/sosa.rq by
+# `gmeow compile-mappings`.
+#
+# SensorThings API (STA) and OGC API — Features / JSON-FG projections are
+# documented as deferred future work: there is no standard RDF vocabulary for
+# the STA entity model (Datastream, Thing, HistoricalLocation), and JSON-FG
+# is a JSON serialization profile rather than an RDF vocabulary. Consumers
+# needing STA should use the SOSA projection as an intermediate and apply a
+# JSON-LD framing step; consumers needing JSON-FG should use the GeoSPARQL
+# + schema.org projections and add the +sensory extension fields in the
+# presentation layer.
+
+# --------------------------------------------------------------------------- #
+# Class projections
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSosaSensoryObservation a gmeow:ProjectionMapping ;
+    rdfs:label "SensoryObservation → sosa:Observation"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "obs" ;
+        gmeow:atom ( [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensoryObservation ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:SensoryObservation ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sosa" ; gmeow:toClass sosa:Observation ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "the sensory-specific properties (sensoryProperty, sensoryResult, platformLocation), the reference frame, determinacy, granularity, and standpoint are dropped; only the generic sosa:Observation class survives" ] .
+
+gmeow:mapSosaSensor a gmeow:ProjectionMapping ;
+    rdfs:label "Sensor → sosa:Sensor"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "sensor" ;
+        gmeow:atom ( [ gmeow:subjectVar "sensor" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Sensor ] ) ;
+        gmeow:edoalSource gmeow:Sensor ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sosa" ; gmeow:toClass sosa:Sensor ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "the agent-specific properties (name, description, web page, role) and the platform-location context are dropped; only the generic sosa:Sensor class survives" ] .
+
+gmeow:mapSosaSensorPlatform a gmeow:ProjectionMapping ;
+    rdfs:label "SensorPlatform → sosa:Platform"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "platform" ;
+        gmeow:atom ( [ gmeow:subjectVar "platform" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensorPlatform ] ) ;
+        gmeow:edoalSource gmeow:SensorPlatform ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sosa" ; gmeow:toClass sosa:Platform ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "the platform-specific properties (platformLocation) and any hosted-sensor structure are dropped; only the generic sosa:Platform class survives" ] .
+
+gmeow:mapSosaObservableProperty a gmeow:ProjectionMapping ;
+    rdfs:label "ObservableProperty → sosa:ObservableProperty"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "prop" ;
+        gmeow:atom ( [ gmeow:subjectVar "prop" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ObservableProperty ] ) ;
+        gmeow:edoalSource gmeow:ObservableProperty ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sosa" ; gmeow:toClass sosa:ObservableProperty ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "the value-vocabulary individual identity and any external QID alignment are dropped; only the generic sosa:ObservableProperty class survives" ] .
+
+# --------------------------------------------------------------------------- #
+# Property projections
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSosaObservedProperty a gmeow:ProjectionMapping ;
+    rdfs:label "sensoryProperty → sosa:observedProperty"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "obs" ; gmeow:value "prop" ;
+        gmeow:atom ( [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:sensoryProperty ; gmeow:objectVar "prop" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:sensoryProperty ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sosa" ; gmeow:toPredicate sosa:observedProperty ; gmeow:relation "=" ;
+        gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the GMEOW value-vocabulary individual identity is preserved as the object node, but any QID alignment or external classification on the ObservableProperty is dropped if not re-typed" ] .
+
+gmeow:mapSosaPlatformLocation a gmeow:ProjectionMapping ;
+    rdfs:label "platformLocation → geo:location (SOSA has no direct platform-location property)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "platform" ; gmeow:value "place" ;
+        gmeow:atom ( [ gmeow:subjectVar "platform" ; gmeow:predicate gmeow:platformLocation ; gmeow:objectVar "place" ] ) ;
+        gmeow:edoalSource gmeow:platformLocation ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sosa" ; gmeow:toPredicate geo:location ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "SOSA core has no direct platform-location property; bridge via GeoSPARQL geo:location by reference. The place's coordinates, geometry, and granularity are projected separately via the GeoSPARQL projection." ] .
+
+# --------------------------------------------------------------------------- #
+# Reified observation path → flat SOSA result edge
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSosaSensoryResult a gmeow:ProjectionMapping ;
+    rdfs:label "sensoryResult → sosa:hasResult (scalar quantity value)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "obs" ; gmeow:value "result" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensoryObservation ]
+            [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:sensoryResult ; gmeow:objectVar "result" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:sensoryResult ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sosa" ; gmeow:toPredicate sosa:hasResult ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the unit, determinacy, granularity, reference frame, and standpoint on the result are dropped; only the scalar value node survives. Non-displayable/superseded observations are suppressed." ] .
+
+# --------------------------------------------------------------------------- #
+# Vantage (sensor as observer) → sosa:madeBySensor
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSosaMadeBySensor a gmeow:ProjectionMapping ;
+    rdfs:label "vantage (Sensor) → sosa:madeBySensor"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "obs" ; gmeow:value "sensor" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensoryObservation ]
+            [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:vantage ; gmeow:objectVar "sensor" ]
+            [ gmeow:subjectVar "sensor" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Sensor ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:vantage ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sosa" ; gmeow:toPredicate sosa:madeBySensor ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "only vantage instances that are typed as Sensor are projected to sosa:madeBySensor; other vantage types (person, organization, software agent) are dropped in the SOSA profile. Non-displayable observations are suppressed." ] .
+
+# --------------------------------------------------------------------------- #
+# Feature of interest → sosa:hasFeatureOfInterest
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSosaFeatureOfInterest a gmeow:ProjectionMapping ;
+    rdfs:label "sensoryObservationOf → sosa:hasFeatureOfInterest"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "obs" ; gmeow:value "feature" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensoryObservation ]
+            [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:sensoryObservationOf ; gmeow:objectVar "feature" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:sensoryObservationOf ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sosa" ; gmeow:toPredicate sosa:hasFeatureOfInterest ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the subproperty distinction (sensoryObservationOf vs spatialMeasurementOf vs generic observedFeature) collapses to flat sosa:hasFeatureOfInterest. Non-displayable observations are suppressed." ] .
