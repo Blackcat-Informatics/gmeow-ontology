@@ -10,7 +10,7 @@ TARGET ?= foaf
 
 .PHONY: help install fmt lint validate reason reason-hermit explain verify extract compile-mappings \
         compile-check compile-statements statements-check mappings wikidata \
-        wikidata-live lint-alignment refresh-target-axioms metadata apache docs \
+        wikidata-live wikidata-coverage wikidata-audit lint-alignment refresh-target-axioms metadata apache docs \
         docs-full rdf12 quality normalize build export project test check \
         release clean pull-images
 
@@ -80,6 +80,12 @@ wikidata: ## Validate Wikidata QID/PID syntax in the mappings (offline).
 
 wikidata-live: ## Also verify Wikidata ids resolve (network).
 	uv run gmeow wikidata --existence
+
+wikidata-coverage: ## Report Wikidata mapping coverage by domain (offline).
+	uv run gmeow wikidata-coverage
+
+wikidata-audit: ## Audit fixtures and modules for Wikidata misuse (offline).
+	uv run gmeow wikidata --fixtures
 
 metadata: ## Generate VoID + DCAT dataset descriptions.
 	uv run gmeow metadata
