@@ -140,7 +140,9 @@ def test_dsl_parses() -> None:
     # Group, Activity).
     # Issue #90 biological-sequence realm: +18 (FALDO x6, Sequence Ontology x7,
     # Wikidata x5).
-    assert len(dsl.equivalences) == 1078
+    # Issue #91 geocoding frames: +9 (Geocode→Wikidata, 6 ReferenceFrame→Wikidata,
+    # plusCode→Wikidata P3826, geohash→Wikidata P2506).
+    assert len(dsl.equivalences) == 1087
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

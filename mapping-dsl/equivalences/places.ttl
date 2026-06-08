@@ -41,7 +41,7 @@ gmeow:mapsetPlaces a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/places" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET, IEEE 1872-2015 CORA, KnowRob, SOMA, FALDO, Sequence Ontology. placeType/storageMedium/celestialObjectType/sequenceFeatureType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (#85): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl. Added (#88): Robotic realm bridging to IEEE 1872-2015 CORA (Robot, RoboticSystem), KnowRob (SemanticEnvironmentMap, RobotBaseTrajectory, Joint, FrameOfReference), and SOMA (ArtificialAgent). Added (#90): Biological-sequence realm bridging to FALDO (Region, begin, end, ForwardStrandPosition, ReverseStrandPosition, reference), Sequence Ontology (sequence_feature, gene, exon, intron, CDS, SNP, chromosome), and Wikidata (GRCh38, genomic location, sense/antisense strand)." .
+    gmeow:setComment "Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET, IEEE 1872-2015 CORA, KnowRob, SOMA, FALDO, Sequence Ontology. placeType/storageMedium/celestialObjectType/sequenceFeatureType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological \"within\"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (#85): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl. Added (#88): Robotic realm bridging to IEEE 1872-2015 CORA (Robot, RoboticSystem), KnowRob (SemanticEnvironmentMap, RobotBaseTrajectory, Joint, FrameOfReference), and SOMA (ArtificialAgent). Added (#90): Biological-sequence realm bridging to FALDO (Region, begin, end, ForwardStrandPosition, ReverseStrandPosition, reference), Sequence Ontology (sequence_feature, gene, exon, intron, CDS, SNP, chromosome), and Wikidata (GRCh38, genomic location, sense/antisense strand). Added (#91): Geocode and geocoding ReferenceFrames (Plus Code, what3words, geohash, MGRS, UN/LOCODE, mile-marker) aligned to Wikidata QIDs." .
 
 gmeow:eqPlaces001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:VirtualLocation ;
@@ -1689,4 +1689,94 @@ gmeow:eqPlaces185 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:objectLabel "antisense strand" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Issue #91 — Geocoding frames: Plus Codes / what3words / geohash / MGRS /
+# UN-LOCODE / linear referencing (mile-marker)
+# --------------------------------------------------------------------------- #
+
+gmeow:eqPlaces186 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Geocode ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q283821 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "geocode" ;
+    gmeow:comment "Wikidata Q283821 is the general concept of a geocode; GMEOW Geocode is the upper-ontology-grounded class with frame-relativity (P11)." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces187 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFramePlusCode ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q28402346 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Open Location Code" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces188 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameWhat3Words ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q16256185 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "what3words" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces189 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameGeohash ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1508087 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "geohash" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces190 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameMGRS ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1472666 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Military Grid Reference System" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces191 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameUNLocode ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q16254001 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "UN/LOCODE" ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces192 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameMileMarker ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1617265 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "linear referencing" ;
+    gmeow:comment "Wikidata Q1617265 is the general concept of linear referencing; GMEOW referenceFrameMileMarker is the frame for distance-along-a-line coordinates." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces193 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:plusCode ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P3826 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Open Location Code" ;
+    gmeow:comment "Wikidata P3826 is the Open Location Code property; GMEOW plusCode is the datatype property on a Geocode instance." ;
+    gmeow:sssomFile "gmeow-places.sssom.tsv" .
+
+gmeow:eqPlaces194 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:geohash ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wdt:P2506 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "geohash" ;
+    gmeow:comment "Wikidata P2506 is the geohash property; GMEOW geohash is the datatype property on a Geocode instance." ;
     gmeow:sssomFile "gmeow-places.sssom.tsv" .

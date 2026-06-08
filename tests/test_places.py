@@ -394,6 +394,7 @@ def test_location_superset_core() -> None:
         URIRef(GMEOW + "Axis"),
         URIRef(GMEOW + "Pose"),
         URIRef(GMEOW + "SpatialCoordinates"),
+        URIRef(GMEOW + "Geocode"),
     }
     assert (URIRef(GMEOW + "hasCoordinateMatrix"), RDFS.range, RDFS.Literal) in graph
 
@@ -2133,3 +2134,153 @@ def test_biological_standpoint_coordinate_claims_coexist() -> None:
         )
     )
     assert len(coords) >= 2, "Expected at least two co-existing coordinate claims"
+
+
+# --------------------------------------------------------------------------- #
+# Geocoding frames — Plus Codes / what3words / geohash / MGRS / UN-LOCODE /
+# mile-marker (#91)
+# --------------------------------------------------------------------------- #
+
+
+def test_geocode_class_grounding() -> None:
+    graph = _graph()
+    geocode = URIRef(GMEOW + "Geocode")
+    assert (geocode, RDF.type, OWL.Class) in graph
+    assert (geocode, RDF.type, URIRef(GUFO + "Kind")) in graph
+    assert (geocode, RDFS.subClassOf, URIRef(GMEOW + "Entity")) in graph
+
+
+def test_geocode_properties() -> None:
+    graph = _graph()
+    # Object properties
+    for prop in ("hasGeocode", "geocodeFrame"):
+        node = URIRef(GMEOW + prop)
+        assert (node, RDF.type, OWL.ObjectProperty) in graph
+    assert (
+        URIRef(GMEOW + "geocodeFrame"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "geocodeFrame"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "hasReferenceFrame"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasGeocode"),
+        RDFS.domain,
+        URIRef(GMEOW + "Place"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasGeocode"),
+        RDFS.range,
+        URIRef(GMEOW + "Geocode"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "geocodeFrame"),
+        RDFS.domain,
+        URIRef(GMEOW + "Geocode"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "geocodeFrame"),
+        RDFS.range,
+        URIRef(GMEOW + "ReferenceFrame"),
+    ) in graph
+
+    # Datatype properties — all functional on Geocode, range xsd:string
+    for prop in (
+        "geocodeValue",
+        "plusCode",
+        "what3words",
+        "geohash",
+        "mgrs",
+        "unLocode",
+        "mileMarker",
+    ):
+        node = URIRef(GMEOW + prop)
+        assert (node, RDF.type, OWL.DatatypeProperty) in graph
+        assert (node, RDF.type, OWL.FunctionalProperty) in graph
+        assert (node, RDFS.domain, URIRef(GMEOW + "Geocode")) in graph
+        if prop != "geocodeValue":
+            assert (node, RDFS.range, XSD.string) in graph
+
+
+def test_geocode_frames_declared() -> None:
+    graph = _graph()
+    for frame in (
+        "referenceFramePlusCode",
+        "referenceFrameWhat3Words",
+        "referenceFrameGeohash",
+        "referenceFrameMGRS",
+        "referenceFrameUNLocode",
+        "referenceFrameMileMarker",
+    ):
+        ref = URIRef(GMEOW + frame)
+        assert (ref, RDF.type, URIRef(GMEOW + "ReferenceFrame")) in graph
+        assert (
+            ref,
+            URIRef(GMEOW + "frameRealm"),
+            URIRef(GMEOW + "frameRealmTerrestrial"),
+        ) in graph
+        assert (
+            ref,
+            URIRef(GMEOW + "determinacyModel"),
+            URIRef(GMEOW + "determinacyCrisp"),
+        ) in graph
+    # Mile-marker frame requires a host (the linear feature)
+    assert (
+        URIRef(GMEOW + "referenceFrameMileMarker"),
+        URIRef(GMEOW + "requiresHost"),
+        Literal(True),
+    ) in graph
+    # UN-LOCODE uses scalar / graph-hops metric
+    assert (
+        URIRef(GMEOW + "referenceFrameUNLocode"),
+        URIRef(GMEOW + "hasMetricKind"),
+        URIRef(GMEOW + "metricGraphHops"),
+    ) in graph
+
+
+def test_has_coordinate_matrix_includes_geocode() -> None:
+    graph = _graph()
+    hcm_domain = graph.value(URIRef(GMEOW + "hasCoordinateMatrix"), RDFS.domain)
+    assert hcm_domain is not None
+    assert (hcm_domain, RDF.type, OWL.Class) in graph
+    union_of = graph.value(hcm_domain, OWL.unionOf)
+    assert union_of is not None
+    union_members = set(graph.items(union_of))
+    assert URIRef(GMEOW + "Geocode") in union_members
+
+
+def test_geocode_shape_valid() -> None:
+    """Valid geocode instances pass SHACL."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-geocode.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+
+
+def test_geocode_shape_invalid_no_code() -> None:
+    """A Geocode without any code value fails SHACL."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-geocode.ttl", format="turtle")
+    # Remove all code values from one geocode
+    for pred in (
+        "plusCode",
+        "what3words",
+        "geohash",
+        "mgrs",
+        "unLocode",
+        "mileMarker",
+        "geocodeValue",
+        "hasCoordinateMatrix",
+    ):
+        g.remove((EX_PLACES.pc1, URIRef(GMEOW + pred), None))
+    result = run_shacl(g)
+    assert not result.ok
+
+
+def test_geocode_shape_invalid_two_codes() -> None:
+    """A Geocode with two code values fails SHACL."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-geocode.ttl", format="turtle")
+    g.add((EX_PLACES.pc1, URIRef(GMEOW + "geohash"), Literal("u4pruydqqvj")))
+    result = run_shacl(g)
+    assert not result.ok
