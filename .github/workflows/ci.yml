@@ -60,6 +60,16 @@ jobs:
       - name: Type-check (mypy)
         run: uv run mypy
 
+      - name: Pull pinned ROBOT image
+        run: |
+          ROBOT_IMAGE=$(uv run python -c "from gmeow_tools.config import ROBOT_IMAGE; print(ROBOT_IMAGE)")
+          docker pull "$ROBOT_IMAGE"
+
+      - name: Build the pinned Jena image (RDF 1.2 engine)
+        run: |
+          JENA_IMAGE=$(uv run python -c "from gmeow_tools.config import JENA_IMAGE; print(JENA_IMAGE)")
+          docker build -t "$JENA_IMAGE" docker/jena
+
       - name: Unit tests
         run: uv run pytest -q
 
