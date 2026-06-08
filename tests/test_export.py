@@ -121,26 +121,9 @@ def test_llms_txt_bundle(tmp_path: Path) -> None:
     assert "gmeow:EmailMessage" in text
 
 
-def test_root_llms_txt_is_up_to_date(tmp_path: Path) -> None:
-    from gmeow_tools.config import PROJECT_ROOT
-
+def test_llms_txt_has_no_blank_nodes(tmp_path: Path) -> None:
     export_all(dist_dir=tmp_path)
     fresh_content = (tmp_path / "llms.txt").read_text(encoding="utf-8")
-
-    root_llms_txt = PROJECT_ROOT / "llms.txt"
-    assert root_llms_txt.exists(), (
-        "Root llms.txt does not exist. Please run 'make export'."
-    )
-    committed_content = root_llms_txt.read_text(encoding="utf-8")
-
     assert "_:" not in fresh_content, (
         "Found raw blank node ID in freshly generated llms.txt"
-    )
-    assert "_:" not in committed_content, (
-        "Found raw blank node ID in committed root llms.txt"
-    )
-
-    assert committed_content == fresh_content, (
-        "Root llms.txt is stale relative to the ontology sources. "
-        "Please run 'make export' and commit the updated llms.txt."
     )

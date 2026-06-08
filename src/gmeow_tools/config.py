@@ -125,6 +125,7 @@ DIST_DIR = PROJECT_ROOT / "dist"
 DOCS_DIR = PROJECT_ROOT / "docs" / "_generated"
 #: LPG (Labeled Property Graph) export outputs.
 LPG_DIR = DIST_DIR / "lpg"
+SCHEMAS_DIR = DIST_DIR / "schemas"
 
 # --------------------------------------------------------------------------- #
 # Pinned Docker images (the Java toolchain — see plan)

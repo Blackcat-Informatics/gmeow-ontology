@@ -712,8 +712,10 @@ source = { editable = "." }
 dependencies = [
     { name = "fastmcp" },
     { name = "httpx" },
+    { name = "linkml" },
     { name = "pylode" },
     { name = "pyshacl" },
+    { name = "pyyaml" },
     { name = "rdflib" },
     { name = "rich" },
     { name = "sssom" },
@@ -736,8 +738,10 @@ dev = [
 requires-dist = [
     { name = "fastmcp", specifier = ">=3.4" },
     { name = "httpx", specifier = ">=0.28" },
+    { name = "linkml", specifier = ">=1.11" },
     { name = "pylode", specifier = ">=3.4" },
     { name = "pyshacl", specifier = ">=0.31" },
+    { name = "pyyaml", specifier = ">=6.0" },
     { name = "rdflib", specifier = ">=7.6" },
     { name = "rich", specifier = ">=13.9" },
     { name = "sssom", specifier = ">=0.4.16" },

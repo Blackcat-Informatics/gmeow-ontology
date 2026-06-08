@@ -1,0 +1,161 @@
+"""Schema compilation gates (issue #57).
+
+Validates the OWL → LinkML pipeline and the downstream generator fan-out.
+These tests are pure-Python (no Docker) and exercise the full compile path.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+from gmeow_tools.config import SCHEMAS_DIR
+from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.schema_compile import (
+    _LINKML_FILE,
+    compile_schemas,
+    emit_linkml,
+    gen_graphql,
+    gen_json_schema,
+    gen_openapi,
+    gen_pydantic,
+    gen_typescript,
+)
+
+
+def test_emit_linkml_produces_expected_structure() -> None:
+    """The LinkML schema dict must contain classes, slots, and enums."""
+    graph = load_merged_graph(include_imports=False)
+    schema, warnings = emit_linkml(graph)
+
+    assert schema["name"] == "gmeow"
+    assert "classes" in schema
+    assert "slots" in schema
+    assert "enums" in schema
+    assert len(schema["classes"]) > 0
+    assert len(schema["slots"]) > 0
+
+    # Spot-check a well-known class
+    assert "Person" in schema["classes"] or "Entity" in schema["classes"]
+
+    # Warnings are non-fatal; just ensure the list is a list
+    assert isinstance(warnings, list)
+
+
+def test_generators_run_without_error(tmp_path: Path) -> None:
+    """Each LinkML generator must serialize without raising."""
+    graph = load_merged_graph(include_imports=False)
+    schema_dict, _warnings = emit_linkml(graph)
+    linkml_path = tmp_path / _LINKML_FILE
+    linkml_path.write_text(
+        yaml.safe_dump(schema_dict, sort_keys=False), encoding="utf-8"
+    )
+
+    json_schema = gen_json_schema(linkml_path)
+    assert (
+        "$schema" in json_schema
+        or "$defs" in json_schema
+        or "properties" in json_schema
+    )
+
+    pydantic = gen_pydantic(linkml_path)
+    assert "class " in pydantic or "pydantic" in pydantic.lower()
+
+    typescript = gen_typescript(linkml_path)
+    assert "interface" in typescript or "type" in typescript
+
+    graphql = gen_graphql(linkml_path)
+    assert "type" in graphql
+
+
+def test_openapi_derives_valid_json(tmp_path: Path) -> None:
+    """OpenAPI derivation must produce valid JSON with a components/schemas block."""
+    graph = load_merged_graph(include_imports=False)
+    schema_dict, _warnings = emit_linkml(graph)
+    linkml_path = tmp_path / _LINKML_FILE
+    linkml_path.write_text(
+        yaml.safe_dump(schema_dict, sort_keys=False), encoding="utf-8"
+    )
+
+    json_schema_text = gen_json_schema(linkml_path)
+    openapi_text = gen_openapi(json_schema_text)
+
+    openapi = json.loads(openapi_text)
+    assert openapi["openapi"] == "3.1.0"
+    assert "components" in openapi
+    assert "schemas" in openapi["components"]
+    assert "paths" in openapi
+
+
+def test_schema_compile_check_no_drift_after_write(tmp_path: Path) -> None:
+    """After compiling in-place, a subsequent --check must report no drift."""
+    # Use a temporary schemas directory to avoid interfering with dist/
+    original_schemas_dir = SCHEMAS_DIR
+    try:
+        # Monkey-patch SCHEMAS_DIR for the duration of the test
+        import gmeow_tools.config as _cfg
+        import gmeow_tools.schema_compile as sc
+
+        _cfg.SCHEMAS_DIR = tmp_path
+        sc.SCHEMAS_DIR = tmp_path  # type: ignore[attr-defined]
+
+        # First compile
+        report1 = sc.compile_schemas(check=False)
+        assert len(report1.written) == 6  # linkml + 4 generators + openapi
+        assert report1.drifted == []
+
+        # Then check
+        report2 = sc.compile_schemas(check=True)
+        assert report2.drifted == [], (
+            f"schema artifacts drifted after in-place compile: {report2.drifted}"
+        )
+    finally:
+        _cfg.SCHEMAS_DIR = original_schemas_dir
+        sc.SCHEMAS_DIR = original_schemas_dir  # type: ignore[attr-defined]
+
+
+def test_reconcile_warns_on_missing_context_entries_and_skips_namespace_base(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    """--reconcile warns on context IRIs missing from schema and skips @vocab base."""
+    import gmeow_tools.config as _cfg
+    import gmeow_tools.schema_compile as sc
+
+    # Inject a controlled context with a bogus GMEOW IRI
+    monkeypatch.setattr(
+        "gmeow_tools.jsonld_context.build_context",
+        lambda: {
+            "@context": {
+                "gmeow": "https://blackcatinformatics.ca/gmeow/",
+                "BogusTerm": {"@id": "https://blackcatinformatics.ca/gmeow/BogusTerm"},
+            }
+        },
+    )
+
+    original = _cfg.SCHEMAS_DIR
+    try:
+        _cfg.SCHEMAS_DIR = tmp_path
+        sc.SCHEMAS_DIR = tmp_path  # type: ignore[attr-defined]
+        report = compile_schemas(check=False, reconcile=True)
+
+        # Positive: the bogus term should trigger a reconciliation warning
+        assert any(
+            "BogusTerm" in w or "gmeow/BogusTerm" in w for w in report.warnings
+        ), f"expected reconciliation warning for BogusTerm in {report.warnings}"
+
+        # Negative: the namespace base IRI itself must not trigger a warning
+        base_iri = "https://blackcatinformatics.ca/gmeow/"
+        expected_base_warning = (
+            f"reconciliation: {base_iri} in JSON-LD context but missing from schema"
+        )
+        base_ns_warnings = [w for w in report.warnings if w == expected_base_warning]
+        assert not base_ns_warnings, (
+            f"false-positive namespace warnings: {base_ns_warnings}"
+        )
+    finally:
+        _cfg.SCHEMAS_DIR = original
+        sc.SCHEMAS_DIR = original  # type: ignore[attr-defined]
