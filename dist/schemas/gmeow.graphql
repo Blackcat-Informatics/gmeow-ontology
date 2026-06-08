@@ -854,6 +854,17 @@ enum NetworkAddressTypeEnum
     networkAddressTypeURL
   }
 
+enum NotationUsageRoleEnum
+  {
+    notationRoleCipher
+    notationRoleCommunication
+    notationRoleEncoding
+    notationRoleExpression
+    notationRoleRepresentation
+    notationRoleShorthand
+    notationRoleTranscription
+  }
+
 enum ObservablePropertyEnum
   {
     observablePropertyAirQualityIndex
@@ -1288,6 +1299,20 @@ enum StrandOrientationEnum
     strandBoth
     strandForward
     strandReverse
+  }
+
+enum SymbolicSystemKindEnum
+  {
+    symbolicKindCommunicationConvention
+    symbolicKindCryptographic
+    symbolicKindEmoji
+    symbolicKindEncoding
+    symbolicKindGesture
+    symbolicKindMathematical
+    symbolicKindMusical
+    symbolicKindPlatformConvention
+    symbolicKindStenographic
+    symbolicKindTranscription
   }
 
 enum TagEnum
@@ -3239,6 +3264,7 @@ type FormalLanguage
     detectedMediaType: String
     bcp47Tag: String
     designGoal: String
+    hasNotationSystem: [NotationSystem]
     languageCode: String
     languageModality: [LanguageModality]
     languageOrigin: [LanguageOrigin]
@@ -3745,6 +3771,7 @@ type Language
     detectedMediaType: String
     bcp47Tag: String
     designGoal: String
+    hasNotationSystem: [NotationSystem]
     languageCode: String
     languageModality: [LanguageModality]
     languageOrigin: [LanguageOrigin]
@@ -3905,6 +3932,7 @@ type LanguageVariety
     detectedMediaType: String
     bcp47Tag: String
     designGoal: String
+    hasNotationSystem: [NotationSystem]
     languageCode: String
     languageModality: [LanguageModality]
     languageOrigin: [LanguageOrigin]
@@ -3965,6 +3993,7 @@ type LanguageVersion
     detectedMediaType: String
     bcp47Tag: String
     designGoal: String
+    hasNotationSystem: [NotationSystem]
     languageCode: String
     languageModality: [LanguageModality]
     languageOrigin: [LanguageOrigin]
@@ -5074,6 +5103,67 @@ type NetworkAddressType
   {
   }
 
+type NotationSystem
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    proximity: [ProximityMeasurement]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasDerivedFrom: [Entity]
+    wasGeneratedBy: [Activity]
+    detectedMediaType: String
+    symbolicSystemKind: [SymbolicSystemKind]
+    notationSystemFor: [Language]
+    notationSystemKind: [SymbolicSystemKind]
+  }
+
+type NotationSystemUsage
+  {
+    notationUsageInterval: TimeInterval
+    notationUsageNotationSystem: NotationSystem
+    notationUsageRole: NotationUsageRole
+    notationUsageTarget: Entity
+  }
+
+type NotationUsageRole
+  {
+  }
+
 type ObservableProperty
   {
   }
@@ -5859,6 +5949,7 @@ type ProgrammingLanguage
     detectedMediaType: String
     bcp47Tag: String
     designGoal: String
+    hasNotationSystem: [NotationSystem]
     languageCode: String
     languageModality: [LanguageModality]
     languageOrigin: [LanguageOrigin]
@@ -7512,6 +7603,57 @@ type Summary
     detectedMediaType: String
   }
 
+type SymbolicSystem
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    proximity: [ProximityMeasurement]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasDerivedFrom: [Entity]
+    wasGeneratedBy: [Activity]
+    detectedMediaType: String
+    symbolicSystemKind: [SymbolicSystemKind]
+  }
+
+type SymbolicSystemKind
+  {
+  }
+
 type Tag
   {
     acquireLicensePage: String
@@ -8442,6 +8584,7 @@ type WritingSystem
     detectedMediaType: String
     scriptCode: String
     textDirection: [TextDirection]
+    writingSystemAsNotation: [NotationSystem]
     writingSystemType: [WritingSystemType]
   }
 

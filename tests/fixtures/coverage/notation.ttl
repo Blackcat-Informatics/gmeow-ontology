@@ -1,0 +1,115 @@
+# Coverage fixture for the notation and symbolic systems layer (#172).
+# Worked examples: IPA as transcription notation for English, mathematical
+# notation as domain-specific representation, musical staff notation for a
+# work, stenography as shorthand, cryptographic encoding, emoji as platform
+# convention, and Morse code as signal encoding.
+
+@prefix ex:     <https://example.org/notation/> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Languages --------------------------------------------------------------- #
+
+ex:english a gmeow:Language ; gmeow:languageCode "en" .
+
+# --- Notation systems -------------------------------------------------------- #
+
+ex:ipa a gmeow:NotationSystem ;
+    gmeow:notationSystemKind gmeow:symbolicKindTranscription .
+
+ex:mathNotation a gmeow:NotationSystem ;
+    gmeow:notationSystemKind gmeow:symbolicKindMathematical .
+
+ex:staffNotation a gmeow:NotationSystem ;
+    gmeow:notationSystemKind gmeow:symbolicKindMusical .
+
+ex:greggShorthand a gmeow:NotationSystem ;
+    gmeow:notationSystemKind gmeow:symbolicKindStenographic .
+
+ex:aes256 a gmeow:NotationSystem ;
+    gmeow:notationSystemKind gmeow:symbolicKindCryptographic .
+
+ex:emojiUnicode a gmeow:SymbolicSystem ;
+    gmeow:symbolicSystemKind gmeow:symbolicKindEmoji .
+
+ex:morseCode a gmeow:NotationSystem ;
+    gmeow:notationSystemKind gmeow:symbolicKindEncoding .
+
+ex:platformMemes a gmeow:SymbolicSystem ;
+    gmeow:symbolicSystemKind gmeow:symbolicKindPlatformConvention .
+
+# --- Time intervals ---------------------------------------------------------- #
+
+ex:ipaInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1888-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:greggInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1888-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "2024-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:mathInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1600-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:staffInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1800-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:aesInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2024-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:morseInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1838-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "1999-12-31T00:00:00Z"^^xsd:dateTime .
+
+# --- Notation system usages -------------------------------------------------- #
+
+ex:englishUsesIpa a gmeow:NotationSystemUsage ;
+    gmeow:notationUsageTarget ex:english ;
+    gmeow:notationUsageNotationSystem ex:ipa ;
+    gmeow:notationUsageRole gmeow:notationRoleTranscription ;
+    gmeow:notationUsageInterval ex:ipaInterval .
+
+ex:englishUsesGregg a gmeow:NotationSystemUsage ;
+    gmeow:notationUsageTarget ex:english ;
+    gmeow:notationUsageNotationSystem ex:greggShorthand ;
+    gmeow:notationUsageRole gmeow:notationRoleShorthand ;
+    gmeow:notationUsageInterval ex:greggInterval .
+
+ex:mathExpression a gmeow:InformationObject .
+
+ex:mathUsesNotation a gmeow:NotationSystemUsage ;
+    gmeow:notationUsageTarget ex:mathExpression ;
+    gmeow:notationUsageNotationSystem ex:mathNotation ;
+    gmeow:notationUsageRole gmeow:notationRoleRepresentation ;
+    gmeow:notationUsageInterval ex:mathInterval .
+
+ex:sonataOpus a gmeow:CreativeWork .
+
+ex:sonataUsesStaff a gmeow:NotationSystemUsage ;
+    gmeow:notationUsageTarget ex:sonataOpus ;
+    gmeow:notationUsageNotationSystem ex:staffNotation ;
+    gmeow:notationUsageRole gmeow:notationRoleRepresentation ;
+    gmeow:notationUsageInterval ex:staffInterval .
+
+ex:plaintext a gmeow:InformationObject .
+
+ex:plaintextUsesAes a gmeow:NotationSystemUsage ;
+    gmeow:notationUsageTarget ex:plaintext ;
+    gmeow:notationUsageNotationSystem ex:aes256 ;
+    gmeow:notationUsageRole gmeow:notationRoleCipher ;
+    gmeow:notationUsageInterval ex:aesInterval .
+
+ex:plaintextUsesMorse a gmeow:NotationSystemUsage ;
+    gmeow:notationUsageTarget ex:plaintext ;
+    gmeow:notationUsageNotationSystem ex:morseCode ;
+    gmeow:notationUsageRole gmeow:notationRoleEncoding ;
+    gmeow:notationUsageInterval ex:morseInterval .
+
+# --- WritingSystem ↔ NotationSystem bridge ----------------------------------- #
+
+ex:braille a gmeow:WritingSystem ;
+    gmeow:writingSystemAsNotation ex:brailleAsNotation .
+
+ex:brailleAsNotation a gmeow:NotationSystem ;
+    gmeow:notationSystemKind gmeow:symbolicKindTranscription .
