@@ -19,6 +19,7 @@ isomorphism, TSV/SPARQL by bytes), reporting any drift without writing.
 
 from __future__ import annotations
 
+import io
 import re
 import shutil
 import tempfile
@@ -26,11 +27,13 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import sssom
 from rdflib import RDF, RDFS, BNode, Graph, Literal, URIRef
 from rdflib.collection import Collection
 from rdflib.compare import isomorphic
 from rdflib.namespace import Namespace
 from rdflib.term import Node
+from sssom.validators import validate
 
 from gmeow_tools.config import (
     MAPPINGS_DIR,
@@ -713,6 +716,96 @@ def emit_sssom(dsl: Dsl) -> dict[str, str]:
 
 
 # --------------------------------------------------------------------------- #
+# SSSOM validation
+# --------------------------------------------------------------------------- #
+
+
+def _sssom_for_validation(text: str) -> str:
+    """Return a version of a GMEOW SSSOM text that ``sssom-py`` can parse.
+
+    Applies two GMEOW→SSSOM-Toolkit compatibility shims:
+
+    1. **Quote the ``comment`` header value** if it contains YAML-special
+       characters (colons, brackets, etc.).  GMEOW comments are prose that
+       may contain ``FORMAL GROUNDING:`` and similar colons; the SSSOM
+       Toolkit header parser treats the header as YAML and fails on unquoted
+       colons.
+    2. **Strip trailer comments** that appear after the data section.
+       ``sssom-py`` consumes every ``#``-prefixed line before the TSV column
+       header as YAML metadata; any ``#`` line *after* the header is passed
+       to pandas as a data row and reported as a malformed mapping.  GMEOW
+       intentionally emits trailer comments (e.g. ``# REFUSED …``) to
+       document refused alignments; these are stripped for validation only.
+    """
+    lines = text.splitlines()
+
+    # Find the TSV column-header row (first line that does not start with #).
+    header_idx: int | None = None
+    for i, line in enumerate(lines):
+        if not line.startswith("#"):
+            header_idx = i
+            break
+
+    if header_idx is None:
+        # No data rows — nothing that sssom-py can validate meaningfully.
+        return text
+
+    # Strip trailer comments (and any trailing empty/whitespace lines) that
+    # follow the data rows.
+    data_lines = lines[header_idx:]
+    while data_lines and (not data_lines[-1].strip() or data_lines[-1].startswith("#")):
+        data_lines.pop()
+
+    # Fix YAML in header key-value lines (curie_map entries are left untouched).
+    # Rather than maintaining a growing allow-list of YAML-special characters,
+    # every scalar value is double-quoted. This is simple, robust, and future-
+    # proof against new characters appearing in prose comments or other fields.
+    fixed_header: list[str] = []
+    for line in lines[:header_idx]:
+        m = re.match(r"^# ([A-Za-z0-9_]+): (.*)$", line)
+        if m and m.group(1) != "curie_map":
+            key, value = m.groups()
+            escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+            fixed_header.append(f'# {key}: "{escaped}"')
+        else:
+            fixed_header.append(line)
+
+    return "\n".join(fixed_header + data_lines) + "\n"
+
+
+def _validate_sssom(sssom_texts: dict[str, str]) -> list[str]:
+    """Run every generated SSSOM TSV through the SSSOM Toolkit validator.
+
+    Parses each text in memory (so the exact bytes that will be written are
+    checked) and returns a flat list of diagnostic strings.  An empty list
+    means every file passed validation.
+    """
+    problems: list[str] = []
+    for rel_path, text in sssom_texts.items():
+        safe = _sssom_for_validation(text)
+        try:
+            msdf = sssom.parse_tsv(io.StringIO(safe))
+        except Exception as exc:
+            problems.append(f"{rel_path}: parse error — {exc}")
+            continue
+        try:
+            reports = validate(msdf, validation_types=None, fail_on_error=False)
+        except Exception as exc:
+            problems.append(f"{rel_path}: validation engine error — {exc}")
+            continue
+        for validation_type, report in reports.items():
+            for result in report.results:
+                if result.severity.value in ("ERROR", "FATAL"):
+                    node = result.instance if result.instance is not None else "—"
+                    problems.append(
+                        f"{rel_path}: {result.message} "
+                        f"(type={result.type}, node={node}, "
+                        f"check={validation_type.value})"
+                    )
+    return problems
+
+
+# --------------------------------------------------------------------------- #
 # SPARQL emitter
 # --------------------------------------------------------------------------- #
 
@@ -1364,6 +1457,11 @@ def compile_all(check: bool = False) -> CompileReport:
             raise CompileError(
                 "compiler output violates projection invariants:\n  "
                 + "\n  ".join(problems)
+            )
+        sssom_problems = _validate_sssom(sssom_texts)
+        if sssom_problems:
+            raise CompileError(
+                "SSSOM validation failed:\n  " + "\n  ".join(sssom_problems)
             )
         if check:
             return CompileReport(drifted=_drift(root))
