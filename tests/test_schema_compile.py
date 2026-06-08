@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -116,31 +117,45 @@ def test_schema_compile_check_no_drift_after_write(tmp_path: Path) -> None:
         sc.SCHEMAS_DIR = original_schemas_dir  # type: ignore[attr-defined]
 
 
-def test_reconcile_runs_without_error_and_skips_namespace_base(
+def test_reconcile_warns_on_missing_context_entries_and_skips_namespace_base(
     tmp_path: Path,
+    monkeypatch: Any,
 ) -> None:
-    """--reconcile must run without error and skip the namespace base IRI.
-
-    The JSON-LD context includes the GMEOW namespace base IRI (as @vocab /
-    prefix), which is not a class or property and should not trigger a false
-    warning.
-    """
+    """--reconcile warns on context IRIs missing from schema and skips @vocab base."""
     import gmeow_tools.config as _cfg
     import gmeow_tools.schema_compile as sc
+
+    # Inject a controlled context with a bogus GMEOW IRI
+    monkeypatch.setattr(
+        "gmeow_tools.jsonld_context.build_context",
+        lambda: {
+            "@context": {
+                "gmeow": "https://blackcatinformatics.ca/gmeow/",
+                "BogusTerm": {"@id": "https://blackcatinformatics.ca/gmeow/BogusTerm"},
+            }
+        },
+    )
 
     original = _cfg.SCHEMAS_DIR
     try:
         _cfg.SCHEMAS_DIR = tmp_path
         sc.SCHEMAS_DIR = tmp_path  # type: ignore[attr-defined]
         report = compile_schemas(check=False, reconcile=True)
-        # No false-positive warning for the namespace base IRI
-        base_ns_warnings = [
-            w for w in report.warnings if "namespace base" in w or "@vocab" in w
-        ]
+
+        # Positive: the bogus term should trigger a reconciliation warning
+        assert any(
+            "BogusTerm" in w or "gmeow/BogusTerm" in w for w in report.warnings
+        ), f"expected reconciliation warning for BogusTerm in {report.warnings}"
+
+        # Negative: the namespace base IRI itself must not trigger a warning
+        base_iri = "https://blackcatinformatics.ca/gmeow/"
+        expected_base_warning = (
+            f"reconciliation: {base_iri} in JSON-LD context but missing from schema"
+        )
+        base_ns_warnings = [w for w in report.warnings if w == expected_base_warning]
         assert not base_ns_warnings, (
             f"false-positive namespace warnings: {base_ns_warnings}"
         )
-        assert isinstance(report.warnings, list)
     finally:
         _cfg.SCHEMAS_DIR = original
         sc.SCHEMAS_DIR = original  # type: ignore[attr-defined]

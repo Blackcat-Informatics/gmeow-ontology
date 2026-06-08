@@ -172,6 +172,8 @@ def emit_linkml(graph: Graph) -> tuple[dict[str, Any], list[str]]:
     for cls in sorted(graph.subjects(RDF.type, OWL.Class), key=str):
         if not isinstance(cls, URIRef) or _is_bnode(cls):
             continue
+        if not _is_gmeow_iri(cls):
+            continue
         local = _local_name(cls)
         if not local:
             continue
@@ -228,6 +230,8 @@ def emit_linkml(graph: Graph) -> tuple[dict[str, Any], list[str]]:
     # ------------------------------------------------------------------ #
     functional_props = set(graph.subjects(RDF.type, OWL.FunctionalProperty))
     for prop in _gather_owl_properties(graph):
+        if not _is_gmeow_iri(prop):
+            continue
         local = _local_name(prop)
         if not local:
             continue
