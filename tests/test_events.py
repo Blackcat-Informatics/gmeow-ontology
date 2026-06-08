@@ -580,19 +580,23 @@ def test_census_event_type_still_exists() -> None:
 
 def test_observational_activity_chain_on_was_associated_with() -> None:
     """The DL-regular property chain generatedObservation ∘ vantage ⊑ wasAssociatedWith
-    is present in the ontology."""
+    is present in the ontology with the exact ordered sequence."""
     g = _graph()
     chains = list(g.objects(GM.wasAssociatedWith, OWL.propertyChainAxiom))
     assert chains, "wasAssociatedWith must have at least one property chain axiom"
     found = False
     for chain_node in chains:
         members = list(g.items(chain_node))
-        if set(members) >= {GM.generatedObservation, GM.vantage}:
+        if (
+            len(members) == 2
+            and members[0] == GM.generatedObservation
+            and members[1] == GM.vantage
+        ):
             found = True
             break
     assert found, (
         "wasAssociatedWith must have a chain containing "
-        "generatedObservation and vantage"
+        "generatedObservation ∘ vantage in that order"
     )
 
 

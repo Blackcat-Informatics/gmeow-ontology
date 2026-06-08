@@ -279,7 +279,7 @@ gmeow:eqObs012 a gmeow:TermEquivalence ;
     gmeow:alignObject crm:E13_Attribute_Assignment ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "CIDOC-CRM E13 is the closest CRM class: an activity of assigning an attribute to an item. GMEOW Observation generalises this to any act of observing or asserting, not only attribute assignment." ;
+    gmeow:comment "CIDOC-CRM E13 Attribute Assignment is the closest CRM class for an observation: it is both the activity of assigning an attribute and, in GMEOW terms, the observation that results from such an activity. The event perspective is aligned to gmeow:ObservationalActivity in the events mapping set." ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" .
 
 gmeow:eqObs013 a gmeow:TermEquivalence ;
@@ -581,13 +581,4 @@ gmeow:eqObs058 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:comment "An ObservationalActivity that produces aggregate statistical data (e.g. a census) projects to an RDF Data Cube DataSet. Related match because the activity and the dataset are distinct: one generates the other." ;
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
-
-gmeow:eqObs059 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:Observation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crm:E13_Attribute_Assignment ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "CIDOC-CRM E13 Attribute Assignment is the closest CRM class for an observation as the RESULT of an activity (the event perspective is aligned to gmeow:ObservationalActivity in the events mapping set)." ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" .
