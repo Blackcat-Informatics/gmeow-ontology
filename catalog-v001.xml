@@ -22,6 +22,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/modules/gender" uri="ontology/modules/gender.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/sexuality" uri="ontology/modules/sexuality.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/languages" uri="ontology/modules/languages.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/lexicon" uri="ontology/modules/lexicon.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/lifecycle" uri="ontology/modules/lifecycle.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/agreements" uri="ontology/modules/agreements.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/contacts" uri="ontology/modules/contacts.ttl"/>

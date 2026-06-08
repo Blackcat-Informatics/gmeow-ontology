@@ -32,3 +32,85 @@ gmeow:mapOntolexName a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "form" ; gmeow:tPred ontolex:writtenRep ; gmeow:tObj "fullName" ]
             [ gmeow:tSubj "app" ; gmeow:tPred lime:language ; gmeow:tObj "langTag" ] ) ;
         gmeow:lossyDrop "structured name parts, name usage contexts, register/audience" ] .
+
+# --- Issue #171: LexicalItem + LexicalForm projections ----------------------- #
+
+gmeow:mapOntolexLexicalItem a gmeow:ProjectionMapping ;
+    rdfs:label "LexicalItem → ontolex:LexicalEntry"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "item" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "item" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:LexicalItem ]
+            [ gmeow:optionalGroup (
+                [ gmeow:subjectVar "item" ; gmeow:predicate gmeow:lexicalItemLanguage ; gmeow:objectVar "lang" ]
+                [ gmeow:subjectVar "lang" ; gmeow:predicate gmeow:bcp47Tag ; gmeow:objectVar "langTag" ] ) ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "item" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:LexicalItem ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ontolex" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget ontolex:LexicalEntry ; gmeow:edoalTargetKind "class" ;
+        gmeow:edoalSourceKind "class" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "item" ; gmeow:tPred rdf:type ; gmeow:tObjValue ontolex:LexicalEntry ]
+            [ gmeow:tSubj "item" ; gmeow:tPred lime:language ; gmeow:tObj "langTag" ] ) ;
+        gmeow:lossyDrop "hasLexicalForm links, form representations, etymology" ] .
+
+gmeow:mapOntolexLexicalForm a gmeow:ProjectionMapping ;
+    rdfs:label "LexicalForm → ontolex:Form"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "form" ; gmeow:value "repr" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "form" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:LexicalForm ]
+            [ gmeow:subjectVar "form" ; gmeow:predicate gmeow:formRepresentation ; gmeow:objectVar "repr" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "form" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:LexicalForm ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ontolex" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget ontolex:Form ; gmeow:edoalTargetKind "class" ;
+        gmeow:edoalSourceKind "class" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "form" ; gmeow:tPred rdf:type ; gmeow:tObjValue ontolex:Form ]
+            [ gmeow:tSubj "form" ; gmeow:tPred ontolex:writtenRep ; gmeow:tObj "repr" ] ) ;
+        gmeow:lossyDrop "formType, transliteration scheme, spoken/reconstructed form kinds" ] .
+
+gmeow:mapOntolexLexicalItemFormLink a gmeow:ProjectionMapping ;
+    rdfs:label "LexicalItem → ontolex:LexicalEntry lexicalForm link (displayable forms only)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "item" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "item" ; gmeow:predicate gmeow:hasLexicalForm ; gmeow:objectVar "form" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "form" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:hasLexicalForm ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ontolex" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget ontolex:lexicalForm ; gmeow:edoalTargetKind "relation" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "item" ; gmeow:tPred ontolex:lexicalForm ; gmeow:tObj "form" ] ) ;
+        gmeow:lossyDrop "form representations, etymology" ] .
+
+# --- Staged projections (documented; implementation deferred) ---------------- #
+#
+# UsageAttestation → prov:Entity / oa:Annotation
+#   Maps attestation evidence to PROV-O Entity or Web Annotation Annotation.
+#   Staged because the target vocabulary choice depends on consumer use case.
+#
+# EtymologicalDerivation → prov:Derivation / CRMinf
+#   Maps derivation claims to PROV-O Derivation or CRMinf belief assertion.
+#   Staged because CRMinf integration requires additional statement-dsl wiring.
+#
+# LexicalFormType / DerivationKind → skos:Concept
+#   Maps value vocabulary individuals to SKOS concepts for taxonomy consumers.
+#   Staged because SKOS-XL projections are handled by the general value-vocabulary
+#   projection pipeline.
+#
+# Frequency data → frac:Frequency
+#   Maps usage-attestation counts to FrAC frequency constructs.
+#   Staged because FrAC vocabulary is not yet in the import closure.
+#
+# Morphological analysis → morph:Morph
+#   Maps morpheme-level lexical items to Morph constructs.
+#   Staged because Morph vocabulary is not yet in the import closure.
+#
+# Lexicographic resources → lexicog:LexicographicResource
+#   Maps lexical-item collections to Lexicog resource constructs.
+#   Staged because Lexicog vocabulary is not yet in the import closure.
