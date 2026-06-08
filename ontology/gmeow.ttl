@@ -67,4 +67,5 @@
         <https://blackcatinformatics.ca/gmeow/modules/tags> ,
         <https://blackcatinformatics.ca/gmeow/modules/connectivity> ,
         <https://blackcatinformatics.ca/gmeow/modules/aggregation> ,
+        <https://blackcatinformatics.ca/gmeow/modules/attestation> ,
         <https://blackcatinformatics.ca/gmeow/modules/accessibility> .

@@ -36,6 +36,14 @@ gmeow:Attestation
     skos:definition "A reified assertion envelope that an attester vouches for a claim, artifact, identity binding, process, quality report, or ledger claim under a specific policy. Mediates between an attester, an attested subject, and optionally an attested claim or artifact. Distinct from Observation: an attestation is a vouching act, not a measurement or sensory reading. Its validity window is carried with gmeow:validFrom/validUntil; revocation sets validUntil (Principle 10)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:attestationType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Attestation ;
+    rdfs:range gmeow:AttestationType ;
+    rdfs:label "attestation type"@en ;
+    skos:definition "The type of attestation being made — a value vocabulary individual from gmeow:AttestationType. Non-functional: an attestation may carry multiple type tags (e.g. both SLSA provenance and DSSE envelope)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:attester
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Attestation ;
@@ -448,7 +456,8 @@ gmeow:finalityStatusReorged   a gmeow:LedgerFinalityStatus ; rdfs:label "reorged
 
 gmeow:Attestation rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:attester ;         owl:someValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:attestedSubject ;  owl:someValuesFrom gmeow:Entity ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:attestedSubject ;  owl:someValuesFrom gmeow:Entity ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:issuedAt ;        owl:someValuesFrom xsd:dateTime ] .
 
 gmeow:AttestationArtifact rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:artifactMediaType ; owl:someValuesFrom rdfs:Literal ] .

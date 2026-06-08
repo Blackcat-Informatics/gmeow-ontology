@@ -19,20 +19,19 @@ assertion is true.
 |---|---|---|
 | `gmeow:Attestation` | `gufo:Relator` | The reified assertion envelope (who said what, when, with what evidence). |
 | `gmeow:AttestationArtifact` | `gufo:InformationObject` | A document or payload that carries the attestation (credential, certificate, signed statement, VC, etc.). |
-| `gmeow:AttestationPolicy` | `gufo:InformationObject` | Rules under which an attestation was issued (acceptable issuers, validity windows, revocation policy, etc.). |
+| `gmeow:AttestationPolicy` | `gufo:AbstractIndividualType` | Rules under which an attestation was issued (open value vocabulary). |
 | `gmeow:VerificationActivity` | `gmeow:Activity` | The act of checking an attestation against its policy. |
 | `gmeow:VerificationResult` | `gufo:InformationObject` | The outcome of a verification activity, including the final status. |
-| `gmeow:TransparencyLogEntry` | `gufo:InformationObject` | A single append-only record in a transparency log (CT-like inclusion proof, signed timestamp, etc.). |
+| `gmeow:TransparencyLogEntry` | `gufo:InformationObject` | A single append-only record in a transparency log (Rekor entry, SCITT receipt, CT inclusion proof, etc.). |
 
 ## Value vocabularies
 
 | Vocabulary | Purpose |
 |---|---|
-| `gmeow:AttestationType` | What kind of attestation this is (`credential`, `certificate`, `endorsement`, `delegation`, `relinquishment`). |
-| `gmeow:AttestationMethod` | How the attestation was produced (`digitalSignature`, `biometric`, `notarisedWitness`, `timestampedArchive`). |
-| `gmeow:VerificationStatus` | Outcome of verification (`verified`, `failed`, `revoked`, `expired`, `unknown`). |
-| `gmeow:ArtifactFormat` | Serialization of the artifact (`jsonLd`, `cbor`, `x509`, `pem`, `turtle`, `binary`). |
-| `gmeow:LedgerKind` | What kind of transparency log (`certificateTransparency`, `sigstoreRekor`, `verifiableDataRegistry`, `supplyChain`, `identityAnchor`). |
+| `gmeow:AttestationType` | What kind of attestation this is (`slsaProvenance`, `inToto`, `verifiableCredential`, `c2pa`, `eat`, `signedRdf`, `scitt`, `nanopublication`, `blockchainClaim`, `gitSignedTag`, `releaseManifest`, `qualityReport`, `aiOutput`). |
+| `gmeow:SignatureScheme` | The cryptographic algorithm (`rsaSha256`, `ed25519`, `ecdsaSecp256k1`, `ecdsaP256`, `bls12-381`). |
+| `gmeow:VerificationStatus` | Outcome of verification (`verified`, `failed`, `unverified`, `expired`, `revoked`, `policyFailed`, `finalityPending`). |
+| `gmeow:LedgerFinalityStatus` | Finality state of a ledger transaction/block (`pending`, `confirmed`, `finalized`, `orphaned`, `reorged`). |
 
 ## Key properties
 
@@ -41,35 +40,63 @@ assertion is true.
 | Property | Domain | Range | Meaning |
 |---|---|---|---|
 | `gmeow:attestationType` | `Attestation` | `AttestationType` | What kind of assertion envelope this is. |
-| `gmeow:attestationMethod` | `Attestation` | `AttestationMethod` | How it was produced. |
 | `gmeow:attestedSubject` | `Attestation` | `Entity` | What the attestation is *about*. |
-| `gmeow:attestedClaim` | `Attestation` | `Statement` | The specific claim being asserted. |
-| `gmeow:attestedAt` | `Attestation` | `xsd:dateTime` | When the attestation was issued. |
-| `gmeow:attestationExpires` | `Attestation` | `xsd:dateTime` | Expiry, if any. |
+| `gmeow:attestedClaim` | `Attestation` | `Observation` | The specific claim being asserted. |
+| `gmeow:attester` | `Attestation` | `Agent` | Who issued the attestation (functional). |
+| `gmeow:issuedAt` | `Attestation` | `xsd:dateTime` | When the attestation was issued (functional). |
+| `gmeow:attestationArtifact` | `Attestation` | `AttestationArtifact` | The carrying document/serialization. |
 | `gmeow:attestationPolicy` | `Attestation` | `AttestationPolicy` | Rules governing this attestation. |
-| `gmeow:hasAttestationArtifact` | `Attestation` | `AttestationArtifact` | The carrying document. |
+| `gmeow:hasAttestation` | `Entity` | `Attestation` | Inverse of `attestedSubject`. |
 | `gmeow:hasSignature` | *(universal)* | `CryptographicSignature` | Cross-cutting signature pointer (also used by messages, documents, etc.). |
+
+### Artifact
+
+| Property | Domain | Range | Meaning |
+|---|---|---|---|
+| `gmeow:artifactMediaType` | `AttestationArtifact` | `rdfs:Literal` | Media type of the serialization (e.g. `application/vc+ld+json`, `application/vnd.in-toto+json`). |
 
 ### Verification
 
 | Property | Domain | Range | Meaning |
 |---|---|---|---|
-| `gmeow:verifiedBy` | `VerificationResult` | `VerificationActivity` | Which activity produced this result. |
-| `gmeow:verificationOf` | `VerificationActivity` | `Attestation` | What was being verified. |
-| `gmeow:verificationMethod` | `VerificationActivity` | `VerificationMethod` | How verification was performed (value vocabulary). |
-| `gmeow:verificationStarted` | `VerificationActivity` | `xsd:dateTime` | Start timestamp. |
-| `gmeow:verificationCompleted` | `VerificationActivity` | `xsd:dateTime` | End timestamp. |
-| `gmeow:hasVerificationStatus` | `VerificationResult` | `VerificationStatus` | Final outcome. |
+| `gmeow:verificationActivity` | `Attestation` | `VerificationActivity` | The verification activity performed on an attestation. |
+| `gmeow:verificationResult` | `Attestation` | `VerificationResult` | The result of a verification activity. |
+| `gmeow:verifiedBy` | `VerificationResult` | `Agent` | The agent that produced the verification result. |
+| `gmeow:hasVerificationStatus` | `VerificationResult` | `VerificationStatus` | Final categorical outcome. |
 
-### Transparency
+### Transparency & ledger
 
 | Property | Domain | Range | Meaning |
 |---|---|---|---|
-| `gmeow:logEntryFor` | `TransparencyLogEntry` | `Attestation` | Which attestation this entry records. |
-| `gmeow:logEntryTimestamp` | `TransparencyLogEntry` | `xsd:dateTime` | Monotonic timestamp. |
-| `gmeow:logEntryIndex` | `TransparencyLogEntry` | `xsd:integer` | Position in the ledger sequence. |
-| `gmeow:previousLogEntry` | `TransparencyLogEntry` | `TransparencyLogEntry` | Chain predecessor. |
-| `gmeow:logEntrySignature` | `TransparencyLogEntry` | `CryptographicSignature` | Log operator's signature. |
+| `gmeow:transparencyLogEntry` | `Attestation` | `TransparencyLogEntry` | A transparency log entry associated with an attestation. |
+| `gmeow:logEntryUrl` | `TransparencyLogEntry` | `rdfs:Literal` | URL at which the entry can be retrieved. |
+| `gmeow:logEntryIndex` | `TransparencyLogEntry` | `xsd:integer` | Sequential index within its log (functional). |
+| `gmeow:ledgerInclusionProof` | *(universal)* | `rdfs:Literal` | Cryptographic inclusion proof (domain-free). |
+| `gmeow:confirmationDepth` | *(universal)* | `xsd:integer` | Number of confirming blocks (domain-free). |
+| `gmeow:finalityStatus` | *(universal)* | `LedgerFinalityStatus` | Finality state (domain-free). |
+
+### Signature (reused from messaging-trust)
+
+| Property | Domain | Range | Meaning |
+|---|---|---|---|
+| `gmeow:signedBy` | `CryptographicSignature` | `Agent` | The signing identity. |
+| `gmeow:signingKey` | `CryptographicSignature` | `rdfs:Literal` | The key that produced the signature. |
+| `gmeow:signatureAlgorithm` | `CryptographicSignature` | `rdfs:Literal` | Algorithm identifier. |
+
+### Cross-cutting reuse (not redefined in this module)
+
+The attestation module reuses existing cross-cutting properties rather than minting
+new IRIs (Principle 4):
+
+| What you need | Use |
+|---|---|
+| Expiry / validity window | `gmeow:validFrom` / `gmeow:validUntil` (temporal module) |
+| Content identity | `gmeow:contentDigest` (sources module) |
+| Version fingerprint | `gmeow:versionFingerprint` (versions module) |
+| Confidence | `gmeow:confidence` (provenance module) |
+| Standpoint | `gmeow:accordingTo` / `gmeow:standpointModality` (standpoint module) |
+| Suppression | `gmeow:displayable false` (core module, Principle 10) |
+| Activity provenance | `gmeow:wasGeneratedBy` / `gmeow:wasAttributedTo` (provenance module) |
 
 ## Signature model
 
@@ -83,9 +110,8 @@ through the range class:
 - `gmeow:SMIMESignature` — S/MIME email signature.
 - `gmeow:PGPSignature` — OpenPGP signature.
 
-Signature metadata (signer key, algorithm, literal verification status) is on the
-signature object itself via `gmeow:signedBy`, `gmeow:signingKey`, `gmeow:signatureAlgorithm`,
-and the datatype property `gmeow:verificationStatus`.
+Signature metadata (signer key, algorithm) is on the signature object itself via
+`gmeow:signedBy`, `gmeow:signingKey`, and `gmeow:signatureAlgorithm`.
 
 ## What Attestation is **not**
 
@@ -96,8 +122,8 @@ and the datatype property `gmeow:verificationStatus`.
   `Attestation` (which uses `attester`/`attestedSubject`/`attestedClaim`).  Certification is
   documented as a *specialisation* of attestation via `skos:scopeNote`, not a subclass.
 - **Not a trust score.** Verification yields a discrete status (`verified`/`failed`/
-  `revoked`/`expired`/`unknown`), not a numeric confidence.  Confidence values, when
-  needed, are attached to the underlying `Statement` or `StandpointClaim`.
+  `revoked`/`expired`/`unverified`), not a numeric confidence.  Confidence values, when
+  needed, are attached to the underlying `Observation` or `StandpointClaim`.
 
 ## Example: a self-issued verifiable credential
 
@@ -107,33 +133,27 @@ and the datatype property `gmeow:verificationStatus`.
 @prefix ex:    <https://example.org/id/> .
 
 ex:vcOver18 a gmeow:Attestation ;
-    gmeow:attestationType    gmeow:attestationTypeCredential ;
-    gmeow:attestationMethod  gmeow:attestationMethodDigitalSignature ;
+    gmeow:attestationType    gmeow:attestationTypeVerifiableCredential ;
     gmeow:attestedSubject    ex:alice ;
     gmeow:attestedClaim      ex:claimAliceOver18 ;
-    gmeow:attestedAt         "2025-06-01T00:00:00Z"^^xsd:dateTime ;
-    gmeow:attestationExpires "2026-06-01T00:00:00Z"^^xsd:dateTime ;
-    gmeow:hasAttestationArtifact ex:vcArtifact ;
+    gmeow:attester           ex:alice ;
+    gmeow:issuedAt           "2025-06-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:validUntil         "2026-06-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:attestationArtifact ex:vcArtifact ;
     gmeow:hasSignature       ex:sigAlice .
 
 ex:vcArtifact a gmeow:AttestationArtifact ;
-    gmeow:artifactFormat gmeow:artifactFormatJsonLd ;
-    gmeow:artifactUrl    "https://example.org/vc/over18.jsonld"^^xsd:anyURI .
+    gmeow:artifactMediaType "application/vc+ld+json" .
 
 ex:sigAlice a gmeow:CryptographicSignature ;
     gmeow:signedBy           ex:alice ;
     gmeow:signingKey         "did:example:alice#keys-1" ;
-    gmeow:signatureAlgorithm "Ed25519" ;
-    gmeow:verificationStatus "unverified" .
+    gmeow:signatureAlgorithm "ed25519" .
 
-ex:verifyVc a gmeow:VerificationActivity ;
-    gmeow:verificationOf     ex:vcOver18 ;
-    gmeow:verificationMethod gmeow:verificationMethodDigitalSignature ;
-    gmeow:verificationStarted  "2025-06-02T12:00:00Z"^^xsd:dateTime ;
-    gmeow:verificationCompleted "2025-06-02T12:00:01Z"^^xsd:dateTime .
+ex:slsaVerify a gmeow:VerificationActivity .
 
-ex:verifyResult a gmeow:VerificationResult ;
-    gmeow:verifiedBy         ex:verifyVc ;
+ex:slsaVerifyResult a gmeow:VerificationResult ;
+    gmeow:verifiedBy         ex:verifierAgent ;
     gmeow:hasVerificationStatus gmeow:verificationStatusVerified .
 ```
 
@@ -141,12 +161,9 @@ ex:verifyResult a gmeow:VerificationResult ;
 
 ```turtle
 ex:ctEntry a gmeow:TransparencyLogEntry ;
-    gmeow:logEntryFor        ex:certAttestation ;
-    gmeow:ledgerKind         gmeow:ledgerKindCertificateTransparency ;
-    gmeow:logEntryTimestamp  "2025-06-01T00:00:00Z"^^xsd:dateTime ;
-    gmeow:logEntryIndex      42 ;
-    gmeow:previousLogEntry   ex:ctEntry41 ;
-    gmeow:logEntrySignature  ex:ctOperatorSig .
+    gmeow:logEntryUrl       "https://ct.example/entries/42" ;
+    gmeow:logEntryIndex     42 ;
+    gmeow:ledgerInclusionProof "base64:proofData…" .
 ```
 
 ## Interoperability layers
@@ -162,7 +179,7 @@ ex:ctEntry a gmeow:TransparencyLogEntry ;
    need those vocabularies should bridge at the application layer or via custom
    projection mappings.
 4. **Round-trip** — VC `credentialSubject` maps to `attestedSubject`;
-   `issuanceDate`/`expirationDate` map to `attestedAt`/`attestationExpires`;
+   `issuanceDate`/`expirationDate` map to `issuedAt`/`validUntil`;
    `proof` maps to `hasSignature` → `CryptographicSignature`.
 5. **Contested / revoked** — a revoked attestation does not disappear.  It gains a
    `VerificationResult` with `verificationStatusRevoked`, and the original
