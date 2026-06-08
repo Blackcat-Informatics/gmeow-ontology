@@ -13,7 +13,7 @@
 
 STANDPOINT DOCTRINE (#51). Contested facts in the locations slice — sovereignty/jurisdiction disputes, competing place names (endonym vs exonym per community), boundary changes, regulatory overlays — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame asserting it — the two axes are orthogonal and must not be conflated. There is NO location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the cross-cutting #43 facility. Superseded or withdrawn claims set gmeow:displayable false, never deletion (Principle 10).
 
-REGULATORY OVERLAYS (#103). Legal and regulatory spatial overlays — zoning, protected areas, restricted airspace, sanctions, tax/electoral districts, postal zones, civil-time zones, fishing zones, customs zones — are modelled as reified gmeow:RegulatoryOverlay instances (⊑ gmeow:TimeScopedRelation), each binding a place, an authority, an overlay type (open value vocabulary), and an optional RightsStatement (#21) for the deontic rules. 3D bounds (altitude/depth) are frame-relative ScalarQuantity values (Principle 11). Contested overlays coexist as multiple standpoint-indexed instances, never a single winner (Principle 9).
+REGULATORY OVERLAYS (#103 + #93). Legal and regulatory spatial overlays — zoning, protected areas, restricted airspace, sanctions, tax/electoral districts, postal zones, civil-time zones, fishing zones, customs zones, maritime zones (territorial sea, EEZ, continental shelf, high seas, marine protected area), aviation zones (airway, CTR, TMA, FIR, ATZ, MOA, warning, alert), and temporary NOTAM notices — are modelled as reified gmeow:RegulatoryOverlay instances (⊑ gmeow:TimeScopedRelation), each binding a place, an authority, an overlay type (open value vocabulary), and an optional RightsStatement (#21) for the deontic rules. 3D bounds (altitude/depth) are frame-relative ScalarQuantity values in explicit vertical reference frames (Principle 11). Contested overlays (disputed EEZ, overlapping airspace claims) coexist as multiple standpoint-indexed instances, never a single winner (Principle 9).
 
 VIRTUAL LOCATIONS + NETWORK ADDRESS SPACE (#84). Virtual locations (video conferences, chat spaces, websites, social media pages) are typed by an open value vocabulary (gmeow:VirtualLocationType). Their network addresses — IP, IPv6, MAC, DNS, URL, port, BGP-AS — are modelled as frame-relative coordinates (gmeow:NetworkAddress) in topology-only reference frames (gmeow:frameKindTopological) nested under the Internet root frame via gmeow:parentFrame. CIDR containment, DNS resolution, and path-length are solver-layer computations (Principle 12), never asserted as triples in the OWL core.
 
@@ -872,6 +872,14 @@ gmeow:axisMGRS             a gmeow:Axis ; rdfs:label "MGRS grid reference"@en .
 gmeow:axisUNLocode         a gmeow:Axis ; rdfs:label "UN/LOCODE code"@en .
 gmeow:axisMileMarker       a gmeow:Axis ; rdfs:label "mile marker / chainage"@en .
 
+# Vertical-dimension axes — altitude / depth / flight level (#93)
+gmeow:axisAltitude         a gmeow:Axis ; rdfs:label "altitude"@en ;
+    skos:definition "The vertical axis above a reference datum — mean sea level, ground level, or another vertical reference surface. Used for aviation and terrestrial elevation bounds."@en .
+gmeow:axisFlightLevel      a gmeow:Axis ; rdfs:label "flight level"@en ;
+    skos:definition "The pressure-altitude axis expressed as ICAO flight level (standard atmosphere 1013.25 hPa). Independent of local QNH; used for en-route airspace bounds."@en .
+gmeow:axisDepth            a gmeow:Axis ; rdfs:label "depth"@en ;
+    skos:definition "The vertical axis below a reference datum — mean sea level, chart datum, or another vertical reference surface. Used for maritime depth bounds and bathymetry."@en .
+
 # Biological-sequence axis (#90)
 gmeow:axisSequencePosition     a gmeow:Axis ; rdfs:label "sequence position"@en ;
     skos:definition "The linear position axis along a biological sequence (DNA, RNA, protein), measured in base pairs or amino-acid residues from a sequence origin."@en .
@@ -1013,6 +1021,69 @@ gmeow:referenceFrameRobotSLAM
     gmeow:frameKind gmeow:frameKindGrid ;
     gmeow:requiresHost true ;
     gmeow:determinacyModel gmeow:determinacyProbabilistic ;
+    gmeow:hasMetricKind gmeow:metricEuclidean .
+
+# --------------------------------------------------------------------------- #
+# Vertical-dimension reference frames — aviation altitude / maritime depth (#93)
+# --------------------------------------------------------------------------- #
+# Principle 11: every measured value lives in an explicit reference frame.
+# Altitude and depth are frame-relative; conversion between MSL, AGL, flight
+# level, and chart datum is a solver-layer computation (Principle 12).
+# --------------------------------------------------------------------------- #
+
+gmeow:referenceFrameAltitudeMSL
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Altitude Above Mean Sea Level Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+    gmeow:hasAxis gmeow:axisAltitude ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricEuclidean .
+
+gmeow:referenceFrameFlightLevel
+    a gmeow:ReferenceFrame ;
+    rdfs:label "ICAO Flight Level Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+    gmeow:hasAxis gmeow:axisFlightLevel ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricEuclidean .
+
+gmeow:referenceFrameAltitudeAGL
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Altitude Above Ground Level Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+    gmeow:hasAxis gmeow:axisAltitude ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricEuclidean .
+
+gmeow:referenceFrameDepthBelowSeaLevel
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Depth Below Mean Sea Level Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+    gmeow:hasAxis gmeow:axisDepth ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricEuclidean .
+
+gmeow:referenceFrameDepthBelowChartDatum
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Depth Below Chart Datum Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+    gmeow:hasAxis gmeow:axisDepth ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricEuclidean .
 
 gmeow:referenceFrameSI
@@ -1857,6 +1928,14 @@ gmeow:overlayUpperBound
     skos:definition "The upper bound of this regulatory overlay in a vertical dimension (altitude, depth, elevation), expressed as a ScalarQuantity with unit (QUDT) and reference frame. Optional: absent for purely 2D overlays. Frame-relative per Principle 11."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:overlayDesignator
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:RegulatoryOverlay ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "overlay designator"@en ;
+    skos:definition "The code or designator assigned to this regulatory overlay by its authority — an ICAO airspace identifier, a NOTAM number, a fisheries zone code, etc. Functional: the designator is constitutive of the overlay's administrative identity."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 # RegulatoryOverlayType — an OPEN value vocabulary (individuals, never subclasses)
 
 gmeow:RegulatoryOverlayType
@@ -2048,6 +2127,44 @@ gmeow:referenceTypeLot        a gmeow:CadastralReferenceType ; rdfs:label "lot n
     skos:definition "A lot number — an identifier for a subdivided lot within a larger plan or survey."@en .
 gmeow:referenceTypeSurveyPlan a gmeow:CadastralReferenceType ; rdfs:label "survey plan reference"@en ;
     skos:definition "A survey plan reference — an identifier for the official survey plan that defines a parcel's boundaries."@en .
+
+# --------------------------------------------------------------------------- #
+# Maritime zone types — UNCLOS-based (#93)
+# --------------------------------------------------------------------------- #
+
+gmeow:overlayTypeTerritorialSea      a gmeow:RegulatoryOverlayType ; rdfs:label "territorial sea"@en ;
+    skos:definition "A belt of coastal waters extending up to 12 nautical miles from the baseline of a coastal state, over which the state exercises sovereignty (UNCLOS Article 3)."@en .
+gmeow:overlayTypeContiguousZone      a gmeow:RegulatoryOverlayType ; rdfs:label "contiguous zone"@en ;
+    skos:definition "A band of water extending from the outer edge of the territorial sea to up to 24 nautical miles from the baseline, in which the coastal state may exercise control to prevent infringement of its customs, fiscal, immigration, or sanitary laws (UNCLOS Article 33)."@en .
+gmeow:overlayTypeContinentalShelf    a gmeow:RegulatoryOverlayType ; rdfs:label "continental shelf"@en ;
+    skos:definition "The seabed and subsoil of the submarine areas that extend beyond the territorial sea to the outer edge of the continental margin, or to 200 nautical miles from the baseline where the margin does not extend that far (UNCLOS Article 76)."@en .
+gmeow:overlayTypeHighSeas            a gmeow:RegulatoryOverlayType ; rdfs:label "high seas"@en ;
+    skos:definition "All parts of the sea that are not included in the exclusive economic zone, territorial sea, or internal waters of a state (UNCLOS Article 86)."@en .
+gmeow:overlayTypeMarineProtectedArea a gmeow:RegulatoryOverlayType ; rdfs:label "marine protected area"@en ;
+    skos:definition "A clearly defined geographical space in the marine environment recognised, dedicated and managed through legal or other effective means to achieve the long-term conservation of nature with associated ecosystem services and cultural values (IUCN definition)."@en .
+
+# --------------------------------------------------------------------------- #
+# Aviation zone types — ICAO / AIXM-based (#93)
+# --------------------------------------------------------------------------- #
+
+gmeow:overlayTypeAirway              a gmeow:RegulatoryOverlayType ; rdfs:label "airway"@en ;
+    skos:definition "A control area or portion thereof established in the form of a corridor equipped with navigation aids, designated by ICAO for channelling the flow of traffic."@en .
+gmeow:overlayTypeControlZone         a gmeow:RegulatoryOverlayType ; rdfs:label "control zone (CTR)"@en ;
+    skos:definition "A controlled airspace extending upwards from the surface of the earth to a specified upper limit, established around an aerodrome (ICAO)."@en .
+gmeow:overlayTypeTerminalControlArea a gmeow:RegulatoryOverlayType ; rdfs:label "terminal control area (TMA/TCA)"@en ;
+    skos:definition "A controlled airspace normally established at the confluence of ATS routes in the vicinity of one or more major aerodromes (ICAO)."@en .
+gmeow:overlayTypeFlightInformationRegion a gmeow:RegulatoryOverlayType ; rdfs:label "flight information region (FIR)"@en ;
+    skos:definition "An airspace of defined dimensions within which flight information service and alerting service are provided (ICAO)."@en .
+gmeow:overlayTypeAerodromeTrafficZone a gmeow:RegulatoryOverlayType ; rdfs:label "aerodrome traffic zone (ATZ)"@en ;
+    skos:definition "An area of protected airspace established around an aerodrome for the protection of aerodrome traffic."@en .
+gmeow:overlayTypeMilitaryOperationsArea a gmeow:RegulatoryOverlayType ; rdfs:label "military operations area (MOA)"@en ;
+    skos:definition "Airspace established outside controlled airspace to segregate certain military activities from IFR traffic and to identify for VFR traffic where these activities are conducted."@en .
+gmeow:overlayTypeWarningArea         a gmeow:RegulatoryOverlayType ; rdfs:label "warning area"@en ;
+    skos:definition "Airspace of defined dimensions, extending from 3 NM outward from the coast of the United States, that contains activity which may be hazardous to non-participating aircraft."@en .
+gmeow:overlayTypeAlertArea           a gmeow:RegulatoryOverlayType ; rdfs:label "alert area"@en ;
+    skos:definition "Airspace which may contain a high volume of pilot training or an unusual type of aerial activity, neither of which is hazardous to aircraft."@en .
+gmeow:overlayTypeNOTAM               a gmeow:RegulatoryOverlayType ; rdfs:label "notice to air missions (NOTAM)"@en ;
+    skos:definition "A temporary, dynamic regulatory overlay issued to notify pilots of potential hazards or changes to aeronautical facilities, services, or procedures. Typically short-validity; modeled as a RegulatoryOverlay with brief duringInterval."@en .
 
 # --------------------------------------------------------------------------- #
 # GeometryType value vocabulary & GeoJSON support (#82)
