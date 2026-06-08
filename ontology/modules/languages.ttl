@@ -76,6 +76,32 @@ gmeow:LanguageCreation
     skos:definition "The activity of creating or generating a language — a conlanger's design work or an AI model's generation run. Linked to its product by gmeow:wasGeneratedBy (the language → activity) and to its agent by gmeow:wasAssociatedWith; the language is ascribed to its creator with gmeow:wasAttributedTo (a gmeow:SoftwareAgent for an AI-generated language)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:LanguageVariety
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Language ;
+    rdfs:label "Language Variety"@en ;
+    skos:definition "A speech variety that carries names, scripts, tags, status, provenance, and alignment metadata exactly as a gmeow:Language does, because it IS a language (a SubKind). Classifications such as dialect, sociolect, register, or standard are standpointed claims via gmeow:varietyKind, not OWL subclass decisions — so a single variety can be classified as a language by one standpoint and a dialect by another without incoherence (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:LanguageState
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Observation, gufo:Relator ;
+    rdfs:label "Language State"@en ;
+    skos:definition "A reified, standpoint-scoped claim about the status of a language, variety, or version during a specific interval — the analytic/historical slice of a language at a time/period, often reconstructed and standpointed. Follows the VersionMembership pattern: a relator binding {language} × {status} × {authority} × {interval}. Differs from LanguageVersion, which is a named/released artifact; a version can have states, and a state can describe a version, but neither is defined as the other."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# EL axiomatisation: every LanguageState mediates at least one language and one authority.
+gmeow:LanguageState rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:stateLanguage ; owl:someValuesFrom gmeow:Language ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:stateAuthority ; owl:someValuesFrom gmeow:Agent ] .
+
+gmeow:LanguageChangeEvent
+    a owl:Class, gufo:EventType ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:label "Language Change Event"@en ;
+    skos:definition "A historical linguistic change — sound shifts, semantic drift, borrowing, spelling reform, grammatical change, lexical innovation, standardization, language contact, extinction, revival, or revitalization. Follows the LanguageCreation pattern as an Activity subclass; change type is an open value vocabulary (gmeow:LanguageChangeType) and affected languages are linked via gmeow:affectedLanguage. Temporal placement and participation reuse the universal events machinery."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 # =========================================================================== #
 # Typing properties (object → value vocabularies; non-functional) + the OPTIONAL
 # registry code (never identity).
@@ -136,6 +162,74 @@ gmeow:designGoal
     rdfs:range rdfs:Literal ;
     rdfs:label "design goal"@en ;
     skos:definition "The stated design goal/purpose of an engineered or constructed language (Lojban's syntactic unambiguity, Ithkuil's cognitive precision, an IAL's ease of learning). A literal; non-functional."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# Variety, state, and change properties.
+# =========================================================================== #
+
+gmeow:varietyKind
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LanguageVariety ;
+    rdfs:range gmeow:LanguageVarietyKind ;
+    rdfs:label "variety kind"@en ;
+    skos:definition "The sociolinguistic classification(s) of a language variety — dialect, sociolect, register, idiolect, slang, standard, etc. NON-FUNCTIONAL: a single variety may carry multiple classifications from different standpoints simultaneously (Principle 9), and classifications change over time via new claims rather than overwrite (Principle 10)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:varietyOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LanguageVariety ;
+    rdfs:range gmeow:Language ;
+    rdfs:label "variety of"@en ;
+    skos:definition "The parent language, lineage, or macrolanguage that a variety is considered a variety of. NON-FUNCTIONAL: standpoint-dependent — one standpoint may link Scots to English, another may treat it as an independent language (no varietyOf)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:stateLanguage
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:LanguageState ;
+    rdfs:range gmeow:Language ;
+    rdfs:label "state language"@en ;
+    skos:definition "The language, variety, or version whose state is being described. Functional per relator: one subject language per LanguageState."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:stateStatusValue
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LanguageState ;
+    rdfs:range gmeow:LanguageStatus ;
+    rdfs:label "state status value"@en ;
+    skos:definition "The vitality status(es) asserted for the language during this state. NON-FUNCTIONAL: different authorities may assign different statuses for the same interval, and those claims coexist (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:stateAuthority
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LanguageState ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "state authority"@en ;
+    skos:definition "The agent or standpoint asserting this language state — a linguist, an institution, a historical reconstruction project. NON-FUNCTIONAL: competing authority claims coexist without privilege (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:stateInterval
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LanguageState ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "state interval"@en ;
+    skos:definition "The time interval over which this language state is asserted to hold — e.g. Old English 450–1150 CE. A relator carries its period this way (matching VersionMembership's membershipInterval) rather than via statement-level validFrom/validUntil alone."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:changeType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LanguageChangeEvent ;
+    rdfs:range gmeow:LanguageChangeType ;
+    rdfs:label "change type"@en ;
+    skos:definition "The kind(s) of linguistic change occurring — sound shift, borrowing, standardization, extinction, etc. NON-FUNCTIONAL: a single event may instantiate multiple change types from different analytical standpoints."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:affectedLanguage
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LanguageChangeEvent ;
+    rdfs:range gmeow:Language ;
+    rdfs:label "affected language"@en ;
+    skos:definition "The language(s) or variety(ies) affected by this change event. NON-FUNCTIONAL: language contact and merger events affect multiple languages."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -487,6 +581,52 @@ gmeow:schemeISO15919             a gmeow:TransliterationScheme ; rdfs:label "ISO
 gmeow:schemeIAST                 a gmeow:TransliterationScheme ; rdfs:label "IAST (Sanskrit/Indic → Latin)"@en .
 gmeow:schemeBGNPCGN              a gmeow:TransliterationScheme ; rdfs:label "BGN/PCGN romanization"@en .
 gmeow:schemeIPA                  a gmeow:TransliterationScheme ; rdfs:label "IPA phonetic transcription"@en .
+
+# =========================================================================== #
+# VARIETY & CHANGE VALUE VOCABULARIES (open; individuals carry rdfs:label only)
+# =========================================================================== #
+
+gmeow:LanguageVarietyKind
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Language Variety Kind"@en ;
+    skos:definition "The sociolinguistic classification of a language variety — a value, never an Entity subclass. Standpoint-scoped: 'dialect' according to one authority may be 'language' according to another. The seed list is an anchor, not a fence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:kindDialect           a gmeow:LanguageVarietyKind ; rdfs:label "dialect"@en .
+gmeow:kindSociolect         a gmeow:LanguageVarietyKind ; rdfs:label "sociolect"@en .
+gmeow:kindRegister          a gmeow:LanguageVarietyKind ; rdfs:label "register"@en .
+gmeow:kindIdiolect          a gmeow:LanguageVarietyKind ; rdfs:label "idiolect"@en .
+gmeow:kindSlang             a gmeow:LanguageVarietyKind ; rdfs:label "slang"@en .
+gmeow:kindJargon            a gmeow:LanguageVarietyKind ; rdfs:label "jargon"@en .
+gmeow:kindLocalizedVariant  a gmeow:LanguageVarietyKind ; rdfs:label "localized variant"@en .
+gmeow:kindStandard          a gmeow:LanguageVarietyKind ; rdfs:label "standard"@en .
+gmeow:kindLanguage          a gmeow:LanguageVarietyKind ; rdfs:label "language (standpointed classification)"@en .
+gmeow:kindCreole            a gmeow:LanguageVarietyKind ; rdfs:label "creole"@en .
+gmeow:kindPidgin            a gmeow:LanguageVarietyKind ; rdfs:label "pidgin"@en .
+gmeow:kindKoine             a gmeow:LanguageVarietyKind ; rdfs:label "koine"@en .
+gmeow:kindLinguaFranca      a gmeow:LanguageVarietyKind ; rdfs:label "lingua franca"@en .
+
+gmeow:LanguageChangeType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Language Change Type"@en ;
+    skos:definition "The kind of historical linguistic change — a value, never an Entity subclass. Open-ended: new analytical frameworks may introduce further change types without ontology modification."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:changeSoundShift        a gmeow:LanguageChangeType ; rdfs:label "sound shift"@en .
+gmeow:changeSemanticDrift     a gmeow:LanguageChangeType ; rdfs:label "semantic drift"@en .
+gmeow:changeBorrowing         a gmeow:LanguageChangeType ; rdfs:label "borrowing"@en .
+gmeow:changeSpellingReform    a gmeow:LanguageChangeType ; rdfs:label "spelling reform"@en .
+gmeow:changeGrammaticalChange a gmeow:LanguageChangeType ; rdfs:label "grammatical change"@en .
+gmeow:changeLexicalInnovation a gmeow:LanguageChangeType ; rdfs:label "lexical innovation"@en .
+gmeow:changeStandardization   a gmeow:LanguageChangeType ; rdfs:label "standardization"@en .
+gmeow:changeLanguageContact   a gmeow:LanguageChangeType ; rdfs:label "language contact"@en .
+gmeow:changeExtinction        a gmeow:LanguageChangeType ; rdfs:label "extinction"@en .
+gmeow:changeRevival          a gmeow:LanguageChangeType ; rdfs:label "revival"@en .
+gmeow:changeRevitalization   a gmeow:LanguageChangeType ; rdfs:label "revitalization"@en .
+gmeow:changeSplit            a gmeow:LanguageChangeType ; rdfs:label "split"@en .
+gmeow:changeMerger           a gmeow:LanguageChangeType ; rdfs:label "merger"@en .
 
 # Endonym/exonym/glossonym are defined in the names module (gmeow:NamePurpose
 # value vocabulary). Languages reference them, they are not redeclared here.
