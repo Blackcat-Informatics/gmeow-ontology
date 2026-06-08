@@ -750,22 +750,23 @@ def _sssom_for_validation(text: str) -> str:
         # No data rows — nothing that sssom-py can validate meaningfully.
         return text
 
-    # Strip trailer comments that follow the data rows.
+    # Strip trailer comments (and any trailing empty/whitespace lines) that
+    # follow the data rows.
     data_lines = lines[header_idx:]
-    while data_lines and data_lines[-1].startswith("#"):
+    while data_lines and (not data_lines[-1].strip() or data_lines[-1].startswith("#")):
         data_lines.pop()
 
     # Fix YAML in header key-value lines (curie_map entries are left untouched).
+    # Rather than maintaining a growing allow-list of YAML-special characters,
+    # every scalar value is double-quoted. This is simple, robust, and future-
+    # proof against new characters appearing in prose comments or other fields.
     fixed_header: list[str] = []
     for line in lines[:header_idx]:
         m = re.match(r"^# ([A-Za-z0-9_]+): (.*)$", line)
         if m and m.group(1) != "curie_map":
             key, value = m.groups()
-            if ": " in value or value.startswith(("[", "{", "|", ">", "*", "&", "!")):
-                escaped = value.replace("\\", "\\\\").replace('"', '\\"')
-                fixed_header.append(f'# {key}: "{escaped}"')
-            else:
-                fixed_header.append(line)
+            escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+            fixed_header.append(f'# {key}: "{escaped}"')
         else:
             fixed_header.append(line)
 
