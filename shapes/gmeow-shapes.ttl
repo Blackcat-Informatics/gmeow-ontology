@@ -1832,6 +1832,7 @@ gmeow:ExpressionRealizesWorkShape
     sh:property [
         sh:path gmeow:realizes ;
         sh:minCount 1 ;
+        sh:class gmeow:Work ;
         sh:severity sh:Violation ;
         sh:message "Every Expression must realize at least one Work (gmeow:realizes)." ;
     ] .
@@ -1844,6 +1845,7 @@ gmeow:ManifestationEmbodiesExpressionShape
     sh:property [
         sh:path gmeow:embodies ;
         sh:minCount 1 ;
+        sh:class gmeow:Expression ;
         sh:severity sh:Violation ;
         sh:message "Every Manifestation must embody at least one Expression (gmeow:embodies)." ;
     ] .
@@ -1856,6 +1858,7 @@ gmeow:ItemExemplifiesManifestationShape
     sh:property [
         sh:path gmeow:exemplifies ;
         sh:minCount 1 ;
+        sh:class gmeow:Manifestation ;
         sh:severity sh:Violation ;
         sh:message "Every Item must exemplify at least one Manifestation (gmeow:exemplifies)." ;
     ] .

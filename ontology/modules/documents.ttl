@@ -23,7 +23,7 @@ gmeow:Document
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Work ;
     rdfs:label "Document"@en ;
-    skos:definition "A bounded textual or digital document — a file, record, or report. A specialization of gmeow:Work."@en ;
+    skos:definition "An abstract intellectual work of bounded textual or digital content — the conceptual document, independent of any particular file, record, or report. A specialization of gmeow:Work."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Article
@@ -37,7 +37,7 @@ gmeow:Patent
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Work ;
     rdfs:label "Patent"@en ;
-    skos:definition "A granted or filed patent describing an invention. A specialization of gmeow:Work."@en ;
+    skos:definition "An abstract intellectual work describing an invention — the inventive concept as claimed, independent of any granted or filed document. A specialization of gmeow:Work."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Dataset
