@@ -11,6 +11,9 @@
 @prefix schema:   <https://schema.org/> .
 @prefix oa:       <http://www.w3.org/ns/oa#> .
 @prefix dul:      <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#> .
+@prefix iao:      <http://purl.obolibrary.org/obo/IAO_> .
+@prefix iptc:     <http://iptc.org/std/NewsML-G2/> .
+@prefix bbc:      <http://www.bbc.co.uk/ontologies/news/> .
 
 # Term equivalences for the standpoint / contested-claims facility (#43) — GMEOW
 # authoring source. Compiled to mappings/gmeow-standpoint.sssom.tsv by
@@ -172,4 +175,93 @@ gmeow:eqStandpoint013 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.35 ;
     gmeow:comment "the standpoint-indexed claim is the DnS Situation that satisfies the standpoint's Description" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Issue #127 — StandpointClaim as Observation specialization (deepenings + new)
+# --------------------------------------------------------------------------- #
+
+# IAO (Information Artifact Ontology) — a StandpointClaim is an assertion.
+gmeow:eqStandpoint014 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:StandpointClaim ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject iao:assertion ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "a standpoint claim is an assertion in the IAO sense — an information content entity that bears a proposition" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+gmeow:eqStandpoint015 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:observedFeature ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject iao:information_content_entity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "the proposition/fact being claimed (the observedFeature of a StandpointClaim) is the information content entity the assertion is about" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+# CRMinf deepening — StandpointClaim as Inference_Making; claimModality as J5.
+gmeow:eqStandpoint016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:StandpointClaim ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crminf:I5_Inference_Making ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "a standpoint claim is an inference-making act concluding a belief (CRMinf I5)" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+gmeow:eqStandpoint017 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:claimModality ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crminf:J5_holds_to_be ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "the observationResult of a StandpointClaim is the belief value (CRMinf J5)" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+# IPTC / BBC News Ontology — media-standpoint alignments.
+gmeow:eqStandpoint018 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Standpoint ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject iptc:Assertor ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "when the vantage is a news organization, it acts as an IPTC Assertor" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+gmeow:eqStandpoint019 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Event ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject bbc:NewsEvent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.45 ;
+    gmeow:comment "a standpoint-claim about an event projects to a BBC NewsEvent; the projection is conditional on the observedFeature being an Event" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+# W3C Web Annotation deepening — StandpointClaim as Annotation.
+gmeow:eqStandpoint020 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:StandpointClaim ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject oa:Annotation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "a StandpointClaim individual projects to an OA Annotation where the body is the claim and the target is the observedFeature" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+gmeow:eqStandpoint021 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:vantage ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject oa:annotatedBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "the vantage of a StandpointClaim is the annotator in OA terms" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+gmeow:eqStandpoint022 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:observedFeature ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject oa:hasTarget ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "the observedFeature of a StandpointClaim is the target of the OA Annotation" ;
     gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .

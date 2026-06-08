@@ -3,6 +3,9 @@
 # quoted statement, target = its subject, creator = the standpoint). Every
 # standpoint retained, none privileged; lossy-drop: belief value (modality)
 # and confidence dropped — carried by standpoint-crminf.rq / -owl2.rq.
+# Branches B/C (#127): StandpointClaim with reified-statement or
+# generic-entity observedFeature. Generic-entity branch uses ?feature as
+# oa:hasTarget.
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX dcterms: <http://purl.org/dc/terms/>
@@ -10,7 +13,7 @@ PREFIX oa: <http://www.w3.org/ns/oa#>
 
 CONSTRUCT {
     ?ann a oa:Annotation ;
-        oa:hasTarget ?s ;
+        oa:hasTarget ?target ;
         oa:hasBody ?ax ;
         oa:motivatedBy oa:describing ;
         dcterms:creator ?holder .
@@ -19,11 +22,26 @@ CONSTRUCT {
         owl:annotatedTarget ?o .
 }
 WHERE {
-    ?ax a owl:Axiom ;
+    { ?ax a owl:Axiom ;
         owl:annotatedSource ?s ;
         owl:annotatedProperty ?p ;
         owl:annotatedTarget ?o .
-    OPTIONAL { ?ax gmeow:accordingTo ?sp }
+      OPTIONAL { ?ax gmeow:accordingTo ?sp } }
+    UNION
+    { ?ax a gmeow:StandpointClaim ;
+        gmeow:vantage ?sp ;
+        gmeow:observedFeature ?stmt .
+      ?stmt owl:annotatedSource ?s ;
+            owl:annotatedProperty ?p ;
+            owl:annotatedTarget ?o .
+      OPTIONAL { ?ax gmeow:claimModality ?mod } }
+    UNION
+    { ?ax a gmeow:StandpointClaim ;
+        gmeow:vantage ?sp ;
+        gmeow:observedFeature ?feature .
+      FILTER NOT EXISTS { ?feature owl:annotatedSource ?s }
+      OPTIONAL { ?ax gmeow:claimModality ?mod } }
     BIND(COALESCE(?sp, gmeow:universalStandpoint) AS ?holder)
+    BIND(COALESCE(?s, ?feature) AS ?target)
     BIND(IRI(CONCAT(STR(?ax), "/annotation")) AS ?ann)
 }

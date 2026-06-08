@@ -28,8 +28,8 @@ gmeow:Observation
 # EL axiomatisation: every Observation mediates at least one vantage and one feature.
 # Closed-world "exactly one vantage, exactly one feature" lives in SHACL.
 gmeow:Observation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:vantage ;         owl:someValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:someValuesFrom gmeow:Entity ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage ;         owl:someValuesFrom gmeow:Entity ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:someValuesFrom owl:Thing ] .
 
 # =========================================================================== #
 # CORE PROPERTIES
@@ -38,9 +38,8 @@ gmeow:Observation rdfs:subClassOf
 gmeow:observedFeature
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
-    rdfs:range gmeow:Entity ;
     rdfs:label "observed feature"@en ;
-    skos:definition "The entity whose property or state is being observed — the feature of interest. Range is gmeow:Entity (not a narrower type) because anything can be observed: a place, a person, an event, a document, a quality value."@en ;
+    skos:definition "The individual whose property or state is being observed — the feature of interest. The range is intentionally open (owl:Thing) because anything can be observed: a place, a person, an event, a document, a quality value, or a situation. SHACL shapes enforce closed-world constraints per observation kind."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:observationResult
@@ -63,9 +62,9 @@ gmeow:isResultOf
 gmeow:vantage
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
-    rdfs:range gmeow:Agent ;
+    rdfs:range gmeow:Entity ;
     rdfs:label "vantage"@en ;
-    skos:definition "The agent or standpoint from which the observation is made — the reified-object-property counterpart of gmeow:accordingTo. Semantically, gmeow:vantage ⊑ gmeow:accordingTo: when an annotated statement is promoted to a reified Observation, its gmeow:accordingTo becomes the gmeow:vantage of the relator. The agent in the vantage role — an observer, a sensor, a perceiver — IS a standpoint (Principle 9): no frame is privileged, and every vantage is a co-equal facet from which the claim is held. Range is gmeow:Agent (person, organization, software agent, sensor) rather than only gmeow:Standpoint, because the common case is a bare agent; use a gmeow:Standpoint individual when the frame needs its own identity. Non-functional: joint observations (a reading co-authored by two agencies) are valid."@en ;
+    skos:definition "The agent or standpoint from which the observation is made — the reified-object-property counterpart of gmeow:accordingTo. Semantically, gmeow:vantage ⊑ gmeow:accordingTo: when an annotated statement is promoted to a reified Observation, its gmeow:accordingTo becomes the gmeow:vantage of the relator. The agent in the vantage role — an observer, a sensor, a perceiver — IS a standpoint (Principle 9): no frame is privileged, and every vantage is a co-equal facet from which the claim is held. Range is gmeow:Entity (encompassing both gmeow:Agent and gmeow:Standpoint) because a vantage may be a bare agent (person, organization, software agent, sensor) or a gmeow:Standpoint individual when the frame needs its own identity. Non-functional: joint observations (a reading co-authored by two agencies) are valid."@en ;
     skos:scopeNote "gmeow:vantage ⊑ gmeow:accordingTo: the reified relator edge is semantically subsumed by the annotation-property axis. This is NOT asserted as rdfs:subPropertyOf because gmeow:accordingTo is an owl:AnnotationProperty (keeping the OWL 2 DL downcast clean, Principle 3) while vantage is an owl:ObjectProperty. The subsumption is documented here and realised in the projection layer, not axiomatised in the reasoned core."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 

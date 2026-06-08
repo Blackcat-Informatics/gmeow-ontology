@@ -1,0 +1,17 @@
+# Coverage slice (#127): StandpointClaim with generic-entity observedFeature.
+# Used to test Branch C projections (CRMinf, schema.org, PROV-O, OA).
+
+@prefix ex:    <https://example.org/test/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+ex:standpoint-x a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+ex:place1 a gmeow:Place .
+
+gmeow:methodDirectObservation a gmeow:ObservationMethod .
+
+ex:claim1 a gmeow:StandpointClaim ;
+    gmeow:vantage ex:standpoint-x ;
+    gmeow:claimModality gmeow:unequivocal ;
+    gmeow:observedFeature ex:place1 ;
+    gmeow:observationMethod gmeow:methodDirectObservation .

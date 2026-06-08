@@ -11,8 +11,17 @@
 
 ex:un-recognition a gmeow:StandpointTenure ;
     gmeow:tenureStandpoint ex:standpoint-un ;
+    gmeow:standpointClaim ex:withdrawnClaim ;
     gmeow:duringInterval [ a gmeow:TimeInterval ;
         gmeow:startedAtTime "2008-02-17T00:00:00Z"^^xsd:dateTime ;
         gmeow:endedAtTime   "2030-01-01T00:00:00Z"^^xsd:dateTime ] .
+
+gmeow:methodExpertJudgement a gmeow:ObservationMethod .
+
+ex:withdrawnClaim a gmeow:StandpointClaim ;
+    gmeow:vantage ex:standpoint-un ;
+    gmeow:observedFeature ex:un-recognition ;
+    gmeow:claimModality gmeow:refuted ;
+    gmeow:observationMethod gmeow:methodExpertJudgement .
 
 ex:standpoint-un a gmeow:Standpoint .
