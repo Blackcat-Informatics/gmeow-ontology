@@ -162,6 +162,16 @@ def test_languages_slice_covered() -> None:
         assert GMEOW + prop in report.covered_predicates
 
 
+def test_language_varieties_slice_covered() -> None:
+    report = run_coverage()
+    # The language-varieties fixture exercises the diachronic and sociolinguistic
+    # layer: variety, state, and change event constructs (#170).
+    for cls in ("LanguageVariety", "LanguageState", "LanguageChangeEvent"):
+        assert GMEOW + cls in report.covered_classes
+    for prop in ("varietyKind", "varietyOf", "stateLanguage", "changeType"):
+        assert GMEOW + prop in report.covered_predicates
+
+
 def test_contact_field_alignments_covered() -> None:
     report = run_coverage()
     # The new SSSOM alignments move these previously-gap external IRIs (used heavily
