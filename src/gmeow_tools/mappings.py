@@ -21,15 +21,16 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from rdflib import RDF, RDFS, Graph, Literal, URIRef
-from rdflib.namespace import VOID
+from rdflib.namespace import OWL, VOID
 
 from gmeow_tools.config import (
     MAPPINGS_DIR,
+    MODULES_DIR,
     PREFIXES,
     VOID_DATASET_IRI,
 )
 from gmeow_tools.graph import bind_prefixes
-from gmeow_tools.wikidata import local_name
+from gmeow_tools.wikidata import local_name, local_name_wdt
 
 #: Required SSSOM columns this tool consumes.
 _REQUIRED_COLUMNS = ("subject_id", "predicate_id", "object_id")
@@ -177,4 +178,45 @@ def collect_wikidata_ids(mappings: list[Mapping]) -> list[str]:
         name = local_name(str(expand_curie(mapping.object_id)))
         if name is not None:
             ids.append(name)
+        name_wdt = local_name_wdt(str(expand_curie(mapping.object_id)))
+        if name_wdt is not None:
+            ids.append(name_wdt)
     return ids
+
+
+def group_mappings_by_source(mappings: list[Mapping]) -> dict[str, list[Mapping]]:
+    """Group mappings by the source SSSOM file name (used as a domain key)."""
+    groups: dict[str, list[Mapping]] = defaultdict(list)
+    for mapping in mappings:
+        key = mapping.source.stem
+        groups[key].append(mapping)
+    return dict(groups)
+
+
+def collect_ontology_terms(modules_dir: Path = MODULES_DIR) -> dict[str, set[str]]:
+    """Scan ontology modules for declared classes, properties, and individuals.
+
+    Returns a dict of {term_type: {curie, ...}} where term_type is one of
+    ``classes``, ``properties``, ``individuals``.
+    """
+    terms: dict[str, set[str]] = {
+        "classes": set(),
+        "properties": set(),
+        "individuals": set(),
+    }
+    for path in sorted(modules_dir.glob("*.ttl")):
+        graph = Graph()
+        graph.parse(path, format="turtle")
+        for s in graph.subjects(RDF.type, OWL.Class):
+            if isinstance(s, URIRef):
+                terms["classes"].add(str(s))
+        for s in graph.subjects(RDF.type, OWL.ObjectProperty):
+            if isinstance(s, URIRef):
+                terms["properties"].add(str(s))
+        for s in graph.subjects(RDF.type, OWL.DatatypeProperty):
+            if isinstance(s, URIRef):
+                terms["properties"].add(str(s))
+        for s in graph.subjects(RDF.type, OWL.NamedIndividual):
+            if isinstance(s, URIRef):
+                terms["individuals"].add(str(s))
+    return terms

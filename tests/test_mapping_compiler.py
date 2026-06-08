@@ -133,7 +133,12 @@ def test_dsl_parses() -> None:
     # Issue #124 temporal measurement under observation: +4
     # (measuredDate→time:hasTime, measuredDate→time:inXSDDateTimeStamp,
     # DatingMethod→dcterms:method, DatingMethod→crm:P33_used_specific_technique).
-    assert len(dsl.equivalences) == 1034
+    # Issue #31 enhanced Wikidata ontology usage: +26 (Agent, Document, CreativeWork,
+    # Article, WebPage, Dataset, MediaObject, LifeEvent, eventTypeBirth/Death/Marriage/
+    # Divorce/Adoption/Graduation, TelephoneNumber, EmailAddress, Mailbox, Credential,
+    # CryptographicKey, Certification, CalendarSystem, languageCode, Occupation, Skill,
+    # Group, Activity).
+    assert len(dsl.equivalences) == 1060
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
