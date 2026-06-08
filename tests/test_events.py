@@ -507,3 +507,105 @@ def test_owl_time_projection_emits_pure_interval_relations() -> None:
     # dawn→noon is ONLY intervalBefore, not all 13 relations (no var aliasing).
     dawn_noon = {p for _, p, o in out if _ == EX_EVENTS.dawn and o == EX_EVENTS.noon}
     assert dawn_noon == {TIME.intervalBefore}
+
+
+# --------------------------------------------------------------------------- #
+# ObservationalActivity and observation linkage (#128).
+# --------------------------------------------------------------------------- #
+
+
+def test_observational_activity_is_subclass_of_activity_and_event() -> None:
+    g = _graph()
+    assert (GM.ObservationalActivity, RDF.type, OWL.Class) in g
+    assert (GM.ObservationalActivity, RDFS.subClassOf, GM.Activity) in g
+    # Activity is already a subclass of Event, so transitively
+    # ObservationalActivity ⊑ Event.
+    assert (GM.Activity, RDFS.subClassOf, GM.Event) in g
+
+
+def test_observational_activity_is_not_observation_subclass() -> None:
+    """ObservationalActivity is an Event/Activity, NOT an Observation subclass
+    (the name sounds similar but the taxonomic placement is the event stack)."""
+    g = _graph()
+    assert (GM.ObservationalActivity, RDFS.subClassOf, GM.Observation) not in g
+
+
+def test_generated_observation_exists_and_is_dl_regular() -> None:
+    g = _graph()
+    assert (GM.generatedObservation, RDF.type, OWL.ObjectProperty) in g
+    assert (GM.generatedObservation, RDFS.domain, GM.ObservationalActivity) in g
+    assert (GM.generatedObservation, RDFS.range, GM.Observation) in g
+    # DL regularity: must be a simple property (no transitivity, symmetry,
+    # functionality).
+    assert (GM.generatedObservation, RDF.type, OWL.TransitiveProperty) not in g
+    assert (GM.generatedObservation, RDF.type, OWL.SymmetricProperty) not in g
+    assert (GM.generatedObservation, RDF.type, OWL.FunctionalProperty) not in g
+
+
+def test_event_observation_is_inverse_of_observation_event() -> None:
+    g = _graph()
+    assert (GM.eventObservation, RDF.type, OWL.ObjectProperty) in g
+    assert (GM.eventObservation, RDFS.domain, GM.Event) in g
+    assert (GM.eventObservation, RDFS.range, GM.Observation) in g
+    assert (GM.eventObservation, OWL.inverseOf, GM.observationEvent) in g or (
+        GM.observationEvent,
+        OWL.inverseOf,
+        GM.eventObservation,
+    ) in g
+    assert (GM.eventObservation, RDF.type, OWL.FunctionalProperty) not in g
+
+
+def test_observational_event_types_are_value_individuals() -> None:
+    """The observational event types added in #128 are EventType VALUE individuals,
+    never classes — the same anti-subclass guard as the former genealogy types."""
+    g = _graph()
+    for local in (
+        "eventTypeSurvey",
+        "eventTypeExcavation",
+        "eventTypeAudit",
+        "eventTypeClinicalTrial",
+    ):
+        node = URIRef(GMEOW + local)
+        assert (node, RDF.type, GM.EventType) in g, (
+            f"{local} must be an EventType value"
+        )
+        assert (node, RDF.type, OWL.Class) not in g, f"{local} must not be a class"
+
+
+def test_census_event_type_still_exists() -> None:
+    """eventTypeCensus existed before #128 and must still be present."""
+    g = _graph()
+    assert (GM.eventTypeCensus, RDF.type, GM.EventType) in g
+
+
+def test_observational_activity_chain_on_was_associated_with() -> None:
+    """The DL-regular property chain generatedObservation ∘ vantage ⊑ wasAssociatedWith
+    is present in the ontology."""
+    g = _graph()
+    chains = list(g.objects(GM.wasAssociatedWith, OWL.propertyChainAxiom))
+    assert chains, "wasAssociatedWith must have at least one property chain axiom"
+    found = False
+    for chain_node in chains:
+        members = list(g.items(chain_node))
+        if set(members) >= {GM.generatedObservation, GM.vantage}:
+            found = True
+            break
+    assert found, (
+        "wasAssociatedWith must have a chain containing "
+        "generatedObservation and vantage"
+    )
+
+
+def test_no_primary_preferred_observation_term() -> None:
+    """Principle 9: no primary/preferred selector for observations or activities."""
+    g = _graph()
+    prop_types = (OWL.ObjectProperty, OWL.DatatypeProperty, OWL.AnnotationProperty)
+    for banned in (
+        "primaryObservation",
+        "preferredObservation",
+        "primaryActivity",
+        "preferredActivity",
+    ):
+        node = URIRef(GMEOW + banned)
+        for pt in prop_types:
+            assert (node, RDF.type, pt) not in g, f"{banned} must not exist"

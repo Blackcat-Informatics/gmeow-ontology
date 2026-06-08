@@ -171,7 +171,13 @@ def test_dsl_parses() -> None:
     # Issue #172 notation and symbolic systems: +8 (NotationSystem→schema/Wikidata x2,
     # NotationSystemUsage→sosa:Observation, hasNotationSystem→schema/Wikidata x2,
     # notationSystemFor→schema/Wikidata x2, writingSystemAsNotation→schema).
-    assert len(dsl.equivalences) == 1241
+    # Issue #128 event-observation unification: +12 (ObservationalActivity→CRM E13/
+    # prov:Activity/schema:Action in events.ttl x3, generatedObservation→prov:generated
+    # in events.ttl and provenance.ttl x2, eventObservation→CRM P140 x1,
+    # eventTypeSurvey/Audit→schema x2, ObservationalActivity→OBI/QB x2,
+    # Observation→oboe:Observation x1, ObservationalActivity→prov:Activity in
+    # provenance.ttl x1).
+    assert len(dsl.equivalences) == 1253
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

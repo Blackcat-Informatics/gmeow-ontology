@@ -35,6 +35,9 @@ gmeow:Event	skos:relatedMatch	ical:Vevent		semapv:ManualMappingCuration	0.5	iCal
 gmeow:Event	skos:relatedMatch	prov:Activity		semapv:ManualMappingCuration	0.5	prov:Activity is provenance-shaped (used/generated), not a general occurrence; gmeow:Activity (the GMEOW provenance class) is the closeMatch, gmeow:Event the broader generalization
 gmeow:Event	skos:relatedMatch	wd:Q1656682		semapv:ManualMappingCuration	0.6	Wikidata event (Q1656682)
 gmeow:EventSeries	skos:closeMatch	schema:EventSeries		semapv:ManualMappingCuration	0.85	a recurrence that issues concrete occurrences
+gmeow:ObservationalActivity	skos:closeMatch	crm:E13_Attribute_Assignment		semapv:ManualMappingCuration	0.85	CIDOC-CRM E13 is the closest event-centric analogue: an act of assigning an attribute to an item. GMEOW ObservationalActivity generalises this to any structured act of observing or asserting.
+gmeow:ObservationalActivity	skos:closeMatch	prov:Activity		semapv:ManualMappingCuration	0.9	An observational activity is a provenance activity that generates observations as outputs.
+gmeow:ObservationalActivity	skos:closeMatch	schema:Action		semapv:ManualMappingCuration	0.75	schema:Action is the closest schema.org class; the observation-specific semantics are lost in the flat projection.
 gmeow:ParticipantRole	skos:relatedMatch	sem:RoleType		semapv:ManualMappingCuration	0.55	the open role value vocabulary ≈ SEM role-type space
 gmeow:Participation	skos:closeMatch	prov:Association		semapv:ManualMappingCuration	0.6	a reified role-in-an-event is a prov:Association (qualifiedAssociation); GMEOW adds period/confidence/standpoint
 gmeow:Participation	skos:relatedMatch	sem:Role		semapv:ManualMappingCuration	0.5	SEM reifies a role-binding (sem:Role); GMEOW's Participation is the same idiom with full provenance
@@ -62,6 +65,7 @@ gmeow:eventLocation	skos:closeMatch	ical:location		semapv:ManualMappingCuration	
 gmeow:eventLocation	skos:closeMatch	lode:atPlace		semapv:ManualMappingCuration	0.85	
 gmeow:eventLocation	skos:closeMatch	schema:location		semapv:ManualMappingCuration	0.85	
 gmeow:eventLocation	skos:closeMatch	sem:hasPlace		semapv:ManualMappingCuration	0.85	
+gmeow:eventObservation	skos:relatedMatch	crm:P140_assigned_attribute_to		semapv:ManualMappingCuration	0.55	CIDOC P140 links E13 (the assignment event) to the item observed; GMEOW eventObservation links Event to Observation. Related match because the direction and granularity differ.
 gmeow:eventSpacetime	skos:relatedMatch	crm:E92_Spacetime_Volume	Spacetime Volume	semapv:ManualMappingCuration	0.55	an event spacetime slice is a discrete projection of a spacetime volume onto a LocationState; no direct CIDOC property exists from Event to E92
 gmeow:eventSpacetime	skos:relatedMatch	crmgeo:SP1_Spacetime_Volume	Spacetime Volume	semapv:ManualMappingCuration	0.55	CRMgeo SP1 is the geospatial extension of CIDOC E92; same relatedMatch rationale as eqEvents129
 gmeow:eventTime	skos:closeMatch	bio:date		semapv:ManualMappingCuration	0.85	BIO life-event date — replaces the former free-text gmeow:eventDate
@@ -77,6 +81,7 @@ gmeow:eventTypeAdoption	skos:closeMatch	bio:Adoption		semapv:ManualMappingCurati
 gmeow:eventTypeAdoption	skos:closeMatch	gx:Adoption		semapv:ManualMappingCuration	0.9	GEDCOM X fact type
 gmeow:eventTypeAnnulment	skos:closeMatch	bio:Annulment		semapv:ManualMappingCuration	0.95	
 gmeow:eventTypeAnnulment	skos:closeMatch	gx:Annulment		semapv:ManualMappingCuration	0.9	GEDCOM X fact type
+gmeow:eventTypeAudit	skos:relatedMatch	schema:ReviewAction		semapv:ManualMappingCuration	0.6	An audit is a kind of review action in schema.org's flat taxonomy.
 gmeow:eventTypeBaptism	skos:closeMatch	bio:Baptism		semapv:ManualMappingCuration	0.95	
 gmeow:eventTypeBaptism	skos:closeMatch	gx:Baptism		semapv:ManualMappingCuration	0.9	GEDCOM X fact type
 gmeow:eventTypeBarMitzvah	skos:closeMatch	gx:BarMitzvah		semapv:ManualMappingCuration	0.9	GEDCOM X fact type
@@ -115,11 +120,13 @@ gmeow:eventTypeProbate	skos:closeMatch	gx:Probate		semapv:ManualMappingCuration	
 gmeow:eventTypeResidence	skos:closeMatch	gx:Residence		semapv:ManualMappingCuration	0.9	GEDCOM X fact type
 gmeow:eventTypeRetirement	skos:closeMatch	gx:Retirement		semapv:ManualMappingCuration	0.9	GEDCOM X fact type
 gmeow:eventTypeSeparation	skos:closeMatch	gx:Separation		semapv:ManualMappingCuration	0.9	GEDCOM X fact type
+gmeow:eventTypeSurvey	skos:relatedMatch	schema:DiscoverAction		semapv:ManualMappingCuration	0.6	A survey is a kind of discovery/action in schema.org's flat action taxonomy.
 gmeow:eventTypeWill	skos:closeMatch	gx:Will		semapv:ManualMappingCuration	0.9	GEDCOM X fact type
 gmeow:finishedBy	skos:closeMatch	teo:finishedBy		semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
 gmeow:finishedBy	skos:relatedMatch	time:intervalFinishedBy		semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
 gmeow:finishes	skos:closeMatch	teo:finishes		semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
 gmeow:finishes	skos:relatedMatch	time:intervalFinishes		semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
+gmeow:generatedObservation	skos:closeMatch	prov:generated		semapv:ManualMappingCuration	0.9	prov:generated links an Activity to the Entity it generated; gmeow:generatedObservation specialises this to Observation outputs.
 gmeow:hasDuration	skos:closeMatch	schema:duration		semapv:ManualMappingCuration	0.8	schema:duration
 gmeow:hasDuration	skos:relatedMatch	time:hasDuration		semapv:ManualMappingCuration	0.6	OWL-Time hasDuration (TemporalEntity → Duration; GMEOW scopes it to events)
 gmeow:hasParticipant	skos:closeMatch	bio:agent		semapv:ManualMappingCuration	0.8	BIO agent in a life event

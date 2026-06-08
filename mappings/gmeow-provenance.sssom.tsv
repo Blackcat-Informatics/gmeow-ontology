@@ -15,7 +15,10 @@ subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:Activity	skos:closeMatch	prov:Activity	semapv:ManualMappingCuration	0.9	
 gmeow:CreativeWork	skos:closeMatch	prov:Entity	semapv:ManualMappingCuration	0.6	Source-hood is anti-rigid; the described thing is a CreativeWork (WEMI).
 gmeow:ImportActivity	skos:closeMatch	prov:Activity	semapv:ManualMappingCuration	0.8	
+gmeow:ObservationalActivity	skos:closeMatch	prov:Activity	semapv:ManualMappingCuration	0.9	An observational activity is a specialisation of prov:Activity that generates observations.
+gmeow:Source	skos:closeMatch	prov:Entity	semapv:ManualMappingCuration	0.6	
 gmeow:assertedAt	skos:closeMatch	prov:generatedAtTime	semapv:ManualMappingCuration	0.85	
+gmeow:generatedObservation	skos:closeMatch	prov:generated	semapv:ManualMappingCuration	0.9	prov:generated links an activity to the entity it generated; gmeow:generatedObservation specialises the range to Observation.
 gmeow:ingestedAt	skos:closeMatch	prov:endedAtTime	semapv:ManualMappingCuration	0.85	
 gmeow:sourceLocation	skos:closeMatch	dcterms:source	semapv:ManualMappingCuration	0.6	
 gmeow:sourceModifiedAt	skos:closeMatch	dcterms:modified	semapv:ManualMappingCuration	0.9	

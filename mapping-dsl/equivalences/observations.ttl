@@ -551,3 +551,43 @@ gmeow:eqObs055 a gmeow:TermEquivalence ;
     gmeow:confidence 0.85 ;
     gmeow:comment "OM Unit is the unit of measure in the OM ontology; GMEOW hasUnit points to QUDT by default, with OM as an alternative by reference." ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Issue #128 / #66 comment — ObservationalActivity alignments (OBI, OBOE, QB).
+# --------------------------------------------------------------------------- #
+
+gmeow:eqObs056 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ObservationalActivity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject obi:0000011 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "OBI investigation (OBI:0000011) is a planned process with the objective to produce information about some evaluant — the closest OBI class for a structured observational activity such as a clinical trial or survey." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs057 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Observation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject oboe:Observation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "OBOE Observation is the core observation construct in the Extensible Observation Ontology; GMEOW Observation unifies it with measurement, standpoint claim, and identity claim." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs058 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ObservationalActivity ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject qb:DataSet ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "An ObservationalActivity that produces aggregate statistical data (e.g. a census) projects to an RDF Data Cube DataSet. Related match because the activity and the dataset are distinct: one generates the other." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs059 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Observation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:E13_Attribute_Assignment ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "CIDOC-CRM E13 Attribute Assignment is the closest CRM class for an observation as the RESULT of an activity (the event perspective is aligned to gmeow:ObservationalActivity in the events mapping set)." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .

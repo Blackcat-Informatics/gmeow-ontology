@@ -103,3 +103,25 @@ gmeow:eqProvenance011 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Issue #128 — ObservationalActivity and generatedObservation provenance links.
+# --------------------------------------------------------------------------- #
+
+gmeow:eqProvenance012 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ObservationalActivity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject prov:Activity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "An observational activity is a specialisation of prov:Activity that generates observations." ;
+    gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+
+gmeow:eqProvenance013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:generatedObservation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject prov:generated ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "prov:generated links an activity to the entity it generated; gmeow:generatedObservation specialises the range to Observation." ;
+    gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
