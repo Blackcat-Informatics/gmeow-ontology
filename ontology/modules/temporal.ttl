@@ -298,12 +298,20 @@ gmeow:PeriodType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:periodStart
-    a owl:ObjectProperty, owl:FunctionalProperty ;
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:NamedPeriod ;
     rdfs:range gmeow:Instant ;
     rdfs:label "period start"@en ;
-    skos:definition "The instant at which a named period begins."@en ;
+    skos:definition "The instant at which a named period begins. Functional nature removed because the property chain below makes periodStart non-simple, and OWL 2 DL forbids non-simple properties in functional axioms (Principle 8). Closed-world single-valuedness lives in SHACL (NamedPeriodShape)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Property chain (EL): a NamedPeriod with a TemporalMeasurement whose measuredDate is an Instant
+# infers the period's start instant.  Uses measuredDate (range Instant) rather than
+# observationResult (range Entity) because Instant (gufo:AbstractIndividual) is disjoint
+# from Entity (gufo:Endurant) under gUFO, so observationResult cannot point at an Instant
+# without causing inconsistency.  Age-based measurements (measuredAge) do not trigger this
+# chain — they need solver-layer conversion (Principle 12).
+gmeow:periodStart owl:propertyChainAxiom ( gmeow:hasTemporalMeasurement gmeow:measuredDate ) .
 
 gmeow:periodEnd
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -382,7 +390,9 @@ gmeow:periodHolocene
 gmeow:measurementPhanerozoicStart
     a gmeow:TemporalMeasurement ;
     rdfs:label "Phanerozoic start age"@en ;
-    gmeow:measurementMethod gmeow:datingMethodStratigraphicCorrelation ;
+    gmeow:vantage gmeow:agentInternationalCommissionOnStratigraphy ;
+    gmeow:observedFeature gmeow:periodPhanerozoic ;
+    gmeow:observationMethod gmeow:datingMethodStratigraphicCorrelation ;
     gmeow:hasUnit <http://qudt.org/vocab/unit/YR> ;
     gmeow:measuredAge "538800000"^^xsd:decimal ;
     gmeow:measurementUncertainty "5000000"^^xsd:decimal .
@@ -390,7 +400,9 @@ gmeow:measurementPhanerozoicStart
 gmeow:measurementCenozoicStart
     a gmeow:TemporalMeasurement ;
     rdfs:label "Cenozoic start age"@en ;
-    gmeow:measurementMethod gmeow:datingMethodStratigraphicCorrelation ;
+    gmeow:vantage gmeow:agentInternationalCommissionOnStratigraphy ;
+    gmeow:observedFeature gmeow:periodCenozoic ;
+    gmeow:observationMethod gmeow:datingMethodStratigraphicCorrelation ;
     gmeow:hasUnit <http://qudt.org/vocab/unit/YR> ;
     gmeow:measuredAge "66000000"^^xsd:decimal ;
     gmeow:measurementUncertainty "500000"^^xsd:decimal .
@@ -398,7 +410,9 @@ gmeow:measurementCenozoicStart
 gmeow:measurementQuaternaryStart
     a gmeow:TemporalMeasurement ;
     rdfs:label "Quaternary start age"@en ;
-    gmeow:measurementMethod gmeow:datingMethodStratigraphicCorrelation ;
+    gmeow:vantage gmeow:agentInternationalCommissionOnStratigraphy ;
+    gmeow:observedFeature gmeow:periodQuaternary ;
+    gmeow:observationMethod gmeow:datingMethodStratigraphicCorrelation ;
     gmeow:hasUnit <http://qudt.org/vocab/unit/YR> ;
     gmeow:measuredAge "2580000"^^xsd:decimal ;
     gmeow:measurementUncertainty "10000"^^xsd:decimal .
@@ -406,7 +420,9 @@ gmeow:measurementQuaternaryStart
 gmeow:measurementHoloceneStart
     a gmeow:TemporalMeasurement ;
     rdfs:label "Holocene start age"@en ;
-    gmeow:measurementMethod gmeow:datingMethodStratigraphicCorrelation ;
+    gmeow:vantage gmeow:agentInternationalCommissionOnStratigraphy ;
+    gmeow:observedFeature gmeow:periodHolocene ;
+    gmeow:observationMethod gmeow:datingMethodStratigraphicCorrelation ;
     gmeow:hasUnit <http://qudt.org/vocab/unit/YR> ;
     gmeow:measuredAge "11700"^^xsd:decimal ;
     gmeow:measurementUncertainty "500"^^xsd:decimal .
@@ -416,17 +432,23 @@ gmeow:measurementHoloceneStart
 # =========================================================================== #
 
 gmeow:TemporalMeasurement
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Measurement, gufo:Relator ;
     rdfs:label "Temporal Measurement"@en ;
-    skos:definition "A measured assignment of a date or age to an entity or sample, carrying the method, uncertainty, and determinacy (Principle 9 — the measurement is a standpoint-indexed claim, not ground truth)."@en ;
+    skos:definition "A measured assignment of a date or age to an entity or sample, carrying the method, uncertainty, and determinacy. Now a subclass of gmeow:Measurement (and therefore gmeow:Observation), realising Principle 9: the measurement is a standpoint-indexed claim (vantage + observedFeature + observationResult), not ground truth."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# EL axiomatisation: every TemporalMeasurement mediates at least one vantage and one feature.
+# Closed-world cardinality lives in SHACL (TemporalMeasurementShape).
+gmeow:TemporalMeasurement rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage ;         owl:someValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:someValuesFrom gmeow:Entity ] .
 
 gmeow:DatingMethod
     a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf gmeow:ObservationMethod, gufo:QualityValue ;
     rdfs:label "Dating Method"@en ;
-    skos:definition "The method used to derive a temporal measurement — radiocarbon, dendrochronology, thermoluminescence, etc. A value, never a subclass."@en ;
+    skos:definition "The method used to derive a temporal measurement — radiocarbon, dendrochronology, thermoluminescence, etc. A value, never a subclass. Specialises gmeow:ObservationMethod for the temporal dating domain."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasTemporalMeasurement
@@ -438,10 +460,11 @@ gmeow:hasTemporalMeasurement
 
 gmeow:measurementMethod
     a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:observationMethod ;
     rdfs:domain gmeow:TemporalMeasurement ;
     rdfs:range gmeow:DatingMethod ;
     rdfs:label "measurement method"@en ;
-    skos:definition "The dating method used for a temporal measurement."@en ;
+    skos:definition "The dating method used for a temporal measurement. Bridges to gmeow:observationMethod (rdfs:subPropertyOf) so generic consumers can query all observations by method without knowing the domain."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:measuredAge
@@ -457,7 +480,7 @@ gmeow:measuredDate
     rdfs:domain gmeow:TemporalMeasurement ;
     rdfs:range gmeow:Instant ;
     rdfs:label "measured date"@en ;
-    skos:definition "The absolute date instant yielded by a temporal measurement."@en ;
+    skos:definition "The absolute date instant yielded by a temporal measurement. Semantically plays the observationResult role for TemporalMeasurement, but is NOT asserted as rdfs:subPropertyOf gmeow:observationResult because gmeow:Instant (gufo:AbstractIndividual) is not a subclass of gmeow:Entity (gufo:Endurant), the range of gmeow:observationResult. Projection-layer alignment to time:hasTime lives in the mapping DSL."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:measurementUncertainty
@@ -470,11 +493,18 @@ gmeow:measurementUncertainty
 
 gmeow:measurementDeterminacy
     a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasDeterminacy ;
     rdfs:domain gmeow:TemporalMeasurement ;
     rdfs:range gmeow:Determinacy ;
     rdfs:label "measurement determinacy"@en ;
-    skos:definition "The ontic determinacy model of a temporal measurement — crisp, vague, fuzzy, probabilistic, or disputed (reuses the universal gmeow:Determinacy vocabulary, #71)."@en ;
+    skos:definition "The ontic determinacy model of a temporal measurement — crisp, vague, fuzzy, probabilistic, or disputed. Bridges to gmeow:hasDeterminacy (rdfs:subPropertyOf) so generic consumers can query determinacy uniformly across all domains."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Seed vantage agent for geologic period measurements (ICS authority)
+gmeow:agentInternationalCommissionOnStratigraphy
+    a gmeow:Organization ;
+    rdfs:label "International Commission on Stratigraphy"@en ;
+    skos:definition "The International Commission on Stratigraphy (ICS), the global scientific authority for definition and nomenclature of geologic time units."@en .
 
 # Seeds for DatingMethod
 gmeow:datingMethodRadiocarbon                        a gmeow:DatingMethod ; rdfs:label "radiocarbon dating (14C)"@en .

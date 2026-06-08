@@ -283,7 +283,7 @@ gmeow:eqTemporal022 a gmeow:TermEquivalence ;
     gmeow:alignObject crm:E16_Measurement ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "CIDOC measurement event" ;
+    gmeow:comment "CIDOC measurement event; now a subclass of gmeow:Measurement (and therefore gmeow:Observation) in GMEOW (#124)" ;
     gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
 
 gmeow:eqTemporal023 a gmeow:TermEquivalence ;
@@ -311,6 +311,42 @@ gmeow:eqTemporal025 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.5 ;
     gmeow:comment "CIDOC value, used here for uncertainty band" ;
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+
+gmeow:eqTemporal025b a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:measuredDate ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject time:hasTime ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "measuredDate (the absolute-date result of a TemporalMeasurement) aligns to OWL-Time hasTime" ;
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+
+gmeow:eqTemporal025c a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:measuredDate ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject time:inXSDDateTimeStamp ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "measuredDate instant carrying an instantValue aligns to OWL-Time inXSDDateTimeStamp" ;
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+
+gmeow:eqTemporal025d a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:DatingMethod ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://purl.org/dc/terms/method> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "Dublin Core method — dating method as observation method" ;
+    gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+
+gmeow:eqTemporal025e a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:DatingMethod ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:P33_used_specific_technique ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "CIDOC-CRM technique used — dating method as observation method" ;
     gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
 
 # Dating methods → Wikidata
