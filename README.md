@@ -220,7 +220,7 @@ CONSTRUCT executor (`queries/projections/*.rq`), and run by `gmeow project` /
 |---|---|---|
 | **schema.org** | <https://schema.org> | The flat contact-card surface: `Person`/`Organization`/`Place`, reconstructed `name`/`birthDate`/`jobTitle`/`gender` from reified structures, plus `accessibilityFeature`/`accessibilityHazard` from the accessibility facet layer |
 | **FOAF** | <http://xmlns.com/foaf/0.1/> | The lowest-common-denominator person/agent graph: `name`, `nick`, `homepage`, `mbox`, `knows` |
-| **vCard (RDF)** | <https://www.w3.org/TR/vcard-rdf/> | Contact cards: `fn`, `nickname`, `BDAY`, `TITLE`, `hasURL`, `PRONOUNS` (RFC 9554), geo |
+| **vCard (RDF)** | <https://www.w3.org/TR/vcard-rdf/> | Contact cards: `fn`, `given-name`/`family-name`, `nickname`, `bday`, `title`, `hasAddress`, `hasURL`, `hasGeo`, and free-text `vcardx:pronouns` (RFC 9554) |
 | **GeoSPARQL** | <https://www.ogc.org/standard/geosparql/> | `geo:asWKT` geometry literals and topology from `Place`/`Location` + frame-relative coordinates |
 | **iCalendar (RDF)** | <https://www.w3.org/TR/rdfcal/> | Calendar projections of events — `Vevent`, `dtstart`/`dtend`, summary |
 | **OWL-Time** | <https://www.w3.org/TR/owl-time/> | `time:Instant`/`Interval` and Allen relations from the temporal model |
@@ -229,7 +229,7 @@ CONSTRUCT executor (`queries/projections/*.rq`), and run by `gmeow project` /
 | **SPDX** | <https://spdx.org/rdf/terms/> | SPDX license identifiers and licensing facts for software/data artifacts |
 | **Dublin Core Terms** | <https://www.dublincore.org/specifications/dublin-core/dcmi-terms/> | `dcterms:` metadata — title, creator, date, rights, license |
 | **BOT** | <https://w3id.org/bot> | Building-topology projection of indoor places — `bot:Zone`/`Element`/`hasSpace` |
-| **RDF Data Cube** | <https://www.w3.org/TR/vocab-data-cube/> | `qb:Observation`/`DataSet` statistical-cube projection of spatial aggregations |
+| **RDF Data Cube** | <https://www.w3.org/TR/vocab-data-cube/> | `qb:Observation` rows (`qb:measureType` / `qb:obsValue`) — a statistical-cube projection of spatial aggregations |
 | **OntoLex-Lemon** | <https://www.w3.org/2016/05/ontolex/> | `ontolex:LexicalEntry`/`Form`/`writtenRep` from appellations and language data |
 | **W3C Web Annotation** | <https://www.w3.org/TR/annotation-vocab/> | `oa:Annotation` body/target projection (tags, standpoints) |
 | **Standpoint projections** | [`docs/standpoints.md`](./docs/standpoints.md) | Five frame-preserving exports of contested claims: **CRMinf**, **PROV-O**, **schema:Claim**, **Web Annotation**, **Standpoint-OWL 2** — never one that picks a winner |
