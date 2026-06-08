@@ -1,0 +1,12 @@
+# Negative test: a citation claiming notability support must be from an
+# independent source (WP:GNG triad — independence).
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?citation WHERE {
+    ?citation a gmeow:CitationAct .
+    ?citation gmeow:supportsNotability true .
+    FILTER NOT EXISTS {
+        ?citation gmeow:sourceIndependence gmeow:sourceIndependenceIndependent .
+    }
+}

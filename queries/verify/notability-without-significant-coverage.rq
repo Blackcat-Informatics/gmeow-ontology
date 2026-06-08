@@ -1,0 +1,12 @@
+# Negative test: a citation claiming notability support must provide significant
+# coverage (WP:GNG triad — significant coverage).
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?citation WHERE {
+    ?citation a gmeow:CitationAct .
+    ?citation gmeow:supportsNotability true .
+    FILTER NOT EXISTS {
+        ?citation gmeow:coverageDepth gmeow:coverageDepthSignificantCoverage .
+    }
+}

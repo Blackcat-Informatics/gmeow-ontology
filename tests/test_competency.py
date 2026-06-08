@@ -362,3 +362,40 @@ def test_competency_contribution_roles_query() -> None:
     ):
         assert NAMESPACE + term in terms
     assert len(terms) >= 15
+
+
+def test_competency_evidence_query() -> None:
+    terms = _query_terms("evidence.rq")
+    for term in (
+        "EvidenceClass",
+        "hasEvidenceClass",
+        "sourceIndependence",
+        "sourceTier",
+        "coverageDepth",
+        "supportsNotability",
+        "evidenceVERIFIED",
+        "evidenceSELF",
+        "evidenceANECDOTAL",
+        "evidenceRUMOR",
+        "evidenceLegalFiling",
+        "sourceIndependenceIndependent",
+        "sourceIndependenceSelfOrIssuerOriginated",
+        "sourceTierPrimary",
+        "sourceTierSecondary",
+        "sourceTierTertiary",
+        "coverageDepthSignificantCoverage",
+        "coverageDepthPassingMention",
+        "coverageDepthRoutineFiling",
+    ):
+        assert NAMESPACE + term in terms
+
+
+def test_competency_notability_eligible_query() -> None:
+    terms = _query_terms("notability-eligible.rq")
+    for term in (
+        "sourceIndependenceIndependent",
+        "sourceTierSecondary",
+        "coverageDepthSignificantCoverage",
+        "supportsNotability",
+    ):
+        assert NAMESPACE + term in terms

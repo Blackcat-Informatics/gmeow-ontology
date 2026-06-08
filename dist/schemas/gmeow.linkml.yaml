@@ -243,6 +243,11 @@ classes:
     - citationIntent
     - citedEntity
     - citingEntity
+    - coverageDepth
+    - hasEvidenceClass
+    - sourceIndependence
+    - sourceTier
+    - supportsNotability
     - viaSelector
   CitationIntent:
     class_uri: https://blackcatinformatics.ca/gmeow/CitationIntent
@@ -326,6 +331,9 @@ classes:
     is_a: KinRelationship
     slots:
     - hasPartner
+  CoverageDepth:
+    class_uri: https://blackcatinformatics.ca/gmeow/CoverageDepth
+    title: Coverage Depth
   CreativeWork:
     class_uri: https://blackcatinformatics.ca/gmeow/CreativeWork
     title: Creative Work
@@ -537,6 +545,9 @@ classes:
   EventType:
     class_uri: https://blackcatinformatics.ca/gmeow/EventType
     title: Event Type
+  EvidenceClass:
+    class_uri: https://blackcatinformatics.ca/gmeow/EvidenceClass
+    title: Evidence Class
   Expression:
     class_uri: https://blackcatinformatics.ca/gmeow/Expression
     title: Expression
@@ -1562,10 +1573,16 @@ classes:
     - hasRepository
     - hasSoftwareName
     - writtenInLanguage
+  SourceIndependence:
+    class_uri: https://blackcatinformatics.ca/gmeow/SourceIndependence
+    title: Source Independence
   SourceRole:
     class_uri: https://blackcatinformatics.ca/gmeow/SourceRole
     title: Source Role
     is_a: CreativeWork
+  SourceTier:
+    class_uri: https://blackcatinformatics.ca/gmeow/SourceTier
+    title: Source Tier
   SpatialAggregation:
     class_uri: https://blackcatinformatics.ca/gmeow/SpatialAggregation
     title: Spatial Aggregation
@@ -2447,6 +2464,12 @@ slots:
     title: country code
     range: string
     domain: PostalAddress
+  coverageDepth:
+    slot_uri: https://blackcatinformatics.ca/gmeow/coverageDepth
+    title: coverage depth
+    range: CoverageDepth
+    domain: CitationAct
+    multivalued: true
   datePublished:
     slot_uri: https://blackcatinformatics.ca/gmeow/datePublished
     title: date published
@@ -3106,6 +3129,12 @@ slots:
     range: Instant
     domain: TimeInterval
     multivalued: false
+  hasEvidenceClass:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasEvidenceClass
+    title: has evidence class
+    range: EvidenceClass
+    domain: CitationAct
+    multivalued: true
   hasFather:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasFather
     title: has father
@@ -5157,6 +5186,12 @@ slots:
     range: NarrativeReferenceFrame
     domain: CreativeWork
     multivalued: true
+  sourceIndependence:
+    slot_uri: https://blackcatinformatics.ca/gmeow/sourceIndependence
+    title: source independence
+    range: SourceIndependence
+    domain: CitationAct
+    multivalued: true
   sourceLocation:
     slot_uri: https://blackcatinformatics.ca/gmeow/sourceLocation
     title: source location
@@ -5167,6 +5202,12 @@ slots:
     title: source modified at
     range: datetime
     domain: CreativeWork
+  sourceTier:
+    slot_uri: https://blackcatinformatics.ca/gmeow/sourceTier
+    title: source tier
+    range: SourceTier
+    domain: CitationAct
+    multivalued: true
   spatialMeasurementOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/spatialMeasurementOf
     title: spatial measurement of
@@ -5370,6 +5411,11 @@ slots:
     range: Entity
     domain: Entity
     multivalued: true
+  supportsNotability:
+    slot_uri: https://blackcatinformatics.ca/gmeow/supportsNotability
+    title: supports notability
+    range: boolean
+    domain: CitationAct
   symbolicSystemKind:
     slot_uri: https://blackcatinformatics.ca/gmeow/symbolicSystemKind
     title: symbolic system kind
@@ -6547,6 +6593,18 @@ enums:
       copyrightStatusUndetermined:
         meaning: https://blackcatinformatics.ca/gmeow/copyrightStatusUndetermined
         title: copyright undetermined
+  CoverageDepthEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/CoverageDepth
+    permissible_values:
+      coverageDepthPassingMention:
+        meaning: https://blackcatinformatics.ca/gmeow/coverageDepthPassingMention
+        title: passing mention
+      coverageDepthRoutineFiling:
+        meaning: https://blackcatinformatics.ca/gmeow/coverageDepthRoutineFiling
+        title: routine filing
+      coverageDepthSignificantCoverage:
+        meaning: https://blackcatinformatics.ca/gmeow/coverageDepthSignificantCoverage
+        title: significant coverage
   CreativeWorkTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CreativeWorkType
     permissible_values:
@@ -6811,6 +6869,60 @@ enums:
       eventTypeWorkConception:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeWorkConception
         title: work conception
+  EvidenceClassEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/EvidenceClass
+    permissible_values:
+      evidenceANECDOTAL:
+        meaning: https://blackcatinformatics.ca/gmeow/evidenceANECDOTAL
+        title: anecdotal evidence
+      evidenceFamilyNarrative:
+        meaning: https://blackcatinformatics.ca/gmeow/evidenceFamilyNarrative
+        title: family narrative evidence
+      evidenceGeneratedReport:
+        meaning: https://blackcatinformatics.ca/gmeow/evidenceGeneratedReport
+        title: generated report evidence
+      evidenceIndependentTradePress:
+        meaning: https://blackcatinformatics.ca/gmeow/evidenceIndependentTradePress
+        title: independent trade press evidence
+      evidenceLegalFiling:
+        meaning: https://blackcatinformatics.ca/gmeow/evidenceLegalFiling
+        title: legal filing evidence
+      evidenceNewspaperLead:
+        meaning: https://blackcatinformatics.ca/gmeow/evidenceNewspaperLead
+        title: newspaper lead evidence
+      evidenceOcrExtract:
+        meaning: https://blackcatinformatics.ca/gmeow/evidenceOcrExtract
+        title: OCR extract evidence
+      evidenceOfficialSource:
+        meaning: https://blackcatinformatics.ca/gmeow/evidenceOfficialSource
+        title: official source evidence
+      evidencePrivateCorrespondence:
+        meaning: https://blackcatinformatics.ca/gmeow/evidencePrivateCorrespondence
+        title: private correspondence evidence
+      evidencePrivateScan:
+        meaning: https://blackcatinformatics.ca/gmeow/evidencePrivateScan
+        title: private scan evidence
+      evidencePublicRegistry:
+        meaning: https://blackcatinformatics.ca/gmeow/evidencePublicRegistry
+        title: public registry evidence
+      evidenceRUMOR:
+        meaning: https://blackcatinformatics.ca/gmeow/evidenceRUMOR
+        title: rumour evidence
+      evidenceRawArchive:
+        meaning: https://blackcatinformatics.ca/gmeow/evidenceRawArchive
+        title: raw archive evidence
+      evidenceSELF:
+        meaning: https://blackcatinformatics.ca/gmeow/evidenceSELF
+        title: self evidence
+      evidenceSelfControlledSite:
+        meaning: https://blackcatinformatics.ca/gmeow/evidenceSelfControlledSite
+        title: self-controlled site evidence
+      evidenceSourceCodeArchive:
+        meaning: https://blackcatinformatics.ca/gmeow/evidenceSourceCodeArchive
+        title: source code archive evidence
+      evidenceVERIFIED:
+        meaning: https://blackcatinformatics.ca/gmeow/evidenceVERIFIED
+        title: verified evidence
   FrameKindEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/FrameKind
     permissible_values:
@@ -8903,6 +9015,27 @@ enums:
       signatureSchemeRSASHA256:
         meaning: https://blackcatinformatics.ca/gmeow/signatureSchemeRSASHA256
         title: RSA-SHA256
+  SourceIndependenceEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/SourceIndependence
+    permissible_values:
+      sourceIndependenceIndependent:
+        meaning: https://blackcatinformatics.ca/gmeow/sourceIndependenceIndependent
+        title: independent
+      sourceIndependenceSelfOrIssuerOriginated:
+        meaning: https://blackcatinformatics.ca/gmeow/sourceIndependenceSelfOrIssuerOriginated
+        title: self or issuer originated
+  SourceTierEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/SourceTier
+    permissible_values:
+      sourceTierPrimary:
+        meaning: https://blackcatinformatics.ca/gmeow/sourceTierPrimary
+        title: primary
+      sourceTierSecondary:
+        meaning: https://blackcatinformatics.ca/gmeow/sourceTierSecondary
+        title: secondary
+      sourceTierTertiary:
+        meaning: https://blackcatinformatics.ca/gmeow/sourceTierTertiary
+        title: tertiary
   StandpointEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Standpoint
     permissible_values:

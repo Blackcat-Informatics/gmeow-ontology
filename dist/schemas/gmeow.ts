@@ -296,6 +296,13 @@ export enum CopyrightStatusEnum {
     copyright_undetermined = "copyrightStatusUndetermined",
 };
 
+export enum CoverageDepthEnum {
+
+    passing_mention = "coverageDepthPassingMention",
+    routine_filing = "coverageDepthRoutineFiling",
+    significant_coverage = "coverageDepthSignificantCoverage",
+};
+
 export enum CreativeWorkTypeEnum {
 
     audiovisual = "workTypeAudiovisual",
@@ -397,6 +404,27 @@ export enum EventTypeEnum {
     survey = "eventTypeSurvey",
     will = "eventTypeWill",
     work_conception = "eventTypeWorkConception",
+};
+
+export enum EvidenceClassEnum {
+
+    anecdotal_evidence = "evidenceANECDOTAL",
+    family_narrative_evidence = "evidenceFamilyNarrative",
+    generated_report_evidence = "evidenceGeneratedReport",
+    independent_trade_press_evidence = "evidenceIndependentTradePress",
+    legal_filing_evidence = "evidenceLegalFiling",
+    newspaper_lead_evidence = "evidenceNewspaperLead",
+    OCR_extract_evidence = "evidenceOcrExtract",
+    official_source_evidence = "evidenceOfficialSource",
+    private_correspondence_evidence = "evidencePrivateCorrespondence",
+    private_scan_evidence = "evidencePrivateScan",
+    public_registry_evidence = "evidencePublicRegistry",
+    rumour_evidence = "evidenceRUMOR",
+    raw_archive_evidence = "evidenceRawArchive",
+    self_evidence = "evidenceSELF",
+    self_controlled_site_evidence = "evidenceSelfControlledSite",
+    source_code_archive_evidence = "evidenceSourceCodeArchive",
+    verified_evidence = "evidenceVERIFIED",
 };
 
 export enum FrameKindEnum {
@@ -1276,6 +1304,19 @@ export enum SignatureSchemeEnum {
     RSA_SHA256 = "signatureSchemeRSASHA256",
 };
 
+export enum SourceIndependenceEnum {
+
+    independent = "sourceIndependenceIndependent",
+    self_or_issuer_originated = "sourceIndependenceSelfOrIssuerOriginated",
+};
+
+export enum SourceTierEnum {
+
+    primary = "sourceTierPrimary",
+    secondary = "sourceTierSecondary",
+    tertiary = "sourceTierTertiary",
+};
+
 export enum StandpointEnum {
 
     universal_standpoint_LEFT_PARENTHESISASTERISKRIGHT_PARENTHESIS = "universalStandpoint",
@@ -1722,6 +1763,11 @@ export interface CitationAct {
     citationIntent?: CitationIntent,
     citedEntity?: CreativeWork,
     citingEntity?: Entity,
+    coverageDepth?: CoverageDepth[],
+    hasEvidenceClass?: EvidenceClass[],
+    sourceIndependence?: SourceIndependence[],
+    sourceTier?: SourceTier[],
+    supportsNotability?: boolean,
     viaSelector?: Selector[],
 }
 
@@ -1828,6 +1874,11 @@ export interface CopyrightStatus {
 
 export interface CoupleRelationship extends KinRelationship {
     hasPartner?: Person[],
+}
+
+
+
+export interface CoverageDepth {
 }
 
 
@@ -2058,6 +2109,11 @@ export interface EventSeries extends Entity {
 
 
 export interface EventType {
+}
+
+
+
+export interface EvidenceClass {
 }
 
 
@@ -3244,7 +3300,17 @@ export interface SoftwareProject extends Work {
 
 
 
+export interface SourceIndependence {
+}
+
+
+
 export interface SourceRole extends CreativeWork {
+}
+
+
+
+export interface SourceTier {
 }
 
 
