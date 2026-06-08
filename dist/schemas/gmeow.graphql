@@ -198,6 +198,20 @@ enum CelestialReferenceOriginEnum
     refOriginTopocentric
   }
 
+enum CitationIntentEnum
+  {
+    intentBridgedByReference
+    intentCitesAsDataSource
+    intentConformsTo
+    intentDerivedFrom
+    intentDisagreesWith
+    intentDocuments
+    intentExtends
+    intentIsInspiredBy
+    intentSupports
+    intentUsesMethodIn
+  }
+
 enum ConflictStrategyEnum
   {
     conflictInvalid
@@ -229,19 +243,40 @@ enum ConstraintOperatorEnum
     operatorNeq
   }
 
+enum ContributionDegreeEnum
+  {
+    degreeEqual
+    degreeLead
+    degreeSupporting
+  }
+
 enum ContributionRoleEnum
   {
     roleAuthor
     roleComposer
+    roleConceptualization
     roleCoverArtist
+    roleDataCuration
     roleDirector
     roleEditor
+    roleFormalAnalysis
+    roleFundingAcquisition
     roleIllustrator
+    roleInvestigation
     roleLLMAssistedEditor
     roleLetterer
+    roleMethodology
     roleNarrator
     rolePhotographer
+    roleProjectAdministration
+    roleResources
+    roleSoftware
+    roleSupervision
     roleTranslator
+    roleValidation
+    roleVisualization
+    roleWritingOriginalDraft
+    roleWritingReviewEditing
   }
 
 enum CopyrightStatusEnum
@@ -1520,6 +1555,7 @@ type Article
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -1535,7 +1571,6 @@ type Article
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -1558,6 +1593,7 @@ type Article
     wasDerivedFrom: [Entity]
     wasGeneratedBy: [Activity]
     detectedMediaType: String
+    contentDigest: String
     datePublished: String
     editionOf: CreativeWork
     hasAuthor: [Agent]
@@ -1569,6 +1605,8 @@ type Article
     hasTranslator: [Agent]
     identifier: String
     sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
     title: String
     realizedThrough: [Expression]
   }
@@ -1587,6 +1625,7 @@ type Attachment
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -1602,7 +1641,6 @@ type Attachment
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -1649,6 +1687,7 @@ type AttestationArtifact
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -1664,7 +1703,6 @@ type AttestationArtifact
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -1704,6 +1742,7 @@ type AuthenticationResult
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -1719,7 +1758,6 @@ type AuthenticationResult
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -1763,6 +1801,7 @@ type BiologicalSequenceLocation
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -1778,7 +1817,6 @@ type BiologicalSequenceLocation
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -1826,6 +1864,7 @@ type Block
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -1841,7 +1880,6 @@ type Block
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -1874,6 +1912,7 @@ type BlockchainAccount
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -1889,7 +1928,6 @@ type BlockchainAccount
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -1919,6 +1957,7 @@ type BlockchainNetwork
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -1934,7 +1973,6 @@ type BlockchainNetwork
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -1965,6 +2003,7 @@ type BodyPart
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -1980,7 +2019,6 @@ type BodyPart
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -2012,6 +2050,7 @@ type BookRelease
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -2027,7 +2066,6 @@ type BookRelease
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -2050,6 +2088,7 @@ type BookRelease
     wasDerivedFrom: [Entity]
     wasGeneratedBy: [Activity]
     detectedMediaType: String
+    contentDigest: String
     datePublished: String
     editionOf: CreativeWork
     hasAuthor: [Agent]
@@ -2061,6 +2100,8 @@ type BookRelease
     hasTranslator: [Agent]
     identifier: String
     sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
     title: String
     embodies: [Expression]
     exemplifiedBy: [Item]
@@ -2072,6 +2113,7 @@ type CadastralReference
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -2087,7 +2129,6 @@ type CadastralReference
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -2155,6 +2196,7 @@ type CelestialLocation
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -2170,7 +2212,6 @@ type CelestialLocation
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -2229,51 +2270,16 @@ type Certification
     certifier: Agent
   }
 
-type Citation
+type CitationAct
   {
-    acquireLicensePage: String
-    attributionText: String
-    attributionUrl: String
-    authorityLink: [String]
-    conditionsOfAccess: String
-    counterpartOf: [Entity]
-    description: String
-    existenceInterval: [TimeInterval]
-    hasAccessibilityNeed: [AccessibilityFacet]
-    hasAppellation: [Appellation]
-    hasAttestation: [Attestation]
-    hasCopyright: [Copyright]
-    hasCreationEvent: [Event]
-    hasDestructionEvent: [Event]
-    hasLicense: [License]
-    hasPose: [Pose]
-    hasRightsStatement: [RightsStatement]
-    hasSensoryObservation: [SensoryObservation]
-    hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
-    hasSpatialMeasurement: [SpatialMeasurement]
-    hasStream: [Stream]
-    hasTag: [Tag]
-    hasTrademark: [Trademark]
-    hasWebPage: [WebPage]
-    isAbout: [Entity]
-    isAccessibleForFree: Boolean
-    isResultOf: [Observation]
-    locatedAt: [Location]
-    name: String
-    proximity: [ProximityMeasurement]
-    storedIn: [StorageLocation]
-    supersededBy: [Entity]
-    supersedes: [Entity]
-    usageInfo: String
-    versionFingerprint: String
-    versionLabel: String
-    versionOf: Entity
-    wasAttributedTo: [Agent]
-    wasDerivedFrom: [Entity]
-    wasGeneratedBy: [Activity]
-    detectedMediaType: String
-    citesSource: Source
+    citationIntent: CitationIntent
+    citedEntity: CreativeWork
+    citingEntity: Entity
+    viaSelector: [Selector]
+  }
+
+type CitationIntent
+  {
   }
 
 type ConflictStrategy
@@ -2317,9 +2323,14 @@ type Contract
 
 type Contribution
   {
+    contributionDegree: ContributionDegree
     contributionRole: ContributionRole
     contributionTarget: CreativeWork
     contributor: Agent
+  }
+
+type ContributionDegree
+  {
   }
 
 type ContributionRole
@@ -2374,6 +2385,7 @@ type CreativeWork
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -2389,7 +2401,6 @@ type CreativeWork
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -2412,6 +2423,7 @@ type CreativeWork
     wasDerivedFrom: [Entity]
     wasGeneratedBy: [Activity]
     detectedMediaType: String
+    contentDigest: String
     datePublished: String
     editionOf: CreativeWork
     hasAuthor: [Agent]
@@ -2423,6 +2435,8 @@ type CreativeWork
     hasTranslator: [Agent]
     identifier: String
     sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
     title: String
   }
 
@@ -2448,6 +2462,7 @@ type Credential
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -2463,7 +2478,6 @@ type Credential
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -2493,6 +2507,7 @@ type CryptographicKey
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -2508,7 +2523,6 @@ type CryptographicKey
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -2545,6 +2559,7 @@ type CryptographicSignature
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -2560,7 +2575,6 @@ type CryptographicSignature
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -2597,6 +2611,7 @@ type Dataset
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -2612,7 +2627,6 @@ type Dataset
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -2635,6 +2649,7 @@ type Dataset
     wasDerivedFrom: [Entity]
     wasGeneratedBy: [Activity]
     detectedMediaType: String
+    contentDigest: String
     datePublished: String
     editionOf: CreativeWork
     hasAuthor: [Agent]
@@ -2646,6 +2661,8 @@ type Dataset
     hasTranslator: [Agent]
     identifier: String
     sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
     title: String
     realizedThrough: [Expression]
   }
@@ -2668,6 +2685,7 @@ type DKIMSignature
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -2683,7 +2701,6 @@ type DKIMSignature
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -2720,6 +2737,7 @@ type Document
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -2735,7 +2753,6 @@ type Document
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -2758,6 +2775,7 @@ type Document
     wasDerivedFrom: [Entity]
     wasGeneratedBy: [Activity]
     detectedMediaType: String
+    contentDigest: String
     datePublished: String
     editionOf: CreativeWork
     hasAuthor: [Agent]
@@ -2769,6 +2787,8 @@ type Document
     hasTranslator: [Agent]
     identifier: String
     sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
     title: String
     realizedThrough: [Expression]
   }
@@ -2779,6 +2799,7 @@ type Duration
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -2794,7 +2815,6 @@ type Duration
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -2842,6 +2862,7 @@ type EmailMessage
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -2857,7 +2878,6 @@ type EmailMessage
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -2912,6 +2932,7 @@ type Entity
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -2927,7 +2948,6 @@ type Entity
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -3007,6 +3027,7 @@ type EventSeries
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -3022,7 +3043,6 @@ type EventSeries
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -3058,6 +3078,7 @@ type Expression
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -3073,7 +3094,6 @@ type Expression
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -3096,6 +3116,7 @@ type Expression
     wasDerivedFrom: [Entity]
     wasGeneratedBy: [Activity]
     detectedMediaType: String
+    contentDigest: String
     datePublished: String
     editionOf: CreativeWork
     hasAuthor: [Agent]
@@ -3107,6 +3128,8 @@ type Expression
     hasTranslator: [Agent]
     identifier: String
     sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
     title: String
     embodiedIn: [Manifestation]
     realizes: [Work]
@@ -3118,6 +3141,7 @@ type Family
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -3133,7 +3157,6 @@ type Family
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -3176,6 +3199,7 @@ type FormalLanguage
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -3191,7 +3215,6 @@ type FormalLanguage
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -3264,6 +3287,7 @@ type Geocode
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -3279,7 +3303,6 @@ type Geocode
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -3317,6 +3340,7 @@ type GeoCoordinates
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -3332,7 +3356,6 @@ type GeoCoordinates
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -3365,6 +3388,7 @@ type Geometry
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -3380,7 +3404,6 @@ type Geometry
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -3431,6 +3454,7 @@ type Group
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -3446,7 +3470,6 @@ type Group
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -3531,6 +3554,7 @@ type InformationObject
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -3546,7 +3570,6 @@ type InformationObject
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -3589,6 +3612,7 @@ type Item
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -3604,7 +3628,6 @@ type Item
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -3627,6 +3650,7 @@ type Item
     wasDerivedFrom: [Entity]
     wasGeneratedBy: [Activity]
     detectedMediaType: String
+    contentDigest: String
     datePublished: String
     editionOf: CreativeWork
     hasAuthor: [Agent]
@@ -3638,6 +3662,8 @@ type Item
     hasTranslator: [Agent]
     identifier: String
     sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
     title: String
     exemplifies: [Manifestation]
     hasCarrier: [PhysicalObject]
@@ -3679,6 +3705,7 @@ type Language
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -3694,7 +3721,6 @@ type Language
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -3839,6 +3865,7 @@ type LanguageVariety
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -3854,7 +3881,6 @@ type LanguageVariety
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -3899,6 +3925,7 @@ type LanguageVersion
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -3914,7 +3941,6 @@ type LanguageVersion
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -3992,6 +4018,7 @@ type LedgerTransaction
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -4007,7 +4034,6 @@ type LedgerTransaction
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -4043,6 +4069,7 @@ type LexicalForm
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -4058,7 +4085,6 @@ type LexicalForm
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -4097,6 +4123,7 @@ type LexicalItem
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -4112,7 +4139,6 @@ type LexicalItem
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -4197,6 +4223,7 @@ type Location
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -4212,7 +4239,6 @@ type Location
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -4259,6 +4285,7 @@ type LocationState
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -4274,7 +4301,6 @@ type LocationState
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -4316,6 +4342,7 @@ type Mailbox
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -4331,7 +4358,6 @@ type Mailbox
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -4372,6 +4398,7 @@ type Manifestation
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -4387,7 +4414,6 @@ type Manifestation
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -4410,6 +4436,7 @@ type Manifestation
     wasDerivedFrom: [Entity]
     wasGeneratedBy: [Activity]
     detectedMediaType: String
+    contentDigest: String
     datePublished: String
     editionOf: CreativeWork
     hasAuthor: [Agent]
@@ -4421,6 +4448,8 @@ type Manifestation
     hasTranslator: [Agent]
     identifier: String
     sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
     title: String
     embodies: [Expression]
     exemplifiedBy: [Item]
@@ -4436,6 +4465,7 @@ type Mark
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -4451,7 +4481,6 @@ type Mark
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -4483,6 +4512,7 @@ type MeasuredValue
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -4498,7 +4528,6 @@ type MeasuredValue
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -4541,6 +4570,7 @@ type MediaObject
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -4556,7 +4586,6 @@ type MediaObject
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -4579,6 +4608,7 @@ type MediaObject
     wasDerivedFrom: [Entity]
     wasGeneratedBy: [Activity]
     detectedMediaType: String
+    contentDigest: String
     datePublished: String
     editionOf: CreativeWork
     hasAuthor: [Agent]
@@ -4590,6 +4620,8 @@ type MediaObject
     hasTranslator: [Agent]
     identifier: String
     sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
     title: String
     embodies: [Expression]
     exemplifiedBy: [Item]
@@ -4608,6 +4640,7 @@ type MentalReferenceFrame
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -4623,7 +4656,6 @@ type MentalReferenceFrame
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -4666,6 +4698,7 @@ type Message
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -4681,7 +4714,6 @@ type Message
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -4729,6 +4761,7 @@ type MessageHeader
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -4744,7 +4777,6 @@ type MessageHeader
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -4801,6 +4833,7 @@ type NamedPeriod
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -4816,7 +4849,6 @@ type NamedPeriod
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -4851,6 +4883,7 @@ type NamePart
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -4866,7 +4899,6 @@ type NamePart
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -4936,6 +4968,7 @@ type NarrativeReferenceFrame
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -4951,7 +4984,6 @@ type NarrativeReferenceFrame
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -4996,6 +5028,7 @@ type NetworkAddress
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -5011,7 +5044,6 @@ type NetworkAddress
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -5087,6 +5119,7 @@ type Occupation
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -5102,7 +5135,6 @@ type Occupation
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -5132,6 +5164,7 @@ type OnlineAccount
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -5147,7 +5180,6 @@ type OnlineAccount
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -5216,6 +5248,7 @@ type Orientation
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -5231,7 +5264,6 @@ type Orientation
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -5289,6 +5321,7 @@ type Patent
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -5304,7 +5337,6 @@ type Patent
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -5327,6 +5359,7 @@ type Patent
     wasDerivedFrom: [Entity]
     wasGeneratedBy: [Activity]
     detectedMediaType: String
+    contentDigest: String
     datePublished: String
     editionOf: CreativeWork
     hasAuthor: [Agent]
@@ -5338,6 +5371,8 @@ type Patent
     hasTranslator: [Agent]
     identifier: String
     sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
     title: String
     realizedThrough: [Expression]
   }
@@ -5409,6 +5444,7 @@ type PGPSignature
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -5424,7 +5460,6 @@ type PGPSignature
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -5461,6 +5496,7 @@ type PhysicalObject
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -5476,7 +5512,6 @@ type PhysicalObject
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -5506,6 +5541,7 @@ type Place
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -5521,7 +5557,6 @@ type Place
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -5609,6 +5644,7 @@ type Pose
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -5624,7 +5660,6 @@ type Pose
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -5670,6 +5705,7 @@ type PrivacyNotice
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -5685,7 +5721,6 @@ type PrivacyNotice
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -5735,6 +5770,7 @@ type Profile
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -5750,7 +5786,6 @@ type Profile
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -5784,6 +5819,7 @@ type ProgrammingLanguage
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -5799,7 +5835,6 @@ type ProgrammingLanguage
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -5847,6 +5882,7 @@ type PronounSet
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -5862,7 +5898,6 @@ type PronounSet
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -5931,6 +5966,7 @@ type Quantity
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -5946,7 +5982,6 @@ type Quantity
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -5976,6 +6011,7 @@ type RecurrenceRule
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -5991,7 +6027,6 @@ type RecurrenceRule
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -6023,6 +6058,7 @@ type ReferenceFrame
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -6038,7 +6074,6 @@ type ReferenceFrame
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -6081,6 +6116,7 @@ type ReferencePosition
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -6096,7 +6132,6 @@ type ReferencePosition
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -6152,6 +6187,7 @@ type Repository
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -6167,7 +6203,6 @@ type Repository
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -6240,6 +6275,7 @@ type Route
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -6255,7 +6291,6 @@ type Route
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -6303,6 +6338,7 @@ type ScalarQuantity
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -6318,7 +6354,6 @@ type ScalarQuantity
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -6346,6 +6381,56 @@ type ScalarQuantity
 
 type ScriptRole
   {
+  }
+
+type Selector
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    proximity: [ProximityMeasurement]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasDerivedFrom: [Entity]
+    wasGeneratedBy: [Activity]
+    detectedMediaType: String
+    selectorLocator: String
+    selectorPage: String
+    selectorTextPosition: String
+    selectorTextQuote: String
   }
 
 type SensitivityLevel
@@ -6376,6 +6461,7 @@ type SensorPlatform
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -6391,7 +6477,6 @@ type SensorPlatform
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -6422,6 +6507,7 @@ type SensoryEnvironment
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -6437,7 +6523,6 @@ type SensoryEnvironment
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -6508,6 +6593,7 @@ type SensoryQuantity
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -6523,7 +6609,6 @@ type SensoryQuantity
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -6553,6 +6638,7 @@ type SequenceCoordinates
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -6568,7 +6654,6 @@ type SequenceCoordinates
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -6602,6 +6687,7 @@ type SequenceFeature
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -6617,7 +6703,6 @@ type SequenceFeature
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -6653,6 +6738,7 @@ type SerialInstallment
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -6668,7 +6754,6 @@ type SerialInstallment
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -6691,6 +6776,7 @@ type SerialInstallment
     wasDerivedFrom: [Entity]
     wasGeneratedBy: [Activity]
     detectedMediaType: String
+    contentDigest: String
     datePublished: String
     editionOf: CreativeWork
     hasAuthor: [Agent]
@@ -6702,6 +6788,8 @@ type SerialInstallment
     hasTranslator: [Agent]
     identifier: String
     sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
     title: String
     embodies: [Expression]
     exemplifiedBy: [Item]
@@ -6731,6 +6819,7 @@ type Skill
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -6746,7 +6835,6 @@ type Skill
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -6776,6 +6864,7 @@ type SmartContract
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -6791,7 +6880,6 @@ type SmartContract
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -6822,6 +6910,7 @@ type SMIMESignature
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -6837,7 +6926,6 @@ type SMIMESignature
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -6904,6 +6992,7 @@ type SoftwareProject
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -6919,70 +7008,6 @@ type SoftwareProject
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
-    hasSpatialMeasurement: [SpatialMeasurement]
-    hasStream: [Stream]
-    hasTag: [Tag]
-    hasTrademark: [Trademark]
-    hasWebPage: [WebPage]
-    isAbout: [Entity]
-    isAccessibleForFree: Boolean
-    isResultOf: [Observation]
-    locatedAt: [Location]
-    name: String
-    proximity: [ProximityMeasurement]
-    storedIn: [StorageLocation]
-    supersededBy: [Entity]
-    supersedes: [Entity]
-    usageInfo: String
-    versionFingerprint: String
-    versionLabel: String
-    versionOf: Entity
-    wasAttributedTo: [Agent]
-    wasDerivedFrom: [Entity]
-    wasGeneratedBy: [Activity]
-    detectedMediaType: String
-    datePublished: String
-    editionOf: CreativeWork
-    hasAuthor: [Agent]
-    hasContributor: [Agent]
-    hasEditor: [Agent]
-    hasIllustrator: [Agent]
-    hasNarrator: [Agent]
-    hasTitle: [CreativeWorkTitle]
-    hasTranslator: [Agent]
-    identifier: String
-    sourceFor: [NarrativeReferenceFrame]
-    title: String
-    realizedThrough: [Expression]
-    developer: [Agent]
-    hasRepository: [Repository]
-    hasSoftwareName: [SoftwareName]
-    writtenInLanguage: [ProgrammingLanguage]
-  }
-
-type Source
-  {
-    acquireLicensePage: String
-    attributionText: String
-    attributionUrl: String
-    authorityLink: [String]
-    conditionsOfAccess: String
-    counterpartOf: [Entity]
-    description: String
-    existenceInterval: [TimeInterval]
-    hasAccessibilityNeed: [AccessibilityFacet]
-    hasAppellation: [Appellation]
-    hasAttestation: [Attestation]
-    hasCopyright: [Copyright]
-    hasCreationEvent: [Event]
-    hasDestructionEvent: [Event]
-    hasLicense: [License]
-    hasPose: [Pose]
-    hasRightsStatement: [RightsStatement]
-    hasSensoryObservation: [SensoryObservation]
-    hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -7006,8 +7031,86 @@ type Source
     wasGeneratedBy: [Activity]
     detectedMediaType: String
     contentDigest: String
+    datePublished: String
+    editionOf: CreativeWork
+    hasAuthor: [Agent]
+    hasContributor: [Agent]
+    hasEditor: [Agent]
+    hasIllustrator: [Agent]
+    hasNarrator: [Agent]
+    hasTitle: [CreativeWorkTitle]
+    hasTranslator: [Agent]
+    identifier: String
+    sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    title: String
+    realizedThrough: [Expression]
+    developer: [Agent]
+    hasRepository: [Repository]
+    hasSoftwareName: [SoftwareName]
+    writtenInLanguage: [ProgrammingLanguage]
+  }
+
+type SourceRole
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    proximity: [ProximityMeasurement]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasDerivedFrom: [Entity]
+    wasGeneratedBy: [Activity]
+    detectedMediaType: String
+    contentDigest: String
+    datePublished: String
+    editionOf: CreativeWork
+    hasAuthor: [Agent]
+    hasContributor: [Agent]
+    hasEditor: [Agent]
+    hasIllustrator: [Agent]
+    hasNarrator: [Agent]
+    hasTitle: [CreativeWorkTitle]
+    hasTranslator: [Agent]
+    identifier: String
+    sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
+    title: String
   }
 
 type SpatialAggregation
@@ -7032,6 +7135,7 @@ type SpatialBin
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -7047,7 +7151,6 @@ type SpatialBin
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -7107,6 +7210,7 @@ type SpatialCoordinates
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -7122,7 +7226,6 @@ type SpatialCoordinates
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -7167,6 +7270,7 @@ type Standpoint
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -7182,7 +7286,6 @@ type Standpoint
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -7245,6 +7348,7 @@ type StorageLocation
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -7260,7 +7364,6 @@ type StorageLocation
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -7319,6 +7422,7 @@ type Stream
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -7334,7 +7438,6 @@ type Stream
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -7369,6 +7472,7 @@ type Summary
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -7384,7 +7488,6 @@ type Summary
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -7415,6 +7518,7 @@ type Tag
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -7430,7 +7534,6 @@ type Tag
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -7474,6 +7577,7 @@ type TagScheme
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -7489,7 +7593,6 @@ type TagScheme
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -7524,6 +7627,7 @@ type TemporalFrame
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -7539,7 +7643,6 @@ type TemporalFrame
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -7611,6 +7714,7 @@ type TextExtraction
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -7626,7 +7730,6 @@ type TextExtraction
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -7649,6 +7752,7 @@ type TextExtraction
     wasDerivedFrom: [Entity]
     wasGeneratedBy: [Activity]
     detectedMediaType: String
+    contentDigest: String
     datePublished: String
     editionOf: CreativeWork
     hasAuthor: [Agent]
@@ -7660,6 +7764,8 @@ type TextExtraction
     hasTranslator: [Agent]
     identifier: String
     sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
     title: String
     realizedThrough: [Expression]
   }
@@ -7670,6 +7776,7 @@ type Thread
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -7685,7 +7792,6 @@ type Thread
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -7738,6 +7844,7 @@ type TimeScale
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -7753,7 +7860,6 @@ type TimeScale
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -7800,6 +7906,7 @@ type Trajectory
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -7815,7 +7922,6 @@ type Trajectory
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -7852,6 +7958,7 @@ type TransparencyLogEntry
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -7867,7 +7974,6 @@ type TransparencyLogEntry
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -7918,7 +8024,7 @@ type UsageAttestation
     attestedForm: LexicalForm
     attestedInContext: [Entity]
     attestedInLanguage: [Language]
-    attestedInSource: [Source]
+    attestedInSource: [CreativeWork]
   }
 
 type Utilization
@@ -7976,6 +8082,7 @@ type VerificationResult
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -7991,7 +8098,6 @@ type VerificationResult
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -8055,6 +8161,7 @@ type VersionSet
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -8070,7 +8177,6 @@ type VersionSet
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -8101,6 +8207,7 @@ type VirtualLocation
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -8116,7 +8223,6 @@ type VirtualLocation
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -8171,6 +8277,7 @@ type WebPage
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -8186,7 +8293,6 @@ type WebPage
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -8209,6 +8315,7 @@ type WebPage
     wasDerivedFrom: [Entity]
     wasGeneratedBy: [Activity]
     detectedMediaType: String
+    contentDigest: String
     datePublished: String
     editionOf: CreativeWork
     hasAuthor: [Agent]
@@ -8220,6 +8327,8 @@ type WebPage
     hasTranslator: [Agent]
     identifier: String
     sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
     title: String
     embodies: [Expression]
     exemplifiedBy: [Item]
@@ -8231,6 +8340,7 @@ type Work
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -8246,7 +8356,6 @@ type Work
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]
@@ -8269,6 +8378,7 @@ type Work
     wasDerivedFrom: [Entity]
     wasGeneratedBy: [Activity]
     detectedMediaType: String
+    contentDigest: String
     datePublished: String
     editionOf: CreativeWork
     hasAuthor: [Agent]
@@ -8280,6 +8390,8 @@ type Work
     hasTranslator: [Agent]
     identifier: String
     sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
     title: String
     realizedThrough: [Expression]
   }
@@ -8290,6 +8402,7 @@ type WritingSystem
     attributionText: String
     attributionUrl: String
     authorityLink: [String]
+    cites: [CreativeWork]
     conditionsOfAccess: String
     counterpartOf: [Entity]
     description: String
@@ -8305,7 +8418,6 @@ type WritingSystem
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
-    hasSource: [Source]
     hasSpatialMeasurement: [SpatialMeasurement]
     hasStream: [Stream]
     hasTag: [Tag]

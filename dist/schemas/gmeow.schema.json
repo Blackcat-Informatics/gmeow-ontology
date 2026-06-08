@@ -798,7 +798,22 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contentDigest": {
                     "type": [
                         "string",
                         "null"
@@ -995,15 +1010,6 @@
                         "null"
                     ]
                 },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
                 "hasSpatialMeasurement": {
                     "items": {
                         "$ref": "#/$defs/SpatialMeasurement"
@@ -1136,6 +1142,19 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "sourceLocation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sourceModifiedAt": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -1307,6 +1326,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -1442,15 +1470,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -1778,6 +1797,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -1907,15 +1935,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -2185,6 +2204,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -2314,15 +2342,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -2689,6 +2708,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -2866,15 +2894,6 @@
                 "hasSequenceFeature": {
                     "items": {
                         "$ref": "#/$defs/SequenceFeature"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -3201,6 +3220,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -3330,15 +3358,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -3557,6 +3576,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -3680,15 +3708,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -3913,6 +3932,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -4036,15 +4064,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -4263,6 +4282,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -4392,15 +4420,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -4625,7 +4644,22 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contentDigest": {
                     "type": [
                         "string",
                         "null"
@@ -4840,15 +4874,6 @@
                         "null"
                     ]
                 },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
                 "hasSpatialMeasurement": {
                     "items": {
                         "$ref": "#/$defs/SpatialMeasurement"
@@ -4975,6 +5000,19 @@
                         "null"
                     ]
                 },
+                "sourceLocation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sourceModifiedAt": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "storedIn": {
                     "items": {
                         "$ref": "#/$defs/StorageLocation"
@@ -5094,6 +5132,15 @@
                 "authorityLink": {
                     "items": {
                         "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
                     },
                     "type": [
                         "array",
@@ -5229,15 +5276,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -5693,6 +5731,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -5870,15 +5917,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -6242,332 +6280,31 @@
             "title": "Certification",
             "type": "object"
         },
-        "Citation": {
+        "CitationAct": {
             "additionalProperties": false,
             "description": "",
             "properties": {
-                "acquireLicensePage": {
-                    "format": "uri",
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
-                "attributionText": {
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
-                "attributionUrl": {
-                    "format": "uri",
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
-                "authorityLink": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "citesSource": {
+                "citationIntent": {
                     "anyOf": [
                         {
-                            "$ref": "#/$defs/Source"
+                            "$ref": "#/$defs/CitationIntent"
                         },
                         {
                             "type": "null"
                         }
                     ]
                 },
-                "conditionsOfAccess": {
-                    "type": [
-                        "string",
-                        "null"
+                "citedEntity": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/CreativeWork"
+                        },
+                        {
+                            "type": "null"
+                        }
                     ]
                 },
-                "counterpartOf": {
-                    "items": {
-                        "$ref": "#/$defs/Entity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "description": {
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
-                "detectedMediaType": {
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
-                "existenceInterval": {
-                    "items": {
-                        "$ref": "#/$defs/TimeInterval"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasAccessibilityNeed": {
-                    "items": {
-                        "$ref": "#/$defs/AccessibilityFacet"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasAppellation": {
-                    "items": {
-                        "$ref": "#/$defs/Appellation"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasAttestation": {
-                    "items": {
-                        "$ref": "#/$defs/Attestation"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasCopyright": {
-                    "items": {
-                        "$ref": "#/$defs/Copyright"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasCreationEvent": {
-                    "items": {
-                        "$ref": "#/$defs/Event"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasDestructionEvent": {
-                    "items": {
-                        "$ref": "#/$defs/Event"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasLicense": {
-                    "items": {
-                        "$ref": "#/$defs/License"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasPose": {
-                    "items": {
-                        "$ref": "#/$defs/Pose"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasRightsStatement": {
-                    "items": {
-                        "$ref": "#/$defs/RightsStatement"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSensoryObservation": {
-                    "items": {
-                        "$ref": "#/$defs/SensoryObservation"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSensoryQuantity": {
-                    "items": {
-                        "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSpatialMeasurement": {
-                    "items": {
-                        "$ref": "#/$defs/SpatialMeasurement"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasStream": {
-                    "items": {
-                        "$ref": "#/$defs/Stream"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasTag": {
-                    "items": {
-                        "$ref": "#/$defs/Tag"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasTrademark": {
-                    "items": {
-                        "$ref": "#/$defs/Trademark"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasWebPage": {
-                    "items": {
-                        "$ref": "#/$defs/WebPage"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "isAbout": {
-                    "items": {
-                        "$ref": "#/$defs/Entity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "isAccessibleForFree": {
-                    "type": [
-                        "boolean",
-                        "null"
-                    ]
-                },
-                "isResultOf": {
-                    "items": {
-                        "$ref": "#/$defs/Observation"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "locatedAt": {
-                    "items": {
-                        "$ref": "#/$defs/Location"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "name": {
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
-                "proximity": {
-                    "items": {
-                        "$ref": "#/$defs/ProximityMeasurement"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "storedIn": {
-                    "items": {
-                        "$ref": "#/$defs/StorageLocation"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "supersededBy": {
-                    "items": {
-                        "$ref": "#/$defs/Entity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "supersedes": {
-                    "items": {
-                        "$ref": "#/$defs/Entity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "usageInfo": {
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
-                "versionFingerprint": {
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
-                "versionLabel": {
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
-                "versionOf": {
+                "citingEntity": {
                     "anyOf": [
                         {
                             "$ref": "#/$defs/Entity"
@@ -6577,27 +6314,9 @@
                         }
                     ]
                 },
-                "wasAttributedTo": {
+                "viaSelector": {
                     "items": {
-                        "$ref": "#/$defs/Agent"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "wasDerivedFrom": {
-                    "items": {
-                        "$ref": "#/$defs/Entity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "wasGeneratedBy": {
-                    "items": {
-                        "$ref": "#/$defs/Activity"
+                        "$ref": "#/$defs/Selector"
                     },
                     "type": [
                         "array",
@@ -6605,8 +6324,31 @@
                     ]
                 }
             },
-            "title": "Citation",
+            "title": "CitationAct",
             "type": "object"
+        },
+        "CitationIntent": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "CitationIntent",
+            "type": "object"
+        },
+        "CitationIntentEnum": {
+            "description": "",
+            "enum": [
+                "intentBridgedByReference",
+                "intentCitesAsDataSource",
+                "intentConformsTo",
+                "intentDerivedFrom",
+                "intentDisagreesWith",
+                "intentDocuments",
+                "intentExtends",
+                "intentIsInspiredBy",
+                "intentSupports",
+                "intentUsesMethodIn"
+            ],
+            "title": "CitationIntentEnum",
+            "type": "string"
         },
         "ConflictStrategy": {
             "additionalProperties": false,
@@ -6765,6 +6507,16 @@
             "additionalProperties": false,
             "description": "",
             "properties": {
+                "contributionDegree": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ContributionDegree"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
                 "contributionRole": {
                     "anyOf": [
                         {
@@ -6799,6 +6551,22 @@
             "title": "Contribution",
             "type": "object"
         },
+        "ContributionDegree": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "ContributionDegree",
+            "type": "object"
+        },
+        "ContributionDegreeEnum": {
+            "description": "",
+            "enum": [
+                "degreeEqual",
+                "degreeLead",
+                "degreeSupporting"
+            ],
+            "title": "ContributionDegreeEnum",
+            "type": "string"
+        },
         "ContributionRole": {
             "additionalProperties": false,
             "description": "",
@@ -6810,15 +6578,29 @@
             "enum": [
                 "roleAuthor",
                 "roleComposer",
+                "roleConceptualization",
                 "roleCoverArtist",
+                "roleDataCuration",
                 "roleDirector",
                 "roleEditor",
+                "roleFormalAnalysis",
+                "roleFundingAcquisition",
                 "roleIllustrator",
+                "roleInvestigation",
                 "roleLLMAssistedEditor",
                 "roleLetterer",
+                "roleMethodology",
                 "roleNarrator",
                 "rolePhotographer",
-                "roleTranslator"
+                "roleProjectAdministration",
+                "roleResources",
+                "roleSoftware",
+                "roleSupervision",
+                "roleTranslator",
+                "roleValidation",
+                "roleVisualization",
+                "roleWritingOriginalDraft",
+                "roleWritingReviewEditing"
             ],
             "title": "ContributionRoleEnum",
             "type": "string"
@@ -7105,7 +6887,22 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contentDigest": {
                     "type": [
                         "string",
                         "null"
@@ -7302,15 +7099,6 @@
                         "null"
                     ]
                 },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
                 "hasSpatialMeasurement": {
                     "items": {
                         "$ref": "#/$defs/SpatialMeasurement"
@@ -7434,6 +7222,19 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "sourceLocation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sourceModifiedAt": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -7660,6 +7461,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -7783,15 +7593,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -8010,6 +7811,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -8145,15 +7955,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -8407,6 +8208,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -8536,15 +8346,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -8809,6 +8610,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -8938,15 +8748,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -9211,7 +9012,22 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contentDigest": {
                     "type": [
                         "string",
                         "null"
@@ -9408,15 +9224,6 @@
                         "null"
                     ]
                 },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
                 "hasSpatialMeasurement": {
                     "items": {
                         "$ref": "#/$defs/SpatialMeasurement"
@@ -9549,6 +9356,19 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "sourceLocation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sourceModifiedAt": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -9745,7 +9565,22 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contentDigest": {
                     "type": [
                         "string",
                         "null"
@@ -9942,15 +9777,6 @@
                         "null"
                     ]
                 },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
                 "hasSpatialMeasurement": {
                     "items": {
                         "$ref": "#/$defs/SpatialMeasurement"
@@ -10086,6 +9912,19 @@
                         "null"
                     ]
                 },
+                "sourceLocation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sourceModifiedAt": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "storedIn": {
                     "items": {
                         "$ref": "#/$defs/StorageLocation"
@@ -10205,6 +10044,15 @@
                 "authorityLink": {
                     "items": {
                         "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
                     },
                     "type": [
                         "array",
@@ -10340,15 +10188,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -10675,6 +10514,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -10876,15 +10724,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -11210,6 +11049,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -11333,15 +11181,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -11924,6 +11763,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -12056,15 +11904,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -12341,7 +12180,22 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contentDigest": {
                     "type": [
                         "string",
                         "null"
@@ -12547,15 +12401,6 @@
                         "null"
                     ]
                 },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
                 "hasSpatialMeasurement": {
                     "items": {
                         "$ref": "#/$defs/SpatialMeasurement"
@@ -12691,6 +12536,19 @@
                         "null"
                     ]
                 },
+                "sourceLocation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sourceModifiedAt": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "storedIn": {
                     "items": {
                         "$ref": "#/$defs/StorageLocation"
@@ -12810,6 +12668,15 @@
                 "authorityLink": {
                     "items": {
                         "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
                     },
                     "type": [
                         "array",
@@ -12939,15 +12806,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -13250,6 +13108,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -13385,15 +13252,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -13836,6 +13694,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -13965,15 +13832,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -14204,6 +14062,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -14349,15 +14216,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -14618,6 +14476,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -14759,15 +14626,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -15073,6 +14931,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -15196,15 +15063,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -15811,6 +15669,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -15940,15 +15807,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -16217,7 +16075,22 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contentDigest": {
                     "type": [
                         "string",
                         "null"
@@ -16432,15 +16305,6 @@
                         "null"
                     ]
                 },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
                 "hasSpatialMeasurement": {
                     "items": {
                         "$ref": "#/$defs/SpatialMeasurement"
@@ -16564,6 +16428,19 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "sourceLocation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sourceModifiedAt": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -16851,6 +16728,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -16986,15 +16872,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -18055,6 +17932,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -18190,15 +18076,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -18515,6 +18392,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -18650,15 +18536,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -19222,6 +19099,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -19351,15 +19237,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -19631,6 +19508,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -19793,15 +19679,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -20041,6 +19918,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -20179,15 +20065,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -20805,6 +20682,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -20973,15 +20859,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -21296,6 +21173,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -21419,15 +21305,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -21729,6 +21606,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -21858,15 +21744,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -22144,7 +22021,22 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contentDigest": {
                     "type": [
                         "string",
                         "null"
@@ -22359,15 +22251,6 @@
                         "null"
                     ]
                 },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
                 "hasSpatialMeasurement": {
                     "items": {
                         "$ref": "#/$defs/SpatialMeasurement"
@@ -22491,6 +22374,19 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "sourceLocation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sourceModifiedAt": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -22640,6 +22536,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -22769,15 +22674,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -23002,6 +22898,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -23125,15 +23030,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -23443,7 +23339,22 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contentDigest": {
                     "type": [
                         "string",
                         "null"
@@ -23658,15 +23569,6 @@
                         "null"
                     ]
                 },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
                 "hasSpatialMeasurement": {
                     "items": {
                         "$ref": "#/$defs/SpatialMeasurement"
@@ -23790,6 +23692,19 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "sourceLocation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sourceModifiedAt": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -23949,6 +23864,15 @@
                 "authorityLink": {
                     "items": {
                         "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
                     },
                     "type": [
                         "array",
@@ -24149,15 +24073,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -24433,6 +24348,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -24616,15 +24540,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -24923,6 +24838,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -25052,15 +24976,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -25430,6 +25345,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -25559,15 +25483,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -25990,6 +25905,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -26113,15 +26037,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -26454,6 +26369,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -26657,15 +26581,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -26937,6 +26852,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -27060,15 +26984,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -27592,6 +27507,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -27715,15 +27639,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -27964,6 +27879,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -28093,15 +28017,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -28573,6 +28488,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -28702,15 +28626,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -28977,6 +28892,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -29106,15 +29030,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -29474,7 +29389,22 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contentDigest": {
                     "type": [
                         "string",
                         "null"
@@ -29671,15 +29601,6 @@
                         "null"
                     ]
                 },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
                 "hasSpatialMeasurement": {
                     "items": {
                         "$ref": "#/$defs/SpatialMeasurement"
@@ -29812,6 +29733,19 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "sourceLocation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sourceModifiedAt": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -30375,6 +30309,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -30498,15 +30441,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -30728,6 +30662,15 @@
                 "authorityLink": {
                     "items": {
                         "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
                     },
                     "type": [
                         "array",
@@ -30983,15 +30926,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -31525,6 +31459,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -31666,15 +31609,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -31971,6 +31905,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -32100,15 +32043,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -32423,6 +32357,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -32552,15 +32495,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -32819,6 +32753,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -32954,15 +32897,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -33284,6 +33218,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -33413,15 +33356,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -33931,6 +33865,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -34054,15 +33997,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -34281,6 +34215,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -34410,15 +34353,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -34643,6 +34577,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -34837,15 +34780,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -35163,6 +35097,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -35286,15 +35229,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -35677,6 +35611,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -35806,15 +35749,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -36322,6 +36256,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -36454,15 +36397,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -36788,6 +36722,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -36917,15 +36860,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -37190,6 +37124,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -37313,15 +37256,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -37540,6 +37474,386 @@
             "title": "ScriptRoleEnum",
             "type": "string"
         },
+        "Selector": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "acquireLicensePage": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionText": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionUrl": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "authorityLink": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "counterpartOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "detectedMediaType": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "existenceInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAccessibilityNeed": {
+                    "items": {
+                        "$ref": "#/$defs/AccessibilityFacet"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAppellation": {
+                    "items": {
+                        "$ref": "#/$defs/Appellation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAttestation": {
+                    "items": {
+                        "$ref": "#/$defs/Attestation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCopyright": {
+                    "items": {
+                        "$ref": "#/$defs/Copyright"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCreationEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDestructionEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLicense": {
+                    "items": {
+                        "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasPose": {
+                    "items": {
+                        "$ref": "#/$defs/Pose"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasRightsStatement": {
+                    "items": {
+                        "$ref": "#/$defs/RightsStatement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryObservation": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryObservation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryQuantity": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryQuantity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSpatialMeasurement": {
+                    "items": {
+                        "$ref": "#/$defs/SpatialMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasStream": {
+                    "items": {
+                        "$ref": "#/$defs/Stream"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTag": {
+                    "items": {
+                        "$ref": "#/$defs/Tag"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTrademark": {
+                    "items": {
+                        "$ref": "#/$defs/Trademark"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasWebPage": {
+                    "items": {
+                        "$ref": "#/$defs/WebPage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAccessibleForFree": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "isResultOf": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "locatedAt": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "proximity": {
+                    "items": {
+                        "$ref": "#/$defs/ProximityMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "selectorLocator": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "selectorPage": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "selectorTextPosition": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "selectorTextQuote": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "storedIn": {
+                    "items": {
+                        "$ref": "#/$defs/StorageLocation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersededBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersedes": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "usageInfo": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionFingerprint": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionLabel": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "wasAttributedTo": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasDerivedFrom": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasGeneratedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Activity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Selector",
+            "type": "object"
+        },
         "SensitivityLevel": {
             "additionalProperties": false,
             "description": "",
@@ -37719,6 +38033,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -37842,15 +38165,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -38078,6 +38392,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -38247,15 +38570,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -38732,6 +39046,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -38855,15 +39178,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -39082,6 +39396,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -39205,15 +39528,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -39464,6 +39778,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -39596,15 +39919,6 @@
                 "hasSequenceCoordinates": {
                     "items": {
                         "$ref": "#/$defs/SequenceCoordinates"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -39851,7 +40165,22 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contentDigest": {
                     "type": [
                         "string",
                         "null"
@@ -40066,15 +40395,6 @@
                         "null"
                     ]
                 },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
                 "hasSpatialMeasurement": {
                     "items": {
                         "$ref": "#/$defs/SpatialMeasurement"
@@ -40198,6 +40518,19 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "sourceLocation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sourceModifiedAt": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -40406,6 +40739,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -40529,15 +40871,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -40756,6 +41089,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -40885,15 +41227,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -41312,7 +41645,22 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contentDigest": {
                     "type": [
                         "string",
                         "null"
@@ -41536,15 +41884,6 @@
                         "null"
                     ]
                 },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
                 "hasSpatialMeasurement": {
                     "items": {
                         "$ref": "#/$defs/SpatialMeasurement"
@@ -41680,6 +42019,19 @@
                         "null"
                     ]
                 },
+                "sourceLocation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sourceModifiedAt": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "storedIn": {
                     "items": {
                         "$ref": "#/$defs/StorageLocation"
@@ -41781,7 +42133,7 @@
             "title": "SoftwareProject",
             "type": "object"
         },
-        "Source": {
+        "SourceRole": {
             "additionalProperties": false,
             "description": "",
             "properties": {
@@ -41814,6 +42166,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -41835,6 +42196,13 @@
                         "null"
                     ]
                 },
+                "datePublished": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -41845,6 +42213,16 @@
                     "type": [
                         "string",
                         "null"
+                    ]
+                },
+                "editionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/CreativeWork"
+                        },
+                        {
+                            "type": "null"
+                        }
                     ]
                 },
                 "existenceInterval": {
@@ -41883,6 +42261,24 @@
                         "null"
                     ]
                 },
+                "hasAuthor": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasContributor": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasCopyright": {
                     "items": {
                         "$ref": "#/$defs/Copyright"
@@ -41910,9 +42306,36 @@
                         "null"
                     ]
                 },
+                "hasEditor": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasIllustrator": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasLicense": {
                     "items": {
                         "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasNarrator": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
                     },
                     "type": [
                         "array",
@@ -41955,15 +42378,6 @@
                         "null"
                     ]
                 },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
                 "hasSpatialMeasurement": {
                     "items": {
                         "$ref": "#/$defs/SpatialMeasurement"
@@ -41991,9 +42405,27 @@
                         "null"
                     ]
                 },
+                "hasTitle": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWorkTitle"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasTrademark": {
                     "items": {
                         "$ref": "#/$defs/Trademark"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTranslator": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
                     },
                     "type": [
                         "array",
@@ -42006,6 +42438,12 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "identifier": {
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -42057,6 +42495,15 @@
                         "null"
                     ]
                 },
+                "sourceFor": {
+                    "items": {
+                        "$ref": "#/$defs/NarrativeReferenceFrame"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "sourceLocation": {
                     "type": [
                         "string",
@@ -42094,6 +42541,12 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -42153,7 +42606,7 @@
                     ]
                 }
             },
-            "title": "Source",
+            "title": "SourceRole",
             "type": "object"
         },
         "SpatialAggregation": {
@@ -42308,6 +42761,15 @@
                 "authorityLink": {
                     "items": {
                         "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
                     },
                     "type": [
                         "array",
@@ -42563,15 +43025,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -42922,6 +43375,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -43055,15 +43517,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -43382,6 +43835,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -43505,15 +43967,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -43950,6 +44403,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -44118,15 +44580,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -44507,6 +44960,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -44630,15 +45092,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -44904,6 +45357,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -45033,15 +45495,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -45269,6 +45722,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -45398,15 +45860,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -45662,6 +46115,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -45791,15 +46253,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -46080,6 +46533,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -46304,15 +46766,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -46767,7 +47220,22 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contentDigest": {
                     "type": [
                         "string",
                         "null"
@@ -46964,15 +47432,6 @@
                         "null"
                     ]
                 },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
                 "hasSpatialMeasurement": {
                     "items": {
                         "$ref": "#/$defs/SpatialMeasurement"
@@ -47108,6 +47567,19 @@
                         "null"
                     ]
                 },
+                "sourceLocation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sourceModifiedAt": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "storedIn": {
                     "items": {
                         "$ref": "#/$defs/StorageLocation"
@@ -47227,6 +47699,15 @@
                 "authorityLink": {
                     "items": {
                         "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
                     },
                     "type": [
                         "array",
@@ -47362,15 +47843,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -47757,6 +48229,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -47880,15 +48361,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -48198,6 +48670,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -48321,15 +48802,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -48602,6 +49074,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -48731,15 +49212,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -49027,7 +49499,7 @@
                 },
                 "attestedInSource": {
                     "items": {
-                        "$ref": "#/$defs/Source"
+                        "$ref": "#/$defs/CreativeWork"
                     },
                     "type": [
                         "array",
@@ -49537,6 +50009,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -49666,15 +50147,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -50119,6 +50591,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -50248,15 +50729,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -50491,6 +50963,15 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
                     "type": [
                         "string",
@@ -50668,15 +51149,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",
@@ -51027,7 +51499,22 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contentDigest": {
                     "type": [
                         "string",
                         "null"
@@ -51242,15 +51729,6 @@
                         "null"
                     ]
                 },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
                 "hasSpatialMeasurement": {
                     "items": {
                         "$ref": "#/$defs/SpatialMeasurement"
@@ -51374,6 +51852,19 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "sourceLocation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sourceModifiedAt": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -51502,7 +51993,22 @@
                         "null"
                     ]
                 },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contentDigest": {
                     "type": [
                         "string",
                         "null"
@@ -51699,15 +52205,6 @@
                         "null"
                     ]
                 },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
                 "hasSpatialMeasurement": {
                     "items": {
                         "$ref": "#/$defs/SpatialMeasurement"
@@ -51843,6 +52340,19 @@
                         "null"
                     ]
                 },
+                "sourceLocation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sourceModifiedAt": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "storedIn": {
                     "items": {
                         "$ref": "#/$defs/StorageLocation"
@@ -51962,6 +52472,15 @@
                 "authorityLink": {
                     "items": {
                         "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
                     },
                     "type": [
                         "array",
@@ -52097,15 +52616,6 @@
                 "hasSensoryQuantity": {
                     "items": {
                         "$ref": "#/$defs/SensoryQuantity"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "hasSource": {
-                    "items": {
-                        "$ref": "#/$defs/Source"
                     },
                     "type": [
                         "array",

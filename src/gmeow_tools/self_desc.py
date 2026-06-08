@@ -57,7 +57,11 @@ def load_self_description(path: Path | None = None) -> SelfDescription:
 
     work = URIRef("https://blackcatinformatics.ca/gmeow")
 
-    # Select the first URI subject that carries gmeow:versionFingerprint.
+    # In FRBR terms the Work is the abstract entity; the Manifestation is a
+    # specific version/edition.  The self-description Turtle asserts a
+    # separate Manifestation URI (not the Work URI) that carries the version
+    # fingerprint and publication date.  We discover it dynamically by looking
+    # for any URI subject with gmeow:versionFingerprint.
     manifestation = None
     for subj in g.subjects(GMEOW.versionFingerprint, None):
         if isinstance(subj, URIRef):
