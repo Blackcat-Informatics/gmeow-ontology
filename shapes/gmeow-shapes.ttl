@@ -1692,3 +1692,27 @@ gmeow:RetractedAccessibilityAssertionShape
             }
         """ ;
     ] .
+
+gmeow:GeocodeShape
+    a sh:NodeShape ;
+    rdfs:label "Geocode well-formedness shape" ;
+    skos:definition "Enforces that a Geocode carries exactly one code value in exactly one reference frame. sh:xone (not sh:or) is intentional: a single Geocode instance represents one code in one system; competing or supplementary codes for the same place are modeled as multiple Geocode instances linked via gmeow:hasGeocode, coexisting as standpoint-indexed claims per Principle 9."@en ;
+    sh:targetClass gmeow:Geocode ;
+    sh:property [
+        sh:path gmeow:geocodeFrame ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Geocode must declare exactly one reference frame (gmeow:geocodeFrame)." ;
+    ] ;
+    sh:xone (
+        [ sh:path gmeow:geocodeValue ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:Literal ]
+        [ sh:path gmeow:plusCode ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ]
+        [ sh:path gmeow:what3words ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ]
+        [ sh:path gmeow:geohash ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ]
+        [ sh:path gmeow:mgrs ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ]
+        [ sh:path gmeow:unLocode ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ]
+        [ sh:path gmeow:mileMarker ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ]
+        [ sh:path gmeow:hasCoordinateMatrix ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:Literal ]
+    ) ;
+    sh:severity sh:Violation ;
+    sh:message "A Geocode must carry exactly one code value: geocodeValue, plusCode, what3words, geohash, mgrs, unLocode, mileMarker, or hasCoordinateMatrix." .

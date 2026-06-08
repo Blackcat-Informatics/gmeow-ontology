@@ -127,6 +127,95 @@ gmeow:CelestialCoordinates
     skos:definition "A point on the celestial sphere expressed as right ascension, declination, and an optional epoch — frame-relative per Principle 11. The reference frame (ICRS, FK5, Galactic, etc.) is declared via gmeow:coordinateFrame."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+# --------------------------------------------------------------------------- #
+# Geocode — alternative geocoding systems over Earth (#91)
+# --------------------------------------------------------------------------- #
+# Each geocode is a string code in an explicit ReferenceFrame (Plus Codes,
+# what3words, geohash, MGRS, UN/LOCODE, mile-marker). Conversion to WGS84 is
+# solver-layer (P12). The code may be carried by gmeow:hasCoordinateMatrix
+# (treated as a 1×1 identifier matrix) or by the per-system datatype props.
+# --------------------------------------------------------------------------- #
+
+gmeow:Geocode
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Geocode"@en ;
+    skos:definition "A geographic location code expressed in an alternative geocoding reference frame — a Plus Code, what3words address, geohash, MGRS grid reference, UN/LOCODE, or linear-referencing mile-marker."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasGeocode
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Place ;
+    rdfs:range gmeow:Geocode ;
+    rdfs:label "has geocode"@en ;
+    skos:definition "Relates a place to an alternative geocoding identifier expressed in a specific reference frame. Non-functional: a place may have multiple geocodes in different systems, and competing geocodes for the same system may coexist as standpoint-indexed claims (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:geocodeFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+    rdfs:domain gmeow:Geocode ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "geocode frame"@en ;
+    skos:definition "The geocoding reference frame in which this code is expressed. Functional: a geocode is expressed in exactly one frame."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:geocodeValue
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Geocode ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "geocode value"@en ;
+    skos:definition "The string value of a geocode in its reference frame — the canonical literal carrier. Per-system properties (plusCode, what3words, …) are convenience accessors; a single Geocode instance carries exactly one code value (enforced by SHACL)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:plusCode
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Geocode ;
+    rdfs:range xsd:string ;
+    rdfs:label "Plus Code"@en ;
+    skos:definition "An Open Location Code (Plus Code) — a geocoding system using alphanumeric codes to identify any location on Earth (e.g. '9F4W9C8C+W4')."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:what3words
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Geocode ;
+    rdfs:range xsd:string ;
+    rdfs:label "what3words"@en ;
+    skos:definition "A what3words address — three words that identify a 3m×3m square on Earth (e.g. 'filled.county.limes')."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:geohash
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Geocode ;
+    rdfs:range xsd:string ;
+    rdfs:label "geohash"@en ;
+    skos:definition "A geohash string — a hierarchical spatial indexing system encoding latitude and longitude into a base32 string (e.g. 'u4pruydqqvj')."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:mgrs
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Geocode ;
+    rdfs:range xsd:string ;
+    rdfs:label "MGRS"@en ;
+    skos:definition "A Military Grid Reference System coordinate — a geocoordinate standard used by NATO militaries (e.g. '33TWN00020001')."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:unLocode
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Geocode ;
+    rdfs:range xsd:string ;
+    rdfs:label "UN/LOCODE"@en ;
+    skos:definition "A UN/LOCODE — a five-character code identifying transport-related locations (ports, airports, rail terminals) worldwide (e.g. 'GBLHR')."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:mileMarker
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Geocode ;
+    rdfs:range xsd:string ;
+    rdfs:label "mile marker"@en ;
+    skos:definition "A linear-referencing mile-marker or chainage — a distance-along-a-line coordinate on a linear feature such as a road, railway, or pipeline (e.g. '42.3'). The unit and direction are solver-layer attributes (Principle 12), or may be declared via gmeow:hasUnit."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:Geometry
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
@@ -624,6 +713,10 @@ gmeow:frameKindLatentSpace   a gmeow:FrameKind ; rdfs:label "latent vector space
     skos:definition "A compressed, lower-dimensional representation space learned by a neural network or other statistical model. Similarity is measured by cosine or Euclidean metrics."@en .
 gmeow:frameKindConfigurationSpace a gmeow:FrameKind ; rdfs:label "configuration space"@en ;
     skos:definition "A smooth manifold representing the set of all possible configurations of a robot mechanism, with joint-limit boundaries constraining valid regions. Distance is measured along geodesics on the manifold surface, subject to joint limits. The actual manifold geometry and collision-aware path planning live in the solver layer (Principle 12)."@en .
+gmeow:frameKindGeocoding a gmeow:FrameKind ; rdfs:label "geocoding / discrete location code"@en ;
+    skos:definition "A frame whose structure is defined by a discrete location-coding scheme (Plus Code, what3words, geohash, MGRS) that partitions the Earth's surface into named cells. Distance is measured by geodesic proximity of the decoded coordinates, not by the code string itself (Principle 12)."@en .
+gmeow:frameKindLinear a gmeow:FrameKind ; rdfs:label "linear referencing / distance-along"@en ;
+    skos:definition "A one-dimensional frame defined by distance along a linear feature (road, railway, pipeline). The coordinate is a scalar chainage or mile-marker; conversion to 2D/3D geographic coordinates requires the linear feature's geometry and is performed by the solver layer (Principle 12)."@en .
 
 gmeow:frameKindLinearSequence a gmeow:FrameKind ; rdfs:label "linear sequence"@en ;
     skos:definition "A one-dimensional coordinate system along a linear biological sequence (DNA, RNA, protein). Positions are integer offsets from a sequence origin; distance is measured in base pairs or amino-acid residues (edit-distance / sequence-alignment metric)."@en .
@@ -759,10 +852,17 @@ gmeow:axisAngularVelocityX      a gmeow:Axis ; rdfs:label "angular velocity X ax
 gmeow:axisAngularVelocityY      a gmeow:Axis ; rdfs:label "angular velocity Y axis"@en .
 gmeow:axisAngularVelocityZ      a gmeow:Axis ; rdfs:label "angular velocity Z axis"@en .
 
+# Geocoding axes (#91)
+gmeow:axisPlusCode         a gmeow:Axis ; rdfs:label "Plus Code cell"@en .
+gmeow:axisWhat3Words       a gmeow:Axis ; rdfs:label "what3words word triple"@en .
+gmeow:axisGeohash          a gmeow:Axis ; rdfs:label "geohash string"@en .
+gmeow:axisMGRS             a gmeow:Axis ; rdfs:label "MGRS grid reference"@en .
+gmeow:axisUNLocode         a gmeow:Axis ; rdfs:label "UN/LOCODE code"@en .
+gmeow:axisMileMarker       a gmeow:Axis ; rdfs:label "mile marker / chainage"@en .
+
 # Biological-sequence axis (#90)
 gmeow:axisSequencePosition     a gmeow:Axis ; rdfs:label "sequence position"@en ;
     skos:definition "The linear position axis along a biological sequence (DNA, RNA, protein), measured in base pairs or amino-acid residues from a sequence origin."@en .
-
 # Default Reference Frames for the seed realms
 gmeow:referenceFrameWGS84
     a gmeow:ReferenceFrame ;
@@ -1208,11 +1308,12 @@ gmeow:hasCoordinateMatrix
             gmeow:Axis
             gmeow:Pose
             gmeow:SpatialCoordinates
+            gmeow:Geocode
         )
     ] ;
     rdfs:range rdfs:Literal ;
     rdfs:label "has coordinate matrix"@en ;
-    skos:definition "Specifies a transformation or projection matrix associated with a coordinate axis, a homogeneous 4×4 pose matrix combining translation and rotation, or a general n-D coordinate matrix (e.g. latent vector, configuration-space joint angles) on a SpatialCoordinates instance."@en ;
+    skos:definition "Specifies a transformation or projection matrix associated with a coordinate axis, a homogeneous 4×4 pose matrix combining translation and rotation, a general n-D coordinate matrix (e.g. latent vector, configuration-space joint angles) on a SpatialCoordinates instance, or a geocode identifier string on a Geocode instance (treated as a 1×1 identifier matrix, Principle 11)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasPose
@@ -2071,3 +2172,77 @@ gmeow:referenceFrameGRCh38
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricPositionalDistance .
+
+# --------------------------------------------------------------------------- #
+# Geocoding Reference Frames (#91)
+# --------------------------------------------------------------------------- #
+# Alternative geocoding systems as ReferenceFrames over Earth. The code value
+# is carried on a Geocode instance via gmeow:hasCoordinateMatrix (identifier)
+# or the per-system datatype property. Conversion to WGS84 = solver (P12).
+# --------------------------------------------------------------------------- #
+
+gmeow:referenceFramePlusCode
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Plus Code (Open Location Code) Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+    gmeow:hasAxis gmeow:axisPlusCode ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindGeocoding ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGeodesic .
+
+gmeow:referenceFrameWhat3Words
+    a gmeow:ReferenceFrame ;
+    rdfs:label "what3words Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+    gmeow:hasAxis gmeow:axisWhat3Words ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindGeocoding ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGeodesic .
+
+gmeow:referenceFrameGeohash
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Geohash Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+    gmeow:hasAxis gmeow:axisGeohash ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindGeocoding ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGeodesic .
+
+gmeow:referenceFrameMGRS
+    a gmeow:ReferenceFrame ;
+    rdfs:label "MGRS Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+    gmeow:hasAxis gmeow:axisMGRS ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindGeocoding ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGeodesic .
+
+gmeow:referenceFrameUNLocode
+    a gmeow:ReferenceFrame ;
+    rdfs:label "UN/LOCODE Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+    gmeow:hasAxis gmeow:axisUNLocode ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindGeocoding ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricGraphHops .
+
+gmeow:referenceFrameMileMarker
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Linear Referencing (Mile Marker) Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+    gmeow:hasAxis gmeow:axisMileMarker ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindLinear ;
+    gmeow:requiresHost true ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:hasMetricKind gmeow:metricEuclidean .

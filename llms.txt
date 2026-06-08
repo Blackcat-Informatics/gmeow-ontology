@@ -77,6 +77,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:GenderExpressionStyle (⊑ gufo:QualityValue): A style of gender expression — a VALUE pointed at by gmeow:expressionValue, never a subclass. Open: a style not seeded here is a fresh individual with rdfs:label.
 - gmeow:GenderIdentity (⊑ gmeow:IdentityFacet): A person's SELF-ASSERTED gender identity — what they are — as a reified facet pointing (via gmeow:genderValue) to an open gmeow:Gender value. Independent of pronouns/honorifics (address), of gender expression, and of sex-assigned-at-birth; nothing infers any of these from another. Multiple co-equal GenderIdentity facets express bigender/genderfluid/transition without privileging any.
 - gmeow:GeoCoordinates (⊑ gmeow:Entity): A geographic point expressed as latitude, longitude, and optional elevation.
+- gmeow:Geocode (⊑ gmeow:Entity): A geographic location code expressed in an alternative geocoding reference frame — a Plus Code, what3words address, geohash, MGRS grid reference, UN/LOCODE, or linear-referencing mile-marker.
 - gmeow:Geometry (⊑ gmeow:Entity, gufo:Object): The spatial extent of a place — a point, line, or polygon — carrying a Well-Known Text (WKT) serialization for shapes richer than a single point (the GeoSPARQL geo:Geometry superset).
 - gmeow:GeometryType (⊑ gufo:QualityValue): The structural kind of a geometry (point, line, polygon, multipoint, multilinestring, multipolygon). A value vocabulary (individuals, never subclasses) aligned by reference to GeoSPARQL simple-features (sf:Point, sf:LineString, sf:Polygon, etc.).
 - gmeow:GrammaticalAspect (⊑ gufo:QualityValue): The grammatical aspect of an event mention in text — a VALUE vocabulary for ISO-TimeML interoperability (perfective / progressive / perfective-progressive / none).
@@ -379,6 +380,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:fullName [gmeow:Appellation → rdfs:Literal]: The complete surface form of an appellation as a single string, in the natural order of its culture (language-/script-tag the literal, e.g. "山田太郎"@ja, "Yamada Tarō"@ja-Latn). Authoritative for display. Non-functional: spellings/transliterations from different sources coexist.
 - gmeow:genderValue [gmeow:GenderIdentity → gmeow:Gender] (functional): The gmeow:Gender value a gender-identity facet asserts (functional PER FACET — one value each; multiplicity is expressed by multiple facets). The value is a gmeow:Gender individual: a predefined one, or — when none fits — a fresh individual carrying rdfs:label (the custom-PronounSet idiom). The single path to the gender value; there is deliberately no flat datatype shortcut.
 - gmeow:generalizesVia: Projection-compiler guidance naming the transitive part/whole property to walk when coarsening a value (e.g. gmeow:containedInPlace for places). Defaults to gmeow:partOf when absent. An annotation property — it directs generalization without imposing logical semantics, keeping the core OWL 2 DL.
+- gmeow:geocodeFrame [gmeow:Geocode → gmeow:ReferenceFrame] (functional): The geocoding reference frame in which this code is expressed. Functional: a geocode is expressed in exactly one frame.
+- gmeow:geocodeValue [gmeow:Geocode → rdfs:Literal] (functional): The string value of a geocode in its reference frame — the canonical literal carrier. Per-system properties (plusCode, what3words, …) are convenience accessors; a single Geocode instance carries exactly one code value (enforced by SHACL).
+- gmeow:geohash [gmeow:Geocode → xsd:string] (functional): A geohash string — a hierarchical spatial indexing system encoding latitude and longitude into a base32 string (e.g. 'u4pruydqqvj').
 - gmeow:geometryDeterminacy [gmeow:Geometry → gmeow:Determinacy]: The ontic determinacy model of a geometry's boundary — crisp (surveyed), vague (approximate), fuzzy (probabilistic), or disputed. Non-functional: competing source classifications coexist.
 - gmeow:geometryType [gmeow:Geometry → gmeow:GeometryType]: The structural kind of a geometry (a gmeow:GeometryType individual). Non-functional: competing source classifications may differ (e.g. polygon vs multipolygon) and must coexist as evidence.
 - gmeow:hasAccessibilityFeature [gmeow:Location → gmeow:AccessibilityFacet]: Relates a location to an accessibility facet it positively provides. Non-functional: a location may support many facets. A location MAY simultaneously carry hasAccessibilityFeature and hasBarrier for the SAME facet (e.g. a ramp at the front entrance and stairs at the side entrance).
@@ -399,7 +403,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasCentroid [gmeow:Place → gmeow:Geometry]: The geometric centroid of a place — a flat shortcut for the common case. The full relator form is a SpatialAggregation with aggregationFunction aggCentroid, carrying provenance, frame, and solver reference.
 - gmeow:hasChild [gmeow:Person → gmeow:Person]: Relates a person to a child; the inverse of hasParent.
 - gmeow:hasContactPoint [gmeow:Agent → gmeow:ContactPoint]: Relates an agent to a means of contacting it.
-- gmeow:hasCoordinateMatrix [gmeow:Axis | gmeow:Pose | gmeow:SpatialCoordinates → rdfs:Literal]: Specifies a transformation or projection matrix associated with a coordinate axis, a homogeneous 4×4 pose matrix combining translation and rotation, or a general n-D coordinate matrix (e.g. latent vector, configuration-space joint angles) on a SpatialCoordinates instance.
+- gmeow:hasCoordinateMatrix [gmeow:Axis | gmeow:Pose | gmeow:SpatialCoordinates | gmeow:Geocode → rdfs:Literal]: Specifies a transformation or projection matrix associated with a coordinate axis, a homogeneous 4×4 pose matrix combining translation and rotation, a general n-D coordinate matrix (e.g. latent vector, configuration-space joint angles) on a SpatialCoordinates instance, or a geocode identifier string on a Geocode instance (treated as a 1×1 identifier matrix, Principle 11).
 - gmeow:hasCoordinates [gmeow:Place → gmeow:GeoCoordinates]: Relates a place to its geographic point coordinates.
 - gmeow:hasCopyright [gmeow:Entity → gmeow:Copyright]: Relates a work to its reified copyright.
 - gmeow:hasCreationEvent [gmeow:Entity → gmeow:Event]: Links an entity to the event that brought it into existence — the general form of birth (person), founding (organization), minting (currency), or realization (reference frame). Non-functional: competing standpoint-indexed creation claims coexist, none privileged. A Person's birth event is ALSO typed gmeow:eventTypeBirth (co-equal value, not a subclass).
@@ -414,6 +418,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasFather [gmeow:Person → gmeow:Person]: Relates a person to a male parent.
 - gmeow:hasGenderExpression [gmeow:Person → gmeow:GenderExpression]: Relates a person to a self-asserted gender-expression facet. Non-functional and contextual. MUST NOT be inferred from gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics.
 - gmeow:hasGenderIdentity [gmeow:Person → gmeow:GenderIdentity]: Relates a person to a self-asserted gender-identity facet they hold. Non-functional and contextual — a person bears many co-equal identities; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasPronounSet, gmeow:honorific, gmeow:hasGenderExpression or gmeow:sexAssignedAtBirth.
+- gmeow:hasGeocode [gmeow:Place → gmeow:Geocode]: Relates a place to an alternative geocoding identifier expressed in a specific reference frame. Non-functional: a place may have multiple geocodes in different systems, and competing geocodes for the same system may coexist as standpoint-indexed claims (Principle 9).
 - gmeow:hasGeometry [gmeow:Place → gmeow:Geometry]: Relates a place to its spatial geometry (point, line, or polygon).
 - gmeow:hasGranularity [? → gmeow:GranularityLevel]: Relates a value, place, period, coordinate or measurement to its own resolution level — the explicit 'no silent precision' facet, queryable independently of any disclosure control. Domain-free. NOT functional: in a multi-source merge sources may state different resolutions, and those claims coexist rather than force the reasoner to collapse distinct levels.
 - gmeow:hasHeader [gmeow:Message → gmeow:MessageHeader]: Relates a message to one of its RFC 5322 headers.
@@ -567,6 +572,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:membershipMember [gmeow:Membership → gmeow:Agent] (functional): The agent whose membership a gmeow:Membership reifies. Functional — a membership concerns one member (the relator's member role); the flat gmeow:memberOf is the agent→organization shortcut, this connects the reified relator to its member so role and period can be carried.
 - gmeow:membershipOrganization [gmeow:Membership → gmeow:Organization] (functional): The organization a gmeow:Membership is in. Functional — a membership concerns one organization (which may be a department, i.e. a gmeow:subOrganizationOf a larger org).
 - gmeow:metBy [gmeow:Event → gmeow:Event]: Allen MET-BY: this event begins exactly when the related event ends; inverse of gmeow:meets. (= time:intervalMetBy; TimeML IAFTER; TEO metBy.)
+- gmeow:mgrs [gmeow:Geocode → xsd:string] (functional): A Military Grid Reference System coordinate — a geocoordinate standard used by NATO militaries (e.g. '33TWN00020001').
+- gmeow:mileMarker [gmeow:Geocode → xsd:string] (functional): A linear-referencing mile-marker or chainage — a distance-along-a-line coordinate on a linear feature such as a road, railway, or pipeline (e.g. '42.3'). The unit and direction are solver-layer attributes (Principle 12), or may be declared via gmeow:hasUnit.
 - gmeow:minimumPopulation [gmeow:SpatialAggregation → xsd:nonNegativeInteger] (functional): The minimum population size (k) required for the aggregation result to be disclosed — the k-anonymity parameter. A result failing this check is suppressed at projection time (coarsen or withhold, Principle 10), never deleted.
 - gmeow:name [gmeow:Entity → rdfs:Literal]: A simple label by which an entity is known — the rdfs:label tier, for entities that do not need the full naming apparatus (organizations, software agents, sources, keys). Persons' names are modelled as gmeow:PersonName (names module); a flat given/family ('First Last') rendering is produced by downcasting that structured model in the projection layer, not stored here. Carries no precedence over an entity's other names. Language-tag the literal where applicable.
 - gmeow:nameLanguage [gmeow:Appellation → gmeow:Language] (functional): The first-class gmeow:Language an appellation's surface form is in. Language is ALWAYS a first-class gmeow:Language (registry-INDEPENDENT, self-minted IRI) — never a bare BCP-47 literal; codes (e.g. "ja", "zh") live on the Language via gmeow:languageCode, so a code-less conlang or AI-minted language names co-equally. FUNCTIONAL — exactly one language per appellation: co-equal multilingual names are modelled as SEPARATE co-equal gmeow:Appellation instances (one per language), never by multi-tagging a single name (that is what keeps naming anti-colonial and symmetric). Drives locale-relative, symmetric display selection — never a ranking of one name above another. The script the form is written in is gmeow:nameScript (bridging to a first-class gmeow:WritingSystem).
@@ -628,6 +635,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:placeSupersededBy [gmeow:Place → gmeow:Place]: Links a place to the place that replaced it — Constantinople placeSupersededBy Istanbul, a merged municipality placeSupersededBy its successor. Directional. The superseded place is retained (never deleted) and may carry gmeow:displayable false.
 - gmeow:placeSupersedes [gmeow:Place → gmeow:Place]: Links a newer place to a prior one it supersedes. Inverse of gmeow:placeSupersededBy. Non-functional: one successor may consolidate several predecessors.
 - gmeow:placeType [gmeow:Place → gmeow:PlaceType]: The kind(s) of a place (one or more gmeow:PlaceType individuals). Non-functional: multi-source classifications may differ (a place that is both 'city' and 'administrative area') and must coexist as evidence.
+- gmeow:plusCode [gmeow:Geocode → xsd:string] (functional): An Open Location Code (Plus Code) — a geocoding system using alphanumeric codes to identify any location on Earth (e.g. '9F4W9C8C+W4').
 - gmeow:poseFrame [gmeow:Pose → gmeow:ReferenceFrame]: The coordinate reference frame in which the pose position and orientation are expressed.
 - gmeow:postOfficeBox [gmeow:PostalAddress → rdfs:Literal]: The post-office-box of a postal address.
 - gmeow:postalCode [gmeow:PostalAddress → rdfs:Literal]: The postal/ZIP code of a postal address.
@@ -778,6 +786,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:trustLevel [gmeow:TrustAssertion → rdfs:Literal] (functional): The degree of owner-trust expressed: ultimate, full, marginal, or none.
 - gmeow:trustee [gmeow:TrustAssertion → gmeow:Agent] (functional): The agent that is trusted by the trustor in a trust-assertion.
 - gmeow:trustor [gmeow:TrustAssertion → gmeow:Agent] (functional): The agent whose (subjective) trust a trust-assertion expresses — the perspective holder.
+- gmeow:unLocode [gmeow:Geocode → xsd:string] (functional): A UN/LOCODE — a five-character code identifying transport-related locations (ports, airports, rail terminals) worldwide (e.g. 'GBLHR').
 - gmeow:usageAppellation [gmeow:NameUsage → gmeow:Appellation] (functional): The appellation used to call the named entity in a name-usage.
 - gmeow:usageAudience [gmeow:NameUsage → gmeow:Entity]: The audience or scope in which the appellation is used — an Agent, a Group/Family, or a locale community. Range is gmeow:Entity to admit all of them. Non-functional. ('Aunt Genny' is used toward the family; 欧德理 toward a Sinophone audience.)
 - gmeow:usageAuthority [gmeow:NameUsage → gmeow:Agent]: The naming / toponymic authority behind a name-usage — the gmeow:Agent (a national mapping agency, a standards body, an indigenous community, or a self-asserting individual) that confers or sanctions the appellation in this use. NON-FUNCTIONAL: joint or competing authorities coexist with no privileged claimant (anti-colonial, Principle 9), each attributable and confidence-weighted. (Introduced as namingAuthority by issue #105; named usageAuthority for usage* consistency.)
@@ -808,6 +817,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:wasAttributedTo [gmeow:Entity → gmeow:Agent]: Ascribes responsibility for an entity to an agent.
 - gmeow:wasDerivedFrom [gmeow:Entity → gmeow:Entity]: Relates a derived entity to the entity it was derived from — e.g. a text extraction, summary, or embedding to its source. The derivation's confidence and generating agent are recorded with gmeow:confidence and gmeow:wasGeneratedBy.
 - gmeow:wasGeneratedBy [gmeow:Entity → gmeow:Activity]: Relates an entity to the activity that produced it.
+- gmeow:what3words [gmeow:Geocode → xsd:string] (functional): A what3words address — three words that identify a 3m×3m square on Earth (e.g. 'filled.county.limes').
 - gmeow:writingSystemType [gmeow:WritingSystem → gmeow:WritingSystemType]: The structural kind(s) of a writing system (gmeow:WritingSystemType values). Non-functional — a script may be classified plurally.
 - gmeow:writtenInLanguage [gmeow:SoftwareProject → gmeow:ProgrammingLanguage]: Relates a software project to a first-class gmeow:ProgrammingLanguage it is written in. Non-functional — a project uses several languages.
 - gmeow:yaw [gmeow:Orientation → xsd:double]: Rotation about the vertical (typically z) axis, in degrees or radians as indicated by the reference frame.
@@ -899,6 +909,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisGalacticLongitude (a gmeow:Axis): galactic longitude
 - gmeow:axisGeneralizedCoordinate (a gmeow:Axis): A generalized position coordinate qᵢ in a Lagrangian or Hamiltonian formulation.
 - gmeow:axisGeneralizedMomentum (a gmeow:Axis): The conjugate momentum pᵢ = ∂L/∂q̇ᵢ corresponding to a generalized coordinate qᵢ.
+- gmeow:axisGeohash (a gmeow:Axis): geohash string
 - gmeow:axisGreen (a gmeow:Axis): green channel
 - gmeow:axisHeading (a gmeow:Axis): heading axis
 - gmeow:axisHilbertState (a gmeow:Axis): A single axis representing the state vector in a Hilbert space. The actual infinite-dimensional structure is a solver-layer attribute (Principle 12).
@@ -923,14 +934,17 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisLinearVelocityZ (a gmeow:Axis): linear velocity Z axis
 - gmeow:axisLongitude (a gmeow:Axis): longitude
 - gmeow:axisMACAddress (a gmeow:Axis): MAC address axis
+- gmeow:axisMGRS (a gmeow:Axis): MGRS grid reference
 - gmeow:axisMagenta (a gmeow:Axis): magenta channel
 - gmeow:axisMagnitude (a gmeow:Axis): magnitude
+- gmeow:axisMileMarker (a gmeow:Axis): mile marker / chainage
 - gmeow:axisMinute (a gmeow:Axis): minute
 - gmeow:axisMomentumX (a gmeow:Axis): momentum X
 - gmeow:axisMomentumY (a gmeow:Axis): momentum Y
 - gmeow:axisMomentumZ (a gmeow:Axis): momentum Z
 - gmeow:axisMonth (a gmeow:Axis): month
 - gmeow:axisPitch (a gmeow:Axis): pitch axis
+- gmeow:axisPlusCode (a gmeow:Axis): Plus Code cell
 - gmeow:axisPortNumber (a gmeow:Axis): port number axis
 - gmeow:axisPredictedMeanVote (a gmeow:Axis): predicted mean vote (PMV)
 - gmeow:axisPredictedPercentageDissatisfied (a gmeow:Axis): predicted percentage dissatisfied (PPD)
@@ -947,9 +961,11 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisTristimulusX (a gmeow:Axis): CIE X tristimulus
 - gmeow:axisTristimulusY (a gmeow:Axis): CIE Y tristimulus
 - gmeow:axisTristimulusZ (a gmeow:Axis): CIE Z tristimulus
+- gmeow:axisUNLocode (a gmeow:Axis): UN/LOCODE code
 - gmeow:axisURL (a gmeow:Axis): URL axis
 - gmeow:axisValence (a gmeow:Axis): The pleasure-displeasure dimension of affect (Russell circumplex).
 - gmeow:axisVirtualAddress (a gmeow:Axis): virtual address axis
+- gmeow:axisWhat3Words (a gmeow:Axis): what3words word triple
 - gmeow:axisX (a gmeow:Axis): X axis
 - gmeow:axisY (a gmeow:Axis): Y axis
 - gmeow:axisYaw (a gmeow:Axis): yaw axis
@@ -1066,10 +1082,12 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:frameKindCartesian (a gmeow:FrameKind): cartesian
 - gmeow:frameKindConfigurationSpace (a gmeow:FrameKind): A smooth manifold representing the set of all possible configurations of a robot mechanism, with joint-limit boundaries constraining valid regions. Distance is measured along geodesics on the manifold surface, subject to joint limits. The actual manifold geometry and collision-aware path planning live in the solver layer (Principle 12).
 - gmeow:frameKindCylindrical (a gmeow:FrameKind): cylindrical
+- gmeow:frameKindGeocoding (a gmeow:FrameKind): A frame whose structure is defined by a discrete location-coding scheme (Plus Code, what3words, geohash, MGRS) that partitions the Earth's surface into named cells. Distance is measured by geodesic proximity of the decoded coordinates, not by the code string itself (Principle 12).
 - gmeow:frameKindGeodetic (a gmeow:FrameKind): geodetic
 - gmeow:frameKindGrid (a gmeow:FrameKind): grid
 - gmeow:frameKindHilbert (a gmeow:FrameKind): An inner-product space that is complete with respect to the norm induced by the inner product; may be infinite-dimensional. The ontology models this with dimensionCount 1 and a single axis, leaving actual dimensionality to solver-layer matrix attributes (Principle 12).
 - gmeow:frameKindLatentSpace (a gmeow:FrameKind): A compressed, lower-dimensional representation space learned by a neural network or other statistical model. Similarity is measured by cosine or Euclidean metrics.
+- gmeow:frameKindLinear (a gmeow:FrameKind): A one-dimensional frame defined by distance along a linear feature (road, railway, pipeline). The coordinate is a scalar chainage or mile-marker; conversion to 2D/3D geographic coordinates requires the linear feature's geometry and is performed by the solver layer (Principle 12).
 - gmeow:frameKindLinearSequence (a gmeow:FrameKind): A one-dimensional coordinate system along a linear biological sequence (DNA, RNA, protein). Positions are integer offsets from a sequence origin; distance is measured in base pairs or amino-acid residues (edit-distance / sequence-alignment metric).
 - gmeow:frameKindManifold (a gmeow:FrameKind): A topological space that locally resembles Euclidean space. Coordinate charts and tangent spaces are solver-layer constructs (Principle 12), not asserted as OWL axioms.
 - gmeow:frameKindNarrative (a gmeow:FrameKind): A frame whose structure is defined by canon, continuity, and narrative topology rather than geometric coordinates. Distance is measured in narrative proximity (plot relevance, character interaction), not metres or degrees.
@@ -1444,6 +1462,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:referenceFrameFK5 (a gmeow:ReferenceFrame): FK5 Equatorial Reference Frame
 - gmeow:referenceFrameGRCh38 (a gmeow:ReferenceFrame): GRCh38 Human Reference Assembly
 - gmeow:referenceFrameGalactic (a gmeow:ReferenceFrame): Galactic Coordinate Reference Frame
+- gmeow:referenceFrameGeohash (a gmeow:ReferenceFrame): Geohash Reference Frame
 - gmeow:referenceFrameGregorian (a gmeow:ReferenceFrame): Gregorian Calendar Reference Frame
 - gmeow:referenceFrameHilbertSpace (a gmeow:ReferenceFrame): Hilbert Space Reference Frame
 - gmeow:referenceFrameICRS (a gmeow:ReferenceFrame): ICRS Celestial Reference Frame
@@ -1454,8 +1473,11 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:referenceFrameLatentVectorSpace (a gmeow:ReferenceFrame): Latent Vector Space Reference Frame
 - gmeow:referenceFrameLocalGrid (a gmeow:ReferenceFrame): Local Grid Cartesian Reference Frame
 - gmeow:referenceFrameMAC (a gmeow:ReferenceFrame): MAC Address Space Reference Frame
+- gmeow:referenceFrameMGRS (a gmeow:ReferenceFrame): MGRS Reference Frame
+- gmeow:referenceFrameMileMarker (a gmeow:ReferenceFrame): Linear Referencing (Mile Marker) Reference Frame
 - gmeow:referenceFrameNetworkGraph (a gmeow:ReferenceFrame): Network Graph Reference Frame
 - gmeow:referenceFramePhaseSpace3DOF (a gmeow:ReferenceFrame): Abstract Phase Space Reference Frame (q,p axes)
+- gmeow:referenceFramePlusCode (a gmeow:ReferenceFrame): Plus Code (Open Location Code) Reference Frame
 - gmeow:referenceFramePort (a gmeow:ReferenceFrame): Port Number Space Reference Frame
 - gmeow:referenceFrameRobotArm6DOF (a gmeow:ReferenceFrame): 6-DOF Robot Arm Configuration Space
 - gmeow:referenceFrameRobotBase (a gmeow:ReferenceFrame): Robot Base Cartesian Reference Frame
@@ -1466,11 +1488,13 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:referenceFrameSI (a gmeow:ReferenceFrame): SI Measurement Reference Frame
 - gmeow:referenceFrameSRGB (a gmeow:ReferenceFrame): sRGB Colourspace Reference Frame
 - gmeow:referenceFrameThermalComfort (a gmeow:MentalReferenceFrame): ASHRAE Thermal Comfort Reference Frame
+- gmeow:referenceFrameUNLocode (a gmeow:ReferenceFrame): UN/LOCODE Reference Frame
 - gmeow:referenceFrameURL (a gmeow:ReferenceFrame): URL Space Reference Frame
 - gmeow:referenceFrameUSD (a gmeow:ReferenceFrame): US Dollar Currency Reference Frame
 - gmeow:referenceFrameUnixEpoch (a gmeow:ReferenceFrame): Unix Epoch Timestamp Reference Frame
 - gmeow:referenceFrameVirtualPlatform (a gmeow:ReferenceFrame): Virtual Platform Reference Frame
 - gmeow:referenceFrameWGS84 (a gmeow:ReferenceFrame): WGS 84 Geodetic Reference Frame
+- gmeow:referenceFrameWhat3Words (a gmeow:ReferenceFrame): what3words Reference Frame
 - gmeow:refuted (a gmeow:StandpointModality): □¬_S — settled false according to the standpoint: the standpoint DENIES the proposition (CRMinf belief value 'false'). Distinct from silence (no claim) and from low gmeow:confidence — an explicit, recorded denial. The proposition is carried as the subject of the denial, never asserted as a fact of the universal standpoint.
 - gmeow:registerCasual (a gmeow:NameRegister): casual
 - gmeow:registerFormal (a gmeow:NameRegister): formal
