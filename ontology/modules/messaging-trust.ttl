@@ -146,13 +146,9 @@ gmeow:PGPSignature
     skos:definition "An OpenPGP signature (RFC 4880/9580, PGP-MIME RFC 3156) over a message, bound to a PGP key."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:hasSignature
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Message ;
-    rdfs:range gmeow:CryptographicSignature ;
-    rdfs:label "has signature"@en ;
-    skos:definition "Relates a message to a cryptographic signature over it."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+# gmeow:hasSignature is defined cross-cuttingly in the attestation module
+# (ontology/modules/attestation.ttl) with a domain-free universal spine.
+# The IRI is identical; message consumers continue to work unchanged.
 
 gmeow:signedBy
     a owl:ObjectProperty ;

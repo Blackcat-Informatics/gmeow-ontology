@@ -274,6 +274,9 @@ PREFIXES: dict[str, str] = {
     "esco": "http://data.europa.eu/esco/model#",
     "nmo": "http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#",
     "wot": "http://xmlns.com/wot/0.1/",
+    # Verifiable Credentials / DID (the attestation module, #162)
+    "vc": "https://www.w3.org/2018/credentials#",
+    "did": "https://www.w3.org/ns/did#",
     # Rights / IP / licensing (the rights module, #21)
     "odrl": "http://www.w3.org/ns/odrl/2/",
     "cc": "http://creativecommons.org/ns#",
