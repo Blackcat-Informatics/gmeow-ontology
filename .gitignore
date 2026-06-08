@@ -10,8 +10,11 @@ __pycache__/
 htmlcov/
 
 # Generated build artifacts (published on release, not committed)
-/dist/
+/dist/*
+!/dist/lpg/
+!/dist/schemas/
 /docs/_generated/
+/llms.txt
 
 # Editor/OS noise
 .DS_Store

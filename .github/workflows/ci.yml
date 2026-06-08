@@ -106,6 +106,9 @@ jobs:
       - name: Alignment direction lint
         run: uv run gmeow lint-alignment
 
+      - name: Schema compilation sanity check
+        run: uv run gmeow compile-schemas --check
+
   reason:
     runs-on: ubuntu-latest
     steps:

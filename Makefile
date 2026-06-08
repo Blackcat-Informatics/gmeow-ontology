@@ -9,16 +9,16 @@ SHELL := /bin/bash
 TARGET ?= foaf
 
 # Checked-in generated artifacts (refreshed by make regenerate).
-REGENERATED_PATHS := mappings/ projections/ queries/projections/ statements/ metadata/ apache/gmeow.conf llms.txt
+REGENERATED_PATHS := mappings/ projections/ queries/projections/ statements/ metadata/ apache/gmeow.conf dist/lpg/ dist/schemas/
 
 # Override: make commit MESSAGE="feat: add foaf alignment"
 MESSAGE ?= "chore: regenerate checked-in artifacts"
 
 .PHONY: help install fmt lint validate reason reason-hermit explain verify extract compile-mappings \
         compile-check compile-statements statements-check compile-statements-pyoxigraph statements-check-pyoxigraph \
-        mappings wikidata wikidata-live wikidata-coverage wikidata-audit lint-alignment refresh-target-axioms \
-        metadata apache docs docs-full rdf12 rdf12-pyoxigraph quality normalize build export lpg project test check \
-        release regenerate commit clean pull-images
+        compile-schemas schemas-check mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
+        lint-alignment refresh-target-axioms metadata apache docs docs-full rdf12 rdf12-pyoxigraph quality \
+        normalize build export lpg project test check release regenerate commit clean pull-images
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -62,6 +62,12 @@ compile-mappings: ## Compile the mapping DSL → SSSOM + EDOAL + FnO + SPARQL (i
 
 compile-check: ## Fail if the committed projection artifacts are stale vs the DSL.
 	uv run gmeow compile-mappings --check
+
+compile-schemas: ## Compile canonical OWL → LinkML + JSON Schema / Pydantic / TS / GraphQL / OpenAPI.
+	uv run gmeow compile-schemas
+
+schemas-check: ## Compile schemas as a sanity check (dist/ is git-ignored, so no drift gate).
+	uv run gmeow compile-schemas --check
 
 compile-statements: ## Compile statement-dsl/ → RDF 1.2 lead artifact + OWL downcast (Jena).
 	uv run gmeow compile-statements
@@ -132,9 +138,8 @@ normalize: ## Canonicalize the authored ontology sources (rewrites files).
 build: ## Build all serializations + JSON-LD context + apache.conf into dist/.
 	uv run gmeow build
 
-export: ## Generate flattened exports (CSV/CSVW, Markdown, JSONL, llms.txt) into dist/ and copy llms.txt to root.
+export: ## Generate flattened exports (CSV/CSVW, Markdown, JSONL, llms.txt) into dist/.
 	uv run gmeow export
-	cp dist/llms.txt llms.txt
 
 lpg: ## Export GMEOW to LPG formats (CSV, Neo4j, Cypher, GraphML) into dist/lpg/.
 	uv run gmeow export lpg
@@ -148,6 +153,7 @@ test: ## Run the test suite.
 check: ## Full local quality gate (parallelized where safe).
 	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint validate statements-check statements-check-pyoxigraph compile-check wikidata coverage reason reason-hermit verify mappings-only lint-alignment
 	$(MAKE) test
+	$(MAKE) schemas-check
 	@echo "✓ all checks passed"
 
 release: ## RDF 1.2 + OWL downcast → reasoned closure (HermiT) + build + metadata + CrossRef deposit.
@@ -160,6 +166,7 @@ release: ## RDF 1.2 + OWL downcast → reasoned closure (HermiT) + build + metad
 regenerate: ## Rebuild all checked-in generated artifacts from canonical sources.
 	$(MAKE) compile-mappings
 	$(MAKE) compile-statements
+	$(MAKE) compile-schemas
 	$(MAKE) metadata
 	$(MAKE) apache
 	$(MAKE) export
