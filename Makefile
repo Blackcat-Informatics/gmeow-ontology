@@ -10,7 +10,7 @@ TARGET ?= foaf
 
 .PHONY: help install fmt lint validate reason reason-hermit explain verify extract compile-mappings \
         compile-check compile-statements statements-check mappings wikidata \
-        wikidata-live lint-alignment refresh-target-axioms metadata apache docs \
+        wikidata-live wikidata-coverage wikidata-audit lint-alignment refresh-target-axioms metadata apache docs \
         docs-full rdf12 quality normalize build export project test check \
         release clean pull-images
 

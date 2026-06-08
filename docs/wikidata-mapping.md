@@ -59,6 +59,7 @@ All term-level Wikidata mappings are authored in `mapping-dsl/equivalences/*.ttl
 
 Every `gmeow:TermEquivalence` targeting Wikidata MUST carry:
 
+- `gmeow:alignSubject` — the GMEOW term being aligned
 - `gmeow:alignObject` — a `wd:Q…` or `wdt:P…` IRI (or `p:/ps:` in projection DSL)
 - `gmeow:alignPredicate` — one of the SKOS mapping predicates or `owl:equivalentProperty`/`owl:equivalentClass`
 - `gmeow:confidence` — a float in [0, 1]

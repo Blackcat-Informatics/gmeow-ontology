@@ -70,9 +70,20 @@ def test_check_syntax_iri_https_url() -> None:
 
 
 def test_check_syntax_iri_wd_prop() -> None:
-    misuses = check_syntax_iri("http://www.wikidata.org/entity/P275")
+    # Strict mode (predicate position) flags wd:P… as misuse
+    misuses = check_syntax_iri(
+        "http://www.wikidata.org/entity/P275", in_object_position=False
+    )
     assert len(misuses) == 1
     assert misuses[0][1] == NamespaceMisuse.WD_PROP_SHOULD_BE_WDT
+
+
+def test_check_syntax_iri_wd_prop_object_ok() -> None:
+    # Object position accepts wd:P… (property-concept reference)
+    misuses = check_syntax_iri(
+        "http://www.wikidata.org/entity/P275", in_object_position=True
+    )
+    assert len(misuses) == 0
 
 
 def test_check_syntax_iri_wdt_item() -> None:

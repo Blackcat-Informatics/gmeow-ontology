@@ -54,22 +54,24 @@ class AuditReport:
         return [f for f in self.findings if f.severity == "error"]
 
 
-def _is_wikidata_iri(iri: str) -> bool:
-    return (
-        iri.startswith(_WD_NS)
-        or iri.startswith(_WDT_NS)
-        or iri.startswith(_SCHEMA_SAMEAS)
-    )
-
-
 def audit_file(path: Path) -> list[AuditFinding]:
     """Audit a single Turtle file for Wikidata misuse."""
     findings: list[AuditFinding] = []
     try:
         graph = Graph()
         graph.parse(path, format="turtle")
-    except Exception:
-        return findings  # skip unparsable files
+    except Exception as exc:
+        findings.append(
+            AuditFinding(
+                file=path,
+                subject="",
+                predicate="",
+                object="",
+                severity="error",
+                message=f"failed to parse Turtle: {exc}",
+            )
+        )
+        return findings
 
     for s, p, o in graph:
         if not isinstance(o, URIRef):
@@ -83,7 +85,7 @@ def audit_file(path: Path) -> list[AuditFinding]:
             or obj.startswith(_WDT_NS)
             or obj.startswith("https://www.wikidata.org/entity/")
         ):
-            misuses = check_syntax_iri(obj)
+            misuses = check_syntax_iri(obj, in_object_position=True)
             for _local, misuse, message in misuses:
                 severity = (
                     "error" if misuse is NamespaceMisuse.BAD_SYNTAX else "warning"

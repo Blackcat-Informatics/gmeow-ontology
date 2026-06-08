@@ -37,6 +37,10 @@ class CoverageReport:
     predicate_counts: dict[str, int] = field(default_factory=dict)
     low_confidence: list[tuple[str, str, str, float]] = field(default_factory=list)
     missing_labels: list[tuple[str, str]] = field(default_factory=list)
+    all_classes: set[str] = field(default_factory=set)
+    all_properties: set[str] = field(default_factory=set)
+    all_individuals: set[str] = field(default_factory=set)
+    threshold: float = 0.5
 
     @property
     def class_coverage(self) -> float:
@@ -63,18 +67,22 @@ class CoverageReport:
 
     def gap_classes(self) -> set[str]:
         """Return the set of unmapped classes."""
-        all_terms = collect_ontology_terms(MODULES_DIR)
-        return all_terms["classes"] - self.mapped_classes
+        all_classes = self.all_classes or collect_ontology_terms(MODULES_DIR)["classes"]
+        return all_classes - self.mapped_classes
 
     def gap_properties(self) -> set[str]:
         """Return the set of unmapped properties."""
-        all_terms = collect_ontology_terms(MODULES_DIR)
-        return all_terms["properties"] - self.mapped_properties
+        all_properties = (
+            self.all_properties or collect_ontology_terms(MODULES_DIR)["properties"]
+        )
+        return all_properties - self.mapped_properties
 
     def gap_individuals(self) -> set[str]:
         """Return the set of unmapped individuals."""
-        all_terms = collect_ontology_terms(MODULES_DIR)
-        return all_terms["individuals"] - self.mapped_individuals
+        all_individuals = (
+            self.all_individuals or collect_ontology_terms(MODULES_DIR)["individuals"]
+        )
+        return all_individuals - self.mapped_individuals
 
 
 def _is_wikidata_mapping(mapping: Mapping) -> bool:
@@ -83,9 +91,10 @@ def _is_wikidata_mapping(mapping: Mapping) -> bool:
     return obj.startswith(_WD_NS) or obj.startswith(_WDT_NS)
 
 
-def _term_type(iri: str) -> str | None:
+def _term_type(iri: str, terms: dict[str, set[str]] | None = None) -> str | None:
     """Return the kind of ontology term (class, property, individual)."""
-    terms = collect_ontology_terms(MODULES_DIR)
+    if terms is None:
+        terms = collect_ontology_terms(MODULES_DIR)
     if iri in terms["classes"]:
         return "class"
     if iri in terms["properties"]:
@@ -125,11 +134,15 @@ def run_coverage(
         total_classes=len(all_terms["classes"]),
         total_properties=len(all_terms["properties"]),
         total_individuals=len(all_terms["individuals"]),
+        all_classes=all_terms["classes"],
+        all_properties=all_terms["properties"],
+        all_individuals=all_terms["individuals"],
+        threshold=threshold,
     )
 
     for mapping in wd_mappings:
         subject_iri = str(expand_curie(mapping.subject_id))
-        ttype = _term_type(subject_iri)
+        ttype = _term_type(subject_iri, all_terms)
         if ttype == "class":
             report.mapped_classes.add(subject_iri)
         elif ttype == "property":
@@ -143,7 +156,8 @@ def run_coverage(
                 (mapping.subject_id, mapping.object_id, mapping.predicate_id, conf)
             )
 
-        if not mapping.object_label.strip():
+        label = mapping.object_label or ""
+        if not label.strip():
             report.missing_labels.append((mapping.subject_id, mapping.object_id))
 
         report.predicate_counts[mapping.predicate_id] = (
@@ -239,7 +253,10 @@ def render_report(report: CoverageReport, json_mode: bool = False) -> str:
         lines.append(f"  {pred:<40} {count}")
     if report.low_confidence:
         lines.append("")
-        lines.append(f"Low confidence (< 0.5) — {len(report.low_confidence)} mappings")
+        lines.append(
+            f"Low confidence (< {report.threshold}) "
+            f"— {len(report.low_confidence)} mappings"
+        )
         lines.append("-" * 20)
         for s, o, p, c in report.low_confidence:
             lines.append(f"  {s} → {o} ({p}, {c})")

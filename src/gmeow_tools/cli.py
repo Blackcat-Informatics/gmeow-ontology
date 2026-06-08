@@ -372,7 +372,7 @@ def wikidata(
     ),
 ) -> None:
     """Validate Wikidata QIDs/PIDs used in the mappings (syntax; optional live)."""
-    from gmeow_tools.mappings import collect_wikidata_ids, load_mappings
+    from gmeow_tools.mappings import collect_wikidata_ids, expand_curie, load_mappings
     from gmeow_tools.wikidata import (
         ExistenceStatus,
         check_existence,
@@ -382,7 +382,7 @@ def wikidata(
     from gmeow_tools.wikidata_audit import audit_all, render_audit
 
     if fixtures:
-        report = audit_all()
+        report = audit_all(fixtures_dir=Path("tests/fixtures"))
         text = render_audit(report)
         for line in text.splitlines():
             if line.startswith("[yellow]") or line.startswith("[red]"):
@@ -411,7 +411,11 @@ def wikidata(
     loaded = load_mappings()
     iri_misuses = []
     for mapping in loaded:
-        iri_misuses.extend(check_syntax_iri(str(mapping.object_id)))
+        iri_misuses.extend(
+            check_syntax_iri(
+                str(expand_curie(mapping.object_id)), in_object_position=True
+            )
+        )
     if iri_misuses:
         for _local, misuse, message in iri_misuses:
             err_console.print(f"[yellow]{misuse.value}[/yellow] {message}")

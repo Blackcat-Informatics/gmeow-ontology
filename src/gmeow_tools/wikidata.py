@@ -71,7 +71,7 @@ def _load_cached(key: str, ttl: float = DEFAULT_CACHE_TTL) -> dict[str, object] 
         return None
 
 
-def _save_cached(key: str, data: dict[str, str]) -> None:
+def _save_cached(key: str, data: dict[str, object]) -> None:
     """Save an API response to the cache."""
     path = _cache_path(key)
     try:
@@ -150,11 +150,7 @@ class SyntaxReport:
 
 
 def check_syntax(identifiers: list[str]) -> SyntaxReport:
-    """Partition identifiers into syntactically valid and invalid sets.
-
-    Also detects namespace misuse patterns such as ``wdt:Q42`` or
-    ``wd:P275`` when the context suggests a direct property mapping.
-    """
+    """Partition identifiers into syntactically valid and invalid sets."""
     valid: list[str] = []
     invalid: list[str] = []
     misuses: list[tuple[str, NamespaceMisuse, str]] = []
@@ -169,8 +165,16 @@ def check_syntax(identifiers: list[str]) -> SyntaxReport:
     return SyntaxReport(valid=valid, invalid=invalid, misuses=misuses)
 
 
-def check_syntax_iri(iri: str) -> list[tuple[str, NamespaceMisuse, str]]:
+def check_syntax_iri(
+    iri: str, *, in_object_position: bool = False
+) -> list[tuple[str, NamespaceMisuse, str]]:
     """Detect namespace misuse and syntax errors in a Wikidata IRI.
+
+    When *in_object_position* is ``False`` (the default), ``wd:P…`` is flagged
+    because the typical intent in predicate position is a direct-claim property.
+    When ``True`` (e.g. the IRI appears as the object of a mapping triple),
+    ``wd:P…`` is accepted because it may be a legitimate property-concept
+    reference.
 
     Returns a list of (local_id, misuse_type, message) tuples.
     """
@@ -184,7 +188,10 @@ def check_syntax_iri(iri: str) -> list[tuple[str, NamespaceMisuse, str]]:
                 (
                     local,
                     NamespaceMisuse.HTTPS_URL_SHOULD_BE_CURIE,
-                    f"{iri} should be written as wd:{local} (or wdt:{local})",
+                    (
+                        f"{iri} should be written as "
+                        f"{'wd:' if local.startswith('Q') else 'wdt:'}{local}"
+                    ),
                 )
             )
         else:
@@ -210,7 +217,7 @@ def check_syntax_iri(iri: str) -> list[tuple[str, NamespaceMisuse, str]]:
             )
         # wd:P… is technically valid (properties are entities), but we flag it
         # as a potential misuse when the intent is a direct property.
-        elif local.startswith("P"):
+        elif local.startswith("P") and not in_object_position:
             misuses.append(
                 (
                     local,
@@ -260,7 +267,6 @@ class ExistenceStatus(StrEnum):
 def _fetch_entities(
     queryable: list[str], timeout: float
 ) -> dict[str, dict[str, object]]:
-    """Fetch entity data from Wikidata, using the on-disk cache when fresh."""
     """Fetch entity data from Wikidata, using the on-disk cache when fresh."""
     key = _cache_key(queryable)
     cached = _load_cached(key)
