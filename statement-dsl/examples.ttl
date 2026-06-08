@@ -147,3 +147,40 @@ ex:claim-date-julian-1582 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo ; gmeow:annValue ex:standpoint-julian-historiography ] ,
         [ gmeow:annProperty gmeow:confidence  ; gmeow:annValue 0.95 ] ,
         [ gmeow:annProperty gmeow:assertedAt  ; gmeow:annValue "2020-01-01T00:00:00Z"^^xsd:dateTime ] .
+
+# =============================================================================
+# Robotic realm statement examples (#88) — TF transforms and SLAM occupancy
+# =============================================================================
+
+# 7. Dynamic TF transform assertion. A parentFrame relation between two robotic
+#    frames is valid only for a specific time window because the end-effector
+#    moves. The homogeneous-transform matrix math is solver-layer (P12); the
+#    ontology records only the frame linkage and its temporal scope.
+ex:claim-tf-dynamic-end-effector a gmeow:StatementMetadata ;
+    rdfs:label "End-effector parentFrame to base — dynamic transform valid 2026-06-07T10:00:00Z to 2026-06-07T10:05:00Z, confidence 0.95"@en ;
+    gmeow:reifier    ex:claim-tf-dynamic-end-effector ;
+    gmeow:qSubject   ex:robot-end-effector ;
+    gmeow:qPredicate gmeow:parentFrame ;
+    gmeow:qObject    gmeow:referenceFrameRobotBase ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.95 ] ,
+        [ gmeow:annProperty gmeow:validFrom  ; gmeow:annValue "2026-06-07T10:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:validUntil ; gmeow:annValue "2026-06-07T10:05:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-07T10:00:00Z"^^xsd:dateTime ] .
+
+# 8. SLAM occupancy grid claim. A probabilistic assertion that a grid cell
+#    is expressed in the robot's SLAM reference frame. The actual occupancy
+#    probability is solver-layer math on the CoordinateMatrix value
+#    (Principle 12); the determinacyModel of the frame is probabilistic
+#    (gmeow:determinacyProbabilistic). Confidence is epistemic (how sure the
+#    sensor is); determinacy is ontic (the nature of the value itself).
+ex:claim-slam-occupancy-cell-42 a gmeow:StatementMetadata ;
+    rdfs:label "SLAM cell 42 expressed in robot SLAM frame — sensor standpoint, confidence 0.72"@en ;
+    gmeow:reifier    ex:claim-slam-occupancy-cell-42 ;
+    gmeow:qSubject   ex:slam-cell-42 ;
+    gmeow:qPredicate gmeow:hasReferenceFrame ;
+    gmeow:qObject    gmeow:referenceFrameRobotSLAM ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.72 ] ,
+        [ gmeow:annProperty gmeow:accordingTo ; gmeow:annValue ex:robot-sensor-standpoint ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-07T09:30:00Z"^^xsd:dateTime ] .

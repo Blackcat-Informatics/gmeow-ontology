@@ -76,6 +76,25 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/examples/event-reformation-date>
         gmeow:eventTime  "1582-10-15T00:00:00+00:00"^^xsd:dateTime , "1582-10-05T00:00:00+00:00"^^xsd:dateTime .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-slam-occupancy-cell-42>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/slam-cell-42> gmeow:hasReferenceFrame gmeow:referenceFrameRobotSLAM )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/robot-sensor-standpoint>;
+        gmeow:assertedAt   "2026-06-07T09:30:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.72 .
+
+<https://blackcatinformatics.ca/gmeow/examples/slam-cell-42>
+        gmeow:hasReferenceFrame  gmeow:referenceFrameRobotSLAM .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-tf-dynamic-end-effector>
+        rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/robot-end-effector> gmeow:parentFrame gmeow:referenceFrameRobotBase )>>;
+        gmeow:assertedAt  "2026-06-07T10:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence  0.95;
+        gmeow:validFrom   "2026-06-07T10:00:00+00:00"^^xsd:dateTime;
+        gmeow:validUntil  "2026-06-07T10:05:00+00:00"^^xsd:dateTime .
+
+<https://blackcatinformatics.ca/gmeow/examples/robot-end-effector>
+        gmeow:parentFrame  gmeow:referenceFrameRobotBase .
+
 <https://blackcatinformatics.ca/gmeow/examples/rights/claim-mark-holder-acme>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/rights/contested-trademark> gmeow:trademarkHolder <https://blackcatinformatics.ca/gmeow/examples/rights/acme> )>>;
         gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/rights/standpoint-acme>;

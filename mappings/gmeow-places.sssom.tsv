@@ -4,11 +4,12 @@
 # mapping_tool: gmeow compile-mappings
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET. placeType/storageMedium/celestialObjectType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological "within"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (#85): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl.
+# comment: Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET, IEEE 1872-2015 CORA, KnowRob, SOMA. placeType/storageMedium/celestialObjectType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological "within"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (#85): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl. Added (#88): Robotic realm bridging to IEEE 1872-2015 CORA (Robot, RoboticSystem), KnowRob (SemanticEnvironmentMap, RobotBaseTrajectory, Joint, FrameOfReference), and SOMA (ArtificialAgent).
 # curie_map:
 #   bfo: http://purl.obolibrary.org/obo/
 #   bot: https://w3id.org/bot#
 #   brick: https://brickschema.org/schema/Brick#
+#   cora: http://purl.org/ieee1872-owl/cora#
 #   crm: http://www.cidoc-crm.org/cidoc-crm/
 #   crmgeo: http://www.ics.forth.gr/isl/CRMgeo/
 #   dcterms: http://purl.org/dc/terms/
@@ -18,6 +19,7 @@
 #   gvp: http://vocab.getty.edu/ontology#
 #   ifc: http://www.buildingsmart-tech.org/ifcOWL/IFC4#
 #   ivoa: http://www.ivoa.net/rdf/
+#   knowrob: http://knowrob.org/kb/knowrob.owl#
 #   lgdo: http://linkedgeodata.org/ontology/
 #   mf: http://www.opengis.net/ont/movingfeatures#
 #   mls: http://www.w3.org/ns/mls#
@@ -28,6 +30,7 @@
 #   semapv: https://w3id.org/semapv/vocab/
 #   sf: http://www.opengis.net/ont/sf#
 #   skos: http://www.w3.org/2004/02/skos/core#
+#   soma: http://www.ease-crc.org/ont/SOMA.owl#
 #   sosa: http://www.w3.org/ns/sosa/
 #   sta: http://www.opengis.net/def/ont/sensorthings/1.1/
 #   time: http://www.w3.org/2006/time#
@@ -63,9 +66,11 @@ gmeow:Place	skos:closeMatch	whg:Place		semapv:ManualMappingCuration	0.8
 gmeow:PlaceNaming	skos:closeMatch	crm:E41_Appellation	Appellation	semapv:ManualMappingCuration	0.8	CIDOC-CRM E41_Appellation is the time-spanned name; GMEOW PlaceNaming is the reified relator (NameUsage) that binds a PlaceName to a Place over an interval.
 gmeow:Pose	skos:closeMatch	pos:QuantitativePose	Quantitative Pose	semapv:ManualMappingCuration	0.85	
 gmeow:Pose	skos:closeMatch	wd:Q1055020	pose	semapv:ManualMappingCuration	0.8	
+gmeow:ReferenceFrame	skos:closeMatch	knowrob:FrameOfReference	FrameOfReference	semapv:ManualMappingCuration	0.85	KnowRob FrameOfReference is a general spatial reference frame; GMEOW ReferenceFrame is the upper-ontology-grounded, realm-typed equivalent.
 gmeow:RegulatoryOverlay	skos:closeMatch	schema:AdministrativeArea		semapv:ManualMappingCuration	0.6	schema.org AdministrativeArea is a flat Place subclass for government-defined areas; GMEOW RegulatoryOverlay is a reified, time-scoped situation that binds a place, an authority, a regulation type, and optional deontic rules. Directional lossy projection.
 gmeow:RegulatoryOverlay	skos:closeMatch	wd:Q1055894	administrative territorial entity	semapv:ManualMappingCuration	0.75	Wikidata Q1055894 is the general concept of an administrative territorial entity; GMEOW RegulatoryOverlay adds time-scoping, authority, regulation type, and deontic linkage.
 gmeow:Stream	skos:closeMatch	sta:Datastream		semapv:ManualMappingCuration	0.85	SensorThings Datastream groups observations by sensor + observed property.
+gmeow:Trajectory	skos:closeMatch	knowrob:RobotBaseTrajectory	RobotBaseTrajectory	semapv:ManualMappingCuration	0.8	KnowRob RobotBaseTrajectory is a time-ordered path of robot base poses; GMEOW Trajectory is the generalised time-ordered path of LocationStates for any entity.
 gmeow:Trajectory	skos:closeMatch	mf:TemporalTrajectory	temporal trajectory	semapv:ManualMappingCuration	0.8	
 gmeow:Trajectory	skos:relatedMatch	crm:E92_Spacetime_Volume	Spacetime Volume	semapv:ManualMappingCuration	0.6	a Trajectory is a continuous spacetime volume (relatedMatch, not closeMatch — a trajectory is a path, not any arbitrary volume)
 gmeow:Trajectory	skos:relatedMatch	sta:Datastream		semapv:ManualMappingCuration	0.6	Trajectory as the continuous form of a stream; weaker alignment than Stream→Datastream.
@@ -97,10 +102,12 @@ gmeow:elevation	skos:closeMatch	schema:elevation		semapv:ManualMappingCuration	0
 gmeow:elevation	skos:closeMatch	wgs84:alt		semapv:ManualMappingCuration	0.9	
 gmeow:eulerOrder	skos:closeMatch	wd:Q465493	Euler angles	semapv:ManualMappingCuration	0.8	
 gmeow:extendedAddress	skos:closeMatch	vcard:extended-address		semapv:ManualMappingCuration	0.9	
+gmeow:frameKindConfigurationSpace	skos:closeMatch	wd:Q1156912	configuration space	semapv:ManualMappingCuration	0.85	
 gmeow:frameKindHilbert	skos:closeMatch	wd:Q190056	Hilbert space	semapv:ManualMappingCuration	0.95	
 gmeow:frameKindManifold	skos:closeMatch	wd:Q203920	manifold	semapv:ManualMappingCuration	0.95	
 gmeow:frameKindPhaseSpace	skos:closeMatch	wd:Q185821	phase space	semapv:ManualMappingCuration	0.95	
 gmeow:frameRealmMathematical	skos:closeMatch	wd:Q395	mathematics	semapv:ManualMappingCuration	0.9	
+gmeow:frameRealmRobotic	skos:closeMatch	wd:Q170978	robotics	semapv:ManualMappingCuration	0.9	
 gmeow:geometryTypeLineString	skos:closeMatch	sf:LineString		semapv:ManualMappingCuration	0.95	
 gmeow:geometryTypeMultiLineString	skos:closeMatch	sf:MultiLineString		semapv:ManualMappingCuration	0.95	
 gmeow:geometryTypeMultiPoint	skos:closeMatch	sf:MultiPoint		semapv:ManualMappingCuration	0.95	
@@ -181,6 +188,11 @@ gmeow:referenceFrameICRS	skos:closeMatch	ivoa:refframe/ICRS		semapv:ManualMappin
 gmeow:referenceFrameLatentVectorSpace	skos:closeMatch	wd:Q65054223	latent space	semapv:ManualMappingCuration	0.85	
 gmeow:referenceFramePhaseSpace3DOF	skos:closeMatch	wd:Q185821	phase space	semapv:ManualMappingCuration	0.85	
 gmeow:referenceFrameRobotArm6DOF	skos:closeMatch	wd:Q2151981	robotic arm	semapv:ManualMappingCuration	0.85	
+gmeow:referenceFrameRobotBase	skos:relatedMatch	cora:Robot	Robot	semapv:ManualMappingCuration	0.7	CORA Robot is the physical device; GMEOW referenceFrameRobotBase is the Cartesian coordinate frame anchored to that device. The alignment is structural, not identity.
+gmeow:referenceFrameRobotBase	skos:relatedMatch	cora:RoboticSystem	RoboticSystem	semapv:ManualMappingCuration	0.7	CORA RoboticSystem is the system-level concept; GMEOW referenceFrameRobotBase is its spatial reference frame. Structural alignment only.
+gmeow:referenceFrameRobotBase	skos:relatedMatch	soma:ArtificialAgent	ArtificialAgent	semapv:ManualMappingCuration	0.7	SOMA ArtificialAgent is the agent-level concept; GMEOW referenceFrameRobotBase is the spatial reference frame attached to that agent. Structural alignment only.
+gmeow:referenceFrameRobotCspace6DOF	skos:relatedMatch	knowrob:Joint	Joint	semapv:ManualMappingCuration	0.75	KnowRob Joint represents a single mechanical joint; GMEOW referenceFrameRobotCspace6DOF is the 6-dimensional configuration-space frame whose axes are joint angles. The alignment is compositional: a C-space frame is defined by its joints.
+gmeow:referenceFrameRobotSLAM	skos:closeMatch	knowrob:SemanticEnvironmentMap	SemanticEnvironmentMap	semapv:ManualMappingCuration	0.8	KnowRob SemanticEnvironmentMap is a robot-built map of the environment; GMEOW referenceFrameRobotSLAM is the reference frame in which such a map is expressed. The alignment is close because both are robot-centric spatial representations with probabilistic occupancy semantics.
 gmeow:roll	skos:closeMatch	wd:Q465493	Euler angles	semapv:ManualMappingCuration	0.8	
 gmeow:streetAddress	owl:equivalentProperty	schema:streetAddress		semapv:ManualMappingCuration	1.0	
 gmeow:streetAddress	skos:closeMatch	vcard:street-address		semapv:ManualMappingCuration	0.9	

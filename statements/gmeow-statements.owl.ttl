@@ -55,6 +55,14 @@
     gmeow:assertedAt "2020-01-01T00:00:00+00:00"^^xsd:dateTime ;
     gmeow:confidence 0.95 .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-slam-occupancy-cell-42> a owl:Axiom ;
+    owl:annotatedProperty gmeow:hasReferenceFrame ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/slam-cell-42> ;
+    owl:annotatedTarget gmeow:referenceFrameRobotSLAM ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/robot-sensor-standpoint> ;
+    gmeow:assertedAt "2026-06-07T09:30:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.72 .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-territory-1850-per-2025-historiography> a owl:Axiom ;
     owl:annotatedProperty gmeow:containedInPlace ;
     owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/territory-x> ;
@@ -64,6 +72,15 @@
     gmeow:standpointModality gmeow:conceivable ;
     gmeow:validFrom "1850-01-01T00:00:00+00:00"^^xsd:dateTime ;
     gmeow:validUntil "1860-12-31T00:00:00+00:00"^^xsd:dateTime .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-tf-dynamic-end-effector> a owl:Axiom ;
+    owl:annotatedProperty gmeow:parentFrame ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/robot-end-effector> ;
+    owl:annotatedTarget gmeow:referenceFrameRobotBase ;
+    gmeow:assertedAt "2026-06-07T10:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.95 ;
+    gmeow:validFrom "2026-06-07T10:00:00+00:00"^^xsd:dateTime ;
+    gmeow:validUntil "2026-06-07T10:05:00+00:00"^^xsd:dateTime .
 
 <https://blackcatinformatics.ca/gmeow/examples/rights/claim-mark-holder-acme> a owl:Axiom ;
     owl:annotatedProperty gmeow:trademarkHolder ;
@@ -124,6 +141,10 @@
 <https://blackcatinformatics.ca/gmeow/examples/rights/photo-copyright> gmeow:copyrightHolder <https://blackcatinformatics.ca/gmeow/examples/rights/jane> .
 
 <https://blackcatinformatics.ca/gmeow/examples/rights/repo-license> gmeow:spdxLicenseId "Apache-2.0" .
+
+<https://blackcatinformatics.ca/gmeow/examples/robot-end-effector> gmeow:parentFrame gmeow:referenceFrameRobotBase .
+
+<https://blackcatinformatics.ca/gmeow/examples/slam-cell-42> gmeow:hasReferenceFrame gmeow:referenceFrameRobotSLAM .
 
 <https://blackcatinformatics.ca/gmeow/examples/territory-x> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/polity-y> .
 
