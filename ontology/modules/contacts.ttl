@@ -36,20 +36,30 @@ gmeow:PostalAddress
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:ContactPoint ;
     rdfs:label "Postal Address"@en ;
-    skos:definition "A contact point reachable by physical mail at a postal address. Its components below are the as-written surface form; the resolved, identifier-bearing geographic places are reached via gmeow:addressPlace and gmeow:containedInPlace."@en ;
+    skos:definition "A contact point reachable by physical mail at a postal address. It is expressed in the postal/administrative topological reference frame (gmeow:referenceFramePostalAddress); its components below are the coordinate values along that frame's axes — the as-written surface form. The resolved, identifier-bearing geographic places are reached via gmeow:addressPlace and gmeow:containedInPlace."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-# Address components (the as-written surface form; all non-functional — formats
-# and multi-source values conflict and must coexist). The resolved place
-# hierarchy (each level a first-class, QID-bearing gmeow:Place) is reached via
-# gmeow:addressPlace → gmeow:containedInPlace*.
+gmeow:postalAddressFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+    rdfs:domain gmeow:PostalAddress ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "postal address frame"@en ;
+    skos:definition "The postal/administrative reference frame in which this address is expressed. Functional: an address is expressed in exactly one frame. The default is gmeow:referenceFramePostalAddress."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Address components — coordinate values along the axes of the postal reference
+# frame (the as-written surface form; all non-functional — formats and multi-
+# source values conflict and must coexist). The resolved place hierarchy (each
+# level a first-class, QID-bearing gmeow:Place) is reached via gmeow:addressPlace
+# → gmeow:containedInPlace*.
 
 gmeow:streetAddress
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:PostalAddress ;
     rdfs:range rdfs:Literal ;
     rdfs:label "street address"@en ;
-    skos:definition "The street address line (number and thoroughfare) of a postal address."@en ;
+    skos:definition "The street-address coordinate value of a postal address, expressed along the gmeow:axisStreetAddress axis of the postal reference frame."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:extendedAddress
@@ -57,7 +67,7 @@ gmeow:extendedAddress
     rdfs:domain gmeow:PostalAddress ;
     rdfs:range rdfs:Literal ;
     rdfs:label "extended address"@en ;
-    skos:definition "An extended address line (suite, unit, or apartment) of a postal address."@en ;
+    skos:definition "The extended-address coordinate value of a postal address, expressed along the gmeow:axisExtendedAddress axis of the postal reference frame."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:postOfficeBox
@@ -65,7 +75,7 @@ gmeow:postOfficeBox
     rdfs:domain gmeow:PostalAddress ;
     rdfs:range rdfs:Literal ;
     rdfs:label "post office box"@en ;
-    skos:definition "The post-office-box of a postal address."@en ;
+    skos:definition "The post-office-box coordinate value of a postal address, expressed along the gmeow:axisPostOfficeBox axis of the postal reference frame."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:addressLocality
@@ -73,7 +83,7 @@ gmeow:addressLocality
     rdfs:domain gmeow:PostalAddress ;
     rdfs:range rdfs:Literal ;
     rdfs:label "address locality"@en ;
-    skos:definition "The locality (city or town) of a postal address."@en ;
+    skos:definition "The locality (city or town) coordinate value of a postal address, expressed along the gmeow:axisAddressLocality axis of the postal reference frame."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:addressRegion
@@ -81,7 +91,7 @@ gmeow:addressRegion
     rdfs:domain gmeow:PostalAddress ;
     rdfs:range rdfs:Literal ;
     rdfs:label "address region"@en ;
-    skos:definition "The region (state, province, or territory) of a postal address."@en ;
+    skos:definition "The region (state, province, or territory) coordinate value of a postal address, expressed along the gmeow:axisAddressRegion axis of the postal reference frame."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:postalCode
@@ -89,7 +99,7 @@ gmeow:postalCode
     rdfs:domain gmeow:PostalAddress ;
     rdfs:range rdfs:Literal ;
     rdfs:label "postal code"@en ;
-    skos:definition "The postal/ZIP code of a postal address."@en ;
+    skos:definition "The postal/ZIP code coordinate value of a postal address, expressed along the gmeow:axisPostalCode axis of the postal reference frame."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:countryCode
@@ -97,7 +107,7 @@ gmeow:countryCode
     rdfs:domain gmeow:PostalAddress ;
     rdfs:range rdfs:Literal ;
     rdfs:label "country code"@en ;
-    skos:definition "The country of a postal address. The intended value is an ISO 3166-1 alpha-2 code (e.g. \"CA\"), but this is a convention, not an enforced datatype facet. Non-functional: sources vary (\"CA\" / \"Canada\" / \"CAN\")."@en ;
+    skos:definition "The country code coordinate value of a postal address, expressed along the gmeow:axisCountryCode axis of the postal reference frame. The intended value is an ISO 3166-1 alpha-2 code (e.g. \"CA\"), but this is a convention, not an enforced datatype facet. Non-functional: sources vary (\"CA\" / \"Canada\" / \"CAN\")."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:addressPlace

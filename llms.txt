@@ -157,7 +157,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:PlaceNaming (⊑ gmeow:NameUsage): A DEFINED specialization of gmeow:NameUsage whose named entity is a gmeow:Place — a time/audience/register-scoped use of a toponym. Defined, NOT asserted: any NameUsage that names a Place is inferred to be a PlaceNaming (≡ gmeow:NameUsage ⊓ ∃gmeow:usageNamed.gmeow:Place), so place-naming reuses the NameUsage relator instead of minting a parallel relator (Principle 6, greenfield/no-redundancy). The reified counterpart of CIDOC-CRM's time-spanned crm:E48 Place Name / crm:E41 Appellation. Competing and historical place names coexist as co-equal PlaceNamings with no primary; superseded ones set gmeow:displayable false (Principle 10). The toponymic authority is gmeow:usageAuthority; the name's language is gmeow:nameLanguage on the bound gmeow:PlaceName (reached via gmeow:usageAppellation).
 - gmeow:PlaceType (⊑ gufo:QualityValue): The kind of a geographic place (country, region, city, building, room, …). Modelled as a value, not a Place subclass: the set of kinds is open-ended (GeoNames lists ~600 feature codes) and they share all of Place's structure, so a new kind is a new individual, not a new class.
 - gmeow:Pose (⊑ gmeow:Entity, gufo:Object): A frame-relative position and orientation of an object — a 6-DOF pose. A pose consists of a position (spatial coordinates in a reference frame) and an orientation (quaternion, Euler angles, heading/bearing, or a homogeneous transform matrix). Aligns by reference to IEEE 1872-2015 pos:QuantitativePose and structurally to OGC GeoPose 1.0.
-- gmeow:PostalAddress (⊑ gmeow:ContactPoint): A contact point reachable by physical mail at a postal address. Its components below are the as-written surface form; the resolved, identifier-bearing geographic places are reached via gmeow:addressPlace and gmeow:containedInPlace.
+- gmeow:PostalAddress (⊑ gmeow:ContactPoint): A contact point reachable by physical mail at a postal address. It is expressed in the postal/administrative topological reference frame (gmeow:referenceFramePostalAddress); its components below are the coordinate values along that frame's axes — the as-written surface form. The resolved, identifier-bearing geographic places are reached via gmeow:addressPlace and gmeow:containedInPlace.
 - gmeow:PrivacyNotice (⊑ gmeow:InformationObject): A human- or machine-readable privacy notice informing data subjects about the processing of their personal data — the information-object counterpart of a dpv:PrivacyNotice / schema:PrivacyPolicy. It may be attached to a RightsStatement or to the entity whose data is governed.
 - gmeow:ProfessionalRelationship (⊑ gmeow:InterpersonalRelationship): An interpersonal relationship arising from work — colleagues, collaborators, a client and a provider (the reified form of hasWorkedWith).
 - gmeow:ProficiencyLevel (⊑ gufo:QualityValue): An attained proficiency level on a scale (CEFR A1–C2; native; heritage). A value carried by gmeow:proficiencyLevel; gmeow:levelScale ties it to its scale. ILR (0–5) and ACTFL levels are added as further individuals.
@@ -259,9 +259,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:acquireLicensePage [gmeow:Entity → xsd:anyURI]: A page where a licence to use the asset may be acquired (schema:acquireLicensePage).
 - gmeow:activityPubActor [gmeow:OnlineAccount → xsd:anyURI]: The ActivityPub actor IRI of a federated-social account.
 - gmeow:addressHolder [gmeow:AddressTenure → gmeow:Agent] (functional): The agent who held the contact point over the tenure's interval.
-- gmeow:addressLocality [gmeow:PostalAddress → rdfs:Literal]: The locality (city or town) of a postal address.
+- gmeow:addressLocality [gmeow:PostalAddress → rdfs:Literal]: The locality (city or town) coordinate value of a postal address, expressed along the gmeow:axisAddressLocality axis of the postal reference frame.
 - gmeow:addressPlace [gmeow:PostalAddress → gmeow:Place]: The geographic place a postal address denotes (typically the premises/building) — the seam from the as-written address to the resolved place hierarchy, its coordinates/geometry, and its external identifiers.
-- gmeow:addressRegion [gmeow:PostalAddress → rdfs:Literal]: The region (state, province, or territory) of a postal address.
+- gmeow:addressRegion [gmeow:PostalAddress → rdfs:Literal]: The region (state, province, or territory) coordinate value of a postal address, expressed along the gmeow:axisAddressRegion axis of the postal reference frame.
 - gmeow:addressValue [gmeow:EmailAddress → rdfs:Literal] (functional): The normalized addr-spec of an email address.
 - gmeow:adjacentTo [gmeow:Location → gmeow:Location]: Relates a location to another location it is adjacent to.
 - gmeow:after [gmeow:Event → gmeow:Event]: Allen AFTER: this event begins strictly after the related event ends; the transitive inverse of gmeow:before. (= time:intervalAfter; TimeML AFTER; TEO after.)
@@ -322,7 +322,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:copyrightWork [gmeow:Copyright → gmeow:InformationObject] (functional): The work a copyright protects. Functional: one copyright relator is about one work.
 - gmeow:copyrightYear [gmeow:Copyright → rdfs:Literal] (functional): The year copyright was asserted (schema:copyrightYear). Typed rdfs:Literal in the TBox to stay OWL 2 DL (xsd:gYear is not an OWL 2 datatype); data carries an xsd:gYear value.
 - gmeow:counterpartOf [gmeow:Entity → gmeow:Entity]: Relates two GMEOW entities that are recognisable counterparts across realms, frames, datasets, editions, or modelling contexts without being safely mergeable. Symmetric but deliberately not transitive: counterparts preserve cross-realm linkage while avoiding owl:sameAs collapse of contested, standpoint-indexed, or context-dependent claims.
-- gmeow:countryCode [gmeow:PostalAddress → rdfs:Literal]: The country of a postal address. The intended value is an ISO 3166-1 alpha-2 code (e.g. "CA"), but this is a convention, not an enforced datatype facet. Non-functional: sources vary ("CA" / "Canada" / "CAN").
+- gmeow:countryCode [gmeow:PostalAddress → rdfs:Literal]: The country code coordinate value of a postal address, expressed along the gmeow:axisCountryCode axis of the postal reference frame. The intended value is an ISO 3166-1 alpha-2 code (e.g. "CA"), but this is a convention, not an enforced datatype facet. Non-functional: sources vary ("CA" / "Canada" / "CAN").
 - gmeow:datePublished [gmeow:CreativeWork → xsd:dateTime]: The date a creative work was published or issued.
 - gmeow:declination [gmeow:CelestialCoordinates → xsd:decimal]: Declination in degrees (−90 to +90). Frame-relative: the meaning depends on the coordinateFrame.
 - gmeow:deliversToAccount [gmeow:EmailAddress → gmeow:OnlineAccount]: Relates an email address to the online account it delivers to — the seam joining an address (held by an agent) to the account a message resides in.
@@ -363,7 +363,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:existenceEntity [gmeow:EntityExistence → gmeow:Entity] (functional): The entity whose existence is recorded by this EntityExistence. Functional: an EntityExistence concerns exactly one entity (constitutive of the situation's identity).
 - gmeow:existenceInterval [gmeow:Entity → gmeow:TimeInterval]: The time interval over which an entity exists. Open-ended (no end instant) when the entity is still extant. Non-functional: in a multi-source merge, different sources may give different bounds, and those claims coexist as standpoint-indexed statements. Carries its temporal frame via gmeow:hasTemporalFrame on the TimeInterval (Principle 11).
 - gmeow:expressionValue [gmeow:GenderExpression → gmeow:GenderExpressionStyle] (functional): The gmeow:GenderExpressionStyle value a gender-expression facet asserts (functional per facet). A predefined individual or a fresh one with rdfs:label; the single path to the value.
-- gmeow:extendedAddress [gmeow:PostalAddress → rdfs:Literal]: An extended address line (suite, unit, or apartment) of a postal address.
+- gmeow:extendedAddress [gmeow:PostalAddress → rdfs:Literal]: The extended-address coordinate value of a postal address, expressed along the gmeow:axisExtendedAddress axis of the postal reference frame.
 - gmeow:facetSubject [gmeow:Observation → gmeow:Person]: The person an identity facet (gender identity, gender expression, sexual/romantic orientation) is about — the observedFeature of the claim. Domain is gmeow:Observation so it applies to any observation subclass; the shape narrows to IdentityFacet instances.
 - gmeow:facetVantage [gmeow:Observation → gmeow:Agent]: The agent asserting an identity facet — the vantage of the claim. When gmeow:selfAsserted is true, the facetVantage is the person themselves (Principle 9: self-assertion is top authority).
 - gmeow:filename [gmeow:Attachment → rdfs:Literal] (functional): The filename of an attachment.
@@ -637,8 +637,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:placeType [gmeow:Place → gmeow:PlaceType]: The kind(s) of a place (one or more gmeow:PlaceType individuals). Non-functional: multi-source classifications may differ (a place that is both 'city' and 'administrative area') and must coexist as evidence.
 - gmeow:plusCode [gmeow:Geocode → xsd:string] (functional): An Open Location Code (Plus Code) — a geocoding system using alphanumeric codes to identify any location on Earth (e.g. '9F4W9C8C+W4').
 - gmeow:poseFrame [gmeow:Pose → gmeow:ReferenceFrame]: The coordinate reference frame in which the pose position and orientation are expressed.
-- gmeow:postOfficeBox [gmeow:PostalAddress → rdfs:Literal]: The post-office-box of a postal address.
-- gmeow:postalCode [gmeow:PostalAddress → rdfs:Literal]: The postal/ZIP code of a postal address.
+- gmeow:postOfficeBox [gmeow:PostalAddress → rdfs:Literal]: The post-office-box coordinate value of a postal address, expressed along the gmeow:axisPostOfficeBox axis of the postal reference frame.
+- gmeow:postalAddressFrame [gmeow:PostalAddress → gmeow:ReferenceFrame] (functional): The postal/administrative reference frame in which this address is expressed. Functional: an address is expressed in exactly one frame. The default is gmeow:referenceFramePostalAddress.
+- gmeow:postalCode [gmeow:PostalAddress → rdfs:Literal]: The postal/ZIP code coordinate value of a postal address, expressed along the gmeow:axisPostalCode axis of the postal reference frame.
 - gmeow:preview [gmeow:Message → rdfs:Literal]: A short plain-text preview/snippet of a message's body.
 - gmeow:proficiencyAgent [gmeow:LanguageProficiency → gmeow:Agent] (functional): The agent whose proficiency a language-proficiency expresses. Functional — constitutive of the proficiency.
 - gmeow:proficiencyInterval [gmeow:LanguageProficiency → gmeow:TimeInterval]: The interval over which a language-proficiency held (proficiency changes over a life). Lighter cases use gmeow:validFrom/validUntil on the statement.
@@ -755,7 +756,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:streamPlatform [gmeow:Stream → gmeow:Agent]: The platform hosting the sensor(s) producing this stream — a vehicle, vessel, aircraft, buoy, or fixed station. Non-functional: a stream may migrate across platforms over its lifetime (e.g. a device handed from one drone to another).
 - gmeow:streamSample [gmeow:Stream → gmeow:Entity]: Links a stream to an individual observation, location state, or other entity composing it. Non-functional: a stream typically has many samples, and multiple sampling strategies may coexist for the same stream (Principle 9). Ordering is implicit via sample timestamps, not asserted list structure (Principle 12).
 - gmeow:streamSensor [gmeow:Stream → gmeow:Agent]: The specific sensor or agent producing the stream. Non-functional: multiple sensors may contribute to one stream, and competing sensor claims coexist (Principle 9).
-- gmeow:streetAddress [gmeow:PostalAddress → rdfs:Literal]: The street address line (number and thoroughfare) of a postal address.
+- gmeow:streetAddress [gmeow:PostalAddress → rdfs:Literal]: The street-address coordinate value of a postal address, expressed along the gmeow:axisStreetAddress axis of the postal reference frame.
 - gmeow:subEventOf [gmeow:Event → gmeow:Event]: Relates an event to a larger event it is part of — a talk within a session within a conference. Transitive: a part of a part is a part (CIDOC-CRM P9 consists of). A specialization of the universal gmeow:partOf spine. Non-simple, so kept out of all cardinality axioms.
 - gmeow:subOrganizationOf [gmeow:Organization → gmeow:Organization]: Relates an organization to a larger organization it is part of — a department or division within a company, a team within a department. Transitive (a team is part of the company through its division). A specialization of the universal gmeow:partOf spine. A department is thus a first-class gmeow:Organization, and a gmeow:Membership may target it directly. The 'department' field is the sub-organization a person's membership is in.
 - gmeow:subject [gmeow:Message → rdfs:Literal]: The subject line of a message (RFC 5322 Subject).
@@ -884,6 +885,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:aspectPerfective (a gmeow:GrammaticalAspect): ISO-TimeML aspect PERFECTIVE.
 - gmeow:aspectPerfectiveProgressive (a gmeow:GrammaticalAspect): ISO-TimeML aspect PERFECTIVE_PROGRESSIVE.
 - gmeow:aspectProgressive (a gmeow:GrammaticalAspect): ISO-TimeML aspect PROGRESSIVE.
+- gmeow:axisAddressLocality (a gmeow:Axis): address locality axis
+- gmeow:axisAddressRegion (a gmeow:Axis): address region axis
 - gmeow:axisAllocentricX (a gmeow:Axis): The X axis of an allocentric (world-centred) cognitive map.
 - gmeow:axisAllocentricY (a gmeow:Axis): The Y axis of an allocentric (world-centred) cognitive map.
 - gmeow:axisAngularVelocityX (a gmeow:Axis): angular velocity X axis
@@ -897,6 +900,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisBstar (a gmeow:Axis): CIE b* blue-yellow
 - gmeow:axisConceptualSimilarity (a gmeow:Axis): The similarity or distance between concepts in a Gärdenfors-style conceptual space.
 - gmeow:axisConfigurationVector (a gmeow:Axis): A generic n-dimensional configuration vector axis for variable-DOF robots. The actual dimensionality is pushed to the solver layer via CoordinateMatrix.matrixShape (Principle 12).
+- gmeow:axisCountryCode (a gmeow:Axis): country code axis
 - gmeow:axisCyan (a gmeow:Axis): cyan channel
 - gmeow:axisDNSName (a gmeow:Axis): DNS name axis
 - gmeow:axisDay (a gmeow:Axis): day
@@ -904,6 +908,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisEgocentricForward (a gmeow:Axis): The forward/backward axis of an egocentric cognitive map, relative to the agent's facing direction.
 - gmeow:axisEgocentricLateral (a gmeow:Axis): The left/right axis of an egocentric cognitive map, relative to the agent's facing direction.
 - gmeow:axisElevation (a gmeow:Axis): elevation
+- gmeow:axisExtendedAddress (a gmeow:Axis): extended address axis
 - gmeow:axisFrequency (a gmeow:Axis): frequency
 - gmeow:axisGalacticLatitude (a gmeow:Axis): galactic latitude
 - gmeow:axisGalacticLongitude (a gmeow:Axis): galactic longitude
@@ -946,6 +951,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisPitch (a gmeow:Axis): pitch axis
 - gmeow:axisPlusCode (a gmeow:Axis): Plus Code cell
 - gmeow:axisPortNumber (a gmeow:Axis): port number axis
+- gmeow:axisPostOfficeBox (a gmeow:Axis): post office box axis
+- gmeow:axisPostalCode (a gmeow:Axis): postal code axis
 - gmeow:axisPredictedMeanVote (a gmeow:Axis): predicted mean vote (PMV)
 - gmeow:axisPredictedPercentageDissatisfied (a gmeow:Axis): predicted percentage dissatisfied (PPD)
 - gmeow:axisQuaternionW (a gmeow:Axis): quaternion W axis
@@ -958,6 +965,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisScalar (a gmeow:Axis): scalar axis
 - gmeow:axisSecond (a gmeow:Axis): second
 - gmeow:axisSequencePosition (a gmeow:Axis): The linear position axis along a biological sequence (DNA, RNA, protein), measured in base pairs or amino-acid residues from a sequence origin.
+- gmeow:axisStreetAddress (a gmeow:Axis): street address axis
 - gmeow:axisTristimulusX (a gmeow:Axis): CIE X tristimulus
 - gmeow:axisTristimulusY (a gmeow:Axis): CIE Y tristimulus
 - gmeow:axisTristimulusZ (a gmeow:Axis): CIE Z tristimulus
@@ -1479,6 +1487,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:referenceFramePhaseSpace3DOF (a gmeow:ReferenceFrame): Abstract Phase Space Reference Frame (q,p axes)
 - gmeow:referenceFramePlusCode (a gmeow:ReferenceFrame): Plus Code (Open Location Code) Reference Frame
 - gmeow:referenceFramePort (a gmeow:ReferenceFrame): Port Number Space Reference Frame
+- gmeow:referenceFramePostalAddress (a gmeow:ReferenceFrame): Postal Address Reference Frame
 - gmeow:referenceFrameRobotArm6DOF (a gmeow:ReferenceFrame): 6-DOF Robot Arm Configuration Space
 - gmeow:referenceFrameRobotBase (a gmeow:ReferenceFrame): Robot Base Cartesian Reference Frame
 - gmeow:referenceFrameRobotCspace6DOF (a gmeow:ReferenceFrame): 6-DOF Robot Configuration Space Reference Frame
