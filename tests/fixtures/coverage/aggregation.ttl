@@ -1,0 +1,29 @@
+# Synthetic coverage fixture for the aggregation building block.
+# Provides SpatialAggregation instances to exercise the qb projection.
+
+@prefix ex:     <https://example.org/agg/> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+# A simple region (city).
+ex:cityRegion a gmeow:Place ;
+    rdfs:label "Example City"@en .
+
+# A population-count spatial aggregation.
+ex:popCount a gmeow:SpatialAggregation ;
+    gmeow:observedFeature ex:cityRegion ;
+    gmeow:aggregationFunction gmeow:aggCount ;
+    gmeow:observationResult [
+        a gmeow:ScalarQuantity ;
+        gmeow:quantityValue "1000000"^^xsd:integer
+    ] .
+
+# An average-income spatial aggregation for the same region.
+ex:avgIncome a gmeow:SpatialAggregation ;
+    gmeow:observedFeature ex:cityRegion ;
+    gmeow:aggregationFunction gmeow:aggAverage ;
+    gmeow:observationResult [
+        a gmeow:ScalarQuantity ;
+        gmeow:quantityValue "45000.50"^^xsd:decimal
+    ] .

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from rdflib import RDF, XSD, Graph, Literal, URIRef
 
-from gmeow_tools.config import FIXTURES_DIR, PROJECTIONS_DIR
+from gmeow_tools.config import FIXTURES_DIR, PROJECTION_QUERY_DIR, PROJECTIONS_DIR
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.projections import PROFILES, project_examples, project_graph
 
@@ -426,3 +426,98 @@ def test_schema_org_contested_place_names_emit_all() -> None:
     # The superseded historical name is suppressed — never leaks.
     assert Literal("Byzantium", lang="x-gmeow-la") not in names
     _assert_no_gmeow_leakage(g)
+
+
+# --------------------------------------------------------------------------- #
+# Issue #205 — qb projection DataSet + DSD well-formedness
+# --------------------------------------------------------------------------- #
+
+QB = "http://purl.org/linked-data/cube#"
+AGG = "https://example.org/agg/"
+
+
+def test_qb_projection_well_formed() -> None:
+    """QB projection emits a complete DataSet + DSD per Observation (IC-1, IC-2)."""
+    src = load_merged_graph(include_imports=False)
+    src.parse(FIXTURES_DIR / "aggregation.ttl", format="turtle")
+
+    query = (PROJECTION_QUERY_DIR / "qb.rq").read_text(encoding="utf-8")
+    result = src.query(query)
+    assert result.graph is not None
+    g = result.graph
+
+    assert len(g) > 0, "qb projection produced no triples"
+
+    obs = set(g.subjects(RDF.type, URIRef(QB + "Observation")))
+    assert len(obs) == 2, f"expected 2 Observations, got {len(obs)}"
+
+    # IC-1: every Observation has exactly one qb:dataSet.
+    for o in obs:
+        datasets = list(g.objects(o, URIRef(QB + "dataSet")))
+        assert len(datasets) == 1, f"Observation {o} must have exactly one dataSet"
+
+    # IC-2: every DataSet has exactly one qb:structure.
+    all_datasets = set(g.subjects(RDF.type, URIRef(QB + "DataSet")))
+    assert len(all_datasets) == 2, f"expected 2 DataSets, got {len(all_datasets)}"
+    for d in all_datasets:
+        dsd_list = list(g.objects(d, URIRef(QB + "structure")))
+        assert len(dsd_list) == 1, f"DataSet {d} must have exactly one structure"
+
+    # Reachability: Observation → DataSet → DSD, and DSD declares expected components.
+    for o in obs:
+        dataset = next(g.objects(o, URIRef(QB + "dataSet")))
+        dsd = next(g.objects(dataset, URIRef(QB + "structure")))
+        assert (dsd, RDF.type, URIRef(QB + "DataStructureDefinition")) in g
+
+        comps = list(g.objects(dsd, URIRef(QB + "component")))
+        assert len(comps) == 3, f"DSD {dsd} must declare 3 components, got {len(comps)}"
+
+        # Measure-type dimension.
+        mt_comps = [
+            c
+            for c in comps
+            if (c, URIRef(QB + "dimension"), URIRef(QB + "measureType")) in g
+        ]
+        assert len(mt_comps) == 1, "expected one measureType dimension component"
+
+        # observedFeature dimension.
+        of_comps = [
+            c
+            for c in comps
+            if (c, URIRef(QB + "dimension"), URIRef(GMEOW + "observedFeature")) in g
+        ]
+        assert len(of_comps) == 1, "expected one observedFeature dimension component"
+
+        # obsValue measure.
+        ov_comps = [
+            c
+            for c in comps
+            if (c, URIRef(QB + "measure"), URIRef(QB + "obsValue")) in g
+        ]
+        assert len(ov_comps) == 1, "expected one obsValue measure component"
+
+    # IC-3 / IC-4: component properties are explicitly typed.
+    assert (
+        URIRef(GMEOW + "observedFeature"),
+        RDF.type,
+        URIRef(QB + "DimensionProperty"),
+    ) in g
+    assert (
+        URIRef(QB + "obsValue"),
+        RDF.type,
+        URIRef(QB + "MeasureProperty"),
+    ) in g
+
+    # Verify the observation scalar values are present.
+    pop_count = URIRef(AGG + "popCount")
+    avg_income = URIRef(AGG + "avgIncome")
+    assert (
+        pop_count,
+        URIRef(QB + "obsValue"),
+        Literal("1000000", datatype=XSD.integer),
+    ) in g
+    assert (
+        avg_income,
+        URIRef(QB + "obsValue"),
+        Literal("45000.50", datatype=XSD.decimal),
+    ) in g
