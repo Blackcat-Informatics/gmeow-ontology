@@ -9,9 +9,9 @@ SHELL := /bin/bash
 TARGET ?= foaf
 
 .PHONY: help install fmt lint validate reason reason-hermit explain verify extract compile-mappings \
-        compile-check compile-statements statements-check mappings wikidata \
-        wikidata-live wikidata-coverage wikidata-audit lint-alignment refresh-target-axioms metadata apache docs \
-        docs-full rdf12 quality normalize build export project test check \
+        compile-check compile-statements statements-check compile-statements-pyoxigraph statements-check-pyoxigraph \
+        mappings wikidata wikidata-live wikidata-coverage wikidata-audit lint-alignment refresh-target-axioms \
+        metadata apache docs docs-full rdf12 rdf12-pyoxigraph quality normalize build export project test check \
         release clean pull-images
 
 help: ## Show this help.
@@ -63,6 +63,12 @@ compile-statements: ## Compile statement-dsl/ → RDF 1.2 lead artifact + OWL do
 statements-check: ## Fail if the committed statement artifacts are stale vs statement-dsl/ (Jena).
 	uv run gmeow compile-statements --check
 
+compile-statements-pyoxigraph: ## Compile statement-dsl/ → RDF 1.2 + OWL downcast (pyoxigraph cross-check).
+	uv run gmeow compile-statements-pyoxigraph
+
+statements-check-pyoxigraph: ## Fail if pyoxigraph cross-check artifacts diverge from committed.
+	uv run gmeow compile-statements-pyoxigraph --check
+
 mappings-only: ## Build alignment axioms + VoID linksets (assumes SSSOM files present).
 	uv run gmeow mappings
 
@@ -108,6 +114,9 @@ docs-full: ## Generate pyLODE + WIDOCO documentation (Docker).
 rdf12: ## Emit the RDF 1.2 / RDF* lead artifact + OWL downcast (alias of compile-statements; Jena).
 	uv run gmeow rdf12
 
+rdf12-pyoxigraph: ## Emit the RDF 1.2 / RDF* lead artifact + OWL downcast (pyoxigraph alias).
+	uv run gmeow rdf12-pyoxigraph
+
 quality: ## Run OOPS! pitfall scan (network, best-effort).
 	uv run gmeow quality
 
@@ -128,7 +137,7 @@ test: ## Run the test suite.
 	uv run pytest -n auto
 
 check: ## Full local quality gate (parallelized where safe).
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint validate statements-check compile-check wikidata coverage reason reason-hermit verify mappings-only lint-alignment
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint validate statements-check statements-check-pyoxigraph compile-check wikidata coverage reason reason-hermit verify mappings-only lint-alignment
 	$(MAKE) test
 	@echo "✓ all checks passed"
 
