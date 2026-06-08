@@ -81,6 +81,12 @@ wikidata: ## Validate Wikidata QID/PID syntax in the mappings (offline).
 wikidata-live: ## Also verify Wikidata ids resolve (network).
 	uv run gmeow wikidata --existence
 
+wikidata-coverage: ## Report Wikidata mapping coverage by domain (offline).
+	uv run gmeow wikidata-coverage
+
+wikidata-audit: ## Audit fixtures and modules for Wikidata misuse (offline).
+	uv run gmeow wikidata --fixtures
+
 metadata: ## Generate VoID + DCAT dataset descriptions.
 	uv run gmeow metadata
 

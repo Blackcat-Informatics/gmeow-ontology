@@ -367,16 +367,56 @@ def wikidata(
     existence: bool = typer.Option(
         False, "--existence", help="Also check ids resolve on Wikidata (network)."
     ),
+    fixtures: bool = typer.Option(
+        False, "--fixtures", help="Audit fixtures and modules for Wikidata misuse."
+    ),
 ) -> None:
     """Validate Wikidata QIDs/PIDs used in the mappings (syntax; optional live)."""
     from gmeow_tools.mappings import collect_wikidata_ids, load_mappings
-    from gmeow_tools.wikidata import ExistenceStatus, check_existence, check_syntax
+    from gmeow_tools.wikidata import (
+        ExistenceStatus,
+        check_existence,
+        check_syntax,
+        check_syntax_iri,
+    )
+    from gmeow_tools.wikidata_audit import audit_all, render_audit
+
+    if fixtures:
+        report = audit_all()
+        text = render_audit(report)
+        for line in text.splitlines():
+            if line.startswith("[yellow]") or line.startswith("[red]"):
+                err_console.print(line)
+            else:
+                console.print(line)
+        if not report.ok:
+            raise _fail(
+                f"✗ {len(report.errors)} error(s), {len(report.warnings)} warning(s)"
+            )
+        console.print("[green]✓ fixture audit passed[/green]")
+        return
 
     ids = collect_wikidata_ids(load_mappings())
     syntax = check_syntax(ids)
     console.print(f"[green]✓ {len(syntax.valid)} id(s) valid syntax[/green]")
+    if syntax.invalid:
+        err_console.print(f"[red]✗ invalid ids: {syntax.invalid}[/red]")
+    if syntax.misuses:
+        for _local, misuse, message in syntax.misuses:
+            err_console.print(f"[yellow]{misuse.value}[/yellow] {message}")
     if not syntax.ok:
-        raise _fail(f"✗ invalid ids: {syntax.invalid}")
+        raise _fail(f"✗ {len(syntax.invalid)} invalid, {len(syntax.misuses)} misuse(s)")
+
+    # Also check full object IRIs for namespace misuse
+    loaded = load_mappings()
+    iri_misuses = []
+    for mapping in loaded:
+        iri_misuses.extend(check_syntax_iri(str(mapping.object_id)))
+    if iri_misuses:
+        for _local, misuse, message in iri_misuses:
+            err_console.print(f"[yellow]{misuse.value}[/yellow] {message}")
+        raise _fail(f"✗ {len(iri_misuses)} namespace misuse(s) in mapping IRIs")
+
     if existence:
         try:
             statuses = check_existence(syntax.valid)
@@ -389,6 +429,23 @@ def wikidata(
         if bad:
             raise _fail(f"✗ {len(bad)} id(s) failed existence check")
         console.print(f"[green]✓ {len(statuses)} id(s) resolve on Wikidata[/green]")
+
+
+@app.command()
+def wikidata_coverage(
+    json_mode: bool = typer.Option(
+        False, "--json", help="Emit machine-readable JSON instead of plain text."
+    ),
+    threshold: float = typer.Option(
+        0.5, "--threshold", help="Flag mappings below this confidence level."
+    ),
+) -> None:
+    """Report Wikidata mapping coverage by domain/module (offline)."""
+    from gmeow_tools.wikidata_coverage import render_report, run_coverage
+
+    report = run_coverage(threshold=threshold)
+    text = render_report(report, json_mode=json_mode)
+    console.print(text)
 
 
 @app.command()

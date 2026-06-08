@@ -286,3 +286,271 @@ gmeow:eqWikidata029 a gmeow:TermEquivalence ;
     gmeow:confidence 0.4 ;
     gmeow:objectLabel "MPEG-21" ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Documents, datasets, and creative works
+# --------------------------------------------------------------------------- #
+
+gmeow:eqWikidata030 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Document ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q49848 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "document" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata031 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:CreativeWork ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q17537576 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "creative work" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata032 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Article ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q191067 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "article" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata033 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:WebPage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q36774 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "web page" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata034 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Dataset ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1172284 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "dataset" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata035 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:MediaObject ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q11734477 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:objectLabel "media file" ;
+    gmeow:comment "Wikidata 'media file' is broader than GMEOW MediaObject (which includes non-file media); directional lossy projection" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Life events and genealogy
+# --------------------------------------------------------------------------- #
+
+gmeow:eqWikidata036 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:LifeEvent ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q2400985 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "life event" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata037 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeBirth ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q308229 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "childbirth" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata038 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeDeath ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q4 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:objectLabel "death" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata039 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeMarriage ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q8445 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "marriage" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata040 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeDivorce ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q93183 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "divorce" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata041 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeAdoption ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q180398 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "adoption" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata042 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeGraduation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q3918 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "graduation ceremony" ;
+    gmeow:comment "Wikidata 'graduation ceremony' is narrower than GMEOW eventTypeGraduation (which covers any educational completion); directional lossy projection" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Contacts, email, and communication
+# --------------------------------------------------------------------------- #
+
+gmeow:eqWikidata043 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:TelephoneNumber ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q214291 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "telephone number" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata044 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:EmailAddress ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q29934200 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "email address" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata045 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Mailbox ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1531418 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "mailbox" ;
+    gmeow:comment "Wikidata 'mailbox' is primarily physical; GMEOW Mailbox covers both physical and electronic. Directional lossy projection." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Trust, credentials, and cryptographic material
+# --------------------------------------------------------------------------- #
+
+gmeow:eqWikidata046 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Credential ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q5158833 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "credential" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata047 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:CryptographicKey ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q826762 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "key (cryptography)" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata048 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Certification ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q747527 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "certification" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Languages, writing systems, and calendars
+# --------------------------------------------------------------------------- #
+
+gmeow:eqWikidata049 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:CalendarSystem ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q4036 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "calendar" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata050 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:languageCode ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:P424 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "Wikimedia language code" ;
+    gmeow:comment "Wikidata P424 is the Wikimedia language code; GMEOW languageCode uses BCP-47. Related but not identical." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Occupation, skills, and expertise
+# --------------------------------------------------------------------------- #
+
+gmeow:eqWikidata051 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Occupation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q12737077 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "occupation" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata052 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Skill ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q2242730 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "skill" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# General entity and activity concepts
+# --------------------------------------------------------------------------- #
+
+gmeow:eqWikidata053 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Agent ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q24229398 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "agent" ;
+    gmeow:comment "Wikidata 'agent' is a very abstract philosophical concept; GMEOW Agent is the actor in provenance and trust assertions. Directional lossy projection." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata054 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Group ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q874405 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:objectLabel "social group" ;
+    gmeow:comment "Wikidata 'social group' is broader than GMEOW Group (which includes non-social collectives). Directional lossy projection." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata055 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Activity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1914636 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:objectLabel "activity" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
