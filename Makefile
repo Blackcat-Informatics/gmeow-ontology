@@ -9,7 +9,7 @@ SHELL := /bin/bash
 TARGET ?= foaf
 
 # Checked-in generated artifacts (refreshed by make regenerate).
-REGENERATED_PATHS := mappings/ projections/ queries/projections/ statements/ metadata/ apache/gmeow.conf llms.txt
+REGENERATED_PATHS := mappings/ projections/ queries/projections/ statements/ metadata/ apache/gmeow.conf llms.txt dist/lpg/
 
 # Override: make commit MESSAGE="feat: add foaf alignment"
 MESSAGE ?= "chore: regenerate checked-in artifacts"
@@ -67,7 +67,7 @@ compile-schemas: ## Compile canonical OWL → LinkML + JSON Schema / Pydantic / 
 	uv run gmeow compile-schemas
 
 schemas-check: ## Compile schemas as a sanity check (dist/ is git-ignored, so no drift gate).
-	uv run gmeow compile-schemas
+	uv run gmeow compile-schemas --check
 
 compile-statements: ## Compile statement-dsl/ → RDF 1.2 lead artifact + OWL downcast (Jena).
 	uv run gmeow compile-statements

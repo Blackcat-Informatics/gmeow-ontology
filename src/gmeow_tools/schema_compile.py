@@ -106,7 +106,7 @@ def _iri_to_linkml_range(
     if s in _XSD_TO_LINKML:
         return _XSD_TO_LINKML[s]
     local = _local_name(iri)
-    if local in class_names:
+    if _is_gmeow_iri(iri) and local in class_names:
         return local
     # External class → degrade to string with warning
     warnings.append(f"{prop_local}: range {s} is external — degrading to string")
@@ -190,17 +190,20 @@ def emit_linkml(graph: Graph) -> tuple[dict[str, Any], list[str]]:
         if comments:
             cls_def["description"] = str(comments[0])
 
-        supers = [
-            s
-            for s in graph.objects(cls, RDFS.subClassOf)
-            if isinstance(s, URIRef) and not _is_bnode(s)
-        ]
+        supers = sorted(
+            (
+                s
+                for s in graph.objects(cls, RDFS.subClassOf)
+                if isinstance(s, URIRef) and not _is_bnode(s)
+            ),
+            key=str,
+        )
         if supers:
             super_local = _local_name(supers[0])
             super_iri = supers[0]
             if super_local == local:
                 warnings.append(f"{local}: self-referential superclass — dropping is_a")
-            elif super_local in class_names:
+            elif _is_gmeow_iri(super_iri) and super_local in class_names:
                 cls_def["is_a"] = super_local
             elif _is_gmeow_iri(super_iri):
                 # GMEOW superclass not yet discovered; defer resolution.
@@ -245,11 +248,14 @@ def emit_linkml(graph: Graph) -> tuple[dict[str, Any], list[str]]:
             slot["description"] = str(comments[0])
 
         # Range
-        ranges = [
-            r
-            for r in graph.objects(prop, RDFS.range)
-            if isinstance(r, URIRef) and not _is_bnode(r)
-        ]
+        ranges = sorted(
+            (
+                r
+                for r in graph.objects(prop, RDFS.range)
+                if isinstance(r, URIRef) and not _is_bnode(r)
+            ),
+            key=str,
+        )
         if ranges:
             slot["range"] = _iri_to_linkml_range(
                 ranges[0], class_names, warnings, local
@@ -260,14 +266,17 @@ def emit_linkml(graph: Graph) -> tuple[dict[str, Any], list[str]]:
             slot["range"] = "string"
 
         # Domain
-        domains = [
-            d
-            for d in graph.objects(prop, RDFS.domain)
-            if isinstance(d, URIRef) and not _is_bnode(d)
-        ]
+        domains = sorted(
+            (
+                d
+                for d in graph.objects(prop, RDFS.domain)
+                if isinstance(d, URIRef) and not _is_bnode(d)
+            ),
+            key=str,
+        )
         if domains:
             domain_local = _local_name(domains[0])
-            if domain_local in class_names:
+            if _is_gmeow_iri(domains[0]) and domain_local in class_names:
                 slot["domain"] = domain_local
             if len(domains) > 1:
                 warnings.append(f"{local}: multiple domains — keeping {domain_local}")
@@ -291,7 +300,7 @@ def emit_linkml(graph: Graph) -> tuple[dict[str, Any], list[str]]:
         if not isinstance(ind, URIRef) or not _is_gmeow_iri(ind):
             continue
         for cls in graph.objects(ind, RDF.type):
-            if not isinstance(cls, URIRef):
+            if not isinstance(cls, URIRef) or not _is_gmeow_iri(cls):
                 continue
             cls_local = _local_name(cls)
             if cls_local not in class_names:

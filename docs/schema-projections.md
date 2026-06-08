@@ -109,7 +109,7 @@ consumers and contradict the open-world design.
 |-----------|-----------------|
 | **Pydantic** | Embeds the source LinkML path (normalized to `gmeow.linkml.yaml` for determinism).  Custom types (`duration`) inherit from `string`. |
 | **TypeScript** | Unknown `type.base` warnings for `datetime`, `decimal`, `duration`, `uri` — these fall back to `string`. |
-| **GraphQL** | Names containing illegal characters (e.g. `signatureSchemeBLS12-381`) are preserved as-is; GraphQL tools may need to escape them. |
+| **GraphQL** | Names containing illegal characters (e.g. `signatureSchemeBLS12-381`) are not valid in GraphQL identifiers. Normalize them before consumption (e.g. replace `-` with `_` → `signatureSchemeBLS12_381`, or remove entirely → `signatureSchemeBLS12381`). The schema generator preserves the original name so the mapping is explicit. |
 | **JSON Schema** | LinkML `mergeimports=True` inlines all definitions; the schema is self-contained but large. |
 | **OpenAPI** | Minimal path set (`GET /entities/{id}`) added for spec validity; not a functional API definition. |
 
