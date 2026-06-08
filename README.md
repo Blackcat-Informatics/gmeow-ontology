@@ -39,26 +39,23 @@ Cite them by number in issues and PRs.
   ([`docs/names-mapping.md`](./docs/names-mapping.md), [`docs/identity-mapping.md`](./docs/identity-mapping.md)).
 
 > **Status.** GMEOW is built **incrementally, one slice of digital existence at a time** — and
-> the foundation is now broad. **24 modules** are modelled, aligned, and reasoned: identity
+> the foundation is now broad. **37 modules** are modelled, aligned, and reasoned: identity
 > (entities, names, gender, sexuality, languages), social & contact (genealogy, organization,
 > contacts, email, accounts), content & evidence (documents, sources, software), trust & crypto
 > (trust, messaging-trust), skills & legal (expertise, agreements, rights), place / time / events
-> (places, temporal, events), and the epistemics spine (provenance, standpoint). The reasoning
-> stack is in place — axiomatized doctrine (disjointness, relator mediation, kinship/containment
+> (places, temporal, events, with Location now a universal reference-frame spanning 13+ realms),
+> the epistemics spine (provenance, standpoint, observation), and cross-cutting foundations
+> (frame-relativity, determinacy, granularity, accessibility, data quality, attestation). The
+> reasoning stack is in place — axiomatized doctrine (disjointness, relator mediation, kinship/containment
 > property chains), the [OWL-infers / SHACL-validates split](./docs/reasoning.md) with
-> entailment-based competency tests, and a gUFO↔BFO foundational bridge. Planned work is tracked
+> entailment-based competency tests, and a gUFO↔BFO foundational bridge. Constitution Principles
+> 11 (frame-relativity) and 12 (solver boundary) are ratified. Planned work is tracked
 > as issues: new domain slices (calendar, notes, finance, employment, images, tagging, an
 > AI / RAG claim-provenance layer), broad-consumption tooling (developer schemas, LPG / Croissant /
-> RO-Crate exports, a maximal DOI strategy), and the current major thrust — the **Location as a
-> universal reference-frame** epic, which surfaces cross-cutting foundations (observation as a
-> *claim-from-a-vantage*, frame-relativity, determinacy ⟂ confidence, disclosure control by
-> projection — one mechanism that **withholds *or* coarsens** a value under a trigger
-> (suppression, privacy/consent redaction, and a universal **granularity / level-of-detail
-> axis**), never by deletion — and the self-describing *Profile* meta-pattern) that the in-progress Constitution
-> amendments (Principles 11–12) underpin. Each slice adds canonical terms, SSSOM alignment tables,
-> projections, and a vendored fixture, and `make coverage` reports how much GMEOW covers and what
-> gaps remain. The full toolchain (validate → reason → mappings → coverage → build → docs →
-> publish) runs green at every step.
+> RO-Crate exports, a maximal DOI strategy), and quality/performance hardening. Each slice adds
+> canonical terms, SSSOM alignment tables, projections, and a vendored fixture, and `make coverage`
+> reports how much GMEOW covers and what gaps remain. The full toolchain (validate → reason →
+> mappings → coverage → build → docs → publish) runs green at every step.
 
 ## Quick start
 
@@ -316,6 +313,50 @@ the build-time `LinkPolicy` that governs copying axioms *into* GMEOW (full ratio
   Media Resources, WIPO/Wikidata** (every QID curl-validated) — and **projected** to pure
   ODRL, CC REL, schema.org, Dublin Core and SPDX. IPROnto and MPEG-21 REL are bridged by
   reference (no fabricated IRIs). Foundational: the Images and Employment blocks build on it.
+
+### Locations: universal reference-frame
+
+Most vocabularies model location as a flat geographic point (`latitude`, `longitude`).
+GMEOW treats **Location as a relationship between an entity and a reference frame** — one
+kernel locates a coffee cup, a satellite, a neural embedding, a gene on a genome, and a
+wizard's tower (full rationale in [`docs/location-mapping.md`](./docs/location-mapping.md)):
+
+- **Universal reference-frame kernel.** `gmeow:Location` is the umbrella; structural kinds
+  (`Place`, `VirtualLocation`, `StorageLocation`, `CelestialLocation`, `BiologicalSequenceLocation`)
+  are subclasses where structure differs. Kinds within each kind are open value vocabularies
+  (`placeType`, `celestialObjectType`, `sequenceFeatureType`), not subclasses — any granularity
+  from country to room, from star to galaxy cluster, or from chromosome to SNP, can be a
+  first-class entity.
+- **Frame-relativity by construction (Principle 11).** Every coordinate, measurement, or pose
+  is expressed in an explicit `gmeow:ReferenceFrame` — a self-describing Profile with closed
+  descriptors (`frameRealm`, `frameKind`, `hasAxis`, `dimensionCount`, `hasMetricKind`,
+  `determinacyModel`) and open values. Seed frames span terrestrial (WGS-84), indoor (Cartesian
+  grid), celestial (ICRS, FK5, Galactic), virtual/network (IP/DNS topology), robotic (C-space,
+  TF), mathematical/n-D (Hilbert, latent vector, phase space), biological-sequence (GRCh38),
+  geocoding (Plus Codes, what3words), psychological/cognitive, and fictional/narrative realms.
+  A new realm is *data*, never a schema change.
+- **Time-scoped, contested, never a winner.** A place's name, jurisdiction, boundary, and
+  parent containment are time-indexed and disputed. `JurisdictionTenure` and `ContainmentTenure`
+  reify sovereignty and border changes as `gufo:SituationType` relators; contested claims
+  (Crimea-class) coexist as standpoint-indexed instances, none privileged (Principle 9).
+  Superseded places (Constantinople → Istanbul) are retained with `gmeow:displayable false`,
+  never deleted (Principle 10).
+- **Pose, motion, and trajectories.** A `gmeow:Pose` carries position + orientation as peers
+  (quaternion, Euler angles, heading/bearing, or homogeneous matrix). `LocationState` captures
+  position, velocity, and pose at an instant; `Trajectory` chains states into a space-time path.
+  Interpolation and frame transforms live in the solver layer (Principle 12).
+- **Topology, proximity, and aggregation.** RCC-8 relations (`rcc8po`, `rcc8tpp`, `rcc8ntpp`,
+  `rcc8ec`, `rcc8dc`, `rcc8eq`) model qualitative spatial topology. `ProximityMeasurement`
+  records frame-relative distance with an explicit `MetricKind` (geodesic, Euclidean, cosine,
+  graph-hops). `SpatialAggregation` computes count, density, centroid, and k-anonymity over a
+  region — all in the solver layer.
+- **Cross-cutting facets.** Regulatory overlays (zoning, airspace, maritime zones, sanctions)
+  bind a place, authority, regulation type, and optional 3D bounds. Accessibility features and
+  barriers are orthogonal facets over places and routes. Privacy coarsening (`coarsenTo` +
+  `GranularityLevel`) withholds or generalizes sensitive locations at projection time.
+- **Maximal bridging, by reference.** Aligned to GeoSPARQL, BOT, CIDOC-CRM+CRMgeo, IVOA, UAT,
+  SWEET, FALDO, Sequence Ontology, LADM, AIXM, UNCLOS, IEEE 1872-2015, OGC GeoPose, schema.org,
+  vCard, WGS84, Wikidata — all by reference, never imported (Principle 5).
 
 ## Publishing
 
