@@ -12,6 +12,7 @@ htmlcov/
 # Generated build artifacts (published on release, not committed)
 /dist/*
 !/dist/lpg/
+!/dist/schemas/
 /docs/_generated/
 /llms.txt
 

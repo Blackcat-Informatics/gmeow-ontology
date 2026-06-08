@@ -439,7 +439,7 @@ def gen_openapi(json_schema_text: str) -> str:
         },
         "components": {"schemas": {component_name: schema_obj}},
     }
-    return json.dumps(openapi, indent=2)
+    return json.dumps(openapi, indent=2) + "\n"
 
 
 def _drift(tmp_dir: Path, committed_dir: Path) -> list[str]:
@@ -464,6 +464,13 @@ def _drift(tmp_dir: Path, committed_dir: Path) -> list[str]:
     return drifted
 
 
+def _normalize_text(text: str) -> str:
+    """Strip trailing whitespace per line and ensure exactly one trailing newline."""
+    lines = text.split("\n")
+    cleaned = "\n".join(line.rstrip() for line in lines)
+    return cleaned.rstrip("\n") + "\n"
+
+
 def _write_artifacts(
     linkml_text: str,
     json_schema_text: str,
@@ -486,7 +493,7 @@ def _write_artifacts(
     }
     for name, text in mapping.items():
         path = out_dir / name
-        path.write_text(text, encoding="utf-8")
+        path.write_text(_normalize_text(text), encoding="utf-8")
         paths.append(path)
     return paths
 

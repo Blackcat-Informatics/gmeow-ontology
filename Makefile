@@ -9,7 +9,7 @@ SHELL := /bin/bash
 TARGET ?= foaf
 
 # Checked-in generated artifacts (refreshed by make regenerate).
-REGENERATED_PATHS := mappings/ projections/ queries/projections/ statements/ metadata/ apache/gmeow.conf dist/lpg/
+REGENERATED_PATHS := mappings/ projections/ queries/projections/ statements/ metadata/ apache/gmeow.conf dist/lpg/ dist/schemas/
 
 # Override: make commit MESSAGE="feat: add foaf alignment"
 MESSAGE ?= "chore: regenerate checked-in artifacts"
@@ -141,7 +141,7 @@ build: ## Build all serializations + JSON-LD context + apache.conf into dist/.
 export: ## Generate flattened exports (CSV/CSVW, Markdown, JSONL, llms.txt) into dist/.
 	uv run gmeow export
 
-lpg: ## Export GMEOW to LPG formats (CSV, Neo4j, Cypher, GraphML) into dist/lpg/.
+lpg: ## Export GMEOW to LPG formats (CSV, Neo4j, Cypher, GraphML) into dist/lpg/ dist/schemas/.
 	uv run gmeow export lpg
 
 project: compile-mappings ## Project GMEOW data to pure schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profiles (FnO/EDOAL).
