@@ -108,11 +108,16 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:LandTenure (⊑ gmeow:TimeScopedRelation): The reified, time-scoped fact that a party holds rights over a place — ownership, lease, easement, mortgage, usufruct, or another property right. Bridges the locations module to the rights module by referencing RightsStatement. Distinct from JurisdictionTenure (governance/sovereignty) and RegulatoryOverlay (regulation): LandTenure is about property rights. Contested titles coexist as multiple standpoint-indexed instances, never collapsing to a single winner (Principle 9).
 - gmeow:LandTenureType (⊑ gufo:QualityValue): The kind of a land tenure (ownership, leasehold, easement, mortgage, usufruct, freehold, crown lease, etc.). A value, not a subclass: the set is open-ended and they share all of LandTenure's structure, so a new kind is a new individual, not a new class (Principle 9).
 - gmeow:Language (⊑ gmeow:InformationObject): A language as a first-class information object with a self-minted IRI: a system of signs/symbols and rules used for communication or computation. Registry-INDEPENDENT — BCP-47/ISO 639/Glottolog/Wikidata are optional alignments (gmeow:languageCode, gmeow:authorityLink, skos:exactMatch), never identity, so a code-less conlang or AI-generated language is fully first-class. Origin, modality and status are open value vocabularies; the scripts it is written in are bound co-equally via gmeow:WritingSystemUsage; its endonym/exonym names are gmeow:Appellation.
+- gmeow:LanguageChangeEvent (⊑ gmeow:Activity): A historical linguistic change — sound shifts, semantic drift, borrowing, spelling reform, grammatical change, lexical innovation, standardization, language contact, extinction, revival, or revitalization. Follows the LanguageCreation pattern as an Activity subclass; change type is an open value vocabulary (gmeow:LanguageChangeType) and affected languages are linked via gmeow:affectedLanguage. Temporal placement and participation reuse the universal events machinery.
+- gmeow:LanguageChangeType (⊑ gufo:QualityValue): The kind of historical linguistic change — a value, never an Entity subclass. Open-ended: new analytical frameworks may introduce further change types without ontology modification.
 - gmeow:LanguageCreation (⊑ gmeow:Activity): The activity of creating or generating a language — a conlanger's design work or an AI model's generation run. Linked to its product by gmeow:wasGeneratedBy (the language → activity) and to its agent by gmeow:wasAssociatedWith; the language is ascribed to its creator with gmeow:wasAttributedTo (a gmeow:SoftwareAgent for an AI-generated language).
 - gmeow:LanguageModality (⊑ gufo:QualityValue): The sensory/transmission channel of a language (spoken, signed, written, whistled, tactile, machine, multimodal). A value carried by gmeow:languageModality.
 - gmeow:LanguageOrigin (⊑ gufo:QualityValue): How a language came to be (natural, constructed, AI-generated, formal, pidgin, creole, reconstructed, …). A value, not a Language subclass: origins are open-ended and share Language's structure.
 - gmeow:LanguageProficiency (⊑ gufo:Relator): A reified, leveled proficiency of an agent in a language, in a particular skill modality — the gufo:Relator binding {agent} × {language} × {skill modality} × {level on a scale}, mirroring names' gmeow:NameUsage. Mint one per (agent, language, modality) so 'native overall' and 'B2 writing' coexist. The base gmeow:knowsLanguage relation states that an agent knows a language; this relator adds the level and the skill.
+- gmeow:LanguageState (⊑ gmeow:Observation, gufo:Relator): A reified, standpoint-scoped claim about the status of a language, variety, or version during a specific interval — the analytic/historical slice of a language at a time/period, often reconstructed and standpointed. Follows the VersionMembership pattern: a relator binding {language} × {status} × {authority} × {interval}. Differs from LanguageVersion, which is a named/released artifact; a version can have states, and a state can describe a version, but neither is defined as the other.
 - gmeow:LanguageStatus (⊑ gufo:QualityValue): The vitality status of a language (living, historical, extinct, dormant, revived, emerging, proposed, constructed-active). A value carried by gmeow:languageStatus.
+- gmeow:LanguageVariety (⊑ gmeow:Language): A speech variety that carries names, scripts, tags, status, provenance, and alignment metadata exactly as a gmeow:Language does, because it IS a language (a SubKind). Classifications such as dialect, sociolect, register, or standard are standpointed claims via gmeow:varietyKind, not OWL subclass decisions — so a single variety can be classified as a language by one standpoint and a dialect by another without incoherence (Principle 9).
+- gmeow:LanguageVarietyKind (⊑ gufo:QualityValue): The sociolinguistic classification of a language variety — a value, never an Entity subclass. Standpoint-scoped: 'dialect' according to one authority may be 'language' according to another. The seed list is an anchor, not a fence.
 - gmeow:LanguageVersion (⊑ gmeow:Language): A concrete, dated revision of a language that is itself a fully usable language (Ithkuil 1993 / 2011 / New Ithkuil; an AI language v1 / v2). Subclass of gmeow:Language so a version bears its own scripts, names and status; gmeow:versionOf links it to the lineage language, gmeow:supersedes orders versions, and gmeow:wasDerivedFrom records derivation. Forward-looking for rapidly-versioned AI languages.
 - gmeow:LedgerEvent (⊑ gmeow:Event): An event emitted by a smart contract or recorded on a ledger — a log entry, oracle callback, or bridge message.
 - gmeow:LedgerFinalityStatus (⊑ gufo:QualityValue): The finality state of a ledger transaction or block — a value vocabulary (individuals, never subclasses).
@@ -291,6 +296,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:addressRegion [gmeow:PostalAddress → rdfs:Literal]: The region (state, province, or territory) coordinate value of a postal address, expressed along the gmeow:axisAddressRegion axis of the postal reference frame.
 - gmeow:addressValue [gmeow:EmailAddress → rdfs:Literal] (functional): The normalized addr-spec of an email address.
 - gmeow:adjacentTo [gmeow:Location → gmeow:Location]: Relates a location to another location it is adjacent to.
+- gmeow:affectedLanguage [gmeow:LanguageChangeEvent → gmeow:Language]: The language(s) or variety(ies) affected by this change event. NON-FUNCTIONAL: language contact and merger events affect multiple languages.
 - gmeow:after [gmeow:Event → gmeow:Event]: Allen AFTER: this event begins strictly after the related event ends; the transitive inverse of gmeow:before. (= time:intervalAfter; TimeML AFTER; TEO after.)
 - gmeow:aggregationFunction [gmeow:SpatialAggregation → gmeow:AggregationFunction] (functional): The statistical function applied to the entities in the aggregation region — count, sum, average, density, minimum, maximum, or centroid.
 - gmeow:artifactMediaType [gmeow:AttestationArtifact → rdfs:Literal] (functional): The media type of the attestation artifact's serialization (e.g. application/vnd.in-toto+json, application/vc+ld+json).
@@ -330,6 +336,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:certifiedKey [gmeow:Certification → gmeow:CryptographicKey] (functional): The cryptographic key a certification vouches for.
 - gmeow:certifier [gmeow:Certification → gmeow:Agent] (functional): The agent that made a certification.
 - gmeow:chainId [gmeow:BlockchainNetwork → rdfs:Literal] (functional): The chain identifier of a blockchain network (e.g. CAIP-2 chainId, eip155:1).
+- gmeow:changeType [gmeow:LanguageChangeEvent → gmeow:LanguageChangeType]: The kind(s) of linguistic change occurring — sound shift, borrowing, standardization, extinction, etc. NON-FUNCTIONAL: a single event may instantiate multiple change types from different analytical standpoints.
 - gmeow:citesSource [gmeow:Citation → gmeow:Source] (functional): Relates a citation to the source it points into.
 - gmeow:claimModality [gmeow:StandpointClaim → gmeow:StandpointModality] (functional): The modality (unequivocal, probable, conceivable, refuted) assigned to a StandpointClaim. Semantically equivalent to observationResult for StandpointClaims, but not declared rdfs:subPropertyOf because StandpointModality (a gufo:QualityValue / abstract individual) is disjoint from gmeow:Entity (a gufo:Endurant) in the DL profile. When a StandpointClaim is flattened to an annotated statement, claimModality becomes standpointModality.
 - gmeow:claimedMediaType [gmeow:Filename → rdfs:Literal]: The MIME media type CLAIMED by a filename's extension (e.g. ".pdf" → "application/pdf"). A claim by the name, which may disagree with gmeow:detectedMediaType. Non-functional.
@@ -810,11 +817,15 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:startedBy [gmeow:Event → gmeow:Event]: Allen STARTED-BY: inverse of gmeow:starts. (= time:intervalStartedBy; TimeML BEGUN_BY; TEO startedBy.)
 - gmeow:starts [gmeow:Event → gmeow:Event]: Allen STARTS: this event and the related event begin together, and this one ends first (it is an initial sub-span). NOT transitive. Inverse of gmeow:startedBy. (= time:intervalStarts; TimeML BEGINS; TEO starts.)
 - gmeow:stateAtInstant [gmeow:LocationState → gmeow:Instant]: The instant at which this point-like location state holds. For interval-scoped states, use gmeow:stateDuringInterval instead.
+- gmeow:stateAuthority [gmeow:LanguageState → gmeow:Agent]: The agent or standpoint asserting this language state — a linguist, an institution, a historical reconstruction project. NON-FUNCTIONAL: competing authority claims coexist without privilege (Principle 9).
 - gmeow:stateDuringInterval [gmeow:LocationState → gmeow:TimeInterval]: The time interval over which this location state holds. For point-like states (a single instant), use gmeow:stateAtInstant instead.
 - gmeow:stateHasAngularVelocity [gmeow:LocationState → gmeow:ScalarQuantity]: The angular velocity of the entity at this location state, expressed as a scalar quantity (value + unit) in the state's reference frame. Non-functional: competing readings coexist (Principle 9).
 - gmeow:stateHasVelocity [gmeow:LocationState → gmeow:ScalarQuantity]: The linear velocity of the entity at this location state, expressed as a scalar quantity (value + unit) in the state's reference frame. Non-functional: competing velocity readings from different sensors coexist (Principle 9).
+- gmeow:stateInterval [gmeow:LanguageState → gmeow:TimeInterval]: The time interval over which this language state is asserted to hold — e.g. Old English 450–1150 CE. A relator carries its period this way (matching VersionMembership's membershipInterval) rather than via statement-level validFrom/validUntil alone.
+- gmeow:stateLanguage [gmeow:LanguageState → gmeow:Language] (functional): The language, variety, or version whose state is being described. Functional per relator: one subject language per LanguageState.
 - gmeow:stateOf [gmeow:LocationState → gmeow:Entity] (functional): The entity whose location state this is — the moving feature whose presence, pose, and velocity are described by this state. Functional: a state belongs to exactly one entity.
 - gmeow:stateReferenceFrame [gmeow:LocationState → gmeow:ReferenceFrame] (functional): The coordinate reference frame in which this location state's pose and velocity are expressed. Functional: a state is expressed in exactly one frame; nested-frame transformations (e.g. satellite relative to ship) are computed by the solver layer (Principle 12).
+- gmeow:stateStatusValue [gmeow:LanguageState → gmeow:LanguageStatus]: The vitality status(es) asserted for the language during this state. NON-FUNCTIONAL: different authorities may assign different statuses for the same interval, and those claims coexist (Principle 9).
 - gmeow:statementAbout [gmeow:RightsStatement → gmeow:Entity]: The asset a rights statement governs — the ODRL target. Usually the inverse of gmeow:hasRightsStatement; asserted on the relator so the statement is self-contained.
 - gmeow:storageMedium [gmeow:StorageLocation → gmeow:StorageMedium] (functional): The medium of a storage location (a gmeow:StorageMedium individual). Functional: the medium is constitutive of the storage location (a different medium is a different store) — unlike the descriptive, multi-source gmeow:placeType.
 - gmeow:storagePath [gmeow:StorageLocation → rdfs:Literal]: The path, key, or URI of a storage location within its service.
@@ -880,6 +891,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:validFrom [? → xsd:dateTime]: The instant from which the annotated statement is asserted to hold.
 - gmeow:validUntil [? → xsd:dateTime]: The instant until which the annotated statement is asserted to hold.
 - gmeow:vantage [gmeow:Observation → gmeow:Entity]: The agent or standpoint from which the observation is made — the reified-object-property counterpart of gmeow:accordingTo. Semantically, gmeow:vantage ⊑ gmeow:accordingTo: when an annotated statement is promoted to a reified Observation, its gmeow:accordingTo becomes the gmeow:vantage of the relator. The agent in the vantage role — an observer, a sensor, a perceiver — IS a standpoint (Principle 9): no frame is privileged, and every vantage is a co-equal facet from which the claim is held. Range is gmeow:Entity (encompassing both gmeow:Agent and gmeow:Standpoint) because a vantage may be a bare agent (person, organization, software agent, sensor) or a gmeow:Standpoint individual when the frame needs its own identity. Non-functional: joint observations (a reading co-authored by two agencies) are valid.
+- gmeow:varietyKind [gmeow:LanguageVariety → gmeow:LanguageVarietyKind]: The sociolinguistic classification(s) of a language variety — dialect, sociolect, register, idiolect, slang, standard, etc. NON-FUNCTIONAL: a single variety may carry multiple classifications from different standpoints simultaneously (Principle 9), and classifications change over time via new claims rather than overwrite (Principle 10).
+- gmeow:varietyOf [gmeow:LanguageVariety → gmeow:Language]: The parent language, lineage, or macrolanguage that a variety is considered a variety of. NON-FUNCTIONAL: standpoint-dependent — one standpoint may link Scots to English, another may treat it as an independent language (no varietyOf).
 - gmeow:verificationActivity [gmeow:Attestation → gmeow:VerificationActivity]: The verification activity performed on an attestation. Non-functional: an attestation may be verified multiple times by different verifiers.
 - gmeow:verificationResult [gmeow:Attestation → gmeow:VerificationResult]: The result of a verification activity applied to an attestation. Non-functional: multiple verification results may coexist from different verifiers or at different times.
 - gmeow:verificationStatus [gmeow:CryptographicSignature → rdfs:Literal] (functional): The verification outcome of a signature: verified, failed, or unverified.
@@ -1099,6 +1112,19 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:celestialObjectTypePlanet (a gmeow:CelestialObjectType): planet
 - gmeow:celestialObjectTypeSpacecraft (a gmeow:CelestialObjectType): spacecraft / artificial satellite
 - gmeow:celestialObjectTypeStar (a gmeow:CelestialObjectType): star
+- gmeow:changeBorrowing (a gmeow:LanguageChangeType): borrowing
+- gmeow:changeExtinction (a gmeow:LanguageChangeType): extinction
+- gmeow:changeGrammaticalChange (a gmeow:LanguageChangeType): grammatical change
+- gmeow:changeLanguageContact (a gmeow:LanguageChangeType): language contact
+- gmeow:changeLexicalInnovation (a gmeow:LanguageChangeType): lexical innovation
+- gmeow:changeMerger (a gmeow:LanguageChangeType): merger
+- gmeow:changeRevitalization (a gmeow:LanguageChangeType): revitalization
+- gmeow:changeRevival (a gmeow:LanguageChangeType): revival
+- gmeow:changeSemanticDrift (a gmeow:LanguageChangeType): semantic drift
+- gmeow:changeSoundShift (a gmeow:LanguageChangeType): sound shift
+- gmeow:changeSpellingReform (a gmeow:LanguageChangeType): spelling reform
+- gmeow:changeSplit (a gmeow:LanguageChangeType): split
+- gmeow:changeStandardization (a gmeow:LanguageChangeType): standardization
 - gmeow:conceivable (a gmeow:StandpointModality): ◊_S — possible according to the standpoint: the proposition holds in some precisification the standpoint admits, but is not settled (CRMinf belief value 'possible').
 - gmeow:conflictInvalid (a gmeow:ConflictStrategy): The ODRL invalid conflict-resolution strategy (odrl:invalid).
 - gmeow:conflictPerm (a gmeow:ConflictStrategy): The ODRL perm conflict-resolution strategy (odrl:perm).
@@ -1282,6 +1308,19 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:keywordForwarded (a gmeow:MessageKeyword): forwarded
 - gmeow:keywordJunk (a gmeow:MessageKeyword): junk
 - gmeow:keywordSeen (a gmeow:MessageKeyword): seen
+- gmeow:kindCreole (a gmeow:LanguageVarietyKind): creole
+- gmeow:kindDialect (a gmeow:LanguageVarietyKind): dialect
+- gmeow:kindIdiolect (a gmeow:LanguageVarietyKind): idiolect
+- gmeow:kindJargon (a gmeow:LanguageVarietyKind): jargon
+- gmeow:kindKoine (a gmeow:LanguageVarietyKind): koine
+- gmeow:kindLanguage (a gmeow:LanguageVarietyKind): language (standpointed classification)
+- gmeow:kindLinguaFranca (a gmeow:LanguageVarietyKind): lingua franca
+- gmeow:kindLocalizedVariant (a gmeow:LanguageVarietyKind): localized variant
+- gmeow:kindPidgin (a gmeow:LanguageVarietyKind): pidgin
+- gmeow:kindRegister (a gmeow:LanguageVarietyKind): register
+- gmeow:kindSlang (a gmeow:LanguageVarietyKind): slang
+- gmeow:kindSociolect (a gmeow:LanguageVarietyKind): sociolect
+- gmeow:kindStandard (a gmeow:LanguageVarietyKind): standard
 - gmeow:leftOpAbsolutePosition (a gmeow:LeftOperand): The ODRL absolutePosition constraint dimension (odrl:absolutePosition).
 - gmeow:leftOpAbsoluteSize (a gmeow:LeftOperand): The ODRL absoluteSize constraint dimension (odrl:absoluteSize).
 - gmeow:leftOpAbsoluteSpatialPosition (a gmeow:LeftOperand): The ODRL absoluteSpatialPosition constraint dimension (odrl:absoluteSpatialPosition).

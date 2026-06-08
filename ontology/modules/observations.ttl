@@ -131,6 +131,10 @@ gmeow:hasPartner rdfs:subPropertyOf gmeow:observedFeature .
 gmeow:versionMember rdfs:subPropertyOf gmeow:observedFeature .
 gmeow:membershipAuthority rdfs:subPropertyOf gmeow:vantage .
 
+# LanguageState bridges (declared here because the super-properties live here).
+gmeow:stateLanguage rdfs:subPropertyOf gmeow:observedFeature .
+gmeow:stateAuthority rdfs:subPropertyOf gmeow:vantage .
+
 # =========================================================================== #
 # OBSERVATION → EVENT LINKAGE (lightweight — heavy form uses ObservingActivity)
 # =========================================================================== #

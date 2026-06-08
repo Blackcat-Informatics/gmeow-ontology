@@ -147,6 +147,85 @@ ex:yamadaName gmeow:romanization "Yamada Tarō"@x-gmeow-japanese-latn ;
     gmeow:transliterationScheme gmeow:schemeHepburn .   # records HOW, not just WHAT
 ```
 
+## Language varieties — contested classifications without a winner
+
+Dialect, sociolect, register, idiolect, localized variant, generational slang, standard, creole, pidgin, koine — these are all modeled as **`gmeow:LanguageVariety`**, a `gufo:SubKind` of `gmeow:Language` that inherits every language property (names, scripts, tags, status, provenance). The classification itself is a **standpointed claim**, not an OWL subclass decision.
+
+> The language-vs-dialect distinction is not an OWL class hierarchy decision. A single `LanguageVariety` entity can carry multiple `varietyKind` assertions from different standpoints, and none is privileged (Principle 9).
+
+```turtle
+ex:scots a gmeow:LanguageVariety ;
+    gmeow:bcp47Tag "sco" ;
+    gmeow:varietyKind gmeow:kindLanguage , gmeow:kindDialect ;
+    gmeow:varietyOf ex:english .
+
+# Standpoint reifiers — both coexist, neither wins.
+ex:ax-scots-language a owl:Axiom ;
+    owl:annotatedSource ex:scots ; owl:annotatedProperty gmeow:varietyKind ;
+    owl:annotatedTarget gmeow:kindLanguage ;
+    gmeow:accordingTo ex:standpoint-snl ; gmeow:confidence 0.85 .
+
+ex:ax-scots-dialect a owl:Axiom ;
+    owl:annotatedSource ex:scots ; owl:annotatedProperty gmeow:varietyKind ;
+    owl:annotatedTarget gmeow:kindDialect ;
+    gmeow:accordingTo ex:standpoint-academic ; gmeow:confidence 0.90 .
+```
+
+Querying all `varietyKind` assertions with their standpoints:
+
+```sparql
+SELECT ?variety ?kind ?standpoint ?confidence WHERE {
+    ?variety gmeow:varietyKind ?kind .
+    OPTIONAL {
+        ?ax a owl:Axiom ;
+            owl:annotatedSource ?variety ;
+            owl:annotatedProperty gmeow:varietyKind ;
+            owl:annotatedTarget ?kind ;
+            gmeow:accordingTo ?standpoint ;
+            gmeow:confidence ?confidence .
+    }
+}
+```
+
+`varietyKind` and `varietyOf` are both **non-functional**, so a single variety can hold multiple classifications and multiple parentage claims simultaneously. A superseded classification is suppressed with `gmeow:displayable false` (Principle 10), never erased.
+
+## LanguageVersion vs LanguageState — distinct purposes
+
+| | `LanguageVersion` | `LanguageState` |
+|---|---|---|
+| **What** | A named/released artifact | An analytic/historical slice |
+| **Examples** | Ithkuil 2011, Python 3.12, an AI interlingua v2 | Old English 450–1150, Middle English 1150–1500 |
+| **Standpoint** | Usually authoritative (the creator's release) | Often reconstructed and standpointed |
+| **Pattern** | SubKind of Language | Observation + Relator (like VersionMembership) |
+
+A version can have states, and a state can describe a version, but neither is defined as the other:
+
+```turtle
+ex:ithkuil2011 a gmeow:LanguageVersion ;
+    gmeow:versionOf ex:ithkuil ; gmeow:versionLabel "2011" .
+
+ex:ithkuil2011State a gmeow:LanguageState ;
+    gmeow:stateLanguage ex:ithkuil2011 ;
+    gmeow:stateStatusValue gmeow:statusConstructedActive ;
+    gmeow:stateAuthority ex:standpoint-academic ;
+    gmeow:stateInterval ex:modernEnglishInterval .
+```
+
+`LanguageState` follows the `VersionMembership` relator pattern: it binds {language} × {status} × {authority} × {interval}, inherits confidence / displayable / temporal scope from `Observation`, and bridges to the universal claim stack via `stateLanguage ⊑ observedFeature` and `stateAuthority ⊑ vantage`.
+
+## LanguageChangeEvent — diachronic arcs
+
+Historical linguistic changes are first-class events: sound shifts, borrowing, standardization, extinction, revival, and more.
+
+```turtle
+ex:greatVowelShift a gmeow:LanguageChangeEvent ;
+    gmeow:changeType gmeow:changeSoundShift ;
+    gmeow:affectedLanguage ex:english ;
+    gmeow:eventInterval ex:greatVowelShiftInterval .
+```
+
+Because `LanguageState` is an `Observation`, the existing **bitemporal query** (`queries/temporal/bitemporal.rq`) works out of the box: ask "what was the status of English as of 1200 CE?" and receive the Middle English state with its standpoint and confidence.
+
 ## Interoperability — the four-layer stack
 
 | Layer | Carries | Artifact |

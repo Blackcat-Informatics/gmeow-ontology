@@ -1,0 +1,33 @@
+# Coexistence fixture (#170) — two CONTRADICTORY standpoint-indexed claims over
+# the same subject/predicate (Scots classified as a language per the SNL
+# standpoint; as a dialect per the academic standpoint), in the OWL-downcast
+# reified form (owl:Axiom + annotatedSource/Property/Target + gmeow:accordingTo).
+# Both base triples are asserted and both are RETAINED; NEITHER is privileged.
+# run_shacl must report NO violation — coexistence is explicitly permitted
+# (Principle 9).
+
+@prefix ex:    <https://example.org/lang/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:scots gmeow:varietyKind gmeow:kindLanguage , gmeow:kindDialect .
+
+ex:standpoint-snl      a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-academic a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+ex:ax-scots-language a owl:Axiom ;
+    owl:annotatedSource   ex:scots ;
+    owl:annotatedProperty gmeow:varietyKind ;
+    owl:annotatedTarget   gmeow:kindLanguage ;
+    gmeow:accordingTo ex:standpoint-snl ;
+    gmeow:confidence 0.85 ;
+    gmeow:validFrom "1700-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:ax-scots-dialect a owl:Axiom ;
+    owl:annotatedSource   ex:scots ;
+    owl:annotatedProperty gmeow:varietyKind ;
+    owl:annotatedTarget   gmeow:kindDialect ;
+    gmeow:accordingTo ex:standpoint-academic ;
+    gmeow:confidence 0.90 ;
+    gmeow:validFrom "1900-01-01T00:00:00Z"^^xsd:dateTime .

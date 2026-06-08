@@ -1,0 +1,167 @@
+# Coverage fixture for the language varieties, states, and change events layer (#170).
+# Worked examples: contested dialect/language classification (Scots), localized
+# variant (Mexican Spanish), generational slang, English historical states
+# (Old/Middle/Modern), version-vs-state distinction (Ithkuil), and a change event
+# (Great Vowel Shift). Uses owl:Axiom reifiers for standpoint-indexed claims.
+
+@prefix ex:     <https://example.org/lang/> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix time:   <http://www.w3.org/2006/time#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Standpoint individuals -------------------------------------------------- #
+
+ex:standpoint-snl       a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-academic  a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-ethnologue a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# --- English (base language for historical states) --------------------------- #
+
+ex:english a gmeow:Language ;
+    gmeow:languageTag "x-gmeow-english" ;
+    gmeow:bcp47Tag "en"^^xsd:language ;
+    gmeow:languageCode "en" .
+
+# --- Contested dialect/language: Scots -------------------------------------- #
+
+ex:scots a gmeow:LanguageVariety ;
+    gmeow:languageTag "x-gmeow-scots" ;
+    gmeow:bcp47Tag "sco"^^xsd:language ;
+    gmeow:languageCode "sco" ;
+    gmeow:varietyKind gmeow:kindLanguage , gmeow:kindDialect ;
+    gmeow:varietyOf ex:english .
+
+# Standpoint reifiers for the two varietyKind assertions.
+
+ex:ax-scots-language a owl:Axiom ;
+    owl:annotatedSource   ex:scots ;
+    owl:annotatedProperty gmeow:varietyKind ;
+    owl:annotatedTarget   gmeow:kindLanguage ;
+    gmeow:accordingTo ex:standpoint-snl ;
+    gmeow:confidence 0.85 ;
+    gmeow:validFrom "1700-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:ax-scots-dialect a owl:Axiom ;
+    owl:annotatedSource   ex:scots ;
+    owl:annotatedProperty gmeow:varietyKind ;
+    owl:annotatedTarget   gmeow:kindDialect ;
+    gmeow:accordingTo ex:standpoint-academic ;
+    gmeow:confidence 0.90 ;
+    gmeow:validFrom "1900-01-01T00:00:00Z"^^xsd:dateTime .
+
+# Standpoint reifier for the optional varietyOf assertion.
+
+ex:ax-scots-of-english a owl:Axiom ;
+    owl:annotatedSource   ex:scots ;
+    owl:annotatedProperty gmeow:varietyOf ;
+    owl:annotatedTarget   ex:english ;
+    gmeow:accordingTo ex:standpoint-academic ;
+    gmeow:confidence 0.75 .
+
+# --- Localized variant: Mexican Spanish ------------------------------------- #
+
+ex:spanish a gmeow:Language ;
+    gmeow:languageTag "x-gmeow-spanish" ;
+    gmeow:bcp47Tag "es"^^xsd:language ;
+    gmeow:languageCode "es" .
+
+ex:mexicanSpanish a gmeow:LanguageVariety ;
+    gmeow:languageTag "x-gmeow-mexican-spanish" ;
+    gmeow:bcp47Tag "es-MX"^^xsd:language ;
+    gmeow:varietyKind gmeow:kindLocalizedVariant ;
+    gmeow:varietyOf ex:spanish .
+
+# --- Generational slang variety --------------------------------------------- #
+
+ex:genZSlang a gmeow:LanguageVariety ;
+    gmeow:languageTag "x-gmeow-gen-z-slang" ;
+    gmeow:varietyKind gmeow:kindSlang .
+
+# --- English historical states ---------------------------------------------- #
+
+ex:oldEnglishInterval a gmeow:TimeInterval ;
+    time:hasBeginning [ time:inXSDDateTime "0450-01-01T00:00:00Z"^^xsd:dateTime ] ;
+    time:hasEnd       [ time:inXSDDateTime "1150-01-01T00:00:00Z"^^xsd:dateTime ] .
+
+ex:middleEnglishInterval a gmeow:TimeInterval ;
+    time:hasBeginning [ time:inXSDDateTime "1150-01-01T00:00:00Z"^^xsd:dateTime ] ;
+    time:hasEnd       [ time:inXSDDateTime "1500-01-01T00:00:00Z"^^xsd:dateTime ] .
+
+ex:modernEnglishInterval a gmeow:TimeInterval ;
+    time:hasBeginning [ time:inXSDDateTime "1500-01-01T00:00:00Z"^^xsd:dateTime ] .
+
+ex:oldEnglishState a gmeow:LanguageState ;
+    gmeow:stateLanguage ex:english ;
+    gmeow:stateStatusValue gmeow:statusHistorical ;
+    gmeow:stateAuthority ex:standpoint-academic ;
+    gmeow:stateInterval ex:oldEnglishInterval .
+
+ex:middleEnglishState a gmeow:LanguageState ;
+    gmeow:stateLanguage ex:english ;
+    gmeow:stateStatusValue gmeow:statusHistorical ;
+    gmeow:stateAuthority ex:standpoint-academic ;
+    gmeow:stateInterval ex:middleEnglishInterval .
+
+ex:modernEnglishState a gmeow:LanguageState ;
+    gmeow:stateLanguage ex:english ;
+    gmeow:stateStatusValue gmeow:statusLiving ;
+    gmeow:stateAuthority ex:standpoint-ethnologue ;
+    gmeow:stateInterval ex:modernEnglishInterval .
+
+# Reified axioms for the stateStatusValue assertions — enables bitemporal query.
+
+ex:ax-oe-status a owl:Axiom ;
+    owl:annotatedSource   ex:oldEnglishState ;
+    owl:annotatedProperty gmeow:stateStatusValue ;
+    owl:annotatedTarget   gmeow:statusHistorical ;
+    gmeow:accordingTo ex:standpoint-academic ;
+    gmeow:validFrom "0450-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:validUntil "1150-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:ax-me-status a owl:Axiom ;
+    owl:annotatedSource   ex:middleEnglishState ;
+    owl:annotatedProperty gmeow:stateStatusValue ;
+    owl:annotatedTarget   gmeow:statusHistorical ;
+    gmeow:accordingTo ex:standpoint-academic ;
+    gmeow:validFrom "1150-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:validUntil "1500-01-01T00:00:00Z"^^xsd:dateTime .
+
+ex:ax-mod-status a owl:Axiom ;
+    owl:annotatedSource   ex:modernEnglishState ;
+    owl:annotatedProperty gmeow:stateStatusValue ;
+    owl:annotatedTarget   gmeow:statusLiving ;
+    gmeow:accordingTo ex:standpoint-ethnologue ;
+    gmeow:validFrom "1500-01-01T00:00:00Z"^^xsd:dateTime .
+
+# --- Version vs State distinction: Ithkuil 2011 ----------------------------- #
+
+ex:ithkuil a gmeow:Language ;
+    gmeow:languageTag "x-gmeow-ithkuil" ;
+    gmeow:languageOrigin gmeow:originConstructedEngineered .
+
+ex:ithkuil2011 a gmeow:LanguageVersion ;
+    gmeow:versionOf ex:ithkuil ;
+    gmeow:versionLabel "2011" .
+
+ex:ithkuil2011State a gmeow:LanguageState ;
+    gmeow:stateLanguage ex:ithkuil2011 ;
+    gmeow:stateStatusValue gmeow:statusConstructedActive ;
+    gmeow:stateAuthority ex:standpoint-academic ;
+    gmeow:stateInterval ex:modernEnglishInterval .
+
+# --- Change event: Great Vowel Shift ---------------------------------------- #
+
+ex:greatVowelShiftInterval a gmeow:TimeInterval ;
+    time:hasBeginning [ time:inXSDDateTime "1350-01-01T00:00:00Z"^^xsd:dateTime ] ;
+    time:hasEnd       [ time:inXSDDateTime "1700-01-01T00:00:00Z"^^xsd:dateTime ] .
+
+ex:greatVowelShift a gmeow:LanguageChangeEvent ;
+    gmeow:changeType gmeow:changeSoundShift ;
+    gmeow:affectedLanguage ex:english ;
+    gmeow:eventInterval ex:greatVowelShiftInterval .
+
+ex:participationGvs a gmeow:Participation ;
+    gmeow:participationEvent ex:greatVowelShift ;
+    gmeow:participationParticipant ex:english ;
+    gmeow:participationRole gmeow:roleParticipantPrincipal .
