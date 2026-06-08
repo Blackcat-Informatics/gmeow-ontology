@@ -428,6 +428,7 @@ class EventTypeEnum(str, Enum):
     birth = "eventTypeBirth"
     burial = "eventTypeBurial"
     census = "eventTypeCensus"
+    census_activity = "eventTypeCensusActivity"
     christening = "eventTypeChristening"
     clinical_trial = "eventTypeClinicalTrial"
     confirmation = "eventTypeConfirmation"

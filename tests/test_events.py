@@ -560,6 +560,7 @@ def test_observational_event_types_are_value_individuals() -> None:
     never classes — the same anti-subclass guard as the former genealogy types."""
     g = _graph()
     for local in (
+        "eventTypeCensusActivity",
         "eventTypeSurvey",
         "eventTypeExcavation",
         "eventTypeAudit",

@@ -6715,6 +6715,9 @@ enums:
       eventTypeCensus:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeCensus
         title: census
+      eventTypeCensusActivity:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeCensusActivity
+        title: census activity
       eventTypeChristening:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeChristening
         title: christening

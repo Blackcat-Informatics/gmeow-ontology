@@ -365,6 +365,7 @@ enum EventTypeEnum
     eventTypeBirth
     eventTypeBurial
     eventTypeCensus
+    eventTypeCensusActivity
     eventTypeChristening
     eventTypeClinicalTrial
     eventTypeConfirmation

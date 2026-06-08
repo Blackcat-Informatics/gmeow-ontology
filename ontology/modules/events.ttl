@@ -105,6 +105,11 @@ gmeow:eventTypeNameChange     a gmeow:EventType ; rdfs:label "name change"@en ; 
 gmeow:eventTypeOrdination     a gmeow:EventType ; rdfs:label "ordination"@en ;     skos:definition "Ordination into religious office."@en .
 
 # Observational activity event types (#128) — value individuals, never subclasses.
+# gmeow:eventTypeCensus (Lifecycle event types, line 98) remains a person's
+# enumeration in a census. The census activity itself — the systematic data-
+# collection operation — is modelled separately here as gmeow:eventTypeCensusActivity
+# to keep person-centric events orthogonal from observational activities.
+gmeow:eventTypeCensusActivity a gmeow:EventType ; rdfs:label "census activity"@en ; skos:definition "A census as a systematic data-collection activity — an observational activity that produces population observations. Distinguished from gmeow:eventTypeCensus, which models a person's enumeration in a census."@en .
 gmeow:eventTypeSurvey         a gmeow:EventType ; rdfs:label "survey"@en ;         skos:definition "A systematic survey or data-collection activity whose purpose is to produce observations."@en .
 gmeow:eventTypeExcavation    a gmeow:EventType ; rdfs:label "excavation"@en ;    skos:definition "An archaeological excavation — a structured observational activity that produces stratigraphic and spatial observations."@en .
 gmeow:eventTypeAudit          a gmeow:EventType ; rdfs:label "audit"@en ;          skos:definition "A formal audit or inspection — an observational activity that produces evaluative observations."@en .
