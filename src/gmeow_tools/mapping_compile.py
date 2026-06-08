@@ -1087,12 +1087,21 @@ def emit_standpoint_owl2_sparql() -> str:
         "    ?s ?p ?o .\n"
         "}\n"
         "WHERE {\n"
-        "    ?ax a owl:Axiom ;\n"
+        "    { ?ax a owl:Axiom ;\n"
         "        owl:annotatedSource ?s ;\n"
         "        owl:annotatedProperty ?p ;\n"
         "        owl:annotatedTarget ?o .\n"
-        "    OPTIONAL { ?ax gmeow:accordingTo ?sp }\n"
-        "    OPTIONAL { ?ax gmeow:standpointModality ?mod }\n"
+        "      OPTIONAL { ?ax gmeow:accordingTo ?sp }\n"
+        "      OPTIONAL { ?ax gmeow:standpointModality ?mod } }\n"
+        "    UNION\n"
+        "    { ?claim a gmeow:StandpointClaim ;\n"
+        "        gmeow:vantage ?sp ;\n"
+        "        gmeow:observedFeature ?ax .\n"
+        "      ?ax a owl:Axiom ;\n"
+        "          owl:annotatedSource ?s ;\n"
+        "          owl:annotatedProperty ?p ;\n"
+        "          owl:annotatedTarget ?o .\n"
+        "      OPTIONAL { ?claim gmeow:claimModality ?mod } }\n"
         f"{refuted_filter}{sp_name}{modality}{label_concat}"
         "}\n"
     )
@@ -1103,6 +1112,9 @@ def emit_standpoint_owl2_sparql() -> str:
         "# gmeow:standpointModality as the cl-tud/standpoint-owl2 standpointLabel\n"
         "# encoding (Box=□ settled, Diamond=◊ possible/probable, name=* universal).\n"
         "# Refuted (denied) claims are excluded — carried by standpoint-crminf.rq.\n"
+        "# Branch B (#127): StandpointClaim with reified-statement observedFeature.\n"
+        "# Branch C (generic-entity observedFeature) is excluded by design — the\n"
+        "# translator matches only owl:Axiom individuals.\n"
     )
     return f"{header}{_prefix_block(body)}\n\n{body}"
 
@@ -1134,7 +1146,12 @@ def emit_standpoint_crminf_sparql() -> str:
         ' IF(?mod = gmeow:conceivable, "possible",'
         ' IF(?mod = gmeow:probable, "probable", "true")))) AS ?value)\n'
     )
-    prop_text = '    BIND(CONCAT(STR(?s), " ", STR(?p), " ", STR(?o)) AS ?propText)\n'
+    subject_bind = "    BIND(COALESCE(?s, ?feature) AS ?subject)\n"
+    prop_text = (
+        "    BIND(IF(BOUND(?s), "
+        'CONCAT(STR(?s), " ", STR(?p), " ", STR(?o)), '
+        "STR(?feature)) AS ?propText)\n"
+    )
     mint = (
         '    BIND(IRI(CONCAT(STR(?ax), "/argumentation")) AS ?arg)\n'
         '    BIND(IRI(CONCAT(STR(?ax), "/belief")) AS ?belief)\n'
@@ -1148,18 +1165,32 @@ def emit_standpoint_crminf_sparql() -> str:
         "    ?belief a crminf:I2_Belief ;\n"
         "        crminf:J4_that ?prop .\n"
         "    ?prop a crminf:I4_Proposition_Set ;\n"
-        "        crm:P67_refers_to ?s ;\n"
+        "        crm:P67_refers_to ?subject ;\n"
         "        rdf:value ?propText ;\n"
         "        crminf:J5_holds_to_be ?value .\n"
         "}\n"
         "WHERE {\n"
-        "    ?ax a owl:Axiom ;\n"
+        "    { ?ax a owl:Axiom ;\n"
         "        owl:annotatedSource ?s ;\n"
         "        owl:annotatedProperty ?p ;\n"
         "        owl:annotatedTarget ?o .\n"
-        "    OPTIONAL { ?ax gmeow:accordingTo ?sp }\n"
-        "    OPTIONAL { ?ax gmeow:standpointModality ?mod }\n"
-        f"{holder}{value}{prop_text}{mint}"
+        "      OPTIONAL { ?ax gmeow:accordingTo ?sp }\n"
+        "      OPTIONAL { ?ax gmeow:standpointModality ?mod } }\n"
+        "    UNION\n"
+        "    { ?ax a gmeow:StandpointClaim ;\n"
+        "        gmeow:vantage ?sp ;\n"
+        "        gmeow:observedFeature ?stmt .\n"
+        "      ?stmt owl:annotatedSource ?s ;\n"
+        "            owl:annotatedProperty ?p ;\n"
+        "            owl:annotatedTarget ?o .\n"
+        "      OPTIONAL { ?ax gmeow:claimModality ?mod } }\n"
+        "    UNION\n"
+        "    { ?ax a gmeow:StandpointClaim ;\n"
+        "        gmeow:vantage ?sp ;\n"
+        "        gmeow:observedFeature ?feature .\n"
+        "      FILTER NOT EXISTS { ?feature owl:annotatedSource ?s }\n"
+        "      OPTIONAL { ?ax gmeow:claimModality ?mod } }\n"
+        f"{holder}{value}{subject_bind}{prop_text}{mint}"
         "}\n"
     )
     header = (
@@ -1170,6 +1201,9 @@ def emit_standpoint_crminf_sparql() -> str:
         "# J4 that an I4 Proposition Set J5 holds to be true/probable/possible/false.\n"
         "# The explicit belief value carries DENIAL faithfully (≥ CRMinf); the\n"
         "# proposition is referred to, never asserted as fact.\n"
+        "# Branches B/C (#127): StandpointClaim with reified-statement or\n"
+        "# generic-entity observedFeature. Generic entities use ?feature as the\n"
+        "# referred-to subject.\n"
     )
     return f"{header}{_prefix_block(body)}\n\n{body}"
 
@@ -1207,11 +1241,25 @@ def emit_standpoint_prov_sparql() -> str:
         "    ?holder a prov:Agent .\n"
         "}\n"
         "WHERE {\n"
-        "    ?ax a owl:Axiom ;\n"
+        "    { ?ax a owl:Axiom ;\n"
         "        owl:annotatedSource ?s ;\n"
         "        owl:annotatedProperty ?p ;\n"
         "        owl:annotatedTarget ?o .\n"
-        "    OPTIONAL { ?ax gmeow:accordingTo ?sp }\n"
+        "      OPTIONAL { ?ax gmeow:accordingTo ?sp } }\n"
+        "    UNION\n"
+        "    { ?ax a gmeow:StandpointClaim ;\n"
+        "        gmeow:vantage ?sp ;\n"
+        "        gmeow:observedFeature ?stmt .\n"
+        "      ?stmt owl:annotatedSource ?s ;\n"
+        "            owl:annotatedProperty ?p ;\n"
+        "            owl:annotatedTarget ?o .\n"
+        "      OPTIONAL { ?ax gmeow:claimModality ?mod } }\n"
+        "    UNION\n"
+        "    { ?ax a gmeow:StandpointClaim ;\n"
+        "        gmeow:vantage ?sp ;\n"
+        "        gmeow:observedFeature ?feature .\n"
+        "      FILTER NOT EXISTS { ?feature owl:annotatedSource ?s }\n"
+        "      OPTIONAL { ?ax gmeow:claimModality ?mod } }\n"
         f"{holder}{mint}"
         "}\n"
     )
@@ -1222,6 +1270,9 @@ def emit_standpoint_prov_sparql() -> str:
         "# attributed to its standpoint agent (prov:qualifiedAttribution). Every\n"
         "# standpoint retained, none privileged; lossy-drop: belief value (modality)\n"
         "# and confidence dropped — carried by standpoint-crminf.rq / -owl2.rq.\n"
+        "# Branches B/C (#127): StandpointClaim with reified-statement or\n"
+        "# generic-entity observedFeature. Generic-entity branch omits\n"
+        "# owl:annotated* (unbound, skipped).\n"
     )
     return f"{header}{_prefix_block(body)}\n\n{body}"
 
@@ -1243,11 +1294,12 @@ def emit_standpoint_oa_sparql() -> str:
     (gmeow:standpointModality) and confidence. Fixed transformation; generated.
     """
     holder = "    BIND(COALESCE(?sp, gmeow:universalStandpoint) AS ?holder)\n"
+    target = "    BIND(COALESCE(?s, ?feature) AS ?target)\n"
     mint = '    BIND(IRI(CONCAT(STR(?ax), "/annotation")) AS ?ann)\n'
     body = (
         "CONSTRUCT {\n"
         "    ?ann a oa:Annotation ;\n"
-        "        oa:hasTarget ?s ;\n"
+        "        oa:hasTarget ?target ;\n"
         "        oa:hasBody ?ax ;\n"
         "        oa:motivatedBy oa:describing ;\n"
         "        dcterms:creator ?holder .\n"
@@ -1256,12 +1308,26 @@ def emit_standpoint_oa_sparql() -> str:
         "        owl:annotatedTarget ?o .\n"
         "}\n"
         "WHERE {\n"
-        "    ?ax a owl:Axiom ;\n"
+        "    { ?ax a owl:Axiom ;\n"
         "        owl:annotatedSource ?s ;\n"
         "        owl:annotatedProperty ?p ;\n"
         "        owl:annotatedTarget ?o .\n"
-        "    OPTIONAL { ?ax gmeow:accordingTo ?sp }\n"
-        f"{holder}{mint}"
+        "      OPTIONAL { ?ax gmeow:accordingTo ?sp } }\n"
+        "    UNION\n"
+        "    { ?ax a gmeow:StandpointClaim ;\n"
+        "        gmeow:vantage ?sp ;\n"
+        "        gmeow:observedFeature ?stmt .\n"
+        "      ?stmt owl:annotatedSource ?s ;\n"
+        "            owl:annotatedProperty ?p ;\n"
+        "            owl:annotatedTarget ?o .\n"
+        "      OPTIONAL { ?ax gmeow:claimModality ?mod } }\n"
+        "    UNION\n"
+        "    { ?ax a gmeow:StandpointClaim ;\n"
+        "        gmeow:vantage ?sp ;\n"
+        "        gmeow:observedFeature ?feature .\n"
+        "      FILTER NOT EXISTS { ?feature owl:annotatedSource ?s }\n"
+        "      OPTIONAL { ?ax gmeow:claimModality ?mod } }\n"
+        f"{holder}{target}{mint}"
         "}\n"
     )
     header = (
@@ -1271,6 +1337,9 @@ def emit_standpoint_oa_sparql() -> str:
         "# quoted statement, target = its subject, creator = the standpoint). Every\n"
         "# standpoint retained, none privileged; lossy-drop: belief value (modality)\n"
         "# and confidence dropped — carried by standpoint-crminf.rq / -owl2.rq.\n"
+        "# Branches B/C (#127): StandpointClaim with reified-statement or\n"
+        "# generic-entity observedFeature. Generic-entity branch uses ?feature as\n"
+        "# oa:hasTarget.\n"
     )
     return f"{header}{_prefix_block(body)}\n\n{body}"
 
@@ -1295,7 +1364,11 @@ def emit_standpoint_schema_sparql() -> str:
     """
     refuted_filter = "    FILTER(!BOUND(?mod) || ?mod != gmeow:refuted)\n"
     holder = "    BIND(COALESCE(?sp, gmeow:universalStandpoint) AS ?holder)\n"
-    prop_text = '    BIND(CONCAT(STR(?s), " ", STR(?p), " ", STR(?o)) AS ?propText)\n'
+    prop_text = (
+        "    BIND(IF(BOUND(?s), "
+        'CONCAT(STR(?s), " ", STR(?p), " ", STR(?o)), '
+        "STR(?feature)) AS ?propText)\n"
+    )
     mint = '    BIND(IRI(CONCAT(STR(?ax), "/claim")) AS ?claim)\n'
     body = (
         "CONSTRUCT {\n"
@@ -1304,12 +1377,26 @@ def emit_standpoint_schema_sparql() -> str:
         "        schema:text ?propText .\n"
         "}\n"
         "WHERE {\n"
-        "    ?ax a owl:Axiom ;\n"
+        "    { ?ax a owl:Axiom ;\n"
         "        owl:annotatedSource ?s ;\n"
         "        owl:annotatedProperty ?p ;\n"
         "        owl:annotatedTarget ?o .\n"
-        "    OPTIONAL { ?ax gmeow:accordingTo ?sp }\n"
-        "    OPTIONAL { ?ax gmeow:standpointModality ?mod }\n"
+        "      OPTIONAL { ?ax gmeow:accordingTo ?sp }\n"
+        "      OPTIONAL { ?ax gmeow:standpointModality ?mod } }\n"
+        "    UNION\n"
+        "    { ?ax a gmeow:StandpointClaim ;\n"
+        "        gmeow:vantage ?sp ;\n"
+        "        gmeow:observedFeature ?stmt .\n"
+        "      ?stmt owl:annotatedSource ?s ;\n"
+        "            owl:annotatedProperty ?p ;\n"
+        "            owl:annotatedTarget ?o .\n"
+        "      OPTIONAL { ?ax gmeow:claimModality ?mod } }\n"
+        "    UNION\n"
+        "    { ?ax a gmeow:StandpointClaim ;\n"
+        "        gmeow:vantage ?sp ;\n"
+        "        gmeow:observedFeature ?feature .\n"
+        "      FILTER NOT EXISTS { ?feature owl:annotatedSource ?s }\n"
+        "      OPTIONAL { ?ax gmeow:claimModality ?mod } }\n"
         f"{refuted_filter}{holder}{prop_text}{mint}"
         "}\n"
     )
@@ -1320,6 +1407,48 @@ def emit_standpoint_schema_sparql() -> str:
         "# authored by its standpoint; per-standpoint claims coexist (no single\n"
         "# ClaimReview verdict). Refuted/denied claims excluded (carried by\n"
         "# standpoint-crminf.rq); lossy-drop: belief value (modality) + confidence.\n"
+        "# Branches B/C (#127): StandpointClaim with reified-statement or\n"
+        "# generic-entity observedFeature. Generic-entity branch renders ?feature\n"
+        "# IRI as schema:text.\n"
+    )
+    return f"{header}{_prefix_block(body)}\n\n{body}"
+
+
+#: The BBC News Ontology projection — standpoint-claims about events become
+#: bbc:NewsEvent individuals with standpoint metadata.
+_STANDPOINT_BBC_QUERY = "queries/projections/standpoint-bbc.rq"
+
+
+def emit_standpoint_bbc_sparql() -> str:
+    """Render the BBC News Ontology projection (#127).
+
+    Each StandpointClaim whose observedFeature is a gmeow:Event becomes a
+    ``bbc:NewsEvent`` whose ``bbc:about`` is the event, ``bbc:standpoint`` is the
+    vantage, and ``bbc:modality`` is the claimModality.
+    """
+    holder = "    BIND(COALESCE(?sp, gmeow:universalStandpoint) AS ?holder)\n"
+    mint = '    BIND(IRI(CONCAT(STR(?event), "/news-event")) AS ?newsEvent)\n'
+    body = (
+        "CONSTRUCT {\n"
+        "    ?newsEvent a bbc:NewsEvent ;\n"
+        "        bbc:about ?event ;\n"
+        "        bbc:standpoint ?holder ;\n"
+        "        bbc:modality ?mod .\n"
+        "}\n"
+        "WHERE {\n"
+        "    ?ax a gmeow:StandpointClaim ;\n"
+        "        gmeow:vantage ?sp ;\n"
+        "        gmeow:observedFeature ?event .\n"
+        "    ?event a gmeow:Event .\n"
+        "    OPTIONAL { ?ax gmeow:claimModality ?mod }\n"
+        f"{holder}{mint}"
+        "}\n"
+    )
+    header = (
+        "# Projection: GMEOW → BBC News Ontology. "
+        f"{_GENERATED_BANNER}\n"
+        "# Media-standpoint projection: StandpointClaim about an Event becomes a\n"
+        "# bbc:NewsEvent with standpoint and modality metadata.\n"
     )
     return f"{header}{_prefix_block(body)}\n\n{body}"
 
@@ -1383,6 +1512,7 @@ def _artifacts(
     sparql_texts[_STANDPOINT_PROV_QUERY] = emit_standpoint_prov_sparql()
     sparql_texts[_STANDPOINT_OA_QUERY] = emit_standpoint_oa_sparql()
     sparql_texts[_STANDPOINT_SCHEMA_QUERY] = emit_standpoint_schema_sparql()
+    sparql_texts[_STANDPOINT_BBC_QUERY] = emit_standpoint_bbc_sparql()
     sssom_texts = {f"mappings/{file}": text for file, text in emit_sssom(dsl).items()}
     return rdf_graphs, sparql_texts, sssom_texts
 
@@ -1440,6 +1570,7 @@ def _committed_paths() -> dict[str, Path]:
     paths[_STANDPOINT_PROV_QUERY] = PROJECTION_QUERY_DIR / "standpoint-prov.rq"
     paths[_STANDPOINT_OA_QUERY] = PROJECTION_QUERY_DIR / "standpoint-oa.rq"
     paths[_STANDPOINT_SCHEMA_QUERY] = PROJECTION_QUERY_DIR / "standpoint-schema.rq"
+    paths[_STANDPOINT_BBC_QUERY] = PROJECTION_QUERY_DIR / "standpoint-bbc.rq"
     return paths
 
 

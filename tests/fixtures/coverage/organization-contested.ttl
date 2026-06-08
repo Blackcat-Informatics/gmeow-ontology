@@ -61,7 +61,16 @@ ex:claimSuccessionAcquirer a owl:Axiom ;
 # A withdrawn recognition — a StandpointTenure closed with displayable false.
 ex:withdrawnRecognition a gmeow:StandpointTenure ;
     gmeow:tenureStandpoint ex:standpoint-jurisdiction-x ;
+    gmeow:standpointClaim ex:withdrawnClaim ;
     gmeow:duringInterval [ a gmeow:TimeInterval ;
         gmeow:startedAtTime "2008-02-17T00:00:00Z"^^xsd:dateTime ;
         gmeow:endedAtTime   "2024-06-01T00:00:00Z"^^xsd:dateTime ] ;
     gmeow:displayable false .
+
+gmeow:methodExpertJudgement a gmeow:ObservationMethod .
+
+ex:withdrawnClaim a gmeow:StandpointClaim ;
+    gmeow:vantage ex:standpoint-jurisdiction-x ;
+    gmeow:observedFeature ex:orgA ;
+    gmeow:claimModality gmeow:refuted ;
+    gmeow:observationMethod gmeow:methodExpertJudgement .

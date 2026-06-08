@@ -61,6 +61,62 @@ The lightweight case rides `validFrom`/`validUntil` on the statement. When the
 and withdrawn in 2030 is an opened-then-closed tenure with `gmeow:displayable
 false` — retained, never deleted (suppression, not erasure).
 
+## StandpointClaim as Observation (#127)
+
+A standpoint-indexed claim is not only an annotated statement — it is also a
+first-class **observation**. `gmeow:StandpointClaim` is a `gufo:SubKind` of
+`gmeow:Observation`, realising the doctrine that *Observation ≡ Measurement ≡
+Standpoint* (Principle #3).
+
+### Promotion and flattening
+
+- **Promotion** (`accordingTo` → `vantage`): when a bare annotated statement is
+  promoted to a reified `StandpointClaim`, its `gmeow:accordingTo` becomes the
+  `gmeow:vantage` of the relator.
+- **Flattening** (`vantage` → `accordingTo`): when a `StandpointClaim` is
+  flattened back to an annotated statement, its `gmeow:vantage` becomes
+  `gmeow:accordingTo`.
+- **Modality integration** (`standpointModality` → `claimModality`):
+  `gmeow:claimModality` carries the belief value of a `StandpointClaim` with range
+  `gmeow:StandpointModality`. It is semantically equivalent to
+  `gmeow:observationResult` for StandpointClaims, but not declared
+  `rdfs:subPropertyOf` because `StandpointModality` (a `gufo:QualityValue`, abstract
+  individual) is disjoint from `gmeow:Entity` (a `gufo:Endurant`) in the DL profile.
+  When a `StandpointClaim` is flattened, its `claimModality` becomes
+  `standpointModality` on the resulting statement.
+
+### StandpointTenure generates a StandpointClaim
+
+A `gmeow:StandpointTenure` (the time-scoped fact that a standpoint held a
+position) **generates** a `gmeow:StandpointClaim` observation:
+
+| Tenure property | → | Claim property |
+|---|---|---|
+| `tenureStandpoint` | → | `vantage` |
+| `tenurePosition` | → | `observedFeature` |
+| `standpointClaim` | → | the claim observation itself |
+
+The tenure is the *time-scoped situation*; the claim is the *observation of that
+fact*.
+
+### Projection summary
+
+Every standpoint projection now consumes **both** the annotation form
+(`owl:Axiom` + `accordingTo`/`standpointModality`) and the object form
+(`StandpointClaim` + `vantage`/`claimModality`/`observedFeature`):
+
+| Target ontology | Projection file | StandpointClaim support | Generic entity |
+|---|---|---|---|
+| Standpoint Logic | `standpoint-owl2.rq` | Reified-statement only | N/A (tool constraint) |
+| CRMinf | `standpoint-crminf.rq` | Reified + generic | Yes |
+| PROV-O | `standpoint-prov.rq` | Reified + generic | Yes |
+| W3C Web Annotation | `standpoint-oa.rq` | Reified + generic | Yes |
+| schema.org | `standpoint-schema.rq` | Reified + generic | Yes |
+| BBC News Ontology | `standpoint-bbc.rq` | Event observedFeature | N/A |
+
+IAO (`iao:assertion`, `iao:information_content_entity`) is bridged by reference
+only — no dedicated projection query.
+
 ## Modality and the standpoint poset
 
 The facility realises **Standpoint Logic** (Gómez Álvarez & Rudolph), giving it a

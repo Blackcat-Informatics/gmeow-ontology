@@ -1,0 +1,49 @@
+# Coverage slice (#127): StandpointClaim with reified-statement observedFeature.
+# The Crimea example expressed as StandpointClaim individuals rather than
+# annotated owl:Axiom statements.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/standpoint/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+ex:standpoint-ru a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-un a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+ex:crimea gmeow:containedInPlace ex:russia , ex:ukraine .
+
+ex:stmt-ru a owl:Axiom ;
+    owl:annotatedSource   ex:crimea ;
+    owl:annotatedProperty gmeow:containedInPlace ;
+    owl:annotatedTarget   ex:russia .
+
+ex:stmt-un a owl:Axiom ;
+    owl:annotatedSource   ex:crimea ;
+    owl:annotatedProperty gmeow:containedInPlace ;
+    owl:annotatedTarget   ex:ukraine .
+
+gmeow:methodDirectObservation a gmeow:ObservationMethod .
+
+ex:claim-ru a gmeow:StandpointClaim ;
+    gmeow:vantage ex:standpoint-ru ;
+    gmeow:claimModality gmeow:conceivable ;
+    gmeow:observedFeature ex:stmt-ru ;
+    gmeow:observationMethod gmeow:methodDirectObservation .
+
+ex:claim-un a gmeow:StandpointClaim ;
+    gmeow:vantage ex:standpoint-un ;
+    gmeow:claimModality gmeow:unequivocal ;
+    gmeow:observedFeature ex:stmt-un ;
+    gmeow:observationMethod gmeow:methodDirectObservation .
+
+ex:standpoint-intl-law a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+ex:stmt-deny a owl:Axiom ;
+    owl:annotatedSource   ex:crimea ;
+    owl:annotatedProperty gmeow:containedInPlace ;
+    owl:annotatedTarget   ex:russia .
+
+ex:claim-deny a gmeow:StandpointClaim ;
+    gmeow:vantage ex:standpoint-intl-law ;
+    gmeow:claimModality gmeow:refuted ;
+    gmeow:observedFeature ex:stmt-deny ;
+    gmeow:observationMethod gmeow:methodExpertJudgement .
