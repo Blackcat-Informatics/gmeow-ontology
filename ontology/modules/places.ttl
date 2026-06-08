@@ -21,7 +21,9 @@ MATHEMATICAL / n-D REFERENCE FRAMES (#86). Hilbert spaces, smooth manifolds, pha
 
 ROBOTIC REALM — C-SPACE / TF / SLAM (#88). Robot configuration spaces (C-space) are modelled as gmeow:ReferenceFrame instances in the gmeow:frameRealmRobotic realm, with joint-angle axes and geodesic metrics on a configuration-space manifold. Task-space and velocity frames are Cartesian seeds under the same realm. The TF transform tree is a hierarchy of nested frames linked via gmeow:parentFrame; static vs dynamic transforms are distinguished by statement-level temporal metadata (statement DSL), not by new ontology properties — the actual homogeneous-transform matrix math lives in the solver layer (Principle 12). SLAM occupancy maps are probabilistic occupancy-grid reference frames hosted by the robot, with gmeow:determinacyProbabilistic and gmeow:confidence carried on the observation results (CoordinateMatrix or SpatialCoordinates), not on the frame itself.
 
-BIOLOGICAL-SEQUENCE REALM — FALDO / SEQUENCE ONTOLOGY / GFF3 (#90). Biological sequences (DNA, RNA, protein) are modelled as gmeow:ReferenceFrame instances in the gmeow:frameRealmBiological realm. A reference assembly (e.g. GRCh38) is a versioned, linear 1-D reference frame with a single position axis; a sequence feature (gene, exon, SNP, CDS) is a gmeow:BiologicalSequenceLocation bearing gmeow:SequenceCoordinates with explicit start, end, and strand in that frame. Feature types are an open value vocabulary (gmeow:sequenceFeatureType) aligned by reference to Sequence Ontology (SO) terms. FALDO positions map to gmeow:SequenceCoordinates; liftover (coordinate conversion between assemblies) is declared via gmeow:transformsTo on the ReferenceFrame but executed by an external solver (Principle 12)."""@en ;
+BIOLOGICAL-SEQUENCE REALM — FALDO / SEQUENCE ONTOLOGY / GFF3 (#90). Biological sequences (DNA, RNA, protein) are modelled as gmeow:ReferenceFrame instances in the gmeow:frameRealmBiological realm. A reference assembly (e.g. GRCh38) is a versioned, linear 1-D reference frame with a single position axis; a sequence feature (gene, exon, SNP, CDS) is a gmeow:BiologicalSequenceLocation bearing gmeow:SequenceCoordinates with explicit start, end, and strand in that frame. Feature types are an open value vocabulary (gmeow:sequenceFeatureType) aligned by reference to Sequence Ontology (SO) terms. FALDO positions map to gmeow:SequenceCoordinates; liftover (coordinate conversion between assemblies) is declared via gmeow:transformsTo on the ReferenceFrame but executed by an external solver (Principle 12).
+
+CADASTRAL / LAND ADMINISTRATION REALM — LADM / INSPIRE (#92). Parcels, lots, and spatial units are Places typed by an open value vocabulary (gmeow:placeType). Their boundaries are Geometry / SpatialCoordinates in a terrestrial reference frame. Ownership and land rights (ownership, lease, easement, mortgage, usufruct) are modelled as reified gmeow:LandTenure instances (⊑ gmeow:TimeScopedRelation), each binding a place, a party (Agent), a rights statement (#21), and a tenure type (open value vocabulary). A structured cadastral identifier (folio, title, lot, parcel ID) is modelled as a reified gmeow:CadastralReference (⊑ gmeow:InformationObject) linked to the place. Boundary surveys carry determinacy (typically crisp for surveyed boundaries, disputed for contested claims). Contested titles coexist as multiple standpoint-indexed LandTenures, none privileged (Principle 9). Expired or lapsed tenures keep their record with gmeow:displayable false, never deletion (Principle 10). Area and intersection computations stay in the solver layer (Principle 12). Aligns ISO 19152 LADM and INSPIRE Cadastral Parcels by reference (SSSOM)."""@en ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -241,7 +243,8 @@ gmeow:placeTypeCity               a gmeow:PlaceType ; rdfs:label "city / populat
 gmeow:placeTypeNeighborhood       a gmeow:PlaceType ; rdfs:label "neighborhood"@en .
 gmeow:placeTypeThoroughfare       a gmeow:PlaceType ; rdfs:label "thoroughfare / street"@en .
 gmeow:placeTypePremises           a gmeow:PlaceType ; rdfs:label "premises / address point"@en .
-gmeow:placeTypeSite               a gmeow:PlaceType ; rdfs:label "site / campus / parcel"@en .
+gmeow:placeTypeSite               a gmeow:PlaceType ; rdfs:label "site / campus"@en .
+gmeow:placeTypeParcel             a gmeow:PlaceType ; rdfs:label "parcel / lot"@en .
 gmeow:placeTypeBuilding           a gmeow:PlaceType ; rdfs:label "building"@en .
 gmeow:placeTypeFloor              a gmeow:PlaceType ; rdfs:label "floor / level"@en .
 gmeow:placeTypeRoom               a gmeow:PlaceType ; rdfs:label "room"@en .
@@ -1885,6 +1888,168 @@ gmeow:overlayTypeCustomsZone         a gmeow:RegulatoryOverlayType ; rdfs:label 
     skos:definition "A customs territory, free-trade zone, bonded warehouse area, or other zone with special customs/tariff regulations."@en .
 
 # --------------------------------------------------------------------------- #
+# LandTenure — cadastral / land-administration rights over time (#92)
+# --------------------------------------------------------------------------- #
+# A reified, time-scoped situation that a party holds rights over a place.
+# Distinct from JurisdictionTenure (governance/sovereignty) and RegulatoryOverlay
+# (regulation): LandTenure is about property rights — ownership, lease, easement,
+# mortgage, usufruct. Bridges the locations module to the rights module (#21) by
+# referencing RightsStatement. Contested titles coexist as multiple standpoint-
+# indexed instances, never a single winner (Principle 9). Expired / lapsed /
+# cancelled tenures keep their record (gmeow:displayable false), never deletion
+# (Principle 10).
+# --------------------------------------------------------------------------- #
+
+gmeow:LandTenure
+    a owl:Class, gufo:SituationType ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    rdfs:label "Land Tenure"@en ;
+    skos:definition "The reified, time-scoped fact that a party holds rights over a place — ownership, lease, easement, mortgage, usufruct, or another property right. Bridges the locations module to the rights module by referencing RightsStatement. Distinct from JurisdictionTenure (governance/sovereignty) and RegulatoryOverlay (regulation): LandTenure is about property rights. Contested titles coexist as multiple standpoint-indexed instances, never collapsing to a single winner (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:tenurePlace
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:LandTenure ;
+    rdfs:range gmeow:Place ;
+    rdfs:label "tenure place"@en ;
+    skos:definition "The place (parcel, lot, or spatial unit) over which the rights of this LandTenure apply. Functional: a tenure concerns exactly one place (constitutive of the situation's identity)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:tenureParty
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:LandTenure ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "tenure party"@en ;
+    skos:definition "The party (person, corporation, indigenous community, or other agent) that holds the rights recorded by this LandTenure. Functional: a single tenure has exactly one party. Joint ownership is modelled as multiple co-equal LandTenure instances, none privileged (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:tenureRights
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LandTenure ;
+    rdfs:range gmeow:RightsStatement ;
+    rdfs:label "tenure rights"@en ;
+    skos:definition "The machine-readable rights statement (permissions, prohibitions, duties) that governs this land tenure. Links to the #21 rights facility by reference. Non-functional: multiple legal instruments may apply to the same tenure (e.g. national law + local ordinance + indigenous treaty)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:tenureType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LandTenure ;
+    rdfs:range gmeow:LandTenureType ;
+    rdfs:label "tenure type"@en ;
+    skos:definition "The kind(s) of land tenure (a gmeow:LandTenureType individual). Non-functional: a single tenure may be classified by multiple sources as different types, and those claims coexist as evidence (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:tenureDeterminacy
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasDeterminacy ;
+    rdfs:domain gmeow:LandTenure ;
+    rdfs:range gmeow:Determinacy ;
+    rdfs:label "tenure determinacy"@en ;
+    skos:definition "The ontic determinacy model of this land tenure's boundary or claim — crisp (surveyed), vague (approximate), fuzzy (probabilistic), or disputed. Non-functional: sources may disagree on determinacy, and those claims coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# LandTenureType — an OPEN value vocabulary (individuals, never subclasses)
+
+gmeow:LandTenureType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Land Tenure Type"@en ;
+    skos:definition "The kind of a land tenure (ownership, leasehold, easement, mortgage, usufruct, freehold, crown lease, etc.). A value, not a subclass: the set is open-ended and they share all of LandTenure's structure, so a new kind is a new individual, not a new class (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:tenureTypeOwnership    a gmeow:LandTenureType ; rdfs:label "ownership"@en ;
+    skos:definition "Full ownership of the land — the right to possess, use, enjoy, and dispose of the property, subject to applicable law."@en .
+gmeow:tenureTypeLeasehold    a gmeow:LandTenureType ; rdfs:label "leasehold"@en ;
+    skos:definition "A leasehold interest — the right to occupy and use land for a specified term under a lease agreement with the owner."@en .
+gmeow:tenureTypeEasement     a gmeow:LandTenureType ; rdfs:label "easement"@en ;
+    skos:definition "An easement — a non-possessory right to use land owned by another party for a specific purpose (e.g. right of way, utility corridor)."@en .
+gmeow:tenureTypeMortgage     a gmeow:LandTenureType ; rdfs:label "mortgage"@en ;
+    skos:definition "A mortgage or charge — a security interest in land granted to a lender as collateral for a debt."@en .
+gmeow:tenureTypeUsufruct     a gmeow:LandTenureType ; rdfs:label "usufruct"@en ;
+    skos:definition "A usufruct — the right to use and derive income from land belonging to another, without impairing its substance."@en .
+gmeow:tenureTypeFreehold     a gmeow:LandTenureType ; rdfs:label "freehold"@en ;
+    skos:definition "A freehold estate — ownership of land for an unlimited duration, subject only to the powers of the Crown or state (allodial title)."@en .
+gmeow:tenureTypeCrownLease   a gmeow:LandTenureType ; rdfs:label "crown lease"@en ;
+    skos:definition "A lease from the Crown or state — land held under a lease agreement with the sovereign or government, common in Commonwealth jurisdictions."@en .
+
+# --------------------------------------------------------------------------- #
+# CadastralReference — structured identifier for land-administration records (#92)
+# --------------------------------------------------------------------------- #
+# A reified, structured identifier issued by a cadastral registry. Flat-first:
+# the common case is a bare gmeow:hasCadastralReference link from a Place to a
+# CadastralReference; the reified class carries value, type, authority, and
+# jurisdiction when those matter. Temporal validity (validFrom / validUntil) is
+# carried on the CadastralReference itself, following the core module pattern.
+# --------------------------------------------------------------------------- #
+
+gmeow:CadastralReference
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Cadastral Reference"@en ;
+    skos:definition "A structured identifier for a land-administration record — a parcel number, folio identifier, title number, lot reference, or survey plan reference issued by a cadastral registry. Carries the reference value, its type, the issuing authority, and the jurisdiction under which it is valid. Temporal validity (re-survey, re-numbering) is carried with validFrom / validUntil on the reference itself."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasCadastralReference
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Place ;
+    rdfs:range gmeow:CadastralReference ;
+    rdfs:label "has cadastral reference"@en ;
+    skos:definition "Relates a place (typically a parcel, lot, or spatial unit) to a structured cadastral reference issued by a registry."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:referenceValue
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:CadastralReference ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "reference value"@en ;
+    skos:definition "Exactly one identifier string of the cadastral reference (e.g. 'Lot 42, Plan 12345', 'Folio 67890', 'Title No. ABCD-1234'). Functional: a single CadastralReference has exactly one reference value."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:referenceType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CadastralReference ;
+    rdfs:range gmeow:CadastralReferenceType ;
+    rdfs:label "reference type"@en ;
+    skos:definition "The kind of cadastral reference (parcel ID, folio number, title number, lot number, survey plan reference, etc.). Non-functional: a single reference may be classified by multiple sources as different types."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:referenceAuthority
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:CadastralReference ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "reference authority"@en ;
+    skos:definition "The cadastral registry, land titles office, or surveying authority that issued this reference. Functional: a single reference has exactly one issuing authority."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:referenceJurisdiction
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:CadastralReference ;
+    rdfs:range gmeow:Place ;
+    rdfs:label "reference jurisdiction"@en ;
+    skos:definition "The jurisdiction (country, state, province, or territory) under whose legal framework this cadastral reference is valid. Functional: a single reference has exactly one governing jurisdiction."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# CadastralReferenceType — an OPEN value vocabulary (individuals, never subclasses)
+
+gmeow:CadastralReferenceType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Cadastral Reference Type"@en ;
+    skos:definition "The kind of a cadastral reference (parcel identifier, folio number, title number, lot number, survey plan reference, etc.). A value, not a subclass: the set is open-ended and they share all of CadastralReference's structure, so a new kind is a new individual, not a new class (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:referenceTypeParcelId   a gmeow:CadastralReferenceType ; rdfs:label "parcel identifier"@en ;
+    skos:definition "A parcel identifier — the primary identifier assigned to a cadastral parcel by a registry."@en .
+gmeow:referenceTypeFolio      a gmeow:CadastralReferenceType ; rdfs:label "folio number"@en ;
+    skos:definition "A folio number — an identifier used in land-title registers, especially in Commonwealth jurisdictions."@en .
+gmeow:referenceTypeTitle      a gmeow:CadastralReferenceType ; rdfs:label "title number"@en ;
+    skos:definition "A title number — an identifier for a registered title or deed in a land titles system."@en .
+gmeow:referenceTypeLot        a gmeow:CadastralReferenceType ; rdfs:label "lot number"@en ;
+    skos:definition "A lot number — an identifier for a subdivided lot within a larger plan or survey."@en .
+gmeow:referenceTypeSurveyPlan a gmeow:CadastralReferenceType ; rdfs:label "survey plan reference"@en ;
+    skos:definition "A survey plan reference — an identifier for the official survey plan that defines a parcel's boundaries."@en .
+
+# --------------------------------------------------------------------------- #
 # GeometryType value vocabulary & GeoJSON support (#82)
 # --------------------------------------------------------------------------- #
 
@@ -1962,9 +2127,10 @@ gmeow:placeSupersedes
 
 # AXIOMATIZED DOCTRINE — open-world EL someValuesFrom on the time-scoped relators.
 # Closed-world "exactly one" cardinality is enforced by SHACL (JurisdictionTenureShape,
-# ContainmentTenureShape). gmeow:JurisdictionTenure and gmeow:ContainmentTenure are
-# gufo:Situation subtypes, not gufo:Relators, so they carry gmeow:duringInterval
-# (inherited from TimeScopedRelation) rather than a relator interval.
+# ContainmentTenureShape, LandTenureShape). gmeow:JurisdictionTenure,
+# gmeow:ContainmentTenure, and gmeow:LandTenure are gufo:Situation subtypes, not
+# gufo:Relators, so they carry gmeow:duringInterval (inherited from TimeScopedRelation)
+# rather than a relator interval.
 
 gmeow:JurisdictionTenure rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:jurisdictionPlace ; owl:someValuesFrom gmeow:Place ] ,
@@ -1977,6 +2143,10 @@ gmeow:ContainmentTenure rdfs:subClassOf
 gmeow:RegulatoryOverlay rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:overlayPlace ; owl:someValuesFrom gmeow:Place ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:overlayAuthority ; owl:someValuesFrom gmeow:Agent ] .
+
+gmeow:LandTenure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:tenurePlace ; owl:someValuesFrom gmeow:Place ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureParty ; owl:someValuesFrom gmeow:Agent ] .
 
 # Multilingual / historical place names are NOT a flat literal: a place bears
 # co-equal gmeow:PlaceName appellations via gmeow:hasPlaceName (names module),

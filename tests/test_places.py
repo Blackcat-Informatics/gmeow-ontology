@@ -2574,3 +2574,303 @@ def test_spatial_method_seeds_exist() -> None:
             RDF.type,
             URIRef(GMEOW + "ObservationMethod"),
         ) in graph
+
+
+# --------------------------------------------------------------------------- #
+# Cadastral / land administration — LandTenure, CadastralReference (#92)
+# --------------------------------------------------------------------------- #
+
+
+def test_place_type_parcel_exists() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "placeTypeParcel"),
+        RDF.type,
+        URIRef(GMEOW + "PlaceType"),
+    ) in graph
+    # placeTypeSite label was narrowed from "site / campus / parcel" to "site / campus"
+    site_label = graph.value(URIRef(GMEOW + "placeTypeSite"), RDFS.label)
+    assert site_label is not None
+    assert "parcel" not in str(site_label).lower()
+
+
+def test_land_tenure_grounding() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "LandTenure"),
+        RDFS.subClassOf,
+        URIRef(GMEOW + "TimeScopedRelation"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "tenurePlace"),
+        RDFS.domain,
+        URIRef(GMEOW + "LandTenure"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "tenurePlace"),
+        RDFS.range,
+        URIRef(GMEOW + "Place"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "tenurePlace"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "tenureParty"),
+        RDFS.domain,
+        URIRef(GMEOW + "LandTenure"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "tenureParty"),
+        RDFS.range,
+        URIRef(GMEOW + "Agent"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "tenureParty"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "tenureRights"),
+        RDFS.domain,
+        URIRef(GMEOW + "LandTenure"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "tenureRights"),
+        RDFS.range,
+        URIRef(GMEOW + "RightsStatement"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "tenureType"),
+        RDFS.domain,
+        URIRef(GMEOW + "LandTenure"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "tenureType"),
+        RDFS.range,
+        URIRef(GMEOW + "LandTenureType"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "tenureDeterminacy"),
+        RDFS.subPropertyOf,
+        URIRef(GMEOW + "hasDeterminacy"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "tenureDeterminacy"),
+        RDFS.domain,
+        URIRef(GMEOW + "LandTenure"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "tenureDeterminacy"),
+        RDFS.range,
+        URIRef(GMEOW + "Determinacy"),
+    ) in graph
+
+
+def test_land_tenure_type_is_value_vocabulary() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "LandTenureType"),
+        RDFS.subClassOf,
+        URIRef(GUFO + "QualityValue"),
+    ) in graph
+    for ind in (
+        "tenureTypeOwnership",
+        "tenureTypeLeasehold",
+        "tenureTypeEasement",
+        "tenureTypeMortgage",
+        "tenureTypeUsufruct",
+        "tenureTypeFreehold",
+        "tenureTypeCrownLease",
+    ):
+        assert (
+            URIRef(GMEOW + ind),
+            RDF.type,
+            URIRef(GMEOW + "LandTenureType"),
+        ) in graph
+    for rejected in ("Ownership", "Leasehold", "Easement", "Mortgage"):
+        assert (URIRef(GMEOW + rejected), RDF.type, OWL.Class) not in graph
+
+
+def test_cadastral_reference_grounding() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "CadastralReference"),
+        RDFS.subClassOf,
+        URIRef(GMEOW + "InformationObject"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasCadastralReference"),
+        RDFS.domain,
+        URIRef(GMEOW + "Place"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "hasCadastralReference"),
+        RDFS.range,
+        URIRef(GMEOW + "CadastralReference"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "referenceValue"),
+        RDFS.domain,
+        URIRef(GMEOW + "CadastralReference"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "referenceValue"),
+        RDF.type,
+        OWL.DatatypeProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "referenceType"),
+        RDFS.domain,
+        URIRef(GMEOW + "CadastralReference"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "referenceType"),
+        RDFS.range,
+        URIRef(GMEOW + "CadastralReferenceType"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "referenceAuthority"),
+        RDFS.domain,
+        URIRef(GMEOW + "CadastralReference"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "referenceAuthority"),
+        RDFS.range,
+        URIRef(GMEOW + "Agent"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "referenceAuthority"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+    assert (
+        URIRef(GMEOW + "referenceJurisdiction"),
+        RDFS.domain,
+        URIRef(GMEOW + "CadastralReference"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "referenceJurisdiction"),
+        RDFS.range,
+        URIRef(GMEOW + "Place"),
+    ) in graph
+    assert (
+        URIRef(GMEOW + "referenceJurisdiction"),
+        RDF.type,
+        OWL.FunctionalProperty,
+    ) in graph
+
+
+def test_cadastral_reference_type_is_value_vocabulary() -> None:
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "CadastralReferenceType"),
+        RDFS.subClassOf,
+        URIRef(GUFO + "QualityValue"),
+    ) in graph
+    for ind in (
+        "referenceTypeParcelId",
+        "referenceTypeFolio",
+        "referenceTypeTitle",
+        "referenceTypeLot",
+        "referenceTypeSurveyPlan",
+    ):
+        assert (
+            URIRef(GMEOW + ind),
+            RDF.type,
+            URIRef(GMEOW + "CadastralReferenceType"),
+        ) in graph
+    for rejected in ("FolioNumber", "TitleNumber", "LotNumber"):
+        assert (URIRef(GMEOW + rejected), RDF.type, OWL.Class) not in graph
+
+
+def test_cadastral_coverage_passes_shacl() -> None:
+    """A cadastral coverage fixture with parcels, tenures, and references loads and
+    passes SHACL validation."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-cadastral.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+
+
+def test_land_tenure_instance_structure() -> None:
+    """A LandTenure instance binds place, party, type, and interval."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-cadastral.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    tenures = list(g.subjects(RDF.type, URIRef(GMEOW + "LandTenure")))
+    assert tenures, "Expected at least one LandTenure"
+    for tenure in tenures:
+        place = g.value(tenure, URIRef(GMEOW + "tenurePlace"))
+        assert place is not None, "LandTenure must have a tenurePlace"
+        party = g.value(tenure, URIRef(GMEOW + "tenureParty"))
+        assert party is not None, "LandTenure must have a tenureParty"
+        ttype = g.value(tenure, URIRef(GMEOW + "tenureType"))
+        assert ttype is not None, "LandTenure must have a tenureType"
+        interval = g.value(tenure, URIRef(GMEOW + "duringInterval"))
+        assert interval is not None, "LandTenure must have a duringInterval"
+
+
+def test_cadastral_reference_instance_structure() -> None:
+    """A CadastralReference instance binds value, type, authority, and jurisdiction."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-cadastral.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    refs = list(g.subjects(RDF.type, URIRef(GMEOW + "CadastralReference")))
+    assert refs, "Expected at least one CadastralReference"
+    for ref in refs:
+        value = g.value(ref, URIRef(GMEOW + "referenceValue"))
+        assert value is not None, "CadastralReference must have a referenceValue"
+        rtype = g.value(ref, URIRef(GMEOW + "referenceType"))
+        assert rtype is not None, "CadastralReference must have a referenceType"
+        auth = g.value(ref, URIRef(GMEOW + "referenceAuthority"))
+        assert auth is not None, "CadastralReference must have a referenceAuthority"
+        juris = g.value(ref, URIRef(GMEOW + "referenceJurisdiction"))
+        assert juris is not None, "CadastralReference must have a referenceJurisdiction"
+
+
+def test_contested_land_tenures_coexist() -> None:
+    """Two contradictory LandTenures on the same parcel load, SHACL-pass,
+    and are BOTH retained — neither is the ground truth (Principle 9)."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-cadastral.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    tenures = set(g.subjects(RDF.type, URIRef(GMEOW + "LandTenure")))
+    contested = [
+        t
+        for t in tenures
+        if g.value(t, URIRef(GMEOW + "tenureType"))
+        == URIRef(GMEOW + "tenureTypeOwnership")
+    ]
+    assert len(contested) >= 2, "Expected at least two co-existing ownership claims"
+    parties = set()
+    for tenure in contested:
+        party = g.value(tenure, URIRef(GMEOW + "tenureParty"))
+        if party:
+            parties.add(party)
+    assert len(parties) >= 2, "Expected at least two distinct party claims"
+
+
+def test_lapsed_tenure_suppressed_not_deleted() -> None:
+    """A lapsed easement tenure is retained with displayable false (Principle 10)."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-cadastral.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    lapsed = EX_PLACES.lapsedTenure
+    assert (lapsed, RDF.type, URIRef(GMEOW + "LandTenure")) in g
+    displayable = g.value(lapsed, URIRef(GMEOW + "displayable"))
+    assert displayable == Literal(False), (
+        "Lapsed tenure must be suppressed (displayable false)"
+    )
+
+
+def test_cadastral_reference_multiple_types_coexist() -> None:
+    """A CadastralReference may carry multiple co-equal type claims (Principle 9)."""
+    g = Graph().parse(COVERAGE_FIXTURES / "places-cadastral.ttl", format="turtle")
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+    multi_ref = EX_PLACES.refMulti
+    types = set(g.objects(multi_ref, URIRef(GMEOW + "referenceType")))
+    assert len(types) >= 2, "Expected at least two co-existing reference type claims"
+    assert URIRef(GMEOW + "referenceTypeParcelId") in types
+    assert URIRef(GMEOW + "referenceTypeTitle") in types

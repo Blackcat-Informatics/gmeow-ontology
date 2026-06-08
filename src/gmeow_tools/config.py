@@ -311,6 +311,9 @@ PREFIXES: dict[str, str] = {
     # Biological-sequence realm (FALDO, Sequence Ontology)
     "faldo": "http://biohackathon.org/resource/faldo#",
     "so": "http://purl.obolibrary.org/obo/SO_",
+    # Cadastral / land administration (ISO 19152 LADM, INSPIRE CP)
+    "ladm": "http://www.opengis.net/ont/ladm#",
+    "cp": "http://inspire.ec.europa.eu/ont/cp#",
 }
 
 # --------------------------------------------------------------------------- #
