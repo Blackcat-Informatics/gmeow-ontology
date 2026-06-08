@@ -46,6 +46,29 @@ make statements-check # Validate that committed statement artifacts match statem
 make wikidata        # Validate Wikidata QID/PID syntax in the mappings (offline)
 ```
 
+### Refreshing & Committing Generated Artifacts
+
+When you change canonical sources (ontology modules, mapping-dsl, statement-dsl), the checked-in generated artifacts can become stale. Use these targets to refresh and commit them safely:
+
+```bash
+make regenerate      # Rebuild ALL checked-in generated artifacts from canonical sources
+make commit          # Run regenerate, stage the artifacts, and commit (default message)
+make commit MESSAGE="feat: ..."  # Same, with a custom commit message
+```
+
+`make regenerate` runs the generators in dependency order: `compile-mappings` → `compile-statements` → `metadata` → `apache` → `export`. It refreshes:
+
+* `mappings/`, `projections/`, `queries/projections/` — from `compile-mappings`
+* `statements/` — from `compile-statements`
+* `metadata/void.ttl`, `metadata/dcat.ttl` — from `metadata`
+* `apache/gmeow.conf` — from `apache`
+* `llms.txt` — from `export`
+
+`make commit` stages only the generated artifacts above. If you also have source changes (e.g. in `mapping-dsl/`), stage them separately with `git add` before running `make commit`, or amend the commit afterward.
+
+> [!TIP]
+> If you suspect generated files are stale but do not want to commit yet, run `make regenerate` followed by `make check` to verify the full gate still passes.
+
 ### Reasoning & Negative Tests
 
 ```bash

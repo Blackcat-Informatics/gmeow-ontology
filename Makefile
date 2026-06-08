@@ -8,11 +8,17 @@ SHELL := /bin/bash
 # Alignment target for `make extract` (license-checked). Override: make extract TARGET=foaf
 TARGET ?= foaf
 
+# Checked-in generated artifacts (refreshed by make regenerate).
+REGENERATED_PATHS := mappings/ projections/ queries/projections/ statements/ metadata/ apache/gmeow.conf llms.txt
+
+# Override: make commit MESSAGE="feat: add foaf alignment"
+MESSAGE ?= "chore: regenerate checked-in artifacts"
+
 .PHONY: help install fmt lint validate reason reason-hermit explain verify extract compile-mappings \
         compile-check compile-statements statements-check compile-statements-pyoxigraph statements-check-pyoxigraph \
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit lint-alignment refresh-target-axioms \
         metadata apache docs docs-full rdf12 rdf12-pyoxigraph quality normalize build export project test check \
-        release clean pull-images
+        release regenerate commit clean pull-images
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -147,6 +153,22 @@ release: ## RDF 1.2 + OWL downcast → reasoned closure (HermiT) + build + metad
 	uv run gmeow build
 	uv run gmeow metadata
 	uv run gmeow crossref
+
+regenerate: ## Rebuild all checked-in generated artifacts from canonical sources.
+	$(MAKE) compile-mappings
+	$(MAKE) compile-statements
+	$(MAKE) metadata
+	$(MAKE) apache
+	$(MAKE) export
+
+commit: regenerate ## Regenerate artifacts, stage them, and commit.
+	git add $(REGENERATED_PATHS)
+	@if git diff --cached --quiet; then \
+		echo "Nothing to commit."; exit 1; \
+	else \
+		git commit -m "$(MESSAGE)"; \
+	fi
+	@git diff --quiet || echo "Warning: unstaged changes remain. Stage them with 'git add' and commit separately if needed."
 
 pull-images: ## Pre-pull the pinned Docker images (ROBOT, WIDOCO, Jena).
 	bash scripts/pull-images.sh
