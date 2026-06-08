@@ -1,0 +1,114 @@
+# Coverage slice (#92): cadastral / land administration — parcels, land tenure,
+# cadastral references. Exercises LandTenure (ownership, lease, contested claim),
+# CadastralReference (folio, title, lot), and tenure/reference type vocabularies.
+# Native GMEOW terms only.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:registryA a gmeow:Organization ; rdfs:label "Land Titles Office"@en .
+ex:ownerA    a gmeow:Person ; rdfs:label "Alice Nguyen"@en .
+ex:ownerB    a gmeow:Person ; rdfs:label "Bob Singh"@en .
+ex:cadastralJurisdiction a gmeow:Place ; gmeow:placeType gmeow:placeTypeCountry .
+
+# --------------------------------------------------------------------------- #
+# Issue #92 — LandTenure: ownership and lease on a parcel
+# --------------------------------------------------------------------------- #
+
+ex:parcelA a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeParcel ;
+    gmeow:hasCadastralReference ex:refFolioA .
+
+ex:refFolioA a gmeow:CadastralReference ;
+    gmeow:referenceValue "Folio 12345, Plan 67890" ;
+    gmeow:referenceType gmeow:referenceTypeFolio ;
+    gmeow:referenceAuthority ex:registryA ;
+    gmeow:referenceJurisdiction ex:cadastralJurisdiction .
+
+ex:ownershipA a gmeow:LandTenure ;
+    gmeow:tenurePlace ex:parcelA ;
+    gmeow:tenureParty ex:ownerA ;
+    gmeow:tenureType gmeow:tenureTypeOwnership ;
+    gmeow:tenureDeterminacy gmeow:determinacyCrisp ;
+    gmeow:duringInterval ex:intervalOngoingCadastral .
+
+ex:leaseA a gmeow:LandTenure ;
+    gmeow:tenurePlace ex:parcelA ;
+    gmeow:tenureParty ex:ownerB ;
+    gmeow:tenureType gmeow:tenureTypeLeasehold ;
+    gmeow:tenureDeterminacy gmeow:determinacyCrisp ;
+    gmeow:duringInterval ex:intervalLeaseTerm .
+
+ex:intervalOngoingCadastral a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2010-03-15T00:00:00Z"^^xsd:dateTime .
+
+ex:intervalLeaseTerm a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2020-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "2025-12-31T00:00:00Z"^^xsd:dateTime .
+
+# --------------------------------------------------------------------------- #
+# Issue #92 — Contested land tenure: two ownership claims on the same parcel
+# (Principle 9 — standpoint-indexed, coexisting, no winner)
+# --------------------------------------------------------------------------- #
+
+ex:standpoint-owner-a a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-owner-b a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+ex:contestedParcel a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeParcel ;
+    gmeow:hasCadastralReference ex:refLotB .
+
+ex:refLotB a gmeow:CadastralReference ;
+    gmeow:referenceValue "Lot 7, Section 12, Township 34" ;
+    gmeow:referenceType gmeow:referenceTypeLot ;
+    gmeow:referenceAuthority ex:registryA ;
+    gmeow:referenceJurisdiction ex:cadastralJurisdiction .
+
+ex:contestedOwnershipA a gmeow:LandTenure ;
+    gmeow:tenurePlace ex:contestedParcel ;
+    gmeow:tenureParty ex:ownerA ;
+    gmeow:tenureType gmeow:tenureTypeOwnership ;
+    gmeow:tenureDeterminacy gmeow:determinacyDisputed ;
+    gmeow:accordingTo ex:standpoint-owner-a ;
+    gmeow:duringInterval ex:intervalOngoingCadastral .
+
+ex:contestedOwnershipB a gmeow:LandTenure ;
+    gmeow:tenurePlace ex:contestedParcel ;
+    gmeow:tenureParty ex:ownerB ;
+    gmeow:tenureType gmeow:tenureTypeOwnership ;
+    gmeow:tenureDeterminacy gmeow:determinacyDisputed ;
+    gmeow:accordingTo ex:standpoint-owner-b ;
+    gmeow:duringInterval ex:intervalOngoingCadastral .
+
+# --------------------------------------------------------------------------- #
+# Issue #92 — Superseded / lapsed tenure (Principle 10: suppressed, not deleted)
+# --------------------------------------------------------------------------- #
+
+ex:lapsedTenure a gmeow:LandTenure ;
+    gmeow:tenurePlace ex:parcelA ;
+    gmeow:tenureParty ex:ownerB ;
+    gmeow:tenureType gmeow:tenureTypeEasement ;
+    gmeow:tenureDeterminacy gmeow:determinacyCrisp ;
+    gmeow:duringInterval ex:intervalLapsed ;
+    gmeow:displayable false .
+
+ex:intervalLapsed a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1990-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "2000-12-31T00:00:00Z"^^xsd:dateTime .
+
+# --------------------------------------------------------------------------- #
+# Issue #92 — CadastralReference with multiple types (co-equal claims)
+# --------------------------------------------------------------------------- #
+
+ex:multiRefParcel a gmeow:Place ;
+    gmeow:placeType gmeow:placeTypeParcel ;
+    gmeow:hasCadastralReference ex:refMulti .
+
+ex:refMulti a gmeow:CadastralReference ;
+    gmeow:referenceValue "CP-2024-001234" ;
+    gmeow:referenceType gmeow:referenceTypeParcelId , gmeow:referenceTypeTitle ;
+    gmeow:referenceAuthority ex:registryA ;
+    gmeow:referenceJurisdiction ex:cadastralJurisdiction .

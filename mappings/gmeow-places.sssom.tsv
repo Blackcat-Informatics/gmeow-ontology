@@ -4,12 +4,13 @@
 # mapping_tool: gmeow compile-mappings
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET, IEEE 1872-2015 CORA, KnowRob, SOMA, FALDO, Sequence Ontology. placeType/storageMedium/celestialObjectType/sequenceFeatureType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological "within"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (#85): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl. Added (#88): Robotic realm bridging to IEEE 1872-2015 CORA (Robot, RoboticSystem), KnowRob (SemanticEnvironmentMap, RobotBaseTrajectory, Joint, FrameOfReference), and SOMA (ArtificialAgent). Added (#90): Biological-sequence realm bridging to FALDO (Region, begin, end, ForwardStrandPosition, ReverseStrandPosition, reference), Sequence Ontology (sequence_feature, gene, exon, intron, CDS, SNP, chromosome), and Wikidata (GRCh38, genomic location, sense/antisense strand). Added (#91): Geocode and geocoding ReferenceFrames (Plus Code, what3words, geohash, MGRS, UN/LOCODE, mile-marker) aligned to Wikidata QIDs. Added (#125): SpatialMeasurement / CoordinateObservation bridging to GeoSPARQL geo:Feature and schema.org GeoCoordinates.
+# comment: Location alignments for comprehensive geo interop — schema.org, GeoSPARQL, GeoNames, Getty (gvp), Wikidata, WGS84, vCard, BOT, ifcOWL, IVOA, UAT, SWEET, IEEE 1872-2015 CORA, KnowRob, SOMA, FALDO, Sequence Ontology. placeType/storageMedium/celestialObjectType/sequenceFeatureType are value individuals aligned (closeMatch) to external classes/feature-codes; address components align to schema.org + vCard for lossless round-trip; containedInPlace aligns to the topological "within"/parent relations of every geo vocab. StorageLocation/Location/storage* and authorityLink are canonical (no faithful external term). Coreference of place INSTANCES to gazetteer records is done in data with skos:exactMatch + gmeow:authorityLink (Wikidata as hub), not here. Added (#96): Stream → sta:Datastream; LocationState → sta:HistoricalLocation + sosa:Sample; Trajectory → sta:Datastream. Added (#83): indoor realm bridging to BOT (Zone/Site/Building/Storey/Space, containsZone, adjacentZone) and ifcOWL (IfcBuilding/IfcBuildingStorey/IfcSpace/IfcSite) by reference. Added (#85): CelestialLocation / CelestialCoordinates bridging to IVOA refframe/refposition/object-type, UAT, and SWEET. IVOA timescale alignments live in temporal.ttl. Added (#88): Robotic realm bridging to IEEE 1872-2015 CORA (Robot, RoboticSystem), KnowRob (SemanticEnvironmentMap, RobotBaseTrajectory, Joint, FrameOfReference), and SOMA (ArtificialAgent). Added (#90): Biological-sequence realm bridging to FALDO (Region, begin, end, ForwardStrandPosition, ReverseStrandPosition, reference), Sequence Ontology (sequence_feature, gene, exon, intron, CDS, SNP, chromosome), and Wikidata (GRCh38, genomic location, sense/antisense strand). Added (#91): Geocode and geocoding ReferenceFrames (Plus Code, what3words, geohash, MGRS, UN/LOCODE, mile-marker) aligned to Wikidata QIDs. Added (#125): SpatialMeasurement / CoordinateObservation bridging to GeoSPARQL geo:Feature and schema.org GeoCoordinates. Added (#92): Cadastral / land-administration realm bridging to ISO 19152 LADM (LA_SpatialUnit, LA_RRR, LA_Party, LA_BoundaryFace) and INSPIRE Cadastral Parcels (CadastralParcel, CadastralBoundary, CadastralZoning, BasicPropertyUnit, nationalCadastralReference) by reference.
 # curie_map:
 #   bfo: http://purl.obolibrary.org/obo/
 #   bot: https://w3id.org/bot#
 #   brick: https://brickschema.org/schema/Brick#
 #   cora: http://purl.org/ieee1872-owl/cora#
+#   cp: http://inspire.ec.europa.eu/ont/cp#
 #   crm: http://www.cidoc-crm.org/cidoc-crm/
 #   crmgeo: http://www.ics.forth.gr/isl/CRMgeo/
 #   dcterms: http://purl.org/dc/terms/
@@ -21,6 +22,7 @@
 #   ifc: http://www.buildingsmart-tech.org/ifcOWL/IFC4#
 #   ivoa: http://www.ivoa.net/rdf/
 #   knowrob: http://knowrob.org/kb/knowrob.owl#
+#   ladm: http://www.opengis.net/ont/ladm#
 #   lgdo: http://linkedgeodata.org/ontology/
 #   mf: http://www.opengis.net/ont/movingfeatures#
 #   mls: http://www.w3.org/ns/mls#
@@ -42,7 +44,9 @@
 #   wgs84: http://www.w3.org/2003/01/geo/wgs84_pos#
 #   whg: https://whgazetteer.org/
 subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
+gmeow:Agent	skos:closeMatch	ladm:LA_Party		semapv:ManualMappingCuration	0.85	GMEOW Agent is broader (any entity capable of action), but within the land-administration context it aligns to LADM LA_Party (a person or organisation with rights).
 gmeow:BiologicalSequenceLocation	skos:closeMatch	wd:Q106227	genomic location	semapv:ManualMappingCuration	0.85	
+gmeow:CadastralReference	skos:closeMatch	cp:nationalCadastralReference		semapv:ManualMappingCuration	0.85	GMEOW CadastralReference is the reified structured identifier; INSPIRE nationalCadastralReference is the property carrying the identifier. Close structural match.
 gmeow:Capacity	skos:closeMatch	brick:Capacity		semapv:ManualMappingCuration	0.8	Brick Capacity is a class for the max number of entities a space can hold; GMEOW Capacity is a reified Measurement with location, scalar result, and provenance.
 gmeow:CelestialLocation	skos:closeMatch	ivoa:uat#astronomical-objects	astronomical objects	semapv:ManualMappingCuration	0.8	
 gmeow:ContainmentTenure	skos:closeMatch	wdt:P131	located in the administrative territorial entity	semapv:ManualMappingCuration	0.7	Wikidata P131 is the flat administrative-hierarchy property; GMEOW ContainmentTenure reifies it with temporal scope and standpoint indexing.
@@ -50,8 +54,12 @@ gmeow:CoordinateMatrix	skos:closeMatch	mls:Feature	Feature	semapv:ManualMappingC
 gmeow:CoordinateObservation	skos:relatedMatch	geo:Feature		semapv:ManualMappingCuration	0.65	GeoSPARQL Feature is a spatial thing with a geometry; GMEOW CoordinateObservation is the act of assigning that geometry. Related match only.
 gmeow:Geocode	skos:closeMatch	wd:Q283821	geocode	semapv:ManualMappingCuration	0.8	Wikidata Q283821 is the general concept of a geocode; GMEOW Geocode is the upper-ontology-grounded class with frame-relativity (P11).
 gmeow:Geometry	skos:closeMatch	geo:Geometry		semapv:ManualMappingCuration	0.9	
+gmeow:Geometry	skos:relatedMatch	cp:CadastralBoundary		semapv:ManualMappingCuration	0.8	GMEOW Geometry is the general geometric construct; INSPIRE CadastralBoundary is a specific geometry type representing a parcel boundary.
+gmeow:Geometry	skos:relatedMatch	ladm:LA_BoundaryFace		semapv:ManualMappingCuration	0.8	GMEOW Geometry is the general geometric construct; LADM LA_BoundaryFace is a specific 2D boundary face element.
 gmeow:JurisdictionTenure	skos:closeMatch	crm:E4_Period	Period	semapv:ManualMappingCuration	0.75	CIDOC-CRM E4_Period captures the time-spanned governance period; GMEOW JurisdictionTenure adds the place×polity relator structure and standpoint indexing.
 gmeow:JurisdictionTenure	skos:closeMatch	wd:Q19517	sovereignty	semapv:ManualMappingCuration	0.75	
+gmeow:LandTenure	skos:closeMatch	cp:BasicPropertyUnit		semapv:ManualMappingCuration	0.8	INSPIRE BasicPropertyUnit represents a unit of property with homogeneous rights; GMEOW LandTenure is the time-scoped rights relationship itself. Related but not identical scope.
+gmeow:LandTenure	skos:closeMatch	ladm:LA_RRR		semapv:ManualMappingCuration	0.85	GMEOW LandTenure bridges Place × Agent × RightsStatement, while LADM LA_RRR covers rights, restrictions, and responsibilities over a spatial unit. Close semantic match but different structural decomposition.
 gmeow:Location	skos:closeMatch	bfo:BFO_0000006	spatial region	semapv:ManualMappingCuration	0.8	
 gmeow:Location	skos:closeMatch	bfo:BFO_0000029	site	semapv:ManualMappingCuration	0.8	
 gmeow:Location	skos:closeMatch	crm:E53_Place	Place	semapv:ManualMappingCuration	0.85	
@@ -65,6 +73,7 @@ gmeow:Occupancy	skos:closeMatch	brick:Occupancy		semapv:ManualMappingCuration	0.
 gmeow:Orientation	skos:closeMatch	pos:OrientationMeasure	Orientation Measure	semapv:ManualMappingCuration	0.85	
 gmeow:Place	skos:closeMatch	bot:Zone		semapv:ManualMappingCuration	0.75	BOT Zone is a 3D spatial extent (physical or virtual); GMEOW Place is broader (includes outdoor, non-building geographic places), so the alignment is closeMatch rather than exact.
 gmeow:Place	skos:closeMatch	crmgeo:SP5_Geometric_Place_Expression	Geometric Place Expression	semapv:ManualMappingCuration	0.7	
+gmeow:Place	skos:closeMatch	ladm:LA_SpatialUnit		semapv:ManualMappingCuration	0.85	GMEOW Place is broader: it covers any geographic location, while LADM LA_SpatialUnit is specifically a spatial unit in a land-administration context. A Place typed as placeTypeParcel is the closest match.
 gmeow:Place	skos:closeMatch	lgdo:Place		semapv:ManualMappingCuration	0.8	
 gmeow:Place	skos:closeMatch	pleiades:Place		semapv:ManualMappingCuration	0.85	
 gmeow:Place	skos:closeMatch	whg:Place		semapv:ManualMappingCuration	0.8	
@@ -72,8 +81,10 @@ gmeow:PlaceNaming	skos:closeMatch	crm:E41_Appellation	Appellation	semapv:ManualM
 gmeow:Pose	skos:closeMatch	pos:QuantitativePose	Quantitative Pose	semapv:ManualMappingCuration	0.85	
 gmeow:Pose	skos:closeMatch	wd:Q1055020	pose	semapv:ManualMappingCuration	0.8	
 gmeow:ReferenceFrame	skos:closeMatch	knowrob:FrameOfReference	FrameOfReference	semapv:ManualMappingCuration	0.85	KnowRob FrameOfReference is a general spatial reference frame; GMEOW ReferenceFrame is the upper-ontology-grounded, realm-typed equivalent.
+gmeow:RegulatoryOverlay	skos:closeMatch	cp:CadastralZoning		semapv:ManualMappingCuration	0.75	INSPIRE CadastralZoning is a specific kind of spatial regulatory overlay (cadastral hierarchy); GMEOW RegulatoryOverlay with overlayTypeZoning is the closest general match.
 gmeow:RegulatoryOverlay	skos:closeMatch	schema:AdministrativeArea		semapv:ManualMappingCuration	0.6	schema.org AdministrativeArea is a flat Place subclass for government-defined areas; GMEOW RegulatoryOverlay is a reified, time-scoped situation that binds a place, an authority, a regulation type, and optional deontic rules. Directional lossy projection.
 gmeow:RegulatoryOverlay	skos:closeMatch	wd:Q1055894	administrative territorial entity	semapv:ManualMappingCuration	0.75	Wikidata Q1055894 is the general concept of an administrative territorial entity; GMEOW RegulatoryOverlay adds time-scoping, authority, regulation type, and deontic linkage.
+gmeow:RightsStatement	skos:closeMatch	ladm:LA_RRR		semapv:ManualMappingCuration	0.85	GMEOW RightsStatement (deontic rules: permissions, prohibitions, duties) maps to LADM LA_RRR (rights, restrictions, responsibilities). Both are machine-readable statements of the rights situation.
 gmeow:SequenceCoordinates	skos:closeMatch	faldo:Region	Region	semapv:ManualMappingCuration	0.85	FALDO Region models interval coordinates via begin/end; GMEOW SequenceCoordinates carries explicit start/end/strand and reference-assembly linkage.
 gmeow:SequenceFeature	skos:relatedMatch	wd:Q7187	gene	semapv:ManualMappingCuration	0.75	Wikidata Q7187 is the prototypical sequence feature (gene); GMEOW SequenceFeature is the general class for any feature on a biological sequence.
 gmeow:SequenceFeatureType	skos:closeMatch	so:0000110	sequence_feature	semapv:ManualMappingCuration	0.9	SO sequence_feature is the root class for all sequence features; GMEOW SequenceFeatureType is the open value vocabulary of feature kinds.
@@ -126,6 +137,7 @@ gmeow:geometryTypeMultiPoint	skos:closeMatch	sf:MultiPoint		semapv:ManualMapping
 gmeow:geometryTypeMultiPolygon	skos:closeMatch	sf:MultiPolygon		semapv:ManualMappingCuration	0.95	
 gmeow:geometryTypePoint	skos:closeMatch	sf:Point		semapv:ManualMappingCuration	0.95	
 gmeow:geometryTypePolygon	skos:closeMatch	sf:Polygon		semapv:ManualMappingCuration	0.95	
+gmeow:hasCadastralReference	skos:relatedMatch	cp:referencePoint		semapv:ManualMappingCuration	0.6	Weak match: GMEOW hasCadastralReference links a Place to its cadastral identifier; INSPIRE referencePoint is a geometric point within the cadastral object. Different semantics.
 gmeow:hasCapacity	skos:closeMatch	schema:maximumAttendeeCapacity		semapv:ManualMappingCuration	0.7	schema.org maximumAttendeeCapacity is a flat integer property on Place/Event; GMEOW hasCapacity links to a reified Capacity Measurement. Directional lossy projection.
 gmeow:hasCoordinateObservation	skos:relatedMatch	geo:hasGeometry		semapv:ManualMappingCuration	0.6	gmeow:hasCoordinateObservation links a place to its coordinate observation relator; geo:hasGeometry links a feature to its geometry. Directional lossy projection.
 gmeow:hasCoordinates	skos:closeMatch	schema:geo		semapv:ManualMappingCuration	0.8	
@@ -177,6 +189,7 @@ gmeow:placeTypeCountry	skos:closeMatch	wd:Q6256		semapv:ManualMappingCuration	0.
 gmeow:placeTypeFloor	skos:closeMatch	bot:Storey		semapv:ManualMappingCuration	0.85	
 gmeow:placeTypeFloor	skos:closeMatch	ifc:IfcBuildingStorey		semapv:ManualMappingCuration	0.8	ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms.
 gmeow:placeTypeNaturalFeature	skos:closeMatch	gn:T		semapv:ManualMappingCuration	0.6	
+gmeow:placeTypeParcel	skos:closeMatch	cp:CadastralParcel		semapv:ManualMappingCuration	0.9	A GMEOW Place with placeTypeParcel corresponds to an INSPIRE CadastralParcel — a single area of Earth surface under homogeneous real property rights.
 gmeow:placeTypeRoom	skos:closeMatch	bot:Space		semapv:ManualMappingCuration	0.85	
 gmeow:placeTypeRoom	skos:closeMatch	ifc:IfcSpace		semapv:ManualMappingCuration	0.8	ifcOWL is reference-only; GMEOW models the concept and links by IRI without copying axioms.
 gmeow:placeTypeRoom	skos:closeMatch	wd:Q180516		semapv:ManualMappingCuration	0.8	
@@ -215,6 +228,7 @@ gmeow:referenceFrameRobotCspace6DOF	skos:relatedMatch	knowrob:Joint	Joint	semapv
 gmeow:referenceFrameRobotSLAM	skos:relatedMatch	knowrob:SemanticEnvironmentMap	SemanticEnvironmentMap	semapv:ManualMappingCuration	0.8	KnowRob SemanticEnvironmentMap is a robot-built map of the environment; GMEOW referenceFrameRobotSLAM is the reference frame in which such a map is expressed. The alignment is related because both are robot-centric spatial representations with probabilistic occupancy semantics, but a map and a reference frame are different ontological categories.
 gmeow:referenceFrameUNLocode	skos:closeMatch	wd:Q16254001	UN/LOCODE	semapv:ManualMappingCuration	0.9	
 gmeow:referenceFrameWhat3Words	skos:closeMatch	wd:Q16256185	what3words	semapv:ManualMappingCuration	0.9	
+gmeow:referenceValue	skos:closeMatch	cp:nationalCadastralReference		semapv:ManualMappingCuration	0.9	The literal value of a GMEOW CadastralReference directly corresponds to INSPIRE's nationalCadastralReference property value.
 gmeow:roll	skos:closeMatch	wd:Q465493	Euler angles	semapv:ManualMappingCuration	0.8	
 gmeow:sequenceEnd	skos:closeMatch	faldo:end	end	semapv:ManualMappingCuration	0.9	FALDO end is a property on a Region; GMEOW sequenceEnd is an explicit positiveInteger property on SequenceCoordinates.
 gmeow:sequenceFeatureTypeCDS	skos:exactMatch	so:0000316	CDS	semapv:ManualMappingCuration	0.95	
@@ -230,6 +244,8 @@ gmeow:strandReverse	skos:closeMatch	wd:Q22809711	antisense strand	semapv:ManualM
 gmeow:strandReverse	skos:exactMatch	faldo:ReverseStrandPosition	ReverseStrandPosition	semapv:ManualMappingCuration	0.95	
 gmeow:streetAddress	owl:equivalentProperty	schema:streetAddress		semapv:ManualMappingCuration	1.0	
 gmeow:streetAddress	skos:closeMatch	vcard:street-address		semapv:ManualMappingCuration	0.9	
+gmeow:tenureTypeEasement	skos:closeMatch	wd:Q188814	easement	semapv:ManualMappingCuration	0.9	
+gmeow:tenureTypeOwnership	skos:closeMatch	wd:Q1406325	ownership	semapv:ManualMappingCuration	0.9	
 gmeow:timezone	skos:closeMatch	vcard:tz		semapv:ManualMappingCuration	0.9	
 gmeow:virtualLocationTypeSocialMediaPage	skos:closeMatch	schema:ProfilePage		semapv:ManualMappingCuration	0.8	
 gmeow:virtualLocationTypeVideoConference	skos:closeMatch	wd:Q1326624	video conference	semapv:ManualMappingCuration	0.75	

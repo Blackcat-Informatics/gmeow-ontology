@@ -27,6 +27,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:BiologicalSequenceLocation (⊑ gmeow:Location): A sequence-level container locus — a chromosome, contig, scaffold, or the sequence itself — that hosts SequenceFeature annotations via gmeow:hasSequenceFeature. The features themselves (genes, exons, SNPs, etc.) are SequenceFeature instances with their own coordinates and types; they are not BiologicalSequenceLocation instances.
 - gmeow:BodyPart (⊑ gmeow:InformationObject): A MIME part of a message's body, with a media type and content.
 - gmeow:BookRelease (⊑ gmeow:CreativeWork): A concrete published edition or release of a book — an out-of-universe information object and rights-bearing publication artifact. Distinct from the in-universe narrative frame it contributes to; linked via gmeow:sourceFor.
+- gmeow:CadastralReference (⊑ gmeow:InformationObject): A structured identifier for a land-administration record — a parcel number, folio identifier, title number, lot reference, or survey plan reference issued by a cadastral registry. Carries the reference value, its type, the issuing authority, and the jurisdiction under which it is valid. Temporal validity (re-survey, re-numbering) is carried with validFrom / validUntil on the reference itself.
+- gmeow:CadastralReferenceType (⊑ gufo:QualityValue): The kind of a cadastral reference (parcel identifier, folio number, title number, lot number, survey plan reference, etc.). A value, not a subclass: the set is open-ended and they share all of CadastralReference's structure, so a new kind is a new individual, not a new class (Principle 9).
 - gmeow:CalendarSystem (⊑ gmeow:Entity, gufo:Object): The rules mapping a time scale to human-readable dates. Co-equal: Gregorian is one peer among Julian, Hebrew, Islamic, Chinese, Persian, Ethiopian, Coptic, ISO week, and others (Principle 9).
 - gmeow:Capacity (⊑ gmeow:Measurement): A measurement of the maximum number of entities a location can hold. The location is the observedFeature; the result is a ScalarQuantity. The entity kind being counted is implicit from the location's placeType and the ScalarQuantity's hasUnit (P11). A contested capacity (e.g., fire code vs. venue claim) is modelled as multiple co-existing Capacity measurements, each standpoint-indexed and confidence-weighted, never collapsing to a single winner (P9). A superseded capacity (e.g., after renovation) is suppressed via displayable false, never deleted (P10).
 - gmeow:CelestialCoordinates (⊑ gmeow:Entity, gufo:Object): A point on the celestial sphere expressed as right ascension, declination, and an optional epoch — frame-relative per Principle 11. The reference frame (ICRS, FK5, Galactic, etc.) is declared via gmeow:coordinateFrame.
@@ -96,6 +98,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:JurisdictionTenure (⊑ gmeow:TimeScopedRelation): The reified, time-scoped fact that a place was governed by a particular polity over an interval — a sovereignty or administrative jurisdiction claim. Non-functional on the place: contested sovereignty (e.g. Crimea-class) is modelled as multiple co-existing JurisdictionTenures, each standpoint-indexed and confidence-weighted, never collapsing to a single winner (Principle 9).
 - gmeow:KeyScheme (⊑ gufo:QualityValue): The cryptographic scheme/format of a key (OpenPGP, X.509, SSH, Nostr, …). Modelled as a value, not a key subclass: the set of schemes is open-ended and they carry no distinct key structure here, so a new scheme is a new individual, not a new class.
 - gmeow:KinRelationship (⊑ gmeow:Observation, gufo:Relator): A reified kinship relationship between persons, modelled as an observation (a claim-from-a-vantage) in the universal stack (#69). Able to bear its own events, dates, sources, and standpoint-indexed claims. A disputed kinship is several coexisting gmeow:accordingTo-annotated relators, none privileged (Principle 9). The relationshipParent and relationshipChild are co-observed features of the observation.
+- gmeow:LandTenure (⊑ gmeow:TimeScopedRelation): The reified, time-scoped fact that a party holds rights over a place — ownership, lease, easement, mortgage, usufruct, or another property right. Bridges the locations module to the rights module by referencing RightsStatement. Distinct from JurisdictionTenure (governance/sovereignty) and RegulatoryOverlay (regulation): LandTenure is about property rights. Contested titles coexist as multiple standpoint-indexed instances, never collapsing to a single winner (Principle 9).
+- gmeow:LandTenureType (⊑ gufo:QualityValue): The kind of a land tenure (ownership, leasehold, easement, mortgage, usufruct, freehold, crown lease, etc.). A value, not a subclass: the set is open-ended and they share all of LandTenure's structure, so a new kind is a new individual, not a new class (Principle 9).
 - gmeow:Language (⊑ gmeow:InformationObject): A language as a first-class information object with a self-minted IRI: a system of signs/symbols and rules used for communication or computation. Registry-INDEPENDENT — BCP-47/ISO 639/Glottolog/Wikidata are optional alignments (gmeow:languageCode, gmeow:authorityLink, skos:exactMatch), never identity, so a code-less conlang or AI-generated language is fully first-class. Origin, modality and status are open value vocabularies; the scripts it is written in are bound co-equally via gmeow:WritingSystemUsage; its endonym/exonym names are gmeow:Appellation.
 - gmeow:LanguageCreation (⊑ gmeow:Activity): The activity of creating or generating a language — a conlanger's design work or an AI model's generation run. Linked to its product by gmeow:wasGeneratedBy (the language → activity) and to its agent by gmeow:wasAssociatedWith; the language is ascribed to its creator with gmeow:wasAttributedTo (a gmeow:SoftwareAgent for an AI-generated language).
 - gmeow:LanguageModality (⊑ gufo:QualityValue): The sensory/transmission channel of a language (spoken, signed, written, whistled, tactile, machine, multimodal). A value carried by gmeow:languageModality.
@@ -403,6 +407,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasBarrier [gmeow:Location → gmeow:AccessibilityFacet]: Relates a location to an accessibility facet it impedes. Non-functional: a location may have multiple barriers. A location MAY simultaneously carry hasAccessibilityFeature and hasBarrier for the SAME facet (e.g. a ramp at the front entrance and stairs at the side entrance).
 - gmeow:hasBin [gmeow:SpatialAggregation → gmeow:SpatialBin]: Links a spatial aggregation to one of its constituent spatial bins. Non-functional: a bin may participate in multiple aggregations.
 - gmeow:hasBodyPart [gmeow:Message → gmeow:BodyPart]: Relates a message to a MIME part of its body. A MIME-structure specialization of the universal gmeow:hasPart spine.
+- gmeow:hasCadastralReference [gmeow:Place → gmeow:CadastralReference]: Relates a place (typically a parcel, lot, or spatial unit) to a structured cadastral reference issued by a registry.
 - gmeow:hasCapacity [gmeow:Location → gmeow:Capacity]: Links a location to a capacity measurement describing the maximum number of entities it can hold. Flat form for the common case; promote to full reified Capacity when vantage, confidence, temporal scope, or standpoint matter.
 - gmeow:hasCelestialCoordinates [gmeow:CelestialLocation → gmeow:CelestialCoordinates]: Relates a celestial location to its equatorial or other sky coordinates.
 - gmeow:hasCentroid [gmeow:Place → gmeow:Geometry]: The geometric centroid of a place — a flat shortcut for the common case. The full relator form is a SpatialAggregation with aggregationFunction aggCentroid, carrying provenance, frame, and solver reference.
@@ -683,6 +688,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:receivedAt [gmeow:Message → xsd:dateTime]: When a message was received by the storing system (JMAP receivedAt / Gmail internalDate).
 - gmeow:recordedNoLaterThan [? → xsd:dateTime]: A DERIVED upper bound (terminus ante quem) on when the annotated claim was committed to a record — typically taken from the modification time of its source carrier (gmeow:sourceModifiedAt) when no stronger observation time is known. Carries low gmeow:confidence; it is neither valid-time nor a point observation. Populate it in the importer/query layer, not by OWL inference.
 - gmeow:recurrenceRuleText [gmeow:RecurrenceRule → xsd:string] (functional): The recurrence rule as an RFC 5545 RRULE string (e.g. FREQ=WEEKLY;BYDAY=MO). Projected directly to iCalendar RRULE; a SET-typed TIMEX3 in ISO-TimeML.
+- gmeow:referenceAuthority [gmeow:CadastralReference → gmeow:Agent] (functional): The cadastral registry, land titles office, or surveying authority that issued this reference. Functional: a single reference has exactly one issuing authority.
+- gmeow:referenceJurisdiction [gmeow:CadastralReference → gmeow:Place] (functional): The jurisdiction (country, state, province, or territory) under whose legal framework this cadastral reference is valid. Functional: a single reference has exactly one governing jurisdiction.
+- gmeow:referenceType [gmeow:CadastralReference → gmeow:CadastralReferenceType]: The kind of cadastral reference (parcel ID, folio number, title number, lot number, survey plan reference, etc.). Non-functional: a single reference may be classified by multiple sources as different types.
+- gmeow:referenceValue [gmeow:CadastralReference → rdfs:Literal] (functional): Exactly one identifier string of the cadastral reference (e.g. 'Lot 42, Plan 12345', 'Folio 67890', 'Title No. ABCD-1234'). Functional: a single CadastralReference has exactly one reference value.
 - gmeow:references [gmeow:Message → gmeow:Message]: Relates a message to an earlier message in its reference chain (RFC 5322 References).
 - gmeow:registrationNumber [gmeow:Trademark → rdfs:Literal] (functional): The registry registration number of a trademark (e.g. a CIPO / USPTO / WIPO number).
 - gmeow:relatedTag [gmeow:Tag → gmeow:Tag]: A tag related to this tag by an associative link. Symmetric. Optional.
@@ -778,8 +787,13 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:taggingTagger [gmeow:Tagging → gmeow:Agent]: The agent who performed the tagging act. Non-functional: a tag may be co-asserted by multiple agents (e.g. a collaborative curation effort).
 - gmeow:telephone [gmeow:Agent → rdfs:Literal]: A telephone number at which an agent can be reached.
 - gmeow:temporalPrecision [gmeow:Event → gmeow:TemporalPrecision]: The granularity to which an event's time is known — a gmeow:TemporalPrecision value (day / month / year / decade / circa). Makes the determinacy of a date explicit instead of pretending every date is to-the-day.
+- gmeow:tenureDeterminacy [gmeow:LandTenure → gmeow:Determinacy]: The ontic determinacy model of this land tenure's boundary or claim — crisp (surveyed), vague (approximate), fuzzy (probabilistic), or disputed. Non-functional: sources may disagree on determinacy, and those claims coexist.
+- gmeow:tenureParty [gmeow:LandTenure → gmeow:Agent] (functional): The party (person, corporation, indigenous community, or other agent) that holds the rights recorded by this LandTenure. Functional: a single tenure has exactly one party. Joint ownership is modelled as multiple co-equal LandTenure instances, none privileged (Principle 9).
+- gmeow:tenurePlace [gmeow:LandTenure → gmeow:Place] (functional): The place (parcel, lot, or spatial unit) over which the rights of this LandTenure apply. Functional: a tenure concerns exactly one place (constitutive of the situation's identity).
 - gmeow:tenurePosition [gmeow:StandpointTenure → ?]: The standpoint-indexed claim the tenure says the standpoint held over its interval — a reified statement (a gmeow:StatementMetadata cell in the statement DSL). The range is intentionally left open: the statement-DSL spec layer is not part of the reasoned import closure, so asserting it as rdfs:range would dangle in the merged graph.
+- gmeow:tenureRights [gmeow:LandTenure → gmeow:RightsStatement]: The machine-readable rights statement (permissions, prohibitions, duties) that governs this land tenure. Links to the #21 rights facility by reference. Non-functional: multiple legal instruments may apply to the same tenure (e.g. national law + local ordinance + indigenous treaty).
 - gmeow:tenureStandpoint [gmeow:StandpointTenure → gmeow:Standpoint] (functional): The standpoint whose position a standpoint-tenure records.
+- gmeow:tenureType [gmeow:LandTenure → gmeow:LandTenureType]: The kind(s) of land tenure (a gmeow:LandTenureType individual). Non-functional: a single tenure may be classified by multiple sources as different types, and those claims coexist as evidence (Principle 9).
 - gmeow:tenuredContactPoint [gmeow:AddressTenure → gmeow:ContactPoint] (functional): The contact point an address-tenure concerns.
 - gmeow:textDirection [gmeow:WritingSystem → gmeow:TextDirection]: The writing direction(s) of a writing system (gmeow:TextDirection values). Non-functional — Japanese is both vertical-rtl and ltr.
 - gmeow:timezone [gmeow:Location → rdfs:Literal]: An IANA time-zone identifier for a location (e.g. "America/Edmonton"). Non-functional: a large place may span several zones.
@@ -1408,11 +1422,12 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:placeTypeFloor (a gmeow:PlaceType): floor / level
 - gmeow:placeTypeNaturalFeature (a gmeow:PlaceType): natural feature
 - gmeow:placeTypeNeighborhood (a gmeow:PlaceType): neighborhood
+- gmeow:placeTypeParcel (a gmeow:PlaceType): parcel / lot
 - gmeow:placeTypePointOfInterest (a gmeow:PlaceType): point of interest
 - gmeow:placeTypePremises (a gmeow:PlaceType): premises / address point
 - gmeow:placeTypeRegion (a gmeow:PlaceType): region / state / province
 - gmeow:placeTypeRoom (a gmeow:PlaceType): room
-- gmeow:placeTypeSite (a gmeow:PlaceType): site / campus / parcel
+- gmeow:placeTypeSite (a gmeow:PlaceType): site / campus
 - gmeow:placeTypeThoroughfare (a gmeow:PlaceType): thoroughfare / street
 - gmeow:polarityBarrier (a gmeow:AccessibilityPolarity): A negative accessibility barrier — the subject impedes the facet.
 - gmeow:polarityFeature (a gmeow:AccessibilityPolarity): A positive accessibility feature — the subject provides the facet.
@@ -1517,6 +1532,11 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:referenceFrameVirtualPlatform (a gmeow:ReferenceFrame): Virtual Platform Reference Frame
 - gmeow:referenceFrameWGS84 (a gmeow:ReferenceFrame): WGS 84 Geodetic Reference Frame
 - gmeow:referenceFrameWhat3Words (a gmeow:ReferenceFrame): what3words Reference Frame
+- gmeow:referenceTypeFolio (a gmeow:CadastralReferenceType): A folio number — an identifier used in land-title registers, especially in Commonwealth jurisdictions.
+- gmeow:referenceTypeLot (a gmeow:CadastralReferenceType): A lot number — an identifier for a subdivided lot within a larger plan or survey.
+- gmeow:referenceTypeParcelId (a gmeow:CadastralReferenceType): A parcel identifier — the primary identifier assigned to a cadastral parcel by a registry.
+- gmeow:referenceTypeSurveyPlan (a gmeow:CadastralReferenceType): A survey plan reference — an identifier for the official survey plan that defines a parcel's boundaries.
+- gmeow:referenceTypeTitle (a gmeow:CadastralReferenceType): A title number — an identifier for a registered title or deed in a land titles system.
 - gmeow:refuted (a gmeow:StandpointModality): □¬_S — settled false according to the standpoint: the standpoint DENIES the proposition (CRMinf belief value 'false'). Distinct from silence (no claim) and from low gmeow:confidence — an explicit, recorded denial. The proposition is carried as the subject of the denial, never asserted as a fact of the universal standpoint.
 - gmeow:registerCasual (a gmeow:NameRegister): casual
 - gmeow:registerFormal (a gmeow:NameRegister): formal
@@ -1651,6 +1671,13 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:tenseNone (a gmeow:GrammaticalTense): ISO-TimeML tense NONE (untensed / nominal mention).
 - gmeow:tensePast (a gmeow:GrammaticalTense): ISO-TimeML tense PAST.
 - gmeow:tensePresent (a gmeow:GrammaticalTense): ISO-TimeML tense PRESENT.
+- gmeow:tenureTypeCrownLease (a gmeow:LandTenureType): A lease from the Crown or state — land held under a lease agreement with the sovereign or government, common in Commonwealth jurisdictions.
+- gmeow:tenureTypeEasement (a gmeow:LandTenureType): An easement — a non-possessory right to use land owned by another party for a specific purpose (e.g. right of way, utility corridor).
+- gmeow:tenureTypeFreehold (a gmeow:LandTenureType): A freehold estate — ownership of land for an unlimited duration, subject only to the powers of the Crown or state (allodial title).
+- gmeow:tenureTypeLeasehold (a gmeow:LandTenureType): A leasehold interest — the right to occupy and use land for a specified term under a lease agreement with the owner.
+- gmeow:tenureTypeMortgage (a gmeow:LandTenureType): A mortgage or charge — a security interest in land granted to a lender as collateral for a debt.
+- gmeow:tenureTypeOwnership (a gmeow:LandTenureType): Full ownership of the land — the right to possess, use, enjoy, and dispose of the property, subject to applicable law.
+- gmeow:tenureTypeUsufruct (a gmeow:LandTenureType): A usufruct — the right to use and derive income from land belonging to another, without impairing its substance.
 - gmeow:timeScaleGPS (a gmeow:TimeScale): Atomic time scale used by GPS, offset from TAI.
 - gmeow:timeScaleTAI (a gmeow:TimeScale): Atomic time scale based on SI seconds.
 - gmeow:timeScaleTDB (a gmeow:TimeScale): Dynamical time scale for solar-system barycentric calculations.
