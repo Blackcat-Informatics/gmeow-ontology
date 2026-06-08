@@ -191,7 +191,7 @@ gmeow:eqCw017 a gmeow:TermEquivalence ;
 
 gmeow:eqCw018 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:eventTypeWorkConception ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:broadMatch ;
     gmeow:alignObject crm:E65_Creation ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
@@ -213,7 +213,7 @@ gmeow:eqCw019 a gmeow:TermEquivalence ;
 
 gmeow:eqCw020 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:Manifestation ;
-    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject bibframe:Instance ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
@@ -222,7 +222,7 @@ gmeow:eqCw020 a gmeow:TermEquivalence ;
 
 gmeow:eqCw021 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:Item ;
-    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject bibframe:Item ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
@@ -253,7 +253,7 @@ gmeow:eqCw023 a gmeow:TermEquivalence ;
 
 gmeow:eqCw024 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:BookRelease ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:broadMatch ;
     gmeow:alignObject schema:Book ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
@@ -374,7 +374,7 @@ gmeow:eqCw036 a gmeow:TermEquivalence ;
 
 gmeow:eqCw037 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:workTypeAudiovisual ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:broadMatch ;
     gmeow:alignObject wd:Q478798 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;

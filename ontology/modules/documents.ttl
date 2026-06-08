@@ -91,15 +91,6 @@ gmeow:hasTitle
     skos:definition "Relates a creative work to a structured gmeow:CreativeWorkTitle it bears; the creative-work-scoped specialization of gmeow:hasAppellation. Non-functional — a work bears many co-equal titles (original, translated, transliterated, regional); none is primary, and superseded ones set gmeow:displayable false. The structured replacement for the flat gmeow:title literal when multilingual or statement-level metadata is needed."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:hasAuthor
-    a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:hasContributor ;
-    rdfs:domain gmeow:CreativeWork ;
-    rdfs:range gmeow:Agent ;
-    rdfs:label "has author"@en ;
-    skos:definition "Relates a creative work to an agent chiefly responsible for creating its intellectual content. A flat shortcut subproperty of gmeow:hasContributor."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
 gmeow:title
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;

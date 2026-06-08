@@ -32,9 +32,12 @@ EDOAL = Namespace(PREFIXES["edoal"])
 
 def test_dsl_parses() -> None:
     """
-    Validate that the mapping DSL loads correctly and contains the expected counts and profiles.
-    
-    Asserts that the loaded DSL has 1204 term equivalences, 28 functions, 34 mapping sets, more than 30 projection cells, and that the set of profiles used in projection bindings equals the module-level `_PROFILES`.
+    Validate that the mapping DSL loads correctly and contains the expected
+    counts and profiles.
+
+    Asserts that the loaded DSL has 1204 term equivalences, 28 functions,
+    34 mapping sets, more than 30 projection cells, and that the set of
+    profiles used in projection bindings equals the module-level `_PROFILES`.
     """
     dsl = load_dsl()
     # Every SSSOM data row became a TermEquivalence cell (incl. the 7 gUFO↔BFO

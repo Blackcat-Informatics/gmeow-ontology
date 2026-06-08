@@ -50,9 +50,11 @@ def test_book_release_and_serial_installment_are_creative_works() -> None:
 
 def test_frame_realm_narrative_and_frame_kind_narrative_exist() -> None:
     """
-    Check that the merged RDF graph declares the narrative frame realm and narrative frame kind individuals.
-    
-    Asserts that `GMEOW.frameRealmNarrative` is typed as `GMEOW.FrameRealm` and that `GMEOW.frameKindNarrative` is typed as `GMEOW.FrameKind`.
+    Check that the merged RDF graph declares the narrative frame realm and
+    narrative frame kind individuals.
+
+    Asserts that `GMEOW.frameRealmNarrative` is typed as `GMEOW.FrameRealm` and
+    that `GMEOW.frameKindNarrative` is typed as `GMEOW.FrameKind`.
     """
     graph = _graph()
     assert (GMEOW.frameRealmNarrative, RDF.type, GMEOW.FrameRealm) in graph
