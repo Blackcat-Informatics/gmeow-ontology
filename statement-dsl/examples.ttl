@@ -156,10 +156,12 @@ ex:claim-date-julian-1582 a gmeow:StatementMetadata ;
 #    frames is valid only for a specific time window because the end-effector
 #    moves. The homogeneous-transform matrix math is solver-layer (P12); the
 #    ontology records only the frame linkage and its temporal scope.
+#    qSubject must be a ReferenceFrame (parentFrame domain), not the physical
+#    end-effector entity.
 ex:claim-tf-dynamic-end-effector a gmeow:StatementMetadata ;
-    rdfs:label "End-effector parentFrame to base — dynamic transform valid 2026-06-07T10:00:00Z to 2026-06-07T10:05:00Z, confidence 0.95"@en ;
+    rdfs:label "End-effector frame parentFrame to base — dynamic transform valid 2026-06-07T10:00:00Z to 2026-06-07T10:05:00Z, confidence 0.95"@en ;
     gmeow:reifier    ex:claim-tf-dynamic-end-effector ;
-    gmeow:qSubject   ex:robot-end-effector ;
+    gmeow:qSubject   ex:referenceFrameRobotEndEffector ;
     gmeow:qPredicate gmeow:parentFrame ;
     gmeow:qObject    gmeow:referenceFrameRobotBase ;
     gmeow:annotation

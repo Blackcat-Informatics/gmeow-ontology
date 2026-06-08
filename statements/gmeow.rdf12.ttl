@@ -86,13 +86,13 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
         gmeow:hasReferenceFrame  gmeow:referenceFrameRobotSLAM .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-tf-dynamic-end-effector>
-        rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/robot-end-effector> gmeow:parentFrame gmeow:referenceFrameRobotBase )>>;
+        rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/referenceFrameRobotEndEffector> gmeow:parentFrame gmeow:referenceFrameRobotBase )>>;
         gmeow:assertedAt  "2026-06-07T10:00:00+00:00"^^xsd:dateTime;
         gmeow:confidence  0.95;
         gmeow:validFrom   "2026-06-07T10:00:00+00:00"^^xsd:dateTime;
         gmeow:validUntil  "2026-06-07T10:05:00+00:00"^^xsd:dateTime .
 
-<https://blackcatinformatics.ca/gmeow/examples/robot-end-effector>
+<https://blackcatinformatics.ca/gmeow/examples/referenceFrameRobotEndEffector>
         gmeow:parentFrame  gmeow:referenceFrameRobotBase .
 
 <https://blackcatinformatics.ca/gmeow/examples/rights/claim-mark-holder-acme>

@@ -1429,7 +1429,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:referenceFrameRobotArm6DOF (a gmeow:ReferenceFrame): 6-DOF Robot Arm Configuration Space
 - gmeow:referenceFrameRobotBase (a gmeow:ReferenceFrame): Robot Base Cartesian Reference Frame
 - gmeow:referenceFrameRobotCspace6DOF (a gmeow:ReferenceFrame): 6-DOF Robot Configuration Space Reference Frame
-- gmeow:referenceFrameRobotSLAM (a gmeow:MentalReferenceFrame, gmeow:ReferenceFrame): Robot SLAM Occupancy Grid Reference Frame
+- gmeow:referenceFrameRobotSLAM (a gmeow:ReferenceFrame): Robot SLAM Occupancy Grid Reference Frame
 - gmeow:referenceFrameRobotTaskSpace (a gmeow:ReferenceFrame): Robot End-Effector Task Space Reference Frame
 - gmeow:referenceFrameRobotVelocity (a gmeow:ReferenceFrame): Robot Velocity Reference Frame
 - gmeow:referenceFrameSI (a gmeow:ReferenceFrame): SI Measurement Reference Frame

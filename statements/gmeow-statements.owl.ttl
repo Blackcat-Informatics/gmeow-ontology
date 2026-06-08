@@ -75,7 +75,7 @@
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-tf-dynamic-end-effector> a owl:Axiom ;
     owl:annotatedProperty gmeow:parentFrame ;
-    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/robot-end-effector> ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/referenceFrameRobotEndEffector> ;
     owl:annotatedTarget gmeow:referenceFrameRobotBase ;
     gmeow:assertedAt "2026-06-07T10:00:00+00:00"^^xsd:dateTime ;
     gmeow:confidence 0.95 ;
@@ -136,13 +136,13 @@
 
 <https://blackcatinformatics.ca/gmeow/examples/gi-alice> gmeow:genderValue gmeow:genderWoman .
 
+<https://blackcatinformatics.ca/gmeow/examples/referenceFrameRobotEndEffector> gmeow:parentFrame gmeow:referenceFrameRobotBase .
+
 <https://blackcatinformatics.ca/gmeow/examples/rights/photo> gmeow:hasLicense <https://blackcatinformatics.ca/gmeow/examples/rights/cc-by-4> .
 
 <https://blackcatinformatics.ca/gmeow/examples/rights/photo-copyright> gmeow:copyrightHolder <https://blackcatinformatics.ca/gmeow/examples/rights/jane> .
 
 <https://blackcatinformatics.ca/gmeow/examples/rights/repo-license> gmeow:spdxLicenseId "Apache-2.0" .
-
-<https://blackcatinformatics.ca/gmeow/examples/robot-end-effector> gmeow:parentFrame gmeow:referenceFrameRobotBase .
 
 <https://blackcatinformatics.ca/gmeow/examples/slam-cell-42> gmeow:hasReferenceFrame gmeow:referenceFrameRobotSLAM .
 
