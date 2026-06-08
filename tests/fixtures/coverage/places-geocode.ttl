@@ -1,0 +1,76 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/> .
+
+# Valid geocode instances for SHACL coverage (#91)
+
+ex:placeWithPlusCode
+    a gmeow:Place ;
+    gmeow:hasGeocode ex:pc1 .
+
+ex:pc1
+    a gmeow:Geocode ;
+    gmeow:geocodeFrame gmeow:referenceFramePlusCode ;
+    gmeow:plusCode "9F4W9C8C+W4" .
+
+ex:placeWithWhat3Words
+    a gmeow:Place ;
+    gmeow:hasGeocode ex:w3w1 .
+
+ex:w3w1
+    a gmeow:Geocode ;
+    gmeow:geocodeFrame gmeow:referenceFrameWhat3Words ;
+    gmeow:what3words "filled.county.limes" .
+
+ex:placeWithGeohash
+    a gmeow:Place ;
+    gmeow:hasGeocode ex:gh1 .
+
+ex:gh1
+    a gmeow:Geocode ;
+    gmeow:geocodeFrame gmeow:referenceFrameGeohash ;
+    gmeow:geohash "u4pruydqqvj" .
+
+ex:placeWithMGRS
+    a gmeow:Place ;
+    gmeow:hasGeocode ex:mgrs1 .
+
+ex:mgrs1
+    a gmeow:Geocode ;
+    gmeow:geocodeFrame gmeow:referenceFrameMGRS ;
+    gmeow:mgrs "33TWN00020001" .
+
+ex:placeWithUNLocode
+    a gmeow:Place ;
+    gmeow:hasGeocode ex:unl1 .
+
+ex:unl1
+    a gmeow:Geocode ;
+    gmeow:geocodeFrame gmeow:referenceFrameUNLocode ;
+    gmeow:unLocode "GBLHR" .
+
+ex:placeWithMileMarker
+    a gmeow:Place ;
+    gmeow:hasGeocode ex:mm1 .
+
+ex:mm1
+    a gmeow:Geocode ;
+    gmeow:geocodeFrame gmeow:referenceFrameMileMarker ;
+    gmeow:mileMarker "42.3" .
+
+ex:placeWithGenericGeocode
+    a gmeow:Place ;
+    gmeow:hasGeocode ex:gc1 .
+
+ex:gc1
+    a gmeow:Geocode ;
+    gmeow:geocodeFrame gmeow:referenceFramePlusCode ;
+    gmeow:geocodeValue "9F4W9C8C+W4" .
+
+ex:placeWithCoordinateMatrixGeocode
+    a gmeow:Place ;
+    gmeow:hasGeocode ex:gc2 .
+
+ex:gc2
+    a gmeow:Geocode ;
+    gmeow:geocodeFrame gmeow:referenceFrameGeohash ;
+    gmeow:hasCoordinateMatrix "u4pruydqqvj" .
