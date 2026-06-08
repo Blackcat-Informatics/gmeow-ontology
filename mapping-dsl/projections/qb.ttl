@@ -8,9 +8,11 @@
 # Compiled to projections/qb.edoal.ttl + queries/projections/qb.rq by
 # `gmeow compile-mappings`.
 
-# SpatialAggregation → qb:Observation with measure value.
+# SpatialAggregation → qb:Observation with measure value, plus a well-formed
+# qb:DataSet and qb:DataStructureDefinition per observation (IC-1, IC-2).
 gmeow:mapQbObservation a gmeow:ProjectionMapping ;
-    rdfs:label "SpatialAggregation → qb:Observation"@en ;
+    rdfs:label "SpatialAggregation → qb:Observation + DataSet + DSD"@en ;
+    skos:definition "Maps a GMEOW SpatialAggregation to an RDF Data Cube qb:Observation, retaining measure type (aggregationFunction), observation value (quantityValue of the scalar result), and spatial context (observedFeature). A well-formed qb:DataSet and qb:DataStructureDefinition are minted per observation. Suppressed when displayable=false."@en ;
     gmeow:hasMappingPattern [
         gmeow:anchor "agg" ;
         gmeow:atom (
@@ -19,12 +21,49 @@ gmeow:mapQbObservation a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "agg" ; gmeow:predicate gmeow:aggregationFunction ; gmeow:objectVar "func" ]
             [ gmeow:subjectVar "agg" ; gmeow:predicate gmeow:observationResult ; gmeow:objectVar "result" ]
             [ gmeow:subjectVar "result" ; gmeow:predicate gmeow:quantityValue ; gmeow:objectVar "val" ] ) ;
-        gmeow:suppressWhen [ gmeow:subjectVar "agg" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "agg" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:mint [ gmeow:bindVar "dataset" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "agg" ] ) ] "/qb-dataset" ) ] ) ] ] ;
+        gmeow:mint [ gmeow:bindVar "dsd" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "agg" ] ) ] "/qb-dsd" ) ] ) ] ] ;
+        gmeow:mint [ gmeow:bindVar "compMeasureType" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "agg" ] ) ] "/qb-dsd/comp-measure-type" ) ] ) ] ] ;
+        gmeow:mint [ gmeow:bindVar "compObservedFeature" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "agg" ] ) ] "/qb-dsd/comp-observed-feature" ) ] ) ] ] ;
+        gmeow:mint [ gmeow:bindVar "compObsValue" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "agg" ] ) ] "/qb-dsd/comp-obs-value" ) ] ) ] ] ;
+        gmeow:bind [ gmeow:bindVar "observedFeatureProp" ; gmeow:bindExpr gmeow:observedFeature ] ;
+        gmeow:bind [ gmeow:bindVar "obsValueProp" ; gmeow:bindExpr qb:obsValue ] ] ;
     gmeow:hasBinding [
         gmeow:profile "qb" ; gmeow:relation "<=" ;
-        gmeow:lossyDrop "vantage, confidence, temporal scope, granularity, determinacy, and k-anonymity metadata are dropped in pure QB; only the measure type (function), observation value (scalar), and spatial context (observedFeature) are retained. Suppressed when displayable=false (Principle 10). The consumer's DSD may declare observedFeature as a dimension property." ;
+        gmeow:lossyDrop "vantage, confidence, temporal scope, granularity, determinacy, and k-anonymity metadata are dropped in pure QB; only the measure type (function), observation value (scalar), and spatial context (observedFeature) are retained. A well-formed qb:DataSet and qb:DataStructureDefinition are emitted per observation. Suppressed when displayable=false (Principle 10)." ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "agg" ; gmeow:tPred rdf:type ; gmeow:tObjValue qb:Observation ]
             [ gmeow:tSubj "agg" ; gmeow:tPred gmeow:observedFeature ; gmeow:tObj "region" ]
             [ gmeow:tSubj "agg" ; gmeow:tPred qb:measureType ; gmeow:tObj "func" ]
-            [ gmeow:tSubj "agg" ; gmeow:tPred qb:obsValue ; gmeow:tObj "val" ] ) ] .
+            [ gmeow:tSubj "agg" ; gmeow:tPred qb:obsValue ; gmeow:tObj "val" ]
+            [ gmeow:tSubj "agg" ; gmeow:tPred qb:dataSet ; gmeow:tObj "dataset" ]
+            [ gmeow:tSubj "dataset" ; gmeow:tPred rdf:type ; gmeow:tObjValue qb:DataSet ]
+            [ gmeow:tSubj "dataset" ; gmeow:tPred qb:structure ; gmeow:tObj "dsd" ]
+            [ gmeow:tSubj "dsd" ; gmeow:tPred rdf:type ; gmeow:tObjValue qb:DataStructureDefinition ]
+            [ gmeow:tSubj "dsd" ; gmeow:tPred qb:component ; gmeow:tObj "compMeasureType" ]
+            [ gmeow:tSubj "compMeasureType" ; gmeow:tPred rdf:type ; gmeow:tObjValue qb:ComponentSpecification ]
+            [ gmeow:tSubj "compMeasureType" ; gmeow:tPred qb:dimension ; gmeow:tObjValue qb:measureType ]
+            [ gmeow:tSubj "dsd" ; gmeow:tPred qb:component ; gmeow:tObj "compObservedFeature" ]
+            [ gmeow:tSubj "compObservedFeature" ; gmeow:tPred rdf:type ; gmeow:tObjValue qb:ComponentSpecification ]
+            [ gmeow:tSubj "compObservedFeature" ; gmeow:tPred qb:dimension ; gmeow:tObjValue gmeow:observedFeature ]
+            [ gmeow:tSubj "dsd" ; gmeow:tPred qb:component ; gmeow:tObj "compObsValue" ]
+            [ gmeow:tSubj "compObsValue" ; gmeow:tPred rdf:type ; gmeow:tObjValue qb:ComponentSpecification ]
+            [ gmeow:tSubj "compObsValue" ; gmeow:tPred qb:measure ; gmeow:tObjValue qb:obsValue ]
+            [ gmeow:tSubj "observedFeatureProp" ; gmeow:tPred rdf:type ; gmeow:tObjValue qb:DimensionProperty ]
+            [ gmeow:tSubj "obsValueProp" ; gmeow:tPred rdf:type ; gmeow:tObjValue qb:MeasureProperty ] ) ] .
