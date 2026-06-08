@@ -130,7 +130,10 @@ def test_dsl_parses() -> None:
     # Issue #88 robotic realm: +9 (Wikidata x2, CORA x2, KnowRob x4, SOMA x1).
     # Issue #89 narrative realm: +4 (schema:Book, schema:Episode in
     # narrative.ttl; wd:Q1774138, wd:Q15706943 in narrative.ttl).
-    assert len(dsl.equivalences) == 1030
+    # Issue #124 temporal measurement under observation: +4
+    # (measuredDate→time:hasTime, measuredDate→time:inXSDDateTimeStamp,
+    # DatingMethod→dcterms:method, DatingMethod→crm:P33_used_specific_technique).
+    assert len(dsl.equivalences) == 1034
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

@@ -8,6 +8,7 @@
 # curie_map:
 #   crm: http://www.cidoc-crm.org/cidoc-crm/
 #   crmgeo: http://www.ics.forth.gr/isl/CRMgeo/
+#   dcterms: http://purl.org/dc/terms/
 #   edtf: http://id.loc.gov/datatypes/edtf/
 #   gmeow: https://blackcatinformatics.ca/gmeow/
 #   gts: http://resource.geosciml.org/ontology/timescale/gts#
@@ -20,6 +21,8 @@
 #   wd: http://www.wikidata.org/entity/
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:CalendarSystem	skos:closeMatch	time:CalendarSystem	semapv:ManualMappingCuration	0.9	OWL-Time CalendarSystem
+gmeow:DatingMethod	skos:closeMatch	crm:P33_used_specific_technique	semapv:ManualMappingCuration	0.75	CIDOC-CRM technique used — dating method as observation method
+gmeow:DatingMethod	skos:closeMatch	dcterms:method	semapv:ManualMappingCuration	0.7	Dublin Core method — dating method as observation method
 gmeow:Instant	skos:closeMatch	crm:E61_Time_Primitive	semapv:ManualMappingCuration	0.8	CIDOC time primitive
 gmeow:Instant	skos:closeMatch	time:Instant	semapv:ManualMappingCuration	0.95	
 gmeow:NamedPeriod	skos:closeMatch	crm:E4_Period	semapv:ManualMappingCuration	0.8	CIDOC E4 Period — culturally-defined temporal extent
@@ -30,7 +33,7 @@ gmeow:ReferencePosition	skos:relatedMatch	time:TimeZone	semapv:ManualMappingCura
 gmeow:TemporalFrame	skos:closeMatch	crmgeo:SP13_Temporal_Reference_System	semapv:ManualMappingCuration	0.8	CRMgeo spatiotemporal reference system (temporal aspect)
 gmeow:TemporalFrame	skos:closeMatch	time:TemporalReferenceSystem	semapv:ManualMappingCuration	0.85	OWL-Time Temporal Reference System — GMEOW decomposes it into scale+calendar+position
 gmeow:TemporalFrame	skos:relatedMatch	crm:E52_Time-Span	semapv:ManualMappingCuration	0.6	CIDOC E52 Time-Span carries the frame implicitly via its time primitives
-gmeow:TemporalMeasurement	skos:closeMatch	crm:E16_Measurement	semapv:ManualMappingCuration	0.8	CIDOC measurement event
+gmeow:TemporalMeasurement	skos:closeMatch	crm:E16_Measurement	semapv:ManualMappingCuration	0.8	CIDOC measurement event; now a subclass of gmeow:Measurement (and therefore gmeow:Observation) in GMEOW (#124)
 gmeow:TimeScale	skos:closeMatch	time:TRS	semapv:ManualMappingCuration	0.85	OWL-Time Temporal Reference System when scale-only
 gmeow:calendarChinese	skos:exactMatch	wd:Q1851	semapv:ManualMappingCuration	0.95	Chinese calendar (Q1851)
 gmeow:calendarGregorian	skos:exactMatch	wd:Q12132	semapv:ManualMappingCuration	0.95	Gregorian calendar (Q12132)
@@ -61,6 +64,8 @@ gmeow:intervalOverlaps	skos:closeMatch	time:intervalOverlaps	semapv:ManualMappin
 gmeow:intervalStartedBy	skos:closeMatch	time:intervalStartedBy	semapv:ManualMappingCuration	0.95	
 gmeow:intervalStarts	skos:closeMatch	time:intervalStarts	semapv:ManualMappingCuration	0.95	
 gmeow:measuredAge	skos:closeMatch	crm:P90_has_value	semapv:ManualMappingCuration	0.7	CIDOC measured value
+gmeow:measuredDate	skos:closeMatch	time:hasTime	semapv:ManualMappingCuration	0.75	measuredDate (the absolute-date result of a TemporalMeasurement) aligns to OWL-Time hasTime
+gmeow:measuredDate	skos:closeMatch	time:inXSDDateTimeStamp	semapv:ManualMappingCuration	0.7	measuredDate instant carrying an instantValue aligns to OWL-Time inXSDDateTimeStamp
 gmeow:measurementUncertainty	skos:relatedMatch	crm:P90i_is_value_of	semapv:ManualMappingCuration	0.5	CIDOC value, used here for uncertainty band
 gmeow:periodCenozoic	skos:exactMatch	wd:Q40508	semapv:ManualMappingCuration	0.95	Wikidata Cenozoic (Q40508)
 gmeow:periodEnd	skos:closeMatch	time:hasEnd	semapv:ManualMappingCuration	0.85	
