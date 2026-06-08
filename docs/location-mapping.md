@@ -218,6 +218,7 @@ Seed reference frames are provided for all realms — spatial (WGS-84, local gri
 - **`metricGeodesic`** — shortest path along a curved surface (great-circle on WGS-84, celestial sphere).
 - **`metricEuclidean`** — straight-line distance in Cartesian space (indoor grids, robot bases).
 - **`metricCosine`** — angular proximity in a latent vector space.
+- **`metricPositionalDistance`** — absolute difference between coordinates on a linear 1-D frame (base pairs, residues).
 - **`metricEditDistance`** — string or sequence dissimilarity (Levenshtein, Hamming).
 - **`metricGraphHops`** — shortest-path edge count in a network.
 

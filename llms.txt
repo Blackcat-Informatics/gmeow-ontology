@@ -24,6 +24,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:AuthenticationResult (⊑ gmeow:InformationObject): The outcome of an email authentication check (RFC 8601 Authentication-Results) — a method (DKIM, SPF, DMARC, ARC), a verdict, and the verifying server.
 - gmeow:Axis (⊑ gmeow:Entity, gufo:Object): A coordinate axis or dimension of a reference frame (e.g. X, Y, Z, latitude, longitude, elevation, time).
 - gmeow:BiologicalParentChild (⊑ gmeow:ParentChildRelationship): A parent-child relationship by biological descent.
+- gmeow:BiologicalSequenceLocation (⊑ gmeow:Location): A sequence-level container locus — a chromosome, contig, scaffold, or the sequence itself — that hosts SequenceFeature annotations via gmeow:hasSequenceFeature. The features themselves (genes, exons, SNPs, etc.) are SequenceFeature instances with their own coordinates and types; they are not BiologicalSequenceLocation instances.
 - gmeow:BodyPart (⊑ gmeow:InformationObject): A MIME part of a message's body, with a media type and content.
 - gmeow:BookRelease (⊑ gmeow:CreativeWork): A concrete published edition or release of a book — an out-of-universe information object and rights-bearing publication artifact. Distinct from the in-universe narrative frame it contributes to; linked via gmeow:sourceFor.
 - gmeow:CalendarSystem (⊑ gmeow:Entity, gufo:Object): The rules mapping a time scale to human-readable dates. Co-equal: Gregorian is one peer among Julian, Hebrew, Islamic, Chinese, Persian, Ethiopian, Coptic, ISO week, and others (Principle 9).
@@ -193,6 +194,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:SensoryModality (⊑ gufo:QualityValue): The sensory channel or domain through which an environment property is measured or perceived — a value vocabulary (individuals, never subclasses). Distinguishes visual, auditory, olfactory, gustatory, tactile, thermal, air-quality, and other environmental sensing channels. A single environment or observation may span multiple modalities (Principle 9: co-equal, non-functional).
 - gmeow:SensoryObservation (⊑ gmeow:Observation): An observation produced by a sensor or sensory apparatus reading a physical property of the environment. Specialises Observation with sensor-specific properties (sensory property, sensor platform, sampling feature).
 - gmeow:SensoryPerception (⊑ gmeow:StandpointClaim): A standpoint-indexed perceived value about a SensoryEnvironment — a subjective claim made by a perceiver (vantage) about ambient conditions (observedFeature), yielding a result in a MentalReferenceFrame. A SensoryPerception is a StandpointClaim specialised to the sensory domain: the vantage is the perceiver, the observedFeature is the SensoryEnvironment, and the observationResult is the perceived value (a ScalarQuantity, categorical individual, or structured percept descriptor). Competing perceptions coexist without collapse (Principle 9); superseded perceptions are suppressed, never deleted (Principle 10).
+- gmeow:SequenceCoordinates (⊑ gmeow:Entity, gufo:Object): Frame-relative coordinates on a biological sequence: a start position, an end position, and a strand orientation, all expressed relative to an explicit reference assembly (Principle 11).
+- gmeow:SequenceFeature (⊑ gmeow:Entity, gufo:Object): A feature or annotation on a biological sequence — a range with start, end, strand, and type, expressed in a reference assembly frame. The first-class entity that carries the coordinates and type; linked to a BiologicalSequenceLocation via gmeow:hasSequenceFeature.
+- gmeow:SequenceFeatureType (⊑ gufo:QualityValue): The kind of a sequence feature (gene, exon, intron, CDS, SNP, chromosome, etc.). A value, not a subclass: the set is open-ended (Sequence Ontology lists ~2000 types) and they share all of SequenceFeature's structure, so a new kind is a new individual, not a new class (Principle 9).
 - gmeow:SerialInstallment (⊑ gmeow:CreativeWork): A single issue, episode, or chapter of a serial creative work — a comic issue, TV episode, magazine issue, or serial chapter. An out-of-universe publication artifact distinct from the narrative frame it sources.
 - gmeow:SexAssignedAtBirth (⊑ gufo:QualityValue): A recorded sex-assigned-at-birth value pointed at by gmeow:sexAssignedAtBirth — a VALUE, never a subclass. Deliberately coarse and inclusive (incl. intersex); finer sex-characteristic detail is an optional free-text gmeow:intersexVariation note, not a clinical taxonomy.
 - gmeow:SexualOrientation (⊑ gmeow:IdentityFacet): A person's SELF-ASSERTED sexual orientation — the pattern of their sexual attraction — as a reified facet pointing (via gmeow:sexualOrientationValue) to an open gmeow:SexualOrientationValue. A SEPARATE axis from romantic orientation (split-attraction model) and from gender identity/expression; nothing infers one from another.
@@ -212,6 +216,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:StepParentChild (⊑ gmeow:ParentChildRelationship): A parent-child relationship through marriage to a biological/adoptive parent.
 - gmeow:StorageLocation (⊑ gmeow:Location): A locus where digital objects reside — a cloud-storage folder, an object-store bucket, a filesystem path, a content-addressed store, or a physical disk. Its medium is a value (gmeow:storageMedium); a physical device may sit at a geographic gmeow:physicalPlace.
 - gmeow:StorageMedium (⊑ gufo:QualityValue): The kind of medium a storage location uses (cloud service, local filesystem, object store, content-addressed store, physical disk, removable media). A value, not a StorageLocation subclass: the kinds share the same structure (path, service, holder, physical place).
+- gmeow:StrandOrientation (⊑ gufo:QualityValue): The strand direction of a feature on a double-stranded biological sequence (forward / Watson, reverse / Crick, or both). A value, not a subclass: the set is closed and they share the same structure.
 - gmeow:Stream (⊑ gmeow:Entity, gufo:Object): A time-ordered sequence of observations or samples produced by a sensor or platform over a time interval. The ordering of samples is implicit via their individual timestamps, not asserted as a list structure (Principle 12). A stream is the canonical source from which a continuous trajectory may be derived by the solver layer.
 - gmeow:Summary (⊑ gmeow:InformationObject): A condensed account derived from a source information object (often machine-generated), linked to its source by gmeow:wasDerivedFrom.
 - gmeow:Tag (⊑ gmeow:InformationObject): An open, user-minted tag — an information object whose identity is its IRI and whose surface form is carried by rdfs:label. Synonyms are multiple labels; homonyms are different IRIs. Coreference is done in data, never by collapsing into one. A tag is NOT a type (it carries no inferential weight over rdf:type) and NOT a property bag — no datatype value property is asserted on it. Part of the universal tagging building block that keeps folksonomy, aboutness and typing as three orthogonal axes.
@@ -453,6 +458,8 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hasRoute [owl:Thing → gmeow:Route]: Relates a thing to a route that starts from, ends at, or passes through it.
 - gmeow:hasRouteSegment [gmeow:Route → gmeow:Route]: A sub-route that is part of a larger route. A specialization of the universal gmeow:hasPart spine.
 - gmeow:hasSensitivity [? → gmeow:SensitivityLevel]: Relates a value, entity, or claim to its privacy-sensitivity level — the explicit facet that drives disclosure-control decisions (coarsenTo / displayable) at projection time under a consent guard. Domain-free (universal, like hasGranularity and hasDeterminacy). NOT functional: in a multi-source merge sources may state different sensitivity levels, and those claims coexist rather than force the reasoner to collapse distinct levels. Distinct from gmeow:confidence (epistemic certainty) and from gmeow:hasDeterminacy (ontic model).
+- gmeow:hasSequenceCoordinates [gmeow:SequenceFeature → gmeow:SequenceCoordinates]: Links a sequence feature to its frame-relative coordinates. Non-functional: competing coordinate claims from different assemblies or alignment methods coexist as evidence (Principle 9).
+- gmeow:hasSequenceFeature [gmeow:BiologicalSequenceLocation → gmeow:SequenceFeature]: Links a biological sequence location to a feature annotation on that sequence. Non-functional: a single location may carry multiple features (overlapping genes, nested exons, multiple SNPs).
 - gmeow:hasSexualOrientation [gmeow:Person → gmeow:SexualOrientation]: Relates a person to a self-asserted sexual-orientation facet. Non-functional and contextual; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasRomanticOrientation, gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics.
 - gmeow:hasSibling [gmeow:Person → gmeow:Person]: Relates a person to a sibling; symmetric.
 - gmeow:hasSignature [gmeow:Message → gmeow:CryptographicSignature]: Relates a message to a cryptographic signature over it.
@@ -486,6 +493,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:hopOrdinal [gmeow:RelayHop → xsd:integer] (functional): The position of a hop within the message path (1 = closest to the origin).
 - gmeow:identifier [gmeow:CreativeWork → rdfs:Literal]: A formal identifier of a creative work, such as a DOI or patent number.
 - gmeow:importanceLevel: Relative import/source importance of a claim on a 0–10 scale; projection takes the maximum across imports.
+- gmeow:inReferenceAssembly [gmeow:SequenceCoordinates → gmeow:ReferenceFrame] (functional): The reference assembly (e.g. GRCh38) in which these sequence coordinates are expressed. Functional: a coordinate tuple is expressed in exactly one assembly; coordinates in another assembly are a different SequenceCoordinates instance (Principle 11).
 - gmeow:inReplyTo [gmeow:Message → gmeow:Message]: Relates a message to the message it directly replies to (RFC 5322 In-Reply-To).
 - gmeow:inTemporalFrame [gmeow:Instant → gmeow:TemporalFrame]: Relates an instant to the temporal frame in which its value is expressed.
 - gmeow:ingestedAt [gmeow:ImportActivity → xsd:dateTime] (functional): When an import activity recorded its claims into the system — the transaction time. Distinct from gmeow:assertedAt (observation) and gmeow:validFrom/validUntil (validity).
@@ -700,6 +708,10 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:sender [gmeow:EmailMessage → gmeow:EmailAddress]: The transmitting address of a message, where different from the author (RFC 5322 Sender).
 - gmeow:sensoryModality [gmeow:SensoryEnvironment → gmeow:SensoryModality]: The sensory channel(s) through which this environment is measured or perceived. Non-functional: a single environment may span multiple modalities (e.g. a space that is both thermally and acoustically characterised), and competing modality classifications coexist.
 - gmeow:sentAt [gmeow:Message → xsd:dateTime]: When a message was sent (RFC 5322 Date).
+- gmeow:sequenceEnd [gmeow:SequenceCoordinates → xsd:positiveInteger] (functional): The 1-based inclusive end position of a feature on a biological sequence. Frame-relative: the meaning depends on the inReferenceAssembly (Principle 11).
+- gmeow:sequenceFeatureType [gmeow:SequenceFeature → gmeow:SequenceFeatureType]: The kind(s) of a sequence feature (one or more gmeow:SequenceFeatureType individuals). Non-functional: multi-source classifications may differ (a feature classified as both 'gene' and 'pseudogene' by different sources) and must coexist as evidence (Principle 9).
+- gmeow:sequenceStart [gmeow:SequenceCoordinates → xsd:positiveInteger] (functional): The 1-based inclusive start position of a feature on a biological sequence. Frame-relative: the meaning depends on the inReferenceAssembly (Principle 11).
+- gmeow:sequenceStrand [gmeow:SequenceCoordinates → gmeow:StrandOrientation] (functional): The strand orientation of a feature on a double-stranded biological sequence.
 - gmeow:seriesOccurrence [gmeow:EventSeries → gmeow:Event]: Relates an event series to one of the concrete event occurrences it issues.
 - gmeow:sexAssignedAtBirth [gmeow:Person → gmeow:SexAssignedAtBirth]: The sex recorded for a person at birth (a gmeow:SexAssignedAtBirth value) — a RECORDED administrative datum, NOT a self-asserted identity and NOT a gufo IdentityFacet. Deliberately separate from gender identity/expression, which it never implies and is never implied by. Non-functional: a correction and a prior record coexist rather than contradict.
 - gmeow:sexualOrientationValue [gmeow:SexualOrientation → gmeow:SexualOrientationValue] (functional): The gmeow:SexualOrientationValue a sexual-orientation facet asserts (functional per facet). A predefined individual or a fresh one with rdfs:label; the single path to the value.
@@ -931,6 +943,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:axisRoll (a gmeow:Axis): roll axis
 - gmeow:axisScalar (a gmeow:Axis): scalar axis
 - gmeow:axisSecond (a gmeow:Axis): second
+- gmeow:axisSequencePosition (a gmeow:Axis): The linear position axis along a biological sequence (DNA, RNA, protein), measured in base pairs or amino-acid residues from a sequence origin.
 - gmeow:axisTristimulusX (a gmeow:Axis): CIE X tristimulus
 - gmeow:axisTristimulusY (a gmeow:Axis): CIE Y tristimulus
 - gmeow:axisTristimulusZ (a gmeow:Axis): CIE Z tristimulus
@@ -1057,6 +1070,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:frameKindGrid (a gmeow:FrameKind): grid
 - gmeow:frameKindHilbert (a gmeow:FrameKind): An inner-product space that is complete with respect to the norm induced by the inner product; may be infinite-dimensional. The ontology models this with dimensionCount 1 and a single axis, leaving actual dimensionality to solver-layer matrix attributes (Principle 12).
 - gmeow:frameKindLatentSpace (a gmeow:FrameKind): A compressed, lower-dimensional representation space learned by a neural network or other statistical model. Similarity is measured by cosine or Euclidean metrics.
+- gmeow:frameKindLinearSequence (a gmeow:FrameKind): A one-dimensional coordinate system along a linear biological sequence (DNA, RNA, protein). Positions are integer offsets from a sequence origin; distance is measured in base pairs or amino-acid residues (edit-distance / sequence-alignment metric).
 - gmeow:frameKindManifold (a gmeow:FrameKind): A topological space that locally resembles Euclidean space. Coordinate charts and tangent spaces are solver-layer constructs (Principle 12), not asserted as OWL axioms.
 - gmeow:frameKindNarrative (a gmeow:FrameKind): A frame whose structure is defined by canon, continuity, and narrative topology rather than geometric coordinates. Distance is measured in narrative proximity (plot relevance, character interaction), not metres or degrees.
 - gmeow:frameKindPhaseSpace (a gmeow:FrameKind): A space in which all possible states of a dynamical system are represented, with each state corresponding to one unique point. Typically 2n-dimensional for n degrees of freedom (generalized coordinates + conjugate momenta).
@@ -1064,6 +1078,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:frameKindScalar (a gmeow:FrameKind): scalar
 - gmeow:frameKindTemporal (a gmeow:FrameKind): temporal
 - gmeow:frameKindTopological (a gmeow:FrameKind): A frame whose structure is defined by containment, adjacency, or graph connectivity rather than geometric coordinates. Distance is measured in hops or nesting depth, not metres or degrees.
+- gmeow:frameRealmBiological (a gmeow:FrameRealm): A biological sequence domain (DNA, RNA, protein) in which positions and features are expressed relative to a reference assembly or sequence.
 - gmeow:frameRealmCelestial (a gmeow:FrameRealm): celestial / astronomical
 - gmeow:frameRealmColourspace (a gmeow:FrameRealm): colourspace
 - gmeow:frameRealmCurrency (a gmeow:FrameRealm): currency
@@ -1217,6 +1232,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:metricEuclidean (a gmeow:MetricKind): Straight-line distance in a Cartesian or flat space.
 - gmeow:metricGeodesic (a gmeow:MetricKind): Shortest path along a curved surface (e.g. great-circle on a spheroid).
 - gmeow:metricGraphHops (a gmeow:MetricKind): Shortest-path edge count in a network or graph.
+- gmeow:metricPositionalDistance (a gmeow:MetricKind): Absolute difference between coordinates on a linear 1-D frame (base pairs, amino-acid residues, sequence indices). Interval length (|end - start| + 1 for inclusive ranges) is a distinct metric.
 - gmeow:metricSymplectic (a gmeow:MetricKind): Standard Euclidean distance metric on a finite-dimensional Hamiltonian phase space, treating the concatenated (q,p) state vector as a point in ℝ²ⁿ.
 - gmeow:modalityMachine (a gmeow:LanguageModality): machine / programmatic
 - gmeow:modalityMultimodal (a gmeow:LanguageModality): multimodal
@@ -1426,6 +1442,7 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:referenceFrameDNS (a gmeow:ReferenceFrame): DNS Name Space Reference Frame
 - gmeow:referenceFrameEnglish (a gmeow:ReferenceFrame): English Language Reference Frame
 - gmeow:referenceFrameFK5 (a gmeow:ReferenceFrame): FK5 Equatorial Reference Frame
+- gmeow:referenceFrameGRCh38 (a gmeow:ReferenceFrame): GRCh38 Human Reference Assembly
 - gmeow:referenceFrameGalactic (a gmeow:ReferenceFrame): Galactic Coordinate Reference Frame
 - gmeow:referenceFrameGregorian (a gmeow:ReferenceFrame): Gregorian Calendar Reference Frame
 - gmeow:referenceFrameHilbertSpace (a gmeow:ReferenceFrame): Hilbert Space Reference Frame
@@ -1554,6 +1571,12 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:sensoryModalityTactile (a gmeow:SensoryModality): The tactile/touch sensory channel.
 - gmeow:sensoryModalityThermal (a gmeow:SensoryModality): The thermal/temperature sensory channel.
 - gmeow:sensoryModalityVisual (a gmeow:SensoryModality): The visual/light sensory channel.
+- gmeow:sequenceFeatureTypeCDS (a gmeow:SequenceFeatureType): coding sequence (CDS)
+- gmeow:sequenceFeatureTypeChromosome (a gmeow:SequenceFeatureType): chromosome
+- gmeow:sequenceFeatureTypeExon (a gmeow:SequenceFeatureType): exon
+- gmeow:sequenceFeatureTypeGene (a gmeow:SequenceFeatureType): gene
+- gmeow:sequenceFeatureTypeIntron (a gmeow:SequenceFeatureType): intron
+- gmeow:sequenceFeatureTypeSNP (a gmeow:SequenceFeatureType): single nucleotide polymorphism (SNP)
 - gmeow:statusConstructedActive (a gmeow:LanguageStatus): constructed — actively used
 - gmeow:statusDormant (a gmeow:LanguageStatus): dormant
 - gmeow:statusEmerging (a gmeow:LanguageStatus): emerging
@@ -1568,6 +1591,9 @@ Vocabulary 0.1.0. Namespace: https://blackcatinformatics.ca/gmeow/. Each term be
 - gmeow:storageMediumObjectStore (a gmeow:StorageMedium): object store
 - gmeow:storageMediumPhysicalDisk (a gmeow:StorageMedium): physical disk
 - gmeow:storageMediumRemovableMedia (a gmeow:StorageMedium): removable media
+- gmeow:strandBoth (a gmeow:StrandOrientation): Applies to both strands, e.g. some regulatory regions.
+- gmeow:strandForward (a gmeow:StrandOrientation): forward / Watson strand
+- gmeow:strandReverse (a gmeow:StrandOrientation): reverse / Crick strand
 - gmeow:tagReview (a gmeow:Tag): review
 - gmeow:tagTodo (a gmeow:Tag): todo
 - gmeow:tagUrgent (a gmeow:Tag): urgent
