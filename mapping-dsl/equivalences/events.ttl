@@ -1269,3 +1269,61 @@ gmeow:eqEvents130 a gmeow:TermEquivalence ;
     gmeow:objectLabel "Spacetime Volume" ;
     gmeow:comment "CRMgeo SP1 is the geospatial extension of CIDOC E92; same relatedMatch rationale as eqEvents129" ;
     gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Issue #128 — ObservationalActivity and observation linkage.
+# --------------------------------------------------------------------------- #
+
+gmeow:eqEvents131 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ObservationalActivity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crm:E13_Attribute_Assignment ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "CIDOC-CRM E13 is the closest event-centric analogue: an act of assigning an attribute to an item. GMEOW ObservationalActivity generalises this to any structured act of observing or asserting." ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents132 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ObservationalActivity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject prov:Activity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "An observational activity is a provenance activity that generates observations as outputs." ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents133 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ObservationalActivity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:Action ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "schema:Action is the closest schema.org class; the observation-specific semantics are lost in the flat projection." ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents135 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventObservation ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crm:P140_assigned_attribute_to ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "CIDOC P140 links E13 (the assignment event) to the item observed; GMEOW eventObservation links Event to Observation. Related match because the direction and granularity differ." ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents136 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeSurvey ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject schema:DiscoverAction ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "A survey is a kind of discovery/action in schema.org's flat action taxonomy." ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+gmeow:eqEvents137 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeAudit ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject schema:ReviewAction ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "An audit is a kind of review action in schema.org's flat taxonomy." ;
+    gmeow:sssomFile "gmeow-events.sssom.tsv" .

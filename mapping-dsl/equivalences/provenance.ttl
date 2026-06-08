@@ -103,3 +103,16 @@ gmeow:eqProvenance011 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Issue #128 — generatedObservation provenance link.
+# --------------------------------------------------------------------------- #
+
+gmeow:eqProvenance013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:generatedObservation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject prov:generated ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "prov:generated links an activity to the entity it generated; gmeow:generatedObservation specialises the range to Observation. The ObservationalActivity→prov:Activity alignment is canonical in mapping-dsl/equivalences/events.ttl (eqEvents132)." ;
+    gmeow:sssomFile "gmeow-provenance.sssom.tsv" .

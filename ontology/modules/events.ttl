@@ -42,6 +42,13 @@ gmeow:LifeEvent
     skos:definition "An event in the life of a person or family — a birth, death, marriage, christening, name change, and so on — to which sources and confidence can be attached. A thin, person-scoped phase of gmeow:Event (NOT a type taxonomy): the specific kind is a gmeow:eventType value (gmeow:eventTypeBirth, …). The seam joining the names module to the event spine: gmeow:conferredByEvent ranges over it."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:ObservationalActivity
+    a owl:Class, gufo:EventType ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:label "Observational Activity"@en ;
+    skos:definition "An activity whose primary purpose is to produce observations — a scientific survey, census, archaeological excavation, clinical trial, code review, audit, or any other structured act of observing, measuring, or asserting. A subclass of gmeow:Activity (and therefore of gmeow:Event) that generates gmeow:Observation individuals as first-class outputs. The event-type value vocabulary (gmeow:eventTypeSurvey, …) marks specific kinds; no subclass taxonomy is introduced (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 # --------------------------------------------------------------------------- #
 # Event type — an OPEN value vocabulary (gufo:QualityValue), not a subclass
 # taxonomy. The seed individuals absorb the former genealogy LifeEvent subclasses;
@@ -96,6 +103,17 @@ gmeow:eventTypeProbate        a gmeow:EventType ; rdfs:label "probate"@en ;     
 gmeow:eventTypeRetirement     a gmeow:EventType ; rdfs:label "retirement"@en ;     skos:definition "Retirement from working life."@en .
 gmeow:eventTypeNameChange     a gmeow:EventType ; rdfs:label "name change"@en ;    skos:definition "A formal change of name."@en .
 gmeow:eventTypeOrdination     a gmeow:EventType ; rdfs:label "ordination"@en ;     skos:definition "Ordination into religious office."@en .
+
+# Observational activity event types (#128) — value individuals, never subclasses.
+# gmeow:eventTypeCensus (Lifecycle event types, line 98) remains a person's
+# enumeration in a census. The census activity itself — the systematic data-
+# collection operation — is modelled separately here as gmeow:eventTypeCensusActivity
+# to keep person-centric events orthogonal from observational activities.
+gmeow:eventTypeCensusActivity a gmeow:EventType ; rdfs:label "census activity"@en ; skos:definition "A census as a systematic data-collection activity — an observational activity that produces population observations. Distinguished from gmeow:eventTypeCensus, which models a person's enumeration in a census."@en .
+gmeow:eventTypeSurvey         a gmeow:EventType ; rdfs:label "survey"@en ;         skos:definition "A systematic survey or data-collection activity whose purpose is to produce observations."@en .
+gmeow:eventTypeExcavation    a gmeow:EventType ; rdfs:label "excavation"@en ;    skos:definition "An archaeological excavation — a structured observational activity that produces stratigraphic and spatial observations."@en .
+gmeow:eventTypeAudit          a gmeow:EventType ; rdfs:label "audit"@en ;          skos:definition "A formal audit or inspection — an observational activity that produces evaluative observations."@en .
+gmeow:eventTypeClinicalTrial  a gmeow:EventType ; rdfs:label "clinical trial"@en ;  skos:definition "A clinical trial or structured medical investigation — an observational activity that produces health-outcome observations."@en .
 
 # --------------------------------------------------------------------------- #
 # Lifecycle event types — universal creation / destruction / supersession for any
@@ -328,6 +346,38 @@ gmeow:hasSubEvent
 # If an event occurs at a location, it also occurs at every containing location.
 # This deliberately uses spatial containment, not generic gmeow:partOf.
 gmeow:eventLocation owl:propertyChainAxiom ( gmeow:eventLocation gmeow:containedInLocation ) .
+
+# --------------------------------------------------------------------------- #
+# Observation linkage (#128) — unify the event and observation stacks.
+# An ObservationalActivity generates observations; an Event bears observations
+# made during or about it.  The property chain makes the activity associated
+# with the vantage of its generated observations (DL-regular, forward-only).
+# --------------------------------------------------------------------------- #
+
+gmeow:generatedObservation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ObservationalActivity ;
+    rdfs:range gmeow:Observation ;
+    rdfs:label "generated observation"@en ;
+    skos:definition "Relates an observational activity to an observation it generated as a first-class output. The inverse direction (Observation → Activity) is covered by the general gmeow:wasGeneratedBy (provenance module), since Observation ⊑ Entity and ObservationalActivity ⊑ Activity. This property is deliberately NOT asserted as owl:inverseOf gmeow:wasGeneratedBy, because that would force every Activity that generates anything to be an ObservationalActivity (OWL 2 DL typing interaction)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eventObservation
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:observationEvent ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Observation ;
+    rdfs:label "event observation"@en ;
+    skos:definition "An observation made during or about an event. Inverse of gmeow:observationEvent (observations module). Non-functional: an event may have many observations, and competing standpoint-indexed observations coexist (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# An ObservationalActivity is associated with the vantage of every observation it
+# generates.  DL-regular: all three properties are simple (no transitivity,
+# symmetry, or inverse in the chain).
+gmeow:wasAssociatedWith owl:propertyChainAxiom (
+    gmeow:generatedObservation
+    gmeow:vantage
+) .
 
 # --------------------------------------------------------------------------- #
 # Event series — a recurrence / schedule that ISSUES concrete event occurrences
