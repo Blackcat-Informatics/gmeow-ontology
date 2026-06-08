@@ -559,7 +559,10 @@ def crossref() -> None:
     from gmeow_tools.crossref import write_deposit
     from gmeow_tools.self_desc import load_self_description
 
-    meta = load_self_description()
+    try:
+        meta = load_self_description()
+    except (FileNotFoundError, ValueError) as exc:
+        raise _fail(f"✗ self-description unavailable: {exc}") from exc
     path = write_deposit()
     console.print(
         f"[green]✓ {path.relative_to(path.parents[1])} (DOI {meta.doi})[/green]"

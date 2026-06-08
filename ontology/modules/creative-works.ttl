@@ -165,7 +165,7 @@ gmeow:contributionRole
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:contributionDegree
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Contribution ;
     rdfs:range gmeow:ContributionDegree ;
     rdfs:label "contribution degree"@en ;
