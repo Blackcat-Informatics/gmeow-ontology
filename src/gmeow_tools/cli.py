@@ -243,6 +243,55 @@ def compile_mappings(
     )
 
 
+@app.command(name="compile-schemas")
+def compile_schemas_cmd(
+    check: bool = typer.Option(
+        False,
+        "--check",
+        help="Verify committed artifacts match a fresh compile; write nothing.",
+    ),
+    reconcile: bool = typer.Option(
+        False,
+        "--reconcile",
+        help="Cross-check generated schema against JSON-LD context (non-fatal).",
+    ),
+) -> None:
+    """Compile canonical OWL → LinkML + JSON Schema / Pydantic / TS / GraphQL / OpenAPI.
+
+    Renders the merged ontology graph into a LinkML schema and then runs the
+    LinkML generator fan-out. --check compiles to a temp tree and reports
+    drift versus the committed files (the CI gate). --reconcile runs a
+    read-only cross-check against the JSON-LD context.
+    """
+    from gmeow_tools.config import PROJECT_ROOT, SCHEMAS_DIR
+    from gmeow_tools.schema_compile import SchemaCompileReport, compile_schemas
+
+    report: SchemaCompileReport = compile_schemas(check=check, reconcile=reconcile)
+
+    for warning in report.warnings:
+        err_console.print(f"[yellow]warning[/yellow] {warning}")
+
+    if check:
+        if report.drifted:
+            for name in sorted(report.drifted):
+                err_console.print(f"[red]drift[/red] {name}")
+            raise _fail(
+                f"✗ {len(report.drifted)} schema artifact(s) out of date — "
+                "run `gmeow compile-schemas`"
+            )
+        console.print(
+            "[green]✓ committed schema artifacts match the ontology (no drift)[/green]"
+        )
+        return
+
+    for path in report.written:
+        console.print(f"[green]✓[/green] {path.relative_to(PROJECT_ROOT)}")
+    console.print(
+        f"[green]✓ compiled {len(report.written)} schema artifacts into "
+        f"{SCHEMAS_DIR.relative_to(PROJECT_ROOT)}/[/green]"
+    )
+
+
 @app.command(name="lint-alignment")
 def lint_alignment(
     network: bool = typer.Option(

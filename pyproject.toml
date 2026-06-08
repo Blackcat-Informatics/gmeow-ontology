@@ -16,6 +16,8 @@ dependencies = [
     "typer>=0.15",
     "rich>=13.9",
     "fastmcp>=3.4",
+    "linkml>=1.11",
+    "PyYAML>=6.0",
 ]
 
 [project.scripts]
@@ -82,7 +84,7 @@ files = ["src", "tests"]
 
 [[tool.mypy.overrides]]
 # Third-party libraries without complete type information.
-module = ["pylode.*", "sssom.*", "pyshacl.*", "owlrl.*", "pyoxigraph.*"]
+module = ["pylode.*", "sssom.*", "pyshacl.*", "owlrl.*", "pyoxigraph.*", "linkml.*", "linkml_runtime.*", "yaml"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
