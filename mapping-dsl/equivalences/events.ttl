@@ -1301,15 +1301,6 @@ gmeow:eqEvents133 a gmeow:TermEquivalence ;
     gmeow:comment "schema:Action is the closest schema.org class; the observation-specific semantics are lost in the flat projection." ;
     gmeow:sssomFile "gmeow-events.sssom.tsv" .
 
-gmeow:eqEvents134 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:generatedObservation ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:generated ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "prov:generated links an Activity to the Entity it generated; gmeow:generatedObservation specialises this to Observation outputs." ;
-    gmeow:sssomFile "gmeow-events.sssom.tsv" .
-
 gmeow:eqEvents135 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:eventObservation ;
     gmeow:alignPredicate skos:relatedMatch ;

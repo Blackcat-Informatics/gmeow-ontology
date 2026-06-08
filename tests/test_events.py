@@ -601,7 +601,8 @@ def test_observational_activity_chain_on_was_associated_with() -> None:
 
 
 def test_no_primary_preferred_observation_term() -> None:
-    """Principle 9: no primary/preferred selector for observations or activities."""
+    """Principle 9: no primary/preferred selector for observations or activities,
+    neither as properties nor as classes."""
     g = _graph()
     prop_types = (OWL.ObjectProperty, OWL.DatatypeProperty, OWL.AnnotationProperty)
     for banned in (
@@ -613,3 +614,4 @@ def test_no_primary_preferred_observation_term() -> None:
         node = URIRef(GMEOW + banned)
         for pt in prop_types:
             assert (node, RDF.type, pt) not in g, f"{banned} must not exist"
+        assert (node, RDF.type, OWL.Class) not in g, f"{banned} must not exist"

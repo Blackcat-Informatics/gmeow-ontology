@@ -126,7 +126,6 @@ gmeow:finishedBy	skos:closeMatch	teo:finishedBy		semapv:ManualMappingCuration	0.
 gmeow:finishedBy	skos:relatedMatch	time:intervalFinishedBy		semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
 gmeow:finishes	skos:closeMatch	teo:finishes		semapv:ManualMappingCuration	0.85	Time Event Ontology (TEO) event-event Allen relation
 gmeow:finishes	skos:relatedMatch	time:intervalFinishes		semapv:ManualMappingCuration	0.6	OWL-Time interval relation (over the events' temporal extents)
-gmeow:generatedObservation	skos:closeMatch	prov:generated		semapv:ManualMappingCuration	0.9	prov:generated links an Activity to the Entity it generated; gmeow:generatedObservation specialises this to Observation outputs.
 gmeow:hasDuration	skos:closeMatch	schema:duration		semapv:ManualMappingCuration	0.8	schema:duration
 gmeow:hasDuration	skos:relatedMatch	time:hasDuration		semapv:ManualMappingCuration	0.6	OWL-Time hasDuration (TemporalEntity → Duration; GMEOW scopes it to events)
 gmeow:hasParticipant	skos:closeMatch	bio:agent		semapv:ManualMappingCuration	0.8	BIO agent in a life event
