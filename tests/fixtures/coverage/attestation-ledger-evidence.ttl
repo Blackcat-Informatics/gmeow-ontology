@@ -1,0 +1,42 @@
+# Coverage fixture: Rekor / SCITT transparency log entry.
+# Exercises TransparencyLogEntry and its relationship to an Attestation.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/attestation/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:rekorLog a gmeow:TransparencyLogEntry ;
+    gmeow:logEntryUrl "https://rekor.sigstore.dev/api/v1/log/entries/24296fb24b8ad77a…" ;
+    gmeow:logEntryIndex 12345678 ;
+    gmeow:contentDigest "sha256:rekor012…" .
+
+ex:scittReceipt a gmeow:TransparencyLogEntry ;
+    gmeow:logEntryUrl "https://scitt.example/receipts/abc…" ;
+    gmeow:logEntryIndex 42 ;
+    gmeow:ledgerInclusionProof "base64:proofData…" .
+
+ex:attestedArtifact a gmeow:AttestationArtifact ;
+    gmeow:artifactMediaType "application/vnd.in-toto+json" ;
+    gmeow:contentDigest "sha256:art987…" .
+
+ex:logAttestation a gmeow:Attestation ;
+    gmeow:attester ex:signer ;
+    gmeow:attestedSubject ex:attestedArtifact ;
+    gmeow:attestationType gmeow:attestationTypeInToto ;
+    gmeow:attestationArtifact ex:attestedArtifact ;
+    gmeow:transparencyLogEntry ex:rekorLog ;
+    gmeow:transparencyLogEntry ex:scittReceipt ;
+    gmeow:hasSignature ex:logSig ;
+    gmeow:verificationResult ex:logVerifyResult .
+
+ex:signer a gmeow:Agent .
+
+ex:logSig a gmeow:CryptographicSignature ;
+    gmeow:signatureAlgorithm "ed25519" ;
+    gmeow:signedBy ex:signer .
+
+ex:logVerifyResult a gmeow:VerificationResult ;
+    gmeow:hasVerificationStatus gmeow:verificationStatusVerified ;
+    gmeow:verifiedBy ex:verifier .
+
+ex:verifier a gmeow:SoftwareAgent .

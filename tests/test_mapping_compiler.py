@@ -152,7 +152,9 @@ def test_dsl_parses() -> None:
     # Issue #92 cadastral / land administration: +14 (LADM x5, INSPIRE CP x7,
     # Wikidata x2).
     # Issue #93 maritime / aviation zones: +14 (MRGID x4, AIXM/ICAO x5, UNCLOS x5).
-    assert len(dsl.equivalences) == 1128
+    # Issue #162 cross-cutting attestations: +14 (PROV-O x7, W3C VC/DID x5,
+    # WOT x1, DQV x1).
+    assert len(dsl.equivalences) == 1142
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -175,7 +177,7 @@ def test_dsl_parses() -> None:
     # Issue #161 versions: +1 (gmeow-versions.sssom.tsv).
     # Issue #104 sensory environment: +1 (gmeow-sensory-environment.sssom.tsv).
     # Issue #89 narrative realm: +1 (gmeow-narrative.sssom.tsv).
-    assert len(dsl.mapping_sets) == 32
+    assert len(dsl.mapping_sets) == 33
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}

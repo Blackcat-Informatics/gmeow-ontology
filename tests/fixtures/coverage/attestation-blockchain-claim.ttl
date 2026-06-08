@@ -1,0 +1,53 @@
+# Coverage fixture: smart contract attestation + ledger inclusion evidence.
+# Exercises Attestation, BlockchainAccount, SmartContract, LedgerTransaction,
+# and ledger properties.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/attestation/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:ethMainnet a gmeow:BlockchainNetwork ;
+    gmeow:chainId "eip155:1" .
+
+ex:identityContract a gmeow:SmartContract ;
+    gmeow:contractAddress "0x1234…abcd" ;
+    gmeow:wasAttributedTo ex:deployer .
+
+ex:deployer a gmeow:Agent .
+
+ex:aliceAccount a gmeow:BlockchainAccount ;
+    rdfs:label "Alice's Ethereum account"@en .
+
+ex:registerTx a gmeow:LedgerTransaction ;
+    gmeow:transactionHash "0xdead…beef" ;
+    gmeow:wasGeneratedBy ex:registerActivity .
+
+ex:registerActivity a gmeow:Activity ;
+    gmeow:wasAssociatedWith ex:aliceAccount .
+
+# The smart contract attests that Alice controls this account.
+ex:blockchainAttestation a gmeow:Attestation ;
+    gmeow:attester ex:identityContract ;
+    gmeow:attestedSubject ex:aliceAccount ;
+    gmeow:attestationType gmeow:attestationTypeBlockchainClaim ;
+    gmeow:attestationArtifact ex:blockchainArtifact ;
+    gmeow:hasSignature ex:blockchainSig ;
+    gmeow:verificationResult ex:blockchainVerifyResult .
+
+ex:blockchainArtifact a gmeow:AttestationArtifact ;
+    gmeow:artifactMediaType "application/json" ;
+    gmeow:contentDigest "sha256:bc234…" .
+
+ex:blockchainSig a gmeow:CryptographicSignature ;
+    gmeow:signatureAlgorithm "ecdsa-secp256k1" ;
+    gmeow:signatureRecoveryAddress "0x1234…abcd" ;
+    gmeow:signedBy ex:identityContract .
+
+ex:blockchainVerifyResult a gmeow:VerificationResult ;
+    gmeow:hasVerificationStatus gmeow:verificationStatusVerified ;
+    gmeow:finalityStatus gmeow:finalityStatusFinalized ;
+    gmeow:confirmationDepth 12 ;
+    gmeow:verifiedBy ex:nodeOperator .
+
+ex:nodeOperator a gmeow:SoftwareAgent .

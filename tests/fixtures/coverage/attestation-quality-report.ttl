@@ -1,0 +1,45 @@
+# Coverage fixture: signed ISO 19157 quality assessment.
+# Exercises Attestation over a QualityAssessment observation.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/attestation/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:dataset a gmeow:InformationObject ;
+    rdfs:label "Sensor readings 2026-Q2"@en .
+
+ex:qualityAssessment a gmeow:QualityAssessment ;
+    gmeow:assessedEntity ex:dataset ;
+    gmeow:qualityDimension gmeow:qualityDimensionCompleteness ;
+    gmeow:vantage ex:auditor ;
+    gmeow:observationResult ex:completenessScore .
+
+ex:completenessScore a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "98.5"^^xsd:decimal ;
+    gmeow:hasUnit <http://qudt.org/vocab/unit/PERCENT> .
+
+ex:auditor a gmeow:Organization ;
+    rdfs:label "Data Quality Audit Ltd."@en .
+
+# The auditor signs the quality report.
+ex:qualityAttestation a gmeow:Attestation ;
+    gmeow:attester ex:auditor ;
+    gmeow:attestedSubject ex:dataset ;
+    gmeow:attestedClaim ex:qualityAssessment ;
+    gmeow:attestationType gmeow:attestationTypeQualityReport ;
+    gmeow:attestationArtifact ex:qualityArtifact ;
+    gmeow:hasSignature ex:qualitySig ;
+    gmeow:verificationResult ex:qualityVerifyResult .
+
+ex:qualityArtifact a gmeow:AttestationArtifact ;
+    gmeow:artifactMediaType "application/pdf" ;
+    gmeow:contentDigest "sha256:qual012…" .
+
+ex:qualitySig a gmeow:CryptographicSignature ;
+    gmeow:signatureAlgorithm "rsa-sha256" ;
+    gmeow:signedBy ex:auditor .
+
+ex:qualityVerifyResult a gmeow:VerificationResult ;
+    gmeow:hasVerificationStatus gmeow:verificationStatusVerified ;
+    gmeow:verifiedBy ex:auditor .

@@ -1,0 +1,65 @@
+# Coverage fixture: W3C Verifiable Credential style attestation over an Agent.
+# Exercises Attestation, standpoint-indexed claims (affirmation + refutation),
+# and the VC-style attestation pattern.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/attestation/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:issuerOrg a gmeow:Organization ;
+    rdfs:label "Example University"@en .
+
+ex:alice a gmeow:Person .
+
+ex:degreeClaim a gmeow:StandpointClaim ;
+    gmeow:vantage ex:issuerOrg ;
+    gmeow:observedFeature ex:alice ;
+    gmeow:observationResult ex:bachelorDegree ;
+    gmeow:observationMethod ex:methodIssuance .
+
+ex:methodIssuance a gmeow:ObservationMethod ;
+    rdfs:label "credential issuance"@en .
+
+ex:bachelorDegree a gmeow:InformationObject ;
+    rdfs:label "Bachelor of Science"@en .
+
+# The VC-style attestation.
+ex:vcAttestation a gmeow:Attestation ;
+    gmeow:attester ex:issuerOrg ;
+    gmeow:attestedSubject ex:alice ;
+    gmeow:attestedClaim ex:degreeClaim ;
+    gmeow:attestationType gmeow:attestationTypeVerifiableCredential ;
+    gmeow:attestationArtifact ex:vcArtifact ;
+    gmeow:issuedAt "2026-06-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:hasSignature ex:vcSig .
+
+ex:vcArtifact a gmeow:AttestationArtifact ;
+    gmeow:artifactMediaType "application/vc+ld+json" ;
+    gmeow:contentDigest "sha256:vc789…" .
+
+ex:vcSig a gmeow:CryptographicSignature ;
+    gmeow:signatureAlgorithm "ed25519" ;
+    gmeow:signedBy ex:issuerOrg .
+
+# Standpoint A: the issuer affirms the attestation.
+ex:claimAffirmed a owl:Axiom ;
+    owl:annotatedSource   ex:vcAttestation ;
+    owl:annotatedProperty gmeow:attestedSubject ;
+    owl:annotatedTarget   ex:alice ;
+    gmeow:accordingTo ex:issuerOrg ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    gmeow:confidence 1.0 .
+
+# Standpoint B: an auditor refutes the attestation — explicit denial.
+ex:claimRefuted a owl:Axiom ;
+    owl:annotatedSource   ex:vcAttestation ;
+    owl:annotatedProperty gmeow:attestedSubject ;
+    owl:annotatedTarget   ex:alice ;
+    gmeow:accordingTo ex:auditFirm ;
+    gmeow:standpointModality gmeow:refuted ;
+    gmeow:confidence 0.9 .
+
+ex:auditFirm a gmeow:Organization ;
+    rdfs:label "Credential Audit Inc."@en .

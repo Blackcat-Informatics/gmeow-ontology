@@ -1,0 +1,51 @@
+# Coverage fixture: SLSA / in-toto provenance over a software release.
+# Exercises Attestation, AttestationArtifact, VerificationActivity, and
+# VerificationResult in the supply-chain context.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/attestation/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:myProject a gmeow:SoftwareProject ;
+    gmeow:hasSoftwareName ex:projectName .
+
+ex:projectName a gmeow:SoftwareName ;
+    rdfs:label "MyApp"@en .
+
+ex:releaseV1 a gmeow:InformationObject ;
+    gmeow:versionFingerprint "sha256:abc123…" ;
+    gmeow:wasGeneratedBy ex:buildActivity .
+
+ex:buildActivity a gmeow:Activity ;
+    gmeow:wasAssociatedWith ex:ciSystem .
+
+ex:ciSystem a gmeow:SoftwareAgent .
+
+# The SLSA provenance attestation.
+ex:slsaAttestation a gmeow:Attestation ;
+    gmeow:attester ex:ciSystem ;
+    gmeow:attestedSubject ex:releaseV1 ;
+    gmeow:attestationType gmeow:attestationTypeSLSAProvenance ;
+    gmeow:attestationArtifact ex:slsaArtifact ;
+    gmeow:issuedAt "2026-06-01T12:00:00Z"^^xsd:dateTime ;
+    gmeow:hasSignature ex:slsaSig ;
+    gmeow:verificationActivity ex:slsaVerify ;
+    gmeow:verificationResult ex:slsaVerifyResult .
+
+ex:slsaArtifact a gmeow:AttestationArtifact ;
+    gmeow:artifactMediaType "application/vnd.in-toto+json" ;
+    gmeow:contentDigest "sha256:def456…" .
+
+ex:slsaSig a gmeow:CryptographicSignature ;
+    gmeow:signatureAlgorithm "ecdsa-secp256k1" ;
+    gmeow:signedBy ex:ciSystem .
+
+ex:slsaVerify a gmeow:VerificationActivity ;
+    gmeow:wasAssociatedWith ex:verifierAgent .
+
+ex:verifierAgent a gmeow:SoftwareAgent .
+
+ex:slsaVerifyResult a gmeow:VerificationResult ;
+    gmeow:hasVerificationStatus gmeow:verificationStatusVerified ;
+    gmeow:verifiedBy ex:verifierAgent .

@@ -1,0 +1,45 @@
+# Coverage fixture: DKIM / S/MIME signature modelled as Attestation +
+# CryptographicSignature. Exercises the cross-cutting reuse of the email
+# trust layer through the generic attestation pattern.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/attestation/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:sender a gmeow:Person .
+
+ex:msg a gmeow:EmailMessage ;
+    gmeow:subject "Quarterly report" ;
+    gmeow:hasSignature ex:dkimSig ;
+    gmeow:hasSignature ex:smimeSig .
+
+# DKIM attestation: the sending domain vouches for the message.
+ex:dkimAttestation a gmeow:Attestation ;
+    gmeow:attester ex:sender ;
+    gmeow:attestedSubject ex:msg ;
+    gmeow:attestationType gmeow:attestationTypeInToto ;
+    gmeow:attestationArtifact ex:dkimArtifact ;
+    gmeow:hasSignature ex:dkimSig ;
+    gmeow:verificationResult ex:dkimVerifyResult .
+
+ex:dkimSig a gmeow:DKIMSignature ;
+    gmeow:signingDomain "example.org" ;
+    gmeow:signatureAlgorithm "rsa-sha256" ;
+    gmeow:verificationStatus "verified" .
+
+ex:dkimArtifact a gmeow:AttestationArtifact ;
+    gmeow:artifactMediaType "message/rfc822-headers" .
+
+ex:dkimVerifyResult a gmeow:VerificationResult ;
+    gmeow:hasVerificationStatus gmeow:verificationStatusVerified .
+
+# S/MIME attestation: the sender's identity vouches for the message.
+ex:smimeAttestation a gmeow:Attestation ;
+    gmeow:attester ex:sender ;
+    gmeow:attestedSubject ex:msg ;
+    gmeow:attestationType gmeow:attestationTypeVerifiableCredential ;
+    gmeow:hasSignature ex:smimeSig .
+
+ex:smimeSig a gmeow:SMIMESignature ;
+    gmeow:signatureAlgorithm "ecdsa-p256" ;
+    gmeow:signedBy ex:sender .
