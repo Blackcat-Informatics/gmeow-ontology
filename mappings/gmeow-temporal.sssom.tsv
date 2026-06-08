@@ -11,6 +11,7 @@
 #   edtf: http://id.loc.gov/datatypes/edtf/
 #   gmeow: https://blackcatinformatics.ca/gmeow/
 #   gts: http://resource.geosciml.org/ontology/timescale/gts#
+#   ivoa: http://www.ivoa.net/rdf/
 #   periodo: http://n2t.net/ark:/99152/
 #   qudt: http://qudt.org/schema/qudt/
 #   semapv: https://w3id.org/semapv/vocab/
@@ -68,7 +69,13 @@ gmeow:periodPartOf	skos:closeMatch	gts:rank	semapv:ManualMappingCuration	0.6	ICS
 gmeow:periodPhanerozoic	skos:exactMatch	wd:Q80125	semapv:ManualMappingCuration	0.95	Wikidata Phanerozoic (Q80125)
 gmeow:periodQuaternary	skos:exactMatch	wd:Q25097	semapv:ManualMappingCuration	0.95	Wikidata Quaternary (Q25097)
 gmeow:periodStart	skos:closeMatch	time:hasBeginning	semapv:ManualMappingCuration	0.85	
+gmeow:timeScaleGPS	skos:closeMatch	ivoa:timescale/GPS	semapv:ManualMappingCuration	0.95	
+gmeow:timeScaleTAI	skos:closeMatch	ivoa:timescale/TAI	semapv:ManualMappingCuration	0.95	
 gmeow:timeScaleTAI	skos:exactMatch	wd:Q12149	semapv:ManualMappingCuration	0.95	International Atomic Time (Q12149)
+gmeow:timeScaleTDB	skos:closeMatch	ivoa:timescale/TDB	semapv:ManualMappingCuration	0.95	
 gmeow:timeScaleTDB	skos:exactMatch	wd:Q1320839	semapv:ManualMappingCuration	0.95	Barycentric Dynamical Time (Q1320839)
+gmeow:timeScaleTT	skos:closeMatch	ivoa:timescale/TT	semapv:ManualMappingCuration	0.95	
 gmeow:timeScaleTT	skos:exactMatch	wd:Q649548	semapv:ManualMappingCuration	0.95	Terrestrial Time (Q649548)
+gmeow:timeScaleUT1	skos:closeMatch	ivoa:timescale/UT1	semapv:ManualMappingCuration	0.95	
+gmeow:timeScaleUTC	skos:closeMatch	ivoa:timescale/UTC	semapv:ManualMappingCuration	0.95	
 gmeow:timeScaleUTC	skos:exactMatch	wd:Q170788	semapv:ManualMappingCuration	0.95	Coordinated Universal Time (Q170788)
