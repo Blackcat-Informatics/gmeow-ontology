@@ -41,9 +41,12 @@ gmeow project --data mydata.ttl     # project your own GMEOW data
 
 Outputs a round-trip-verified `dist/gmeow-example-<profile>.ttl` for each profile that has a
 worked-example fixture (schema.org, GeoSPARQL, vCard, FOAF, iCalendar, OWL-Time today). The
-complete projection set — those plus ODRL, CC REL, Dublin Core, SPDX, and the five standpoint
-projections (CRMinf, Web Annotation, PROV-O, schema:Claim, Standpoint-OWL 2) — is generated as
-`queries/projections/*.rq` by `gmeow compile-mappings`. Also runs in `gmeow build`.
+complete projection set — those plus ODRL, CC REL, Dublin Core, SPDX, BOT, RDF Data Cube
+(`qb`), OntoLex-Lemon, W3C Web Annotation, and the five standpoint projections (CRMinf,
+Web Annotation, PROV-O, schema:Claim, Standpoint-OWL 2) — is generated as
+`queries/projections/*.rq` by `gmeow compile-mappings`. Also runs in `gmeow build`. A
+target-by-target summary with spec links is in the
+[README projection-targets table](../README.md#projection-targets).
 
 ## Transformation types (worked on locations + naming + languages)
 
@@ -83,7 +86,7 @@ different use of FnO: it declares Hepburn / Pinyin / ISO 233 / IPA / translate a
 
 - **schema.org** — richest fit: place value→class, decomposed addresses, GeoCoordinates, co-equal `schema:name`s, honorifics, `schema:Language`/`ComputerLanguage` with composed BCP-47 tags and flattened `schema:knowsLanguage`. Drops StorageLocation, fine place types, NameUsage/register/script, WritingSystemUsage, proficiency level, version lineage.
 - **GeoSPARQL** — geometry only: `geo:Feature` + WKT (retagged), lat/long→POINT, `geo:sfWithin`. Drops names, addresses, types.
-- **vCard** — contact-card fit: `vcard:Address` components, `vcard:fn`, `vcard:given-name`/`family-name`. Drops the nested place hierarchy + QIDs, geometry.
+- **vCard** — contact-card fit: `vcard:fn`, `vcard:given-name`/`family-name`, `vcard:nickname`, `vcard:bday`, `vcard:title`, `vcard:Address` components, `vcard:hasURL`, `vcard:hasGeo`, and free-text `vcardx:pronouns` (the RFC 9554 extension — no core vCard-RDF predicate exists). Drops the nested place hierarchy + QIDs, geometry.
 - **FOAF** — lowest common denominator: place+coords → `wgs84:SpatialThing`, `foaf:name`, `foaf:based_near`. Drops nearly all structure.
 - **iCalendar** — calendar fit: a `gmeow:Event` → `ical:Vevent` with `ical:dtstart`/`dtend` (from the crisp interval, the point `eventTime`, or the fuzzy `earliestStart`/`latestEnd` bounds), `ical:summary` (the event-type label), `ical:location`, and `ical:attendee` (the flat participants). Drops the reified `Participation` roles/periods/confidence/standpoint, the open type vocabulary beyond one summary label, `temporalPrecision`, the sub-event tree, and `EventSeries` recurrence.
 - **OWL-Time** — temporal-relation fit: the 13 Allen relations between events (`gmeow:before`/`during`/`meets`/…) → OWL-Time's `time:interval*` relations 1:1, so an OWL-Time-aware reasoner runs interval-algebra inference over the result (the events are treated as their `time:ProperInterval` extents). Drops everything but the qualitative temporal ordering. See [TQL](temporal-queries.md).
