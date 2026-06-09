@@ -42,6 +42,7 @@ WHERE {
         ?ann gmeow:annotationMotivation ?motiv .
         OPTIONAL { ?ann gmeow:annotationBody ?body . }
         FILTER NOT EXISTS { ?ann gmeow:displayable false . }
+        FILTER NOT EXISTS { ?target gmeow:displayable false . }
     }
     UNION {
         ?hl a gmeow:Highlight .
@@ -49,16 +50,19 @@ WHERE {
         ?hl gmeow:annotationTargetSpan ?span .
         BIND ( IRI(CONCAT(STR(?hl), "-specific-resource")) AS ?sr )
         FILTER NOT EXISTS { ?hl gmeow:displayable false . }
+        FILTER NOT EXISTS { ?target gmeow:displayable false . }
     }
     UNION {
         ?bm a gmeow:Bookmark .
         ?bm gmeow:annotationTarget ?target .
         FILTER NOT EXISTS { ?bm gmeow:displayable false . }
+        FILTER NOT EXISTS { ?target gmeow:displayable false . }
     }
     UNION {
         ?cmt a gmeow:Comment .
         ?cmt gmeow:commentParent ?parent .
         OPTIONAL { ?cmt gmeow:noteContent ?content . }
         FILTER NOT EXISTS { ?cmt gmeow:displayable false . }
+        FILTER NOT EXISTS { ?parent gmeow:displayable false . }
     }
 }

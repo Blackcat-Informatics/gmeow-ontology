@@ -167,6 +167,8 @@ def test_note_properties_exist() -> None:
 
 def test_motivation_values_are_individuals() -> None:
     graph = _graph()
+    motivation_class = URIRef(GMEOW + "AnnotationMotivation")
+    assert len(set(graph.subjects(RDF.type, motivation_class))) == 10
     for ind in (
         "motivationDescribing",
         "motivationCommenting",
@@ -176,11 +178,13 @@ def test_motivation_values_are_individuals() -> None:
         "motivationLinking",
         "motivationQuestioning",
         "motivationReplying",
+        "motivationAssessing",
+        "motivationModerating",
     ):
         assert (
             URIRef(GMEOW + ind),
             RDF.type,
-            URIRef(GMEOW + "AnnotationMotivation"),
+            motivation_class,
         ) in graph
     for rejected in ("DescribingMotivation", "CommentingMotivation"):
         assert (URIRef(GMEOW + rejected), RDF.type, OWL.Class) not in graph

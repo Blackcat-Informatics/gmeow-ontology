@@ -228,6 +228,8 @@ gmeow:motivationTagging      a gmeow:AnnotationMotivation ; rdfs:label "tagging"
 gmeow:motivationLinking      a gmeow:AnnotationMotivation ; rdfs:label "linking"@en ;      skos:definition "The annotation links the target to another resource."@en ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:motivationQuestioning  a gmeow:AnnotationMotivation ; rdfs:label "questioning"@en ;  skos:definition "The annotation poses a question about the target."@en ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:motivationReplying     a gmeow:AnnotationMotivation ; rdfs:label "replying"@en ;     skos:definition "The annotation replies to another annotation or comment."@en ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:motivationAssessing    a gmeow:AnnotationMotivation ; rdfs:label "assessing"@en ;    skos:definition "The annotation assesses or evaluates the target."@en ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:motivationModerating   a gmeow:AnnotationMotivation ; rdfs:label "moderating"@en ;   skos:definition "The annotation moderates or curates the target."@en ;   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE — relator mediation for ELK visibility

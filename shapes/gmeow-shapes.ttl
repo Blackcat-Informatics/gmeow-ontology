@@ -2752,10 +2752,11 @@ gmeow:CommentHasParentShape
     sh:targetClass gmeow:Comment ;
     sh:property [
         sh:path gmeow:commentParent ;
+        sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:class gmeow:Entity ;
         sh:severity sh:Violation ;
-        sh:message "A commentParent must point to at most one Entity (typically an Annotation or Comment)." ;
+        sh:message "A commentParent must point to exactly one Entity (typically an Annotation or Comment)." ;
     ] .
 
 gmeow:NoteContentShape
@@ -2771,21 +2772,19 @@ gmeow:NoteContentShape
 
 gmeow:RetractedNoteSuppressionShape
     a sh:NodeShape ;
-    rdfs:label "Retracted note suppression check" ;
-    sh:targetClass gmeow:Note ;
+    rdfs:label "Retracted comment suppression check" ;
+    sh:targetClass gmeow:Comment ;
     sh:sparql [
         sh:severity sh:Warning ;
-        sh:message "A retracted note or comment should set gmeow:displayable false (Principle 10)." ;
+        sh:message "A comment whose parent is suppressed should set gmeow:displayable false (Principle 10)." ;
         sh:select """
             SELECT $this WHERE {
-                $this a <https://blackcatinformatics.ca/gmeow/Note> .
+                $this a <https://blackcatinformatics.ca/gmeow/Comment> .
                 FILTER NOT EXISTS {
                     $this <https://blackcatinformatics.ca/gmeow/displayable> false .
                 }
-                FILTER EXISTS {
-                    ?parent <https://blackcatinformatics.ca/gmeow/hasReply> $this .
-                    ?parent <https://blackcatinformatics.ca/gmeow/displayable> false .
-                }
+                $this <https://blackcatinformatics.ca/gmeow/commentParent> ?parent .
+                ?parent <https://blackcatinformatics.ca/gmeow/displayable> false .
             }
         """ ;
     ] .

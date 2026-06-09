@@ -457,5 +457,6 @@ WHERE {
         OPTIONAL { ?note gmeow:noteAuthor ?author . }
         OPTIONAL { ?note gmeow:commentParent ?parent . }
         FILTER NOT EXISTS { ?note gmeow:displayable false . }
+        FILTER NOT EXISTS { ?parent gmeow:displayable false . }
     }
 }

@@ -320,7 +320,7 @@
             edoal:measure 9e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnNicknameName ] ],
         [ a align:Cell ;
-            rdfs:label "Note (and Comment, by subsumption) → schema:NoteDigitalDocument"@en ;
+            rdfs:label "Note → schema:NoteDigitalDocument"@en ;
             align:entity1 [ a edoal:Class ;
                     edoal:uri gmeow:Note ] ;
             align:entity2 [ a edoal:Class ;
