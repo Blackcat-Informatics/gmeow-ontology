@@ -1,0 +1,163 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/modules/finance>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Finance Module"@en ;
+    rdfs:comment """Personal and SMB financial existence: accounts, monetary amounts, and currency reference frames. Grounded in the existing Event/Participation/Agreement/Rights/Trust substrate. FIBO, schema.org, ISO 4217 and ISO 20022 are aligned by reference, never imported.
+
+DOCTRINE.
+  * A financial account is an InformationObject (consistent with OnlineAccount): it is fundamentally an information construct — an IBAN, account number, and balance record. The legal/contractual aspect is modelled separately via Agreement (account terms between holder and bank).
+  * Money is a MonetaryAmount = amount (xsd:decimal) + currency (ReferenceFrame individual). DL-clean; no arithmetic in OWL.
+  * Currency is a ReferenceFrame in the frameRealmCurrency realm (Principle 11 — frame-relativity). Each ISO 4217 code is a ReferenceFrame individual.
+  * accountCurrency is NON-FUNCTIONAL: a single FinancialAccount may hold balances in several currencies (multi-currency fintech accounts). The functional constraint moves to Posting/Holding relators in Phase B.
+  * Open value vocabularies, no overtyping (Principle 9): account types, transaction types, and transaction statuses are individuals, never subclasses.
+  * Flat-first, reify on demand: a flat accountBalance on FinancialAccount covers the 80% case; promote to a Holding relator when cost-basis, period, or provenance matters (Phase C)."""@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# FinancialAccount — bank / credit / investment / wallet account.
+# Distinct from OnlineAccount (social profiles, decentralized identity).
+# --------------------------------------------------------------------------- #
+
+gmeow:FinancialAccount
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    owl:disjointWith gmeow:OnlineAccount ;
+    rdfs:label "Financial Account"@en ;
+    skos:definition "A financial account held by an agent with a financial institution — a bank account, credit card, investment account, or wallet. Distinct from OnlineAccount (social profiles, decentralized identity): this is the financial-existence layer. The account's legal terms are modelled as an Agreement between the holder and the institution."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:accountHolder
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:FinancialAccount ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "account holder"@en ;
+    skos:definition "Relates a financial account to the agent that holds it. Non-functional: a joint account has several co-equal holders."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:accountCurrency
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:FinancialAccount ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "account currency"@en ;
+    skos:definition "The currency(ies) of a financial account, drawn from the open currency reference-frame vocabulary (gmeow:frameRealmCurrency). NON-FUNCTIONAL: a single account may hold balances in several currencies (multi-currency fintech accounts)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:accountNumber
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:FinancialAccount ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "account number"@en ;
+    skos:definition "The account number identifying the financial account at its institution. Not functional: different sources may report differing formats."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:iban
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:FinancialAccount ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "IBAN"@en ;
+    skos:definition "The International Bank Account Number (ISO 13616) of a bank account."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:bic
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:FinancialAccount ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "BIC"@en ;
+    skos:definition "The Bank Identifier Code (ISO 9362, SWIFT code) of the institution holding the account."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:accountBalance
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:FinancialAccount ;
+    rdfs:range gmeow:MonetaryAmount ;
+    rdfs:label "account balance"@en ;
+    skos:definition "The current balance of a financial account, expressed as a MonetaryAmount. Non-functional: a multi-currency account has several balances, and competing standpoint-indexed balance claims coexist (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:accountType
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:FinancialAccount ;
+    rdfs:range gmeow:FinancialAccountType ;
+    rdfs:label "account type"@en ;
+    skos:definition "The kind of financial account — one of the open gmeow:FinancialAccountType values (bank, credit, investment, wallet). Functional: an account has one canonical type; several types are several accounts."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# MonetaryAmount — a quantity of money: value + currency frame.
+# --------------------------------------------------------------------------- #
+
+gmeow:MonetaryAmount
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Monetary Amount"@en ;
+    skos:definition "A quantity of money expressed as a decimal value in an explicit currency reference frame. The canonical superset of schema:MonetaryAmount and FIBO fibo-fnd-acc-cur:MonetaryAmount. Frame-relative (Principle 11): a value without its currency frame is ill-formed."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:monetaryValue
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MonetaryAmount ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "monetary value"@en ;
+    skos:definition "The numeric value of a monetary amount as an xsd:decimal. Functional: a MonetaryAmount has exactly one numeric value."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:currency
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+    rdfs:domain gmeow:MonetaryAmount ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "currency"@en ;
+    skos:definition "The currency reference frame in which this monetary amount is expressed. Functional: a MonetaryAmount is in exactly one currency frame. A subproperty of gmeow:hasReferenceFrame (Principle 11)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Financial account type — an OPEN value vocabulary (gufo:QualityValue).
+# --------------------------------------------------------------------------- #
+
+gmeow:FinancialAccountType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Financial Account Type"@en ;
+    skos:definition "The kind of a financial account — a VALUE, never a FinancialAccount subclass. The set is open; a kind not among the seeds is a FRESH gmeow:FinancialAccountType individual carrying rdfs:label. Pointed at by gmeow:accountType."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:accountTypeBank       a gmeow:FinancialAccountType ; rdfs:label "bank account"@en ;       skos:definition "A deposit or chequing account at a bank or credit union."@en .
+gmeow:accountTypeCredit     a gmeow:FinancialAccountType ; rdfs:label "credit account"@en ;     skos:definition "A credit card or line-of-credit account."@en .
+gmeow:accountTypeInvestment a gmeow:FinancialAccountType ; rdfs:label "investment account"@en ; skos:definition "A brokerage, retirement, or other investment holdings account."@en .
+gmeow:accountTypeWallet     a gmeow:FinancialAccountType ; rdfs:label "wallet"@en ;            skos:definition "A digital wallet — fiat or crypto — held by an agent."@en .
+
+# --------------------------------------------------------------------------- #
+# Transaction type and status — declared now for Phase B; seeds in Phase B.
+# --------------------------------------------------------------------------- #
+
+gmeow:TransactionType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Transaction Type"@en ;
+    skos:definition "The kind of a financial transaction — a VALUE, never a subclass. Open vocabulary; seeds in Phase B."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:TransactionStatus
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Transaction Status"@en ;
+    skos:definition "The status of a financial transaction — a VALUE, never a subclass. Open vocabulary; seeds in Phase B."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# AXIOMATIZED DOCTRINE — relator mediation (EL someValuesFrom, open-world).
+# Closed-world cardinality is SHACL's (gmeow-shapes.ttl).
+# =========================================================================== #
+
+gmeow:FinancialAccount rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:accountHolder ; owl:someValuesFrom gmeow:Agent ] .
+
+gmeow:MonetaryAmount rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:currency ; owl:someValuesFrom gmeow:ReferenceFrame ] .

@@ -620,6 +620,21 @@ classes:
     is_a: Appellation
     slots:
     - claimedMediaType
+  FinancialAccount:
+    class_uri: https://blackcatinformatics.ca/gmeow/FinancialAccount
+    title: Financial Account
+    is_a: InformationObject
+    slots:
+    - accountBalance
+    - accountCurrency
+    - accountHolder
+    - accountNumber
+    - accountType
+    - bic
+    - iban
+  FinancialAccountType:
+    class_uri: https://blackcatinformatics.ca/gmeow/FinancialAccountType
+    title: Financial Account Type
   ForgePlatform:
     class_uri: https://blackcatinformatics.ca/gmeow/ForgePlatform
     title: Forge Platform
@@ -1093,6 +1108,13 @@ classes:
   MetricKind:
     class_uri: https://blackcatinformatics.ca/gmeow/MetricKind
     title: Metric Kind
+  MonetaryAmount:
+    class_uri: https://blackcatinformatics.ca/gmeow/MonetaryAmount
+    title: Monetary Amount
+    is_a: Entity
+    slots:
+    - currency
+    - monetaryValue
   NamePart:
     class_uri: https://blackcatinformatics.ca/gmeow/NamePart
     title: Name Part
@@ -1970,6 +1992,12 @@ classes:
     - hasTrajectorySample
     - trajectoryOf
     - trajectoryReferenceFrame
+  TransactionStatus:
+    class_uri: https://blackcatinformatics.ca/gmeow/TransactionStatus
+    title: Transaction Status
+  TransactionType:
+    class_uri: https://blackcatinformatics.ca/gmeow/TransactionType
+    title: Transaction Type
   TransliterationScheme:
     class_uri: https://blackcatinformatics.ca/gmeow/TransliterationScheme
     title: Transliteration Scheme
@@ -2093,6 +2121,24 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/accordingTo
     title: according to
     range: string
+  accountBalance:
+    slot_uri: https://blackcatinformatics.ca/gmeow/accountBalance
+    title: account balance
+    range: MonetaryAmount
+    domain: FinancialAccount
+    multivalued: true
+  accountCurrency:
+    slot_uri: https://blackcatinformatics.ca/gmeow/accountCurrency
+    title: account currency
+    range: ReferenceFrame
+    domain: FinancialAccount
+    multivalued: true
+  accountHolder:
+    slot_uri: https://blackcatinformatics.ca/gmeow/accountHolder
+    title: account holder
+    range: Agent
+    domain: FinancialAccount
+    multivalued: true
   accountKey:
     slot_uri: https://blackcatinformatics.ca/gmeow/accountKey
     title: account key
@@ -2104,6 +2150,17 @@ slots:
     title: account name
     range: string
     domain: OnlineAccount
+  accountNumber:
+    slot_uri: https://blackcatinformatics.ca/gmeow/accountNumber
+    title: account number
+    range: string
+    domain: FinancialAccount
+  accountType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/accountType
+    title: account type
+    range: FinancialAccountType
+    domain: FinancialAccount
+    multivalued: false
   acquireLicensePage:
     slot_uri: https://blackcatinformatics.ca/gmeow/acquireLicensePage
     title: acquire license page
@@ -2401,6 +2458,11 @@ slots:
     range: Event
     domain: Event
     multivalued: true
+  bic:
+    slot_uri: https://blackcatinformatics.ca/gmeow/bic
+    title: BIC
+    range: string
+    domain: FinancialAccount
   blockHash:
     slot_uri: https://blackcatinformatics.ca/gmeow/blockHash
     title: block hash
@@ -2771,6 +2833,12 @@ slots:
     range: CoverageDepth
     domain: CitationAct
     multivalued: true
+  currency:
+    slot_uri: https://blackcatinformatics.ca/gmeow/currency
+    title: currency
+    range: ReferenceFrame
+    domain: MonetaryAmount
+    multivalued: false
   datePublished:
     slot_uri: https://blackcatinformatics.ca/gmeow/datePublished
     title: date published
@@ -4032,6 +4100,11 @@ slots:
     range: ForgePlatform
     domain: Repository
     multivalued: true
+  iban:
+    slot_uri: https://blackcatinformatics.ca/gmeow/iban
+    title: IBAN
+    range: string
+    domain: FinancialAccount
   identifier:
     slot_uri: https://blackcatinformatics.ca/gmeow/identifier
     title: identifier
@@ -4531,6 +4604,12 @@ slots:
     title: minimum population
     range: string
     domain: SpatialAggregation
+    multivalued: false
+  monetaryValue:
+    slot_uri: https://blackcatinformatics.ca/gmeow/monetaryValue
+    title: monetary value
+    range: decimal
+    domain: MonetaryAmount
     multivalued: false
   name:
     slot_uri: https://blackcatinformatics.ca/gmeow/name
@@ -7518,6 +7597,21 @@ enums:
       evidenceVERIFIED:
         meaning: https://blackcatinformatics.ca/gmeow/evidenceVERIFIED
         title: verified evidence
+  FinancialAccountTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/FinancialAccountType
+    permissible_values:
+      accountTypeBank:
+        meaning: https://blackcatinformatics.ca/gmeow/accountTypeBank
+        title: bank account
+      accountTypeCredit:
+        meaning: https://blackcatinformatics.ca/gmeow/accountTypeCredit
+        title: credit account
+      accountTypeInvestment:
+        meaning: https://blackcatinformatics.ca/gmeow/accountTypeInvestment
+        title: investment account
+      accountTypeWallet:
+        meaning: https://blackcatinformatics.ca/gmeow/accountTypeWallet
+        title: wallet
   FrameKindEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/FrameKind
     permissible_values:
@@ -9118,6 +9212,9 @@ enums:
   ReferenceFrameEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ReferenceFrame
     permissible_values:
+      referenceFrameAUD:
+        meaning: https://blackcatinformatics.ca/gmeow/referenceFrameAUD
+        title: Australian Dollar Currency Reference Frame
       referenceFrameAltitudeAGL:
         meaning: https://blackcatinformatics.ca/gmeow/referenceFrameAltitudeAGL
         title: Altitude Above Ground Level Reference Frame
@@ -9130,6 +9227,15 @@ enums:
       referenceFrameBGP:
         meaning: https://blackcatinformatics.ca/gmeow/referenceFrameBGP
         title: BGP Autonomous System Reference Frame
+      referenceFrameBTC:
+        meaning: https://blackcatinformatics.ca/gmeow/referenceFrameBTC
+        title: Bitcoin Currency Reference Frame
+      referenceFrameCAD:
+        meaning: https://blackcatinformatics.ca/gmeow/referenceFrameCAD
+        title: Canadian Dollar Currency Reference Frame
+      referenceFrameCHF:
+        meaning: https://blackcatinformatics.ca/gmeow/referenceFrameCHF
+        title: Swiss Franc Currency Reference Frame
       referenceFrameCIELAB:
         meaning: https://blackcatinformatics.ca/gmeow/referenceFrameCIELAB
         title: CIE L*a*b* Perceptually-Uniform Reference Frame
@@ -9139,6 +9245,9 @@ enums:
       referenceFrameCMYK:
         meaning: https://blackcatinformatics.ca/gmeow/referenceFrameCMYK
         title: CMYK Colourspace Reference Frame
+      referenceFrameCNY:
+        meaning: https://blackcatinformatics.ca/gmeow/referenceFrameCNY
+        title: Chinese Yuan Currency Reference Frame
       referenceFrameCelestialEquatorial:
         meaning: https://blackcatinformatics.ca/gmeow/referenceFrameCelestialEquatorial
         title: Celestial Equatorial Reference Frame
@@ -9151,6 +9260,12 @@ enums:
       referenceFrameDepthBelowSeaLevel:
         meaning: https://blackcatinformatics.ca/gmeow/referenceFrameDepthBelowSeaLevel
         title: Depth Below Mean Sea Level Reference Frame
+      referenceFrameETH:
+        meaning: https://blackcatinformatics.ca/gmeow/referenceFrameETH
+        title: Ethereum Currency Reference Frame
+      referenceFrameEUR:
+        meaning: https://blackcatinformatics.ca/gmeow/referenceFrameEUR
+        title: Euro Currency Reference Frame
       referenceFrameEnglish:
         meaning: https://blackcatinformatics.ca/gmeow/referenceFrameEnglish
         title: English Language Reference Frame
@@ -9160,6 +9275,9 @@ enums:
       referenceFrameFlightLevel:
         meaning: https://blackcatinformatics.ca/gmeow/referenceFrameFlightLevel
         title: ICAO Flight Level Reference Frame
+      referenceFrameGBP:
+        meaning: https://blackcatinformatics.ca/gmeow/referenceFrameGBP
+        title: British Pound Currency Reference Frame
       referenceFrameGRCh38:
         meaning: https://blackcatinformatics.ca/gmeow/referenceFrameGRCh38
         title: GRCh38 Human Reference Assembly
@@ -9187,6 +9305,9 @@ enums:
       referenceFrameInternet:
         meaning: https://blackcatinformatics.ca/gmeow/referenceFrameInternet
         title: Internet Topology Reference Frame
+      referenceFrameJPY:
+        meaning: https://blackcatinformatics.ca/gmeow/referenceFrameJPY
+        title: Japanese Yen Currency Reference Frame
       referenceFrameLatentVectorSpace:
         meaning: https://blackcatinformatics.ca/gmeow/referenceFrameLatentVectorSpace
         title: Latent Vector Space Reference Frame
