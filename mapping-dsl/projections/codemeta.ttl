@@ -1,0 +1,231 @@
+@prefix gmeow:    <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix codemeta: <https://codemeta.github.io/terms/#> .
+
+# Projection mappings: GMEOW five-facet software model → CodeMeta downcast.
+# Compiled to projections/codemeta.edoal.ttl + queries/projections/codemeta.rq by
+# `gmeow compile-mappings`.
+#
+# CodeMeta is the de-facto software-metadata exchange form (schema.org extension).
+# This projection is the FLAGSHIP downcast from GMEOW's rich, reified model to
+# the flat codemeta.json shape. It is deliberately lossy: facets collapse,
+# reified relators flatten, temporal scope and provenance drop (Principle 4).
+#
+# CRITICAL: each contributor-role mapping uses a UNIQUE gmeow:value variable so
+# that UNION branches in the generated SPARQL do not cross-leak — a maintainer
+# row cannot accidentally materialise codemeta:contributor, and vice versa.
+
+# --------------------------------------------------------------------------- #
+# SoftwareProduct → codemeta:SoftwareSourceCode
+# --------------------------------------------------------------------------- #
+
+gmeow:mapCodeMetaSoftware a gmeow:ProjectionMapping ;
+    rdfs:label "SoftwareProduct → codemeta:SoftwareSourceCode"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "prod" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "prod" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareProduct ] ) ;
+        gmeow:edoalSource gmeow:SoftwareProduct ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "codemeta" ; gmeow:relation "<=" ;
+        gmeow:toClass codemeta:SoftwareSourceCode ;
+        gmeow:edoalTarget codemeta:SoftwareSourceCode ; gmeow:edoalTargetKind "class" ;
+        gmeow:lossyDrop "Project, Codebase, Repository, and History facets are collapsed into the product node" ] .
+
+# --------------------------------------------------------------------------- #
+# Package → codemeta:SoftwareSourceCode (with version)
+# --------------------------------------------------------------------------- #
+
+gmeow:mapCodeMetaPackage a gmeow:ProjectionMapping ;
+    rdfs:label "Package → codemeta:SoftwareSourceCode (package-as-product)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "pkg" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "pkg" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Package ] ) ;
+        gmeow:edoalSource gmeow:Package ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "codemeta" ; gmeow:relation "<=" ;
+        gmeow:toClass codemeta:SoftwareSourceCode ;
+        gmeow:edoalTarget codemeta:SoftwareSourceCode ; gmeow:edoalTargetKind "class" ;
+        gmeow:lossyDrop "Package ecosystem metadata, distribution artifacts, content digest" ] .
+
+# --------------------------------------------------------------------------- #
+# hasRepository → codemeta:codeRepository
+# --------------------------------------------------------------------------- #
+
+gmeow:mapCodeMetaRepo a gmeow:ProjectionMapping ;
+    rdfs:label "hasRepository → codemeta:codeRepository"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "proj" ; gmeow:value "repo" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "proj" ; gmeow:predicate gmeow:hasRepository ; gmeow:objectVar "repo" ] ) ;
+        gmeow:edoalSource gmeow:hasRepository ] ;
+    gmeow:hasBinding [
+        gmeow:profile "codemeta" ; gmeow:toPredicate codemeta:codeRepository ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "repository metadata (type, URLs, forge); only the repository entity reference survives" ] .
+
+# --------------------------------------------------------------------------- #
+# releaseVersion → codemeta:softwareVersion
+# --------------------------------------------------------------------------- #
+
+gmeow:mapCodeMetaVersion a gmeow:ProjectionMapping ;
+    rdfs:label "releaseVersion → codemeta:softwareVersion"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "rel" ; gmeow:value "ver" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "rel" ; gmeow:predicate gmeow:releaseVersion ; gmeow:objectVar "ver" ] ) ;
+        gmeow:edoalSource gmeow:releaseVersion ] ;
+    gmeow:hasBinding [
+        gmeow:profile "codemeta" ; gmeow:toPredicate codemeta:softwareVersion ; gmeow:relation "=" ;
+        gmeow:lossyDrop "version scheme provenance, competing version labels" ] .
+
+# --------------------------------------------------------------------------- #
+# projectLicense → codemeta:license
+# --------------------------------------------------------------------------- #
+
+gmeow:mapCodeMetaLicense a gmeow:ProjectionMapping ;
+    rdfs:label "projectLicense → codemeta:license"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "proj" ; gmeow:value "lic" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "proj" ; gmeow:predicate gmeow:projectLicense ; gmeow:objectVar "lic" ] ) ;
+        gmeow:edoalSource gmeow:projectLicense ] ;
+    gmeow:hasBinding [
+        gmeow:profile "codemeta" ; gmeow:toPredicate codemeta:license ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "dual-licensing, license transitions over time, SPDX licenseId" ] .
+
+# --------------------------------------------------------------------------- #
+# contentDigest (SWHID) → codemeta:identifier
+# --------------------------------------------------------------------------- #
+
+gmeow:mapCodeMetaIdentifier a gmeow:ProjectionMapping ;
+    rdfs:label "contentDigest → codemeta:identifier"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "entity" ; gmeow:value "digest" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "entity" ; gmeow:predicate gmeow:contentDigest ; gmeow:objectVar "digest" ] ) ;
+        gmeow:edoalSource gmeow:contentDigest ] ;
+    gmeow:hasBinding [
+        gmeow:profile "codemeta" ; gmeow:toPredicate codemeta:identifier ; gmeow:relation "=" ;
+        gmeow:lossyDrop "digest algorithm, multiple digests; only the string value survives" ] .
+
+# --------------------------------------------------------------------------- #
+# Author (maintainer) → codemeta:author
+# Unique value variable "authorAgent" prevents UNION cross-leak.
+# --------------------------------------------------------------------------- #
+
+gmeow:mapCodeMetaAuthor a gmeow:ProjectionMapping ;
+    rdfs:label "Contribution(role=SoftwareMaintainer) → codemeta:author"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "proj" ; gmeow:value "authorAgent" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "proj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareProject ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Contribution ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionTarget ; gmeow:objectVar "proj" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributor ; gmeow:objectVar "authorAgent" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionRole ; gmeow:objectValue gmeow:roleSoftwareMaintainer ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "authorAgent" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+    gmeow:hasBinding [
+        gmeow:profile "codemeta" ; gmeow:toPredicate codemeta:author ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "contribution period, provenance, confidence, degree; reified relator flattened to property" ] .
+
+# --------------------------------------------------------------------------- #
+# Contributors (all non-maintainer roles) → codemeta:contributor
+# Each role has its own mapping cell with a UNIQUE value variable so UNION
+# branches cannot cross-leak.  Suppressed contributors are dropped.
+# --------------------------------------------------------------------------- #
+
+gmeow:mapCodeMetaContributorDeveloper a gmeow:ProjectionMapping ;
+    rdfs:label "Contribution(role=SoftwareDeveloper) → codemeta:contributor"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "proj" ; gmeow:value "devAgent" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "proj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareProject ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Contribution ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionTarget ; gmeow:objectVar "proj" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributor ; gmeow:objectVar "devAgent" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionRole ; gmeow:objectValue gmeow:roleSoftwareDeveloper ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "devAgent" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+    gmeow:hasBinding [
+        gmeow:profile "codemeta" ; gmeow:toPredicate codemeta:contributor ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "contribution period, provenance, confidence, degree; reified relator flattened to property" ] .
+
+gmeow:mapCodeMetaContributorReviewer a gmeow:ProjectionMapping ;
+    rdfs:label "Contribution(role=CodeReviewer) → codemeta:contributor"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "proj" ; gmeow:value "revAgent" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "proj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareProject ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Contribution ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionTarget ; gmeow:objectVar "proj" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributor ; gmeow:objectVar "revAgent" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionRole ; gmeow:objectValue gmeow:roleCodeReviewer ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "revAgent" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+    gmeow:hasBinding [
+        gmeow:profile "codemeta" ; gmeow:toPredicate codemeta:contributor ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "reviewer role collapsed to contributor; contribution period, provenance, confidence, degree" ] .
+
+gmeow:mapCodeMetaContributorReleaser a gmeow:ProjectionMapping ;
+    rdfs:label "Contribution(role=Releaser) → codemeta:contributor"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "proj" ; gmeow:value "relAgent" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "proj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareProject ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Contribution ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionTarget ; gmeow:objectVar "proj" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributor ; gmeow:objectVar "relAgent" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionRole ; gmeow:objectValue gmeow:roleReleaser ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "relAgent" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+    gmeow:hasBinding [
+        gmeow:profile "codemeta" ; gmeow:toPredicate codemeta:contributor ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "releaser role collapsed to contributor; contribution period, provenance, confidence, degree" ] .
+
+gmeow:mapCodeMetaContributorSecurity a gmeow:ProjectionMapping ;
+    rdfs:label "Contribution(role=SecurityContact) → codemeta:contributor"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "proj" ; gmeow:value "secAgent" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "proj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareProject ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Contribution ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionTarget ; gmeow:objectVar "proj" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributor ; gmeow:objectVar "secAgent" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionRole ; gmeow:objectValue gmeow:roleSecurityContact ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "secAgent" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+    gmeow:hasBinding [
+        gmeow:profile "codemeta" ; gmeow:toPredicate codemeta:contributor ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "security-contact role collapsed to contributor; contribution period, provenance, confidence, degree" ] .
+
+gmeow:mapCodeMetaContributorBot a gmeow:ProjectionMapping ;
+    rdfs:label "Contribution(role=BotContributor) → codemeta:contributor"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "proj" ; gmeow:value "botAgent" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "proj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareProject ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Contribution ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionTarget ; gmeow:objectVar "proj" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributor ; gmeow:objectVar "botAgent" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionRole ; gmeow:objectValue gmeow:roleBotContributor ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "botAgent" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+    gmeow:hasBinding [
+        gmeow:profile "codemeta" ; gmeow:toPredicate codemeta:contributor ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "bot role collapsed to contributor; contribution period, provenance, confidence, degree" ] .
+
+gmeow:mapCodeMetaContributorAI a gmeow:ProjectionMapping ;
+    rdfs:label "Contribution(role=AIAssistant) → codemeta:contributor"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "proj" ; gmeow:value "aiAgent" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "proj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareProject ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Contribution ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionTarget ; gmeow:objectVar "proj" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributor ; gmeow:objectVar "aiAgent" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionRole ; gmeow:objectValue gmeow:roleAIAssistant ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "aiAgent" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+    gmeow:hasBinding [
+        gmeow:profile "codemeta" ; gmeow:toPredicate codemeta:contributor ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "AI-assistant role collapsed to contributor; contribution period, provenance, confidence, degree" ] .
+
+# Note: CodeMeta has no term for maintenance status, governance model,
+# SLSA level, transparency-log entry, or build activity.
+# These remain canonical in GMEOW and are lossy drops at the CodeMeta boundary.
