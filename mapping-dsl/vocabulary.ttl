@@ -154,6 +154,9 @@ gmeow:optionalGroup a owl:ObjectProperty ;
 gmeow:suppressWhen a owl:ObjectProperty ;
     rdfs:label "suppress when"@en ;
     skos:definition "A negative guard atom: the projection is suppressed when this pattern matches, rendered FILTER NOT EXISTS { }. Honours the GMEOW displayable-suppression contract (deadnames / superseded labels are never emitted)."@en .
+gmeow:projectWhen a owl:ObjectProperty ;
+    rdfs:label "project when"@en ;
+    skos:definition "A positive guard atom: the projection is emitted ONLY when this pattern matches, rendered FILTER EXISTS { }. The complement of suppressWhen — used for per-consumer gating so that a fact eligible for one consumer is withheld from others, keeping output total and preventing silent disclosure (Principle 10)."@en .
 gmeow:excludeWhen a owl:ObjectProperty ;
     rdfs:label "exclude when"@en ;
     skos:definition "A negative guard atom on the anchor itself (e.g. exclude FormalLanguage), rendered FILTER NOT EXISTS { }."@en .

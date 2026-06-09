@@ -1,0 +1,12 @@
+# Leak fixture (#225). A place carries hasDisclosurePolicy = policyNeverPublic
+# AND eligibleForConsumer = consumerWikidata (a public consumer).
+# The DisclosureLeakShape Violation MUST fire.
+
+@prefix ex:    <https://example.org/disclosure/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:secretPlace a gmeow:Place ;
+    rdfs:label "Secret Laboratory" ;
+    gmeow:hasDisclosurePolicy gmeow:policyNeverPublic ;
+    gmeow:eligibleForConsumer gmeow:consumerWikidata .

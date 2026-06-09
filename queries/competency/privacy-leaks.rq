@@ -1,0 +1,22 @@
+# privacy-leaks.rq (#225)
+# SELECT facts that are configured to leak: a neverPublic or internalOnly fact
+# that is nevertheless eligible for a public consumer.
+# Public consumers are explicitly enumerated below (allowlist): consumerPublicSite,
+# consumerWikidata, consumerWikipedia, consumerSchemaOrgJsonLd, consumerFoafExport.
+# This list is the intentional definition of "public" for leak-detection purposes;
+# new public consumers must be added here and in the ontology simultaneously.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?fact ?policy ?consumer WHERE {
+    ?fact gmeow:hasDisclosurePolicy ?policy .
+    ?fact gmeow:eligibleForConsumer ?consumer .
+    FILTER(?policy IN (gmeow:policyNeverPublic, gmeow:policyInternalOnly))
+    FILTER(?consumer IN (
+        gmeow:consumerPublicSite,
+        gmeow:consumerWikidata,
+        gmeow:consumerWikipedia,
+        gmeow:consumerSchemaOrgJsonLd,
+        gmeow:consumerFoafExport
+    ))
+}
