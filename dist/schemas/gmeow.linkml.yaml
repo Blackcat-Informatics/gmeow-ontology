@@ -132,6 +132,7 @@ classes:
     - attestedClaim
     - attestedSubject
     - attester
+    - hasSLSALevel
     - issuedAt
     - transparencyLogEntry
     - verificationActivity
@@ -207,6 +208,18 @@ classes:
   BranchConditionType:
     class_uri: https://blackcatinformatics.ca/gmeow/BranchConditionType
     title: Branch Condition Type
+  BuildActivity:
+    class_uri: https://blackcatinformatics.ca/gmeow/BuildActivity
+    title: Build Activity
+    is_a: Activity
+    slots:
+    - buildConfigUri
+    - buildOutput
+    - buildSource
+  Builder:
+    class_uri: https://blackcatinformatics.ca/gmeow/Builder
+    title: Builder
+    is_a: SoftwareAgent
   CadastralReference:
     class_uri: https://blackcatinformatics.ca/gmeow/CadastralReference
     title: Cadastral Reference
@@ -1690,6 +1703,7 @@ classes:
     title: Release
     is_a: Event
     slots:
+    - releaseDoi
     - releaseOf
     - releaseTag
     - releaseVersion
@@ -1762,6 +1776,9 @@ classes:
     - ruleConsequence
     - ruleConstraint
     - ruleTarget
+  SLSALevel:
+    class_uri: https://blackcatinformatics.ca/gmeow/SLSALevel
+    title: SLSA Level
   SMIMESignature:
     class_uri: https://blackcatinformatics.ca/gmeow/SMIMESignature
     title: S/MIME Signature
@@ -2668,6 +2685,24 @@ slots:
     title: broader tag
     range: Tag
     domain: Tag
+    multivalued: true
+  buildConfigUri:
+    slot_uri: https://blackcatinformatics.ca/gmeow/buildConfigUri
+    title: build config URI
+    range: string
+    domain: BuildActivity
+    multivalued: false
+  buildOutput:
+    slot_uri: https://blackcatinformatics.ca/gmeow/buildOutput
+    title: build output
+    range: Distribution
+    domain: BuildActivity
+    multivalued: true
+  buildSource:
+    slot_uri: https://blackcatinformatics.ca/gmeow/buildSource
+    title: build source
+    range: string
+    domain: BuildActivity
     multivalued: true
   capacityOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/capacityOf
@@ -4214,6 +4249,12 @@ slots:
     title: has route segment
     range: Route
     domain: Route
+    multivalued: true
+  hasSLSALevel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasSLSALevel
+    title: has SLSA level
+    range: SLSALevel
+    domain: Attestation
     multivalued: true
   hasSegment:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasSegment
@@ -5892,6 +5933,11 @@ slots:
     range: string
     domain: RelayHop
     multivalued: false
+  releaseDoi:
+    slot_uri: https://blackcatinformatics.ca/gmeow/releaseDoi
+    title: release DOI
+    range: string
+    domain: Release
   releaseOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/releaseOf
     title: release of
@@ -8060,6 +8106,9 @@ enums:
       eventTypeBirth:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeBirth
         title: birth
+      eventTypeBuild:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeBuild
+        title: build
       eventTypeBurial:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeBurial
         title: burial
@@ -10434,6 +10483,21 @@ enums:
       routeKindWalking:
         meaning: https://blackcatinformatics.ca/gmeow/routeKindWalking
         title: walking route
+  SLSALevelEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/SLSALevel
+    permissible_values:
+      slsaLevel1:
+        meaning: https://blackcatinformatics.ca/gmeow/slsaLevel1
+        title: SLSA Level 1
+      slsaLevel2:
+        meaning: https://blackcatinformatics.ca/gmeow/slsaLevel2
+        title: SLSA Level 2
+      slsaLevel3:
+        meaning: https://blackcatinformatics.ca/gmeow/slsaLevel3
+        title: SLSA Level 3
+      slsaLevel4:
+        meaning: https://blackcatinformatics.ca/gmeow/slsaLevel4
+        title: SLSA Level 4
   ScriptRoleEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ScriptRole
     permissible_values:

@@ -625,6 +625,81 @@ gmeow:materializationDepth
     skos:definition "The number of levels of Merkle tree to materialise as triples for this repository. 0 = no tree materialisation (commits and refs only); 1 = root tree only; 2 = root tree plus one level of children; etc. Deep traversal of large repositories is left to native git or SWHID APIs. This is a projection boundary, not a deletion (Principle 10)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+# --------------------------------------------------------------------------- #
+# PHASE C — Verifiable release chain (#233)
+# BuildActivity, Builder, build properties, SLSA level.
+# Reuses Attestation, CryptographicSignature, TransparencyLogEntry from
+# attestation.ttl / trust.ttl / messaging-trust.ttl (Principle 4, 5).
+# --------------------------------------------------------------------------- #
+
+gmeow:BuildActivity
+    a owl:Class, gufo:EventType ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:label "Build Activity"@en ;
+    skos:definition "A software build process that transforms source code into one or more distribution artifacts. The build activity consumes a commit or repository and produces a concrete distribution (tarball, wheel, binary, container image). Aligned to SLSA provenance buildType and PROV-O Activity by reference."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Builder
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:SoftwareAgent ;
+    rdfs:label "Builder"@en ;
+    skos:definition "The build system or agent that performs a BuildActivity — e.g. GitHub Actions, GitLab CI, Jenkins, Buildkite, or a local make invocation. A SoftwareAgent scoped to the build role."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:buildSource
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:BuildActivity ;
+    rdfs:range [ a owl:Class ; owl:unionOf ( gmeow:Commit gmeow:Repository ) ] ;
+    rdfs:label "build source"@en ;
+    skos:definition "The source commit or repository that a build activity consumes. Non-functional: a build may consume multiple commits (monorepo) or a repository at a specific ref."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:buildOutput
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:BuildActivity ;
+    rdfs:range gmeow:Distribution ;
+    rdfs:label "build output"@en ;
+    skos:definition "The distribution artifact produced by a build activity. Non-functional: a build may produce multiple artifacts (tarball, wheel, binary, container image)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:buildConfigUri
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:BuildActivity ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "build config URI"@en ;
+    skos:definition "The URI of the build configuration or workflow file that describes the build process — e.g. the URL of `.github/workflows/release.yml` or a Jenkinsfile."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:releaseDoi
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Release ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "release DOI"@en ;
+    skos:definition "The Digital Object Identifier (DOI) assigned to a software release — typically minted through DataCite, Zenodo, or a similar PID registry. Non-functional: a release may carry multiple DOIs from different registrars (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasSLSALevel
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Attestation ;
+    rdfs:range gmeow:SLSALevel ;
+    rdfs:label "has SLSA level"@en ;
+    skos:definition "The SLSA supply-chain integrity level (1–4) asserted by an attestation. Non-functional: competing assessments from different verifiers coexist (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:SLSALevel
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "SLSA Level"@en ;
+    skos:definition "The SLSA supply-chain level for build provenance — a VALUE vocabulary (individuals, never subclasses). Levels 1–4 correspond to the SLSA specification's incremental integrity guarantees."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:slsaLevel1 a gmeow:SLSALevel ; rdfs:label "SLSA Level 1"@en ; skos:definition "Provenance exists — the build process is documented."@en .
+gmeow:slsaLevel2 a gmeow:SLSALevel ; rdfs:label "SLSA Level 2"@en ; skos:definition "Signed provenance — the build runs in a hosted environment with signed output."@en .
+gmeow:slsaLevel3 a gmeow:SLSALevel ; rdfs:label "SLSA Level 3"@en ; skos:definition "Hardened build — the build runs in a hardened, hermetic environment with reproducible steps."@en .
+gmeow:slsaLevel4 a gmeow:SLSALevel ; rdfs:label "SLSA Level 4"@en ; skos:definition "Two-person review + hermetic, reproducible build with comprehensive audit trail."@en .
+
+gmeow:eventTypeBuild a gmeow:EventType ; rdfs:label "build"@en ; skos:definition "The event of building software from source into distribution artifacts."@en .
+
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE — EL someValuesFrom for reasoner visibility
 # =========================================================================== #
@@ -644,6 +719,10 @@ gmeow:TreeEntry rdfs:subClassOf
 gmeow:Diff rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:diffFrom ;        owl:someValuesFrom gmeow:Commit ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:diffTo ;          owl:someValuesFrom gmeow:Commit ] .
+
+gmeow:BuildActivity rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:buildSource ;     owl:someValuesFrom [ a owl:Class ; owl:unionOf ( gmeow:Commit gmeow:Repository ) ] ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:buildOutput ;     owl:someValuesFrom gmeow:Distribution ] .
 
 # Commit parentCommit is deliberately NOT a FunctionalProperty — merge commits
 # have multiple parents, and the initial commit has zero. The someValuesFrom
