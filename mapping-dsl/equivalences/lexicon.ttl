@@ -37,7 +37,7 @@ gmeow:mapsetLexicon a gmeow:MappingSet ;
 
 gmeow:eqLexicon001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:LexicalItem ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:broadMatch ;
     gmeow:alignObject ontolex:LexicalEntry ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
@@ -46,7 +46,7 @@ gmeow:eqLexicon001 a gmeow:TermEquivalence ;
 
 gmeow:eqLexicon002 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:LexicalForm ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:broadMatch ;
     gmeow:alignObject ontolex:Form ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
@@ -104,10 +104,10 @@ gmeow:eqLexicon007 a gmeow:TermEquivalence ;
 gmeow:eqLexicon008 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:derivationSource ;
     gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject prov:wasDerivedFrom ;
+    gmeow:alignObject prov:entity ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Directionality differs: derivationSource points from derivation to source (source is the ancestor); prov:wasDerivedFrom points from derived entity to source entity." ;
+    gmeow:comment "Structural difference: GMEOW models etymology via a reified EtymologicalDerivation relator (Derivation --derivationSource--> SourceItem), while PROV-O uses a direct binary property (DerivedItem --wasDerivedFrom--> SourceItem). Aligning derivationSource to prov:entity preserves the relator-level linkage to the source entity within the PROV-O Derivation structure, though the reified relator itself and its provenance metadata are lost in projection." ;
     gmeow:sssomFile "gmeow-lexicon.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
