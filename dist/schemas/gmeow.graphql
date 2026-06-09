@@ -436,6 +436,7 @@ enum EventTypeEnum
     eventTypeBarMitzvah
     eventTypeBatMitzvah
     eventTypeBirth
+    eventTypeBuild
     eventTypeBurial
     eventTypeCensus
     eventTypeCensusActivity
@@ -1492,6 +1493,14 @@ enum SignatureSchemeEnum
     signatureSchemeRSASHA256
   }
 
+enum SLSALevelEnum
+  {
+    slsaLevel1
+    slsaLevel2
+    slsaLevel3
+    slsaLevel4
+  }
+
 enum SourceIndependenceEnum
   {
     sourceIndependenceIndependent
@@ -1990,6 +1999,7 @@ type Attestation
     attestedClaim: [Observation]
     attestedSubject: [Entity]
     attester: Agent
+    hasSLSALevel: [SLSALevel]
     issuedAt: String
     transparencyLogEntry: [TransparencyLogEntry]
     verificationActivity: [VerificationActivity]
@@ -2570,6 +2580,70 @@ type Branch
 
 type BranchConditionType
   {
+  }
+
+type BuildActivity
+  {
+    after: [Event]
+    before: [Event]
+    coincidesWith: [Event]
+    contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
+    during: [Event]
+    earliestStart: String
+    eventAspect: [GrammaticalAspect]
+    eventInterval: [TimeInterval]
+    eventLocation: [Location]
+    eventObservation: [Observation]
+    eventSpacetime: [LocationState]
+    eventTemporalFrame: TemporalFrame
+    eventTense: [GrammaticalTense]
+    eventTime: String
+    eventTrajectory: [Trajectory]
+    eventType: [EventType]
+    finishedBy: [Event]
+    finishes: [Event]
+    hasDuration: [Duration]
+    hasParticipant: [Agent]
+    hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
+    latestEnd: String
+    maximViolationType: [MaximViolationType]
+    meets: [Event]
+    metBy: [Event]
+    occurrenceOfSeries: [EventSeries]
+    overlappedBy: [Event]
+    overlaps: [Event]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
+    startedBy: [Event]
+    starts: [Event]
+    subEventOf: [Event]
+    temporalPrecision: [TemporalPrecision]
+    wasAssociatedWith: [Agent]
+    buildConfigUri: String
+    buildOutput: [Distribution]
+    buildSource: [String]
+  }
+
+type Builder
+  {
+    email: String
+    endorses: [Agent]
+    hasAgreement: [Agreement]
+    hasContactPoint: [ContactPoint]
+    hasMet: [Agent]
+    hasSkill: [Skill]
+    hasUsed: [Entity]
+    hasWorkedWith: [Agent]
+    holdsAccount: [OnlineAccount]
+    holdsKey: [CryptographicKey]
+    knowsLanguage: [Language]
+    memberOf: [Organization]
+    nativeLanguage: [Language]
+    telephone: String
   }
 
 type CadastralReference
@@ -8567,6 +8641,7 @@ type Release
     starts: [Event]
     subEventOf: [Event]
     temporalPrecision: [TemporalPrecision]
+    releaseDoi: String
     releaseOf: Project
     releaseTag: [Tag]
     releaseVersion: String
@@ -9546,6 +9621,10 @@ type Skill
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+  }
+
+type SLSALevel
+  {
   }
 
 type SmartContract

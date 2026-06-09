@@ -1,0 +1,32 @@
+@prefix gmeow:    <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sigstore: <https://sigstore.dev/rekor/v1#> .
+
+# Projection mappings: GMEOW transparency log → Sigstore/Rekor entry shape.
+# No stable Rekor RDF vocabulary exists; this is a loose directional downcast
+# generating SPARQL CONSTRUCT queries and EDOAL cells (Principle 5).
+
+gmeow:mapSigstoreLogEntry a gmeow:ProjectionMapping ;
+    rdfs:label "TransparencyLogEntry → sigstore:logEntry"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "entry" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "entry" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:TransparencyLogEntry ]
+            [ gmeow:subjectVar "entry" ; gmeow:predicate gmeow:logEntryUrl ; gmeow:objectVar "url" ; gmeow:optional true ]
+            [ gmeow:subjectVar "entry" ; gmeow:predicate gmeow:logEntryIndex ; gmeow:objectVar "idx" ; gmeow:optional true ] ) ;
+        gmeow:edoalSource gmeow:TransparencyLogEntry ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sigstore" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget sigstore:logEntry ; gmeow:edoalTargetKind "class" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "entry" ; gmeow:tPred rdf:type ; gmeow:tObjValue sigstore:logEntry ]
+            [ gmeow:tSubj "entry" ; gmeow:tPred sigstore:logIndexURL ; gmeow:tObj "url" ]
+            [ gmeow:tSubj "entry" ; gmeow:tPred sigstore:logIndex ; gmeow:tObj "idx" ] ) ;
+        gmeow:lossyDrop "attestation body, inclusion proof, confirmation depth, finality status" ] .
+
+# Note: sigstore:signature represents the actual signature content (bytes),
+# not the algorithm. GMEOW does not currently model signature payload bytes
+# (only algorithm, signer, and key). A future property such as
+# gmeow:signatureValue would enable a proper projection here.
+# For now, the log-entry mapping above is the meaningful Sigstore projection.
