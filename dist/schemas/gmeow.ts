@@ -2479,6 +2479,7 @@ export interface EmailMessage extends Message {
     hasMessageParticipant?: MessageParticipant[],
     replyTo?: EmailAddress[],
     sender?: EmailAddress[],
+    subjectPrefix?: string,
     to?: EmailAddress[],
 }
 
@@ -4339,6 +4340,7 @@ export interface TextExtraction extends Document {
 
 
 export interface Thread extends InformationObject {
+    threadSubject?: string,
 }
 
 

@@ -52,6 +52,23 @@ carrying `gmeow:confidence` and `gmeow:wasGeneratedBy` (a `gmeow:SoftwareAgent`)
 `References` / `In-Reply-To` headers → `gmeow:references` / `gmeow:inReplyTo`
 (→ `gmeow:EmailMessage`); `thread_id` → `gmeow:partOfThread`.
 
+## Thread subject normalization
+
+The raw `gmeow:subject` is the canonical RFC 5322 Subject header (Principle 4).
+Threading systems (JMAP, IMAP, Gmail) strip reply/forward prefixes (`Re:`,
+`Fwd:`, `AW:`, `SV:`, etc.) to group messages into conversations. GMEOW models
+the result of this normalization explicitly:
+
+- `gmeow:threadSubject` — the base subject, attached to the `gmeow:Thread`.
+  This is a derived display value, not an identity key.
+- `gmeow:subjectPrefix` — the prefix(es) removed from an individual message's
+  subject. Non-functional; nested prefixes produce multiple values.
+
+Prefix stripping and base-subject computation are importer/projection behavior
+(Principle 12). The algorithm follows RFC 5256 § 2.1 base-subject rules where
+applicable, but GMEOW does not mandate a specific implementation; the importer
+asserts the result.
+
 ## Trust indicators (forward-looking)
 
 These headers are preserved in `rfc822_headers` but not yet parsed by gmeow. When

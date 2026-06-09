@@ -18264,6 +18264,12 @@
                         "null"
                     ]
                 },
+                "subjectPrefix": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "supersededBy": {
                     "items": {
                         "$ref": "#/$defs/Entity"
@@ -74885,6 +74891,12 @@
                     },
                     "type": [
                         "array",
+                        "null"
+                    ]
+                },
+                "threadSubject": {
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
