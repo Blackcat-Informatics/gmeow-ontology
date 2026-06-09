@@ -1,5 +1,6 @@
 id,source,target,type,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,standpointModality,validFrom,validUntil
 edge:24befedd30f81c09,gmeow:examples/rights/photo-copyright,gmeow:examples/rights/jane,copyrightHolder,,2026-03-01T00:00:00Z,0.85,,gmeow:examples/rights/src-rights-register,,,
+edge:313d4f8a17abf5c5,gmeow:examples/telling-social-post-001,gmeow:examples/telling-article-001,propagatesFrom,gmeow:examples/standpoint-factchecker,2026-05-10T00:00:00Z,0.78,,,,,
 edge:33c26386374f0f44,gmeow:examples/attestation-factcheck-001,gmeow:attestationTypeFactCheck,attestationType,gmeow:examples/standpoint-factchecker,2026-02-01T00:00:00Z,0.92,,,,,
 edge:3f7fe86f8b5a2397,gmeow:examples/referenceFrameRobotEndEffector,gmeow:referenceFrameRobotBase,parentFrame,,2026-06-07T10:00:00Z,0.95,,,,2026-06-07T10:00:00Z,2026-06-07T10:05:00Z
 edge:430855ef112d21e3,gmeow:examples/rights/contested-trademark,gmeow:examples/rights/acme,trademarkHolder,gmeow:examples/rights/standpoint-acme,,0.6,,,,,

@@ -35,7 +35,7 @@ def test_dsl_parses() -> None:
     Validate that the mapping DSL loads correctly and contains the expected
     counts and profiles.
 
-    Asserts that the loaded DSL has 1389 term equivalences, 35 functions,
+    Asserts that the loaded DSL has 1399 term equivalences, 35 functions,
     43 mapping sets, more than 30 projection cells, and that the set of
     profiles used in projection bindings equals the module-level `_PROFILES`.
     """
@@ -201,7 +201,8 @@ def test_dsl_parses() -> None:
     # + DC refinements date/description/relation/coverage/bibliographic/medium/
     # audience/provenance/accessRights; overlaps none of the above issues).
     # Issue #232 git provenance deepening: +6 (Software Heritage alignments).
-    assert len(dsl.equivalences) == 1395
+    # Issue #214 myth: +4 (Myth→Wikidata x3, hasMythTelling→schema:CreativeWork x1).
+    assert len(dsl.equivalences) == 1399
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
