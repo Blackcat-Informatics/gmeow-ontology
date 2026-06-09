@@ -17,6 +17,7 @@
 @prefix crminf: <http://www.ics.forth.gr/isl/CRMinf/> .
 @prefix crmsci: <http://www.cidoc-crm.org/extensions/crmsci/> .
 @prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix dcmitype: <http://purl.org/dc/dcmitype/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix doap: <http://usefulinc.com/ns/doap#> .
 @prefix dpv: <https://w3id.org/dpv#> .
@@ -97,6 +98,7 @@
 @prefix spdx: <http://spdx.org/rdf/terms#> .
 @prefix spdxlic: <http://spdx.org/licenses/> .
 @prefix sta: <http://www.opengis.net/def/ont/sensorthings/1.1/> .
+@prefix swh: <https://www.softwareheritage.org/data-model/> .
 @prefix tags: <http://www.holygoat.co.uk/owl/redwood/0.1/tags/> .
 @prefix teo: <https://sbmi.uth.edu/bsdi/TEO_1.0.0.owl#> .
 @prefix tgn: <http://vocab.getty.edu/tgn/> .
@@ -553,6 +555,27 @@
     void:objectsTarget qb: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
     void:triples 1 .
+
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-data-model-54b9af-skos_closeMatch> a void:Linkset ;
+    rdfs:label "GMEOW skos:closeMatch links to https://www.softwareheritage.org/data-model/ (6)" ;
+    void:linkPredicate skos:closeMatch ;
+    void:objectsTarget swh: ;
+    void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
+    void:triples 6 .
+
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-dcmitype-273018-skos_closeMatch> a void:Linkset ;
+    rdfs:label "GMEOW skos:closeMatch links to http://purl.org/dc/dcmitype/ (8)" ;
+    void:linkPredicate skos:closeMatch ;
+    void:objectsTarget dcmitype: ;
+    void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
+    void:triples 8 .
+
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-dcmitype-273018-skos_relatedMatch> a void:Linkset ;
+    rdfs:label "GMEOW skos:relatedMatch links to http://purl.org/dc/dcmitype/ (3)" ;
+    void:linkPredicate skos:relatedMatch ;
+    void:objectsTarget dcmitype: ;
+    void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
+    void:triples 3 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-direct-91cb7b-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to http://www.wikidata.org/prop/direct/ (30)" ;
@@ -1283,11 +1306,11 @@
     void:triples 1 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-terms-1578eb-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://purl.org/dc/terms/ (16)" ;
+    rdfs:label "GMEOW skos:closeMatch links to http://purl.org/dc/terms/ (51)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget dcterms: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 16 .
+    void:triples 51 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-terms-1578eb-skos_exactMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:exactMatch links to http://purl.org/dc/terms/ (2)" ;
@@ -1487,6 +1510,9 @@
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-crmsci-5ec823-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-cube-797dee-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-cube-797dee-skos_relatedMatch>,
+        <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-data-model-54b9af-skos_closeMatch>,
+        <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-dcmitype-273018-skos_closeMatch>,
+        <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-dcmitype-273018-skos_relatedMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-direct-91cb7b-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-doap-4bf89e-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-dpv-2bec88-skos_closeMatch>,

@@ -262,6 +262,7 @@ PREFIXES: dict[str, str] = {
     "spdxlic": "http://spdx.org/licenses/",
     "codemeta": "https://codemeta.github.io/terms/#",
     "forgefed": "https://forgefed.org/ns#",
+    "swh": "https://www.softwareheritage.org/data-model/",
     "ma": "http://www.w3.org/ns/ma-ont#",
     # Gender / sexuality identity vocabularies
     "gsso": "http://purl.obolibrary.org/obo/GSSO_",
