@@ -294,6 +294,14 @@ PREFIXES: dict[str, str] = {
     # Currency (FIBO CurrencyAmount)
     "fibo-fnd-acc-cur": "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/",
     "fibo-iso4217": "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/ISO4217-CurrencyCodes/",
+    # FIBO AccountingEquity
+    "fibo-fnd-acc-ae": "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/AccountingEquity/",
+    # FIBO Foundations ProductsAndServices (TransactionEvent canonical module)
+    "fibo-fnd-pas-ps": "https://spec.edmcouncil.org/fibo/ontology/FND/ProductsAndServices/ProductsAndServices/",
+    # FIBO FinancialInstruments
+    "fibo-fbc-fi-fi": "https://spec.edmcouncil.org/fibo/ontology/FBC/FinancialInstruments/FinancialInstruments/",
+    # FIBO FinancialProductsAndServices
+    "fibo-fbc-pas-fpas": "https://spec.edmcouncil.org/fibo/ontology/FBC/ProductsAndServices/FinancialProductsAndServices/",
     # Machine Learning (ML-Schema)
     "mls": "http://www.w3.org/ns/mls#",
     # Biological-sequence realm (FALDO, Sequence Ontology)
@@ -528,6 +536,18 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     ),
     "fibo-iso4217": AlignmentTarget(
         "FIBO ISO4217 Currency Codes", PREFIXES["fibo-iso4217"], "MIT", "schema"
+    ),
+    "fibo-fnd-acc-ae": AlignmentTarget(
+        "FIBO AccountingEquity", PREFIXES["fibo-fnd-acc-ae"], "MIT", "schema"
+    ),
+    "fibo-fbc-fi-fi": AlignmentTarget(
+        "FIBO FinancialInstruments", PREFIXES["fibo-fbc-fi-fi"], "MIT", "schema"
+    ),
+    "fibo-fbc-pas-fpas": AlignmentTarget(
+        "FIBO FinancialProductsAndServices",
+        PREFIXES["fibo-fbc-pas-fpas"],
+        "MIT",
+        "schema",
     ),
     "brick": AlignmentTarget("Brick", PREFIXES["brick"], "BSD-3-Clause", "schema"),
     "bot": AlignmentTarget(

@@ -107,6 +107,16 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Article
     title: Article
     is_a: Work
+  Asset:
+    class_uri: https://blackcatinformatics.ca/gmeow/Asset
+    title: Asset
+    is_a: Entity
+    slots:
+    - assetIdentifier
+    - assetType
+  AssetType:
+    class_uri: https://blackcatinformatics.ca/gmeow/AssetType
+    title: Asset Type
   AtomicConstraint:
     class_uri: https://blackcatinformatics.ca/gmeow/AtomicConstraint
     title: Atomic Constraint
@@ -473,6 +483,14 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Credential
     title: Credential
     is_a: Entity
+  CryptoWallet:
+    class_uri: https://blackcatinformatics.ca/gmeow/CryptoWallet
+    title: Crypto Wallet
+    is_a: FinancialAccount
+    slots:
+    - walletAddress
+    - walletKey
+    - walletScheme
   CryptographicKey:
     class_uri: https://blackcatinformatics.ca/gmeow/CryptographicKey
     title: Cryptographic Key
@@ -733,6 +751,14 @@ classes:
   FinancialAccountType:
     class_uri: https://blackcatinformatics.ca/gmeow/FinancialAccountType
     title: Financial Account Type
+  FinancialTransaction:
+    class_uri: https://blackcatinformatics.ca/gmeow/FinancialTransaction
+    title: Financial Transaction
+    is_a: Event
+    slots:
+    - transactionAmount
+    - transactionStatus
+    - transactionType
   ForgePlatform:
     class_uri: https://blackcatinformatics.ca/gmeow/ForgePlatform
     title: Forge Platform
@@ -820,6 +846,15 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Group
     title: Group
     is_a: Entity
+  Holding:
+    class_uri: https://blackcatinformatics.ca/gmeow/Holding
+    title: Holding
+    slots:
+    - holdingAgent
+    - holdingAsset
+    - holdingCostBasis
+    - holdingPeriod
+    - holdingQuantity
   Honorific:
     class_uri: https://blackcatinformatics.ca/gmeow/Honorific
     title: Honorific
@@ -886,6 +921,19 @@ classes:
     slots:
     - relationshipInterval
     - relationshipParty
+  Invoice:
+    class_uri: https://blackcatinformatics.ca/gmeow/Invoice
+    title: Invoice
+    is_a: Document
+    slots:
+    - invoiceAmount
+    - invoiceDueDate
+    - invoiceIssuer
+    - invoiceRecipient
+    - invoiceStatus
+  InvoiceStatus:
+    class_uri: https://blackcatinformatics.ca/gmeow/InvoiceStatus
+    title: Invoice Status
   Issue:
     class_uri: https://blackcatinformatics.ca/gmeow/Issue
     title: Issue
@@ -897,6 +945,12 @@ classes:
     slots:
     - exemplifies
     - hasCarrier
+  JournalEntry:
+    class_uri: https://blackcatinformatics.ca/gmeow/JournalEntry
+    title: Journal Entry
+    is_a: Event
+    slots:
+    - journalEntryPostings
   JurisdictionTenure:
     class_uri: https://blackcatinformatics.ca/gmeow/JurisdictionTenure
     title: Jurisdiction Tenure
@@ -993,6 +1047,17 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/LanguageVersion
     title: Language Version
     is_a: Language
+  LedgerAccount:
+    class_uri: https://blackcatinformatics.ca/gmeow/LedgerAccount
+    title: Ledger Account
+    is_a: InformationObject
+    slots:
+    - ledgerAccountCurrency
+    - ledgerAccountHolder
+    - ledgerAccountType
+  LedgerAccountType:
+    class_uri: https://blackcatinformatics.ca/gmeow/LedgerAccountType
+    title: Ledger Account Type
   LedgerEvent:
     class_uri: https://blackcatinformatics.ca/gmeow/LedgerEvent
     title: Ledger Event
@@ -1367,6 +1432,18 @@ classes:
     - activityPubActor
     - nip05
     - nostrPubkey
+  Order:
+    class_uri: https://blackcatinformatics.ca/gmeow/Order
+    title: Order
+    is_a: Agreement
+    slots:
+    - orderAmount
+    - orderBuyer
+    - orderSeller
+    - orderStatus
+  OrderStatus:
+    class_uri: https://blackcatinformatics.ca/gmeow/OrderStatus
+    title: Order Status
   Organization:
     class_uri: https://blackcatinformatics.ca/gmeow/Organization
     title: Organization
@@ -1427,6 +1504,15 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Patent
     title: Patent
     is_a: Work
+  Payment:
+    class_uri: https://blackcatinformatics.ca/gmeow/Payment
+    title: Payment
+    is_a: FinancialTransaction
+    slots:
+    - paymentMethod
+  PaymentMethod:
+    class_uri: https://blackcatinformatics.ca/gmeow/PaymentMethod
+    title: Payment Method
   PeriodType:
     class_uri: https://blackcatinformatics.ca/gmeow/PeriodType
     title: Period Type
@@ -1522,6 +1608,17 @@ classes:
     - postalAddressFrame
     - postalCode
     - streetAddress
+  Posting:
+    class_uri: https://blackcatinformatics.ca/gmeow/Posting
+    title: Posting
+    slots:
+    - postingAccount
+    - postingAmount
+    - postingDirection
+    - postingJournalEntry
+  PostingDirection:
+    class_uri: https://blackcatinformatics.ca/gmeow/PostingDirection
+    title: Posting Direction
   PrivacyNotice:
     class_uri: https://blackcatinformatics.ca/gmeow/PrivacyNotice
     title: Privacy Notice
@@ -2259,6 +2356,9 @@ classes:
   VirtualLocationType:
     class_uri: https://blackcatinformatics.ca/gmeow/VirtualLocationType
     title: Virtual Location Type
+  WalletScheme:
+    class_uri: https://blackcatinformatics.ca/gmeow/WalletScheme
+    title: Wallet Scheme
   WebPage:
     class_uri: https://blackcatinformatics.ca/gmeow/WebPage
     title: Web Page
@@ -2485,6 +2585,17 @@ slots:
     range: Entity
     domain: QualityAssessment
     multivalued: true
+  assetIdentifier:
+    slot_uri: https://blackcatinformatics.ca/gmeow/assetIdentifier
+    title: asset identifier
+    range: string
+    domain: Asset
+  assetType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/assetType
+    title: asset type
+    range: AssetType
+    domain: Asset
+    multivalued: false
   atTime:
     slot_uri: https://blackcatinformatics.ca/gmeow/atTime
     title: at time
@@ -4465,6 +4576,36 @@ slots:
     range: StandpointClaim
     domain: Event
     multivalued: true
+  holdingAgent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/holdingAgent
+    title: holding agent
+    range: Agent
+    domain: Holding
+    multivalued: false
+  holdingAsset:
+    slot_uri: https://blackcatinformatics.ca/gmeow/holdingAsset
+    title: holding asset
+    range: Asset
+    domain: Holding
+    multivalued: false
+  holdingCostBasis:
+    slot_uri: https://blackcatinformatics.ca/gmeow/holdingCostBasis
+    title: holding cost basis
+    range: MonetaryAmount
+    domain: Holding
+    multivalued: false
+  holdingPeriod:
+    slot_uri: https://blackcatinformatics.ca/gmeow/holdingPeriod
+    title: holding period
+    range: TimeInterval
+    domain: Holding
+    multivalued: true
+  holdingQuantity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/holdingQuantity
+    title: holding quantity
+    range: decimal
+    domain: Holding
+    multivalued: false
   holdsAccount:
     slot_uri: https://blackcatinformatics.ca/gmeow/holdsAccount
     title: holds account
@@ -4680,6 +4821,35 @@ slots:
     range: integer
     domain: TrustAssertion
     multivalued: false
+  invoiceAmount:
+    slot_uri: https://blackcatinformatics.ca/gmeow/invoiceAmount
+    title: invoice amount
+    range: MonetaryAmount
+    domain: Invoice
+    multivalued: false
+  invoiceDueDate:
+    slot_uri: https://blackcatinformatics.ca/gmeow/invoiceDueDate
+    title: invoice due date
+    range: datetime
+    domain: Invoice
+  invoiceIssuer:
+    slot_uri: https://blackcatinformatics.ca/gmeow/invoiceIssuer
+    title: invoice issuer
+    range: Agent
+    domain: Invoice
+    multivalued: true
+  invoiceRecipient:
+    slot_uri: https://blackcatinformatics.ca/gmeow/invoiceRecipient
+    title: invoice recipient
+    range: Agent
+    domain: Invoice
+    multivalued: true
+  invoiceStatus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/invoiceStatus
+    title: invoice status
+    range: InvoiceStatus
+    domain: Invoice
+    multivalued: true
   isAbout:
     slot_uri: https://blackcatinformatics.ca/gmeow/isAbout
     title: is about
@@ -4726,6 +4896,12 @@ slots:
     range: datetime
     domain: Attestation
     multivalued: false
+  journalEntryPostings:
+    slot_uri: https://blackcatinformatics.ca/gmeow/journalEntryPostings
+    title: journal entry postings
+    range: Posting
+    domain: JournalEntry
+    multivalued: true
   jurisdictionDeterminacy:
     slot_uri: https://blackcatinformatics.ca/gmeow/jurisdictionDeterminacy
     title: jurisdiction determinacy
@@ -4815,6 +4991,24 @@ slots:
     title: latitude
     range: decimal
     domain: GeoCoordinates
+  ledgerAccountCurrency:
+    slot_uri: https://blackcatinformatics.ca/gmeow/ledgerAccountCurrency
+    title: ledger account currency
+    range: ReferenceFrame
+    domain: LedgerAccount
+    multivalued: true
+  ledgerAccountHolder:
+    slot_uri: https://blackcatinformatics.ca/gmeow/ledgerAccountHolder
+    title: ledger account holder
+    range: Agent
+    domain: LedgerAccount
+    multivalued: true
+  ledgerAccountType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/ledgerAccountType
+    title: ledger account type
+    range: LedgerAccountType
+    domain: LedgerAccount
+    multivalued: false
   ledgerInclusionProof:
     slot_uri: https://blackcatinformatics.ca/gmeow/ledgerInclusionProof
     title: ledger inclusion proof
@@ -5264,6 +5458,30 @@ slots:
     range: EventSeries
     domain: Event
     multivalued: true
+  orderAmount:
+    slot_uri: https://blackcatinformatics.ca/gmeow/orderAmount
+    title: order amount
+    range: MonetaryAmount
+    domain: Order
+    multivalued: false
+  orderBuyer:
+    slot_uri: https://blackcatinformatics.ca/gmeow/orderBuyer
+    title: order buyer
+    range: Agent
+    domain: Order
+    multivalued: true
+  orderSeller:
+    slot_uri: https://blackcatinformatics.ca/gmeow/orderSeller
+    title: order seller
+    range: Agent
+    domain: Order
+    multivalued: true
+  orderStatus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/orderStatus
+    title: order status
+    range: OrderStatus
+    domain: Order
+    multivalued: true
   overlappedBy:
     slot_uri: https://blackcatinformatics.ca/gmeow/overlappedBy
     title: overlapped by
@@ -5428,6 +5646,12 @@ slots:
     range: ParticipantRole
     domain: Participation
     multivalued: true
+  paymentMethod:
+    slot_uri: https://blackcatinformatics.ca/gmeow/paymentMethod
+    title: payment method
+    range: PaymentMethod
+    domain: Payment
+    multivalued: true
   perceptionEnvironment:
     slot_uri: https://blackcatinformatics.ca/gmeow/perceptionEnvironment
     title: perception environment
@@ -5545,6 +5769,30 @@ slots:
     title: postal code
     range: string
     domain: PostalAddress
+  postingAccount:
+    slot_uri: https://blackcatinformatics.ca/gmeow/postingAccount
+    title: posting account
+    range: LedgerAccount
+    domain: Posting
+    multivalued: false
+  postingAmount:
+    slot_uri: https://blackcatinformatics.ca/gmeow/postingAmount
+    title: posting amount
+    range: MonetaryAmount
+    domain: Posting
+    multivalued: false
+  postingDirection:
+    slot_uri: https://blackcatinformatics.ca/gmeow/postingDirection
+    title: posting direction
+    range: PostingDirection
+    domain: Posting
+    multivalued: false
+  postingJournalEntry:
+    slot_uri: https://blackcatinformatics.ca/gmeow/postingJournalEntry
+    title: posting journal entry
+    range: JournalEntry
+    domain: Posting
+    multivalued: false
   preview:
     slot_uri: https://blackcatinformatics.ca/gmeow/preview
     title: preview
@@ -6732,12 +6980,30 @@ slots:
     range: ReferenceFrame
     domain: Trajectory
     multivalued: false
+  transactionAmount:
+    slot_uri: https://blackcatinformatics.ca/gmeow/transactionAmount
+    title: transaction amount
+    range: MonetaryAmount
+    domain: FinancialTransaction
+    multivalued: false
   transactionHash:
     slot_uri: https://blackcatinformatics.ca/gmeow/transactionHash
     title: transaction hash
     range: string
     domain: LedgerTransaction
     multivalued: false
+  transactionStatus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/transactionStatus
+    title: transaction status
+    range: TransactionStatus
+    domain: FinancialTransaction
+    multivalued: true
+  transactionType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/transactionType
+    title: transaction type
+    range: TransactionType
+    domain: FinancialTransaction
+    multivalued: true
   transformsTo:
     slot_uri: https://blackcatinformatics.ca/gmeow/transformsTo
     title: transforms to
@@ -7006,6 +7272,23 @@ slots:
     title: virtual platform
     range: string
     domain: VirtualLocation
+  walletAddress:
+    slot_uri: https://blackcatinformatics.ca/gmeow/walletAddress
+    title: wallet address
+    range: string
+    domain: CryptoWallet
+  walletKey:
+    slot_uri: https://blackcatinformatics.ca/gmeow/walletKey
+    title: wallet key
+    range: CryptographicKey
+    domain: CryptoWallet
+    multivalued: true
+  walletScheme:
+    slot_uri: https://blackcatinformatics.ca/gmeow/walletScheme
+    title: wallet scheme
+    range: WalletScheme
+    domain: CryptoWallet
+    multivalued: false
   wasAssociatedWith:
     slot_uri: https://blackcatinformatics.ca/gmeow/wasAssociatedWith
     title: was associated with
@@ -7145,6 +7428,24 @@ enums:
       arcTypeRedemption:
         meaning: https://blackcatinformatics.ca/gmeow/arcTypeRedemption
         title: redemption
+  AssetTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AssetType
+    permissible_values:
+      assetTypeBond:
+        meaning: https://blackcatinformatics.ca/gmeow/assetTypeBond
+        title: bond
+      assetTypeCommodity:
+        meaning: https://blackcatinformatics.ca/gmeow/assetTypeCommodity
+        title: commodity
+      assetTypeCryptocurrency:
+        meaning: https://blackcatinformatics.ca/gmeow/assetTypeCryptocurrency
+        title: cryptocurrency
+      assetTypeRealEstate:
+        meaning: https://blackcatinformatics.ca/gmeow/assetTypeRealEstate
+        title: real estate
+      assetTypeStock:
+        meaning: https://blackcatinformatics.ca/gmeow/assetTypeStock
+        title: stock
   AttestationTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/AttestationType
     permissible_values:
@@ -8679,6 +8980,24 @@ enums:
       honorificPositionSuffix:
         meaning: https://blackcatinformatics.ca/gmeow/honorificPositionSuffix
         title: suffix
+  InvoiceStatusEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/InvoiceStatus
+    permissible_values:
+      invoiceStatusCancelled:
+        meaning: https://blackcatinformatics.ca/gmeow/invoiceStatusCancelled
+        title: cancelled
+      invoiceStatusDraft:
+        meaning: https://blackcatinformatics.ca/gmeow/invoiceStatusDraft
+        title: draft
+      invoiceStatusOverdue:
+        meaning: https://blackcatinformatics.ca/gmeow/invoiceStatusOverdue
+        title: overdue
+      invoiceStatusPaid:
+        meaning: https://blackcatinformatics.ca/gmeow/invoiceStatusPaid
+        title: paid
+      invoiceStatusSent:
+        meaning: https://blackcatinformatics.ca/gmeow/invoiceStatusSent
+        title: sent
   KeySchemeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/KeyScheme
     permissible_values:
@@ -8898,6 +9217,24 @@ enums:
       kindStandard:
         meaning: https://blackcatinformatics.ca/gmeow/kindStandard
         title: standard
+  LedgerAccountTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/LedgerAccountType
+    permissible_values:
+      ledgerAccountTypeAsset:
+        meaning: https://blackcatinformatics.ca/gmeow/ledgerAccountTypeAsset
+        title: asset
+      ledgerAccountTypeEquity:
+        meaning: https://blackcatinformatics.ca/gmeow/ledgerAccountTypeEquity
+        title: equity
+      ledgerAccountTypeExpense:
+        meaning: https://blackcatinformatics.ca/gmeow/ledgerAccountTypeExpense
+        title: expense
+      ledgerAccountTypeLiability:
+        meaning: https://blackcatinformatics.ca/gmeow/ledgerAccountTypeLiability
+        title: liability
+      ledgerAccountTypeRevenue:
+        meaning: https://blackcatinformatics.ca/gmeow/ledgerAccountTypeRevenue
+        title: revenue
   LedgerFinalityStatusEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/LedgerFinalityStatus
     permissible_values:
@@ -9598,6 +9935,24 @@ enums:
       observationTypeStreaming:
         meaning: https://blackcatinformatics.ca/gmeow/observationTypeStreaming
         title: streaming
+  OrderStatusEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/OrderStatus
+    permissible_values:
+      orderStatusCancelled:
+        meaning: https://blackcatinformatics.ca/gmeow/orderStatusCancelled
+        title: cancelled
+      orderStatusConfirmed:
+        meaning: https://blackcatinformatics.ca/gmeow/orderStatusConfirmed
+        title: confirmed
+      orderStatusDelivered:
+        meaning: https://blackcatinformatics.ca/gmeow/orderStatusDelivered
+        title: delivered
+      orderStatusPending:
+        meaning: https://blackcatinformatics.ca/gmeow/orderStatusPending
+        title: pending
+      orderStatusShipped:
+        meaning: https://blackcatinformatics.ca/gmeow/orderStatusShipped
+        title: shipped
   OrganizationEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Organization
     permissible_values:
@@ -9628,6 +9983,9 @@ enums:
       roleDupe:
         meaning: https://blackcatinformatics.ca/gmeow/roleDupe
         title: dupe
+      roleIntermediary:
+        meaning: https://blackcatinformatics.ca/gmeow/roleIntermediary
+        title: intermediary
       roleOfficiant:
         meaning: https://blackcatinformatics.ca/gmeow/roleOfficiant
         title: officiant
@@ -9637,6 +9995,12 @@ enums:
       roleParticipantPrincipal:
         meaning: https://blackcatinformatics.ca/gmeow/roleParticipantPrincipal
         title: principal / subject
+      rolePayee:
+        meaning: https://blackcatinformatics.ca/gmeow/rolePayee
+        title: payee
+      rolePayer:
+        meaning: https://blackcatinformatics.ca/gmeow/rolePayer
+        title: payer
       rolePerformer:
         meaning: https://blackcatinformatics.ca/gmeow/rolePerformer
         title: performer
@@ -9649,6 +10013,24 @@ enums:
       roleWitness:
         meaning: https://blackcatinformatics.ca/gmeow/roleWitness
         title: witness
+  PaymentMethodEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/PaymentMethod
+    permissible_values:
+      paymentMethodBankTransfer:
+        meaning: https://blackcatinformatics.ca/gmeow/paymentMethodBankTransfer
+        title: bank transfer
+      paymentMethodCash:
+        meaning: https://blackcatinformatics.ca/gmeow/paymentMethodCash
+        title: cash
+      paymentMethodCheque:
+        meaning: https://blackcatinformatics.ca/gmeow/paymentMethodCheque
+        title: cheque
+      paymentMethodCreditCard:
+        meaning: https://blackcatinformatics.ca/gmeow/paymentMethodCreditCard
+        title: credit card
+      paymentMethodCrypto:
+        meaning: https://blackcatinformatics.ca/gmeow/paymentMethodCrypto
+        title: cryptocurrency
   PeriodTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PeriodType
     permissible_values:
@@ -9760,6 +10142,15 @@ enums:
       placeTypeThoroughfare:
         meaning: https://blackcatinformatics.ca/gmeow/placeTypeThoroughfare
         title: thoroughfare / street
+  PostingDirectionEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/PostingDirection
+    permissible_values:
+      postingDirectionCredit:
+        meaning: https://blackcatinformatics.ca/gmeow/postingDirectionCredit
+        title: credit
+      postingDirectionDebit:
+        meaning: https://blackcatinformatics.ca/gmeow/postingDirectionDebit
+        title: debit
   ProcedureEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Procedure
     permissible_values:
@@ -10939,6 +11330,45 @@ enums:
       trademarkStatusUnregistered:
         meaning: https://blackcatinformatics.ca/gmeow/trademarkStatusUnregistered
         title: unregistered (™)
+  TransactionStatusEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/TransactionStatus
+    permissible_values:
+      transactionStatusCompleted:
+        meaning: https://blackcatinformatics.ca/gmeow/transactionStatusCompleted
+        title: completed
+      transactionStatusFailed:
+        meaning: https://blackcatinformatics.ca/gmeow/transactionStatusFailed
+        title: failed
+      transactionStatusPending:
+        meaning: https://blackcatinformatics.ca/gmeow/transactionStatusPending
+        title: pending
+      transactionStatusReversed:
+        meaning: https://blackcatinformatics.ca/gmeow/transactionStatusReversed
+        title: reversed
+  TransactionTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/TransactionType
+    permissible_values:
+      transactionTypeDeposit:
+        meaning: https://blackcatinformatics.ca/gmeow/transactionTypeDeposit
+        title: deposit
+      transactionTypeFee:
+        meaning: https://blackcatinformatics.ca/gmeow/transactionTypeFee
+        title: fee
+      transactionTypeInterest:
+        meaning: https://blackcatinformatics.ca/gmeow/transactionTypeInterest
+        title: interest
+      transactionTypePayment:
+        meaning: https://blackcatinformatics.ca/gmeow/transactionTypePayment
+        title: payment
+      transactionTypeRefund:
+        meaning: https://blackcatinformatics.ca/gmeow/transactionTypeRefund
+        title: refund
+      transactionTypeTransfer:
+        meaning: https://blackcatinformatics.ca/gmeow/transactionTypeTransfer
+        title: transfer
+      transactionTypeWithdrawal:
+        meaning: https://blackcatinformatics.ca/gmeow/transactionTypeWithdrawal
+        title: withdrawal
   TransliterationSchemeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/TransliterationScheme
     permissible_values:
@@ -11080,6 +11510,21 @@ enums:
       virtualLocationTypeWebsite:
         meaning: https://blackcatinformatics.ca/gmeow/virtualLocationTypeWebsite
         title: website
+  WalletSchemeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/WalletScheme
+    permissible_values:
+      walletSchemeBTC:
+        meaning: https://blackcatinformatics.ca/gmeow/walletSchemeBTC
+        title: Bitcoin
+      walletSchemeETH:
+        meaning: https://blackcatinformatics.ca/gmeow/walletSchemeETH
+        title: Ethereum
+      walletSchemeSOL:
+        meaning: https://blackcatinformatics.ca/gmeow/walletSchemeSOL
+        title: Solana
+      walletSchemeXMR:
+        meaning: https://blackcatinformatics.ca/gmeow/walletSchemeXMR
+        title: Monero
   WritingSystemTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/WritingSystemType
     permissible_values:

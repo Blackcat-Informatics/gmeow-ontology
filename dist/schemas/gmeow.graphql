@@ -38,6 +38,15 @@ enum ArcTypeEnum
     arcTypeRedemption
   }
 
+enum AssetTypeEnum
+  {
+    assetTypeBond
+    assetTypeCommodity
+    assetTypeCryptocurrency
+    assetTypeRealEstate
+    assetTypeStock
+  }
+
 enum AttestationTypeEnum
   {
     attestationTypeAIOutput
@@ -674,6 +683,15 @@ enum HonorificPositionEnum
     honorificPositionSuffix
   }
 
+enum InvoiceStatusEnum
+  {
+    invoiceStatusCancelled
+    invoiceStatusDraft
+    invoiceStatusOverdue
+    invoiceStatusPaid
+    invoiceStatusSent
+  }
+
 enum KeySchemeEnum
   {
     keySchemeNostr
@@ -766,6 +784,15 @@ enum LanguageVarietyKindEnum
     kindSlang
     kindSociolect
     kindStandard
+  }
+
+enum LedgerAccountTypeEnum
+  {
+    ledgerAccountTypeAsset
+    ledgerAccountTypeEquity
+    ledgerAccountTypeExpense
+    ledgerAccountTypeLiability
+    ledgerAccountTypeRevenue
   }
 
 enum LedgerFinalityStatusEnum
@@ -1064,6 +1091,15 @@ enum ObservationTypeEnum
     observationTypeStreaming
   }
 
+enum OrderStatusEnum
+  {
+    orderStatusCancelled
+    orderStatusConfirmed
+    orderStatusDelivered
+    orderStatusPending
+    orderStatusShipped
+  }
+
 enum OrganizationEnum
   {
     agentInternationalCommissionOnStratigraphy
@@ -1078,13 +1114,25 @@ enum ParticipantRoleEnum
     roleDeceived
     roleDeceiver
     roleDupe
+    roleIntermediary
     roleOfficiant
     roleOrganizer
     roleParticipantPrincipal
+    rolePayee
+    rolePayer
     rolePerformer
     roleSpinDoctor
     roleVictim
     roleWitness
+  }
+
+enum PaymentMethodEnum
+  {
+    paymentMethodBankTransfer
+    paymentMethodCash
+    paymentMethodCheque
+    paymentMethodCreditCard
+    paymentMethodCrypto
   }
 
 enum PeriodTypeEnum
@@ -1131,6 +1179,12 @@ enum PlaceTypeEnum
     placeTypeRoom
     placeTypeSite
     placeTypeThoroughfare
+  }
+
+enum PostingDirectionEnum
+  {
+    postingDirectionCredit
+    postingDirectionDebit
   }
 
 enum ProcedureEnum
@@ -1646,6 +1700,25 @@ enum TrademarkStatusEnum
     trademarkStatusUnregistered
   }
 
+enum TransactionStatusEnum
+  {
+    transactionStatusCompleted
+    transactionStatusFailed
+    transactionStatusPending
+    transactionStatusReversed
+  }
+
+enum TransactionTypeEnum
+  {
+    transactionTypeDeposit
+    transactionTypeFee
+    transactionTypeInterest
+    transactionTypePayment
+    transactionTypeRefund
+    transactionTypeTransfer
+    transactionTypeWithdrawal
+  }
+
 enum TransliterationSchemeEnum
   {
     schemeBGNPCGN
@@ -1706,6 +1779,14 @@ enum VirtualLocationTypeEnum
     virtualLocationTypeVideoConference
     virtualLocationTypeVirtualEventSpace
     virtualLocationTypeWebsite
+  }
+
+enum WalletSchemeEnum
+  {
+    walletSchemeBTC
+    walletSchemeETH
+    walletSchemeSOL
+    walletSchemeXMR
   }
 
 enum WritingSystemTypeEnum
@@ -1944,6 +2025,60 @@ type Article
     temporalCoverage: [TimeInterval]
     title: String
     realizedThrough: [Expression]
+  }
+
+type Asset
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    assetIdentifier: String
+    assetType: AssetType
+  }
+
+type AssetType
+  {
   }
 
 type AtomicConstraint
@@ -3509,6 +3644,66 @@ type CryptographicSignature
     verificationStatus: String
   }
 
+type CryptoWallet
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    accountBalance: [MonetaryAmount]
+    accountCurrency: [ReferenceFrame]
+    accountHolder: [Agent]
+    accountNumber: String
+    accountType: FinancialAccountType
+    bic: String
+    iban: String
+    walletAddress: String
+    walletKey: [CryptographicKey]
+    walletScheme: WalletScheme
+  }
+
 type DataFlow
   {
     dataFlowEntity: [Entity]
@@ -4413,6 +4608,51 @@ type FinancialAccountType
   {
   }
 
+type FinancialTransaction
+  {
+    after: [Event]
+    before: [Event]
+    coincidesWith: [Event]
+    contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
+    during: [Event]
+    earliestStart: String
+    eventAspect: [GrammaticalAspect]
+    eventInterval: [TimeInterval]
+    eventLocation: [Location]
+    eventObservation: [Observation]
+    eventSpacetime: [LocationState]
+    eventTemporalFrame: TemporalFrame
+    eventTense: [GrammaticalTense]
+    eventTime: String
+    eventTrajectory: [Trajectory]
+    eventType: [EventType]
+    finishedBy: [Event]
+    finishes: [Event]
+    hasDuration: [Duration]
+    hasParticipant: [Agent]
+    hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
+    latestEnd: String
+    maximViolationType: [MaximViolationType]
+    meets: [Event]
+    metBy: [Event]
+    occurrenceOfSeries: [EventSeries]
+    overlappedBy: [Event]
+    overlaps: [Event]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
+    startedBy: [Event]
+    starts: [Event]
+    subEventOf: [Event]
+    temporalPrecision: [TemporalPrecision]
+    transactionAmount: MonetaryAmount
+    transactionStatus: [TransactionStatus]
+    transactionType: [TransactionType]
+  }
+
 type ForgePlatform
   {
     acquireLicensePage: String
@@ -4782,6 +5022,15 @@ type Group
     wasGeneratedBy: [Activity]
   }
 
+type Holding
+  {
+    holdingAgent: Agent
+    holdingAsset: Asset
+    holdingCostBasis: MonetaryAmount
+    holdingPeriod: [TimeInterval]
+    holdingQuantity: Float
+  }
+
 type Honorific
   {
     honorificClass: [HonorificClass]
@@ -4976,6 +5225,97 @@ type InterpersonalRelationship
     relationshipParty: [Agent]
   }
 
+type Invoice
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
+    datePublished: String
+    dateSubmitted: String
+    editionOf: CreativeWork
+    extent: String
+    hasAuthor: [Agent]
+    hasContributor: [Agent]
+    hasEditor: [Agent]
+    hasIllustrator: [Agent]
+    hasNarrator: [Agent]
+    hasTitle: [CreativeWorkTitle]
+    hasTranslator: [Agent]
+    identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
+    requires: [CreativeWork]
+    sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
+    title: String
+    realizedThrough: [Expression]
+    invoiceAmount: MonetaryAmount
+    invoiceDueDate: String
+    invoiceIssuer: [Agent]
+    invoiceRecipient: [Agent]
+    invoiceStatus: [InvoiceStatus]
+  }
+
+type InvoiceStatus
+  {
+  }
+
 type Issue
   {
     acquireLicensePage: String
@@ -5107,6 +5447,49 @@ type Item
     title: String
     exemplifies: [Manifestation]
     hasCarrier: [PhysicalObject]
+  }
+
+type JournalEntry
+  {
+    after: [Event]
+    before: [Event]
+    coincidesWith: [Event]
+    contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
+    during: [Event]
+    earliestStart: String
+    eventAspect: [GrammaticalAspect]
+    eventInterval: [TimeInterval]
+    eventLocation: [Location]
+    eventObservation: [Observation]
+    eventSpacetime: [LocationState]
+    eventTemporalFrame: TemporalFrame
+    eventTense: [GrammaticalTense]
+    eventTime: String
+    eventTrajectory: [Trajectory]
+    eventType: [EventType]
+    finishedBy: [Event]
+    finishes: [Event]
+    hasDuration: [Duration]
+    hasParticipant: [Agent]
+    hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
+    latestEnd: String
+    maximViolationType: [MaximViolationType]
+    meets: [Event]
+    metBy: [Event]
+    occurrenceOfSeries: [EventSeries]
+    overlappedBy: [Event]
+    overlaps: [Event]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
+    startedBy: [Event]
+    starts: [Event]
+    subEventOf: [Event]
+    temporalPrecision: [TemporalPrecision]
+    journalEntryPostings: [Posting]
   }
 
 type JurisdictionTenure
@@ -5442,6 +5825,63 @@ type LanguageVersion
     languageStatus: [LanguageStatus]
     languageTag: String
     usesWritingSystem: [WritingSystem]
+  }
+
+type LedgerAccount
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    ledgerAccountCurrency: [ReferenceFrame]
+    ledgerAccountHolder: [Agent]
+    ledgerAccountType: LedgerAccountType
+  }
+
+type LedgerAccountType
+  {
   }
 
 type LedgerEvent
@@ -7197,6 +7637,20 @@ type OnlineAccount
     nostrPubkey: String
   }
 
+type Order
+  {
+    hasAgreementName: [AgreementName]
+    hasParty: [Agent]
+    orderAmount: MonetaryAmount
+    orderBuyer: [Agent]
+    orderSeller: [Agent]
+    orderStatus: [OrderStatus]
+  }
+
+type OrderStatus
+  {
+  }
+
 type Organization
   {
     email: String
@@ -7438,6 +7892,56 @@ type Patent
     temporalCoverage: [TimeInterval]
     title: String
     realizedThrough: [Expression]
+  }
+
+type Payment
+  {
+    after: [Event]
+    before: [Event]
+    coincidesWith: [Event]
+    contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
+    during: [Event]
+    earliestStart: String
+    eventAspect: [GrammaticalAspect]
+    eventInterval: [TimeInterval]
+    eventLocation: [Location]
+    eventObservation: [Observation]
+    eventSpacetime: [LocationState]
+    eventTemporalFrame: TemporalFrame
+    eventTense: [GrammaticalTense]
+    eventTime: String
+    eventTrajectory: [Trajectory]
+    eventType: [EventType]
+    finishedBy: [Event]
+    finishes: [Event]
+    hasDuration: [Duration]
+    hasParticipant: [Agent]
+    hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
+    latestEnd: String
+    maximViolationType: [MaximViolationType]
+    meets: [Event]
+    metBy: [Event]
+    occurrenceOfSeries: [EventSeries]
+    overlappedBy: [Event]
+    overlaps: [Event]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
+    startedBy: [Event]
+    starts: [Event]
+    subEventOf: [Event]
+    temporalPrecision: [TemporalPrecision]
+    transactionAmount: MonetaryAmount
+    transactionStatus: [TransactionStatus]
+    transactionType: [TransactionType]
+    paymentMethod: [PaymentMethod]
+  }
+
+type PaymentMethod
+  {
   }
 
 type PeriodType
@@ -7779,6 +8283,18 @@ type PostalAddress
     postalAddressFrame: ReferenceFrame
     postalCode: String
     streetAddress: String
+  }
+
+type Posting
+  {
+    postingAccount: LedgerAccount
+    postingAmount: MonetaryAmount
+    postingDirection: PostingDirection
+    postingJournalEntry: JournalEntry
+  }
+
+type PostingDirection
+  {
   }
 
 type PrivacyNotice
@@ -11619,6 +12135,10 @@ type VirtualLocation
   }
 
 type VirtualLocationType
+  {
+  }
+
+type WalletScheme
   {
   }
 

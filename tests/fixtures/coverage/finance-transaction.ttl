@@ -1,0 +1,71 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:      <https://blackcatinformatics.ca/gmeow/examples/finance/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+# A balanced double-entry journal entry: Alice pays Bob $100 CAD for services.
+# Transaction layer (REA pattern).
+ex:alice a gmeow:Agent .
+ex:bob   a gmeow:Agent .
+
+ex:paymentTxn
+    a gmeow:FinancialTransaction ;
+    gmeow:transactionAmount ex:txnAmount ;
+    gmeow:transactionType gmeow:transactionTypePayment ;
+    gmeow:transactionStatus gmeow:transactionStatusCompleted ;
+    gmeow:hasParticipant ex:alice, ex:bob ;
+    gmeow:eventTime "2026-01-15T10:30:00Z"^^xsd:dateTime .
+
+ex:txnAmount
+    a gmeow:MonetaryAmount ;
+    gmeow:monetaryValue "100.00"^^xsd:decimal ;
+    gmeow:currency gmeow:referenceFrameCAD .
+
+# Payer/payee via Participation relators.
+ex:alicePayer
+    a gmeow:Participation ;
+    gmeow:participationEvent ex:paymentTxn ;
+    gmeow:participationParticipant ex:alice ;
+    gmeow:participationRole gmeow:rolePayer .
+
+ex:bobPayee
+    a gmeow:Participation ;
+    gmeow:participationEvent ex:paymentTxn ;
+    gmeow:participationParticipant ex:bob ;
+    gmeow:participationRole gmeow:rolePayee .
+
+# Double-entry ledger layer.
+ex:expenseAccount
+    a gmeow:LedgerAccount ;
+    gmeow:ledgerAccountType gmeow:ledgerAccountTypeExpense ;
+    gmeow:ledgerAccountHolder ex:alice ;
+    gmeow:ledgerAccountCurrency gmeow:referenceFrameCAD .
+
+ex:assetAccount
+    a gmeow:LedgerAccount ;
+    gmeow:ledgerAccountType gmeow:ledgerAccountTypeAsset ;
+    gmeow:ledgerAccountHolder ex:alice ;
+    gmeow:ledgerAccountCurrency gmeow:referenceFrameCAD .
+
+ex:journalEntry1
+    a gmeow:JournalEntry ;
+    gmeow:journalEntryPostings ex:debitPosting, ex:creditPosting ;
+    gmeow:eventTime "2026-01-15T10:30:00Z"^^xsd:dateTime .
+
+ex:debitPosting
+    a gmeow:Posting ;
+    gmeow:postingJournalEntry ex:journalEntry1 ;
+    gmeow:postingAccount ex:expenseAccount ;
+    gmeow:postingAmount ex:postingAmount100 ;
+    gmeow:postingDirection gmeow:postingDirectionDebit .
+
+ex:creditPosting
+    a gmeow:Posting ;
+    gmeow:postingJournalEntry ex:journalEntry1 ;
+    gmeow:postingAccount ex:assetAccount ;
+    gmeow:postingAmount ex:postingAmount100 ;
+    gmeow:postingDirection gmeow:postingDirectionCredit .
+
+ex:postingAmount100
+    a gmeow:MonetaryAmount ;
+    gmeow:monetaryValue "100.00"^^xsd:decimal ;
+    gmeow:currency gmeow:referenceFrameCAD .

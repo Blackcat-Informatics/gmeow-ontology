@@ -78,3 +78,49 @@ gmeow:eqSchemaOrgFin007 a gmeow:TermEquivalence ;
     gmeow:confidence 0.85 ;
     gmeow:comment "the balance of a bank account" ;
     gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
+
+
+gmeow:eqSchemaOrgFin008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:FinancialTransaction ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:MoneyTransfer ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "a money transfer; GMEOW FinancialTransaction is broader (also fees, interest, refunds)" ;
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
+
+gmeow:eqSchemaOrgFin009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Payment ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:Payment ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "a payment action; GMEOW Payment is a thin subclass of FinancialTransaction" ;
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
+
+gmeow:eqSchemaOrgFin010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Invoice ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:Invoice ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "a billing document" ;
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
+
+gmeow:eqSchemaOrgFin011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Order ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:Order ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "a purchase or sales order; GMEOW Order is a subclass of Agreement" ;
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
+
+gmeow:eqSchemaOrgFin012 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:CryptoWallet ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:BankAccount ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "schema.org has no crypto-specific account term; BankAccount is the closest match. Projection loses crypto-specific semantics: wallet address, blockchain/network scheme, custody/private-key properties, and transaction provenance." ;
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
