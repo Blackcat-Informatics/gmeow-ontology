@@ -80,6 +80,17 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/AgreementName
     title: Agreement Name
     is_a: Appellation
+  Annotation:
+    class_uri: https://blackcatinformatics.ca/gmeow/Annotation
+    title: Annotation
+    slots:
+    - annotationBody
+    - annotationMotivation
+    - annotationTarget
+    - annotationTargetSpan
+  AnnotationMotivation:
+    class_uri: https://blackcatinformatics.ca/gmeow/AnnotationMotivation
+    title: Annotation Motivation
   Appellation:
     class_uri: https://blackcatinformatics.ca/gmeow/Appellation
     title: Appellation
@@ -219,6 +230,10 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/BookRelease
     title: Book Release
     is_a: Manifestation
+  Bookmark:
+    class_uri: https://blackcatinformatics.ca/gmeow/Bookmark
+    title: Bookmark
+    is_a: Annotation
   Branch:
     class_uri: https://blackcatinformatics.ca/gmeow/Branch
     title: Branch
@@ -329,6 +344,12 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Collection
     title: Collection
     is_a: Work
+  Comment:
+    class_uri: https://blackcatinformatics.ca/gmeow/Comment
+    title: Comment
+    is_a: Note
+    slots:
+    - commentParent
   Commit:
     class_uri: https://blackcatinformatics.ca/gmeow/Commit
     title: Commit
@@ -618,8 +639,10 @@ classes:
     - hasCopyright
     - hasCreationEvent
     - hasDestructionEvent
+    - hasDirectReply
     - hasLicense
     - hasPose
+    - hasReply
     - hasRightsStatement
     - hasSensoryObservation
     - hasSensoryQuantity
@@ -634,6 +657,7 @@ classes:
     - isReferencedBy
     - isResultOf
     - locatedAt
+    - mentionedIn
     - name
     - provenance
     - proximity
@@ -718,6 +742,10 @@ classes:
   EvidenceClass:
     class_uri: https://blackcatinformatics.ca/gmeow/EvidenceClass
     title: Evidence Class
+  EvidenceSpan:
+    class_uri: https://blackcatinformatics.ca/gmeow/EvidenceSpan
+    title: Evidence Span
+    is_a: InformationObject
   Execution:
     class_uri: https://blackcatinformatics.ca/gmeow/Execution
     title: Execution
@@ -857,6 +885,10 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Group
     title: Group
     is_a: Entity
+  Highlight:
+    class_uri: https://blackcatinformatics.ca/gmeow/Highlight
+    title: Highlight
+    is_a: Annotation
   Holding:
     class_uri: https://blackcatinformatics.ca/gmeow/Holding
     title: Holding
@@ -1394,6 +1426,18 @@ classes:
   NotationUsageRole:
     class_uri: https://blackcatinformatics.ca/gmeow/NotationUsageRole
     title: Notation Usage Role
+  Note:
+    class_uri: https://blackcatinformatics.ca/gmeow/Note
+    title: Note
+    is_a: InformationObject
+    slots:
+    - hasWikilink
+    - mentions
+    - noteAuthor
+    - noteContent
+    - noteCreatedAt
+    - noteModifiedAt
+    - relatedNote
   ObservableProperty:
     class_uri: https://blackcatinformatics.ca/gmeow/ObservableProperty
     title: Observable Property
@@ -1913,7 +1957,7 @@ classes:
   Selector:
     class_uri: https://blackcatinformatics.ca/gmeow/Selector
     title: Selector
-    is_a: InformationObject
+    is_a: EvidenceSpan
     slots:
     - selectorLocator
     - selectorPage
@@ -2525,6 +2569,30 @@ slots:
     range: AggregationFunction
     domain: SpatialAggregation
     multivalued: false
+  annotationBody:
+    slot_uri: https://blackcatinformatics.ca/gmeow/annotationBody
+    title: annotation body
+    range: Note
+    domain: Annotation
+    multivalued: false
+  annotationMotivation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/annotationMotivation
+    title: annotation motivation
+    range: AnnotationMotivation
+    domain: Annotation
+    multivalued: false
+  annotationTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/annotationTarget
+    title: annotation target
+    range: Entity
+    domain: Annotation
+    multivalued: false
+  annotationTargetSpan:
+    slot_uri: https://blackcatinformatics.ca/gmeow/annotationTargetSpan
+    title: annotation target span
+    range: EvidenceSpan
+    domain: Annotation
+    multivalued: true
   arcEvidence:
     slot_uri: https://blackcatinformatics.ca/gmeow/arcEvidence
     title: arc evidence
@@ -2973,6 +3041,12 @@ slots:
     title: coincides with
     range: Event
     domain: Event
+    multivalued: true
+  commentParent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/commentParent
+    title: comment parent
+    range: Entity
+    domain: Comment
     multivalued: true
   commitAncestor:
     slot_uri: https://blackcatinformatics.ca/gmeow/commitAncestor
@@ -4034,6 +4108,12 @@ slots:
     title: has determinacy
     range: Determinacy
     multivalued: true
+  hasDirectReply:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasDirectReply
+    title: has direct reply
+    range: Comment
+    domain: Entity
+    multivalued: true
   hasDisclosurePolicy:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasDisclosurePolicy
     title: has disclosure policy
@@ -4363,6 +4443,12 @@ slots:
     range: Release
     domain: Project
     multivalued: true
+  hasReply:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasReply
+    title: has reply
+    range: Comment
+    domain: Entity
+    multivalued: true
   hasRepository:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasRepository
     title: has repository
@@ -4583,6 +4669,12 @@ slots:
     title: has web page
     range: WebPage
     domain: Entity
+    multivalued: true
+  hasWikilink:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasWikilink
+    title: has wikilink
+    range: Note
+    domain: Note
     multivalued: true
   hasWorkedWith:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasWorkedWith
@@ -5282,6 +5374,18 @@ slots:
     range: Organization
     domain: Membership
     multivalued: false
+  mentionedIn:
+    slot_uri: https://blackcatinformatics.ca/gmeow/mentionedIn
+    title: mentioned in
+    range: Note
+    domain: Entity
+    multivalued: true
+  mentions:
+    slot_uri: https://blackcatinformatics.ca/gmeow/mentions
+    title: mentions
+    range: Entity
+    domain: Note
+    multivalued: true
   mergeBase:
     slot_uri: https://blackcatinformatics.ca/gmeow/mergeBase
     title: merge base
@@ -5458,6 +5562,27 @@ slots:
     range: Entity
     domain: NotationSystemUsage
     multivalued: false
+  noteAuthor:
+    slot_uri: https://blackcatinformatics.ca/gmeow/noteAuthor
+    title: note author
+    range: Agent
+    domain: Note
+    multivalued: true
+  noteContent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/noteContent
+    title: note content
+    range: string
+    domain: Note
+  noteCreatedAt:
+    slot_uri: https://blackcatinformatics.ca/gmeow/noteCreatedAt
+    title: note created at
+    range: datetime
+    domain: Note
+  noteModifiedAt:
+    slot_uri: https://blackcatinformatics.ca/gmeow/noteModifiedAt
+    title: note modified at
+    range: datetime
+    domain: Note
   observationEvent:
     slot_uri: https://blackcatinformatics.ca/gmeow/observationEvent
     title: observation event
@@ -6163,6 +6288,12 @@ slots:
     range: string
     domain: Trademark
     multivalued: false
+  relatedNote:
+    slot_uri: https://blackcatinformatics.ca/gmeow/relatedNote
+    title: related note
+    range: Note
+    domain: Note
+    multivalued: true
   relatedTag:
     slot_uri: https://blackcatinformatics.ca/gmeow/relatedTag
     title: related tag
@@ -7459,6 +7590,39 @@ enums:
       aggSum:
         meaning: https://blackcatinformatics.ca/gmeow/aggSum
         title: sum
+  AnnotationMotivationEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AnnotationMotivation
+    permissible_values:
+      motivationAssessing:
+        meaning: https://blackcatinformatics.ca/gmeow/motivationAssessing
+        title: assessing
+      motivationBookmarking:
+        meaning: https://blackcatinformatics.ca/gmeow/motivationBookmarking
+        title: bookmarking
+      motivationCommenting:
+        meaning: https://blackcatinformatics.ca/gmeow/motivationCommenting
+        title: commenting
+      motivationDescribing:
+        meaning: https://blackcatinformatics.ca/gmeow/motivationDescribing
+        title: describing
+      motivationHighlighting:
+        meaning: https://blackcatinformatics.ca/gmeow/motivationHighlighting
+        title: highlighting
+      motivationLinking:
+        meaning: https://blackcatinformatics.ca/gmeow/motivationLinking
+        title: linking
+      motivationModerating:
+        meaning: https://blackcatinformatics.ca/gmeow/motivationModerating
+        title: moderating
+      motivationQuestioning:
+        meaning: https://blackcatinformatics.ca/gmeow/motivationQuestioning
+        title: questioning
+      motivationReplying:
+        meaning: https://blackcatinformatics.ca/gmeow/motivationReplying
+        title: replying
+      motivationTagging:
+        meaning: https://blackcatinformatics.ca/gmeow/motivationTagging
+        title: tagging
   ArcTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ArcType
     permissible_values:

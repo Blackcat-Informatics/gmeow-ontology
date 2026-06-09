@@ -28,6 +28,20 @@ export enum AggregationFunctionEnum {
     sum = "aggSum",
 };
 
+export enum AnnotationMotivationEnum {
+
+    assessing = "motivationAssessing",
+    bookmarking = "motivationBookmarking",
+    commenting = "motivationCommenting",
+    describing = "motivationDescribing",
+    highlighting = "motivationHighlighting",
+    linking = "motivationLinking",
+    moderating = "motivationModerating",
+    questioning = "motivationQuestioning",
+    replying = "motivationReplying",
+    tagging = "motivationTagging",
+};
+
 export enum ArcTypeEnum {
 
     coming_of_age = "arcTypeComingOfAge",
@@ -1883,6 +1897,20 @@ export interface AgreementName extends Appellation {
 
 
 
+export interface Annotation {
+    annotationBody?: Note,
+    annotationMotivation?: AnnotationMotivation,
+    annotationTarget?: Entity,
+    annotationTargetSpan?: EvidenceSpan[],
+}
+
+
+
+export interface AnnotationMotivation {
+}
+
+
+
 export interface Appellation {
     conferredByEvent?: LifeEvent[],
     fullName?: string,
@@ -2040,6 +2068,11 @@ export interface BookRelease extends Manifestation {
 
 
 
+export interface Bookmark extends Annotation {
+}
+
+
+
 export interface Branch extends InformationObject {
 }
 
@@ -2168,6 +2201,12 @@ export interface CodeReview extends Event {
 
 
 export interface Collection extends Work {
+}
+
+
+
+export interface Comment extends Note {
+    commentParent?: Entity[],
 }
 
 
@@ -2501,8 +2540,10 @@ export interface Entity {
     hasCopyright?: Copyright[],
     hasCreationEvent?: Event[],
     hasDestructionEvent?: Event[],
+    hasDirectReply?: Comment[],
     hasLicense?: License[],
     hasPose?: Pose[],
+    hasReply?: Comment[],
     hasRightsStatement?: RightsStatement[],
     hasSensoryObservation?: SensoryObservation[],
     hasSensoryQuantity?: SensoryQuantity[],
@@ -2517,6 +2558,7 @@ export interface Entity {
     isReferencedBy?: Entity[],
     isResultOf?: Observation[],
     locatedAt?: Location[],
+    mentionedIn?: Note[],
     name?: string,
     provenance?: string,
     proximity?: ProximityMeasurement[],
@@ -2607,6 +2649,11 @@ export interface EventType {
 
 
 export interface EvidenceClass {
+}
+
+
+
+export interface EvidenceSpan extends InformationObject {
 }
 
 
@@ -2772,6 +2819,11 @@ export interface GranularityLevel {
 
 
 export interface Group extends Entity {
+}
+
+
+
+export interface Highlight extends Annotation {
 }
 
 
@@ -3394,6 +3446,18 @@ export interface NotationUsageRole {
 
 
 
+export interface Note extends InformationObject {
+    hasWikilink?: Note[],
+    mentions?: Entity[],
+    noteAuthor?: Agent[],
+    noteContent?: string,
+    noteCreatedAt?: string,
+    noteModifiedAt?: string,
+    relatedNote?: Note[],
+}
+
+
+
 export interface ObservableProperty {
 }
 
@@ -3981,7 +4045,7 @@ export interface ScriptRole {
 
 
 
-export interface Selector extends InformationObject {
+export interface Selector extends EvidenceSpan {
     selectorLocator?: string,
     selectorPage?: string,
     selectorTextPosition?: string,

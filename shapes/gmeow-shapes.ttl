@@ -2705,3 +2705,86 @@ gmeow:BranchHasOutgoingFlowsShape
             }
         """ ;
     ] .
+
+# --------------------------------------------------------------------------- #
+# Notes & Annotation building block (#63)
+# --------------------------------------------------------------------------- #
+
+gmeow:AnnotationShape
+    a sh:NodeShape ;
+    rdfs:label "Annotation well-formedness shape" ;
+    sh:targetClass gmeow:Annotation ;
+    sh:property [
+        sh:path gmeow:annotationTarget ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every Annotation must have exactly one annotationTarget." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:annotationBody ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Annotation may have at most one annotationBody." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:annotationMotivation ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every Annotation must have exactly one annotationMotivation." ;
+    ] .
+
+gmeow:HighlightHasSelectorShape
+    a sh:NodeShape ;
+    rdfs:label "Highlight must have a selector span" ;
+    sh:targetClass gmeow:Highlight ;
+    sh:property [
+        sh:path gmeow:annotationTargetSpan ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every Highlight must have at least one annotationTargetSpan (an EvidenceSpan or Selector)." ;
+    ] .
+
+gmeow:CommentHasParentShape
+    a sh:NodeShape ;
+    rdfs:label "Comment parent must be an Entity" ;
+    sh:targetClass gmeow:Comment ;
+    sh:property [
+        sh:path gmeow:commentParent ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:Entity ;
+        sh:severity sh:Violation ;
+        sh:message "A commentParent must point to exactly one Entity (typically an Annotation or Comment)." ;
+    ] .
+
+gmeow:NoteContentShape
+    a sh:NodeShape ;
+    rdfs:label "Note must have content or a label" ;
+    sh:targetClass gmeow:Note ;
+    sh:or (
+        [ sh:path gmeow:noteContent ; sh:minCount 1 ]
+        [ sh:path rdfs:label ; sh:minCount 1 ]
+    ) ;
+    sh:severity sh:Violation ;
+    sh:message "A Note must have gmeow:noteContent or at least one rdfs:label." .
+
+gmeow:RetractedNoteSuppressionShape
+    a sh:NodeShape ;
+    rdfs:label "Retracted comment suppression check" ;
+    sh:targetClass gmeow:Comment ;
+    sh:sparql [
+        sh:severity sh:Warning ;
+        sh:message "A comment whose parent is suppressed should set gmeow:displayable false (Principle 10)." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this a <https://blackcatinformatics.ca/gmeow/Comment> .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/displayable> false .
+                }
+                $this <https://blackcatinformatics.ca/gmeow/commentParent> ?parent .
+                ?parent <https://blackcatinformatics.ca/gmeow/displayable> false .
+            }
+        """ ;
+    ] .
