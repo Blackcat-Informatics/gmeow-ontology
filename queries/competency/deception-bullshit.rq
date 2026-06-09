@@ -1,0 +1,14 @@
+# Competency question: "Which events are bullshit?"
+# Bullshit = held modality = bullshit, projected unequivocal.
+# Expected: event-bullshit-001.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?event WHERE {
+    ?event gmeow:eventType gmeow:eventTypeBullshit .
+    ?event gmeow:heldStandpoint ?heldClaim .
+    ?event gmeow:projectedStandpoint ?projectedClaim .
+    ?heldClaim gmeow:claimModality gmeow:bullshit .
+    ?projectedClaim gmeow:claimModality gmeow:unequivocal .
+}
+ORDER BY ?event

@@ -35,7 +35,7 @@ def test_dsl_parses() -> None:
     Validate that the mapping DSL loads correctly and contains the expected
     counts and profiles.
 
-    Asserts that the loaded DSL has 1434 term equivalences, 35 functions,
+    Asserts that the loaded DSL has 1439 term equivalences, 35 functions,
     45 mapping sets, more than 30 projection cells, and that the set of
     profiles used in projection bindings equals the module-level `_PROFILES`.
     """
@@ -205,7 +205,10 @@ def test_dsl_parses() -> None:
     # Issue #169 lexicon: +9 (OntoLex x4, LIME x1, PROV-O x3, Wikidata x1).
     # Issue #226 procedure / execution / step: +26 (P-Plan x4, PROV-O x4,
     # schema.org x4, OPMW x3, OBI x3, BPMN x4, RO-Crate x4).
-    assert len(dsl.equivalences) == 1434
+    # Issue #215 speech-act deceptions: +5 (eventTypeLie/Distortion/Bullshit/
+    # SelfDeception → Wikidata x4 + Frankfurt essay x1). Paltering removed —
+    # no valid Wikidata QID found.
+    assert len(dsl.equivalences) == 1439
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

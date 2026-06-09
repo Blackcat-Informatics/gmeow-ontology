@@ -30,6 +30,36 @@
     gmeow:assertedAt "2026-04-01T00:00:00+00:00"^^xsd:dateTime ;
     gmeow:confidence 0.7 .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-bullshit-held-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:heldStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-bullshit-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-held-001> ;
+    gmeow:assertedAt "2026-06-05T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.65 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-bullshit-held-modality-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimModality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-held-001> ;
+    owl:annotatedTarget gmeow:bullshit ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-analyst> ;
+    gmeow:assertedAt "2026-06-05T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.65 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-bullshit-projected-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:projectedStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-bullshit-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-projected-001> ;
+    gmeow:assertedAt "2026-06-05T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.8 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-bullshit-projected-modality-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimModality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-projected-001> ;
+    owl:annotatedTarget gmeow:unequivocal ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-bullshitter> ;
+    gmeow:assertedAt "2026-06-05T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.8 .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-crimea-in-russia-per-ru> a owl:Axiom ;
     owl:annotatedProperty gmeow:containedInPlace ;
     owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/crimea> ;
@@ -71,6 +101,92 @@
     gmeow:assertedAt "2026-01-15T00:00:00+00:00"^^xsd:dateTime ;
     gmeow:confidence 0.85 .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-distortion-held-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:heldStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-distortion-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-held-001> ;
+    gmeow:assertedAt "2026-06-04T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.7 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-distortion-held-modality-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimModality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-held-001> ;
+    owl:annotatedTarget gmeow:probable ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-deceiver> ;
+    gmeow:assertedAt "2026-06-04T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.7 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-distortion-participant-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:hasParticipant ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-distortion-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpoint-spin-doctor> ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-06-04T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.85 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-distortion-projected-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:projectedStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-distortion-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-projected-001> ;
+    gmeow:assertedAt "2026-06-04T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.85 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-distortion-projected-modality-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimModality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-projected-001> ;
+    owl:annotatedTarget gmeow:unequivocal ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-spin-doctor> ;
+    gmeow:assertedAt "2026-06-04T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.85 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-event-bullshit-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:eventType ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-bullshit-001> ;
+    owl:annotatedTarget gmeow:eventTypeBullshit ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-analyst> ;
+    gmeow:assertedAt "2026-06-05T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.72 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-event-distortion-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:eventType ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-distortion-001> ;
+    owl:annotatedTarget gmeow:eventTypeDistortion ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-06-04T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.75 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-event-lie-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:eventType ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-lie-001> ;
+    owl:annotatedTarget gmeow:eventTypeLie ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-06-01T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.88 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-event-omission-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:eventType ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-omission-001> ;
+    owl:annotatedTarget gmeow:eventTypeOmission ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-06-03T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.8 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-event-paltering-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:eventType ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-paltering-001> ;
+    owl:annotatedTarget gmeow:eventTypePaltering ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-06-02T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.82 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-event-self-deception-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:eventType ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-self-deception-001> ;
+    owl:annotatedTarget gmeow:eventTypeSelfDeception ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-therapist> ;
+    gmeow:assertedAt "2026-06-06T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.7 .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-factcheck-001> a owl:Axiom ;
     owl:annotatedProperty gmeow:attestationType ;
     owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/attestation-factcheck-001> ;
@@ -87,12 +203,58 @@
     gmeow:assertedAt "2026-03-01T00:00:00+00:00"^^xsd:dateTime ;
     gmeow:confidence 0.95 .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-fiction-narrative-frame-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:accordingTo ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/claim-hogwarts-in-canon> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/narrative-frame-harry-potter> ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-publisher> ;
+    gmeow:assertedAt "2026-06-07T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.95 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-fiction-veridicality-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimVeridicality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/claim-hogwarts-in-canon> ;
+    owl:annotatedTarget gmeow:veridicalityLicensedFalsehood ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-publisher> ;
+    gmeow:assertedAt "2026-06-07T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.95 .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-held-001> a owl:Axiom ;
     owl:annotatedProperty gmeow:heldStandpoint ;
     owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-deception-001> ;
     owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-held-001> ;
     gmeow:assertedAt "2026-01-15T00:00:00+00:00"^^xsd:dateTime ;
     gmeow:confidence 0.75 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-lie-held-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:heldStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-lie-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-held-001> ;
+    gmeow:assertedAt "2026-06-01T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.8 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-lie-held-modality-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimModality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-held-001> ;
+    owl:annotatedTarget gmeow:refuted ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-06-01T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.8 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-lie-projected-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:projectedStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-lie-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-projected-001> ;
+    gmeow:assertedAt "2026-06-01T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.9 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-lie-projected-modality-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimModality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-projected-001> ;
+    owl:annotatedTarget gmeow:unequivocal ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-deceiver> ;
+    gmeow:assertedAt "2026-06-01T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.9 .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-myth-propagation-001> a owl:Axiom ;
     owl:annotatedProperty gmeow:propagatesFrom ;
@@ -102,12 +264,94 @@
     gmeow:assertedAt "2026-05-10T00:00:00+00:00"^^xsd:dateTime ;
     gmeow:confidence 0.78 .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-omission-held-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:heldStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-omission-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-omission-held-001> ;
+    gmeow:assertedAt "2026-06-03T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.85 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-omission-held-modality-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimModality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-omission-held-001> ;
+    owl:annotatedTarget gmeow:unequivocal ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-deceiver> ;
+    gmeow:assertedAt "2026-06-03T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.85 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-paltering-held-modality-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimModality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-paltering-held-001> ;
+    owl:annotatedTarget gmeow:refuted ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-06-02T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.78 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-paltering-held-refutes-implicated-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:heldStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-paltering-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-paltering-held-001> ;
+    gmeow:assertedAt "2026-06-02T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.78 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-paltering-implicates-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:implicates ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-paltering-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/proposition-paltering-implicated-001> ;
+    gmeow:assertedAt "2026-06-02T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.75 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-paltering-projected-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:projectedStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-paltering-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-paltering-projected-001> ;
+    gmeow:assertedAt "2026-06-02T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.85 .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-projected-001> a owl:Axiom ;
     owl:annotatedProperty gmeow:projectedStandpoint ;
     owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-deception-001> ;
     owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-projected-001> ;
     gmeow:assertedAt "2026-01-15T00:00:00+00:00"^^xsd:dateTime ;
     gmeow:confidence 0.9 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-self-deception-held-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:heldStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-self-deception-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-held-001> ;
+    gmeow:assertedAt "2026-06-06T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.6 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-self-deception-held-modality-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimModality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-held-001> ;
+    owl:annotatedTarget gmeow:refuted ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-tacit-self> ;
+    gmeow:assertedAt "2026-06-06T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.6 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-self-deception-projected-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:projectedStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-self-deception-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-projected-001> ;
+    gmeow:assertedAt "2026-06-06T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.75 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-self-deception-projected-modality-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimModality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-projected-001> ;
+    owl:annotatedTarget gmeow:unequivocal ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-avowed-self> ;
+    gmeow:assertedAt "2026-06-06T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.75 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-self-deception-roles-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:hasParticipant ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-self-deception-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/agent-self-001> ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-therapist> ;
+    gmeow:assertedAt "2026-06-06T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.7 .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-slam-occupancy-cell-42> a owl:Axiom ;
     owl:annotatedProperty gmeow:hasReferenceFrame ;
@@ -210,8 +454,14 @@
 
 <https://blackcatinformatics.ca/gmeow/examples/territory-x> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/polity-y> .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-hogwarts-in-canon> gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/narrative-frame-harry-potter> ;
+    gmeow:claimVeridicality gmeow:veridicalityLicensedFalsehood .
+
 <https://blackcatinformatics.ca/gmeow/examples/crimea> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/russia>,
         <https://blackcatinformatics.ca/gmeow/examples/ukraine> .
+
+<https://blackcatinformatics.ca/gmeow/examples/event-omission-001> gmeow:eventType gmeow:eventTypeOmission ;
+    gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-omission-held-001> .
 
 <https://blackcatinformatics.ca/gmeow/examples/event-reformation-date> gmeow:eventTime "1582-10-05T00:00:00+00:00"^^xsd:dateTime,
         "1582-10-15T00:00:00+00:00"^^xsd:dateTime .
@@ -219,6 +469,49 @@
 <https://blackcatinformatics.ca/gmeow/examples/rights/contested-trademark> gmeow:trademarkHolder <https://blackcatinformatics.ca/gmeow/examples/rights/acme>,
         <https://blackcatinformatics.ca/gmeow/examples/rights/omega> .
 
+<https://blackcatinformatics.ca/gmeow/examples/event-bullshit-001> gmeow:eventType gmeow:eventTypeBullshit ;
+    gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-held-001> ;
+    gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-projected-001> .
+
 <https://blackcatinformatics.ca/gmeow/examples/event-deception-001> gmeow:eventType gmeow:eventTypeDeception ;
     gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-held-001> ;
     gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-projected-001> .
+
+<https://blackcatinformatics.ca/gmeow/examples/event-lie-001> gmeow:eventType gmeow:eventTypeLie ;
+    gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-held-001> ;
+    gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-projected-001> .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-held-001> gmeow:claimModality gmeow:bullshit .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-projected-001> gmeow:claimModality gmeow:unequivocal .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-held-001> gmeow:claimModality gmeow:probable .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-projected-001> gmeow:claimModality gmeow:unequivocal .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-held-001> gmeow:claimModality gmeow:refuted .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-projected-001> gmeow:claimModality gmeow:unequivocal .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-omission-held-001> gmeow:claimModality gmeow:unequivocal .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-paltering-held-001> gmeow:claimModality gmeow:refuted .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-held-001> gmeow:claimModality gmeow:refuted .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-projected-001> gmeow:claimModality gmeow:unequivocal .
+
+<https://blackcatinformatics.ca/gmeow/examples/event-distortion-001> gmeow:eventType gmeow:eventTypeDistortion ;
+    gmeow:hasParticipant <https://blackcatinformatics.ca/gmeow/examples/standpoint-spin-doctor> ;
+    gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-held-001> ;
+    gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-projected-001> .
+
+<https://blackcatinformatics.ca/gmeow/examples/event-paltering-001> gmeow:eventType gmeow:eventTypePaltering ;
+    gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-paltering-held-001> ;
+    gmeow:implicates <https://blackcatinformatics.ca/gmeow/examples/proposition-paltering-implicated-001> ;
+    gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-paltering-projected-001> .
+
+<https://blackcatinformatics.ca/gmeow/examples/event-self-deception-001> gmeow:eventType gmeow:eventTypeSelfDeception ;
+    gmeow:hasParticipant <https://blackcatinformatics.ca/gmeow/examples/agent-self-001> ;
+    gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-held-001> ;
+    gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-projected-001> .
