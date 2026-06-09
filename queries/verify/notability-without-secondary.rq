@@ -1,0 +1,12 @@
+# Negative test: a citation claiming notability support must be a secondary
+# source (WP:GNG triad — secondary).
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?citation WHERE {
+    ?citation a gmeow:CitationAct .
+    ?citation gmeow:supportsNotability true .
+    FILTER NOT EXISTS {
+        ?citation gmeow:sourceTier gmeow:sourceTierSecondary .
+    }
+}

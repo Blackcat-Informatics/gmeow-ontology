@@ -364,6 +364,12 @@ class CopyrightStatusEnum(str, Enum):
     copyright_undetermined = "copyrightStatusUndetermined"
 
 
+class CoverageDepthEnum(str, Enum):
+    passing_mention = "coverageDepthPassingMention"
+    routine_filing = "coverageDepthRoutineFiling"
+    significant_coverage = "coverageDepthSignificantCoverage"
+
+
 class CreativeWorkTypeEnum(str, Enum):
     audiovisual = "workTypeAudiovisual"
     cartographic = "workTypeCartographic"
@@ -460,6 +466,26 @@ class EventTypeEnum(str, Enum):
     survey = "eventTypeSurvey"
     will = "eventTypeWill"
     work_conception = "eventTypeWorkConception"
+
+
+class EvidenceClassEnum(str, Enum):
+    anecdotal_evidence = "evidenceANECDOTAL"
+    family_narrative_evidence = "evidenceFamilyNarrative"
+    generated_report_evidence = "evidenceGeneratedReport"
+    independent_trade_press_evidence = "evidenceIndependentTradePress"
+    legal_filing_evidence = "evidenceLegalFiling"
+    newspaper_lead_evidence = "evidenceNewspaperLead"
+    OCR_extract_evidence = "evidenceOcrExtract"
+    official_source_evidence = "evidenceOfficialSource"
+    private_correspondence_evidence = "evidencePrivateCorrespondence"
+    private_scan_evidence = "evidencePrivateScan"
+    public_registry_evidence = "evidencePublicRegistry"
+    rumour_evidence = "evidenceRUMOR"
+    raw_archive_evidence = "evidenceRawArchive"
+    self_evidence = "evidenceSELF"
+    self_controlled_site_evidence = "evidenceSelfControlledSite"
+    source_code_archive_evidence = "evidenceSourceCodeArchive"
+    verified_evidence = "evidenceVERIFIED"
 
 
 class FrameKindEnum(str, Enum):
@@ -1279,6 +1305,17 @@ class SignatureSchemeEnum(str, Enum):
     RSA_SHA256 = "signatureSchemeRSASHA256"
 
 
+class SourceIndependenceEnum(str, Enum):
+    independent = "sourceIndependenceIndependent"
+    self_or_issuer_originated = "sourceIndependenceSelfOrIssuerOriginated"
+
+
+class SourceTierEnum(str, Enum):
+    primary = "sourceTierPrimary"
+    secondary = "sourceTierSecondary"
+    tertiary = "sourceTierTertiary"
+
+
 class StandpointEnum(str, Enum):
     universal_standpoint_LEFT_PARENTHESISASTERISKRIGHT_PARENTHESIS = "universalStandpoint"
 
@@ -1758,6 +1795,21 @@ class CitationAct(ConfiguredBaseModel):
     citingEntity: Optional[Entity] = Field(default=None, title="citing entity", json_schema_extra = { "linkml_meta": {'domain': 'CitationAct',
          'domain_of': ['CitationAct'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/citingEntity'} })
+    coverageDepth: Optional[list[CoverageDepth]] = Field(default=None, title="coverage depth", json_schema_extra = { "linkml_meta": {'domain': 'CitationAct',
+         'domain_of': ['CitationAct'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/coverageDepth'} })
+    hasEvidenceClass: Optional[list[EvidenceClass]] = Field(default=None, title="has evidence class", json_schema_extra = { "linkml_meta": {'domain': 'CitationAct',
+         'domain_of': ['CitationAct'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasEvidenceClass'} })
+    sourceIndependence: Optional[list[SourceIndependence]] = Field(default=None, title="source independence", json_schema_extra = { "linkml_meta": {'domain': 'CitationAct',
+         'domain_of': ['CitationAct'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/sourceIndependence'} })
+    sourceTier: Optional[list[SourceTier]] = Field(default=None, title="source tier", json_schema_extra = { "linkml_meta": {'domain': 'CitationAct',
+         'domain_of': ['CitationAct'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/sourceTier'} })
+    supportsNotability: Optional[bool] = Field(default=None, title="supports notability", json_schema_extra = { "linkml_meta": {'domain': 'CitationAct',
+         'domain_of': ['CitationAct'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supportsNotability'} })
     viaSelector: Optional[list[Selector]] = Field(default=None, title="via selector", json_schema_extra = { "linkml_meta": {'domain': 'CitationAct',
          'domain_of': ['CitationAct'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/viaSelector'} })
@@ -1933,6 +1985,14 @@ class CopyrightStatus(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/CopyrightStatus',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Copyright Status'})
+
+    pass
+
+
+class CoverageDepth(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/CoverageDepth',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Coverage Depth'})
 
     pass
 
@@ -3037,6 +3097,14 @@ class EventType(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/EventType',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Event Type'})
+
+    pass
+
+
+class EvidenceClass(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/EvidenceClass',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Evidence Class'})
 
     pass
 
@@ -16199,6 +16267,14 @@ class SoftwareName(Appellation):
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/transliterationScheme'} })
 
 
+class SourceIndependence(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SourceIndependence',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Source Independence'})
+
+    pass
+
+
 class SourceRole(CreativeWork):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SourceRole',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -16375,6 +16451,14 @@ class SourceRole(CreativeWork):
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
+
+
+class SourceTier(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SourceTier',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Source Tier'})
+
+    pass
 
 
 class SpatialAggregation(Measurement):
@@ -21654,6 +21738,7 @@ ContributionRole.model_rebuild()
 CoordinateMatrix.model_rebuild()
 Copyright.model_rebuild()
 CopyrightStatus.model_rebuild()
+CoverageDepth.model_rebuild()
 CreativeWorkTitle.model_rebuild()
 CreativeWorkType.model_rebuild()
 DatingMethod.model_rebuild()
@@ -21670,6 +21755,7 @@ Event.model_rebuild()
 Activity.model_rebuild()
 EventSeries.model_rebuild()
 EventType.model_rebuild()
+EvidenceClass.model_rebuild()
 Filename.model_rebuild()
 FrameKind.model_rebuild()
 FrameRealm.model_rebuild()
@@ -21851,7 +21937,9 @@ Skill.model_rebuild()
 SmartContract.model_rebuild()
 SoftwareAgent.model_rebuild()
 SoftwareName.model_rebuild()
+SourceIndependence.model_rebuild()
 SourceRole.model_rebuild()
+SourceTier.model_rebuild()
 SpatialAggregation.model_rebuild()
 SpatialBin.model_rebuild()
 SpatialCoordinates.model_rebuild()

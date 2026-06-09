@@ -1,0 +1,108 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/test/evidence/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# =========================================================================== #
+# Evidence / source-typing fixture — Cogneto-style biography cases (#224).
+#
+# Three concrete CitationAct instances that demonstrate the warrant ⟂ notability
+# orthogonality documented in docs/evidence-warrant-notability.md:
+#
+#   1. InfoWorld article   → independent secondary significant coverage
+#                            (supports notability)
+#   2. OrgBook registry    → official primary routine filing
+#                            (factual verification only)
+#   3. Private contract    → self-originated private scan
+#                            (self evidence, projection-suppressible)
+#
+# These are intended as reusable documentation fixtures for projection and
+# mapping work, not just test data.
+# =========================================================================== #
+
+# --- Claim being supported: Patrick Audley was Founder/CTO of Cogneto ---------
+
+ex:claimCognetoRole
+    a gmeow:Entity ;
+    rdfs:label "Patrick Audley was Founder and CTO of Cogneto Development Inc."@en .
+
+# --- Claim being supported: Cogneto Development Inc. was incorporated ---------
+
+ex:claimCognetoIncorporated
+    a gmeow:Entity ;
+    rdfs:label "Cogneto Development Inc. was incorporated in British Columbia"@en .
+
+# --- Claim being supported: specific employment terms --------------------------
+
+ex:claimCognetoEmploymentTerms
+    a gmeow:Entity ;
+    rdfs:label "Employment terms per private Cogneto contract"@en .
+
+# --- Source: InfoWorld article -------------------------------------------------
+
+ex:sourceInfoWorldCogneto
+    a gmeow:Entity ;
+    rdfs:label "Cogneto: to identity and beyond! (InfoWorld)"@en .
+
+# --- Source: OrgBook BC registry entry -----------------------------------------
+
+ex:sourceOrgBookCogneto
+    a gmeow:Entity ;
+    rdfs:label "OrgBook BC registry entry for Cogneto Development Inc."@en .
+
+# --- Source: private employment contract ---------------------------------------
+
+ex:sourcePrivateCognetoContract
+    a gmeow:Entity ;
+    rdfs:label "Private employment contract — Cogneto Development Inc."@en .
+
+# =========================================================================== #
+# Case 1 — InfoWorld article: independent secondary significant coverage.
+# This is the canonical "supports notability" pattern (WP:GNG triad).
+# =========================================================================== #
+
+ex:InfoWorldCognetoCitation
+    a gmeow:CitationAct ;
+    rdfs:label "InfoWorld article cited as evidence for Cogneto role"@en ;
+    gmeow:citingEntity ex:claimCognetoRole ;
+    gmeow:citedEntity ex:sourceInfoWorldCogneto ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:hasEvidenceClass gmeow:evidenceIndependentTradePress ;
+    gmeow:sourceIndependence gmeow:sourceIndependenceIndependent ;
+    gmeow:sourceTier gmeow:sourceTierSecondary ;
+    gmeow:coverageDepth gmeow:coverageDepthSignificantCoverage ;
+    gmeow:supportsNotability true .
+
+# =========================================================================== #
+# Case 2 — OrgBook registry: official primary routine filing.
+# Verifies a factual claim (incorporation) but does NOT support notability.
+# =========================================================================== #
+
+ex:OrgBookCognetoCitation
+    a gmeow:CitationAct ;
+    rdfs:label "OrgBook registry entry cited as evidence for incorporation"@en ;
+    gmeow:citingEntity ex:claimCognetoIncorporated ;
+    gmeow:citedEntity ex:sourceOrgBookCogneto ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:hasEvidenceClass gmeow:evidencePublicRegistry ;
+    gmeow:hasEvidenceClass gmeow:evidenceOfficialSource ;
+    gmeow:sourceIndependence gmeow:sourceIndependenceIndependent ;
+    gmeow:sourceTier gmeow:sourceTierPrimary ;
+    gmeow:coverageDepth gmeow:coverageDepthRoutineFiling ;
+    gmeow:supportsNotability false .
+
+# =========================================================================== #
+# Case 3 — Private contract: self-originated private scan.
+# Self evidence with low projection eligibility; should trigger the
+# SelfPrivateEvidenceWarningShape (Principle 10 — suppression, not erasure).
+# =========================================================================== #
+
+ex:PrivateCognetoContractCitation
+    a gmeow:CitationAct ;
+    rdfs:label "Private contract cited as evidence for employment terms"@en ;
+    gmeow:citingEntity ex:claimCognetoEmploymentTerms ;
+    gmeow:citedEntity ex:sourcePrivateCognetoContract ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:hasEvidenceClass gmeow:evidencePrivateScan ;
+    gmeow:sourceIndependence gmeow:sourceIndependenceSelfOrIssuerOriginated ;
+    gmeow:supportsNotability false .

@@ -56,6 +56,7 @@
         <https://blackcatinformatics.ca/gmeow/modules/expertise> ,
         <https://blackcatinformatics.ca/gmeow/modules/sources> ,
         <https://blackcatinformatics.ca/gmeow/modules/citations> ,
+        <https://blackcatinformatics.ca/gmeow/modules/evidence> ,
         <https://blackcatinformatics.ca/gmeow/modules/temporal> ,
         <https://blackcatinformatics.ca/gmeow/modules/email> ,
         <https://blackcatinformatics.ca/gmeow/modules/messaging-trust> ,

@@ -1,0 +1,12 @@
+id,source,target,type,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,standpointModality,validFrom,validUntil
+edge:24befedd30f81c09,gmeow:examples/rights/photo-copyright,gmeow:examples/rights/jane,copyrightHolder,,2026-03-01T00:00:00Z,0.85,,gmeow:examples/rights/src-rights-register,,,
+edge:3f7fe86f8b5a2397,gmeow:examples/referenceFrameRobotEndEffector,gmeow:referenceFrameRobotBase,parentFrame,,2026-06-07T10:00:00Z,0.95,,,,2026-06-07T10:00:00Z,2026-06-07T10:05:00Z
+edge:430855ef112d21e3,gmeow:examples/rights/contested-trademark,gmeow:examples/rights/acme,trademarkHolder,gmeow:examples/rights/standpoint-acme,,0.6,,,,,
+edge:485bded52be18c3a,gmeow:examples/rights/photo,gmeow:examples/rights/cc-by-4,hasLicense,,2026-01-01T00:00:00Z,0.95,,gmeow:examples/rights/src-license-deed,,2026-01-01T00:00:00Z,2036-01-01T00:00:00Z
+edge:83c6e6e11b265efa,gmeow:examples/gi-alice,gmeow:genderWoman,genderValue,,2019-06-01T00:00:00Z,0.98,,,,2019-06-01,
+edge:89861aea44002f15,gmeow:examples/crimea,gmeow:examples/russia,containedInPlace,gmeow:examples/standpoint-ru,,0.9,,gmeow:examples/src-ru-decree,,2014-03-18T00:00:00Z,
+edge:d200901e7f89b566,gmeow:examples/rights/contested-trademark,gmeow:examples/rights/omega,trademarkHolder,gmeow:examples/rights/standpoint-omega,,0.6,,,,,
+edge:e39016eda50f80c4,gmeow:examples/territory-x,gmeow:examples/polity-y,containedInPlace,gmeow:examples/standpoint-2025-historiography,2025-01-01T00:00:00Z,,,,gmeow:conceivable,1850-01-01T00:00:00Z,1860-12-31T00:00:00Z
+edge:ebd1635ebc801108,gmeow:examples/slam-cell-42,gmeow:referenceFrameRobotSLAM,hasReferenceFrame,gmeow:examples/robot-sensor-standpoint,2026-06-07T09:30:00Z,0.72,,,,,
+edge:f29c90d3ea2803f7,gmeow:examples/alice,gmeow:examples/lang-toki-pona,knowsLanguage,,,0.6,2,gmeow:examples/agent-corpus-classifier,,,
+edge:f7e8d0941fe7d19d,gmeow:examples/crimea,gmeow:examples/ukraine,containedInPlace,gmeow:examples/standpoint-un,,0.9,,,,1991-12-01T00:00:00Z,

@@ -176,7 +176,8 @@ def test_dsl_parses() -> None:
     # in provenance.ttl x1, eventObservation→CRM P140 x1,
     # eventTypeSurvey/Audit→schema x2, ObservationalActivity→OBI/QB x2,
     # Observation→oboe:Observation x1).
-    assert len(dsl.equivalences) == 1251
+    # Issue #224 evidence / source-typing: +7 (CRMinf x3, PROV-O x2, schema.org x2).
+    assert len(dsl.equivalences) == 1258
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -202,7 +203,8 @@ def test_dsl_parses() -> None:
     # Issue #208 creative-works WEMI spine: +1 (gmeow-creative-works.sssom.tsv).
     # Issue #211 citation & credit module: +1 (gmeow-citations.sssom.tsv).
     # Issue #172 notation and symbolic systems: +1 (gmeow-notation.sssom.tsv).
-    assert len(dsl.mapping_sets) == 36
+    # Issue #224 evidence: +1 (gmeow-evidence.sssom.tsv).
+    assert len(dsl.mapping_sets) == 37
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}

@@ -1,0 +1,268 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/modules/evidence>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Evidence Module"@en ;
+    rdfs:comment """Evidential warrant and source-typing substrate: two orthogonal axes that travel with the evidence link (CitationAct / EvidenceSpan) rather than the asserted fact.
+
+Axis A — Evidential warrant (strength/kind of evidence for a fact). An open value vocabulary gmeow:EvidenceClass reached by a non-functional property gmeow:hasEvidenceClass. A multi-source claim legitimately carries several evidence classes (Principle 9).
+
+Axis B — Source independence and coverage typing (for notability, not truth). Four properties on the citation: gmeow:sourceIndependence, gmeow:sourceTier, gmeow:coverageDepth, and gmeow:supportsNotability. These are explicitly orthogonal to evidential warrant: a primary legal filing may verify a fact (high warrant) without establishing notability (supportsNotability false).
+
+CONSTITUTIONAL GROUNDING: P1 (no SOTA vocabulary unifies these axes), P5 (maximal bridging by reference to CRMinf, PROV-O, schema.org, C2PA, DataCite, nanopublications, WP:GNG), P9 (co-equal facets, no privileged single winner), P10 (suppression by projection, never erasure), P12 (eligibility decisions live in the solver layer)."""@en ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# AXIS A — EVIDENTIAL WARRANT
+# =========================================================================== #
+
+gmeow:EvidenceClass
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Evidence Class"@en ;
+    skos:definition "The kind and strength of evidence supporting a claim — a value vocabulary (individuals, never subclasses). Distinguishes verified facts from self-assertions, anecdotes, rumours, and refinements such as legal filings, trade press, or archive extracts. Coarse tiers and fine-grained refinements coexist; a claim may carry multiple evidence classes simultaneously (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasEvidenceClass
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CitationAct ;
+    rdfs:range gmeow:EvidenceClass ;
+    rdfs:label "has evidence class"@en ;
+    skos:definition "The evidential warrant of a citation — the kind and strength of evidence it provides for the claim it supports. Non-functional: a single citation may carry multiple evidence classes (e.g. both a legal filing and an independent trade-press article about the same filing), and competing classifications coexist rather than collapse (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# EvidenceClass seeds — coarse tiers
+# --------------------------------------------------------------------------- #
+
+gmeow:evidenceVERIFIED
+    a gmeow:EvidenceClass ;
+    rdfs:label "verified evidence"@en ;
+    skos:definition "Evidence that has been independently checked or corroborated by a trusted authority or process."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:evidenceSELF
+    a gmeow:EvidenceClass ;
+    rdfs:label "self evidence"@en ;
+    skos:definition "Evidence originating from the subject of the claim itself — a self-assertion, self-published biography, or press release. High authority for the subject's own standpoint (Principle 9), but low warrant for third-party verification."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:evidenceANECDOTAL
+    a gmeow:EvidenceClass ;
+    rdfs:label "anecdotal evidence"@en ;
+    skos:definition "Evidence based on personal accounts, informal narratives, or uncorroborated reports — stronger than rumour but weaker than verified fact."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:evidenceRUMOR
+    a gmeow:EvidenceClass ;
+    rdfs:label "rumour evidence"@en ;
+    skos:definition "Evidence whose provenance is unverified, unverifiable, or explicitly speculative — the weakest warrant tier, recorded for audit completeness but not for factual reliance."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# EvidenceClass seeds — refinements
+# --------------------------------------------------------------------------- #
+
+gmeow:evidenceIndependentTradePress
+    a gmeow:EvidenceClass ;
+    rdfs:label "independent trade press evidence"@en ;
+    skos:definition "Evidence from a trade or industry publication that is editorially independent of the subject."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:evidencePublicRegistry
+    a gmeow:EvidenceClass ;
+    rdfs:label "public registry evidence"@en ;
+    skos:definition "Evidence drawn from a publicly accessible register, database, or gazette maintained by an authority."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:evidenceLegalFiling
+    a gmeow:EvidenceClass ;
+    rdfs:label "legal filing evidence"@en ;
+    skos:definition "Evidence from a court filing, patent application, regulatory submission, or other legal document filed with a governmental or judicial body."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:evidenceOfficialSource
+    a gmeow:EvidenceClass ;
+    rdfs:label "official source evidence"@en ;
+    skos:definition "Evidence from an authoritative governmental, intergovernmental, or standards-body source."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:evidenceSelfControlledSite
+    a gmeow:EvidenceClass ;
+    rdfs:label "self-controlled site evidence"@en ;
+    skos:definition "Evidence from a website, social-media account, or platform profile controlled by the subject of the claim."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:evidencePrivateScan
+    a gmeow:EvidenceClass ;
+    rdfs:label "private scan evidence"@en ;
+    skos:definition "Evidence from a privately held document scan, photograph, or digitisation not publicly accessible or independently verifiable."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:evidenceFamilyNarrative
+    a gmeow:EvidenceClass ;
+    rdfs:label "family narrative evidence"@en ;
+    skos:definition "Evidence from oral history, family tradition, or genealogical narrative passed between relatives."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:evidenceGeneratedReport
+    a gmeow:EvidenceClass ;
+    rdfs:label "generated report evidence"@en ;
+    skos:definition "Evidence from a machine-generated report, dashboard output, or automated analytics summary."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:evidenceOcrExtract
+    a gmeow:EvidenceClass ;
+    rdfs:label "OCR extract evidence"@en ;
+    skos:definition "Evidence extracted from an image or scan by optical character recognition — the extraction step itself is part of the provenance."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:evidenceRawArchive
+    a gmeow:EvidenceClass ;
+    rdfs:label "raw archive evidence"@en ;
+    skos:definition "Evidence from an unprocessed archival holding — a box, folder, or collection entry before scholarly curation or transcription."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:evidencePrivateCorrespondence
+    a gmeow:EvidenceClass ;
+    rdfs:label "private correspondence evidence"@en ;
+    skos:definition "Evidence from a letter, email, message, or other direct communication not intended for public distribution."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:evidenceSourceCodeArchive
+    a gmeow:EvidenceClass ;
+    rdfs:label "source code archive evidence"@en ;
+    skos:definition "Evidence from a version-controlled software repository, release tarball, or code snapshot."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:evidenceNewspaperLead
+    a gmeow:EvidenceClass ;
+    rdfs:label "newspaper lead evidence"@en ;
+    skos:definition "Evidence from a newspaper article, wire-service dispatch, or journalistic lead — distinct from independent trade press in audience and editorial process."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# AXIS B — SOURCE INDEPENDENCE & COVERAGE TYPING (notability axis)
+# =========================================================================== #
+
+gmeow:SourceIndependence
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Source Independence"@en ;
+    skos:definition "The independence of a source from the subject it covers — a value vocabulary (individuals, never subclasses). Distinguishes sources that are editorially independent from those originated or controlled by the subject. This axis is about notability eligibility, not factual truth (Principle 1)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sourceIndependenceIndependent
+    a gmeow:SourceIndependence ;
+    rdfs:label "independent"@en ;
+    skos:definition "The source is editorially and financially independent of the subject — no employment, ownership, or promotional relationship."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sourceIndependenceSelfOrIssuerOriginated
+    a gmeow:SourceIndependence ;
+    rdfs:label "self or issuer originated"@en ;
+    skos:definition "The source originates from the subject itself or from an issuer, promoter, or affiliated party — press releases, self-published sites, corporate filings by the subject's own counsel, etc."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:SourceTier
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Source Tier"@en ;
+    skos:definition "The bibliographic tier of a source — primary, secondary, or tertiary — a value vocabulary (individuals, never subclasses). This is the standard source-tier axis applied to notability assessment (cf. WP:GNG)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sourceTierPrimary
+    a gmeow:SourceTier ;
+    rdfs:label "primary"@en ;
+    skos:definition "A primary source — an original document, artifact, or direct record created at the time of the event or by the subject (a birth certificate, a legal filing, a self-published memoir)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sourceTierSecondary
+    a gmeow:SourceTier ;
+    rdfs:label "secondary"@en ;
+    skos:definition "A secondary source — an analysis, commentary, review, or synthesis by an independent party that interprets or builds upon primary sources (a biography, a trade-press article, a scholarly review)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sourceTierTertiary
+    a gmeow:SourceTier ;
+    rdfs:label "tertiary"@en ;
+    skos:definition "A tertiary source — a compendium, index, encyclopedia, or database that aggregates and summarizes secondary sources without adding original analysis."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:CoverageDepth
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Coverage Depth"@en ;
+    skos:definition "The depth of coverage a source provides about its subject — a value vocabulary (individuals, never subclasses). Distinguishes significant in-depth treatment from passing mention or routine filing. This axis is orthogonal to source tier and independence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:coverageDepthSignificantCoverage
+    a gmeow:CoverageDepth ;
+    rdfs:label "significant coverage"@en ;
+    skos:definition "The source provides substantial, in-depth treatment of the subject — multiple paragraphs, a dedicated article, or a detailed profile — rather than a trivial mention."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:coverageDepthPassingMention
+    a gmeow:CoverageDepth ;
+    rdfs:label "passing mention"@en ;
+    skos:definition "The source mentions the subject only in passing — a name in a list, a brief reference, or an incidental citation — without substantive discussion."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:coverageDepthRoutineFiling
+    a gmeow:CoverageDepth ;
+    rdfs:label "routine filing"@en ;
+    skos:definition "The source is a routine administrative filing, automated entry, or bulk-generated record that mentions the subject only as a matter of standard procedure."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Axis B properties
+# --------------------------------------------------------------------------- #
+
+gmeow:sourceIndependence
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CitationAct ;
+    rdfs:range gmeow:SourceIndependence ;
+    rdfs:label "source independence"@en ;
+    skos:definition "The independence status of the source referenced by a citation — independent or self/issuer originated. Non-functional: competing assessments by different standpoints coexist (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sourceTier
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CitationAct ;
+    rdfs:range gmeow:SourceTier ;
+    rdfs:label "source tier"@en ;
+    skos:definition "The bibliographic tier of the source referenced by a citation — primary, secondary, or tertiary. Non-functional: competing tier assessments coexist (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:coverageDepth
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CitationAct ;
+    rdfs:range gmeow:CoverageDepth ;
+    rdfs:label "coverage depth"@en ;
+    skos:definition "The depth of coverage the source provides about the subject of a citation — significant coverage, passing mention, or routine filing. Non-functional: competing depth assessments coexist (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:supportsNotability
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CitationAct ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "supports notability"@en ;
+    skos:definition "Whether this citation is asserted to support notability (encyclopedic significance) as distinct from factual verification. A citation may verify a fact (high evidential warrant) without supporting notability (e.g. a primary legal filing or a routine listing). Non-functional: competing notability assessments from different standpoints coexist (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# AXIOMATIZED DOCTRINE — EL someValuesFrom for reasoner visibility
+# =========================================================================== #
+#
+# No existential restrictions are asserted on gmeow:CitationAct here: not every
+# citation is required to carry evidence-class or source-typing facets.
+# The open-world policy is that these are optional annotations on the evidence
+# link; SHACL enforces closed-world constraints only when instance data is
+# validated (CONSTITUTION P7/P8).
+# =========================================================================== #

@@ -1,0 +1,107 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix crminf: <http://www.ics.forth.gr/isl/CRMinf/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix schema: <https://schema.org/> .
+
+# Term equivalences for the evidence / evidential warrant domain — GMEOW authoring
+# source. Compiled to mappings/gmeow-evidence.sssom.tsv by `gmeow compile-mappings`.
+# Aligns CRMinf (CIDOC Argumentation), PROV-O, schema.org, and conceptual
+# grounding from WP:GNG, C2PA, DataCite, and nanopublications.
+
+# CONSTITUTIONAL GROUNDING (P1, P5, P9, P12):
+# - No existing vocabulary unifies evidential warrant + notability typing.
+# - All alignments are BY REFERENCE; GMEOW never imports an external axiom.
+# - Co-equal facets: no privileged evidence class; competing classifications coexist.
+# - Eligibility decisions (notability scoring) live in the solver layer.
+
+gmeow:mapsetEvidence a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/evidence" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """Evidence and source-typing alignments (#224).
+        CRMinf: EvidenceClass aligns to I2 Belief (the warranted claim) and I5 Inference Making (the evidential process).
+        PROV-O: CitationAct aligns to prov:Entity; hasEvidenceClass aligns loosely to prov:wasDerivedFrom (PROV-O has no explicit warrant-typing property).
+        schema.org: CitationAct aligns to schema:citation; supportsNotability aligns loosely to schema:Claim (schema:Claim has appearance/evidence facets).
+        WP:GNG: The independent + secondary + significant-coverage triad is conceptual grounding for Axis B; no RDF vocabulary exists.
+        C2PA: digitalSourceType is a loose conceptual match to EvidenceClass; no stable C2PA RDF vocabulary exists.""" ;
+    gmeow:setTrailer "# Loose / refused mappings (no canonical RDF vocabulary available or concept too broad for precise alignment):\n# gmeow:EvidenceClass\tskos:relatedMatch\tc2pa:digitalSourceType\tsemapv:ManualMappingCuration\t0.5\tno stable C2PA RDF vocabulary\n# gmeow:CitationAct\tskos:relatedMatch\tdatacite:relatedIdentifier\tsemapv:ManualMappingCuration\t0.5\tDataCite relationType is a metadata field, not an ontology class\n# gmeow:CitationAct\tskos:relatedMatch\tnanopub:Assertion\tsemapv:ManualMappingCuration\t0.5\tloose — nanopub RDF exists but the signed-graph pattern is implementation-specific\n# gmeow:supportsNotability\tskos:relatedMatch\tschema:Claim\tsemapv:ManualMappingCuration\t0.6\tschema:Claim is a CreativeWork about a claim, not a notability boolean" .
+
+# --------------------------------------------------------------------------- #
+# CRMinf (CIDOC Argumentation model)
+# --------------------------------------------------------------------------- #
+
+gmeow:eqEvidence001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:EvidenceClass ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crminf:I2_Belief ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "An evidence class describes the warrant/kind of belief held about a claim; CRMinf I2 Belief is the temporal entity representing that belief" ;
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" .
+
+gmeow:eqEvidence002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasEvidenceClass ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crminf:J5_holds_to_be ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "gmeow:hasEvidenceClass names the warrant type; J5_holds_to_be is the belief-value predicate (true/probable/possible/false) — related but distinct dimensions" ;
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" .
+
+gmeow:eqEvidence003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Citation ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crminf:I4_Proposition_Set ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "A citation references a source that carries propositions; I4 Proposition Set is the set of propositions being argued over" ;
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# PROV-O
+# --------------------------------------------------------------------------- #
+
+gmeow:eqEvidence004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Citation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject prov:Entity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "A citation is an information object that can be derived from, attributed to, and used in provenance traces" ;
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" .
+
+gmeow:eqEvidence005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasEvidenceClass ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject prov:wasDerivedFrom ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "PROV-O wasDerivedFrom links an entity to its source but carries no explicit warrant-typing; gmeow:hasEvidenceClass adds the missing typing layer" ;
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# schema.org
+# --------------------------------------------------------------------------- #
+
+gmeow:eqEvidence006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:CitationAct ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject schema:citation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "Cross-category relatedness: schema:citation is a flat property on schema:CreativeWork, while gmeow:CitationAct is a reified relator class that carries intent, selector, warrant, and source-typing facets. They occupy the same semantic space (the citation link) but at different levels of reification." ;
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" .
+
+gmeow:eqEvidence007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasEvidenceClass ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject schema:isBasedOn ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "schema:isBasedOn links a CreativeWork to its source material; gmeow:hasEvidenceClass types the evidential warrant of that link" ;
+    gmeow:sssomFile "gmeow-evidence.sssom.tsv" .

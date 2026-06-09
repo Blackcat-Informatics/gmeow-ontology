@@ -1943,3 +1943,61 @@ gmeow:ExpressionHasFrameShape
         sh:severity sh:Warning ;
         sh:message "An Expression should carry at least one reference frame (gmeow:hasReferenceFrame) — language, script, notation, or arrangement." ;
     ] .
+
+# =========================================================================== #
+# Evidence module (#224) — evidential warrant & source-typing shapes
+# =========================================================================== #
+
+# Self/private-only warning: a citation whose only evidence classes are SELF or
+# PrivateScan, and whose source independence is self/issuer originated, is
+# eligible for projection suppression (Principle 10 — never erasure).
+gmeow:SelfPrivateEvidenceWarningShape
+    a sh:NodeShape ;
+    rdfs:label "Self/private-only evidence warning shape" ;
+    sh:targetClass gmeow:CitationAct ;
+    sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it (a source may lag the flag)
+    sh:sparql [
+        sh:message "This citation relies solely on self-asserted or private evidence from a self/issuer-originated source — consider suppressing it from public projections (Principle 10)." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this a <https://blackcatinformatics.ca/gmeow/CitationAct> .
+                $this <https://blackcatinformatics.ca/gmeow/hasEvidenceClass> ?ec .
+                FILTER(?ec IN (
+                    <https://blackcatinformatics.ca/gmeow/evidenceSELF>,
+                    <https://blackcatinformatics.ca/gmeow/evidencePrivateScan>
+                ))
+                # Ensure ALL evidence classes are in the self/private set.
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/hasEvidenceClass> ?other .
+                    FILTER(?other NOT IN (
+                        <https://blackcatinformatics.ca/gmeow/evidenceSELF>,
+                        <https://blackcatinformatics.ca/gmeow/evidencePrivateScan>
+                    ))
+                }
+                # And the source is self/issuer originated.
+                $this <https://blackcatinformatics.ca/gmeow/sourceIndependence> <https://blackcatinformatics.ca/gmeow/sourceIndependenceSelfOrIssuerOriginated> .
+            }
+        """ ;
+    ] .
+
+# Notability-requirement violation: supportsNotability true requires the full
+# WP:GNG triad (independent + secondary + significant coverage).
+gmeow:NotabilityRequirementShape
+    a sh:NodeShape ;
+    rdfs:label "Notability requirement shape" ;
+    sh:targetClass gmeow:CitationAct ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A citation with supportsNotability true must have sourceIndependence independent, sourceTier secondary, and coverageDepth significantCoverage (WP:GNG triad)." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this a <https://blackcatinformatics.ca/gmeow/CitationAct> .
+                $this <https://blackcatinformatics.ca/gmeow/supportsNotability> true .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/sourceIndependence> <https://blackcatinformatics.ca/gmeow/sourceIndependenceIndependent> .
+                    $this <https://blackcatinformatics.ca/gmeow/sourceTier> <https://blackcatinformatics.ca/gmeow/sourceTierSecondary> .
+                    $this <https://blackcatinformatics.ca/gmeow/coverageDepth> <https://blackcatinformatics.ca/gmeow/coverageDepthSignificantCoverage> .
+                }
+            }
+        """ ;
+    ] .
