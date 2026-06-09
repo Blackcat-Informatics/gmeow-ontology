@@ -59,6 +59,7 @@ _PROFILE_TARGETS: dict[str, tuple[str, ...]] = {
     "odrl": ("odrl",),
     "cc": ("cc",),
     "dcterms": ("dcterms",),
+    "oai_dc": ("dc",),
     "spdx": ("spdx",),
     "sosa": ("sosa", "geo"),
 }

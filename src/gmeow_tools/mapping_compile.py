@@ -83,6 +83,7 @@ _PROFILES = (
     "odrl",
     "cc",
     "dcterms",
+    "oai_dc",
     "spdx",
     "ontolex",
     "web-annotation",

@@ -1942,6 +1942,11 @@ export interface ClaimVeridicality {
 
 
 
+export interface Collection extends Work {
+}
+
+
+
 export interface Commit extends Activity {
     authorTime?: string,
     authoredBy?: Agent[],
@@ -2073,8 +2078,18 @@ export interface CoverageDepth {
 
 
 export interface CreativeWork extends InformationObject {
+    abstract?: string,
+    audience?: Agent[],
+    bibliographicCitation?: string,
+    conformsTo?: Entity[],
+    dateAccepted?: string,
+    dateAvailable?: string,
+    dateCreated?: string,
+    dateModified?: string,
     datePublished?: string,
+    dateSubmitted?: string,
     editionOf?: CreativeWork,
+    extent?: string,
     hasAuthor?: Agent[],
     hasContributor?: Agent[],
     hasEditor?: Agent[],
@@ -2083,9 +2098,15 @@ export interface CreativeWork extends InformationObject {
     hasTitle?: CreativeWorkTitle[],
     hasTranslator?: Agent[],
     identifier?: string,
+    isRequiredBy?: CreativeWork[],
+    medium?: CarrierMedium[],
+    requires?: CreativeWork[],
     sourceFor?: NarrativeReferenceFrame[],
     sourceLocation?: string,
     sourceModifiedAt?: string,
+    spatialCoverage?: Place[],
+    tableOfContents?: string,
+    temporalCoverage?: TimeInterval[],
     title?: string,
 }
 
@@ -2226,13 +2247,17 @@ export interface Entity {
     hasStream?: Stream[],
     hasTag?: Tag[],
     hasTrademark?: Trademark[],
+    hasVersion?: Entity[],
     hasWebPage?: WebPage[],
     isAbout?: Entity[],
     isAccessibleForFree?: boolean,
+    isReferencedBy?: Entity[],
     isResultOf?: Observation[],
     locatedAt?: Location[],
     name?: string,
+    provenance?: string,
     proximity?: ProximityMeasurement[],
+    references?: Entity[],
     storedIn?: StorageLocation[],
     supersededBy?: Entity[],
     supersedes?: Entity[],
@@ -2871,7 +2896,6 @@ export interface Message extends InformationObject {
     partOfThread?: Thread[],
     preview?: string,
     receivedAt?: string,
-    references?: Message[],
     residesIn?: Mailbox[],
     rfcMessageId?: string,
     sentAt?: string,
@@ -3616,6 +3640,11 @@ export interface SerialInstallment extends Manifestation {
 
 
 export interface SerialWork extends Work {
+}
+
+
+
+export interface Service extends Work {
 }
 
 

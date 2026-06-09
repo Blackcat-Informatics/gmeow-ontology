@@ -696,3 +696,13 @@ gmeow:eventTemporalFrame
 # during, contains, coincidesWith) and OWL 2 DL forbids
 # DisjointObjectProperties over non-simple properties.  Cross-family separation
 # is enforced by SHACL verify queries and the solver layer (Principle 12).
+
+# --- DC temporal coverage (issue #60) -------------------------------------- #
+
+gmeow:temporalCoverage
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "temporal coverage"@en ;
+    skos:definition "The temporal extent or scope of a creative work."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

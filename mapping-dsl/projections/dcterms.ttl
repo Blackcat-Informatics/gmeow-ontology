@@ -50,3 +50,292 @@ gmeow:mapDctermsDateCopyrighted a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:copyrightYear ] ;
     gmeow:hasBinding [
         gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:dateCopyrighted ; gmeow:relation "<=" ; gmeow:confidence 0.8 ] .
+
+# --- Extended Dublin Core Terms projections (issue #60) -------------------- #
+
+gmeow:mapDctermsTitle a gmeow:ProjectionMapping ;
+    rdfs:label "title → dcterms:title"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "title" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:title ; gmeow:objectVar "title" ] ) ;
+        gmeow:edoalSource gmeow:title ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:title ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDctermsDescription a gmeow:ProjectionMapping ;
+    rdfs:label "description → dcterms:description"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "desc" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:description ; gmeow:objectVar "desc" ] ) ;
+        gmeow:edoalSource gmeow:description ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:description ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDctermsCreator a gmeow:ProjectionMapping ;
+    rdfs:label "hasAuthor → dcterms:creator"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "author" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasAuthor ; gmeow:objectVar "author" ] ) ;
+        gmeow:edoalSource gmeow:hasAuthor ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:creator ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDctermsContributor a gmeow:ProjectionMapping ;
+    rdfs:label "hasContributor → dcterms:contributor"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "contrib" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasContributor ; gmeow:objectVar "contrib" ] ) ;
+        gmeow:edoalSource gmeow:hasContributor ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:contributor ; gmeow:relation "=" ; gmeow:confidence 0.85 ] .
+
+gmeow:mapDctermsIssued a gmeow:ProjectionMapping ;
+    rdfs:label "datePublished → dcterms:issued"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "date" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:datePublished ; gmeow:objectVar "date" ] ) ;
+        gmeow:edoalSource gmeow:datePublished ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:issued ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDctermsIdentifier a gmeow:ProjectionMapping ;
+    rdfs:label "identifier → dcterms:identifier"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "id" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:identifier ; gmeow:objectVar "id" ] ) ;
+        gmeow:edoalSource gmeow:identifier ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:identifier ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDctermsSubject a gmeow:ProjectionMapping ;
+    rdfs:label "isAbout → dcterms:subject"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "topic" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:isAbout ; gmeow:objectVar "topic" ] ) ;
+        gmeow:edoalSource gmeow:isAbout ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:subject ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDctermsHasPart a gmeow:ProjectionMapping ;
+    rdfs:label "hasPart → dcterms:hasPart"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "part" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasPart ; gmeow:objectVar "part" ] ) ;
+        gmeow:edoalSource gmeow:hasPart ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:hasPart ; gmeow:relation "=" ; gmeow:confidence 0.85 ] .
+
+gmeow:mapDctermsIsPartOf a gmeow:ProjectionMapping ;
+    rdfs:label "partOf → dcterms:isPartOf"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "parent" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:partOf ; gmeow:objectVar "parent" ] ) ;
+        gmeow:edoalSource gmeow:partOf ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:isPartOf ; gmeow:relation "=" ; gmeow:confidence 0.85 ] .
+
+gmeow:mapDctermsSource a gmeow:ProjectionMapping ;
+    rdfs:label "sourceLocation → dcterms:source"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "src" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:sourceLocation ; gmeow:objectVar "src" ] ) ;
+        gmeow:edoalSource gmeow:sourceLocation ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:source ; gmeow:relation "=" ; gmeow:confidence 0.8 ] .
+
+gmeow:mapDctermsLanguage a gmeow:ProjectionMapping ;
+    rdfs:label "nameLanguage → dcterms:language (anchored on work)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "lang" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "work" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasAppellation gmeow:hasName gmeow:hasTitle ) ] ;
+              gmeow:objectVar "name" ]
+            [ gmeow:subjectVar "name" ; gmeow:predicate gmeow:nameLanguage ; gmeow:objectVar "lang" ]
+        ) ;
+        gmeow:edoalSource gmeow:nameLanguage ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:language ; gmeow:relation "=" ; gmeow:confidence 0.8 ] .
+
+# --- Extended Dublin Core Terms projections (issue #60 refinements) -------- #
+
+gmeow:mapDctermsCreated a gmeow:ProjectionMapping ;
+    rdfs:label "dateCreated → dcterms:created"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "date" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:dateCreated ; gmeow:objectVar "date" ] ) ;
+        gmeow:edoalSource gmeow:dateCreated ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:created ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDctermsModified a gmeow:ProjectionMapping ;
+    rdfs:label "dateModified → dcterms:modified"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "date" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:dateModified ; gmeow:objectVar "date" ] ) ;
+        gmeow:edoalSource gmeow:dateModified ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:modified ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDctermsAvailable a gmeow:ProjectionMapping ;
+    rdfs:label "dateAvailable → dcterms:available"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "date" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:dateAvailable ; gmeow:objectVar "date" ] ) ;
+        gmeow:edoalSource gmeow:dateAvailable ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:available ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDctermsDateAccepted a gmeow:ProjectionMapping ;
+    rdfs:label "dateAccepted → dcterms:dateAccepted"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "date" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:dateAccepted ; gmeow:objectVar "date" ] ) ;
+        gmeow:edoalSource gmeow:dateAccepted ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:dateAccepted ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDctermsDateSubmitted a gmeow:ProjectionMapping ;
+    rdfs:label "dateSubmitted → dcterms:dateSubmitted"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "date" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:dateSubmitted ; gmeow:objectVar "date" ] ) ;
+        gmeow:edoalSource gmeow:dateSubmitted ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:dateSubmitted ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDctermsAbstract a gmeow:ProjectionMapping ;
+    rdfs:label "abstract → dcterms:abstract"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "val" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:abstract ; gmeow:objectVar "val" ] ) ;
+        gmeow:edoalSource gmeow:abstract ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:abstract ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDctermsTableOfContents a gmeow:ProjectionMapping ;
+    rdfs:label "tableOfContents → dcterms:tableOfContents"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "val" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:tableOfContents ; gmeow:objectVar "val" ] ) ;
+        gmeow:edoalSource gmeow:tableOfContents ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:tableOfContents ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDctermsReferences a gmeow:ProjectionMapping ;
+    rdfs:label "references → dcterms:references"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "ref" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:references ; gmeow:objectVar "ref" ] ) ;
+        gmeow:edoalSource gmeow:references ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:references ; gmeow:relation "=" ; gmeow:confidence 0.85 ] .
+
+gmeow:mapDctermsIsReferencedBy a gmeow:ProjectionMapping ;
+    rdfs:label "isReferencedBy → dcterms:isReferencedBy"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "ref" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:isReferencedBy ; gmeow:objectVar "ref" ] ) ;
+        gmeow:edoalSource gmeow:isReferencedBy ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:isReferencedBy ; gmeow:relation "=" ; gmeow:confidence 0.85 ] .
+
+gmeow:mapDctermsRequires a gmeow:ProjectionMapping ;
+    rdfs:label "requires → dcterms:requires"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "req" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:requires ; gmeow:objectVar "req" ] ) ;
+        gmeow:edoalSource gmeow:requires ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:requires ; gmeow:relation "=" ; gmeow:confidence 0.8 ] .
+
+gmeow:mapDctermsIsRequiredBy a gmeow:ProjectionMapping ;
+    rdfs:label "isRequiredBy → dcterms:isRequiredBy"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "req" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:isRequiredBy ; gmeow:objectVar "req" ] ) ;
+        gmeow:edoalSource gmeow:isRequiredBy ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:isRequiredBy ; gmeow:relation "=" ; gmeow:confidence 0.8 ] .
+
+gmeow:mapDctermsReplaces a gmeow:ProjectionMapping ;
+    rdfs:label "supersedes → dcterms:replaces"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "old" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:supersedes ; gmeow:objectVar "old" ] ) ;
+        gmeow:edoalSource gmeow:supersedes ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:replaces ; gmeow:relation "=" ; gmeow:confidence 0.85 ] .
+
+gmeow:mapDctermsIsReplacedBy a gmeow:ProjectionMapping ;
+    rdfs:label "supersededBy → dcterms:isReplacedBy"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "new" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:supersededBy ; gmeow:objectVar "new" ] ) ;
+        gmeow:edoalSource gmeow:supersededBy ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:isReplacedBy ; gmeow:relation "=" ; gmeow:confidence 0.85 ] .
+
+gmeow:mapDctermsHasVersion a gmeow:ProjectionMapping ;
+    rdfs:label "hasVersion → dcterms:hasVersion"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "ver" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasVersion ; gmeow:objectVar "ver" ] ) ;
+        gmeow:edoalSource gmeow:hasVersion ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:hasVersion ; gmeow:relation "=" ; gmeow:confidence 0.85 ] .
+
+gmeow:mapDctermsIsVersionOf a gmeow:ProjectionMapping ;
+    rdfs:label "versionOf → dcterms:isVersionOf"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "base" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:versionOf ; gmeow:objectVar "base" ] ) ;
+        gmeow:edoalSource gmeow:versionOf ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:isVersionOf ; gmeow:relation "=" ; gmeow:confidence 0.85 ] .
+
+gmeow:mapDctermsConformsTo a gmeow:ProjectionMapping ;
+    rdfs:label "conformsTo → dcterms:conformsTo"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "std" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:conformsTo ; gmeow:objectVar "std" ] ) ;
+        gmeow:edoalSource gmeow:conformsTo ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:conformsTo ; gmeow:relation "=" ; gmeow:confidence 0.85 ] .
+
+gmeow:mapDctermsSpatial a gmeow:ProjectionMapping ;
+    rdfs:label "spatialCoverage → dcterms:spatial"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "place" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:spatialCoverage ; gmeow:objectVar "place" ] ) ;
+        gmeow:edoalSource gmeow:spatialCoverage ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:spatial ; gmeow:relation "=" ; gmeow:confidence 0.8 ] .
+
+gmeow:mapDctermsTemporal a gmeow:ProjectionMapping ;
+    rdfs:label "temporalCoverage → dcterms:temporal"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "t" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:temporalCoverage ; gmeow:objectVar "t" ] ) ;
+        gmeow:edoalSource gmeow:temporalCoverage ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:temporal ; gmeow:relation "=" ; gmeow:confidence 0.8 ] .
+
+gmeow:mapDctermsBibliographicCitation a gmeow:ProjectionMapping ;
+    rdfs:label "bibliographicCitation → dcterms:bibliographicCitation"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "cite" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:bibliographicCitation ; gmeow:objectVar "cite" ] ) ;
+        gmeow:edoalSource gmeow:bibliographicCitation ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:bibliographicCitation ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapDctermsExtent a gmeow:ProjectionMapping ;
+    rdfs:label "extent → dcterms:extent"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "val" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:extent ; gmeow:objectVar "val" ] ) ;
+        gmeow:edoalSource gmeow:extent ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:extent ; gmeow:relation "=" ; gmeow:confidence 0.8 ] .
+
+gmeow:mapDctermsMedium a gmeow:ProjectionMapping ;
+    rdfs:label "medium → dcterms:medium"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "med" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:medium ; gmeow:objectVar "med" ] ) ;
+        gmeow:edoalSource gmeow:medium ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:medium ; gmeow:relation "=" ; gmeow:confidence 0.75 ] .
+
+gmeow:mapDctermsAudience a gmeow:ProjectionMapping ;
+    rdfs:label "audience → dcterms:audience"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "aud" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:audience ; gmeow:objectVar "aud" ] ) ;
+        gmeow:edoalSource gmeow:audience ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:audience ; gmeow:relation "=" ; gmeow:confidence 0.75 ] .
+
+gmeow:mapDctermsProvenance a gmeow:ProjectionMapping ;
+    rdfs:label "provenance → dcterms:provenance"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "prov" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:provenance ; gmeow:objectVar "prov" ] ) ;
+        gmeow:edoalSource gmeow:provenance ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:provenance ; gmeow:relation "=" ; gmeow:confidence 0.75 ] .
+
+gmeow:mapDctermsAccessRights a gmeow:ProjectionMapping ;
+    rdfs:label "conditionsOfAccess → dcterms:accessRights"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "cond" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:conditionsOfAccess ; gmeow:objectVar "cond" ] ) ;
+        gmeow:edoalSource gmeow:conditionsOfAccess ] ;
+    gmeow:hasBinding [ gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:accessRights ; gmeow:relation "=" ; gmeow:confidence 0.85 ] .

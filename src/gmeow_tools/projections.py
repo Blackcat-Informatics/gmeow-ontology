@@ -40,6 +40,7 @@ PROFILES: dict[str, Profile] = {
     "odrl": Profile("odrl", ("odrl",)),
     "cc": Profile("cc", ("cc",)),
     "dcterms": Profile("dcterms", ("dcterms",)),
+    "oai_dc": Profile("oai_dc", ("dc",)),
     "spdx": Profile("spdx", ("spdx",)),
     "ontolex": Profile("ontolex", ("ontolex", "lime", "rdf")),
     "web-annotation": Profile("web-annotation", ("oa",)),
