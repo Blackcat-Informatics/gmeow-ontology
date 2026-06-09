@@ -4242,6 +4242,7 @@ type EmailMessage
     hasMessageParticipant: [MessageParticipant]
     replyTo: [EmailAddress]
     sender: [EmailAddress]
+    subjectPrefix: String
     to: [EmailAddress]
   }
 
@@ -11647,6 +11648,7 @@ type Thread
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    threadSubject: String
   }
 
 type TimeInterval

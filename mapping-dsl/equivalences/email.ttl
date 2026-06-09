@@ -14,7 +14,7 @@ gmeow:mapsetEmail a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-email.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/email" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Email alignments. EmailMessage is equivalent to schema:EmailMessage; the rest use skos:closeMatch (cross-type/loose) to schema.org, the Nepomuk Message Ontology (NMO), and SIOC. The reified MessageParticipant relator (issue #159) is canonical; flat from/to/cc/bcc and their schema.org/NMO counterparts are lossy projection shortcuts. Trust terms (RelayHop/AuthenticationResult/signatures) are canonical — no maintained external RDF vocabulary exists for them. MessageParticipantRole envelope/resent roles are also canonical — no external vocabulary covers them." .
+    gmeow:setComment "Email alignments. EmailMessage is equivalent to schema:EmailMessage; the rest use skos:closeMatch (cross-type/loose) to schema.org, the Nepomuk Message Ontology (NMO), and SIOC. The reified MessageParticipant relator (issue #159) is canonical; flat from/to/cc/bcc and their schema.org/NMO counterparts are lossy projection shortcuts. Trust terms (RelayHop/AuthenticationResult/signatures) are canonical — no maintained external RDF vocabulary exists for them. MessageParticipantRole envelope/resent roles are also canonical — no external vocabulary covers them. threadSubject and subjectPrefix (issue #138) are canonical — no maintained external vocabulary exposes thread-level normalized subject or per-message prefix stripping." .
 
 gmeow:eqEmail001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:EmailMessage ;

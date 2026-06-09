@@ -279,6 +279,22 @@ gmeow:subject
     skos:definition "The subject line of a message (RFC 5322 Subject)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:threadSubject
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Thread ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "thread subject"@en ;
+    skos:definition "The base subject of a conversation thread, with reply/forward prefixes stripped, used for display and grouping. Derived from the raw RFC 5322 Subject headers of the messages in the thread."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:subjectPrefix
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:EmailMessage ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "subject prefix"@en ;
+    skos:definition "A prefix stripped from a message subject during normalization (e.g. 'Re:', 'Fwd:', 'AW:'). A single message may have multiple nested prefixes, so this property is not functional."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:preview
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Message ;
