@@ -1,0 +1,188 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix doap:  <http://usefulinc.com/ns/doap#> .
+
+# Projection mappings: GMEOW five-facet software model → DOAP downcast.
+# Compiled to projections/doap.edoal.ttl + queries/projections/doap.rq by
+# `gmeow compile-mappings`.
+#
+# DOAP conflates endeavour, product, repo, and history into one class.
+# This projection deliberately collapses the five facets back into doap:Project,
+# flattens reified Contribution relators into frozen-role properties, and drops
+# suppressed contributors — a lossy downcast, never canonical source (Principle 4).
+#
+# CRITICAL: each role mapping uses a UNIQUE gmeow:value variable so that UNION
+# branches in the generated SPARQL do not cross-leak — a developer row cannot
+# accidentally materialise doap:maintainer, and vice versa.
+
+# --------------------------------------------------------------------------- #
+# Facet collapse: SoftwareProject → doap:Project
+# --------------------------------------------------------------------------- #
+
+gmeow:mapDoapProject a gmeow:ProjectionMapping ;
+    rdfs:label "SoftwareProject → doap:Project (facet collapse)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "proj" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "proj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareProject ] ) ;
+        gmeow:edoalSource gmeow:SoftwareProject ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:relation "<=" ;
+        gmeow:toClass doap:Project ;
+        gmeow:edoalTarget doap:Project ; gmeow:edoalTargetKind "class" ;
+        gmeow:lossyDrop "Product, Codebase, Repository, and History facets are collapsed into the project node" ] .
+
+# --------------------------------------------------------------------------- #
+# Repository → doap:Repository
+# --------------------------------------------------------------------------- #
+
+gmeow:mapDoapRepository a gmeow:ProjectionMapping ;
+    rdfs:label "Repository → doap:Repository"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "repo" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "repo" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Repository ] ) ;
+        gmeow:edoalSource gmeow:Repository ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:relation "<=" ;
+        gmeow:toClass doap:Repository ;
+        gmeow:edoalTarget doap:Repository ; gmeow:edoalTargetKind "class" ;
+        gmeow:lossyDrop "hosting platform, VCS type, clone URL, web URL" ] .
+
+# --------------------------------------------------------------------------- #
+# Release → doap:Version
+# --------------------------------------------------------------------------- #
+
+gmeow:mapDoapVersion a gmeow:ProjectionMapping ;
+    rdfs:label "Release → doap:Version (event conflation)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "rel" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "rel" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Release ] ) ;
+        gmeow:edoalSource gmeow:Release ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:relation "<=" ;
+        gmeow:toClass doap:Version ;
+        gmeow:edoalTarget doap:Version ; gmeow:edoalTargetKind "class" ;
+        gmeow:lossyDrop "event semantics, DOI, SWHID, tag, build provenance" ] .
+
+# --------------------------------------------------------------------------- #
+# hasRepository → doap:repository
+# --------------------------------------------------------------------------- #
+
+gmeow:mapDoapRepositoryProp a gmeow:ProjectionMapping ;
+    rdfs:label "hasRepository → doap:repository"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "proj" ; gmeow:value "repo" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "proj" ; gmeow:predicate gmeow:hasRepository ; gmeow:objectVar "repo" ] ) ;
+        gmeow:edoalSource gmeow:hasRepository ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:toPredicate doap:repository ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "repository metadata (type, URLs, forge)" ] .
+
+# --------------------------------------------------------------------------- #
+# releaseVersion → doap:revision
+# --------------------------------------------------------------------------- #
+
+gmeow:mapDoapRevision a gmeow:ProjectionMapping ;
+    rdfs:label "releaseVersion → doap:revision"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "rel" ; gmeow:value "ver" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "rel" ; gmeow:predicate gmeow:releaseVersion ; gmeow:objectVar "ver" ] ) ;
+        gmeow:edoalSource gmeow:releaseVersion ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:toPredicate doap:revision ; gmeow:relation "=" ;
+        gmeow:lossyDrop "version scheme provenance, competing version labels" ] .
+
+# --------------------------------------------------------------------------- #
+# projectLicense → doap:license
+# --------------------------------------------------------------------------- #
+
+gmeow:mapDoapLicense a gmeow:ProjectionMapping ;
+    rdfs:label "projectLicense → doap:license"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "proj" ; gmeow:value "lic" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "proj" ; gmeow:predicate gmeow:projectLicense ; gmeow:objectVar "lic" ] ) ;
+        gmeow:edoalSource gmeow:projectLicense ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:toPredicate doap:license ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "dual-licensing, license transitions over time" ] .
+
+# --------------------------------------------------------------------------- #
+# Contributors — reified Contribution → flat DOAP role properties
+# Each role gets its own mapping cell with a UNIQUE value variable so UNION
+# branches cannot cross-leak in the generated SPARQL.
+# Suppressed contributors are dropped via suppressWhen on the unique var.
+# --------------------------------------------------------------------------- #
+
+gmeow:mapDoapDeveloper a gmeow:ProjectionMapping ;
+    rdfs:label "Contribution(role=SoftwareDeveloper) → doap:developer"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "proj" ; gmeow:value "devAgent" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "proj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareProject ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Contribution ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionTarget ; gmeow:objectVar "proj" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributor ; gmeow:objectVar "devAgent" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionRole ; gmeow:objectValue gmeow:roleSoftwareDeveloper ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "devAgent" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:toPredicate doap:developer ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "contribution period, provenance, confidence, degree; reified relator flattened to property" ] .
+
+gmeow:mapDoapMaintainer a gmeow:ProjectionMapping ;
+    rdfs:label "Contribution(role=SoftwareMaintainer) → doap:maintainer"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "proj" ; gmeow:value "maintAgent" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "proj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareProject ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Contribution ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionTarget ; gmeow:objectVar "proj" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributor ; gmeow:objectVar "maintAgent" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionRole ; gmeow:objectValue gmeow:roleSoftwareMaintainer ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "maintAgent" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:toPredicate doap:maintainer ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "contribution period, provenance, confidence, degree; reified relator flattened to property" ] .
+
+# Note: no gmeow:roleSoftwareDocumenter exists in the vocabulary.
+# DOAP documenter is a lossy drop for software contributions.
+
+gmeow:mapDoapTester a gmeow:ProjectionMapping ;
+    rdfs:label "Contribution(role=CodeReviewer) → doap:tester"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "proj" ; gmeow:value "testerAgent" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "proj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareProject ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Contribution ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionTarget ; gmeow:objectVar "proj" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributor ; gmeow:objectVar "testerAgent" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionRole ; gmeow:objectValue gmeow:roleCodeReviewer ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "testerAgent" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:toPredicate doap:tester ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "reviewer vs tester distinction; contribution period, provenance, confidence, degree" ] .
+
+gmeow:mapDoapHelper a gmeow:ProjectionMapping ;
+    rdfs:label "Contribution(role=SecurityContact) → doap:helper"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "proj" ; gmeow:value "helperAgent" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "proj" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SoftwareProject ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Contribution ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionTarget ; gmeow:objectVar "proj" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributor ; gmeow:objectVar "helperAgent" ]
+            [ gmeow:subjectVar "contrib" ; gmeow:predicate gmeow:contributionRole ; gmeow:objectValue gmeow:roleSecurityContact ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "helperAgent" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ] ;
+    gmeow:hasBinding [
+        gmeow:profile "doap" ; gmeow:toPredicate doap:helper ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "security-contact role mapped to helper; contribution period, provenance, confidence, degree" ] .
+
+# Note: DOAP has no role for releaser, bot contributor, or AI assistant.
+# roleReleaser, roleBotContributor, and roleAIAssistant are lossy drops.
+# DOAP documenter has no matching software ContributionRole.
+# The frozen DOAP enum cannot express unforeseen roles (Principle 9).
