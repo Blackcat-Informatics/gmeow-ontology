@@ -125,6 +125,7 @@ class AttestationTypeEnum(str, Enum):
     C2PA_manifest = "attestationTypeC2PA"
     DSSE_envelope = "attestationTypeDSSE"
     EAT_token = "attestationTypeEAT"
+    fact_check = "attestationTypeFactCheck"
     git_signed_tag = "attestationTypeGitSignedTag"
     in_toto_attestation = "attestationTypeInToto"
     nanopublication = "attestationTypeNanopublication"
@@ -293,6 +294,11 @@ class CitationIntentEnum(str, Enum):
     is_inspired_by = "intentIsInspiredBy"
     supports = "intentSupports"
     uses_method_in = "intentUsesMethodIn"
+
+
+class ClaimVeridicalityEnum(str, Enum):
+    licensed_falsehood = "veridicalityLicensedFalsehood"
+    untrue = "veridicalityUntrue"
 
 
 class ConflictStrategyEnum(str, Enum):
@@ -477,6 +483,7 @@ class EventTypeEnum(str, Enum):
     creation = "eventTypeCreation"
     cremation = "eventTypeCremation"
     death = "eventTypeDeath"
+    deception = "eventTypeDeception"
     destruction = "eventTypeDestruction"
     dissolution = "eventTypeDissolution"
     divorce = "eventTypeDivorce"
@@ -1035,6 +1042,10 @@ class ParticipantRoleEnum(str, Enum):
     agent = "roleAgent"
     attendee = "roleAttendee"
     beneficiary = "roleBeneficiary"
+    beneficiary_of_deception = "roleBeneficiaryOfDeception"
+    deceived = "roleDeceived"
+    deceiver = "roleDeceiver"
+    dupe = "roleDupe"
     officiant = "roleOfficiant"
     organizer = "roleOrganizer"
     principal_SOLIDUS_subject = "roleParticipantPrincipal"
@@ -1429,6 +1440,7 @@ class StandpointEnum(str, Enum):
 
 
 class StandpointModalityEnum(str, Enum):
+    bullshit_LEFT_PARENTHESISindifference_to_truthRIGHT_PARENTHESIS = "bullshit"
     conceivable_LEFT_PARENTHESISLOZENGE_possibleRIGHT_PARENTHESIS = "conceivable"
     probable = "probable"
     refuted_LEFT_PARENTHESISWHITE_SQUARENOT_SIGN_falseRIGHT_PARENTHESIS = "refuted"
@@ -1957,6 +1969,14 @@ class CitationIntent(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/CitationIntent',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Citation Intent'})
+
+    pass
+
+
+class ClaimVeridicality(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ClaimVeridicality',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Claim Veridicality'})
 
     pass
 
@@ -2910,6 +2930,12 @@ class Event(ConfiguredBaseModel):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -2961,9 +2987,18 @@ class Event(ConfiguredBaseModel):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -2979,6 +3014,12 @@ class Event(ConfiguredBaseModel):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -3013,6 +3054,12 @@ class Activity(Event):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -3064,9 +3111,18 @@ class Activity(Event):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -3082,6 +3138,12 @@ class Activity(Event):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -3137,6 +3199,12 @@ class Commit(Activity):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -3188,9 +3256,18 @@ class Commit(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -3206,6 +3283,12 @@ class Commit(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -4380,6 +4463,12 @@ class ImportActivity(Activity):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -4431,9 +4520,18 @@ class ImportActivity(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -4449,6 +4547,12 @@ class ImportActivity(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -7860,6 +7964,12 @@ class LanguageChangeEvent(Activity):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -7911,9 +8021,18 @@ class LanguageChangeEvent(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -7929,6 +8048,12 @@ class LanguageChangeEvent(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -7971,6 +8096,12 @@ class LanguageCreation(Activity):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -8022,9 +8153,18 @@ class LanguageCreation(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -8040,6 +8180,12 @@ class LanguageCreation(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -8476,6 +8622,12 @@ class LedgerEvent(Event):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -8527,9 +8679,18 @@ class LedgerEvent(Event):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -8545,6 +8706,12 @@ class LedgerEvent(Event):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -9065,6 +9232,12 @@ class LifeEvent(Event):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -9116,9 +9289,18 @@ class LifeEvent(Event):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -9134,6 +9316,12 @@ class LifeEvent(Event):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -10509,6 +10697,14 @@ class Mark(InformationObject):
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
+
+
+class MaximViolationType(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/MaximViolationType',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Maxim Violation Type'})
+
+    pass
 
 
 class MeasuredValue(Entity):
@@ -12237,6 +12433,9 @@ class Observation(ConfiguredBaseModel):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Observation'})
 
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -12271,6 +12470,9 @@ class Measurement(Observation):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Measurement'})
 
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -12308,6 +12510,9 @@ class Capacity(Measurement):
     capacityOf: Optional[Location] = Field(default=None, title="capacity of", json_schema_extra = { "linkml_meta": {'domain': 'Capacity',
          'domain_of': ['Capacity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/capacityOf'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -12376,6 +12581,12 @@ class ObservationalActivity(Activity):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -12427,9 +12638,18 @@ class ObservationalActivity(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -12445,6 +12665,12 @@ class ObservationalActivity(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -12467,6 +12693,9 @@ class Occupancy(Measurement):
     occupancyOf: Optional[Location] = Field(default=None, title="occupancy of", json_schema_extra = { "linkml_meta": {'domain': 'Occupancy',
          'domain_of': ['Occupancy'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/occupancyOf'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -14909,6 +15138,9 @@ class ProximityMeasurement(Measurement):
     proximityTo: Optional[Entity] = Field(default=None, title="proximity to", json_schema_extra = { "linkml_meta": {'domain': 'ProximityMeasurement',
          'domain_of': ['ProximityMeasurement'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximityTo'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -14949,6 +15181,9 @@ class QualityAssessment(Observation):
     qualityDimension: Optional[list[QualityDimension]] = Field(default=None, title="quality dimension", json_schema_extra = { "linkml_meta": {'domain': 'QualityAssessment',
          'domain_of': ['QualityAssessment'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/qualityDimension'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -16072,6 +16307,12 @@ class Release(Event):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -16123,9 +16364,18 @@ class Release(Event):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -16141,6 +16391,12 @@ class Release(Event):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -16475,6 +16731,9 @@ class RightsStatement(Observation):
     statementAbout: Optional[list[Entity]] = Field(default=None, title="statement about", json_schema_extra = { "linkml_meta": {'domain': 'RightsStatement',
          'domain_of': ['RightsStatement'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/statementAbout'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -17080,6 +17339,9 @@ class ScriptLanguageAttribution(Observation):
     attributionTarget: Optional[Inscription] = Field(default=None, title="attribution target", json_schema_extra = { "linkml_meta": {'domain': 'ScriptLanguageAttribution',
          'domain_of': ['ScriptLanguageAttribution'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionTarget'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -17616,6 +17878,9 @@ class SensoryObservation(Observation):
     sensoryResult: Optional[list[SensoryQuantity]] = Field(default=None, title="sensory result", json_schema_extra = { "linkml_meta": {'domain': 'SensoryObservation',
          'domain_of': ['SensoryObservation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/sensoryResult'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -19495,6 +19760,9 @@ class SpatialAggregation(Measurement):
     minimumPopulation: Optional[str] = Field(default=None, title="minimum population", json_schema_extra = { "linkml_meta": {'domain': 'SpatialAggregation',
          'domain_of': ['SpatialAggregation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/minimumPopulation'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -19879,6 +20147,9 @@ class SpatialMeasurement(Measurement):
     spatialMeasurementOf: Optional[list[Entity]] = Field(default=None, title="spatial measurement of", json_schema_extra = { "linkml_meta": {'domain': 'SpatialMeasurement',
          'domain_of': ['SpatialMeasurement'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/spatialMeasurementOf'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -19925,6 +20196,9 @@ class CoordinateObservation(SpatialMeasurement):
     spatialMeasurementOf: Optional[list[Entity]] = Field(default=None, title="spatial measurement of", json_schema_extra = { "linkml_meta": {'domain': 'SpatialMeasurement',
          'domain_of': ['SpatialMeasurement'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/spatialMeasurementOf'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -20219,9 +20493,18 @@ class StandpointClaim(Observation):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Standpoint Claim'})
 
+    argumentAcceptability: Optional[Decimal] = Field(default=None, title="argument acceptability", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
+         'domain_of': ['StandpointClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/argumentAcceptability'} })
     claimModality: Optional[StandpointModality] = Field(default=None, title="claim modality", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
          'domain_of': ['StandpointClaim'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/claimModality'} })
+    claimVeridicality: Optional[list[ClaimVeridicality]] = Field(default=None, title="claim veridicality", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
+         'domain_of': ['StandpointClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/claimVeridicality'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -20259,9 +20542,18 @@ class SensoryPerception(StandpointClaim):
     perceptionModality: Optional[SensoryModality] = Field(default=None, title="perception modality", json_schema_extra = { "linkml_meta": {'domain': 'SensoryPerception',
          'domain_of': ['SensoryPerception'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/perceptionModality'} })
+    argumentAcceptability: Optional[Decimal] = Field(default=None, title="argument acceptability", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
+         'domain_of': ['StandpointClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/argumentAcceptability'} })
     claimModality: Optional[StandpointModality] = Field(default=None, title="claim modality", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
          'domain_of': ['StandpointClaim'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/claimModality'} })
+    claimVeridicality: Optional[list[ClaimVeridicality]] = Field(default=None, title="claim veridicality", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
+         'domain_of': ['StandpointClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/claimVeridicality'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -21582,6 +21874,9 @@ class TemporalMeasurement(Measurement):
     measurementUncertainty: Optional[Decimal] = Field(default=None, title="measurement uncertainty", json_schema_extra = { "linkml_meta": {'domain': 'TemporalMeasurement',
          'domain_of': ['TemporalMeasurement'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/measurementUncertainty'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -22493,6 +22788,9 @@ class UsageAttestation(Observation):
     attestedOnCarrier: Optional[list[PhysicalObject]] = Field(default=None, title="attested on carrier", json_schema_extra = { "linkml_meta": {'domain': 'UsageAttestation',
          'domain_of': ['UsageAttestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/attestedOnCarrier'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -22530,6 +22828,9 @@ class Utilization(Measurement):
     utilizationOf: Optional[Location] = Field(default=None, title="utilization of", json_schema_extra = { "linkml_meta": {'domain': 'Utilization',
          'domain_of': ['Utilization'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/utilizationOf'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -22579,6 +22880,12 @@ class VerificationActivity(Activity):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -22630,9 +22937,18 @@ class VerificationActivity(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -22648,6 +22964,12 @@ class VerificationActivity(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -22832,6 +23154,9 @@ class VersionMembership(Observation):
     versionSet: Optional[VersionSet] = Field(default=None, title="version set", json_schema_extra = { "linkml_meta": {'domain': 'VersionMembership',
          'domain_of': ['VersionMembership'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionSet'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -25191,6 +25516,7 @@ CelestialReferenceOrigin.model_rebuild()
 Certification.model_rebuild()
 CitationAct.model_rebuild()
 CitationIntent.model_rebuild()
+ClaimVeridicality.model_rebuild()
 ConflictStrategy.model_rebuild()
 Connection.model_rebuild()
 Constraint.model_rebuild()
@@ -25314,6 +25640,7 @@ Manifestation.model_rebuild()
 BookRelease.model_rebuild()
 ManifestationFormat.model_rebuild()
 Mark.model_rebuild()
+MaximViolationType.model_rebuild()
 MeasuredValue.model_rebuild()
 MediaObject.model_rebuild()
 Membership.model_rebuild()

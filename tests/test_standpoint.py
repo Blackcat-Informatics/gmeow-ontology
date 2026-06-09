@@ -89,7 +89,13 @@ def test_modality_value_vocab_spans_belief_values() -> None:
     ≥ CRMinf: a standpoint can hold a proposition FALSE, not merely be silent."""
     g = _graph()
     members = set(g.subjects(RDF.type, GM.StandpointModality))
-    assert members == {GM.unequivocal, GM.probable, GM.conceivable, GM.refuted}
+    assert members == {
+        GM.unequivocal,
+        GM.probable,
+        GM.conceivable,
+        GM.refuted,
+        GM.bullshit,
+    }
 
 
 def test_sharpens_is_transitive_and_universal_standpoint_declared() -> None:

@@ -1,0 +1,13 @@
+# Competency question: "What deception-related event types and veridicality values does GMEOW model?"
+# Expected: eventTypeDeception, ClaimVeridicality, veridicalityUntrue, veridicalityLicensedFalsehood.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?deceptionType WHERE {
+    { ?deceptionType a gmeow:EventType . FILTER(?deceptionType = gmeow:eventTypeDeception) }
+    UNION
+    { BIND(gmeow:ClaimVeridicality AS ?deceptionType) }
+    UNION
+    { ?deceptionType a gmeow:ClaimVeridicality }
+}
+ORDER BY ?deceptionType

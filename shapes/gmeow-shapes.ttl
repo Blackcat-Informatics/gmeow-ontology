@@ -2188,3 +2188,63 @@ gmeow:MonetaryAmountHasValueShape
         sh:severity sh:Violation ;
         sh:message "Every MonetaryAmount must have exactly one monetary value (gmeow:monetaryValue, xsd:decimal)." ;
     ] .
+
+# =========================================================================== #
+# Deception data shapes (#213). Instance-targeted; dormant on TBox.
+# =========================================================================== #
+
+# A deception event must carry at least one held standpoint and one projected
+# standpoint. minCount only (open-world: a complex deception may have more).
+gmeow:DeceptionEventShape
+    a sh:NodeShape ;
+    rdfs:label "Deception event well-formedness shape" ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            SELECT ?this WHERE {
+                ?this a <https://blackcatinformatics.ca/gmeow/Event> .
+                ?this <https://blackcatinformatics.ca/gmeow/eventType> <https://blackcatinformatics.ca/gmeow/eventTypeDeception> .
+            }
+        """ ;
+    ] ;
+    sh:property [
+        sh:path gmeow:heldStandpoint ;
+        sh:minCount 1 ;
+        sh:class gmeow:StandpointClaim ;
+        sh:severity sh:Violation ;
+        sh:message "A deception event must carry at least one held standpoint (gmeow:heldStandpoint) of type gmeow:StandpointClaim." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:projectedStandpoint ;
+        sh:minCount 1 ;
+        sh:class gmeow:StandpointClaim ;
+        sh:severity sh:Violation ;
+        sh:message "A deception event must carry at least one projected standpoint (gmeow:projectedStandpoint) of type gmeow:StandpointClaim." ;
+    ] .
+
+# A deception cue observation must carry vantage and observationResult.
+gmeow:DeceptionCueShape
+    a sh:NodeShape ;
+    rdfs:label "Deception cue well-formedness shape" ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            SELECT ?this WHERE {
+                ?event a <https://blackcatinformatics.ca/gmeow/Event> .
+                ?event <https://blackcatinformatics.ca/gmeow/deceptionCue> ?this .
+            }
+        """ ;
+    ] ;
+    sh:class gmeow:Observation ;
+    sh:property [
+        sh:path gmeow:vantage ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A deception cue observation must have a vantage (gmeow:vantage)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:observationResult ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A deception cue observation must have an observation result (gmeow:observationResult)." ;
+    ] .

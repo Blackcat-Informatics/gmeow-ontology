@@ -45,6 +45,7 @@ export enum AttestationTypeEnum {
     C2PA_manifest = "attestationTypeC2PA",
     DSSE_envelope = "attestationTypeDSSE",
     EAT_token = "attestationTypeEAT",
+    fact_check = "attestationTypeFactCheck",
     git_signed_tag = "attestationTypeGitSignedTag",
     in_toto_attestation = "attestationTypeInToto",
     nanopublication = "attestationTypeNanopublication",
@@ -220,6 +221,12 @@ export enum CitationIntentEnum {
     is_inspired_by = "intentIsInspiredBy",
     supports = "intentSupports",
     uses_method_in = "intentUsesMethodIn",
+};
+
+export enum ClaimVeridicalityEnum {
+
+    licensed_falsehood = "veridicalityLicensedFalsehood",
+    untrue = "veridicalityUntrue",
 };
 
 export enum ConflictStrategyEnum {
@@ -418,6 +425,7 @@ export enum EventTypeEnum {
     creation = "eventTypeCreation",
     cremation = "eventTypeCremation",
     death = "eventTypeDeath",
+    deception = "eventTypeDeception",
     destruction = "eventTypeDestruction",
     dissolution = "eventTypeDissolution",
     divorce = "eventTypeDivorce",
@@ -1019,6 +1027,10 @@ export enum ParticipantRoleEnum {
     agent = "roleAgent",
     attendee = "roleAttendee",
     beneficiary = "roleBeneficiary",
+    beneficiary_of_deception = "roleBeneficiaryOfDeception",
+    deceived = "roleDeceived",
+    deceiver = "roleDeceiver",
+    dupe = "roleDupe",
     officiant = "roleOfficiant",
     organizer = "roleOrganizer",
     principal_SOLIDUS_subject = "roleParticipantPrincipal",
@@ -1441,6 +1453,7 @@ export enum StandpointEnum {
 
 export enum StandpointModalityEnum {
 
+    bullshit_LEFT_PARENTHESISindifference_to_truthRIGHT_PARENTHESIS = "bullshit",
     conceivable_LEFT_PARENTHESISLOZENGE_possibleRIGHT_PARENTHESIS = "conceivable",
     probable = "probable",
     refuted_LEFT_PARENTHESISWHITE_SQUARENOT_SIGN_falseRIGHT_PARENTHESIS = "refuted",
@@ -1924,6 +1937,11 @@ export interface CitationIntent {
 
 
 
+export interface ClaimVeridicality {
+}
+
+
+
 export interface Commit extends Activity {
     authorTime?: string,
     authoredBy?: Agent[],
@@ -2250,6 +2268,8 @@ export interface Event {
     before?: Event[],
     coincidesWith?: Event[],
     contains?: Event[],
+    deceptionCue?: Observation[],
+    deceptiveIntentClaim?: StandpointClaim[],
     during?: Event[],
     earliestStart?: string,
     eventAspect?: GrammaticalAspect[],
@@ -2267,12 +2287,17 @@ export interface Event {
     hasDuration?: Duration[],
     hasParticipant?: Agent[],
     hasSubEvent?: Event[],
+    heldStandpoint?: StandpointClaim[],
+    implicates?: Entity[],
     latestEnd?: string,
+    maximViolationType?: MaximViolationType[],
     meets?: Event[],
     metBy?: Event[],
     occurrenceOfSeries?: EventSeries[],
     overlappedBy?: Event[],
     overlaps?: Event[],
+    projectedStandpoint?: StandpointClaim[],
+    propagationMutationDistance?: number,
     startedBy?: Event[],
     starts?: Event[],
     subEventOf?: Event[],
@@ -2796,6 +2821,11 @@ export interface Mark extends InformationObject {
 
 
 
+export interface MaximViolationType {
+}
+
+
+
 export interface MeasuredValue extends Entity {
 }
 
@@ -3000,6 +3030,7 @@ export interface ObservableProperty {
 
 
 export interface Observation {
+    credibilityScore?: string,
     facetSubject?: Person[],
     facetVantage?: Agent[],
     observationEvent?: Event[],
@@ -3709,7 +3740,9 @@ export interface Standpoint extends Entity {
 
 
 export interface StandpointClaim extends Observation {
+    argumentAcceptability?: string,
     claimModality?: StandpointModality,
+    claimVeridicality?: ClaimVeridicality[],
 }
 
 

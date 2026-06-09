@@ -195,13 +195,18 @@ def test_dsl_parses() -> None:
     # Issue #156 book / narrative model: +6 (schema:Book, bibo:Book,
     # schema:CreativeWorkSeries, schema:Chapter x2, schema:Role).
     # Issue #64 financial slice Phase A: +17 (FIBO x7, schema.org x5, ISO 4217 x5).
-    assert len(dsl.equivalences) == 1335
+    # Issue #213 deception: +8 (standpoint.ttl bullshit→CRMinf x1;
+    # deception.ttl schema.org x2, PROV-O x2, CRMinf x2, Wikidata x1).
+    assert len(dsl.equivalences) == 1343
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
     # fnPosePositionToWktPoint #78,
     # fnRetagGeoJson + fnCoarsenToGranularityGeoJson #82).
-    assert len(dsl.functions) == 28
+    # Issue #213 deception: +7 (fnStandpointDivergence, fnImplicatesInContext,
+    # fnMaximViolationType, fnDeceptionCueScore, fnCredibilityScore,
+    # fnPropagationMutationDistance, fnArgumentAcceptability).
+    assert len(dsl.functions) == 35
     # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint,
     # gmeow-events, gmeow-rights, gmeow-coreference, gmeow-determinacy, gmeow-privacy).
     # Issue #70 adds gmeow-qudt, gmeow-fibo, gmeow-temporal.
@@ -225,7 +230,8 @@ def test_dsl_parses() -> None:
     # Issue #231 software five-facet de-conflation: +1 (gmeow-software.sssom.tsv).
     # Issue #173 archaeological evidence: +1 (gmeow-archaeological-evidence.sssom.tsv).
     # Issue #64 financial slice Phase A: +2 (gmeow-schema-org-finance, gmeow-iso4217).
-    assert len(dsl.mapping_sets) == 41
+    # Issue #213 deception: +1 (gmeow-deception.sssom.tsv).
+    assert len(dsl.mapping_sets) == 42
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}
