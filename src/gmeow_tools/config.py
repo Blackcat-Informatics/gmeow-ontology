@@ -286,6 +286,7 @@ PREFIXES: dict[str, str] = {
     "lime": "http://www.w3.org/ns/lemon/lime#",
     # Currency (FIBO CurrencyAmount)
     "fibo-fnd-acc-cur": "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/",
+    "fibo-iso4217": "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/ISO4217-CurrencyCodes/",
     # Machine Learning (ML-Schema)
     "mls": "http://www.w3.org/ns/mls#",
     # Biological-sequence realm (FALDO, Sequence Ontology)
@@ -514,6 +515,9 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "gtfs": AlignmentTarget("GTFS", PREFIXES["gtfs"], "CC-BY-3.0", "schema"),
     "fibo-fnd-acc-cur": AlignmentTarget(
         "FIBO CurrencyAmount", PREFIXES["fibo-fnd-acc-cur"], "MIT", "schema"
+    ),
+    "fibo-iso4217": AlignmentTarget(
+        "FIBO ISO4217 Currency Codes", PREFIXES["fibo-iso4217"], "MIT", "schema"
     ),
     "brick": AlignmentTarget("Brick", PREFIXES["brick"], "BSD-3-Clause", "schema"),
     "bot": AlignmentTarget(

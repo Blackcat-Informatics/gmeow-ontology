@@ -11,5 +11,7 @@
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow:MonetaryAmount	skos:closeMatch	fibo-fnd-acc-cur:MonetaryAmount	semapv:ManualMappingCuration	0.85	a quantity of money expressed as a value in a currency
 gmeow:ReferenceFrame	skos:closeMatch	fibo-fnd-acc-cur:Currency	semapv:ManualMappingCuration	0.85	contextual — holds when the ReferenceFrame's frameRealm is gmeow:frameRealmCurrency
+gmeow:currency	skos:closeMatch	fibo-fnd-acc-cur:hasCurrency	semapv:ManualMappingCuration	0.8	links a monetary amount to its currency frame (subproperty of hasReferenceFrame)
 gmeow:hasReferenceFrame	skos:closeMatch	fibo-fnd-acc-cur:hasCurrency	semapv:ManualMappingCuration	0.8	links a monetary amount to its currency frame

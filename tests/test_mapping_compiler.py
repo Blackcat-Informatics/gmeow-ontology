@@ -194,7 +194,8 @@ def test_dsl_parses() -> None:
     #  consumerWikidata↔wd:Q2013, consumerWikipedia↔wd:Q52).
     # Issue #156 book / narrative model: +6 (schema:Book, bibo:Book,
     # schema:CreativeWorkSeries, schema:Chapter x2, schema:Role).
-    assert len(dsl.equivalences) == 1318
+    # Issue #64 financial slice Phase A: +17 (FIBO x7, schema.org x5, ISO 4217 x5).
+    assert len(dsl.equivalences) == 1335
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -223,7 +224,8 @@ def test_dsl_parses() -> None:
     # Issue #224 evidence: +1 (gmeow-evidence.sssom.tsv).
     # Issue #231 software five-facet de-conflation: +1 (gmeow-software.sssom.tsv).
     # Issue #173 archaeological evidence: +1 (gmeow-archaeological-evidence.sssom.tsv).
-    assert len(dsl.mapping_sets) == 39
+    # Issue #64 financial slice Phase A: +2 (gmeow-schema-org-finance, gmeow-iso4217).
+    assert len(dsl.mapping_sets) == 41
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}

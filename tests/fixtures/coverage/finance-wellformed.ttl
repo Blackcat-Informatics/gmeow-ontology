@@ -1,0 +1,39 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:      <https://blackcatinformatics.ca/gmeow/examples/finance/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+# A well-formed Canadian chequing account.
+ex:alice a gmeow:Agent .
+
+ex:chequingAccount
+    a gmeow:FinancialAccount ;
+    gmeow:accountHolder ex:alice ;
+    gmeow:accountCurrency gmeow:referenceFrameCAD ;
+    gmeow:accountType gmeow:accountTypeBank ;
+    gmeow:iban "CA0001234567" ;
+    gmeow:accountBalance ex:balanceCAD .
+
+ex:balanceCAD
+    a gmeow:MonetaryAmount ;
+    gmeow:monetaryValue "1234.56"^^xsd:decimal ;
+    gmeow:currency gmeow:referenceFrameCAD .
+
+# A multi-currency fintech wallet (non-functional accountCurrency).
+ex:multiCurrencyWallet
+    a gmeow:FinancialAccount ;
+    gmeow:accountHolder ex:alice ;
+    gmeow:accountCurrency gmeow:referenceFrameUSD ;
+    gmeow:accountCurrency gmeow:referenceFrameEUR ;
+    gmeow:accountType gmeow:accountTypeWallet ;
+    gmeow:accountBalance ex:balanceUSD ;
+    gmeow:accountBalance ex:balanceEUR .
+
+ex:balanceUSD
+    a gmeow:MonetaryAmount ;
+    gmeow:monetaryValue "500.00"^^xsd:decimal ;
+    gmeow:currency gmeow:referenceFrameUSD .
+
+ex:balanceEUR
+    a gmeow:MonetaryAmount ;
+    gmeow:monetaryValue "750.00"^^xsd:decimal ;
+    gmeow:currency gmeow:referenceFrameEUR .

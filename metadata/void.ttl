@@ -27,6 +27,7 @@
 @prefix faldo: <http://biohackathon.org/resource/faldo#> .
 @prefix fhir: <http://hl7.org/fhir/> .
 @prefix fibo-fnd-acc-cur: <https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/> .
+@prefix fibo-iso4217: <https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/ISO4217-CurrencyCodes/> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix forgefed: <https://forgefed.org/ns#> .
 @prefix frbr: <http://purl.org/vocab/frbr/core#> .
@@ -215,11 +216,11 @@
     void:triples 99 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-2-skos_relatedMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:relatedMatch links to http://www.w3.org/ns/odrl/2/ (9)" ;
+    rdfs:label "GMEOW skos:relatedMatch links to http://www.w3.org/ns/odrl/2/ (11)" ;
     void:linkPredicate skos:relatedMatch ;
     void:objectsTarget odrl: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 9 .
+    void:triples 11 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-99152-skos_relatedMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:relatedMatch links to http://n2t.net/ark:/99152/ (1)" ;
@@ -264,11 +265,11 @@
     void:triples 5 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-CurrencyAmount-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/ (2)" ;
+    rdfs:label "GMEOW skos:closeMatch links to https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/ (4)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget fibo-fnd-acc-cur: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 2 .
+    void:triples 4 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-DUL.owl-skos_relatedMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:relatedMatch links to http://www.ontologydesignpatterns.org/ont/dul/DUL.owl# (2)" ;
@@ -283,6 +284,13 @@
     void:objectsTarget ifc: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
     void:triples 4 .
+
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ISO4217-CurrencyCodes-skos_exactMatch> a void:Linkset ;
+    rdfs:label "GMEOW skos:exactMatch links to https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/ISO4217-CurrencyCodes/ (8)" ;
+    void:linkPredicate skos:exactMatch ;
+    void:objectsTarget fibo-iso4217: ;
+    void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
+    void:triples 8 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-NewsML-G2-skos_relatedMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:relatedMatch links to http://iptc.org/std/NewsML-G2/ (3)" ;
@@ -495,11 +503,11 @@
     void:triples 8 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-dpv-skos_relatedMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:relatedMatch links to https://w3id.org/dpv# (1)" ;
+    rdfs:label "GMEOW skos:relatedMatch links to https://w3id.org/dpv# (4)" ;
     void:linkPredicate skos:relatedMatch ;
     void:objectsTarget dpv: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 1 .
+    void:triples 4 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-dqv-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to http://www.w3.org/ns/dqv# (4)" ;
@@ -530,11 +538,11 @@
     void:triples 4 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-entity-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://www.wikidata.org/entity/ (148)" ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.wikidata.org/entity/ (150)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget wd: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 148 .
+    void:triples 150 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-entity-skos_exactMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:exactMatch links to http://www.wikidata.org/entity/ (35)" ;
@@ -1081,18 +1089,18 @@
     void:triples 10 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-schema.org-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to https://schema.org/ (78)" ;
+    rdfs:label "GMEOW skos:closeMatch links to https://schema.org/ (83)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget schema: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 78 .
+    void:triples 83 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-schema.org-skos_exactMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:exactMatch links to https://schema.org/ (6)" ;
+    rdfs:label "GMEOW skos:exactMatch links to https://schema.org/ (7)" ;
     void:linkPredicate skos:exactMatch ;
     void:objectsTarget schema: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 6 .
+    void:triples 7 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-schema.org-skos_narrowMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:narrowMatch links to https://schema.org/ (1)" ;
@@ -1102,11 +1110,11 @@
     void:triples 1 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-schema.org-skos_relatedMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:relatedMatch links to https://schema.org/ (12)" ;
+    rdfs:label "GMEOW skos:relatedMatch links to https://schema.org/ (14)" ;
     void:linkPredicate skos:relatedMatch ;
     void:objectsTarget schema: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 12 .
+    void:triples 14 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-sem-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to http://semanticweb.cs.vu.nl/2009/11/sem/ (4)" ;
@@ -1302,6 +1310,7 @@
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-CurrencyAmount-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-DUL.owl-skos_relatedMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-IFC4-skos_closeMatch>,
+        <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ISO4217-CurrencyCodes-skos_exactMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-NewsML-G2-skos_relatedMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ObsCore-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ObsCore-skos_relatedMatch>,
@@ -1508,6 +1517,7 @@
         rstmt:,
         schema:,
         fibo-fnd-acc-cur:,
+        fibo-iso4217:,
         bot: ;
     foaf:homepage <https://blackcatinformatics.ca/gmeow> .
 

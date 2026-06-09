@@ -13,6 +13,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/modules/entities" uri="ontology/modules/entities.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/organization" uri="ontology/modules/organization.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/accounts" uri="ontology/modules/accounts.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/finance" uri="ontology/modules/finance.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/creative-works" uri="ontology/modules/creative-works.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/documents" uri="ontology/modules/documents.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/software" uri="ontology/modules/software.ttl"/>

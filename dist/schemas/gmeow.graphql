@@ -469,6 +469,14 @@ enum EvidenceClassEnum
     evidenceVERIFIED
   }
 
+enum FinancialAccountTypeEnum
+  {
+    accountTypeBank
+    accountTypeCredit
+    accountTypeInvestment
+    accountTypeWallet
+  }
+
 enum FrameKindEnum
   {
     frameKindCartesian
@@ -1156,20 +1164,28 @@ enum QualityDimensionEnum
 
 enum ReferenceFrameEnum
   {
+    referenceFrameAUD
     referenceFrameAltitudeAGL
     referenceFrameAltitudeMSL
     referenceFrameAudioSpectrum
     referenceFrameBGP
+    referenceFrameBTC
+    referenceFrameCAD
+    referenceFrameCHF
     referenceFrameCIELAB
     referenceFrameCIEXYZ
     referenceFrameCMYK
+    referenceFrameCNY
     referenceFrameCelestialEquatorial
     referenceFrameDNS
     referenceFrameDepthBelowChartDatum
     referenceFrameDepthBelowSeaLevel
+    referenceFrameETH
+    referenceFrameEUR
     referenceFrameEnglish
     referenceFrameFK5
     referenceFrameFlightLevel
+    referenceFrameGBP
     referenceFrameGRCh38
     referenceFrameGalactic
     referenceFrameGeohash
@@ -1179,6 +1195,7 @@ enum ReferenceFrameEnum
     referenceFrameIPv4
     referenceFrameIPv6
     referenceFrameInternet
+    referenceFrameJPY
     referenceFrameLatentVectorSpace
     referenceFrameLocalGrid
     referenceFrameMAC
@@ -3621,6 +3638,63 @@ type Filename
     claimedMediaType: String
   }
 
+type FinancialAccount
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    proximity: [ProximityMeasurement]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    accountBalance: [MonetaryAmount]
+    accountCurrency: [ReferenceFrame]
+    accountHolder: [Agent]
+    accountNumber: String
+    accountType: FinancialAccountType
+    bic: String
+    iban: String
+  }
+
+type FinancialAccountType
+  {
+  }
+
 type ForgePlatform
   {
     acquireLicensePage: String
@@ -5523,6 +5597,52 @@ type MessageParticipantRole
 
 type MetricKind
   {
+  }
+
+type MonetaryAmount
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    proximity: [ProximityMeasurement]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    currency: ReferenceFrame
+    monetaryValue: Float
   }
 
 type NamedPeriod
@@ -9371,6 +9491,14 @@ type Trajectory
     hasTrajectorySample: [LocationState]
     trajectoryOf: Entity
     trajectoryReferenceFrame: ReferenceFrame
+  }
+
+type TransactionStatus
+  {
+  }
+
+type TransactionType
+  {
   }
 
 type TransliterationScheme

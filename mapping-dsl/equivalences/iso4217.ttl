@@ -1,0 +1,91 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix semapv:  <https://w3id.org/semapv/vocab/> .
+
+# Term equivalences for ISO 4217 currency codes — GMEOW authoring source.
+# Compiled to mappings/gmeow-iso4217.sssom.tsv by `gmeow compile-mappings`.
+# Each GMEOW currency ReferenceFrame individual is aligned to the FIBO
+# ISO4217-CurrencyCodes module (the authoritative RDF representation of ISO 4217).
+
+@prefix fibo-iso4217: <https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/ISO4217-CurrencyCodes/> .
+
+gmeow:mapsetIso4217 a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/iso4217" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "ISO 4217 currency code alignments. GMEOW currency ReferenceFrame individuals align to FIBO ISO4217-CurrencyCodes currency individuals." .
+
+gmeow:eqIso4217001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameUSD ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject fibo-iso4217:USD ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "US Dollar" ;
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" .
+
+gmeow:eqIso4217002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameEUR ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject fibo-iso4217:EUR ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "Euro" ;
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" .
+
+gmeow:eqIso4217003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameGBP ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject fibo-iso4217:GBP ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "British Pound" ;
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" .
+
+gmeow:eqIso4217004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameJPY ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject fibo-iso4217:JPY ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "Japanese Yen" ;
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" .
+
+gmeow:eqIso4217005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameCAD ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject fibo-iso4217:CAD ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "Canadian Dollar" ;
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" .
+
+gmeow:eqIso4217006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameCHF ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject fibo-iso4217:CHF ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "Swiss Franc" ;
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" .
+
+gmeow:eqIso4217007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameAUD ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject fibo-iso4217:AUD ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "Australian Dollar" ;
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" .
+
+gmeow:eqIso4217008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:referenceFrameCNY ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject fibo-iso4217:CNY ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "Chinese Yuan" ;
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" .
