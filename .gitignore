@@ -16,6 +16,9 @@ htmlcov/
 /docs/_generated/
 /llms.txt
 
+# Stamp files (compilation freshness tracking)
+.stamps/
+
 # Editor/OS noise
 .DS_Store
 *.swp
