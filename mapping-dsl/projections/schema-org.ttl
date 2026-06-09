@@ -391,14 +391,10 @@ gmeow:mapSchemaKnowsLanguageProficiency a gmeow:ProjectionMapping ;
         gmeow:transform gmeow:fnProficiencyToKnownLanguage ; gmeow:confidence 0.8 ;
         gmeow:lossyDrop "CEFR/ILR/ACTFL level and skill modality dropped" ] .
 
-gmeow:mapSchemaDescription a gmeow:ProjectionMapping ;
-    rdfs:label "gmeow:description → schema:description"@en ;
-    gmeow:hasMappingPattern [
-        gmeow:anchor "ent" ; gmeow:value "desc" ;
-        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:description ; gmeow:objectVar "desc" ] ) ;
-        gmeow:edoalSource gmeow:description ] ;
-    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:description ; gmeow:relation "=" ; gmeow:confidence 1.0 ] .
-
+# NOTE: gmeow:mapSchemaDescription is intentionally superseded by
+# gmeow:mapSchemaDescriptionPublicOnly (#225) which gates schema:description
+# projection to the public-site consumer. The old ungated mapping is removed
+# per Principle 6 (greenfield — get it right, not compatible).
 gmeow:mapSchemaUrl a gmeow:ProjectionMapping ;
     rdfs:label "hasWebPage → schema:url (the WebPage IRI)"@en ;
     gmeow:hasMappingPattern [
@@ -780,3 +776,22 @@ gmeow:mapSchemaCoordinateObservation a gmeow:ProjectionMapping ;
 # WKT. Consumers needing complex geometries should use the GeoSPARQL projection.
 # The CoordinateObservation coordinateResult mapping above already handles
 # point coordinates (lat/lon) as schema:GeoCoordinates.
+
+# --------------------------------------------------------------------------- #
+# Per-consumer gating demonstration (#225).
+#
+# A description is projected to schema:description ONLY when the entity is
+# explicitly eligible for the public-site consumer. This uses the projectWhen
+# positive guard atom (FILTER EXISTS), the complement of suppressWhen.
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaDescriptionPublicOnly a gmeow:ProjectionMapping ;
+    rdfs:label "gmeow:description → schema:description (public-site consumer only)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ent" ; gmeow:value "desc" ;
+        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:description ; gmeow:objectVar "desc" ] ) ;
+        gmeow:projectWhen [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:eligibleForConsumer ; gmeow:objectValue gmeow:consumerPublicSite ] ;
+        gmeow:edoalSource gmeow:description ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:description ; gmeow:relation "=" ; gmeow:confidence 1.0 ;
+        gmeow:lossyDrop "description withheld when entity is not explicitly eligible for consumerPublicSite" ] .

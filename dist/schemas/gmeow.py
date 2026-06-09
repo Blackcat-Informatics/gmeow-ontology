@@ -449,6 +449,15 @@ class DeterminacyEnum(str, Enum):
     vague = "determinacyVague"
 
 
+class DisclosurePolicyEnum(str, Enum):
+    internal_only = "policyInternalOnly"
+    never_public = "policyNeverPublic"
+    public_careful = "policyPublicCareful"
+    public_only_with_independent_source = "policyPublicOnlyWithIndependentSource"
+    public_safe = "policyPublicSafe"
+    sensitive = "policySensitive"
+
+
 class EventTypeEnum(str, Enum):
     adoption = "eventTypeAdoption"
     annulment = "eventTypeAnnulment"
@@ -1102,6 +1111,17 @@ class ProfileEnum(str, Enum):
     Reference_Frame_Profile = "profileReferenceFrame"
     Temporal_Frame_Profile = "profileTemporalFrame"
     Temporal_Provenance_Profile_LEFT_PARENTHESISfour_clocksRIGHT_PARENTHESIS = "profileTemporalProvenance"
+
+
+class ProjectionContextEnum(str, Enum):
+    agent_memory = "consumerAgentMemory"
+    FOAF_export = "consumerFoafExport"
+    internal_archive = "consumerInternalArchive"
+    public_site = "consumerPublicSite"
+    research_queue = "consumerResearchQueue"
+    schemaFULL_STOPorg_JSON_LD = "consumerSchemaOrgJsonLd"
+    Wikidata = "consumerWikidata"
+    Wikipedia = "consumerWikipedia"
 
 
 class PronounSetEnum(str, Enum):
@@ -2166,6 +2186,14 @@ class Determinacy(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Determinacy',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Determinacy'})
+
+    pass
+
+
+class DisclosurePolicy(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/DisclosurePolicy',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Disclosure Policy'})
 
     pass
 
@@ -14406,6 +14434,14 @@ class Project(Entity):
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
 
 
+class ProjectionContext(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ProjectionContext',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Projection Context'})
+
+    pass
+
+
 class PronounSet(InformationObject):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/PronounSet',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -24849,6 +24885,7 @@ CreativeWorkType.model_rebuild()
 DatingMethod.model_rebuild()
 DerivationKind.model_rebuild()
 Determinacy.model_rebuild()
+DisclosurePolicy.model_rebuild()
 EmailAddress.model_rebuild()
 Entity.model_rebuild()
 BlockchainAccount.model_rebuild()
@@ -25011,6 +25048,7 @@ ProficiencyScale.model_rebuild()
 Profile.model_rebuild()
 ProgrammingLanguage.model_rebuild()
 Project.model_rebuild()
+ProjectionContext.model_rebuild()
 PronounSet.model_rebuild()
 ProximityMeasurement.model_rebuild()
 QualityAssessment.model_rebuild()

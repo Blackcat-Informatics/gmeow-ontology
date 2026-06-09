@@ -451,6 +451,9 @@ classes:
   Determinacy:
     class_uri: https://blackcatinformatics.ca/gmeow/Determinacy
     title: Determinacy
+  DisclosurePolicy:
+    class_uri: https://blackcatinformatics.ca/gmeow/DisclosurePolicy
+    title: Disclosure Policy
   Distribution:
     class_uri: https://blackcatinformatics.ca/gmeow/Distribution
     title: Distribution
@@ -1425,6 +1428,9 @@ classes:
     - maintenanceStatus
     - projectIdentifier
     - projectLicense
+  ProjectionContext:
+    class_uri: https://blackcatinformatics.ca/gmeow/ProjectionContext
+    title: Projection Context
   PronounSet:
     class_uri: https://blackcatinformatics.ca/gmeow/PronounSet
     title: Pronoun Set
@@ -2891,6 +2897,11 @@ slots:
     title: elevation
     range: decimal
     domain: GeoCoordinates
+  eligibleForConsumer:
+    slot_uri: https://blackcatinformatics.ca/gmeow/eligibleForConsumer
+    title: eligible for consumer
+    range: ProjectionContext
+    multivalued: true
   email:
     slot_uri: https://blackcatinformatics.ca/gmeow/email
     title: email
@@ -3435,6 +3446,11 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasDeterminacy
     title: has determinacy
     range: Determinacy
+    multivalued: true
+  hasDisclosurePolicy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasDisclosurePolicy
+    title: has disclosure policy
+    range: DisclosurePolicy
     multivalued: true
   hasDistribution:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasDistribution
@@ -7286,6 +7302,27 @@ enums:
       determinacyVague:
         meaning: https://blackcatinformatics.ca/gmeow/determinacyVague
         title: vague
+  DisclosurePolicyEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/DisclosurePolicy
+    permissible_values:
+      policyInternalOnly:
+        meaning: https://blackcatinformatics.ca/gmeow/policyInternalOnly
+        title: internal only
+      policyNeverPublic:
+        meaning: https://blackcatinformatics.ca/gmeow/policyNeverPublic
+        title: never public
+      policyPublicCareful:
+        meaning: https://blackcatinformatics.ca/gmeow/policyPublicCareful
+        title: public careful
+      policyPublicOnlyWithIndependentSource:
+        meaning: https://blackcatinformatics.ca/gmeow/policyPublicOnlyWithIndependentSource
+        title: public only with independent source
+      policyPublicSafe:
+        meaning: https://blackcatinformatics.ca/gmeow/policyPublicSafe
+        title: public safe
+      policySensitive:
+        meaning: https://blackcatinformatics.ca/gmeow/policySensitive
+        title: sensitive
   EventTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/EventType
     permissible_values:
@@ -8952,6 +8989,33 @@ enums:
       profileTemporalProvenance:
         meaning: https://blackcatinformatics.ca/gmeow/profileTemporalProvenance
         title: Temporal Provenance Profile (four clocks)
+  ProjectionContextEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ProjectionContext
+    permissible_values:
+      consumerAgentMemory:
+        meaning: https://blackcatinformatics.ca/gmeow/consumerAgentMemory
+        title: agent memory
+      consumerFoafExport:
+        meaning: https://blackcatinformatics.ca/gmeow/consumerFoafExport
+        title: FOAF export
+      consumerInternalArchive:
+        meaning: https://blackcatinformatics.ca/gmeow/consumerInternalArchive
+        title: internal archive
+      consumerPublicSite:
+        meaning: https://blackcatinformatics.ca/gmeow/consumerPublicSite
+        title: public site
+      consumerResearchQueue:
+        meaning: https://blackcatinformatics.ca/gmeow/consumerResearchQueue
+        title: research queue
+      consumerSchemaOrgJsonLd:
+        meaning: https://blackcatinformatics.ca/gmeow/consumerSchemaOrgJsonLd
+        title: schema.org JSON-LD
+      consumerWikidata:
+        meaning: https://blackcatinformatics.ca/gmeow/consumerWikidata
+        title: Wikidata
+      consumerWikipedia:
+        meaning: https://blackcatinformatics.ca/gmeow/consumerWikipedia
+        title: Wikipedia
   PronounSetEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PronounSet
     permissible_values:

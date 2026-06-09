@@ -185,9 +185,16 @@ def test_dsl_parses() -> None:
     # Issue #173 archaeological evidence: +16 (CIDOC-CRM E34, E19, P128, P128i,
     # CRMarchaeo A2 x2, CRMsci S4 x3, CRMinf I1/I2 x2, PROV-O Activity/generated x2,
     # Web Annotation x3).
+    # Issue #225 consumer projection policy / disclosure control: +8
+    # (ProjectionContext↔dpv:Recipient,
+    #  DisclosurePolicy↔dpv:ProcessingContext/odrl:Policy,
+    #  eligibleForConsumer↔schema:audience,
+    #  hasDisclosurePolicy↔dpv:hasProcessingContext,
+    #  policyPublicOnlyWithIndependentSource↔odrl:purpose,
+    #  consumerWikidata↔wd:Q2013, consumerWikipedia↔wd:Q52).
     # Issue #156 book / narrative model: +6 (schema:Book, bibo:Book,
     # schema:CreativeWorkSeries, schema:Chapter x2, schema:Role).
-    assert len(dsl.equivalences) == 1310
+    assert len(dsl.equivalences) == 1318
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -294,6 +301,16 @@ def test_value_class_table_emitted() -> None:
     query = emit_sparql(dsl, "schema-org")
     assert "VALUES ( ?pt ?ptClass )" in query
     assert "( gmeow:placeTypeCountry schema:Country )" in query
+
+
+def test_project_when_renders_filter_exists() -> None:
+    """The projectWhen positive guard atom renders FILTER EXISTS in SPARQL."""
+    dsl = load_dsl()
+    query = emit_sparql(dsl, "schema-org")
+    assert (
+        "FILTER EXISTS { ?ent gmeow:eligibleForConsumer gmeow:consumerPublicSite . }"
+        in query
+    )
 
 
 def test_schema_org_accessibility_predicate_separation() -> None:

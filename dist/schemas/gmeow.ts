@@ -388,6 +388,16 @@ export enum DeterminacyEnum {
     vague = "determinacyVague",
 };
 
+export enum DisclosurePolicyEnum {
+
+    internal_only = "policyInternalOnly",
+    never_public = "policyNeverPublic",
+    public_careful = "policyPublicCareful",
+    public_only_with_independent_source = "policyPublicOnlyWithIndependentSource",
+    public_safe = "policyPublicSafe",
+    sensitive = "policySensitive",
+};
+
 export enum EventTypeEnum {
 
     adoption = "eventTypeAdoption",
@@ -1091,6 +1101,18 @@ export enum ProfileEnum {
     Reference_Frame_Profile = "profileReferenceFrame",
     Temporal_Frame_Profile = "profileTemporalFrame",
     Temporal_Provenance_Profile_LEFT_PARENTHESISfour_clocksRIGHT_PARENTHESIS = "profileTemporalProvenance",
+};
+
+export enum ProjectionContextEnum {
+
+    agent_memory = "consumerAgentMemory",
+    FOAF_export = "consumerFoafExport",
+    internal_archive = "consumerInternalArchive",
+    public_site = "consumerPublicSite",
+    research_queue = "consumerResearchQueue",
+    schemaFULL_STOPorg_JSON_LD = "consumerSchemaOrgJsonLd",
+    Wikidata = "consumerWikidata",
+    Wikipedia = "consumerWikipedia",
 };
 
 export enum PronounSetEnum {
@@ -2092,6 +2114,11 @@ export interface DerivationKind {
 
 
 export interface Determinacy {
+}
+
+
+
+export interface DisclosurePolicy {
 }
 
 
@@ -3204,6 +3231,11 @@ export interface Project extends Entity {
     maintenanceStatus?: MaintenanceStatus[],
     projectIdentifier?: string,
     projectLicense?: License[],
+}
+
+
+
+export interface ProjectionContext {
 }
 
 

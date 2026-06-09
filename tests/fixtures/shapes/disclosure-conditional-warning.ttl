@@ -1,0 +1,18 @@
+# Conditional-disclosure warning fixture (#225). A fact carries
+# hasDisclosurePolicy = policyPublicOnlyWithIndependentSource but has NO
+# supporting citation with sourceIndependence = sourceIndependenceIndependent.
+# The ConditionalDisclosureWarningShape Warning MUST fire; the graph MUST pass.
+
+@prefix ex:    <https://example.org/disclosure/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:alice a gmeow:Person ;
+    rdfs:label "Alice" ;
+    gmeow:hasName ex:aliceName .
+
+ex:aliceName a gmeow:PersonName ;
+    rdfs:label "Alice Conditional" ;
+    gmeow:fullName "Alice Conditional" ;
+    gmeow:hasDisclosurePolicy gmeow:policyPublicOnlyWithIndependentSource ;
+    gmeow:eligibleForConsumer gmeow:consumerPublicSite .

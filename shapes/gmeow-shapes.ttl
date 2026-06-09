@@ -1062,6 +1062,71 @@ gmeow:ConsentWellformednessShape
         """ ;
     ] .
 
+# --------------------------------------------------------------------------- #
+# Disclosure leak shape (#225) — a neverPublic fact bound to a public consumer
+# is a Violation (mechanical guard against silent disclosure).
+# --------------------------------------------------------------------------- #
+
+# --------------------------------------------------------------------------- #
+# Disclosure leak detection (#225)
+#
+# The FILTER below hardcodes the five public ProjectionContext consumers.
+# This allowlist is the intentional definition of "public" for leak-detection;
+# when new public consumers are added to the ontology they must also be added
+# here (Principle 4: one canonical source — the shape is canonical for leak
+# detection, the ontology is canonical for vocabulary).
+# --------------------------------------------------------------------------- #
+
+gmeow:DisclosureLeakShape
+    a sh:NodeShape ;
+    rdfs:label "Disclosure leak shape" ;
+    sh:targetSubjectsOf gmeow:hasDisclosurePolicy ;
+    sh:severity sh:Violation ;
+    sh:sparql [
+        sh:message "A fact marked gmeow:policyNeverPublic or gmeow:policyInternalOnly must not be eligible for any public consumer (e.g. consumerPublicSite, consumerWikidata, consumerWikipedia, consumerSchemaOrgJsonLd, consumerFoafExport). Principle 10: suppression, never erasure — withhold at projection time." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/hasDisclosurePolicy> ?policy .
+                FILTER(?policy IN (
+                    <https://blackcatinformatics.ca/gmeow/policyNeverPublic>,
+                    <https://blackcatinformatics.ca/gmeow/policyInternalOnly>
+                ))
+                $this <https://blackcatinformatics.ca/gmeow/eligibleForConsumer> ?consumer .
+                FILTER(?consumer IN (
+                    <https://blackcatinformatics.ca/gmeow/consumerPublicSite>,
+                    <https://blackcatinformatics.ca/gmeow/consumerWikidata>,
+                    <https://blackcatinformatics.ca/gmeow/consumerWikipedia>,
+                    <https://blackcatinformatics.ca/gmeow/consumerSchemaOrgJsonLd>,
+                    <https://blackcatinformatics.ca/gmeow/consumerFoafExport>
+                ))
+            }
+        """ ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Conditional disclosure warning (#225) — publicOnlyWithIndependentSource without
+# an independent source on the supporting citation is a Warning (the solver may
+# still resolve it, but the data graph is under-specified).
+# --------------------------------------------------------------------------- #
+
+gmeow:ConditionalDisclosureWarningShape
+    a sh:NodeShape ;
+    rdfs:label "Conditional disclosure warning shape" ;
+    sh:targetSubjectsOf gmeow:hasDisclosurePolicy ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        sh:message "A fact marked gmeow:policyPublicOnlyWithIndependentSource should be supported by a citation with gmeow:sourceIndependence gmeow:sourceIndependenceIndependent." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/hasDisclosurePolicy> <https://blackcatinformatics.ca/gmeow/policyPublicOnlyWithIndependentSource> .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/hasCitation> ?citation .
+                    ?citation <https://blackcatinformatics.ca/gmeow/sourceIndependence> <https://blackcatinformatics.ca/gmeow/sourceIndependenceIndependent> .
+                }
+            }
+        """ ;
+    ] .
+
 # =========================================================================== #
 # Temporal kernel data shapes (#67)
 # =========================================================================== #
