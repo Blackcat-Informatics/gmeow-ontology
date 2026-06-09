@@ -58,6 +58,34 @@ def validate() -> None:
         raise _fail(f"✗ {len(result.errors)} error(s)")
 
 
+@app.command(name="crosscheck-queries")
+def crosscheck_queries() -> None:
+    """Prove rdflib and pyoxigraph answer every committed query identically.
+
+    The trust anchor that licenses the test suite to run on the fast pyoxigraph
+    engine: each query under ``queries/`` is executed on the same merged graph
+    under both engines and the answers compared by value. Any divergence fails.
+    """
+    from gmeow_tools.engine_crosscheck import crosscheck_all
+
+    results = crosscheck_all()
+    diverged = [r for r in results if not r.agree and not r.skipped]
+    skipped = [r for r in results if r.skipped]
+    checked = [r for r in results if not r.skipped]
+    for r in skipped:
+        err_console.print(f"[yellow]skip[/yellow] {r.name} ({r.detail})")
+    for r in diverged:
+        err_console.print(f"[red]diverge[/red] [{r.form}] {r.name}: {r.detail}")
+    if diverged:
+        raise _fail(
+            f"✗ {len(diverged)} query/queries diverge between rdflib and pyoxigraph"
+        )
+    console.print(
+        f"[green]✓ {len(checked)} queries agree across rdflib + pyoxigraph"
+        f" ({len(skipped)} skipped)[/green]"
+    )
+
+
 @app.command()
 def reason(
     reasoner: str = typer.Option("ELK", help="Reasoner: ELK (fast) or hermit (DL)."),
