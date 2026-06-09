@@ -7,6 +7,7 @@ locally and CI can gate cheaply before the heavier reasoning step.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 
 from rdflib import RDF, RDFS, Graph, Literal, URIRef
@@ -24,6 +25,20 @@ from gmeow_tools.graph import iter_source_files, load_merged_graph
 from gmeow_tools.reasoning_lint import reasoning_invariants
 
 _DEFINITION = SKOS.definition
+
+
+@lru_cache(maxsize=4)
+def _shapes_graph(shapes_path: Path) -> Graph:
+    """Parse (and cache) the SHACL shapes graph.
+
+    ``run_shacl`` runs ~150 times across the test suite; re-parsing the shapes
+    Turtle each call wastes ~30 ms apiece. pyshacl does not mutate the shapes
+    graph it is handed, so one shared cached parse per path is safe.
+    """
+    graph = Graph().parse(shapes_path, format="turtle")
+    if SOFTWARE_SHAPES_FILE.exists():
+        graph.parse(SOFTWARE_SHAPES_FILE, format="turtle")
+    return graph
 
 
 @dataclass(slots=True)
@@ -163,9 +178,7 @@ def run_shacl(
     # Imported lazily so the lighter syntax/lint checks do not pay the cost.
     from pyshacl import validate as shacl_validate
 
-    shapes_graph = Graph().parse(shapes_path, format="turtle")
-    if SOFTWARE_SHAPES_FILE.exists():
-        shapes_graph.parse(SOFTWARE_SHAPES_FILE, format="turtle")
+    shapes_graph = _shapes_graph(shapes_path)
     conforms, report_graph, report_text = shacl_validate(
         data_graph,
         shacl_graph=shapes_graph,

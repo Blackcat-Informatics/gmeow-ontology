@@ -7,10 +7,30 @@ a CI failure, not a skip.
 
 from __future__ import annotations
 
+import pyoxigraph
 import pytest
+from rdflib import Graph
 
+from gmeow_tools import sparql
 from gmeow_tools.config import JENA_IMAGE, ROBOT_IMAGE
+from gmeow_tools.graph import shared_merged_graph
 from gmeow_tools.runner import image_available
+
+
+@pytest.fixture(scope="session")
+def merged_graph() -> Graph:
+    """The merged ontology as a shared, read-only rdflib graph (no per-test copy).
+
+    Built once per session. Tests MUST NOT mutate it; use ``load_merged_graph()``
+    when a mutable graph is needed.
+    """
+    return shared_merged_graph(include_imports=False)
+
+
+@pytest.fixture(scope="session")
+def merged_store() -> pyoxigraph.Store:
+    """The merged ontology as a shared, read-only pyoxigraph store (query only)."""
+    return sparql.merged_store(include_imports=False)
 
 
 @pytest.fixture
