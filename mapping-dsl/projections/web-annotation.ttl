@@ -189,7 +189,7 @@ gmeow:mapMarkdownMentions a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "markdown" ; gmeow:relation "<=" ;
         gmeow:toPredicate gmeow:hasWikilink ; gmeow:confidence 0.9 ;
-        gmeow:lossyDrop "ALL metadata dropped: standpoint, confidence, temporal scope, suppression, aboutness, tagging. Only the directed wikilink edge survives." ] .
+        gmeow:lossyDrop "ALL metadata dropped: standpoint, confidence, temporal scope, suppression, aboutness, tagging; directed wikilink edge only" ] .
 
 gmeow:mapMarkdownRelatedNote a gmeow:ProjectionMapping ;
     rdfs:label "relatedNote → gmeow:hasWikilink (symmetric, markdown round-trip)"@en ;
@@ -204,7 +204,7 @@ gmeow:mapMarkdownRelatedNote a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "markdown" ; gmeow:relation "<=" ;
         gmeow:confidence 0.9 ;
-        gmeow:lossyDrop "ALL metadata dropped: standpoint, confidence, temporal scope, suppression, aboutness, tagging. Both directions of the undirected wikilink edge are materialized." ;
+        gmeow:lossyDrop "ALL metadata dropped: standpoint, confidence, temporal scope, suppression, aboutness, tagging; bidirectional wikilink edges materialized" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "a" ; gmeow:tPred gmeow:hasWikilink ; gmeow:tObj "b" ]
             [ gmeow:tSubj "b" ; gmeow:tPred gmeow:hasWikilink ; gmeow:tObj "a" ] ) ] .

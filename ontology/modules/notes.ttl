@@ -143,7 +143,7 @@ gmeow:Comment
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Note ;
     rdfs:label "Comment"@en ;
-    skos:definition "A note that replies to an annotation or another comment — a threaded discussion node. Threading is via commentParent (the annotation or comment being replied to) and transitive hasReply (all descendants in the thread). A top-level comment has no parent."@en ;
+    skos:definition "A note that replies to an annotation or another comment — a threaded discussion node. Every Comment has exactly one commentParent (the annotation or comment being replied to). The transitive hasReply reaches all descendants in the thread. A note without a parent is a plain Note, not a Comment."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:commentParent
