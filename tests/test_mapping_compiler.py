@@ -202,7 +202,8 @@ def test_dsl_parses() -> None:
     # audience/provenance/accessRights; overlaps none of the above issues).
     # Issue #232 git provenance deepening: +6 (Software Heritage alignments).
     # Issue #214 myth: +4 (Myth→Wikidata x3, hasMythTelling→schema:CreativeWork x1).
-    assert len(dsl.equivalences) == 1399
+    # Issue #169 lexicon: +9 (OntoLex x4, LIME x1, PROV-O x3, Wikidata x1).
+    assert len(dsl.equivalences) == 1408
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -237,7 +238,8 @@ def test_dsl_parses() -> None:
     # Issue #64 financial slice Phase A: +2 (gmeow-schema-org-finance, gmeow-iso4217).
     # Issue #213 deception: +1 (gmeow-deception.sssom.tsv).
     # Issue #60 Dublin Core maximal alignment: +1 (gmeow-dublin-core.sssom.tsv).
-    assert len(dsl.mapping_sets) == 43
+    # Issue #169 lexicon: +1 (gmeow-lexicon.sssom.tsv).
+    assert len(dsl.mapping_sets) == 44
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}
