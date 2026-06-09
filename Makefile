@@ -40,7 +40,7 @@ MESSAGE ?= "chore: regenerate checked-in artifacts"
         compile-check compile-statements statements-check compile-statements-pyoxigraph statements-check-pyoxigraph \
         compile-schemas schemas-check mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
         lint-alignment refresh-target-axioms metadata apache docs docs-full rdf12 rdf12-pyoxigraph quality \
-        normalize build export lpg project test check release regenerate commit clean pull-images
+        normalize build export lpg project test test-fast check release regenerate commit clean pull-images
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -202,13 +202,15 @@ build: ## Build all serializations + JSON-LD context + apache.conf into dist/.
 project: compile-mappings ## Project GMEOW data to pure schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profiles (FnO/EDOAL).
 	uv run gmeow project
 
-test: ## Run the test suite.
+test: ## Run the full test suite (incl. heavy ci_only export tests).
 	uv run pytest -n auto
 
-check: regenerate ## Full local quality gate (parallelized where safe).
+test-fast: ## Run the fast test suite (excludes ci_only heavy/secondary export tests).
+	uv run pytest -n auto -m "not ci_only"
+
+check: compile-mappings compile-statements ## Fast local gate: core ontology + fast transforms (heavy secondary exports run in CI).
 	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint validate crosscheck statements-check statements-check-pyoxigraph compile-check wikidata coverage reason reason-hermit verify mappings-only lint-alignment
-	$(MAKE) test
-	$(MAKE) schemas-check
+	$(MAKE) test-fast
 	@echo "✓ all checks passed"
 
 release: ## RDF 1.2 + OWL downcast → reasoned closure (HermiT) + build + metadata + CrossRef deposit.
