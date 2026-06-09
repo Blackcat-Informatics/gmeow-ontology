@@ -77,9 +77,9 @@ gmeow:CitationAct rdfs:subClassOf
 
 gmeow:Selector
     a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:subClassOf gmeow:EvidenceSpan ;
     rdfs:label "Selector"@en ;
-    skos:definition "A pinpoint reference into a cited creative work — a page number, text position, text quote, or generic locator. Replaces the retired gmeow:Citation (which collided with scholarly citation). Coordinated with #55's EvidenceSpan mechanism."@en ;
+    skos:definition "A pinpoint reference into a cited creative work — a page number, text position, text quote, or generic locator. Replaces the retired gmeow:Citation (which collided with scholarly citation). A specialization of gmeow:EvidenceSpan: a citation selector is an anchored target within a cited work. Coordinated with #55's EvidenceSpan mechanism and reused by #63's annotation target span."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:selectorPage

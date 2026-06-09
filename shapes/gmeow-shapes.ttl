@@ -2705,3 +2705,73 @@ gmeow:BranchHasOutgoingFlowsShape
             }
         """ ;
     ] .
+
+# --------------------------------------------------------------------------- #
+# Notes & Annotation building block (#63)
+# --------------------------------------------------------------------------- #
+
+gmeow:AnnotationHasTargetShape
+    a sh:NodeShape ;
+    rdfs:label "Annotation must have a target" ;
+    sh:targetClass gmeow:Annotation ;
+    sh:property [
+        sh:path gmeow:annotationTarget ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every Annotation must have at least one annotationTarget." ;
+    ] .
+
+gmeow:HighlightHasSelectorShape
+    a sh:NodeShape ;
+    rdfs:label "Highlight must have a selector span" ;
+    sh:targetClass gmeow:Highlight ;
+    sh:property [
+        sh:path gmeow:annotationTargetSpan ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every Highlight must have at least one annotationTargetSpan (an EvidenceSpan or Selector)." ;
+    ] .
+
+gmeow:CommentHasParentShape
+    a sh:NodeShape ;
+    rdfs:label "Comment parent must be an Annotation or Comment" ;
+    sh:targetClass gmeow:Comment ;
+    sh:property [
+        sh:path gmeow:commentParent ;
+        sh:class gmeow:Entity ;
+        sh:severity sh:Violation ;
+        sh:message "A commentParent must point to an Entity (typically an Annotation or Comment)." ;
+    ] .
+
+gmeow:NoteContentShape
+    a sh:NodeShape ;
+    rdfs:label "Note must have content or a label" ;
+    sh:targetClass gmeow:Note ;
+    sh:or (
+        [ sh:path gmeow:noteContent ; sh:minCount 1 ]
+        [ sh:path rdfs:label ; sh:minCount 1 ]
+    ) ;
+    sh:severity sh:Violation ;
+    sh:message "A Note must have gmeow:noteContent or at least one rdfs:label." .
+
+gmeow:RetractedNoteSuppressionShape
+    a sh:NodeShape ;
+    rdfs:label "Retracted note suppression check" ;
+    sh:targetClass gmeow:Note ;
+    sh:sparql [
+        sh:severity sh:Warning ;
+        sh:message "A retracted note or comment should set gmeow:displayable false (Principle 10)." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this a <https://blackcatinformatics.ca/gmeow/Note> .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/displayable> false .
+                }
+                FILTER EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/annotationMotivation> <https://blackcatinformatics.ca/gmeow/motivationReplying> .
+                    ?parent <https://blackcatinformatics.ca/gmeow/hasReply> $this .
+                    ?parent <https://blackcatinformatics.ca/gmeow/displayable> false .
+                }
+            }
+        """ ;
+    ] .

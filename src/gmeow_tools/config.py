@@ -250,6 +250,7 @@ PREFIXES: dict[str, str] = {
     "fabio": "http://purl.org/spar/fabio/",
     "lrmoo": "http://iflastandards.info/ns/lrm/lrmoo/",
     "sioc": "http://rdfs.org/sioc/ns#",
+    "as": "https://www.w3.org/ns/activitystreams#",
     "mads": "http://www.loc.gov/mads/rdf/v1#",
     "esco": "http://data.europa.eu/esco/model#",
     "nmo": "http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#",

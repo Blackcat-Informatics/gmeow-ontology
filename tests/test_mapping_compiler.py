@@ -210,7 +210,10 @@ def test_dsl_parses() -> None:
     # no valid Wikidata QID found.
     # Issue #64 financial slice Phases B-D: +10 (schema.org finance x5, FIBO x5).
     # Issue #60 completion: +1 (hasManifestationFormat → dcterms:format).
-    assert len(dsl.equivalences) == 1450
+    # Issue #63 first-class annotation & PKM layer: +16 (oa:Annotation x3,
+    # schema:NoteDigitalDocument, schema:Comment, as:Note, sioc:Post,
+    # sioc:reply_of, sioc:has_reply, AnnotationMotivation x7).
+    assert len(dsl.equivalences) == 1466
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -248,7 +251,8 @@ def test_dsl_parses() -> None:
     # Issue #60 Dublin Core maximal alignment: +1 (gmeow-dublin-core.sssom.tsv).
     # Issue #169 lexicon: +1 (gmeow-lexicon.sssom.tsv).
     # Issue #226 procedure / execution / step: +1 (gmeow-procedures.sssom.tsv).
-    assert len(dsl.mapping_sets) == 45
+    # Issue #63 first-class annotation & PKM layer: +1 (gmeow-notes.sssom.tsv).
+    assert len(dsl.mapping_sets) == 46
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}
