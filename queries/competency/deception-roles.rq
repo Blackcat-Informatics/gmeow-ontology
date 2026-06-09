@@ -1,0 +1,15 @@
+# Competency question: "What deception-related participant roles does GMEOW model?"
+# Expected: roleDeceiver, roleDeceived, roleBeneficiaryOfDeception, roleDupe.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?deceptionRole WHERE {
+    ?deceptionRole a gmeow:ParticipantRole .
+    FILTER(?deceptionRole IN (
+        gmeow:roleDeceiver,
+        gmeow:roleDeceived,
+        gmeow:roleBeneficiaryOfDeception,
+        gmeow:roleDupe
+    ))
+}
+ORDER BY ?deceptionRole

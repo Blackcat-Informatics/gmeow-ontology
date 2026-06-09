@@ -265,3 +265,17 @@ gmeow:eqStandpoint022 a gmeow:TermEquivalence ;
     gmeow:confidence 0.55 ;
     gmeow:comment "the observedFeature of a StandpointClaim is the target of the OA Annotation" ;
     gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Issue #213 — bullshit modality (Frankfurt) as a fifth StandpointModality value.
+# CRMinf I6_Belief_Value spans true/probable/possible/false; GMEOW adds bullshit.
+# --------------------------------------------------------------------------- #
+
+gmeow:eqStandpoint023 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:bullshit ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crminf:I6_Belief_Value ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "the bullshit modality (indifference to truth) extends CRMinf's belief value space — it is neither true nor false, but a distinct stance toward correspondence" ;
+    gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .

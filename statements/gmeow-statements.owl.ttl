@@ -22,6 +22,14 @@
     gmeow:confidence 0.98 ;
     gmeow:validFrom "2019-06-01"^^xsd:date .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-bullshit-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimModality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-001> ;
+    owl:annotatedTarget gmeow:bullshit ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-analyst> ;
+    gmeow:assertedAt "2026-04-01T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.7 .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-crimea-in-russia-per-ru> a owl:Axiom ;
     owl:annotatedProperty gmeow:containedInPlace ;
     owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/crimea> ;
@@ -54,6 +62,44 @@
     gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-julian-historiography> ;
     gmeow:assertedAt "2020-01-01T00:00:00+00:00"^^xsd:dateTime ;
     gmeow:confidence 0.95 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-deception-event-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:eventType ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-deception-001> ;
+    owl:annotatedTarget gmeow:eventTypeDeception ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-01-15T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.85 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-factcheck-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:attestationType ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/attestation-factcheck-001> ;
+    owl:annotatedTarget gmeow:attestationTypeFactCheck ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-factchecker> ;
+    gmeow:assertedAt "2026-02-01T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.92 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-fiction-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimVeridicality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/claim-hogwarts-exists> ;
+    owl:annotatedTarget gmeow:veridicalityLicensedFalsehood ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-publisher> ;
+    gmeow:assertedAt "2026-03-01T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.95 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-held-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:heldStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-deception-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-held-001> ;
+    gmeow:assertedAt "2026-01-15T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.75 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-projected-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:projectedStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-deception-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-projected-001> ;
+    gmeow:assertedAt "2026-01-15T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.9 .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-slam-occupancy-cell-42> a owl:Axiom ;
     owl:annotatedProperty gmeow:hasReferenceFrame ;
@@ -132,7 +178,11 @@
 
 <https://blackcatinformatics.ca/gmeow/examples/alice> gmeow:knowsLanguage <https://blackcatinformatics.ca/gmeow/examples/lang-toki-pona> .
 
+<https://blackcatinformatics.ca/gmeow/examples/attestation-factcheck-001> gmeow:attestationType gmeow:attestationTypeFactCheck .
+
 <https://blackcatinformatics.ca/gmeow/examples/birth-alice> gmeow:eventTime "1990-05-01T00:00:00+00:00"^^xsd:dateTime .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-hogwarts-exists> gmeow:claimVeridicality gmeow:veridicalityLicensedFalsehood .
 
 <https://blackcatinformatics.ca/gmeow/examples/gi-alice> gmeow:genderValue gmeow:genderWoman .
 
@@ -146,6 +196,8 @@
 
 <https://blackcatinformatics.ca/gmeow/examples/slam-cell-42> gmeow:hasReferenceFrame gmeow:referenceFrameRobotSLAM .
 
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-001> gmeow:claimModality gmeow:bullshit .
+
 <https://blackcatinformatics.ca/gmeow/examples/territory-x> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/polity-y> .
 
 <https://blackcatinformatics.ca/gmeow/examples/crimea> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/russia>,
@@ -156,3 +208,7 @@
 
 <https://blackcatinformatics.ca/gmeow/examples/rights/contested-trademark> gmeow:trademarkHolder <https://blackcatinformatics.ca/gmeow/examples/rights/acme>,
         <https://blackcatinformatics.ca/gmeow/examples/rights/omega> .
+
+<https://blackcatinformatics.ca/gmeow/examples/event-deception-001> gmeow:eventType gmeow:eventTypeDeception ;
+    gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-held-001> ;
+    gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-projected-001> .

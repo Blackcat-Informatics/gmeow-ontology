@@ -1,0 +1,2 @@
+id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,standpointModality,validFrom,validUntil
+edge:6bed936c9960b43e,gmeow:examples/standpointclaim-bullshit-001,gmeow:bullshit,claimModality,gmeow:examples/standpoint-analyst,2026-04-01T00:00:00Z,0.7,,,,,

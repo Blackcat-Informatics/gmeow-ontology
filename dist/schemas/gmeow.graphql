@@ -45,6 +45,7 @@ enum AttestationTypeEnum
     attestationTypeC2PA
     attestationTypeDSSE
     attestationTypeEAT
+    attestationTypeFactCheck
     attestationTypeGitSignedTag
     attestationTypeInToto
     attestationTypeNanopublication
@@ -220,6 +221,12 @@ enum CitationIntentEnum
     intentIsInspiredBy
     intentSupports
     intentUsesMethodIn
+  }
+
+enum ClaimVeridicalityEnum
+  {
+    veridicalityLicensedFalsehood
+    veridicalityUntrue
   }
 
 enum ConflictStrategyEnum
@@ -418,6 +425,7 @@ enum EventTypeEnum
     eventTypeCreation
     eventTypeCremation
     eventTypeDeath
+    eventTypeDeception
     eventTypeDestruction
     eventTypeDissolution
     eventTypeDivorce
@@ -1019,6 +1027,10 @@ enum ParticipantRoleEnum
     roleAgent
     roleAttendee
     roleBeneficiary
+    roleBeneficiaryOfDeception
+    roleDeceived
+    roleDeceiver
+    roleDupe
     roleOfficiant
     roleOrganizer
     roleParticipantPrincipal
@@ -1441,6 +1453,7 @@ enum StandpointEnum
 
 enum StandpointModalityEnum
   {
+    bullshit
     conceivable
     probable
     refuted
@@ -1643,6 +1656,8 @@ type Activity
     before: [Event]
     coincidesWith: [Event]
     contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
     during: [Event]
     earliestStart: String
     eventAspect: [GrammaticalAspect]
@@ -1660,12 +1675,17 @@ type Activity
     hasDuration: [Duration]
     hasParticipant: [Agent]
     hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
     latestEnd: String
+    maximViolationType: [MaximViolationType]
     meets: [Event]
     metBy: [Event]
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
@@ -2411,6 +2431,7 @@ type CalendarSystem
 
 type Capacity
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]
@@ -2580,12 +2601,18 @@ type CitationIntent
   {
   }
 
+type ClaimVeridicality
+  {
+  }
+
 type Commit
   {
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
     contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
     during: [Event]
     earliestStart: String
     eventAspect: [GrammaticalAspect]
@@ -2603,12 +2630,17 @@ type Commit
     hasDuration: [Duration]
     hasParticipant: [Agent]
     hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
     latestEnd: String
+    maximViolationType: [MaximViolationType]
     meets: [Event]
     metBy: [Event]
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
@@ -2740,6 +2772,7 @@ type CoordinateMatrix
 
 type CoordinateObservation
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]
@@ -3436,6 +3469,8 @@ type Event
     before: [Event]
     coincidesWith: [Event]
     contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
     during: [Event]
     earliestStart: String
     eventAspect: [GrammaticalAspect]
@@ -3453,12 +3488,17 @@ type Event
     hasDuration: [Duration]
     hasParticipant: [Agent]
     hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
     latestEnd: String
+    maximViolationType: [MaximViolationType]
     meets: [Event]
     metBy: [Event]
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
@@ -4065,6 +4105,8 @@ type ImportActivity
     before: [Event]
     coincidesWith: [Event]
     contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
     during: [Event]
     earliestStart: String
     eventAspect: [GrammaticalAspect]
@@ -4082,12 +4124,17 @@ type ImportActivity
     hasDuration: [Duration]
     hasParticipant: [Agent]
     hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
     latestEnd: String
+    maximViolationType: [MaximViolationType]
     meets: [Event]
     metBy: [Event]
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
@@ -4418,6 +4465,8 @@ type LanguageChangeEvent
     before: [Event]
     coincidesWith: [Event]
     contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
     during: [Event]
     earliestStart: String
     eventAspect: [GrammaticalAspect]
@@ -4435,12 +4484,17 @@ type LanguageChangeEvent
     hasDuration: [Duration]
     hasParticipant: [Agent]
     hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
     latestEnd: String
+    maximViolationType: [MaximViolationType]
     meets: [Event]
     metBy: [Event]
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
@@ -4460,6 +4514,8 @@ type LanguageCreation
     before: [Event]
     coincidesWith: [Event]
     contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
     during: [Event]
     earliestStart: String
     eventAspect: [GrammaticalAspect]
@@ -4477,12 +4533,17 @@ type LanguageCreation
     hasDuration: [Duration]
     hasParticipant: [Agent]
     hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
     latestEnd: String
+    maximViolationType: [MaximViolationType]
     meets: [Event]
     metBy: [Event]
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
@@ -4642,6 +4703,8 @@ type LedgerEvent
     before: [Event]
     coincidesWith: [Event]
     contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
     during: [Event]
     earliestStart: String
     eventAspect: [GrammaticalAspect]
@@ -4659,12 +4722,17 @@ type LedgerEvent
     hasDuration: [Duration]
     hasParticipant: [Agent]
     hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
     latestEnd: String
+    maximViolationType: [MaximViolationType]
     meets: [Event]
     metBy: [Event]
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
@@ -4853,6 +4921,8 @@ type LifeEvent
     before: [Event]
     coincidesWith: [Event]
     contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
     during: [Event]
     earliestStart: String
     eventAspect: [GrammaticalAspect]
@@ -4870,12 +4940,17 @@ type LifeEvent
     hasDuration: [Duration]
     hasParticipant: [Agent]
     hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
     latestEnd: String
+    maximViolationType: [MaximViolationType]
     meets: [Event]
     metBy: [Event]
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
@@ -5234,6 +5309,10 @@ type Mark
     markText: String
   }
 
+type MaximViolationType
+  {
+  }
+
 type MeasuredValue
   {
     acquireLicensePage: String
@@ -5280,6 +5359,7 @@ type MeasuredValue
 
 type Measurement
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]
@@ -5956,6 +6036,7 @@ type ObservableProperty
 
 type Observation
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]
@@ -5973,6 +6054,8 @@ type ObservationalActivity
     before: [Event]
     coincidesWith: [Event]
     contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
     during: [Event]
     earliestStart: String
     eventAspect: [GrammaticalAspect]
@@ -5990,12 +6073,17 @@ type ObservationalActivity
     hasDuration: [Duration]
     hasParticipant: [Agent]
     hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
     latestEnd: String
+    maximViolationType: [MaximViolationType]
     meets: [Event]
     metBy: [Event]
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
@@ -6014,6 +6102,7 @@ type ObservationType
 
 type Occupancy
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]
@@ -6945,6 +7034,7 @@ type PronounSet
 
 type ProximityMeasurement
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]
@@ -6959,6 +7049,7 @@ type ProximityMeasurement
 
 type QualityAssessment
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]
@@ -7292,6 +7383,8 @@ type Release
     before: [Event]
     coincidesWith: [Event]
     contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
     during: [Event]
     earliestStart: String
     eventAspect: [GrammaticalAspect]
@@ -7309,12 +7402,17 @@ type Release
     hasDuration: [Duration]
     hasParticipant: [Agent]
     hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
     latestEnd: String
+    maximViolationType: [MaximViolationType]
     meets: [Event]
     metBy: [Event]
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
@@ -7430,6 +7528,7 @@ type RightsAction
 
 type RightsStatement
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]
@@ -7576,6 +7675,7 @@ type ScalarQuantity
 
 type ScriptLanguageAttribution
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]
@@ -7768,6 +7868,7 @@ type SensoryModality
 
 type SensoryObservation
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]
@@ -7784,6 +7885,7 @@ type SensoryObservation
 
 type SensoryPerception
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]
@@ -7793,7 +7895,9 @@ type SensoryPerception
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
     vantage: [Entity]
+    argumentAcceptability: Float
     claimModality: StandpointModality
+    claimVeridicality: [ClaimVeridicality]
     perceptionModality: SensoryModality
   }
 
@@ -8618,6 +8722,7 @@ type SourceTree
 
 type SpatialAggregation
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]
@@ -8753,6 +8858,7 @@ type SpatialCoordinates
 
 type SpatialMeasurement
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]
@@ -8812,6 +8918,7 @@ type Standpoint
 
 type StandpointClaim
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]
@@ -8821,7 +8928,9 @@ type StandpointClaim
     observedFeature: [String]
     perceptionEnvironment: SensoryEnvironment
     vantage: [Entity]
+    argumentAcceptability: Float
     claimModality: StandpointModality
+    claimVeridicality: [ClaimVeridicality]
   }
 
 type StandpointModality
@@ -9232,6 +9341,7 @@ type TemporalFrame
 
 type TemporalMeasurement
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]
@@ -9564,6 +9674,7 @@ type TrustAssertion
 
 type UsageAttestation
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]
@@ -9583,6 +9694,7 @@ type UsageAttestation
 
 type Utilization
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]
@@ -9601,6 +9713,8 @@ type VerificationActivity
     before: [Event]
     coincidesWith: [Event]
     contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
     during: [Event]
     earliestStart: String
     eventAspect: [GrammaticalAspect]
@@ -9618,12 +9732,17 @@ type VerificationActivity
     hasDuration: [Duration]
     hasParticipant: [Agent]
     hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
     latestEnd: String
+    maximViolationType: [MaximViolationType]
     meets: [Event]
     metBy: [Event]
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
@@ -9685,6 +9804,7 @@ type VerificationStatus
 
 type VersionMembership
   {
+    credibilityScore: Float
     facetSubject: [Person]
     facetVantage: [Agent]
     observationEvent: [Event]

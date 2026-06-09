@@ -178,6 +178,24 @@
                   "null"
                 ]
               },
+              "deceptionCue": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "deceptiveIntentClaim": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "during": {
                 "items": {
                   "$ref": "#/$defs/Event"
@@ -328,10 +346,37 @@
                   "null"
                 ]
               },
+              "heldStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "implicates": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "latestEnd": {
                 "format": "date-time",
                 "type": [
                   "string",
+                  "null"
+                ]
+              },
+              "maximViolationType": {
+                "items": {
+                  "$ref": "#/$defs/MaximViolationType"
+                },
+                "type": [
+                  "array",
                   "null"
                 ]
               },
@@ -377,6 +422,21 @@
                 },
                 "type": [
                   "array",
+                  "null"
+                ]
+              },
+              "projectedStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "propagationMutationDistance": {
+                "type": [
+                  "integer",
                   "null"
                 ]
               },
@@ -2254,6 +2314,7 @@
               "attestationTypeC2PA",
               "attestationTypeDSSE",
               "attestationTypeEAT",
+              "attestationTypeFactCheck",
               "attestationTypeGitSignedTag",
               "attestationTypeInToto",
               "attestationTypeNanopublication",
@@ -5997,6 +6058,12 @@
                   }
                 ]
               },
+              "credibilityScore": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
               "facetSubject": {
                 "items": {
                   "$ref": "#/$defs/Person"
@@ -7225,6 +7292,21 @@
             "title": "CitationIntentEnum",
             "type": "string"
           },
+          "ClaimVeridicality": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "ClaimVeridicality",
+            "type": "object"
+          },
+          "ClaimVeridicalityEnum": {
+            "description": "",
+            "enum": [
+              "veridicalityLicensedFalsehood",
+              "veridicalityUntrue"
+            ],
+            "title": "ClaimVeridicalityEnum",
+            "type": "string"
+          },
           "Commit": {
             "additionalProperties": false,
             "description": "",
@@ -7311,6 +7393,24 @@
               "contains": {
                 "items": {
                   "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "deceptionCue": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "deceptiveIntentClaim": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
                 },
                 "type": [
                   "array",
@@ -7467,10 +7567,37 @@
                   "null"
                 ]
               },
+              "heldStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "implicates": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "latestEnd": {
                 "format": "date-time",
                 "type": [
                   "string",
+                  "null"
+                ]
+              },
+              "maximViolationType": {
+                "items": {
+                  "$ref": "#/$defs/MaximViolationType"
+                },
+                "type": [
+                  "array",
                   "null"
                 ]
               },
@@ -7525,6 +7652,21 @@
                 },
                 "type": [
                   "array",
+                  "null"
+                ]
+              },
+              "projectedStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "propagationMutationDistance": {
+                "type": [
+                  "integer",
                   "null"
                 ]
               },
@@ -8288,6 +8430,12 @@
                 },
                 "type": [
                   "array",
+                  "null"
+                ]
+              },
+              "credibilityScore": {
+                "type": [
+                  "number",
                   "null"
                 ]
               },
@@ -13483,6 +13631,24 @@
                   "null"
                 ]
               },
+              "deceptionCue": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "deceptiveIntentClaim": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "during": {
                 "items": {
                   "$ref": "#/$defs/Event"
@@ -13633,10 +13799,37 @@
                   "null"
                 ]
               },
+              "heldStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "implicates": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "latestEnd": {
                 "format": "date-time",
                 "type": [
                   "string",
+                  "null"
+                ]
+              },
+              "maximViolationType": {
+                "items": {
+                  "$ref": "#/$defs/MaximViolationType"
+                },
+                "type": [
+                  "array",
                   "null"
                 ]
               },
@@ -13682,6 +13875,21 @@
                 },
                 "type": [
                   "array",
+                  "null"
+                ]
+              },
+              "projectedStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "propagationMutationDistance": {
+                "type": [
+                  "integer",
                   "null"
                 ]
               },
@@ -14111,6 +14319,7 @@
               "eventTypeCreation",
               "eventTypeCremation",
               "eventTypeDeath",
+              "eventTypeDeception",
               "eventTypeDestruction",
               "eventTypeDissolution",
               "eventTypeDivorce",
@@ -18158,6 +18367,24 @@
                   "null"
                 ]
               },
+              "deceptionCue": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "deceptiveIntentClaim": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "during": {
                 "items": {
                   "$ref": "#/$defs/Event"
@@ -18308,6 +18535,24 @@
                   "null"
                 ]
               },
+              "heldStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "implicates": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "ingestedAt": {
                 "format": "date-time",
                 "type": [
@@ -18319,6 +18564,15 @@
                 "format": "date-time",
                 "type": [
                   "string",
+                  "null"
+                ]
+              },
+              "maximViolationType": {
+                "items": {
+                  "$ref": "#/$defs/MaximViolationType"
+                },
+                "type": [
+                  "array",
                   "null"
                 ]
               },
@@ -18364,6 +18618,21 @@
                 },
                 "type": [
                   "array",
+                  "null"
+                ]
+              },
+              "projectedStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "propagationMutationDistance": {
+                "type": [
+                  "integer",
                   "null"
                 ]
               },
@@ -20749,6 +21018,24 @@
                   "null"
                 ]
               },
+              "deceptionCue": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "deceptiveIntentClaim": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "during": {
                 "items": {
                   "$ref": "#/$defs/Event"
@@ -20899,10 +21186,37 @@
                   "null"
                 ]
               },
+              "heldStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "implicates": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "latestEnd": {
                 "format": "date-time",
                 "type": [
                   "string",
+                  "null"
+                ]
+              },
+              "maximViolationType": {
+                "items": {
+                  "$ref": "#/$defs/MaximViolationType"
+                },
+                "type": [
+                  "array",
                   "null"
                 ]
               },
@@ -20948,6 +21262,21 @@
                 },
                 "type": [
                   "array",
+                  "null"
+                ]
+              },
+              "projectedStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "propagationMutationDistance": {
+                "type": [
+                  "integer",
                   "null"
                 ]
               },
@@ -21066,6 +21395,24 @@
                   "null"
                 ]
               },
+              "deceptionCue": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "deceptiveIntentClaim": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "during": {
                 "items": {
                   "$ref": "#/$defs/Event"
@@ -21216,10 +21563,37 @@
                   "null"
                 ]
               },
+              "heldStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "implicates": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "latestEnd": {
                 "format": "date-time",
                 "type": [
                   "string",
+                  "null"
+                ]
+              },
+              "maximViolationType": {
+                "items": {
+                  "$ref": "#/$defs/MaximViolationType"
+                },
+                "type": [
+                  "array",
                   "null"
                 ]
               },
@@ -21265,6 +21639,21 @@
                 },
                 "type": [
                   "array",
+                  "null"
+                ]
+              },
+              "projectedStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "propagationMutationDistance": {
+                "type": [
+                  "integer",
                   "null"
                 ]
               },
@@ -22431,6 +22820,24 @@
                   "null"
                 ]
               },
+              "deceptionCue": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "deceptiveIntentClaim": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "during": {
                 "items": {
                   "$ref": "#/$defs/Event"
@@ -22581,6 +22988,24 @@
                   "null"
                 ]
               },
+              "heldStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "implicates": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "latestEnd": {
                 "format": "date-time",
                 "type": [
@@ -22591,6 +23016,15 @@
               "logIndex": {
                 "type": [
                   "integer",
+                  "null"
+                ]
+              },
+              "maximViolationType": {
+                "items": {
+                  "$ref": "#/$defs/MaximViolationType"
+                },
+                "type": [
+                  "array",
                   "null"
                 ]
               },
@@ -22636,6 +23070,21 @@
                 },
                 "type": [
                   "array",
+                  "null"
+                ]
+              },
+              "projectedStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "propagationMutationDistance": {
+                "type": [
+                  "integer",
                   "null"
                 ]
               },
@@ -24038,6 +24487,24 @@
                   "null"
                 ]
               },
+              "deceptionCue": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "deceptiveIntentClaim": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "during": {
                 "items": {
                   "$ref": "#/$defs/Event"
@@ -24188,10 +24655,37 @@
                   "null"
                 ]
               },
+              "heldStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "implicates": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "latestEnd": {
                 "format": "date-time",
                 "type": [
                   "string",
+                  "null"
+                ]
+              },
+              "maximViolationType": {
+                "items": {
+                  "$ref": "#/$defs/MaximViolationType"
+                },
+                "type": [
+                  "array",
                   "null"
                 ]
               },
@@ -24237,6 +24731,21 @@
                 },
                 "type": [
                   "array",
+                  "null"
+                ]
+              },
+              "projectedStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "propagationMutationDistance": {
+                "type": [
+                  "integer",
                   "null"
                 ]
               },
@@ -26990,6 +27499,12 @@
             "title": "Mark",
             "type": "object"
           },
+          "MaximViolationType": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "MaximViolationType",
+            "type": "object"
+          },
           "MeasuredValue": {
             "additionalProperties": false,
             "description": "",
@@ -27335,6 +27850,12 @@
             "additionalProperties": false,
             "description": "",
             "properties": {
+              "credibilityScore": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
               "facetSubject": {
                 "items": {
                   "$ref": "#/$defs/Person"
@@ -32486,6 +33007,12 @@
             "additionalProperties": false,
             "description": "",
             "properties": {
+              "credibilityScore": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
               "facetSubject": {
                 "items": {
                   "$ref": "#/$defs/Person"
@@ -32661,6 +33188,24 @@
                   "null"
                 ]
               },
+              "deceptionCue": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "deceptiveIntentClaim": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "during": {
                 "items": {
                   "$ref": "#/$defs/Event"
@@ -32820,10 +33365,37 @@
                   "null"
                 ]
               },
+              "heldStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "implicates": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "latestEnd": {
                 "format": "date-time",
                 "type": [
                   "string",
+                  "null"
+                ]
+              },
+              "maximViolationType": {
+                "items": {
+                  "$ref": "#/$defs/MaximViolationType"
+                },
+                "type": [
+                  "array",
                   "null"
                 ]
               },
@@ -32869,6 +33441,21 @@
                 },
                 "type": [
                   "array",
+                  "null"
+                ]
+              },
+              "projectedStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "propagationMutationDistance": {
+                "type": [
+                  "integer",
                   "null"
                 ]
               },
@@ -32925,6 +33512,12 @@
             "additionalProperties": false,
             "description": "",
             "properties": {
+              "credibilityScore": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
               "facetSubject": {
                 "items": {
                   "$ref": "#/$defs/Person"
@@ -35205,6 +35798,10 @@
               "roleAgent",
               "roleAttendee",
               "roleBeneficiary",
+              "roleBeneficiaryOfDeception",
+              "roleDeceived",
+              "roleDeceiver",
+              "roleDupe",
               "roleOfficiant",
               "roleOrganizer",
               "roleParticipantPrincipal",
@@ -39942,6 +40539,12 @@
             "additionalProperties": false,
             "description": "",
             "properties": {
+              "credibilityScore": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
               "facetSubject": {
                 "items": {
                   "$ref": "#/$defs/Person"
@@ -40049,6 +40652,12 @@
                 },
                 "type": [
                   "array",
+                  "null"
+                ]
+              },
+              "credibilityScore": {
+                "type": [
+                  "number",
                   "null"
                 ]
               },
@@ -42651,6 +43260,24 @@
                   "null"
                 ]
               },
+              "deceptionCue": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "deceptiveIntentClaim": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "during": {
                 "items": {
                   "$ref": "#/$defs/Event"
@@ -42801,10 +43428,37 @@
                   "null"
                 ]
               },
+              "heldStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "implicates": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "latestEnd": {
                 "format": "date-time",
                 "type": [
                   "string",
+                  "null"
+                ]
+              },
+              "maximViolationType": {
+                "items": {
+                  "$ref": "#/$defs/MaximViolationType"
+                },
+                "type": [
+                  "array",
                   "null"
                 ]
               },
@@ -42850,6 +43504,21 @@
                 },
                 "type": [
                   "array",
+                  "null"
+                ]
+              },
+              "projectedStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "propagationMutationDistance": {
+                "type": [
+                  "integer",
                   "null"
                 ]
               },
@@ -43753,6 +44422,12 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "credibilityScore": {
+                "type": [
+                  "number",
+                  "null"
                 ]
               },
               "facetSubject": {
@@ -45222,6 +45897,12 @@
                   }
                 ]
               },
+              "credibilityScore": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
               "facetSubject": {
                 "items": {
                   "$ref": "#/$defs/Person"
@@ -46626,6 +47307,12 @@
             "additionalProperties": false,
             "description": "",
             "properties": {
+              "credibilityScore": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
               "facetSubject": {
                 "items": {
                   "$ref": "#/$defs/Person"
@@ -46744,6 +47431,12 @@
             "additionalProperties": false,
             "description": "",
             "properties": {
+              "argumentAcceptability": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
               "claimModality": {
                 "anyOf": [
                   {
@@ -46752,6 +47445,21 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "claimVeridicality": {
+                "items": {
+                  "$ref": "#/$defs/ClaimVeridicality"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "credibilityScore": {
+                "type": [
+                  "number",
+                  "null"
                 ]
               },
               "facetSubject": {
@@ -52707,6 +53415,12 @@
                   }
                 ]
               },
+              "credibilityScore": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
               "facetSubject": {
                 "items": {
                   "$ref": "#/$defs/Person"
@@ -53772,6 +54486,12 @@
             "additionalProperties": false,
             "description": "",
             "properties": {
+              "credibilityScore": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
               "facetSubject": {
                 "items": {
                   "$ref": "#/$defs/Person"
@@ -54222,6 +54942,12 @@
             "additionalProperties": false,
             "description": "",
             "properties": {
+              "argumentAcceptability": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
               "claimModality": {
                 "anyOf": [
                   {
@@ -54230,6 +54956,21 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "claimVeridicality": {
+                "items": {
+                  "$ref": "#/$defs/ClaimVeridicality"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "credibilityScore": {
+                "type": [
+                  "number",
+                  "null"
                 ]
               },
               "facetSubject": {
@@ -54336,6 +55077,7 @@
           "StandpointModalityEnum": {
             "description": "",
             "enum": [
+              "bullshit",
               "conceivable",
               "probable",
               "refuted",
@@ -57428,6 +58170,12 @@
             "additionalProperties": false,
             "description": "",
             "properties": {
+              "credibilityScore": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
               "facetSubject": {
                 "items": {
                   "$ref": "#/$defs/Person"
@@ -59921,6 +60669,12 @@
                   "null"
                 ]
               },
+              "credibilityScore": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
               "facetSubject": {
                 "items": {
                   "$ref": "#/$defs/Person"
@@ -60012,6 +60766,12 @@
             "additionalProperties": false,
             "description": "",
             "properties": {
+              "credibilityScore": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
               "facetSubject": {
                 "items": {
                   "$ref": "#/$defs/Person"
@@ -60143,6 +60903,24 @@
               "contains": {
                 "items": {
                   "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "deceptionCue": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "deceptiveIntentClaim": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
                 },
                 "type": [
                   "array",
@@ -60299,10 +61077,37 @@
                   "null"
                 ]
               },
+              "heldStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "implicates": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "latestEnd": {
                 "format": "date-time",
                 "type": [
                   "string",
+                  "null"
+                ]
+              },
+              "maximViolationType": {
+                "items": {
+                  "$ref": "#/$defs/MaximViolationType"
+                },
+                "type": [
+                  "array",
                   "null"
                 ]
               },
@@ -60348,6 +61153,21 @@
                 },
                 "type": [
                   "array",
+                  "null"
+                ]
+              },
+              "projectedStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "propagationMutationDistance": {
+                "type": [
+                  "integer",
                   "null"
                 ]
               },
@@ -60798,6 +61618,12 @@
             "additionalProperties": false,
             "description": "",
             "properties": {
+              "credibilityScore": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
               "facetSubject": {
                 "items": {
                   "$ref": "#/$defs/Person"

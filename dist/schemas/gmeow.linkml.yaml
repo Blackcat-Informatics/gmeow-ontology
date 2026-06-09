@@ -277,6 +277,9 @@ classes:
   CitationIntent:
     class_uri: https://blackcatinformatics.ca/gmeow/CitationIntent
     title: Citation Intent
+  ClaimVeridicality:
+    class_uri: https://blackcatinformatics.ca/gmeow/ClaimVeridicality
+    title: Claim Veridicality
   Commit:
     class_uri: https://blackcatinformatics.ca/gmeow/Commit
     title: Commit
@@ -563,6 +566,8 @@ classes:
     - before
     - coincidesWith
     - contains
+    - deceptionCue
+    - deceptiveIntentClaim
     - during
     - earliestStart
     - eventAspect
@@ -580,12 +585,17 @@ classes:
     - hasDuration
     - hasParticipant
     - hasSubEvent
+    - heldStandpoint
+    - implicates
     - latestEnd
+    - maximViolationType
     - meets
     - metBy
     - occurrenceOfSeries
     - overlappedBy
     - overlaps
+    - projectedStandpoint
+    - propagationMutationDistance
     - startedBy
     - starts
     - subEventOf
@@ -1031,6 +1041,9 @@ classes:
     is_a: InformationObject
     slots:
     - markText
+  MaximViolationType:
+    class_uri: https://blackcatinformatics.ca/gmeow/MaximViolationType
+    title: Maxim Violation Type
   MeasuredValue:
     class_uri: https://blackcatinformatics.ca/gmeow/MeasuredValue
     title: Measured Value
@@ -1208,6 +1221,7 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Observation
     title: Observation
     slots:
+    - credibilityScore
     - facetSubject
     - facetVantage
     - observationEvent
@@ -1830,7 +1844,9 @@ classes:
     title: Standpoint Claim
     is_a: Observation
     slots:
+    - argumentAcceptability
     - claimModality
+    - claimVeridicality
   StandpointModality:
     class_uri: https://blackcatinformatics.ca/gmeow/StandpointModality
     title: Standpoint Modality
@@ -2247,6 +2263,11 @@ slots:
     range: ArcType
     domain: CharacterArc
     multivalued: false
+  argumentAcceptability:
+    slot_uri: https://blackcatinformatics.ca/gmeow/argumentAcceptability
+    title: argument acceptability
+    range: decimal
+    domain: StandpointClaim
   artifactMediaType:
     slot_uri: https://blackcatinformatics.ca/gmeow/artifactMediaType
     title: artifact media type
@@ -2582,6 +2603,12 @@ slots:
     range: StandpointModality
     domain: StandpointClaim
     multivalued: false
+  claimVeridicality:
+    slot_uri: https://blackcatinformatics.ca/gmeow/claimVeridicality
+    title: claim veridicality
+    range: ClaimVeridicality
+    domain: StandpointClaim
+    multivalued: true
   claimedMediaType:
     slot_uri: https://blackcatinformatics.ca/gmeow/claimedMediaType
     title: claimed media type
@@ -2833,6 +2860,11 @@ slots:
     range: CoverageDepth
     domain: CitationAct
     multivalued: true
+  credibilityScore:
+    slot_uri: https://blackcatinformatics.ca/gmeow/credibilityScore
+    title: credibility score
+    range: decimal
+    domain: Observation
   currency:
     slot_uri: https://blackcatinformatics.ca/gmeow/currency
     title: currency
@@ -2844,6 +2876,18 @@ slots:
     title: date published
     range: datetime
     domain: CreativeWork
+  deceptionCue:
+    slot_uri: https://blackcatinformatics.ca/gmeow/deceptionCue
+    title: deception cue
+    range: Observation
+    domain: Event
+    multivalued: true
+  deceptiveIntentClaim:
+    slot_uri: https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim
+    title: deceptive intent claim
+    range: StandpointClaim
+    domain: Event
+    multivalued: true
   declination:
     slot_uri: https://blackcatinformatics.ca/gmeow/declination
     title: declination
@@ -4058,6 +4102,12 @@ slots:
     title: heading
     range: double
     domain: Orientation
+  heldStandpoint:
+    slot_uri: https://blackcatinformatics.ca/gmeow/heldStandpoint
+    title: held standpoint
+    range: StandpointClaim
+    domain: Event
+    multivalued: true
   holdsAccount:
     slot_uri: https://blackcatinformatics.ca/gmeow/holdsAccount
     title: holds account
@@ -4110,6 +4160,12 @@ slots:
     title: identifier
     range: string
     domain: CreativeWork
+  implicates:
+    slot_uri: https://blackcatinformatics.ca/gmeow/implicates
+    title: implicates
+    range: Entity
+    domain: Event
+    multivalued: true
   importanceLevel:
     slot_uri: https://blackcatinformatics.ca/gmeow/importanceLevel
     title: importance level
@@ -4509,6 +4565,12 @@ slots:
     range: string
     domain: CoordinateMatrix
     multivalued: false
+  maximViolationType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/maximViolationType
+    title: maxim violation type
+    range: MaximViolationType
+    domain: Event
+    multivalued: true
   measuredAge:
     slot_uri: https://blackcatinformatics.ca/gmeow/measuredAge
     title: measured age
@@ -5125,6 +5187,12 @@ slots:
     range: License
     domain: Project
     multivalued: true
+  projectedStandpoint:
+    slot_uri: https://blackcatinformatics.ca/gmeow/projectedStandpoint
+    title: projected standpoint
+    range: StandpointClaim
+    domain: Event
+    multivalued: true
   pronounObject:
     slot_uri: https://blackcatinformatics.ca/gmeow/pronounObject
     title: pronoun object
@@ -5155,6 +5223,11 @@ slots:
     range: string
     domain: PronounSet
     multivalued: false
+  propagationMutationDistance:
+    slot_uri: https://blackcatinformatics.ca/gmeow/propagationMutationDistance
+    title: propagation mutation distance
+    range: integer
+    domain: Event
   proximity:
     slot_uri: https://blackcatinformatics.ca/gmeow/proximity
     title: proximity
@@ -6529,6 +6602,9 @@ enums:
       attestationTypeEAT:
         meaning: https://blackcatinformatics.ca/gmeow/attestationTypeEAT
         title: EAT token
+      attestationTypeFactCheck:
+        meaning: https://blackcatinformatics.ca/gmeow/attestationTypeFactCheck
+        title: fact check
       attestationTypeGitSignedTag:
         meaning: https://blackcatinformatics.ca/gmeow/attestationTypeGitSignedTag
         title: git signed tag
@@ -6991,6 +7067,15 @@ enums:
       intentUsesMethodIn:
         meaning: https://blackcatinformatics.ca/gmeow/intentUsesMethodIn
         title: uses method in
+  ClaimVeridicalityEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ClaimVeridicality
+    permissible_values:
+      veridicalityLicensedFalsehood:
+        meaning: https://blackcatinformatics.ca/gmeow/veridicalityLicensedFalsehood
+        title: licensed falsehood
+      veridicalityUntrue:
+        meaning: https://blackcatinformatics.ca/gmeow/veridicalityUntrue
+        title: untrue
   ConflictStrategyEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ConflictStrategy
     permissible_values:
@@ -7459,6 +7544,9 @@ enums:
       eventTypeDeath:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeDeath
         title: death
+      eventTypeDeception:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeDeception
+        title: deception
       eventTypeDestruction:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeDestruction
         title: destruction
@@ -8876,6 +8964,18 @@ enums:
       roleBeneficiary:
         meaning: https://blackcatinformatics.ca/gmeow/roleBeneficiary
         title: beneficiary
+      roleBeneficiaryOfDeception:
+        meaning: https://blackcatinformatics.ca/gmeow/roleBeneficiaryOfDeception
+        title: beneficiary of deception
+      roleDeceived:
+        meaning: https://blackcatinformatics.ca/gmeow/roleDeceived
+        title: deceived
+      roleDeceiver:
+        meaning: https://blackcatinformatics.ca/gmeow/roleDeceiver
+        title: deceiver
+      roleDupe:
+        meaning: https://blackcatinformatics.ca/gmeow/roleDupe
+        title: dupe
       roleOfficiant:
         meaning: https://blackcatinformatics.ca/gmeow/roleOfficiant
         title: officiant
@@ -9890,6 +9990,9 @@ enums:
   StandpointModalityEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/StandpointModality
     permissible_values:
+      bullshit:
+        meaning: https://blackcatinformatics.ca/gmeow/bullshit
+        title: bullshit (indifference to truth)
       conceivable:
         meaning: https://blackcatinformatics.ca/gmeow/conceivable
         title: conceivable (◊, possible)

@@ -1,0 +1,89 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+
+# =============================================================================
+# Deception statement-metadata exemplars — canonical RDF 1.2 / RDF* cells.
+#
+# Compiled to statements/gmeow.rdf12.ttl and statements/gmeow-statements.owl.ttl
+# by `gmeow compile-statements`. See statement-dsl/examples.ttl for the general
+# pattern and statement-dsl/vocabulary.ttl for the DSL spec.
+# =============================================================================
+
+# 1. A deception event: the held standpoint and projected standpoint diverge.
+#    The held standpoint (the deceiver's private belief) is refuted; the
+#    projected standpoint (what they communicate) is unequivocal. Both are
+#    coexisting, standpoint-indexed claims — neither is privileged.
+ex:claim-deception-event-001 a gmeow:StatementMetadata ;
+    rdfs:label "Deception event — held standpoint refuted, projected standpoint unequivocal"@en ;
+    gmeow:reifier    ex:claim-deception-event-001 ;
+    gmeow:qSubject   ex:event-deception-001 ;
+    gmeow:qPredicate gmeow:eventType ;
+    gmeow:qObject    gmeow:eventTypeDeception ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-01-15T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+# 2. The held standpoint of the deception — what the deceiver actually believes.
+ex:claim-held-001 a gmeow:StatementMetadata ;
+    rdfs:label "Held standpoint — the deceiver's private belief (refuted per universal standpoint)"@en ;
+    gmeow:reifier    ex:claim-held-001 ;
+    gmeow:qSubject   ex:event-deception-001 ;
+    gmeow:qPredicate gmeow:heldStandpoint ;
+    gmeow:qObject    ex:standpointclaim-held-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.75 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-01-15T00:00:00Z"^^xsd:dateTime ] .
+
+# 3. The projected standpoint of the deception — what the deceiver communicates.
+ex:claim-projected-001 a gmeow:StatementMetadata ;
+    rdfs:label "Projected standpoint — the deceiver's communicated position (unequivocal per deceiver's standpoint)"@en ;
+    gmeow:reifier    ex:claim-projected-001 ;
+    gmeow:qSubject   ex:event-deception-001 ;
+    gmeow:qPredicate gmeow:projectedStandpoint ;
+    gmeow:qObject    ex:standpointclaim-projected-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.9 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-01-15T00:00:00Z"^^xsd:dateTime ] .
+
+# 4. A fact-check attestation — an attester vouches for a claim under the
+#    fact-check policy. The result is a VerificationResult, not a global truth.
+ex:claim-factcheck-001 a gmeow:StatementMetadata ;
+    rdfs:label "Fact-check attestation — ClaimReview as Attestation + VerificationResult"@en ;
+    gmeow:reifier    ex:claim-factcheck-001 ;
+    gmeow:qSubject   ex:attestation-factcheck-001 ;
+    gmeow:qPredicate gmeow:attestationType ;
+    gmeow:qObject    gmeow:attestationTypeFactCheck ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.92 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-02-01T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-factchecker ] .
+
+# 5. A licensed-falsehood claim — fiction is not deception because the audience
+#    understands the non-truth-asserting frame. The veridicality makes this
+#    safety property explicit.
+ex:claim-fiction-001 a gmeow:StatementMetadata ;
+    rdfs:label "Licensed falsehood — fiction claim with explicit safety property"@en ;
+    gmeow:reifier    ex:claim-fiction-001 ;
+    gmeow:qSubject   ex:claim-hogwarts-exists ;
+    gmeow:qPredicate gmeow:claimVeridicality ;
+    gmeow:qObject    gmeow:veridicalityLicensedFalsehood ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.95 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-03-01T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-publisher ] .
+
+# 6. A bullshit standpoint claim — indifference to truth, neither true nor false.
+ex:claim-bullshit-001 a gmeow:StatementMetadata ;
+    rdfs:label "Bullshit claim — standpoint modality = bullshit (indifference to truth)"@en ;
+    gmeow:reifier    ex:claim-bullshit-001 ;
+    gmeow:qSubject   ex:standpointclaim-bullshit-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:bullshit ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.7 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-04-01T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-analyst ] .
