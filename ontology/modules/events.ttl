@@ -138,6 +138,15 @@ gmeow:eventTypeExpressionCreation      a gmeow:EventType ; rdfs:label "expressio
 gmeow:eventTypeManifestationProduction a gmeow:EventType ; rdfs:label "manifestation production"@en ; skos:definition "The event of producing a concrete edition, format, or release — the act that brings a gmeow:Manifestation into existence (printing, pressing, digital publishing)."@en .
 
 # --------------------------------------------------------------------------- #
+# Image event types — values, not Event subclasses (Principle 9; issue #22)
+# --------------------------------------------------------------------------- #
+
+gmeow:eventTypeImageCapture     a gmeow:EventType ; rdfs:label "image capture"@en ;     skos:definition "The act of capturing a still image — photography, screenshot, or frame grab. Brings a gmeow:MediaObject into existence. ≈ CIDOC-CRM E12 Production scoped to a digital image."@en .
+gmeow:eventTypeImageScanning    a gmeow:EventType ; rdfs:label "image scanning"@en ;    skos:definition "The act of digitizing a physical photograph, document, or artwork via scanner or camera reprography. Produces a gmeow:MediaObject from a physical source."@en .
+gmeow:eventTypeImageProcessing  a gmeow:EventType ; rdfs:label "image processing"@en ;  skos:definition "The act of editing, filtering, colour-correcting, or otherwise transforming a digital image. The output is a derivative gmeow:MediaObject linked by gmeow:wasDerivedFrom."@en .
+gmeow:eventTypeImageAnnotation a gmeow:EventType ; rdfs:label "image annotation"@en ; skos:definition "The act of adding regions, labels, scene-graph edges, or other structured metadata to an image. Produces gmeow:ImageRegion and gmeow:SceneGraphEdge instances."@en .
+
+# --------------------------------------------------------------------------- #
 # Software event types — values, not Event subclasses (Principle 9)
 # --------------------------------------------------------------------------- #
 

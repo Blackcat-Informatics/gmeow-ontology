@@ -277,6 +277,50 @@ gmeow:extent
     skos:definition "The size or duration of a creative work."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+# --- Image technical metadata (issue #22) ---------------------------------- #
+# Domain is gmeow:MediaObject (image, audio, video). These properties are
+# harmless on audio/video; pixel dimensions apply to video frames too.
+
+gmeow:pixelWidth
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MediaObject ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "pixel width"@en ;
+    skos:definition "The width of a media object in pixels. Functional: one width per manifestation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:pixelHeight
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MediaObject ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "pixel height"@en ;
+    skos:definition "The height of a media object in pixels. Functional: one height per manifestation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:imageOrientation
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MediaObject ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "image orientation"@en ;
+    skos:definition "The clockwise rotation of an image from its normal orientation, in degrees (EXIF convention: 0, 90, 180, 270). Functional: one orientation per manifestation. Transform math lives in the solver layer (Principle 12)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:captureTime
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:MediaObject ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "capture time"@en ;
+    skos:definition "The date and time when the image or media was captured. Non-functional: competing capture-time claims from different sources or EXIF vs. metadata may coexist with confidence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:captureDevice
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MediaObject ;
+    rdfs:range gmeow:PhysicalObject ;
+    rdfs:label "capture device"@en ;
+    skos:definition "The physical device (camera, scanner, screen-capture hardware) that captured the media. Non-functional: multiple devices may be asserted (e.g. a composite image)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:Collection
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Work ;

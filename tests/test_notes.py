@@ -355,10 +355,18 @@ def test_highlight_with_selector_passes_shacl() -> None:
 
 def _sparql_parse(path: Path) -> None:
     """Minimal parse guard — the query must be syntactically valid SPARQL."""
+    import sys
+
     from rdflib.plugins.sparql import prepareQuery
 
-    text = path.read_text()
-    prepareQuery(text)
+    # Large projection CONSTRUCT queries push pyparsing past the default limit.
+    old = sys.getrecursionlimit()
+    sys.setrecursionlimit(3000)
+    try:
+        text = path.read_text()
+        prepareQuery(text)
+    finally:
+        sys.setrecursionlimit(old)
 
 
 def test_notes_oa_projection_executable() -> None:

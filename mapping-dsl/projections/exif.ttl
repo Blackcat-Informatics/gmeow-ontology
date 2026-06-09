@@ -1,0 +1,76 @@
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix exif:   <http://www.w3.org/2003/12/exif/ns#> .
+
+# Projection mappings: GMEOW images → W3C EXIF Ontology.
+# Compiled to projections/exif.edoal.ttl + queries/projections/exif.rq by
+# `gmeow compile-mappings`.
+
+# --------------------------------------------------------------------------- #
+# pixelWidth → exif:width
+# --------------------------------------------------------------------------- #
+
+gmeow:mapExifWidth a gmeow:ProjectionMapping ;
+    rdfs:label "pixelWidth → exif:width"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "img" ; gmeow:value "w" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "img" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MediaObject ]
+            [ gmeow:subjectVar "img" ; gmeow:predicate gmeow:pixelWidth ; gmeow:objectVar "w" ] ) ;
+        gmeow:edoalSource gmeow:pixelWidth ] ;
+    gmeow:hasBinding [
+        gmeow:profile "exif" ; gmeow:toPredicate exif:width ; gmeow:relation "<=" ;
+        gmeow:confidence 0.95 ;
+        gmeow:lossyDrop "unit (pixels) is implicit" ] .
+
+# --------------------------------------------------------------------------- #
+# pixelHeight → exif:height
+# --------------------------------------------------------------------------- #
+
+gmeow:mapExifHeight a gmeow:ProjectionMapping ;
+    rdfs:label "pixelHeight → exif:height"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "img" ; gmeow:value "h" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "img" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MediaObject ]
+            [ gmeow:subjectVar "img" ; gmeow:predicate gmeow:pixelHeight ; gmeow:objectVar "h" ] ) ;
+        gmeow:edoalSource gmeow:pixelHeight ] ;
+    gmeow:hasBinding [
+        gmeow:profile "exif" ; gmeow:toPredicate exif:height ; gmeow:relation "<=" ;
+        gmeow:confidence 0.95 ;
+        gmeow:lossyDrop "unit (pixels) is implicit" ] .
+
+# --------------------------------------------------------------------------- #
+# imageOrientation → exif:orientation
+# --------------------------------------------------------------------------- #
+
+gmeow:mapExifOrientation a gmeow:ProjectionMapping ;
+    rdfs:label "imageOrientation → exif:orientation"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "img" ; gmeow:value "o" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "img" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MediaObject ]
+            [ gmeow:subjectVar "img" ; gmeow:predicate gmeow:imageOrientation ; gmeow:objectVar "o" ] ) ;
+        gmeow:edoalSource gmeow:imageOrientation ] ;
+    gmeow:hasBinding [
+        gmeow:profile "exif" ; gmeow:toPredicate exif:orientation ; gmeow:relation "<=" ;
+        gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "gmeow:imageOrientation is a decimal in degrees; it is passed through as-is to exif:orientation. EXIF enum values (1, 3, 6, 8) are not produced by this projection — downstream consumers must normalise if they need EXIF-style orientation tags." ] .
+
+# --------------------------------------------------------------------------- #
+# captureTime → exif:dateTime
+# --------------------------------------------------------------------------- #
+
+gmeow:mapExifDateTime a gmeow:ProjectionMapping ;
+    rdfs:label "captureTime → exif:dateTime"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "img" ; gmeow:value "dt" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "img" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MediaObject ]
+            [ gmeow:subjectVar "img" ; gmeow:predicate gmeow:captureTime ; gmeow:objectVar "dt" ] ) ;
+        gmeow:edoalSource gmeow:captureTime ] ;
+    gmeow:hasBinding [
+        gmeow:profile "exif" ; gmeow:toPredicate exif:dateTime ; gmeow:relation "<=" ;
+        gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "provenance and confidence of the capture-time claim are dropped" ] .

@@ -562,6 +562,19 @@ classes:
   DatingMethod:
     class_uri: https://blackcatinformatics.ca/gmeow/DatingMethod
     title: Dating Method
+  DepictionContext:
+    class_uri: https://blackcatinformatics.ca/gmeow/DepictionContext
+    title: Depiction Context
+  DepictionUsage:
+    class_uri: https://blackcatinformatics.ca/gmeow/DepictionUsage
+    title: Depiction Usage
+    slots:
+    - depictionAudience
+    - depictionAuthority
+    - depictionContext
+    - depictionImage
+    - depictionInterval
+    - depictionSubject
   DerivationKind:
     class_uri: https://blackcatinformatics.ca/gmeow/DerivationKind
     title: Derivation Kind
@@ -631,6 +644,7 @@ classes:
     - cites
     - conditionsOfAccess
     - counterpartOf
+    - depictedIn
     - description
     - existenceInterval
     - hasAccessibilityNeed
@@ -915,6 +929,14 @@ classes:
     title: Identity Facet
     slots:
     - selfAsserted
+  ImageRegion:
+    class_uri: https://blackcatinformatics.ca/gmeow/ImageRegion
+    title: Image Region
+    is_a: InformationObject
+    slots:
+    - regionLabel
+    - regionOf
+    - regionSelector
   ImportActivity:
     class_uri: https://blackcatinformatics.ca/gmeow/ImportActivity
     title: Import Activity
@@ -1252,6 +1274,14 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/MediaObject
     title: Media Object
     is_a: Manifestation
+    slots:
+    - captureDevice
+    - captureTime
+    - depicts
+    - hasRegion
+    - imageOrientation
+    - pixelHeight
+    - pixelWidth
   Membership:
     class_uri: https://blackcatinformatics.ca/gmeow/Membership
     title: Membership
@@ -1825,6 +1855,13 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/ReferencePosition
     title: Reference Position
     is_a: Entity
+  RegionSelector:
+    class_uri: https://blackcatinformatics.ca/gmeow/RegionSelector
+    title: Region Selector
+    is_a: InformationObject
+    slots:
+    - selectorType
+    - selectorValue
   RegulatoryOverlay:
     class_uri: https://blackcatinformatics.ca/gmeow/RegulatoryOverlay
     title: Regulatory Overlay
@@ -1942,6 +1979,17 @@ classes:
     slots:
     - quantityUncertainty
     - quantityValue
+  SceneGraphEdge:
+    class_uri: https://blackcatinformatics.ca/gmeow/SceneGraphEdge
+    title: Scene Graph Edge
+    slots:
+    - sceneConfidence
+    - sceneObject
+    - sceneRelation
+    - sceneSubject
+  SceneRelationType:
+    class_uri: https://blackcatinformatics.ca/gmeow/SceneRelationType
+    title: Scene Relation Type
   ScriptLanguageAttribution:
     class_uri: https://blackcatinformatics.ca/gmeow/ScriptLanguageAttribution
     title: Script Language Attribution
@@ -1963,6 +2011,9 @@ classes:
     - selectorPage
     - selectorTextPosition
     - selectorTextQuote
+  SelectorType:
+    class_uri: https://blackcatinformatics.ca/gmeow/SelectorType
+    title: Selector Type
   SensitivityLevel:
     class_uri: https://blackcatinformatics.ca/gmeow/SensitivityLevel
     title: Sensitivity Level
@@ -2914,6 +2965,17 @@ slots:
     range: Location
     domain: Capacity
     multivalued: false
+  captureDevice:
+    slot_uri: https://blackcatinformatics.ca/gmeow/captureDevice
+    title: capture device
+    range: PhysicalObject
+    domain: MediaObject
+    multivalued: true
+  captureTime:
+    slot_uri: https://blackcatinformatics.ca/gmeow/captureTime
+    title: capture time
+    range: datetime
+    domain: MediaObject
   carrierInscription:
     slot_uri: https://blackcatinformatics.ca/gmeow/carrierInscription
     title: carrier inscription
@@ -3383,6 +3445,54 @@ slots:
     title: delivers to account
     range: OnlineAccount
     domain: EmailAddress
+    multivalued: true
+  depictedIn:
+    slot_uri: https://blackcatinformatics.ca/gmeow/depictedIn
+    title: depicted in
+    range: MediaObject
+    domain: Entity
+    multivalued: true
+  depictionAudience:
+    slot_uri: https://blackcatinformatics.ca/gmeow/depictionAudience
+    title: depiction audience
+    range: Entity
+    domain: DepictionUsage
+    multivalued: true
+  depictionAuthority:
+    slot_uri: https://blackcatinformatics.ca/gmeow/depictionAuthority
+    title: depiction authority
+    range: Agent
+    domain: DepictionUsage
+    multivalued: true
+  depictionContext:
+    slot_uri: https://blackcatinformatics.ca/gmeow/depictionContext
+    title: depiction context
+    range: DepictionContext
+    domain: DepictionUsage
+    multivalued: false
+  depictionImage:
+    slot_uri: https://blackcatinformatics.ca/gmeow/depictionImage
+    title: depiction image
+    range: MediaObject
+    domain: DepictionUsage
+    multivalued: false
+  depictionInterval:
+    slot_uri: https://blackcatinformatics.ca/gmeow/depictionInterval
+    title: depiction interval
+    range: TimeInterval
+    domain: DepictionUsage
+    multivalued: true
+  depictionSubject:
+    slot_uri: https://blackcatinformatics.ca/gmeow/depictionSubject
+    title: depiction subject
+    range: Entity
+    domain: DepictionUsage
+    multivalued: false
+  depicts:
+    slot_uri: https://blackcatinformatics.ca/gmeow/depicts
+    title: depicts
+    range: Entity
+    domain: MediaObject
     multivalued: true
   derivationEvidence:
     slot_uri: https://blackcatinformatics.ca/gmeow/derivationEvidence
@@ -4431,6 +4541,12 @@ slots:
     range: CelestialReferenceOrigin
     domain: ReferenceFrame
     multivalued: false
+  hasRegion:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasRegion
+    title: has region
+    range: ImageRegion
+    domain: MediaObject
+    multivalued: true
   hasRelayHop:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasRelayHop
     title: has relay hop
@@ -4787,6 +4903,12 @@ slots:
     title: identifier
     range: string
     domain: CreativeWork
+  imageOrientation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/imageOrientation
+    title: image orientation
+    range: decimal
+    domain: MediaObject
+    multivalued: false
   implicates:
     slot_uri: https://blackcatinformatics.ca/gmeow/implicates
     title: implicates
@@ -5872,6 +5994,18 @@ slots:
     title: pitch
     range: double
     domain: Orientation
+  pixelHeight:
+    slot_uri: https://blackcatinformatics.ca/gmeow/pixelHeight
+    title: pixel height
+    range: string
+    domain: MediaObject
+    multivalued: false
+  pixelWidth:
+    slot_uri: https://blackcatinformatics.ca/gmeow/pixelWidth
+    title: pixel width
+    range: string
+    domain: MediaObject
+    multivalued: false
   placeDeterminacy:
     slot_uri: https://blackcatinformatics.ca/gmeow/placeDeterminacy
     title: place determinacy
@@ -6282,6 +6416,23 @@ slots:
     range: Entity
     domain: Entity
     multivalued: true
+  regionLabel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/regionLabel
+    title: region label
+    range: string
+    domain: ImageRegion
+  regionOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/regionOf
+    title: region of
+    range: MediaObject
+    domain: ImageRegion
+    multivalued: false
+  regionSelector:
+    slot_uri: https://blackcatinformatics.ca/gmeow/regionSelector
+    title: region selector
+    range: RegionSelector
+    domain: ImageRegion
+    multivalued: false
   registrationNumber:
     slot_uri: https://blackcatinformatics.ca/gmeow/registrationNumber
     title: registration number
@@ -6535,6 +6686,30 @@ slots:
     range: Entity
     domain: Rule
     multivalued: false
+  sceneConfidence:
+    slot_uri: https://blackcatinformatics.ca/gmeow/sceneConfidence
+    title: scene confidence
+    range: decimal
+    domain: SceneGraphEdge
+    multivalued: false
+  sceneObject:
+    slot_uri: https://blackcatinformatics.ca/gmeow/sceneObject
+    title: scene object
+    range: ImageRegion
+    domain: SceneGraphEdge
+    multivalued: false
+  sceneRelation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/sceneRelation
+    title: scene relation
+    range: SceneRelationType
+    domain: SceneGraphEdge
+    multivalued: false
+  sceneSubject:
+    slot_uri: https://blackcatinformatics.ca/gmeow/sceneSubject
+    title: scene subject
+    range: ImageRegion
+    domain: SceneGraphEdge
+    multivalued: false
   scriptCode:
     slot_uri: https://blackcatinformatics.ca/gmeow/scriptCode
     title: script code
@@ -6590,6 +6765,17 @@ slots:
     title: selector text quote
     range: string
     domain: Selector
+  selectorType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/selectorType
+    title: selector type
+    range: SelectorType
+    domain: RegionSelector
+    multivalued: false
+  selectorValue:
+    slot_uri: https://blackcatinformatics.ca/gmeow/selectorValue
+    title: selector value
+    range: string
+    domain: RegionSelector
   selfAsserted:
     slot_uri: https://blackcatinformatics.ca/gmeow/selfAsserted
     title: self-asserted
@@ -8509,6 +8695,45 @@ enums:
       datingMethodUraniumLead:
         meaning: https://blackcatinformatics.ca/gmeow/datingMethodUraniumLead
         title: uranium-lead (U-Pb)
+  DepictionContextEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/DepictionContext
+    permissible_values:
+      depictionContextActionShot:
+        meaning: https://blackcatinformatics.ca/gmeow/depictionContextActionShot
+        title: action shot
+      depictionContextCandid:
+        meaning: https://blackcatinformatics.ca/gmeow/depictionContextCandid
+        title: candid
+      depictionContextChildhood:
+        meaning: https://blackcatinformatics.ca/gmeow/depictionContextChildhood
+        title: childhood
+      depictionContextEvent:
+        meaning: https://blackcatinformatics.ca/gmeow/depictionContextEvent
+        title: event
+      depictionContextFamily:
+        meaning: https://blackcatinformatics.ca/gmeow/depictionContextFamily
+        title: family
+      depictionContextFormal:
+        meaning: https://blackcatinformatics.ca/gmeow/depictionContextFormal
+        title: formal
+      depictionContextNow:
+        meaning: https://blackcatinformatics.ca/gmeow/depictionContextNow
+        title: now / current
+      depictionContextPortrait:
+        meaning: https://blackcatinformatics.ca/gmeow/depictionContextPortrait
+        title: portrait
+      depictionContextProfessional:
+        meaning: https://blackcatinformatics.ca/gmeow/depictionContextProfessional
+        title: professional
+      depictionContextSelfPortrait:
+        meaning: https://blackcatinformatics.ca/gmeow/depictionContextSelfPortrait
+        title: self-portrait
+      depictionContextSocial:
+        meaning: https://blackcatinformatics.ca/gmeow/depictionContextSocial
+        title: social
+      depictionContextWork:
+        meaning: https://blackcatinformatics.ca/gmeow/depictionContextWork
+        title: work
   DerivationKindEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/DerivationKind
     permissible_values:
@@ -8698,6 +8923,18 @@ enums:
       eventTypeGraduation:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeGraduation
         title: graduation
+      eventTypeImageAnnotation:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeImageAnnotation
+        title: image annotation
+      eventTypeImageCapture:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeImageCapture
+        title: image capture
+      eventTypeImageProcessing:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeImageProcessing
+        title: image processing
+      eventTypeImageScanning:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeImageScanning
+        title: image scanning
       eventTypeImmigration:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeImmigration
         title: immigration
@@ -11141,6 +11378,54 @@ enums:
       slsaLevel4:
         meaning: https://blackcatinformatics.ca/gmeow/slsaLevel4
         title: SLSA Level 4
+  SceneRelationTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/SceneRelationType
+    permissible_values:
+      sceneRelationAbove:
+        meaning: https://blackcatinformatics.ca/gmeow/sceneRelationAbove
+        title: above
+      sceneRelationBelow:
+        meaning: https://blackcatinformatics.ca/gmeow/sceneRelationBelow
+        title: below
+      sceneRelationEating:
+        meaning: https://blackcatinformatics.ca/gmeow/sceneRelationEating
+        title: eating
+      sceneRelationFarFrom:
+        meaning: https://blackcatinformatics.ca/gmeow/sceneRelationFarFrom
+        title: far from
+      sceneRelationHolding:
+        meaning: https://blackcatinformatics.ca/gmeow/sceneRelationHolding
+        title: holding
+      sceneRelationInside:
+        meaning: https://blackcatinformatics.ca/gmeow/sceneRelationInside
+        title: inside
+      sceneRelationLeftOf:
+        meaning: https://blackcatinformatics.ca/gmeow/sceneRelationLeftOf
+        title: left of
+      sceneRelationNear:
+        meaning: https://blackcatinformatics.ca/gmeow/sceneRelationNear
+        title: near
+      sceneRelationPartOf:
+        meaning: https://blackcatinformatics.ca/gmeow/sceneRelationPartOf
+        title: part of
+      sceneRelationPlaying:
+        meaning: https://blackcatinformatics.ca/gmeow/sceneRelationPlaying
+        title: playing
+      sceneRelationRiding:
+        meaning: https://blackcatinformatics.ca/gmeow/sceneRelationRiding
+        title: riding
+      sceneRelationRightOf:
+        meaning: https://blackcatinformatics.ca/gmeow/sceneRelationRightOf
+        title: right of
+      sceneRelationSameAs:
+        meaning: https://blackcatinformatics.ca/gmeow/sceneRelationSameAs
+        title: same as
+      sceneRelationTouching:
+        meaning: https://blackcatinformatics.ca/gmeow/sceneRelationTouching
+        title: touching
+      sceneRelationWearing:
+        meaning: https://blackcatinformatics.ca/gmeow/sceneRelationWearing
+        title: wearing
   ScriptRoleEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ScriptRole
     permissible_values:
@@ -11168,6 +11453,36 @@ enums:
       scriptRoleTransliteration:
         meaning: https://blackcatinformatics.ca/gmeow/scriptRoleTransliteration
         title: transliteration / romanization
+  SelectorTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/SelectorType
+    permissible_values:
+      selectorTypeCocoRleMask:
+        meaning: https://blackcatinformatics.ca/gmeow/selectorTypeCocoRleMask
+        title: COCO RLE mask
+      selectorTypeDicomSegMask:
+        meaning: https://blackcatinformatics.ca/gmeow/selectorTypeDicomSegMask
+        title: DICOM-SEG mask
+      selectorTypeFractionalRectangle:
+        meaning: https://blackcatinformatics.ca/gmeow/selectorTypeFractionalRectangle
+        title: fractional rectangle
+      selectorTypePixelMask:
+        meaning: https://blackcatinformatics.ca/gmeow/selectorTypePixelMask
+        title: pixel mask
+      selectorTypePixelRectangle:
+        meaning: https://blackcatinformatics.ca/gmeow/selectorTypePixelRectangle
+        title: pixel rectangle
+      selectorTypePolygonPath:
+        meaning: https://blackcatinformatics.ca/gmeow/selectorTypePolygonPath
+        title: polygon path
+      selectorTypeRunLengthEncoded:
+        meaning: https://blackcatinformatics.ca/gmeow/selectorTypeRunLengthEncoded
+        title: run-length encoded
+      selectorTypeSvgPath:
+        meaning: https://blackcatinformatics.ca/gmeow/selectorTypeSvgPath
+        title: SVG path
+      selectorTypeWebAnnotationFragment:
+        meaning: https://blackcatinformatics.ca/gmeow/selectorTypeWebAnnotationFragment
+        title: Web Annotation fragment
   SensitivityLevelEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/SensitivityLevel
     permissible_values:

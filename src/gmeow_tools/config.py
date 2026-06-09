@@ -188,7 +188,10 @@ PREFIXES: dict[str, str] = {
     "crm": "http://www.cidoc-crm.org/cidoc-crm/",
     "crmsci": "http://www.cidoc-crm.org/extensions/crmsci/",
     "crminf": "http://www.ics.forth.gr/isl/CRMinf/",
+    "crmdig": "http://www.ics.forth.gr/isl/CRMdig/",
     "oa": "http://www.w3.org/ns/oa#",
+    "exif": "http://www.w3.org/2003/12/exif/ns#",
+    "iiif": "http://iiif.io/api/presentation/3#",
     "cito": "http://purl.org/spar/cito/",
     "credit": "https://credit.niso.org/contributor-roles/",
     "pav": "http://purl.org/pav/",
@@ -579,6 +582,11 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     # IVOA/ObsCore are CC0-1.0
     "crmarc": AlignmentTarget(
         "CRMarchaeo", PREFIXES["crmarc"], "REFERENCE_ONLY", "schema"
+    ),
+    "crmdig": AlignmentTarget("CRMdig", PREFIXES["crmdig"], "CC-BY-4.0", "schema"),
+    "exif": AlignmentTarget("W3C EXIF", PREFIXES["exif"], "W3C-Document", "schema"),
+    "iiif": AlignmentTarget(
+        "IIIF Presentation API", PREFIXES["iiif"], "CC-BY", "schema"
     ),
     "obscore": AlignmentTarget(
         "IVOA ObsCore", PREFIXES["obscore"], "CC0-1.0", "schema"

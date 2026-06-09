@@ -1,0 +1,60 @@
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix iiif:   <http://iiif.io/api/presentation/3#> .
+@prefix oa:     <http://www.w3.org/ns/oa#> .
+
+# Projection mappings: GMEOW images → IIIF Presentation API 3.
+# Compiled to projections/iiif.edoal.ttl + queries/projections/iiif.rq by
+# `gmeow compile-mappings`.
+
+# --------------------------------------------------------------------------- #
+# MediaObject → iiif:Canvas
+# --------------------------------------------------------------------------- #
+
+gmeow:mapIiifCanvas a gmeow:ProjectionMapping ;
+    rdfs:label "MediaObject → iiif:Canvas (with width/height)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "img" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "img" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MediaObject ]
+            [ gmeow:subjectVar "img" ; gmeow:predicate gmeow:pixelWidth ; gmeow:objectVar "w" ; gmeow:optional true ]
+            [ gmeow:subjectVar "img" ; gmeow:predicate gmeow:pixelHeight ; gmeow:objectVar "h" ; gmeow:optional true ] ) ;
+        gmeow:edoalSource gmeow:MediaObject ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "iiif" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget iiif:Canvas ; gmeow:edoalTargetKind "class" ;
+        gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "depicts, regions, capture metadata, and rights dropped; only type and dimensions survive" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "img" ; gmeow:tPred rdf:type ; gmeow:tObjValue iiif:Canvas ]
+            [ gmeow:tSubj "img" ; gmeow:tPred iiif:width ; gmeow:tObj "w" ]
+            [ gmeow:tSubj "img" ; gmeow:tPred iiif:height ; gmeow:tObj "h" ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# ImageRegion → iiif:Annotation (on a Canvas)
+# --------------------------------------------------------------------------- #
+
+gmeow:mapIiifRegionAnnotation a gmeow:ProjectionMapping ;
+    rdfs:label "ImageRegion → iiif:Annotation (with selector)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "region" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "region" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ImageRegion ]
+            [ gmeow:subjectVar "region" ; gmeow:predicate gmeow:regionOf ; gmeow:objectVar "img" ]
+            [ gmeow:subjectVar "region" ; gmeow:predicate gmeow:regionSelector ; gmeow:objectVar "sel" ]
+            [ gmeow:subjectVar "sel" ; gmeow:predicate gmeow:selectorType ; gmeow:objectVar "st" ]
+            [ gmeow:subjectVar "sel" ; gmeow:predicate gmeow:selectorValue ; gmeow:objectVar "sv" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "region" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:ImageRegion ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "iiif" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget iiif:Annotation ; gmeow:edoalTargetKind "class" ;
+        gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "regionLabel, scene-graph edges, and selector type metadata dropped; only the selector value survives as a fragment" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "region" ; gmeow:tPred rdf:type ; gmeow:tObjValue iiif:Annotation ]
+            [ gmeow:tSubj "region" ; gmeow:tPred oa:hasTarget ; gmeow:tObj "img" ]
+            [ gmeow:tSubj "region" ; gmeow:tPred oa:hasBody ; gmeow:tObj "sel" ]
+            [ gmeow:tSubj "sel" ; gmeow:tPred rdf:type ; gmeow:tObjValue oa:FragmentSelector ]
+            [ gmeow:tSubj "sel" ; gmeow:tPred rdf:value ; gmeow:tObj "sv" ] ) ] .

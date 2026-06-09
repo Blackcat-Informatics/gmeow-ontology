@@ -46,6 +46,8 @@ PROFILES: dict[str, Profile] = {
     "web-annotation": Profile("web-annotation", ("oa",)),
     "bot": Profile("bot", ("bot",)),
     "mailmap": Profile("mailmap", ("gmeow",)),
+    "exif": Profile("exif", ("exif",)),
+    "iiif": Profile("iiif", ("iiif", "oa", "rdf")),
 }
 
 #: Worked-example inputs (locations + naming + languages + identity + contacts +
@@ -63,6 +65,7 @@ _EXAMPLE_FIXTURES = (
     "rights.ttl",
     "tags.ttl",
     "identity-over-history.ttl",
+    "images.ttl",
 )
 
 
