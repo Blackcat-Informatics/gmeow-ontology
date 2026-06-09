@@ -28,6 +28,20 @@ enum AggregationFunctionEnum
     aggSum
   }
 
+enum AnnotationMotivationEnum
+  {
+    motivationAssessing
+    motivationBookmarking
+    motivationCommenting
+    motivationDescribing
+    motivationHighlighting
+    motivationLinking
+    motivationModerating
+    motivationQuestioning
+    motivationReplying
+    motivationTagging
+  }
+
 enum ArcTypeEnum
   {
     arcTypeComingOfAge
@@ -1921,6 +1935,18 @@ type AgreementName
     transliterationScheme: [TransliterationScheme]
   }
 
+type Annotation
+  {
+    annotationBody: Note
+    annotationMotivation: AnnotationMotivation
+    annotationTarget: Entity
+    annotationTargetSpan: [EvidenceSpan]
+  }
+
+type AnnotationMotivation
+  {
+  }
+
 type Appellation
   {
     conferredByEvent: [LifeEvent]
@@ -1963,8 +1989,10 @@ type Article
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -1979,6 +2007,7 @@ type Article
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -2045,8 +2074,10 @@ type Asset
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -2061,6 +2092,7 @@ type Asset
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -2107,8 +2139,10 @@ type Attachment
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -2123,6 +2157,7 @@ type Attachment
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -2174,8 +2209,10 @@ type AttestationArtifact
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -2190,6 +2227,7 @@ type AttestationArtifact
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -2233,8 +2271,10 @@ type AuthenticationResult
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -2249,6 +2289,7 @@ type AuthenticationResult
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -2286,8 +2327,10 @@ type AuthorIdentity
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -2302,6 +2345,7 @@ type AuthorIdentity
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -2348,8 +2392,10 @@ type BiologicalSequenceLocation
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -2364,6 +2410,7 @@ type BiologicalSequenceLocation
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -2414,8 +2461,10 @@ type Blob
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -2430,6 +2479,7 @@ type Blob
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -2464,8 +2514,10 @@ type Block
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -2480,6 +2532,7 @@ type Block
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -2516,8 +2569,10 @@ type BlockchainAccount
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -2532,6 +2587,7 @@ type BlockchainAccount
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -2564,8 +2620,10 @@ type BlockchainNetwork
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -2580,6 +2638,7 @@ type BlockchainNetwork
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -2613,8 +2672,10 @@ type BodyPart
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -2629,6 +2690,7 @@ type BodyPart
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -2645,6 +2707,14 @@ type BodyPart
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     mediaType: String
+  }
+
+type Bookmark
+  {
+    annotationBody: Note
+    annotationMotivation: AnnotationMotivation
+    annotationTarget: Entity
+    annotationTargetSpan: [EvidenceSpan]
   }
 
 type BookRelease
@@ -2664,8 +2734,10 @@ type BookRelease
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -2680,6 +2752,7 @@ type BookRelease
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -2748,8 +2821,10 @@ type Branch
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -2764,6 +2839,7 @@ type Branch
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -2867,8 +2943,10 @@ type CadastralReference
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -2883,6 +2961,7 @@ type CadastralReference
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -2955,8 +3034,10 @@ type CelestialLocation
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -2971,6 +3052,7 @@ type CelestialLocation
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -3038,8 +3120,10 @@ type CharacterArc
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -3054,6 +3138,7 @@ type CharacterArc
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -3157,8 +3242,10 @@ type Collection
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -3173,6 +3260,7 @@ type Collection
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -3220,6 +3308,67 @@ type Collection
     temporalCoverage: [TimeInterval]
     title: String
     realizedThrough: [Expression]
+  }
+
+type Comment
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    hasWikilink: [Note]
+    mentions: [Entity]
+    noteAuthor: [Agent]
+    noteContent: String
+    noteCreatedAt: String
+    noteModifiedAt: String
+    relatedNote: [Note]
+    commentParent: [Entity]
   }
 
 type Commit
@@ -3326,8 +3475,10 @@ type ContentSegment
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -3342,6 +3493,7 @@ type ContentSegment
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -3460,8 +3612,10 @@ type CreativeWork
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -3476,6 +3630,7 @@ type CreativeWork
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -3557,8 +3712,10 @@ type Credential
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -3573,6 +3730,7 @@ type Credential
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -3605,8 +3763,10 @@ type CryptographicKey
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -3621,6 +3781,7 @@ type CryptographicKey
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -3661,8 +3822,10 @@ type CryptographicSignature
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -3677,6 +3840,7 @@ type CryptographicSignature
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -3717,8 +3881,10 @@ type CryptoWallet
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -3733,6 +3899,7 @@ type CryptoWallet
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -3784,8 +3951,10 @@ type Dataset
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -3800,6 +3969,7 @@ type Dataset
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -3878,8 +4048,10 @@ type Diff
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -3894,6 +4066,7 @@ type Diff
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -3934,8 +4107,10 @@ type Distribution
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -3950,6 +4125,7 @@ type Distribution
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -3985,8 +4161,10 @@ type DKIMSignature
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -4001,6 +4179,7 @@ type DKIMSignature
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -4041,8 +4220,10 @@ type Document
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -4057,6 +4238,7 @@ type Document
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -4123,8 +4305,10 @@ type Duration
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -4139,6 +4323,7 @@ type Duration
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -4189,8 +4374,10 @@ type EmailMessage
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -4205,6 +4392,7 @@ type EmailMessage
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -4263,8 +4451,10 @@ type Entity
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -4279,6 +4469,7 @@ type Entity
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -4369,8 +4560,10 @@ type EventSeries
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -4385,6 +4578,7 @@ type EventSeries
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -4408,6 +4602,59 @@ type EventType
 
 type EvidenceClass
   {
+  }
+
+type EvidenceSpan
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
   }
 
 type Execution
@@ -4477,8 +4724,10 @@ type Expression
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -4493,6 +4742,7 @@ type Expression
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -4560,8 +4810,10 @@ type Family
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -4576,6 +4828,7 @@ type Family
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -4621,8 +4874,10 @@ type FinancialAccount
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -4637,6 +4892,7 @@ type FinancialAccount
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -4727,8 +4983,10 @@ type ForgePlatform
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -4743,6 +5001,7 @@ type ForgePlatform
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -4775,8 +5034,10 @@ type FormalLanguage
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -4791,6 +5052,7 @@ type FormalLanguage
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -4868,8 +5130,10 @@ type Geocode
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -4884,6 +5148,7 @@ type Geocode
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -4924,8 +5189,10 @@ type GeoCoordinates
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -4940,6 +5207,7 @@ type GeoCoordinates
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -4975,8 +5243,10 @@ type Geometry
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -4991,6 +5261,7 @@ type Geometry
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -5048,8 +5319,10 @@ type Group
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -5064,6 +5337,7 @@ type Group
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -5077,6 +5351,14 @@ type Group
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+  }
+
+type Highlight
+  {
+    annotationBody: Note
+    annotationMotivation: AnnotationMotivation
+    annotationTarget: Entity
+    annotationTargetSpan: [EvidenceSpan]
   }
 
 type Holding
@@ -5168,8 +5450,10 @@ type InformationObject
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -5184,6 +5468,7 @@ type InformationObject
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -5218,8 +5503,10 @@ type Inscription
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -5234,6 +5521,7 @@ type Inscription
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -5299,8 +5587,10 @@ type Invoice
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -5315,6 +5605,7 @@ type Invoice
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -5390,8 +5681,10 @@ type Issue
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -5406,6 +5699,7 @@ type Issue
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -5440,8 +5734,10 @@ type Item
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -5456,6 +5752,7 @@ type Item
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -5596,8 +5893,10 @@ type Language
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -5612,6 +5911,7 @@ type Language
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -5777,8 +6077,10 @@ type LanguageVariety
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -5793,6 +6095,7 @@ type LanguageVariety
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -5842,8 +6145,10 @@ type LanguageVersion
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -5858,6 +6163,7 @@ type LanguageVersion
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -5901,8 +6207,10 @@ type LedgerAccount
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -5917,6 +6225,7 @@ type LedgerAccount
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -6005,8 +6314,10 @@ type LedgerTransaction
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -6021,6 +6332,7 @@ type LedgerTransaction
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -6060,8 +6372,10 @@ type LexicalForm
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -6076,6 +6390,7 @@ type LexicalForm
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -6118,8 +6433,10 @@ type LexicalItem
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -6134,6 +6451,7 @@ type LexicalItem
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -6230,8 +6548,10 @@ type LiteraryWork
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -6246,6 +6566,7 @@ type LiteraryWork
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -6312,8 +6633,10 @@ type Location
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -6328,6 +6651,7 @@ type Location
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -6377,8 +6701,10 @@ type LocationState
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -6393,6 +6719,7 @@ type LocationState
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -6437,8 +6764,10 @@ type Mailbox
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -6453,6 +6782,7 @@ type Mailbox
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -6501,8 +6831,10 @@ type Manifestation
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -6517,6 +6849,7 @@ type Manifestation
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -6589,8 +6922,10 @@ type Mark
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -6605,6 +6940,7 @@ type Mark
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -6644,8 +6980,10 @@ type MeasuredValue
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -6660,6 +6998,7 @@ type MeasuredValue
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -6706,8 +7045,10 @@ type MediaObject
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -6722,6 +7063,7 @@ type MediaObject
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -6797,8 +7139,10 @@ type MentalReferenceFrame
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -6813,6 +7157,7 @@ type MentalReferenceFrame
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -6904,8 +7249,10 @@ type MergeRequest
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -6920,6 +7267,7 @@ type MergeRequest
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -6954,8 +7302,10 @@ type Message
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -6970,6 +7320,7 @@ type Message
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -7020,8 +7371,10 @@ type MessageHeader
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -7036,6 +7389,7 @@ type MessageHeader
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -7096,8 +7450,10 @@ type MonetaryAmount
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -7112,6 +7468,7 @@ type MonetaryAmount
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -7146,8 +7503,10 @@ type Myth
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -7162,6 +7521,7 @@ type Myth
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -7198,8 +7558,10 @@ type NamedPeriod
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -7214,6 +7576,7 @@ type NamedPeriod
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -7251,8 +7614,10 @@ type NamePart
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -7267,6 +7632,7 @@ type NamePart
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -7340,8 +7706,10 @@ type NarrativeReferenceFrame
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -7356,6 +7724,7 @@ type NarrativeReferenceFrame
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -7403,8 +7772,10 @@ type NetworkAddress
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -7419,6 +7790,7 @@ type NetworkAddress
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -7458,8 +7830,10 @@ type NotationSystem
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -7474,6 +7848,7 @@ type NotationSystem
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -7504,6 +7879,66 @@ type NotationSystemUsage
 
 type NotationUsageRole
   {
+  }
+
+type Note
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    hasWikilink: [Note]
+    mentions: [Entity]
+    noteAuthor: [Agent]
+    noteContent: String
+    noteCreatedAt: String
+    noteModifiedAt: String
+    relatedNote: [Note]
   }
 
 type ObservableProperty
@@ -7608,8 +8043,10 @@ type Occupation
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -7624,6 +8061,7 @@ type Occupation
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -7656,8 +8094,10 @@ type OnlineAccount
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -7672,6 +8112,7 @@ type OnlineAccount
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -7759,8 +8200,10 @@ type Orientation
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -7775,6 +8218,7 @@ type Orientation
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -7817,8 +8261,10 @@ type Package
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -7833,6 +8279,7 @@ type Package
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -7887,8 +8334,10 @@ type Patent
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -7903,6 +8352,7 @@ type Patent
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -8081,8 +8531,10 @@ type PGPSignature
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -8097,6 +8549,7 @@ type PGPSignature
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -8141,8 +8594,10 @@ type PhysicalObject
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -8157,6 +8612,7 @@ type PhysicalObject
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -8191,8 +8647,10 @@ type Place
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -8207,6 +8665,7 @@ type Place
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -8297,8 +8756,10 @@ type Pose
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -8313,6 +8774,7 @@ type Pose
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -8373,8 +8835,10 @@ type PrivacyNotice
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -8389,6 +8853,7 @@ type PrivacyNotice
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -8423,8 +8888,10 @@ type Procedure
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -8439,6 +8906,7 @@ type Procedure
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -8482,8 +8950,10 @@ type ProcedureStep
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -8498,6 +8968,7 @@ type ProcedureStep
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -8561,8 +9032,10 @@ type Profile
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -8577,6 +9050,7 @@ type Profile
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -8614,8 +9088,10 @@ type ProgrammingLanguage
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -8630,6 +9106,7 @@ type ProgrammingLanguage
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -8682,8 +9159,10 @@ type Project
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -8698,6 +9177,7 @@ type Project
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -8740,8 +9220,10 @@ type PronounSet
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -8756,6 +9238,7 @@ type PronounSet
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -8874,8 +9357,10 @@ type Quantity
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -8890,6 +9375,7 @@ type Quantity
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -8922,8 +9408,10 @@ type ReadingOrder
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -8938,6 +9426,7 @@ type ReadingOrder
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -8971,8 +9460,10 @@ type RecurrenceRule
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -8987,6 +9478,7 @@ type RecurrenceRule
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -9022,8 +9514,10 @@ type Ref
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -9038,6 +9532,7 @@ type Ref
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -9073,8 +9568,10 @@ type ReferenceFrame
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -9089,6 +9586,7 @@ type ReferenceFrame
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -9134,8 +9632,10 @@ type ReferencePosition
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -9150,6 +9650,7 @@ type ReferencePosition
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -9254,8 +9755,10 @@ type Repository
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -9270,6 +9773,7 @@ type Repository
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -9313,8 +9817,10 @@ type Review
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -9329,6 +9835,7 @@ type Review
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -9406,8 +9913,10 @@ type Route
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -9422,6 +9931,7 @@ type Route
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -9472,8 +9982,10 @@ type ScalarQuantity
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -9488,6 +10000,7 @@ type ScalarQuantity
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -9544,8 +10057,10 @@ type Selector
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -9560,6 +10075,7 @@ type Selector
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -9621,8 +10137,10 @@ type SensorPlatform
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -9637,6 +10155,7 @@ type SensorPlatform
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -9670,8 +10189,10 @@ type SensoryEnvironment
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -9686,6 +10207,7 @@ type SensoryEnvironment
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -9763,8 +10285,10 @@ type SensoryQuantity
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -9779,6 +10303,7 @@ type SensoryQuantity
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -9811,8 +10336,10 @@ type SequenceCoordinates
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -9827,6 +10354,7 @@ type SequenceCoordinates
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -9863,8 +10391,10 @@ type SequenceFeature
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -9879,6 +10409,7 @@ type SequenceFeature
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -9917,8 +10448,10 @@ type SerialInstallment
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -9933,6 +10466,7 @@ type SerialInstallment
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -10001,8 +10535,10 @@ type SerialWork
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -10017,6 +10553,7 @@ type SerialWork
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -10083,8 +10620,10 @@ type Service
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -10099,6 +10638,7 @@ type Service
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -10183,8 +10723,10 @@ type Skill
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -10199,6 +10741,7 @@ type Skill
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -10235,8 +10778,10 @@ type SmartContract
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -10251,6 +10796,7 @@ type SmartContract
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -10284,8 +10830,10 @@ type SMIMESignature
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -10300,6 +10848,7 @@ type SMIMESignature
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -10340,8 +10889,10 @@ type SocialObject
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -10356,6 +10907,7 @@ type SocialObject
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -10419,8 +10971,10 @@ type SoftwareProduct
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -10435,6 +10989,7 @@ type SoftwareProduct
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -10501,8 +11056,10 @@ type SoftwareProject
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -10517,6 +11074,7 @@ type SoftwareProject
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -10556,8 +11114,10 @@ type SourceDirectory
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -10572,6 +11132,7 @@ type SourceDirectory
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -10606,8 +11167,10 @@ type SourceFile
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -10622,6 +11185,7 @@ type SourceFile
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -10660,8 +11224,10 @@ type SourceNode
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -10676,6 +11242,7 @@ type SourceNode
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -10710,8 +11277,10 @@ type SourceRole
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -10726,6 +11295,7 @@ type SourceRole
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -10795,8 +11365,10 @@ type SourceTree
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -10811,6 +11383,7 @@ type SourceTree
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -10862,8 +11435,10 @@ type SpatialBin
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -10878,6 +11453,7 @@ type SpatialBin
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -10940,8 +11516,10 @@ type SpatialCoordinates
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -10956,6 +11534,7 @@ type SpatialCoordinates
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -11004,8 +11583,10 @@ type Standpoint
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -11020,6 +11601,7 @@ type Standpoint
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -11092,8 +11674,10 @@ type StorageLocation
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -11108,6 +11692,7 @@ type StorageLocation
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -11169,8 +11754,10 @@ type Stream
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -11185,6 +11772,7 @@ type Stream
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -11222,8 +11810,10 @@ type Summary
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -11238,6 +11828,7 @@ type Summary
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -11272,8 +11863,10 @@ type SymbolicSystem
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -11288,6 +11881,7 @@ type SymbolicSystem
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -11327,8 +11921,10 @@ type Tag
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -11343,6 +11939,7 @@ type Tag
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -11390,8 +11987,10 @@ type TagScheme
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -11406,6 +12005,7 @@ type TagScheme
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -11444,8 +12044,10 @@ type TemporalFrame
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -11460,6 +12062,7 @@ type TemporalFrame
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -11535,8 +12138,10 @@ type TextExtraction
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -11551,6 +12156,7 @@ type TextExtraction
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -11617,8 +12223,10 @@ type Thread
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -11633,6 +12241,7 @@ type Thread
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -11690,8 +12299,10 @@ type TimeScale
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -11706,6 +12317,7 @@ type TimeScale
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -11755,8 +12367,10 @@ type Trajectory
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -11771,6 +12385,7 @@ type Trajectory
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -11818,8 +12433,10 @@ type TransparencyLogEntry
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -11834,6 +12451,7 @@ type TransparencyLogEntry
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -11870,8 +12488,10 @@ type TreeEntry
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -11886,6 +12506,7 @@ type TreeEntry
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -12010,8 +12631,10 @@ type VerificationResult
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -12026,6 +12649,7 @@ type VerificationResult
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -12094,8 +12718,10 @@ type VersionSet
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -12110,6 +12736,7 @@ type VersionSet
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -12144,8 +12771,10 @@ type VirtualLocation
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -12160,6 +12789,7 @@ type VirtualLocation
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -12221,8 +12851,10 @@ type WebPage
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -12237,6 +12869,7 @@ type WebPage
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -12305,8 +12938,10 @@ type Work
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -12321,6 +12956,7 @@ type Work
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]
@@ -12387,8 +13023,10 @@ type WritingSystem
     hasCopyright: [Copyright]
     hasCreationEvent: [Event]
     hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
     hasLicense: [License]
     hasPose: [Pose]
+    hasReply: [Comment]
     hasRightsStatement: [RightsStatement]
     hasSensoryObservation: [SensoryObservation]
     hasSensoryQuantity: [SensoryQuantity]
@@ -12403,6 +13041,7 @@ type WritingSystem
     isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
+    mentionedIn: [Note]
     name: String
     provenance: String
     proximity: [ProximityMeasurement]

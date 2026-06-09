@@ -151,7 +151,7 @@ gmeow:commentParent
     rdfs:domain gmeow:Comment ;
     rdfs:range gmeow:Entity ;
     rdfs:label "comment parent"@en ;
-    skos:definition "The annotation or comment that this comment replies to. Functional per comment: one parent per reply. Top-level comments omit this property. The range is gmeow:Entity (encompassing Annotation and Comment) so that a comment may reply to any annotatable entity without identity clash."@en ;
+    skos:definition "The annotation or comment that this comment replies to. Every Comment has exactly one commentParent. The range is gmeow:Entity (encompassing Annotation and Comment) so that a comment may reply to any annotatable entity without identity clash."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasDirectReply
