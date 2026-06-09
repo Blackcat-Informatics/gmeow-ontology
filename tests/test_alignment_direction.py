@@ -171,3 +171,14 @@ def test_live_target_axioms_have_no_direction_errors() -> None:
         pytest.skip(f"target vocabulary fetch unavailable: {exc}")
     errors = _errors(findings)
     assert not errors, "alignment-direction errors (live):\n" + "\n".join(errors)
+
+
+def test_dc_refinement_lint_runs() -> None:
+    """The DC refinement lint must run without exception and produce findings."""
+    from gmeow_tools.alignment_lint import lint_dc_refinement
+
+    findings = lint_dc_refinement()
+    # The lint may produce warnings for missing broader elements or hand-authored
+    # dc: alignments; we only assert that it runs and returns structured findings.
+    for finding in findings:
+        assert finding.render()

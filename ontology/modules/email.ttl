@@ -171,10 +171,10 @@ gmeow:inReplyTo
 
 gmeow:references
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:Message ;
-    rdfs:range gmeow:Message ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range gmeow:Entity ;
     rdfs:label "references"@en ;
-    skos:definition "Relates a message to an earlier message in its reference chain (RFC 5322 References)."@en ;
+    skos:definition "A related resource that is referenced, cited, or otherwise pointed to by the described resource. (RFC 5322 References for messages; bibliographic references for creative works.)"@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:rfcMessageId

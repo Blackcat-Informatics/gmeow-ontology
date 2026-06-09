@@ -8,6 +8,41 @@ CONSTRUCT {
     ?cw dcterms:rightsHolder ?holder .
     ?cw dcterms:rights ?notice .
     ?cw dcterms:dateCopyrighted ?yr .
+    ?work dcterms:title ?title .
+    ?work dcterms:description ?_final_desc .
+    ?work dcterms:creator ?author .
+    ?work dcterms:contributor ?contrib .
+    ?work dcterms:issued ?date .
+    ?work dcterms:identifier ?id .
+    ?work dcterms:subject ?topic .
+    ?work dcterms:hasPart ?part .
+    ?work dcterms:isPartOf ?parent .
+    ?work dcterms:source ?src .
+    ?work dcterms:language ?lang .
+    ?work dcterms:created ?date .
+    ?work dcterms:modified ?date .
+    ?work dcterms:available ?date .
+    ?work dcterms:dateAccepted ?date .
+    ?work dcterms:dateSubmitted ?date .
+    ?work dcterms:abstract ?val .
+    ?work dcterms:tableOfContents ?val .
+    ?work dcterms:references ?ref .
+    ?work dcterms:isReferencedBy ?ref .
+    ?work dcterms:requires ?req .
+    ?work dcterms:isRequiredBy ?req .
+    ?work dcterms:replaces ?old .
+    ?work dcterms:isReplacedBy ?new .
+    ?work dcterms:hasVersion ?ver .
+    ?work dcterms:isVersionOf ?base .
+    ?work dcterms:conformsTo ?std .
+    ?work dcterms:spatial ?place .
+    ?work dcterms:temporal ?t .
+    ?work dcterms:bibliographicCitation ?cite .
+    ?work dcterms:extent ?val .
+    ?work dcterms:medium ?med .
+    ?work dcterms:audience ?aud .
+    ?work dcterms:provenance ?prov .
+    ?work dcterms:accessRights ?cond .
 }
 WHERE {
     {
@@ -24,5 +59,117 @@ WHERE {
     UNION {
         ?cw gmeow:hasCopyright ?cr .
         ?cr gmeow:copyrightYear ?yr .
+    }
+    UNION {
+        ?work gmeow:title ?title .
+    }
+    UNION {
+        ?work gmeow:description ?desc .
+        OPTIONAL {
+            ?_lang gmeow:languageTag ?_intTag .
+            FILTER(isLiteral(?desc) && LANG(?desc) = ?_intTag)
+            ?_lang gmeow:bcp47Tag ?_extTag .
+        }
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?desc), STR(?_extTag)), ?desc) AS ?_final_desc )
+    }
+    UNION {
+        ?work gmeow:hasAuthor ?author .
+    }
+    UNION {
+        ?work gmeow:hasContributor ?contrib .
+    }
+    UNION {
+        ?work gmeow:datePublished ?date .
+    }
+    UNION {
+        ?work gmeow:identifier ?id .
+    }
+    UNION {
+        ?work gmeow:isAbout ?topic .
+    }
+    UNION {
+        ?work gmeow:hasPart ?part .
+    }
+    UNION {
+        ?work gmeow:partOf ?parent .
+    }
+    UNION {
+        ?work gmeow:sourceLocation ?src .
+    }
+    UNION {
+        ?work gmeow:hasAppellation|gmeow:hasName|gmeow:hasTitle ?name .
+        ?name gmeow:nameLanguage ?lang .
+    }
+    UNION {
+        ?work gmeow:dateCreated ?date .
+    }
+    UNION {
+        ?work gmeow:dateModified ?date .
+    }
+    UNION {
+        ?work gmeow:dateAvailable ?date .
+    }
+    UNION {
+        ?work gmeow:dateAccepted ?date .
+    }
+    UNION {
+        ?work gmeow:dateSubmitted ?date .
+    }
+    UNION {
+        ?work gmeow:abstract ?val .
+    }
+    UNION {
+        ?work gmeow:tableOfContents ?val .
+    }
+    UNION {
+        ?work gmeow:references ?ref .
+    }
+    UNION {
+        ?work gmeow:isReferencedBy ?ref .
+    }
+    UNION {
+        ?work gmeow:requires ?req .
+    }
+    UNION {
+        ?work gmeow:isRequiredBy ?req .
+    }
+    UNION {
+        ?work gmeow:supersedes ?old .
+    }
+    UNION {
+        ?work gmeow:supersededBy ?new .
+    }
+    UNION {
+        ?work gmeow:hasVersion ?ver .
+    }
+    UNION {
+        ?work gmeow:versionOf ?base .
+    }
+    UNION {
+        ?work gmeow:conformsTo ?std .
+    }
+    UNION {
+        ?work gmeow:spatialCoverage ?place .
+    }
+    UNION {
+        ?work gmeow:temporalCoverage ?t .
+    }
+    UNION {
+        ?work gmeow:bibliographicCitation ?cite .
+    }
+    UNION {
+        ?work gmeow:extent ?val .
+    }
+    UNION {
+        ?work gmeow:medium ?med .
+    }
+    UNION {
+        ?work gmeow:audience ?aud .
+    }
+    UNION {
+        ?work gmeow:provenance ?prov .
+    }
+    UNION {
+        ?work gmeow:conditionsOfAccess ?cond .
     }
 }

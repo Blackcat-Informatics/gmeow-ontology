@@ -2778,3 +2778,13 @@ gmeow:methodPhotogrammetry a gmeow:ObservationMethod ; rdfs:label "photogrammetr
     skos:definition "Coordinate assignment via stereo-photographic image triangulation."@en .
 gmeow:methodGNSSRTK a gmeow:ObservationMethod ; rdfs:label "GNSS RTK survey"@en ;
     skos:definition "Coordinate assignment via real-time kinematic GNSS with centimetre-level precision."@en .
+
+# --- DC spatial coverage (issue #60) --------------------------------------- #
+
+gmeow:spatialCoverage
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:Place ;
+    rdfs:label "spatial coverage"@en ;
+    skos:definition "The spatial extent or scope of a creative work."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

@@ -356,3 +356,66 @@ gmeow:mediumPrint       a gmeow:CarrierMedium ; rdfs:label "print"@en ;        s
 gmeow:mediumEInkFile    a gmeow:CarrierMedium ; rdfs:label "e-ink file"@en ;    skos:definition "An electronic-ink file or e-book file."@en .
 gmeow:mediumOpticalDisc a gmeow:CarrierMedium ; rdfs:label "optical disc"@en ;  skos:definition "An optical disc — CD, DVD, Blu-ray."@en .
 gmeow:mediumServerObject a gmeow:CarrierMedium ; rdfs:label "server object"@en ; skos:definition "A digital object stored on a server."@en .
+
+# --- DC relation family (issue #60) ---------------------------------------- #
+
+gmeow:isReferencedBy
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:references ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "is referenced by"@en ;
+    skos:definition "A related resource that references, cites, or otherwise points to the described resource. Inverse of gmeow:references."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:requires
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:CreativeWork ;
+    rdfs:label "requires"@en ;
+    skos:definition "A related resource that is required by the described resource to support its function, delivery, or coherence."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:isRequiredBy
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:requires ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:CreativeWork ;
+    rdfs:label "is required by"@en ;
+    skos:definition "A related resource that requires the described resource to support its function, delivery, or coherence. Inverse of gmeow:requires."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasVersion
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:versionOf ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "has version"@en ;
+    skos:definition "A related resource that is a version, edition, or adaptation of the described resource. Inverse of gmeow:versionOf."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:conformsTo
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "conforms to"@en ;
+    skos:definition "An established standard to which the described resource conforms."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --- DC medium & audience (issue #60) -------------------------------------- #
+
+gmeow:medium
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:CarrierMedium ;
+    rdfs:label "medium"@en ;
+    skos:definition "The material or physical carrier of a creative work. A value from the open gmeow:CarrierMedium vocabulary."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:audience
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "audience"@en ;
+    skos:definition "The intended audience of a creative work."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

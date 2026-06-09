@@ -101,3 +101,13 @@ gmeow:mappedFrom
     rdfs:label "mapped from"@en ;
     skos:definition "The source property a claim was derived from during ingestion, recorded for mapping-step audit."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --- DC provenance (issue #60) --------------------------------------------- #
+
+gmeow:provenance
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "provenance"@en ;
+    skos:definition "A statement of any changes in ownership and custody of a resource since its creation that are significant for its authenticity, integrity, and interpretation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

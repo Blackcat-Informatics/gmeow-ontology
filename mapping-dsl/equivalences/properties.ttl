@@ -490,3 +490,41 @@ gmeow:eqProperties056 a gmeow:TermEquivalence ;
     gmeow:confidence 0.8 ;
     gmeow:comment "SKOS broader — the generic hierarchical-order counterpart of the granularity-level ordering gmeow:coarserThan" ;
     gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+# --- Dublin Core Terms (issue #60) ----------------------------------------- #
+
+gmeow:eqProperties057 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasContributor ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:contributor ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms contributor — GMEOW's flat hasContributor shortcut downcasts to dcterms:contributor by projection" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties058 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasAuthor ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:creator ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "DCTerms creator — GMEOW's flat hasAuthor (chief creator) downcasts to dcterms:creator by projection" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties059 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:datePublished ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:issued ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "DCTerms issued — the publication date is the issue/release date in DCMI Terms" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties060 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:identifier ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:identifier ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "DCTerms identifier — a formal identifier such as a DOI or patent number" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .

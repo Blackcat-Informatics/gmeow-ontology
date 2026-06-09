@@ -280,6 +280,10 @@ classes:
   ClaimVeridicality:
     class_uri: https://blackcatinformatics.ca/gmeow/ClaimVeridicality
     title: Claim Veridicality
+  Collection:
+    class_uri: https://blackcatinformatics.ca/gmeow/Collection
+    title: Collection
+    is_a: Work
   Commit:
     class_uri: https://blackcatinformatics.ca/gmeow/Commit
     title: Commit
@@ -390,8 +394,18 @@ classes:
     title: Creative Work
     is_a: InformationObject
     slots:
+    - abstract
+    - audience
+    - bibliographicCitation
+    - conformsTo
+    - dateAccepted
+    - dateAvailable
+    - dateCreated
+    - dateModified
     - datePublished
+    - dateSubmitted
     - editionOf
+    - extent
     - hasAuthor
     - hasContributor
     - hasEditor
@@ -400,9 +414,15 @@ classes:
     - hasTitle
     - hasTranslator
     - identifier
+    - isRequiredBy
+    - medium
+    - requires
     - sourceFor
     - sourceLocation
     - sourceModifiedAt
+    - spatialCoverage
+    - tableOfContents
+    - temporalCoverage
     - title
   CreativeWorkTitle:
     class_uri: https://blackcatinformatics.ca/gmeow/CreativeWorkTitle
@@ -526,13 +546,17 @@ classes:
     - hasStream
     - hasTag
     - hasTrademark
+    - hasVersion
     - hasWebPage
     - isAbout
     - isAccessibleForFree
+    - isReferencedBy
     - isResultOf
     - locatedAt
     - name
+    - provenance
     - proximity
+    - references
     - storedIn
     - supersededBy
     - supersedes
@@ -1087,7 +1111,6 @@ classes:
     - partOfThread
     - preview
     - receivedAt
-    - references
     - residesIn
     - rfcMessageId
     - sentAt
@@ -1740,6 +1763,10 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/SerialWork
     title: Serial Work
     is_a: Work
+  Service:
+    class_uri: https://blackcatinformatics.ca/gmeow/Service
+    title: Service
+    is_a: Work
   SexAssignedAtBirth:
     class_uri: https://blackcatinformatics.ca/gmeow/SexAssignedAtBirth
     title: Sex Assigned at Birth
@@ -2128,6 +2155,11 @@ classes:
     - usageLanguage
     - usageWritingSystem
 slots:
+  abstract:
+    slot_uri: https://blackcatinformatics.ca/gmeow/abstract
+    title: abstract
+    range: string
+    domain: CreativeWork
   accessUrl:
     slot_uri: https://blackcatinformatics.ca/gmeow/accessUrl
     title: access URL
@@ -2422,6 +2454,12 @@ slots:
     title: attribution url
     range: uri
     domain: Entity
+  audience:
+    slot_uri: https://blackcatinformatics.ca/gmeow/audience
+    title: audience
+    range: Agent
+    domain: CreativeWork
+    multivalued: true
   authMethod:
     slot_uri: https://blackcatinformatics.ca/gmeow/authMethod
     title: authentication method
@@ -2479,6 +2517,11 @@ slots:
     range: Event
     domain: Event
     multivalued: true
+  bibliographicCitation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/bibliographicCitation
+    title: bibliographic citation
+    range: string
+    domain: CreativeWork
   bic:
     slot_uri: https://blackcatinformatics.ca/gmeow/bic
     title: BIC
@@ -2684,6 +2727,12 @@ slots:
     range: ConflictStrategy
     domain: RightsStatement
     multivalued: false
+  conformsTo:
+    slot_uri: https://blackcatinformatics.ca/gmeow/conformsTo
+    title: conforms to
+    range: Entity
+    domain: CreativeWork
+    multivalued: true
   connectionSource:
     slot_uri: https://blackcatinformatics.ca/gmeow/connectionSource
     title: connection source
@@ -2871,9 +2920,34 @@ slots:
     range: ReferenceFrame
     domain: MonetaryAmount
     multivalued: false
+  dateAccepted:
+    slot_uri: https://blackcatinformatics.ca/gmeow/dateAccepted
+    title: date accepted
+    range: datetime
+    domain: CreativeWork
+  dateAvailable:
+    slot_uri: https://blackcatinformatics.ca/gmeow/dateAvailable
+    title: date available
+    range: datetime
+    domain: CreativeWork
+  dateCreated:
+    slot_uri: https://blackcatinformatics.ca/gmeow/dateCreated
+    title: date created
+    range: datetime
+    domain: CreativeWork
+  dateModified:
+    slot_uri: https://blackcatinformatics.ca/gmeow/dateModified
+    title: date modified
+    range: datetime
+    domain: CreativeWork
   datePublished:
     slot_uri: https://blackcatinformatics.ca/gmeow/datePublished
     title: date published
+    range: datetime
+    domain: CreativeWork
+  dateSubmitted:
+    slot_uri: https://blackcatinformatics.ca/gmeow/dateSubmitted
+    title: date submitted
     range: datetime
     domain: CreativeWork
   deceptionCue:
@@ -3172,6 +3246,11 @@ slots:
     title: extended address
     range: string
     domain: PostalAddress
+  extent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/extent
+    title: extent
+    range: string
+    domain: CreativeWork
   facetSubject:
     slot_uri: https://blackcatinformatics.ca/gmeow/facetSubject
     title: facet subject
@@ -4073,6 +4152,12 @@ slots:
     range: VerificationStatus
     domain: VerificationResult
     multivalued: true
+  hasVersion:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasVersion
+    title: has version
+    range: Entity
+    domain: Entity
+    multivalued: true
   hasWebPage:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasWebPage
     title: has web page
@@ -4323,6 +4408,18 @@ slots:
     title: is OSI approved
     range: boolean
     domain: License
+  isReferencedBy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/isReferencedBy
+    title: is referenced by
+    range: Entity
+    domain: Entity
+    multivalued: true
+  isRequiredBy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/isRequiredBy
+    title: is required by
+    range: CreativeWork
+    domain: CreativeWork
+    multivalued: true
   isResultOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/isResultOf
     title: is result of
@@ -4607,6 +4704,12 @@ slots:
     range: string
     domain: BodyPart
     multivalued: false
+  medium:
+    slot_uri: https://blackcatinformatics.ca/gmeow/medium
+    title: medium
+    range: CarrierMedium
+    domain: CreativeWork
+    multivalued: true
   meets:
     slot_uri: https://blackcatinformatics.ca/gmeow/meets
     title: meets
@@ -5228,6 +5331,11 @@ slots:
     title: propagation mutation distance
     range: integer
     domain: Event
+  provenance:
+    slot_uri: https://blackcatinformatics.ca/gmeow/provenance
+    title: provenance
+    range: string
+    domain: Entity
   proximity:
     slot_uri: https://blackcatinformatics.ca/gmeow/proximity
     title: proximity
@@ -5397,8 +5505,8 @@ slots:
   references:
     slot_uri: https://blackcatinformatics.ca/gmeow/references
     title: references
-    range: Message
-    domain: Message
+    range: Entity
+    domain: Entity
     multivalued: true
   registrationNumber:
     slot_uri: https://blackcatinformatics.ca/gmeow/registrationNumber
@@ -5495,6 +5603,12 @@ slots:
     range: RepositoryType
     domain: Repository
     multivalued: false
+  requires:
+    slot_uri: https://blackcatinformatics.ca/gmeow/requires
+    title: requires
+    range: CreativeWork
+    domain: CreativeWork
+    multivalued: true
   requiresHost:
     slot_uri: https://blackcatinformatics.ca/gmeow/requiresHost
     title: requires host
@@ -5828,6 +5942,12 @@ slots:
     range: SourceTier
     domain: CitationAct
     multivalued: true
+  spatialCoverage:
+    slot_uri: https://blackcatinformatics.ca/gmeow/spatialCoverage
+    title: spatial coverage
+    range: Place
+    domain: CreativeWork
+    multivalued: true
   spatialMeasurementOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/spatialMeasurementOf
     title: spatial measurement of
@@ -6042,6 +6162,11 @@ slots:
     range: SymbolicSystemKind
     domain: SymbolicSystem
     multivalued: true
+  tableOfContents:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tableOfContents
+    title: table of contents
+    range: string
+    domain: CreativeWork
   tagInScheme:
     slot_uri: https://blackcatinformatics.ca/gmeow/tagInScheme
     title: tag in scheme
@@ -6083,6 +6208,12 @@ slots:
     title: telephone
     range: string
     domain: Agent
+  temporalCoverage:
+    slot_uri: https://blackcatinformatics.ca/gmeow/temporalCoverage
+    title: temporal coverage
+    range: TimeInterval
+    domain: CreativeWork
+    multivalued: true
   temporalPrecision:
     slot_uri: https://blackcatinformatics.ca/gmeow/temporalPrecision
     title: temporal precision

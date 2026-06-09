@@ -35,8 +35,8 @@ def test_dsl_parses() -> None:
     Validate that the mapping DSL loads correctly and contains the expected
     counts and profiles.
 
-    Asserts that the loaded DSL has 1310 term equivalences, 28 functions,
-    39 mapping sets, more than 30 projection cells, and that the set of
+    Asserts that the loaded DSL has 1389 term equivalences, 35 functions,
+    43 mapping sets, more than 30 projection cells, and that the set of
     profiles used in projection bindings equals the module-level `_PROFILES`.
     """
     dsl = load_dsl()
@@ -197,7 +197,10 @@ def test_dsl_parses() -> None:
     # Issue #64 financial slice Phase A: +17 (FIBO x7, schema.org x5, ISO 4217 x5).
     # Issue #213 deception: +8 (standpoint.ttl bullshit→CRMinf x1;
     # deception.ttl schema.org x2, PROV-O x2, CRMinf x2, Wikidata x1).
-    assert len(dsl.equivalences) == 1343
+    # Issue #60 Dublin Core maximal alignment: +46 (dcterms props + dcmitype classes
+    # + DC refinements date/description/relation/coverage/bibliographic/medium/
+    # audience/provenance/accessRights; overlaps none of the above issues).
+    assert len(dsl.equivalences) == 1389
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -231,7 +234,8 @@ def test_dsl_parses() -> None:
     # Issue #173 archaeological evidence: +1 (gmeow-archaeological-evidence.sssom.tsv).
     # Issue #64 financial slice Phase A: +2 (gmeow-schema-org-finance, gmeow-iso4217).
     # Issue #213 deception: +1 (gmeow-deception.sssom.tsv).
-    assert len(dsl.mapping_sets) == 42
+    # Issue #60 Dublin Core maximal alignment: +1 (gmeow-dublin-core.sssom.tsv).
+    assert len(dsl.mapping_sets) == 43
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}
