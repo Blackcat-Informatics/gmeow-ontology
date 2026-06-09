@@ -1,0 +1,95 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix loinc: <http://loinc.org/rdf/> .
+@prefix snomed: <http://snomed.info/id/> .
+
+# Projection mappings: GMEOW → LOINC + SNOMED CT for clinical observation contexts.
+# Compiled to projections/loinc.edoal.ttl + queries/projections/loinc.rq by
+# `gmeow compile-mappings`.
+#
+# LOINC and SNOMED CT are reference-only clinical vocabularies. These mappings
+# align by IRI; no axioms are copied (Principle 5 + Principle 4).
+
+# --------------------------------------------------------------------------- #
+# Class projections — LOINC
+# --------------------------------------------------------------------------- #
+
+gmeow:mapLoincLabTest a gmeow:ProjectionMapping ;
+    rdfs:label "SensoryObservation (lab test) → loinc:LabTest"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "obs" ;
+        gmeow:atom ( [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensoryObservation ] ) ;
+        gmeow:edoalSource gmeow:SensoryObservation ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "loinc" ; gmeow:toClass loinc:LabTest ; gmeow:relation "<=" ;
+        gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "the general sensory observation is narrowed to a laboratory test; non-lab sensory observations lose their specific semantics" ] .
+
+gmeow:mapLoincComponent a gmeow:ProjectionMapping ;
+    rdfs:label "ObservableProperty → loinc:Component"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "prop" ;
+        gmeow:atom ( [ gmeow:subjectVar "prop" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ObservableProperty ] ) ;
+        gmeow:edoalSource gmeow:ObservableProperty ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "loinc" ; gmeow:toClass loinc:Component ; gmeow:relation "<=" ;
+        gmeow:confidence 0.75 ;
+        gmeow:lossyDrop "the GMEOW observable-property profile is flattened to a LOINC component" ] .
+
+gmeow:mapLoincMethod a gmeow:ProjectionMapping ;
+    rdfs:label "ObservationMethod → loinc:Method"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "method" ;
+        gmeow:atom ( [ gmeow:subjectVar "method" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ObservationMethod ] ) ;
+        gmeow:edoalSource gmeow:ObservationMethod ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "loinc" ; gmeow:toClass loinc:Method ; gmeow:relation "<=" ;
+        gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "method metadata outside the lab-test scope is dropped" ] .
+
+gmeow:mapLoincQuantity a gmeow:ProjectionMapping ;
+    rdfs:label "ScalarQuantity → loinc:Quantity"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "qty" ;
+        gmeow:atom ( [ gmeow:subjectVar "qty" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ScalarQuantity ] ) ;
+        gmeow:edoalSource gmeow:ScalarQuantity ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "loinc" ; gmeow:toClass loinc:Quantity ; gmeow:relation "<=" ;
+        gmeow:confidence 0.75 ;
+        gmeow:lossyDrop "unit, determinacy, granularity, and reference frame are dropped; only the numeric result value survives" ] .
+
+# --------------------------------------------------------------------------- #
+# Class projections — SNOMED CT
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSnomedClinicalFinding a gmeow:ProjectionMapping ;
+    rdfs:label "SensoryObservation (finding) → snomed:404684003"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "obs" ;
+        gmeow:atom ( [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensoryObservation ] ) ;
+        gmeow:edoalSource gmeow:SensoryObservation ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "loinc" ; gmeow:toClass snomed:404684003 ; gmeow:relation "<=" ;
+        gmeow:confidence 0.75 ;
+        gmeow:lossyDrop "the general sensory observation is narrowed to a clinical finding / diagnosis interpretation" ] .
+
+# --------------------------------------------------------------------------- #
+# Property projections
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSnomedPatient a gmeow:ProjectionMapping ;
+    rdfs:label "observedFeature (patient) → snomed:116154003"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "obs" ; gmeow:value "feature" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensoryObservation ]
+            [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:observedFeature ; gmeow:objectVar "feature" ] ) ;
+        gmeow:edoalSource gmeow:observedFeature ] ;
+    gmeow:hasBinding [
+        gmeow:profile "loinc" ; gmeow:relation "<=" ;
+        gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "the generic observed feature is narrowed to a patient in clinical contexts" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "feature" ; gmeow:tPred rdf:type ; gmeow:tObjValue snomed:116154003 ] ) ] .

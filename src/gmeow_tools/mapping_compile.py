@@ -88,6 +88,10 @@ _PROFILES = (
     "web-annotation",
     "bot",
     "sosa",
+    "crmarchaeo",
+    "ivoa",
+    "iptc",
+    "loinc",
 )
 _FNO_FILE = "functions.fno.ttl"
 #: Hand-authored FnO file the compiler reads (for the lint) but never writes.
@@ -1459,6 +1463,7 @@ def emit_sparql(dsl: Dsl, profile: str) -> str:
     templates: list[str] = []
     branches: list[str] = []
     drops: list[str] = []
+    seen_branches: set[str] = set()
     for cell in dsl.projections:
         for b in cell.bindings:
             if b.profile != profile:
@@ -1466,7 +1471,10 @@ def emit_sparql(dsl: Dsl, profile: str) -> str:
             for tmpl in _templates(cell, b):
                 if tmpl not in templates:
                     templates.append(tmpl)
-            branches.append(_branch(cell, b))
+            branch = _branch(cell, b)
+            if branch not in seen_branches:
+                seen_branches.add(branch)
+                branches.append(branch)
             for d in b.lossy_drops:
                 if d not in drops:
                     drops.append(d)

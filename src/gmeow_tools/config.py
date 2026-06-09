@@ -181,6 +181,7 @@ PREFIXES: dict[str, str] = {
     "obscore": "http://www.ivoa.net/rdf/ObsCore#",
     "ppsr": "https://purl.org/ppsr/core#",
     "loinc": "http://loinc.org/rdf/",
+    "snomed": "http://snomed.info/id/",
     "np": "http://www.nanopub.org/nschema#",
     "crm": "http://www.cidoc-crm.org/cidoc-crm/",
     "crminf": "http://www.ics.forth.gr/isl/CRMinf/",
@@ -522,5 +523,25 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "faldo": AlignmentTarget("FALDO", PREFIXES["faldo"], "Unknown", "schema"),
     "so": AlignmentTarget(
         "Sequence Ontology", PREFIXES["so"], "CC-BY-SA-4.0", "concept_scheme"
+    ),
+    # Domain observation profiles (#129) — mixed licensing;
+    # CRMarchaeo/BBC/IPTC/LOINC/SNOMED are REFERENCE_ONLY,
+    # IVOA/ObsCore are CC0-1.0
+    "crmarc": AlignmentTarget(
+        "CRMarchaeo", PREFIXES["crmarc"], "REFERENCE_ONLY", "schema"
+    ),
+    "obscore": AlignmentTarget(
+        "IVOA ObsCore", PREFIXES["obscore"], "CC0-1.0", "schema"
+    ),
+    "ivoa": AlignmentTarget("IVOA", PREFIXES["ivoa"], "CC0-1.0", "schema"),
+    "bbc": AlignmentTarget(
+        "BBC News Ontology", PREFIXES["bbc"], "REFERENCE_ONLY", "schema"
+    ),
+    "iptc": AlignmentTarget(
+        "IPTC NewsML-G2", PREFIXES["iptc"], "REFERENCE_ONLY", "schema"
+    ),
+    "loinc": AlignmentTarget("LOINC", PREFIXES["loinc"], "REFERENCE_ONLY", "schema"),
+    "snomed": AlignmentTarget(
+        "SNOMED CT", PREFIXES["snomed"], "REFERENCE_ONLY", "concept_scheme"
     ),
 }
