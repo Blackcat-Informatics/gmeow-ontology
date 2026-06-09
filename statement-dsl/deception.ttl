@@ -101,3 +101,362 @@ ex:claim-myth-propagation-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.78 ] ,
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-05-10T00:00:00Z"^^xsd:dateTime ] ,
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-factchecker ] .
+
+# =============================================================================
+# Speech-act deception exemplars — issue #215.
+# Each cell demonstrates the structural configuration of one deception type.
+# The structural scaffolding (heldStandpoint, projectedStandpoint, implicates,
+# claimModality) does the heavy lifting; the eventType value selects the kind.
+# =============================================================================
+
+# 8. A LIE — held refutes P, projects P as unequivocal.
+ex:claim-event-lie-001 a gmeow:StatementMetadata ;
+    rdfs:label "Lie event — held refutes P, projects P as unequivocal"@en ;
+    gmeow:reifier    ex:claim-event-lie-001 ;
+    gmeow:qSubject   ex:event-lie-001 ;
+    gmeow:qPredicate gmeow:eventType ;
+    gmeow:qObject    gmeow:eventTypeLie ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.88 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-01T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-lie-held-001 a gmeow:StatementMetadata ;
+    rdfs:label "Lie held standpoint — P is refuted per universal standpoint"@en ;
+    gmeow:reifier    ex:claim-lie-held-001 ;
+    gmeow:qSubject   ex:event-lie-001 ;
+    gmeow:qPredicate gmeow:heldStandpoint ;
+    gmeow:qObject    ex:standpointclaim-lie-held-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.8 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-01T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-lie-projected-001 a gmeow:StatementMetadata ;
+    rdfs:label "Lie projected standpoint — P asserted unequivocal by deceiver"@en ;
+    gmeow:reifier    ex:claim-lie-projected-001 ;
+    gmeow:qSubject   ex:event-lie-001 ;
+    gmeow:qPredicate gmeow:projectedStandpoint ;
+    gmeow:qObject    ex:standpointclaim-lie-projected-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.9 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-01T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-lie-held-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Lie held claim modality — refuted"@en ;
+    gmeow:reifier    ex:claim-lie-held-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-lie-held-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:refuted ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.8 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-01T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-lie-projected-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Lie projected claim modality — unequivocal"@en ;
+    gmeow:reifier    ex:claim-lie-projected-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-lie-projected-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:unequivocal ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.9 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-01T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-deceiver ] .
+
+# 9. PALTERING — literally true projected claim implicates false P′.
+ex:claim-event-paltering-001 a gmeow:StatementMetadata ;
+    rdfs:label "Paltering event — literally true claim implicating false P′"@en ;
+    gmeow:reifier    ex:claim-event-paltering-001 ;
+    gmeow:qSubject   ex:event-paltering-001 ;
+    gmeow:qPredicate gmeow:eventType ;
+    gmeow:qObject    gmeow:eventTypePaltering ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.82 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-02T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-paltering-implicates-001 a gmeow:StatementMetadata ;
+    rdfs:label "Paltering implicature — event implicates false proposition P′"@en ;
+    gmeow:reifier    ex:claim-paltering-implicates-001 ;
+    gmeow:qSubject   ex:event-paltering-001 ;
+    gmeow:qPredicate gmeow:implicates ;
+    gmeow:qObject    ex:proposition-paltering-implicated-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.75 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-02T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-paltering-held-refutes-implicated-001 a gmeow:StatementMetadata ;
+    rdfs:label "Paltering held standpoint — deceiver refutes the implicated P′"@en ;
+    gmeow:reifier    ex:claim-paltering-held-refutes-implicated-001 ;
+    gmeow:qSubject   ex:event-paltering-001 ;
+    gmeow:qPredicate gmeow:heldStandpoint ;
+    gmeow:qObject    ex:standpointclaim-paltering-held-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.78 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-02T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-paltering-held-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Paltering held claim modality — refutes implicated P′"@en ;
+    gmeow:reifier    ex:claim-paltering-held-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-paltering-held-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:refuted ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.78 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-02T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-paltering-projected-001 a gmeow:StatementMetadata ;
+    rdfs:label "Paltering projected standpoint — literally true, non-refuted"@en ;
+    gmeow:reifier    ex:claim-paltering-projected-001 ;
+    gmeow:qSubject   ex:event-paltering-001 ;
+    gmeow:qPredicate gmeow:projectedStandpoint ;
+    gmeow:qObject    ex:standpointclaim-paltering-projected-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-02T00:00:00Z"^^xsd:dateTime ] .
+
+# 10. OMISSION — held standpoint present, no projected standpoint.
+ex:claim-event-omission-001 a gmeow:StatementMetadata ;
+    rdfs:label "Omission event — held standpoint present, no projected standpoint"@en ;
+    gmeow:reifier    ex:claim-event-omission-001 ;
+    gmeow:qSubject   ex:event-omission-001 ;
+    gmeow:qPredicate gmeow:eventType ;
+    gmeow:qObject    gmeow:eventTypeOmission ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.8 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-03T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-omission-held-001 a gmeow:StatementMetadata ;
+    rdfs:label "Omission held standpoint — the suppressed truth"@en ;
+    gmeow:reifier    ex:claim-omission-held-001 ;
+    gmeow:qSubject   ex:event-omission-001 ;
+    gmeow:qPredicate gmeow:heldStandpoint ;
+    gmeow:qObject    ex:standpointclaim-omission-held-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-03T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-omission-held-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Omission held claim modality — unequivocal (the deceiver knows it)"@en ;
+    gmeow:reifier    ex:claim-omission-held-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-omission-held-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:unequivocal ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-03T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-deceiver ] .
+
+# 11. DISTORTION / SPIN — projected sharpens or re-frames held.
+ex:claim-event-distortion-001 a gmeow:StatementMetadata ;
+    rdfs:label "Distortion event — projected sharpens/re-frames held"@en ;
+    gmeow:reifier    ex:claim-event-distortion-001 ;
+    gmeow:qSubject   ex:event-distortion-001 ;
+    gmeow:qPredicate gmeow:eventType ;
+    gmeow:qObject    gmeow:eventTypeDistortion ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.75 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-04T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-distortion-held-001 a gmeow:StatementMetadata ;
+    rdfs:label "Distortion held standpoint — probable, cautious"@en ;
+    gmeow:reifier    ex:claim-distortion-held-001 ;
+    gmeow:qSubject   ex:event-distortion-001 ;
+    gmeow:qPredicate gmeow:heldStandpoint ;
+    gmeow:qObject    ex:standpointclaim-distortion-held-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.7 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-04T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-distortion-held-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Distortion held claim modality — probable"@en ;
+    gmeow:reifier    ex:claim-distortion-held-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-distortion-held-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:probable ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.7 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-04T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-deceiver ] .
+
+ex:claim-distortion-projected-001 a gmeow:StatementMetadata ;
+    rdfs:label "Distortion projected standpoint — sharpened to unequivocal"@en ;
+    gmeow:reifier    ex:claim-distortion-projected-001 ;
+    gmeow:qSubject   ex:event-distortion-001 ;
+    gmeow:qPredicate gmeow:projectedStandpoint ;
+    gmeow:qObject    ex:standpointclaim-distortion-projected-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-04T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-distortion-projected-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Distortion projected claim modality — unequivocal (the spin)"@en ;
+    gmeow:reifier    ex:claim-distortion-projected-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-distortion-projected-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:unequivocal ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-04T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-spin-doctor ] .
+
+# 11b. DISTORTION participant — the spin doctor bears roleSpinDoctor on the event.
+ex:claim-distortion-participant-001 a gmeow:StatementMetadata ;
+    rdfs:label "Distortion participant — spin doctor bears roleSpinDoctor"@en ;
+    gmeow:reifier    ex:claim-distortion-participant-001 ;
+    gmeow:qSubject   ex:event-distortion-001 ;
+    gmeow:qPredicate gmeow:hasParticipant ;
+    gmeow:qObject    ex:standpoint-spin-doctor ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-04T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+# 12. BULLSHIT — held modality = bullshit, projected unequivocal.
+ex:claim-event-bullshit-001 a gmeow:StatementMetadata ;
+    rdfs:label "Bullshit event — held indifference, projected conviction"@en ;
+    gmeow:reifier    ex:claim-event-bullshit-001 ;
+    gmeow:qSubject   ex:event-bullshit-001 ;
+    gmeow:qPredicate gmeow:eventType ;
+    gmeow:qObject    gmeow:eventTypeBullshit ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.72 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-05T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-analyst ] .
+
+ex:claim-bullshit-held-001 a gmeow:StatementMetadata ;
+    rdfs:label "Bullshit held standpoint — indifference to truth"@en ;
+    gmeow:reifier    ex:claim-bullshit-held-001 ;
+    gmeow:qSubject   ex:event-bullshit-001 ;
+    gmeow:qPredicate gmeow:heldStandpoint ;
+    gmeow:qObject    ex:standpointclaim-bullshit-held-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.65 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-05T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-bullshit-held-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Bullshit held claim modality — bullshit (indifference)"@en ;
+    gmeow:reifier    ex:claim-bullshit-held-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-bullshit-held-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:bullshit ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.65 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-05T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-analyst ] .
+
+ex:claim-bullshit-projected-001 a gmeow:StatementMetadata ;
+    rdfs:label "Bullshit projected standpoint — asserted with false confidence"@en ;
+    gmeow:reifier    ex:claim-bullshit-projected-001 ;
+    gmeow:qSubject   ex:event-bullshit-001 ;
+    gmeow:qPredicate gmeow:projectedStandpoint ;
+    gmeow:qObject    ex:standpointclaim-bullshit-projected-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.8 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-05T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-bullshit-projected-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Bullshit projected claim modality — unequivocal"@en ;
+    gmeow:reifier    ex:claim-bullshit-projected-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-bullshit-projected-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:unequivocal ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.8 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-05T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-bullshitter ] .
+
+# 13. SELF-DECEPTION — same agent fills deceiver and deceived roles.
+ex:claim-event-self-deception-001 a gmeow:StatementMetadata ;
+    rdfs:label "Self-deception event — same agent as deceiver and deceived"@en ;
+    gmeow:reifier    ex:claim-event-self-deception-001 ;
+    gmeow:qSubject   ex:event-self-deception-001 ;
+    gmeow:qPredicate gmeow:eventType ;
+    gmeow:qObject    gmeow:eventTypeSelfDeception ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.7 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-06T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-therapist ] .
+
+ex:claim-self-deception-held-001 a gmeow:StatementMetadata ;
+    rdfs:label "Self-deception held standpoint — tacit, refuted by avowed self"@en ;
+    gmeow:reifier    ex:claim-self-deception-held-001 ;
+    gmeow:qSubject   ex:event-self-deception-001 ;
+    gmeow:qPredicate gmeow:heldStandpoint ;
+    gmeow:qObject    ex:standpointclaim-self-deception-held-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.6 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-06T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-self-deception-held-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Self-deception held claim modality — refuted (tacit belief)"@en ;
+    gmeow:reifier    ex:claim-self-deception-held-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-self-deception-held-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:refuted ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.6 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-06T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-tacit-self ] .
+
+ex:claim-self-deception-projected-001 a gmeow:StatementMetadata ;
+    rdfs:label "Self-deception projected standpoint — avowed, unequivocal"@en ;
+    gmeow:reifier    ex:claim-self-deception-projected-001 ;
+    gmeow:qSubject   ex:event-self-deception-001 ;
+    gmeow:qPredicate gmeow:projectedStandpoint ;
+    gmeow:qObject    ex:standpointclaim-self-deception-projected-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.75 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-06T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-self-deception-projected-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Self-deception projected claim modality — unequivocal (avowed belief)"@en ;
+    gmeow:reifier    ex:claim-self-deception-projected-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-self-deception-projected-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:unequivocal ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.75 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-06T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-avowed-self ] .
+
+# 13b. SELF-DECEPTION role binding — same agent occupies both deceiver and deceived.
+ex:claim-self-deception-roles-001 a gmeow:StatementMetadata ;
+    rdfs:label "Self-deception role binding — same agent as deceiver and deceived"@en ;
+    gmeow:reifier    ex:claim-self-deception-roles-001 ;
+    gmeow:qSubject   ex:event-self-deception-001 ;
+    gmeow:qPredicate gmeow:hasParticipant ;
+    gmeow:qObject    ex:agent-self-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.7 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-06T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-therapist ] .
+
+# 14. LICENSED-FALSEHOOD NEGATIVE CASE — fiction under NarrativeReferenceFrame.
+#     The claim is scoped accordingTo a narrative frame; it carries licensed-
+#     falsehood veridicality. It is NOT a deception event because held ≈ projected
+#     (both are frame-scoped, non-deceptive assertions).
+ex:claim-fiction-narrative-frame-001 a gmeow:StatementMetadata ;
+    rdfs:label "Fiction negative case — Hogwarts exists per Harry Potter canon, NOT a lie"@en ;
+    gmeow:reifier    ex:claim-fiction-narrative-frame-001 ;
+    gmeow:qSubject   ex:claim-hogwarts-in-canon ;
+    gmeow:qPredicate gmeow:accordingTo ;
+    gmeow:qObject    ex:narrative-frame-harry-potter ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.95 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-07T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-publisher ] .
+
+ex:claim-fiction-veridicality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Fiction veridicality — explicitly licensed falsehood"@en ;
+    gmeow:reifier    ex:claim-fiction-veridicality-001 ;
+    gmeow:qSubject   ex:claim-hogwarts-in-canon ;
+    gmeow:qPredicate gmeow:claimVeridicality ;
+    gmeow:qObject    gmeow:veridicalityLicensedFalsehood ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.95 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-07T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-publisher ] .

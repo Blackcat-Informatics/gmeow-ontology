@@ -196,6 +196,87 @@ gmeow:argumentAcceptability
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
+# SPEECH-ACT DECEPTION TYPES — six mechanisms where held↔projected divergence
+# lives in a speech act. Each is one open gmeow:eventType value individual,
+# never a subclass (events.ttl doctrine). Issue #215.
+# =========================================================================== #
+
+gmeow:eventTypeLie
+    a gmeow:EventType ;
+    rdfs:label "lie / falsification"@en ;
+    skos:definition "A deception event in which the projected standpoint negates the held standpoint — the deceiver communicates a proposition they believe to be false. The projected claim is held unequivocal by the deceiver's standpoint; the held claim is refuted by the universal standpoint or the assessor's frame. Violates the Gricean maxim of Quality."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eventTypePaltering
+    a gmeow:EventType ;
+    rdfs:label "paltering"@en ;
+    skos:definition "A deception event in which the projected literal claim is technically true but conversationally implicates a false conclusion P′ that the held standpoint refutes. The palterer exploits the gap between literal content and pragmatic implicature (Rogers et al., JPSP 112(3), 2017). Violates the Gricean maxims of Quantity and Relation. Solver-layer: the implicature relation is carried by gmeow:implicates (Principle 12)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eventTypeOmission
+    a gmeow:EventType ;
+    rdfs:label "omission / concealment"@en ;
+    skos:definition "A deception event in which the held standpoint is present but no projected standpoint is offered — the deceiver suppresses a truth they hold rather than asserting its opposite. The absence of projection is the mechanism; the gap is informational, not propositional. Violates the Gricean maxim of Quantity."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eventTypeDistortion
+    a gmeow:EventType ;
+    rdfs:label "distortion / spin"@en ;
+    skos:definition "A deception event in which the projected standpoint sharpens, re-frames, or selectively emphasises the held standpoint — a modality shift (e.g. probable→unequivocal) or a re-contextualisation that changes the inferential landscape without literally falsifying the source. The spin doctor (gmeow:roleSpinDoctor) is a participant role specific to this type. Violates the Gricean maxim of Manner."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eventTypeBullshit
+    a gmeow:EventType ;
+    rdfs:label "bullshit"@en ;
+    skos:definition "A deception event in which the deceiver projects an unequivocal standpoint while holding the bullshit modality — indifference to the truth-value of the proposition (Frankfurt, On Bullshit, 2005). Distinct from lying (which cares about truth and asserts the opposite) and from error (which cares and gets it wrong). Violates the Gricean maxim of Quality by unconcern rather than by inversion."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eventTypeSelfDeception
+    a gmeow:EventType ;
+    rdfs:label "self-deception"@en ;
+    skos:definition "A deception event in which the same agent fills both the deceiver and deceived roles — an avowed (conscious, articulated) standpoint diverges from a tacit (implicit, behavioural) standpoint within a single subject. The structural configuration is what distinguishes self-deception from ordinary deception; intent is a defeasible attribution (gmeow:deceptiveIntentClaim), never entailed (Principle 9: co-equal conflicting claims coexist)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# ADDITIONAL DECEPTION ROLES — issue #215.
+# =========================================================================== #
+
+gmeow:roleSpinDoctor
+    a gmeow:ParticipantRole ;
+    rdfs:label "spin doctor"@en ;
+    skos:definition "The participant in a distortion or spin event who reframes, sharpens, or selectively presents information to alter the inferential landscape without literally falsifying the source material. A specific role borne in gmeow:eventTypeDistortion events."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# GRICEAN MAXIM VIOLATION TYPE VALUES — closed vocabulary for the four
+# conversational maxims (Quality, Quantity, Relation, Manner). Issue #215.
+# =========================================================================== #
+
+gmeow:maximViolationQuality
+    a gmeow:MaximViolationType ;
+    rdfs:label "maxim violation — quality"@en ;
+    skos:definition "Violation of the Gricean maxim of Quality: do not say what you believe to be false or for which you lack adequate evidence. Lies, falsifications, and bullshit violate this maxim."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:maximViolationQuantity
+    a gmeow:MaximViolationType ;
+    rdfs:label "maxim violation — quantity"@en ;
+    skos:definition "Violation of the Gricean maxim of Quantity: make your contribution as informative as required, but not more so. Omissions, concealment, and paltering violate this maxim."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:maximViolationRelation
+    a gmeow:MaximViolationType ;
+    rdfs:label "maxim violation — relation"@en ;
+    skos:definition "Violation of the Gricean maxim of Relation (Relevance): be relevant. Paltering and certain forms of distraction or red-herring deception violate this maxim."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:maximViolationManner
+    a gmeow:MaximViolationType ;
+    rdfs:label "maxim violation — manner"@en ;
+    skos:definition "Violation of the Gricean maxim of Manner: avoid obscurity, ambiguity, prolixity, and disorder. Distortion, spin, and deliberate obfuscation violate this maxim."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
 # AXIOMATIZED DOCTRINE — deception-specific restrictions are scoped to
 # eventTypeDeception via SHACL (DeceptionEventShape), NOT global OWL
 # restrictions on gmeow:Event, keeping the core Event class clean for

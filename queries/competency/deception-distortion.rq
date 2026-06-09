@@ -1,0 +1,15 @@
+# Competency question: "Which events are distortions?"
+# A distortion = held claim probable (or otherwise qualified) and projected
+# claim sharpened to unequivocal — a modality shift without literal falsification.
+# Expected: event-distortion-001 (from statement-dsl/deception.ttl).
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?event WHERE {
+    ?event gmeow:eventType gmeow:eventTypeDistortion .
+    ?event gmeow:heldStandpoint ?heldClaim .
+    ?event gmeow:projectedStandpoint ?projectedClaim .
+    ?heldClaim gmeow:claimModality gmeow:probable .
+    ?projectedClaim gmeow:claimModality gmeow:unequivocal .
+}
+ORDER BY ?event

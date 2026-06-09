@@ -437,6 +437,7 @@ export enum EventTypeEnum {
     bat_mitzvah = "eventTypeBatMitzvah",
     birth = "eventTypeBirth",
     build = "eventTypeBuild",
+    bullshit = "eventTypeBullshit",
     burial = "eventTypeBurial",
     census = "eventTypeCensus",
     census_activity = "eventTypeCensusActivity",
@@ -451,6 +452,7 @@ export enum EventTypeEnum {
     deception = "eventTypeDeception",
     destruction = "eventTypeDestruction",
     dissolution = "eventTypeDissolution",
+    distortion_SOLIDUS_spin = "eventTypeDistortion",
     divorce = "eventTypeDivorce",
     emigration = "eventTypeEmigration",
     engagement = "eventTypeEngagement",
@@ -460,18 +462,22 @@ export enum EventTypeEnum {
     funeral = "eventTypeFuneral",
     graduation = "eventTypeGraduation",
     immigration = "eventTypeImmigration",
+    lie_SOLIDUS_falsification = "eventTypeLie",
     manifestation_production = "eventTypeManifestationProduction",
     marriage = "eventTypeMarriage",
     merge = "eventTypeMerge",
     military_service = "eventTypeMilitaryService",
     name_change = "eventTypeNameChange",
     naturalization = "eventTypeNaturalization",
+    omission_SOLIDUS_concealment = "eventTypeOmission",
     ordination = "eventTypeOrdination",
+    paltering = "eventTypePaltering",
     probate = "eventTypeProbate",
     push = "eventTypePush",
     release = "eventTypeRelease",
     residence = "eventTypeResidence",
     retirement = "eventTypeRetirement",
+    self_deception = "eventTypeSelfDeception",
     separation = "eventTypeSeparation",
     supersession = "eventTypeSupersession",
     survey = "eventTypeSurvey",
@@ -854,6 +860,14 @@ export enum ManifestationFormatEnum {
     web_serial = "formatWebSerial",
 };
 
+export enum MaximViolationTypeEnum {
+
+    maxim_violation_EM_DASH_manner = "maximViolationManner",
+    maxim_violation_EM_DASH_quality = "maximViolationQuality",
+    maxim_violation_EM_DASH_quantity = "maximViolationQuantity",
+    maxim_violation_EM_DASH_relation = "maximViolationRelation",
+};
+
 export enum MentalReferenceFrameEnum {
 
     Russell_Affective_Circumplex_Reference_Frame = "referenceFrameAffectiveCircumplex",
@@ -1068,6 +1082,7 @@ export enum ParticipantRoleEnum {
     organizer = "roleOrganizer",
     principal_SOLIDUS_subject = "roleParticipantPrincipal",
     performer = "rolePerformer",
+    spin_doctor = "roleSpinDoctor",
     victim = "roleVictim",
     witness = "roleWitness",
 };

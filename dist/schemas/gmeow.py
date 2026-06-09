@@ -492,6 +492,7 @@ class EventTypeEnum(str, Enum):
     bat_mitzvah = "eventTypeBatMitzvah"
     birth = "eventTypeBirth"
     build = "eventTypeBuild"
+    bullshit = "eventTypeBullshit"
     burial = "eventTypeBurial"
     census = "eventTypeCensus"
     census_activity = "eventTypeCensusActivity"
@@ -506,6 +507,7 @@ class EventTypeEnum(str, Enum):
     deception = "eventTypeDeception"
     destruction = "eventTypeDestruction"
     dissolution = "eventTypeDissolution"
+    distortion_SOLIDUS_spin = "eventTypeDistortion"
     divorce = "eventTypeDivorce"
     emigration = "eventTypeEmigration"
     engagement = "eventTypeEngagement"
@@ -515,18 +517,22 @@ class EventTypeEnum(str, Enum):
     funeral = "eventTypeFuneral"
     graduation = "eventTypeGraduation"
     immigration = "eventTypeImmigration"
+    lie_SOLIDUS_falsification = "eventTypeLie"
     manifestation_production = "eventTypeManifestationProduction"
     marriage = "eventTypeMarriage"
     merge = "eventTypeMerge"
     military_service = "eventTypeMilitaryService"
     name_change = "eventTypeNameChange"
     naturalization = "eventTypeNaturalization"
+    omission_SOLIDUS_concealment = "eventTypeOmission"
     ordination = "eventTypeOrdination"
+    paltering = "eventTypePaltering"
     probate = "eventTypeProbate"
     push = "eventTypePush"
     release = "eventTypeRelease"
     residence = "eventTypeResidence"
     retirement = "eventTypeRetirement"
+    self_deception = "eventTypeSelfDeception"
     separation = "eventTypeSeparation"
     supersession = "eventTypeSupersession"
     survey = "eventTypeSurvey"
@@ -881,6 +887,13 @@ class ManifestationFormatEnum(str, Enum):
     web_serial = "formatWebSerial"
 
 
+class MaximViolationTypeEnum(str, Enum):
+    maxim_violation_EM_DASH_manner = "maximViolationManner"
+    maxim_violation_EM_DASH_quality = "maximViolationQuality"
+    maxim_violation_EM_DASH_quantity = "maximViolationQuantity"
+    maxim_violation_EM_DASH_relation = "maximViolationRelation"
+
+
 class MentalReferenceFrameEnum(str, Enum):
     Russell_Affective_Circumplex_Reference_Frame = "referenceFrameAffectiveCircumplex"
     Allocentric_Cognitive_Map_Reference_Frame = "referenceFrameCognitiveMapAllocentric"
@@ -1079,6 +1092,7 @@ class ParticipantRoleEnum(str, Enum):
     organizer = "roleOrganizer"
     principal_SOLIDUS_subject = "roleParticipantPrincipal"
     performer = "rolePerformer"
+    spin_doctor = "roleSpinDoctor"
     victim = "roleVictim"
     witness = "roleWitness"
 

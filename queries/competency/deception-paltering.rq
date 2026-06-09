@@ -1,0 +1,16 @@
+# Competency question: "Which events are paltering?"
+# Paltering = projected implicates a proposition the held claim refutes,
+# while the projected literal claim itself is non-refuted.
+# Expected: event-paltering-001.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?event WHERE {
+    ?event gmeow:eventType gmeow:eventTypePaltering .
+    ?event gmeow:implicates ?implicatedProp .
+    ?event gmeow:heldStandpoint ?heldClaim .
+    ?heldClaim gmeow:claimModality gmeow:refuted .
+    ?event gmeow:projectedStandpoint ?projectedClaim .
+    FILTER NOT EXISTS { ?projectedClaim gmeow:claimModality gmeow:refuted . }
+}
+ORDER BY ?event

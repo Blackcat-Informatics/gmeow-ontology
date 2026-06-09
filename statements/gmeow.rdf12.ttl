@@ -7,6 +7,15 @@ PREFIX owl:   <http://www.w3.org/2002/07/owl#>
 PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-bullshit-held-modality-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-held-001> gmeow:claimModality gmeow:bullshit )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-analyst>;
+        gmeow:assertedAt   "2026-06-05T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.65 .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-held-001>
+        gmeow:claimModality  gmeow:bullshit .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-fiction-001>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/claim-hogwarts-exists> gmeow:claimVeridicality gmeow:veridicalityLicensedFalsehood )>>;
         gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-publisher>;
@@ -16,10 +25,24 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/examples/claim-hogwarts-exists>
         gmeow:claimVeridicality  gmeow:veridicalityLicensedFalsehood .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-lie-projected-001>
+        rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/event-lie-001> gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-projected-001> )>>;
+        gmeow:assertedAt  "2026-06-01T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence  0.9 .
+
 <https://blackcatinformatics.ca/gmeow/examples/rights/claim-mark-holder-omega>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/rights/contested-trademark> gmeow:trademarkHolder <https://blackcatinformatics.ca/gmeow/examples/rights/omega> )>>;
         gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/rights/standpoint-omega>;
         gmeow:confidence   0.6 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-bullshit-projected-modality-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-projected-001> gmeow:claimModality gmeow:unequivocal )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-bullshitter>;
+        gmeow:assertedAt   "2026-06-05T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.8 .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-projected-001>
+        gmeow:claimModality  gmeow:unequivocal .
 
 <https://blackcatinformatics.ca/gmeow/reifier/48dcc08cba7412ad99d7a65cc9d0db751589d0a2>
         rdf:reifies            <<( <https://blackcatinformatics.ca/gmeow/examples/alice> gmeow:knowsLanguage <https://blackcatinformatics.ca/gmeow/examples/lang-toki-pona> )>>;
@@ -41,11 +64,82 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/examples/rights/photo>
         gmeow:hasLicense  <https://blackcatinformatics.ca/gmeow/examples/rights/cc-by-4> .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-event-lie-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/event-lie-001> gmeow:eventType gmeow:eventTypeLie )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator>;
+        gmeow:assertedAt   "2026-06-01T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.88 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-omission-held-modality-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-omission-held-001> gmeow:claimModality gmeow:unequivocal )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-deceiver>;
+        gmeow:assertedAt   "2026-06-03T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.85 .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-omission-held-001>
+        gmeow:claimModality  gmeow:unequivocal .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-event-paltering-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/event-paltering-001> gmeow:eventType gmeow:eventTypePaltering )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator>;
+        gmeow:assertedAt   "2026-06-02T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.82 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-lie-held-001>
+        rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/event-lie-001> gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-held-001> )>>;
+        gmeow:assertedAt  "2026-06-01T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence  0.8 .
+
+<https://blackcatinformatics.ca/gmeow/examples/event-lie-001>
+        gmeow:eventType            gmeow:eventTypeLie;
+        gmeow:heldStandpoint       <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-held-001>;
+        gmeow:projectedStandpoint  <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-projected-001> .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-self-deception-held-modality-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-held-001> gmeow:claimModality gmeow:refuted )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-tacit-self>;
+        gmeow:assertedAt   "2026-06-06T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.6 .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-held-001>
+        gmeow:claimModality  gmeow:refuted .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-date-gregorian-1582>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/event-reformation-date> gmeow:eventTime "1582-10-15T00:00:00+00:00"^^xsd:dateTime )>>;
         gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-gregorian-historiography>;
         gmeow:assertedAt   "2020-01-01T00:00:00+00:00"^^xsd:dateTime;
         gmeow:confidence   0.95 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-fiction-veridicality-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/claim-hogwarts-in-canon> gmeow:claimVeridicality gmeow:veridicalityLicensedFalsehood )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-publisher>;
+        gmeow:assertedAt   "2026-06-07T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.95 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-event-bullshit-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/event-bullshit-001> gmeow:eventType gmeow:eventTypeBullshit )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-analyst>;
+        gmeow:assertedAt   "2026-06-05T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.72 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-omission-held-001>
+        rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/event-omission-001> gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-omission-held-001> )>>;
+        gmeow:assertedAt  "2026-06-03T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence  0.85 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-distortion-held-001>
+        rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/event-distortion-001> gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-held-001> )>>;
+        gmeow:assertedAt  "2026-06-04T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence  0.7 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-lie-projected-modality-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-projected-001> gmeow:claimModality gmeow:unequivocal )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-deceiver>;
+        gmeow:assertedAt   "2026-06-01T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.9 .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-projected-001>
+        gmeow:claimModality  gmeow:unequivocal .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-territory-1850-per-2025-historiography>
         rdf:reifies               <<( <https://blackcatinformatics.ca/gmeow/examples/territory-x> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/polity-y> )>>;
@@ -57,6 +151,16 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 
 <https://blackcatinformatics.ca/gmeow/examples/territory-x>
         gmeow:containedInPlace  <https://blackcatinformatics.ca/gmeow/examples/polity-y> .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-event-omission-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/event-omission-001> gmeow:eventType gmeow:eventTypeOmission )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator>;
+        gmeow:assertedAt   "2026-06-03T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.8 .
+
+<https://blackcatinformatics.ca/gmeow/examples/event-omission-001>
+        gmeow:eventType       gmeow:eventTypeOmission;
+        gmeow:heldStandpoint  <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-omission-held-001> .
 
 <https://blackcatinformatics.ca/gmeow/examples/rights/claim-repo-spdx>
         rdf:reifies            <<( <https://blackcatinformatics.ca/gmeow/examples/rights/repo-license> gmeow:spdxLicenseId "Apache-2.0" )>>;
@@ -91,6 +195,40 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
         gmeow:assertedAt   "2026-01-15T00:00:00+00:00"^^xsd:dateTime;
         gmeow:confidence   0.85 .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-self-deception-held-001>
+        rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/event-self-deception-001> gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-held-001> )>>;
+        gmeow:assertedAt  "2026-06-06T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence  0.6 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-paltering-projected-001>
+        rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/event-paltering-001> gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-paltering-projected-001> )>>;
+        gmeow:assertedAt  "2026-06-02T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence  0.85 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-lie-held-modality-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-held-001> gmeow:claimModality gmeow:refuted )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator>;
+        gmeow:assertedAt   "2026-06-01T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.8 .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-held-001>
+        gmeow:claimModality  gmeow:refuted .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-distortion-participant-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/event-distortion-001> gmeow:hasParticipant <https://blackcatinformatics.ca/gmeow/examples/standpoint-spin-doctor> )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator>;
+        gmeow:assertedAt   "2026-06-04T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.85 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-paltering-held-modality-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-paltering-held-001> gmeow:claimModality gmeow:refuted )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator>;
+        gmeow:assertedAt   "2026-06-02T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.78 .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-paltering-held-001>
+        gmeow:claimModality  gmeow:refuted .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-factcheck-001>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/attestation-factcheck-001> gmeow:attestationType gmeow:attestationTypeFactCheck )>>;
         gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-factchecker>;
@@ -100,6 +238,21 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/examples/attestation-factcheck-001>
         gmeow:attestationType  gmeow:attestationTypeFactCheck .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-event-self-deception-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/event-self-deception-001> gmeow:eventType gmeow:eventTypeSelfDeception )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-therapist>;
+        gmeow:assertedAt   "2026-06-06T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.7 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-distortion-held-modality-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-held-001> gmeow:claimModality gmeow:probable )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-deceiver>;
+        gmeow:assertedAt   "2026-06-04T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.7 .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-held-001>
+        gmeow:claimModality  gmeow:probable .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-slam-occupancy-cell-42>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/slam-cell-42> gmeow:hasReferenceFrame gmeow:referenceFrameRobotSLAM )>>;
         gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/robot-sensor-standpoint>;
@@ -108,6 +261,16 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 
 <https://blackcatinformatics.ca/gmeow/examples/slam-cell-42>
         gmeow:hasReferenceFrame  gmeow:referenceFrameRobotSLAM .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-self-deception-projected-001>
+        rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/event-self-deception-001> gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-projected-001> )>>;
+        gmeow:assertedAt  "2026-06-06T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence  0.75 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-bullshit-projected-001>
+        rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/event-bullshit-001> gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-projected-001> )>>;
+        gmeow:assertedAt  "2026-06-05T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence  0.8 .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-tf-dynamic-end-effector>
         rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/referenceFrameRobotEndEffector> gmeow:parentFrame gmeow:referenceFrameRobotBase )>>;
@@ -127,6 +290,11 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/examples/rights/contested-trademark>
         gmeow:trademarkHolder  <https://blackcatinformatics.ca/gmeow/examples/rights/omega> , <https://blackcatinformatics.ca/gmeow/examples/rights/acme> .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-distortion-projected-001>
+        rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/event-distortion-001> gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-projected-001> )>>;
+        gmeow:assertedAt  "2026-06-04T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence  0.85 .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-bullshit-001>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-001> gmeow:claimModality gmeow:bullshit )>>;
         gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-analyst>;
@@ -135,6 +303,18 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 
 <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-001>
         gmeow:claimModality  gmeow:bullshit .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-event-distortion-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/event-distortion-001> gmeow:eventType gmeow:eventTypeDistortion )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator>;
+        gmeow:assertedAt   "2026-06-04T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.75 .
+
+<https://blackcatinformatics.ca/gmeow/examples/event-distortion-001>
+        gmeow:eventType            gmeow:eventTypeDistortion;
+        gmeow:hasParticipant       <https://blackcatinformatics.ca/gmeow/examples/standpoint-spin-doctor>;
+        gmeow:heldStandpoint       <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-held-001>;
+        gmeow:projectedStandpoint  <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-projected-001> .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-crimea-in-russia-per-ru>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/crimea> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/russia> )>>;
@@ -157,6 +337,18 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/examples/gi-alice>
         gmeow:genderValue  gmeow:genderWoman .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-self-deception-roles-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/event-self-deception-001> gmeow:hasParticipant <https://blackcatinformatics.ca/gmeow/examples/agent-self-001> )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-therapist>;
+        gmeow:assertedAt   "2026-06-06T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.7 .
+
+<https://blackcatinformatics.ca/gmeow/examples/event-self-deception-001>
+        gmeow:eventType            gmeow:eventTypeSelfDeception;
+        gmeow:hasParticipant       <https://blackcatinformatics.ca/gmeow/examples/agent-self-001>;
+        gmeow:heldStandpoint       <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-held-001>;
+        gmeow:projectedStandpoint  <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-projected-001> .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-alice-birthdate>
         rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/birth-alice> gmeow:eventTime "1990-05-01T00:00:00+00:00"^^xsd:dateTime )>>;
         gmeow:assertedAt  "2021-03-14T00:00:00+00:00"^^xsd:dateTime;
@@ -165,6 +357,16 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 
 <https://blackcatinformatics.ca/gmeow/examples/birth-alice>
         gmeow:eventTime  "1990-05-01T00:00:00+00:00"^^xsd:dateTime .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-fiction-narrative-frame-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/claim-hogwarts-in-canon> gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/narrative-frame-harry-potter> )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-publisher>;
+        gmeow:assertedAt   "2026-06-07T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.95 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-hogwarts-in-canon>
+        gmeow:accordingTo        <https://blackcatinformatics.ca/gmeow/examples/narrative-frame-harry-potter>;
+        gmeow:claimVeridicality  gmeow:veridicalityLicensedFalsehood .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-held-001>
         rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/event-deception-001> gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-held-001> )>>;
@@ -175,6 +377,50 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
         gmeow:eventType            gmeow:eventTypeDeception;
         gmeow:heldStandpoint       <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-held-001>;
         gmeow:projectedStandpoint  <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-projected-001> .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-self-deception-projected-modality-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-projected-001> gmeow:claimModality gmeow:unequivocal )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-avowed-self>;
+        gmeow:assertedAt   "2026-06-06T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.75 .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-projected-001>
+        gmeow:claimModality  gmeow:unequivocal .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-bullshit-held-001>
+        rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/event-bullshit-001> gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-held-001> )>>;
+        gmeow:assertedAt  "2026-06-05T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence  0.65 .
+
+<https://blackcatinformatics.ca/gmeow/examples/event-bullshit-001>
+        gmeow:eventType            gmeow:eventTypeBullshit;
+        gmeow:heldStandpoint       <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-held-001>;
+        gmeow:projectedStandpoint  <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-projected-001> .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-paltering-held-refutes-implicated-001>
+        rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/event-paltering-001> gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-paltering-held-001> )>>;
+        gmeow:assertedAt  "2026-06-02T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence  0.78 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-distortion-projected-modality-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-projected-001> gmeow:claimModality gmeow:unequivocal )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-spin-doctor>;
+        gmeow:assertedAt   "2026-06-04T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.85 .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-projected-001>
+        gmeow:claimModality  gmeow:unequivocal .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-paltering-implicates-001>
+        rdf:reifies       <<( <https://blackcatinformatics.ca/gmeow/examples/event-paltering-001> gmeow:implicates <https://blackcatinformatics.ca/gmeow/examples/proposition-paltering-implicated-001> )>>;
+        gmeow:assertedAt  "2026-06-02T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence  0.75 .
+
+<https://blackcatinformatics.ca/gmeow/examples/event-paltering-001>
+        gmeow:eventType            gmeow:eventTypePaltering;
+        gmeow:heldStandpoint       <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-paltering-held-001>;
+        gmeow:implicates           <https://blackcatinformatics.ca/gmeow/examples/proposition-paltering-implicated-001>;
+        gmeow:projectedStandpoint  <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-paltering-projected-001> .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-myth-propagation-001>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/telling-social-post-001> gmeow:propagatesFrom <https://blackcatinformatics.ca/gmeow/examples/telling-article-001> )>>;
