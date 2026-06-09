@@ -257,26 +257,26 @@ gmeow:eqClasses028 a gmeow:TermEquivalence ;
 
 gmeow:eqClasses029 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:SoftwareProject ;
-    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject doap:Project ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
+    gmeow:confidence 0.7 ;
     gmeow:sssomFile "gmeow-classes.sssom.tsv" .
 
 gmeow:eqClasses030 a gmeow:TermEquivalence ;
     gmeow:alignSubject schema:SoftwareSourceCode ;
-    gmeow:alignPredicate rdfs:subClassOf ;
-    gmeow:alignObject gmeow:SoftwareProject ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gmeow:SoftwareProduct ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
+    gmeow:confidence 0.8 ;
     gmeow:sssomFile "gmeow-classes.sssom.tsv" .
 
 gmeow:eqClasses031 a gmeow:TermEquivalence ;
     gmeow:alignSubject schema:SoftwareApplication ;
-    gmeow:alignPredicate rdfs:subClassOf ;
-    gmeow:alignObject gmeow:SoftwareProject ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gmeow:SoftwareProduct ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
+    gmeow:confidence 0.7 ;
     gmeow:sssomFile "gmeow-classes.sssom.tsv" .
 
 gmeow:eqClasses032 a gmeow:TermEquivalence ;

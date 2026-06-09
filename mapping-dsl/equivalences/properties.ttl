@@ -142,11 +142,11 @@ gmeow:eqProperties014 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-properties.sssom.tsv" .
 
 gmeow:eqProperties015 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:developer ;
-    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignSubject gmeow:hasContributor ;
+    gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject doap:developer ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
+    gmeow:confidence 0.7 ;
     gmeow:sssomFile "gmeow-properties.sssom.tsv" .
 
 gmeow:eqProperties016 a gmeow:TermEquivalence ;

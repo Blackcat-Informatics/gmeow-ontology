@@ -52,10 +52,8 @@ gmeow:wasAssociatedWith
 
 gmeow:wasDerivedFrom
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:Entity ;
-    rdfs:range gmeow:Entity ;
     rdfs:label "was derived from"@en ;
-    skos:definition "Relates a derived entity to the entity it was derived from — e.g. a text extraction, summary, or embedding to its source. The derivation's confidence and generating agent are recorded with gmeow:confidence and gmeow:wasGeneratedBy."@en ;
+    skos:definition "Relates a derived thing to the thing it was derived from — e.g. a text extraction, summary, or embedding to its source; a commit to its parent commit; a trajectory to its sample stream. The derivation's confidence and generating agent are recorded with gmeow:confidence and gmeow:wasGeneratedBy. Domain-free so that events, endurants, and information objects may all participate in derivation chains."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Summary

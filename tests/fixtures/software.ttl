@@ -1,0 +1,89 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <https://example.org/software/> .
+
+# MeowGraph — a fictional software project used as the Phase A fixture.
+# Demonstrates all five facets: Project, Product, Codebase, Repository, History.
+
+# --------------------------------------------------------------------------- #
+# Facet 1 — Project (endeavour)
+# --------------------------------------------------------------------------- #
+
+ex:meowgraph a gmeow:SoftwareProject ;
+    rdfs:label "MeowGraph"@en ;
+    gmeow:hasSoftwareName [ a gmeow:SoftwareName ; gmeow:fullName "MeowGraph"@x-gmeow-en ] ;
+    gmeow:projectIdentifier "raid:10.1234/meowgraph" ;
+    gmeow:maintenanceStatus gmeow:statusActive ;
+    gmeow:governanceModel gmeow:governanceMeritocracy ;
+    gmeow:hasRepository ex:repo ;
+    gmeow:hasRelease ex:v1_0_0 .
+
+# --------------------------------------------------------------------------- #
+# Facet 2 — Product (creative work)
+# --------------------------------------------------------------------------- #
+
+ex:meowgraphProduct a gmeow:SoftwareProduct ;
+    rdfs:label "MeowGraph — the graph database for cats"@en ;
+    gmeow:workType gmeow:workTypeSoftware .
+
+# --------------------------------------------------------------------------- #
+# Facet 3 — Codebase (content-addressed)
+# --------------------------------------------------------------------------- #
+
+ex:treeInitial a gmeow:SourceTree ;
+    gmeow:contentDigest "git:abc123…" .
+
+# --------------------------------------------------------------------------- #
+# Facet 4 — Repository (location)
+# --------------------------------------------------------------------------- #
+
+ex:repo a gmeow:Repository ;
+    rdfs:label "meowgraph"@en ;
+    gmeow:repositoryType gmeow:repoTypeGit ;
+    gmeow:hostedAt ex:github ;
+    gmeow:cloneUrl "https://github.com/example/meowgraph.git" ;
+    gmeow:webUrl "https://github.com/example/meowgraph" .
+
+ex:github a gmeow:ForgePlatform ;
+    rdfs:label "GitHub"@en .
+
+# --------------------------------------------------------------------------- #
+# Facet 5 — History (provenance events)
+# --------------------------------------------------------------------------- #
+
+ex:commitInitial a gmeow:Commit ;
+    gmeow:commitInRepository ex:repo ;
+    gmeow:authoredBy ex:alice ;
+    gmeow:committedBy ex:alice ;
+    gmeow:authorTime "2026-01-15T09:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+    gmeow:committerTime "2026-01-15T09:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+    gmeow:commitTree ex:treeInitial ;
+    gmeow:contentDigest "git:deadbeef…" .
+
+ex:v1_0_0 a gmeow:Release ;
+    rdfs:label "MeowGraph v1.0.0"@en ;
+    gmeow:releaseOf ex:meowgraph ;
+    gmeow:releaseVersion "v1.0.0" ;
+    gmeow:eventTime "2026-02-01T12:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+
+# --------------------------------------------------------------------------- #
+# Contributors — human + AI (Principle 9)
+# --------------------------------------------------------------------------- #
+
+ex:alice a gmeow:Person ;
+    rdfs:label "Alice"@en .
+
+ex:copilot a gmeow:SoftwareAgent ;
+    rdfs:label "GitHub Copilot"@en .
+
+ex:contribAlice a gmeow:Contribution ;
+    gmeow:contributor ex:alice ;
+    gmeow:contributionTarget ex:meowgraphProduct ;
+    gmeow:contributionRole gmeow:roleSoftwareMaintainer ;
+    gmeow:contributionDegree gmeow:degreeLead .
+
+ex:contribCopilot a gmeow:Contribution ;
+    gmeow:contributor ex:copilot ;
+    gmeow:contributionTarget ex:meowgraphProduct ;
+    gmeow:contributionRole gmeow:roleAIAssistant ;
+    gmeow:contributionDegree gmeow:degreeSupporting .

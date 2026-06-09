@@ -252,7 +252,10 @@ export enum ContributionDegreeEnum {
 
 export enum ContributionRoleEnum {
 
+    AI_assistant = "roleAIAssistant",
     author = "roleAuthor",
+    bot_contributor = "roleBotContributor",
+    code_reviewer = "roleCodeReviewer",
     composer = "roleComposer",
     conceptualization = "roleConceptualization",
     cover_artist = "roleCoverArtist",
@@ -269,8 +272,12 @@ export enum ContributionRoleEnum {
     narrator = "roleNarrator",
     photographer = "rolePhotographer",
     project_administration = "roleProjectAdministration",
+    releaser = "roleReleaser",
     resources = "roleResources",
+    security_contact = "roleSecurityContact",
     software = "roleSoftware",
+    software_developer = "roleSoftwareDeveloper",
+    software_maintainer = "roleSoftwareMaintainer",
     supervision = "roleSupervision",
     translator = "roleTranslator",
     validation = "roleValidation",
@@ -375,6 +382,8 @@ export enum EventTypeEnum {
     census_activity = "eventTypeCensusActivity",
     christening = "eventTypeChristening",
     clinical_trial = "eventTypeClinicalTrial",
+    code_review = "eventTypeCodeReview",
+    commit = "eventTypeCommit",
     confirmation = "eventTypeConfirmation",
     creation = "eventTypeCreation",
     cremation = "eventTypeCremation",
@@ -392,11 +401,14 @@ export enum EventTypeEnum {
     immigration = "eventTypeImmigration",
     manifestation_production = "eventTypeManifestationProduction",
     marriage = "eventTypeMarriage",
+    merge = "eventTypeMerge",
     military_service = "eventTypeMilitaryService",
     name_change = "eventTypeNameChange",
     naturalization = "eventTypeNaturalization",
     ordination = "eventTypeOrdination",
     probate = "eventTypeProbate",
+    push = "eventTypePush",
+    release = "eventTypeRelease",
     residence = "eventTypeResidence",
     retirement = "eventTypeRetirement",
     separation = "eventTypeSeparation",
@@ -499,6 +511,15 @@ export enum GeometryTypeEnum {
     multi_polygon = "geometryTypeMultiPolygon",
     point = "geometryTypePoint",
     polygon = "geometryTypePolygon",
+};
+
+export enum GovernanceModelEnum {
+
+    BDFL = "governanceBDFL",
+    corporate = "governanceCorporate",
+    DAO = "governanceDAO",
+    foundation = "governanceFoundation",
+    meritocracy = "governanceMeritocracy",
 };
 
 export enum GrammaticalAspectEnum {
@@ -729,6 +750,15 @@ export enum LicenseFamilyEnum {
     permissive = "licenseFamilyPermissive",
     proprietary = "licenseFamilyProprietary",
     public_domain = "licenseFamilyPublicDomain",
+};
+
+export enum MaintenanceStatusEnum {
+
+    abandoned = "statusAbandoned",
+    active = "statusActive",
+    deprecated = "statusDeprecated",
+    end_of_life = "statusEOL",
+    maintained = "statusMaintained",
 };
 
 export enum ManifestationFormatEnum {
@@ -1142,6 +1172,16 @@ export enum RegulatoryOverlayTypeEnum {
     territorial_sea = "overlayTypeTerritorialSea",
     warning_area = "overlayTypeWarningArea",
     zoning_SOLIDUS_land_use_regulation = "overlayTypeZoning",
+};
+
+export enum RepositoryTypeEnum {
+
+    fossil = "repoTypeFossil",
+    git = "repoTypeGit",
+    mercurial = "repoTypeHg",
+    jujutsu = "repoTypeJJ",
+    pijul = "repoTypePijul",
+    subversion = "repoTypeSVN",
 };
 
 export enum RightsActionEnum {
@@ -1695,6 +1735,11 @@ export interface BookRelease extends Manifestation {
 
 
 
+export interface Branch extends InformationObject {
+}
+
+
+
 export interface CadastralReference extends InformationObject {
     referenceAuthority?: Agent,
     referenceJurisdiction?: Place,
@@ -1774,6 +1819,18 @@ export interface CitationAct {
 
 
 export interface CitationIntent {
+}
+
+
+
+export interface Commit extends Activity {
+    authorTime?: string,
+    authoredBy?: Agent[],
+    commitInRepository?: Repository,
+    commitTree?: SourceTree,
+    committedBy?: Agent[],
+    committerTime?: string,
+    parentCommit?: Commit[],
 }
 
 
@@ -1884,7 +1941,6 @@ export interface CoverageDepth {
 
 
 export interface CreativeWork extends InformationObject {
-    contentDigest?: string,
     datePublished?: string,
     editionOf?: CreativeWork,
     hasAuthor?: Agent[],
@@ -1961,6 +2017,12 @@ export interface DerivationKind {
 
 
 export interface Determinacy {
+}
+
+
+
+export interface Distribution extends InformationObject {
+    distributionFormat?: string,
 }
 
 
@@ -2042,7 +2104,6 @@ export interface Entity {
     versionLabel?: string,
     versionOf?: Entity,
     wasAttributedTo?: Agent[],
-    wasDerivedFrom?: Entity[],
     wasGeneratedBy?: Activity[],
 }
 
@@ -2136,6 +2197,11 @@ export interface Filename extends Appellation {
 
 
 
+export interface ForgePlatform extends Entity {
+}
+
+
+
 export interface FormalLanguage extends Language {
 }
 
@@ -2213,6 +2279,11 @@ export interface GeometryType {
 
 
 
+export interface GovernanceModel {
+}
+
+
+
 export interface GrammaticalAspect {
 }
 
@@ -2279,6 +2350,11 @@ export interface Instant {
 export interface InterpersonalRelationship {
     relationshipInterval?: TimeInterval[],
     relationshipParty?: Agent[],
+}
+
+
+
+export interface Issue extends InformationObject {
 }
 
 
@@ -2527,6 +2603,11 @@ export interface MailboxResidence extends TimeScopedRelation {
 
 
 
+export interface MaintenanceStatus {
+}
+
+
+
 export interface Manifestation extends CreativeWork {
     embodies?: Expression[],
     exemplifiedBy?: Item[],
@@ -2569,6 +2650,11 @@ export interface Membership {
 
 
 export interface MentalReferenceFrame extends ReferenceFrame {
+}
+
+
+
+export interface MergeRequest extends InformationObject {
 }
 
 
@@ -2820,6 +2906,13 @@ export interface PGPSignature extends CryptographicSignature {
 
 
 
+export interface Package extends InformationObject {
+    hasDistribution?: Distribution[],
+    packageOf?: SoftwareProduct[],
+}
+
+
+
 export interface ParentChildRelationship extends KinRelationship {
     relationshipChild?: Person,
     relationshipParent?: Person,
@@ -2988,6 +3081,17 @@ export interface Prohibition extends Rule {
 
 
 
+export interface Project extends Entity {
+    governanceModel?: GovernanceModel[],
+    hasRelease?: Release[],
+    hasRepository?: Repository[],
+    maintenanceStatus?: MaintenanceStatus[],
+    projectIdentifier?: string,
+    projectLicense?: License[],
+}
+
+
+
 export interface PronounSet extends InformationObject {
     pronounObject?: string,
     pronounPossessive?: string,
@@ -3023,6 +3127,12 @@ export interface Quantity extends Entity {
 
 export interface RecurrenceRule extends InformationObject {
     recurrenceRuleText?: string,
+}
+
+
+
+export interface Ref extends InformationObject {
+    pointsToCommit?: Commit[],
 }
 
 
@@ -3078,7 +3188,29 @@ export interface RelayHop {
 
 
 
+export interface Release extends Event {
+    releaseOf?: Project,
+    releaseTag?: Tag[],
+    releaseVersion?: string,
+}
+
+
+
 export interface Repository extends InformationObject {
+    cloneUrl?: string,
+    hostedAt?: ForgePlatform[],
+    repositoryType?: RepositoryType,
+    webUrl?: string,
+}
+
+
+
+export interface RepositoryType {
+}
+
+
+
+export interface Review extends InformationObject {
 }
 
 
@@ -3291,16 +3423,33 @@ export interface SoftwareName extends Appellation {
 
 
 
-export interface SoftwareProject extends Work {
-    developer?: Agent[],
-    hasRepository?: Repository[],
-    hasSoftwareName?: SoftwareName[],
+export interface SoftwareProduct extends Work {
+}
+
+
+
+export interface SoftwareProject extends Project {
     writtenInLanguage?: ProgrammingLanguage[],
 }
 
 
 
+export interface SourceDirectory extends SourceTree {
+}
+
+
+
+export interface SourceFile extends SourceNode {
+}
+
+
+
 export interface SourceIndependence {
+}
+
+
+
+export interface SourceNode extends InformationObject {
 }
 
 
@@ -3311,6 +3460,11 @@ export interface SourceRole extends CreativeWork {
 
 
 export interface SourceTier {
+}
+
+
+
+export interface SourceTree extends SourceNode {
 }
 
 

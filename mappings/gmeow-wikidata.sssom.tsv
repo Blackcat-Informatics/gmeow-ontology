@@ -37,7 +37,7 @@ gmeow:Place	skos:exactMatch	wd:Q2221906	geographic location	semapv:ManualMapping
 gmeow:RightsStatement	skos:relatedMatch	wd:Q3935748	Rights Expression Language	semapv:ManualMappingCuration	0.5	
 gmeow:RightsStatement	skos:relatedMatch	wd:Q930582	MPEG-21	semapv:ManualMappingCuration	0.4	
 gmeow:Skill	skos:closeMatch	wd:Q2242730	skill	semapv:ManualMappingCuration	0.8	
-gmeow:SoftwareProject	skos:exactMatch	wd:Q7397	software	semapv:ManualMappingCuration	0.8	
+gmeow:SoftwareProject	skos:closeMatch	wd:Q7397	software	semapv:ManualMappingCuration	0.7	
 gmeow:TelephoneNumber	skos:closeMatch	wd:Q214291	telephone number	semapv:ManualMappingCuration	0.85	
 gmeow:Trademark	skos:closeMatch	wd:Q167270	trademark	semapv:ManualMappingCuration	0.8	
 gmeow:WebPage	skos:closeMatch	wd:Q36774	web page	semapv:ManualMappingCuration	0.85	

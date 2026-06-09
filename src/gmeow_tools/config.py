@@ -58,6 +58,7 @@ TARGET_SNAPSHOT_DIR = IMPORTS_DIR / "targets"
 MAPPINGS_DIR = PROJECT_ROOT / "mappings"
 SHAPES_DIR = PROJECT_ROOT / "shapes"
 SHAPES_FILE = SHAPES_DIR / "gmeow-shapes.ttl"
+SOFTWARE_SHAPES_FILE = SHAPES_DIR / "software-shapes.ttl"
 #: SHACL shapes for the mapping DSL source (gmeow_tools.dsl_validate).
 MAPPING_DSL_SHAPES_FILE = SHAPES_DIR / "mapping-dsl-shapes.ttl"
 #: SHACL shapes for the statement DSL source (gmeow_tools.dsl_validate).
@@ -257,6 +258,8 @@ PREFIXES: dict[str, str] = {
     "ccpd": "https://creativecommons.org/publicdomain/",
     "spdx": "http://spdx.org/rdf/terms#",
     "spdxlic": "http://spdx.org/licenses/",
+    "codemeta": "https://codemeta.github.io/terms/#",
+    "forgefed": "https://forgefed.org/ns#",
     "ma": "http://www.w3.org/ns/ma-ont#",
     # Gender / sexuality identity vocabularies
     "gsso": "http://purl.obolibrary.org/obo/GSSO_",
@@ -471,6 +474,10 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "spdxlic": AlignmentTarget(
         "SPDX License List", PREFIXES["spdxlic"], "CC0-1.0", "concept_scheme"
     ),
+    "codemeta": AlignmentTarget(
+        "CodeMeta", PREFIXES["codemeta"], "Apache-2.0", "schema"
+    ),
+    "forgefed": AlignmentTarget("ForgeFed", PREFIXES["forgefed"], "CC0-1.0", "schema"),
     "ma": AlignmentTarget(
         "Ontology for Media Resources", PREFIXES["ma"], "W3C-Document", "schema"
     ),
