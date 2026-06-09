@@ -6,6 +6,15 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-ai-commit-authorship> a owl:Axiom ;
+    owl:annotatedProperty gmeow:authoredBy ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/aiCommit> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/copilot> ;
+    gmeow:assertedAt "2026-06-09T10:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.9 ;
+    gmeow:selfAsserted true ;
+    gmeow:validFrom "2026-06-09"^^xsd:date .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-alice-birthdate> a owl:Axiom ;
     owl:annotatedProperty gmeow:eventTime ;
     owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/birth-alice> ;
@@ -427,6 +436,8 @@
     gmeow:confidence 0.6 ;
     gmeow:importanceLevel 2 ;
     gmeow:mappedFrom <https://blackcatinformatics.ca/gmeow/examples/agent-corpus-classifier> .
+
+<https://blackcatinformatics.ca/gmeow/examples/aiCommit> gmeow:authoredBy <https://blackcatinformatics.ca/gmeow/examples/copilot> .
 
 <https://blackcatinformatics.ca/gmeow/examples/alice> gmeow:knowsLanguage <https://blackcatinformatics.ca/gmeow/examples/lang-toki-pona> .
 

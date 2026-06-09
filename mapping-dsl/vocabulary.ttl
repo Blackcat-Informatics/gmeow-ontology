@@ -596,3 +596,9 @@ gmeow:fnArgumentAcceptability a gmeow:ProjectionFunction ;
     dcterms:description "Projects an argument's acceptability to a numerical score. Solver-layer computation (Principle 12), referencing AIF (Argument Interchange Format). Lossy: the full argument structure is dropped."@en ;
     gmeow:fnInput gmeow:argumentAcceptability ;
     gmeow:fnOutput gmeow:projectedAcceptability ; gmeow:fnOutputType xsd:decimal .
+
+gmeow:fnComposeMailmapMapping a gmeow:ProjectionFunction ;
+    rdfs:label "compose canonical + old bytes → .mailmap mapping line"@en ;
+    dcterms:description "Composes a .mailmap mapping line for a superseded AuthorIdentity: CONCAT(canonical mailmapEntry, ' ', old authorIdentityString). This is the suppression projection — the old identity is retained in the graph but remapped in the generated .mailmap (Principle 10)."@en ;
+    gmeow:fnInput gmeow:mailmapEntry , gmeow:authorIdentityString ;
+    gmeow:fnOutput gmeow:projectedMailmapMapping ; gmeow:fnOutputType rdfs:Literal .

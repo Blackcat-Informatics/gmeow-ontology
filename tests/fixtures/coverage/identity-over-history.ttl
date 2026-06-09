@@ -1,0 +1,55 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+
+# Fixture for issue #234: contributor identity transition + AI author.
+#
+# Eve formerly appeared in git history as Evan. The raw historical bytes are
+# preserved as an AuthorIdentity with displayable false; her current name is
+# a displayable PersonName. Both coexist, neither is primary (Principle 9),
+# and the .mailmap projection generates a canonical line + a suppressed
+# mapping line (Principle 10).
+#
+# The IRIs here use the same namespace as statement-dsl/examples.ttl so that
+# the compiled statement metadata attaches directly to the fixture triples.
+
+# --- Contributor transition --------------------------------------------------
+
+ex:eve a gmeow:Person .
+
+ex:eveName a gmeow:PersonName ;
+    gmeow:fullName "Eve" ;
+    gmeow:namePurpose gmeow:namePurposeChosen ;
+    gmeow:displayable true .
+
+ex:eve gmeow:hasName ex:eveName ;
+    gmeow:mailmapEntry "Eve <eve@example.com>" .
+
+ex:evanIdentity a gmeow:AuthorIdentity ;
+    gmeow:authorIdentityString "Evan <evan@example.com>" ;
+    gmeow:displayable false ;
+    gmeow:canonicalizedIdentity ex:eve .
+
+ex:transitionCommit a gmeow:Commit ;
+    gmeow:contentDigest "git:deadbeef00000000000000000000000000000001" ;
+    gmeow:commitAuthorIdentity ex:evanIdentity ;
+    gmeow:authoredBy ex:eve .
+
+# --- AI-author fixture -------------------------------------------------------
+
+ex:copilot a gmeow:SoftwareAgent ;
+    gmeow:name "GitHub-Copilot-Bot" .
+
+ex:alice a gmeow:Person .
+
+ex:meowProduct a gmeow:SoftwareProduct .
+
+# IRIs here match the statement-dsl/examples.ttl cell ex:claim-ai-commit-authorship
+ex:aiCommit a gmeow:Commit ;
+    gmeow:contentDigest "git:cafebabe00000000000000000000000000000001" ;
+    gmeow:authoredBy ex:copilot ;
+    gmeow:committedBy ex:alice .
+
+ex:aliceReview a gmeow:Contribution ;
+    gmeow:contributor ex:alice ;
+    gmeow:contributionTarget ex:meowProduct ;
+    gmeow:contributionRole gmeow:roleCodeReviewer .

@@ -186,3 +186,18 @@ ex:claim-slam-occupancy-cell-42 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.72 ] ,
         [ gmeow:annProperty gmeow:accordingTo ; gmeow:annValue ex:robot-sensor-standpoint ] ,
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-07T09:30:00Z"^^xsd:dateTime ] .
+
+# 9. AI-authored commit — a SoftwareAgent self-asserts authorship with confidence.
+#    Principle 9: digital entities capable of self-assertion are first-class subjects
+#    of their own existence; the claim is standpoint-indexed and attributed.
+ex:claim-ai-commit-authorship a gmeow:StatementMetadata ;
+    rdfs:label "AI agent self-asserts commit authorship — confidence 0.9"@en ;
+    gmeow:reifier    ex:claim-ai-commit-authorship ;
+    gmeow:qSubject   ex:aiCommit ;
+    gmeow:qPredicate gmeow:authoredBy ;
+    gmeow:qObject    ex:copilot ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence   ; gmeow:annValue 0.9 ] ,
+        [ gmeow:annProperty gmeow:selfAsserted ; gmeow:annValue true ] ,
+        [ gmeow:annProperty gmeow:assertedAt   ; gmeow:annValue "2026-06-09T10:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:validFrom    ; gmeow:annValue "2026-06-09"^^xsd:date ] .

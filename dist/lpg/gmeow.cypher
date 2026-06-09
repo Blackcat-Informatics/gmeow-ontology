@@ -7,9 +7,25 @@ CREATE (n:Resource {uri: "gmeow:bullshit"});
 
 CREATE (n:Resource {uri: "gmeow:conceivable"});
 
+CREATE (n:Resource {uri: "gmeow:eventTypeBullshit"});
+
 CREATE (n:Resource {uri: "gmeow:eventTypeDeception"});
 
+CREATE (n:Resource {uri: "gmeow:eventTypeDistortion"});
+
+CREATE (n:Resource {uri: "gmeow:eventTypeLie"});
+
+CREATE (n:Resource {uri: "gmeow:eventTypeOmission"});
+
+CREATE (n:Resource {uri: "gmeow:eventTypePaltering"});
+
+CREATE (n:Resource {uri: "gmeow:eventTypeSelfDeception"});
+
 CREATE (n:Resource {uri: "gmeow:examples/agent-corpus-classifier"});
+
+CREATE (n:Resource {uri: "gmeow:examples/agent-self-001"});
+
+CREATE (n:Resource {uri: "gmeow:examples/aiCommit"});
 
 CREATE (n:Resource {uri: "gmeow:examples/alice"});
 
@@ -19,17 +35,37 @@ CREATE (n:Resource {eventTime: "1990-05-01T00:00:00Z", uri: "gmeow:examples/birt
 
 CREATE (n:Resource {uri: "gmeow:examples/claim-hogwarts-exists"});
 
+CREATE (n:Resource {uri: "gmeow:examples/claim-hogwarts-in-canon"});
+
+CREATE (n:Resource {uri: "gmeow:examples/copilot"});
+
 CREATE (n:Resource {uri: "gmeow:examples/crimea"});
+
+CREATE (n:Resource {uri: "gmeow:examples/event-bullshit-001"});
 
 CREATE (n:Resource {uri: "gmeow:examples/event-deception-001"});
 
+CREATE (n:Resource {uri: "gmeow:examples/event-distortion-001"});
+
+CREATE (n:Resource {uri: "gmeow:examples/event-lie-001"});
+
+CREATE (n:Resource {uri: "gmeow:examples/event-omission-001"});
+
+CREATE (n:Resource {uri: "gmeow:examples/event-paltering-001"});
+
 CREATE (n:Resource {eventTime: ["1582-10-05T00:00:00Z", "1582-10-15T00:00:00Z"], uri: "gmeow:examples/event-reformation-date"});
+
+CREATE (n:Resource {uri: "gmeow:examples/event-self-deception-001"});
 
 CREATE (n:Resource {uri: "gmeow:examples/gi-alice"});
 
 CREATE (n:Resource {uri: "gmeow:examples/lang-toki-pona"});
 
+CREATE (n:Resource {uri: "gmeow:examples/narrative-frame-harry-potter"});
+
 CREATE (n:Resource {uri: "gmeow:examples/polity-y"});
+
+CREATE (n:Resource {uri: "gmeow:examples/proposition-paltering-implicated-001"});
 
 CREATE (n:Resource {uri: "gmeow:examples/referenceFrameRobotEndEffector"});
 
@@ -73,6 +109,12 @@ CREATE (n:Resource {uri: "gmeow:examples/standpoint-2025-historiography"});
 
 CREATE (n:Resource {uri: "gmeow:examples/standpoint-analyst"});
 
+CREATE (n:Resource {uri: "gmeow:examples/standpoint-avowed-self"});
+
+CREATE (n:Resource {uri: "gmeow:examples/standpoint-bullshitter"});
+
+CREATE (n:Resource {uri: "gmeow:examples/standpoint-deceiver"});
+
 CREATE (n:Resource {uri: "gmeow:examples/standpoint-factchecker"});
 
 CREATE (n:Resource {uri: "gmeow:examples/standpoint-gregorian-historiography"});
@@ -85,13 +127,41 @@ CREATE (n:Resource {uri: "gmeow:examples/standpoint-publisher"});
 
 CREATE (n:Resource {uri: "gmeow:examples/standpoint-ru"});
 
+CREATE (n:Resource {uri: "gmeow:examples/standpoint-spin-doctor"});
+
+CREATE (n:Resource {uri: "gmeow:examples/standpoint-tacit-self"});
+
+CREATE (n:Resource {uri: "gmeow:examples/standpoint-therapist"});
+
 CREATE (n:Resource {uri: "gmeow:examples/standpoint-un"});
 
 CREATE (n:Resource {uri: "gmeow:examples/standpointclaim-bullshit-001"});
 
+CREATE (n:Resource {uri: "gmeow:examples/standpointclaim-bullshit-held-001"});
+
+CREATE (n:Resource {uri: "gmeow:examples/standpointclaim-bullshit-projected-001"});
+
+CREATE (n:Resource {uri: "gmeow:examples/standpointclaim-distortion-held-001"});
+
+CREATE (n:Resource {uri: "gmeow:examples/standpointclaim-distortion-projected-001"});
+
 CREATE (n:Resource {uri: "gmeow:examples/standpointclaim-held-001"});
 
+CREATE (n:Resource {uri: "gmeow:examples/standpointclaim-lie-held-001"});
+
+CREATE (n:Resource {uri: "gmeow:examples/standpointclaim-lie-projected-001"});
+
+CREATE (n:Resource {uri: "gmeow:examples/standpointclaim-omission-held-001"});
+
+CREATE (n:Resource {uri: "gmeow:examples/standpointclaim-paltering-held-001"});
+
+CREATE (n:Resource {uri: "gmeow:examples/standpointclaim-paltering-projected-001"});
+
 CREATE (n:Resource {uri: "gmeow:examples/standpointclaim-projected-001"});
+
+CREATE (n:Resource {uri: "gmeow:examples/standpointclaim-self-deception-held-001"});
+
+CREATE (n:Resource {uri: "gmeow:examples/standpointclaim-self-deception-projected-001"});
 
 CREATE (n:Resource {uri: "gmeow:examples/telling-article-001"});
 
@@ -103,27 +173,66 @@ CREATE (n:Resource {uri: "gmeow:examples/ukraine"});
 
 CREATE (n:Resource {uri: "gmeow:genderWoman"});
 
+CREATE (n:Resource {uri: "gmeow:probable"});
+
 CREATE (n:Resource {uri: "gmeow:referenceFrameRobotBase"});
 
 CREATE (n:Resource {uri: "gmeow:referenceFrameRobotSLAM"});
 
+CREATE (n:Resource {uri: "gmeow:refuted"});
+
+CREATE (n:Resource {uri: "gmeow:unequivocal"});
+
 CREATE (n:Resource {uri: "gmeow:veridicalityLicensedFalsehood"});
 
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-paltering-001" AND b.uri = "gmeow:eventTypePaltering" CREATE (a)-[:eventType {accordingTo: "gmeow:examples/standpoint-investigator", assertedAt: "2026-06-02T00:00:00Z", confidence: 0.82}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-distortion-001" AND b.uri = "gmeow:examples/standpointclaim-distortion-held-001" CREATE (a)-[:heldStandpoint {assertedAt: "2026-06-04T00:00:00Z", confidence: 0.7}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-paltering-001" AND b.uri = "gmeow:examples/standpointclaim-paltering-held-001" CREATE (a)-[:heldStandpoint {assertedAt: "2026-06-02T00:00:00Z", confidence: 0.78}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/standpointclaim-distortion-projected-001" AND b.uri = "gmeow:unequivocal" CREATE (a)-[:claimModality {accordingTo: "gmeow:examples/standpoint-spin-doctor", assertedAt: "2026-06-04T00:00:00Z", confidence: 0.85}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-distortion-001" AND b.uri = "gmeow:eventTypeDistortion" CREATE (a)-[:eventType {accordingTo: "gmeow:examples/standpoint-investigator", assertedAt: "2026-06-04T00:00:00Z", confidence: 0.75}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/rights/photo-copyright" AND b.uri = "gmeow:examples/rights/jane" CREATE (a)-[:copyrightHolder {assertedAt: "2026-03-01T00:00:00Z", confidence: 0.85, mappedFrom: "gmeow:examples/rights/src-rights-register"}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-self-deception-001" AND b.uri = "gmeow:examples/standpointclaim-self-deception-held-001" CREATE (a)-[:heldStandpoint {assertedAt: "2026-06-06T00:00:00Z", confidence: 0.6}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/telling-social-post-001" AND b.uri = "gmeow:examples/telling-article-001" CREATE (a)-[:propagatesFrom {accordingTo: "gmeow:examples/standpoint-factchecker", assertedAt: "2026-05-10T00:00:00Z", confidence: 0.78}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/attestation-factcheck-001" AND b.uri = "gmeow:attestationTypeFactCheck" CREATE (a)-[:attestationType {accordingTo: "gmeow:examples/standpoint-factchecker", assertedAt: "2026-02-01T00:00:00Z", confidence: 0.92}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/standpointclaim-lie-held-001" AND b.uri = "gmeow:refuted" CREATE (a)-[:claimModality {accordingTo: "gmeow:examples/standpoint-investigator", assertedAt: "2026-06-01T00:00:00Z", confidence: 0.8}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/standpointclaim-self-deception-held-001" AND b.uri = "gmeow:refuted" CREATE (a)-[:claimModality {accordingTo: "gmeow:examples/standpoint-tacit-self", assertedAt: "2026-06-06T00:00:00Z", confidence: 0.6}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/referenceFrameRobotEndEffector" AND b.uri = "gmeow:referenceFrameRobotBase" CREATE (a)-[:parentFrame {assertedAt: "2026-06-07T10:00:00Z", confidence: 0.95, validFrom: "2026-06-07T10:00:00Z", validUntil: "2026-06-07T10:05:00Z"}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/standpointclaim-omission-held-001" AND b.uri = "gmeow:unequivocal" CREATE (a)-[:claimModality {accordingTo: "gmeow:examples/standpoint-deceiver", assertedAt: "2026-06-03T00:00:00Z", confidence: 0.85}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/rights/contested-trademark" AND b.uri = "gmeow:examples/rights/acme" CREATE (a)-[:trademarkHolder {accordingTo: "gmeow:examples/rights/standpoint-acme", confidence: 0.6}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-lie-001" AND b.uri = "gmeow:eventTypeLie" CREATE (a)-[:eventType {accordingTo: "gmeow:examples/standpoint-investigator", assertedAt: "2026-06-01T00:00:00Z", confidence: 0.88}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/rights/photo" AND b.uri = "gmeow:examples/rights/cc-by-4" CREATE (a)-[:hasLicense {assertedAt: "2026-01-01T00:00:00Z", confidence: 0.95, mappedFrom: "gmeow:examples/rights/src-license-deed", validFrom: "2026-01-01T00:00:00Z", validUntil: "2036-01-01T00:00:00Z"}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-omission-001" AND b.uri = "gmeow:eventTypeOmission" CREATE (a)-[:eventType {accordingTo: "gmeow:examples/standpoint-investigator", assertedAt: "2026-06-03T00:00:00Z", confidence: 0.8}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/standpointclaim-bullshit-projected-001" AND b.uri = "gmeow:unequivocal" CREATE (a)-[:claimModality {accordingTo: "gmeow:examples/standpoint-bullshitter", assertedAt: "2026-06-05T00:00:00Z", confidence: 0.8}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-deception-001" AND b.uri = "gmeow:eventTypeDeception" CREATE (a)-[:eventType {accordingTo: "gmeow:examples/standpoint-investigator", assertedAt: "2026-01-15T00:00:00Z", confidence: 0.85}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-lie-001" AND b.uri = "gmeow:examples/standpointclaim-lie-projected-001" CREATE (a)-[:projectedStandpoint {assertedAt: "2026-06-01T00:00:00Z", confidence: 0.9}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/aiCommit" AND b.uri = "gmeow:examples/copilot" CREATE (a)-[:authoredBy {assertedAt: "2026-06-09T10:00:00Z", confidence: 0.9, selfAsserted: true, validFrom: "2026-06-09"}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-bullshit-001" AND b.uri = "gmeow:eventTypeBullshit" CREATE (a)-[:eventType {accordingTo: "gmeow:examples/standpoint-analyst", assertedAt: "2026-06-05T00:00:00Z", confidence: 0.72}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-self-deception-001" AND b.uri = "gmeow:examples/standpointclaim-self-deception-projected-001" CREATE (a)-[:projectedStandpoint {assertedAt: "2026-06-06T00:00:00Z", confidence: 0.75}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-omission-001" AND b.uri = "gmeow:examples/standpointclaim-omission-held-001" CREATE (a)-[:heldStandpoint {assertedAt: "2026-06-03T00:00:00Z", confidence: 0.85}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-self-deception-001" AND b.uri = "gmeow:eventTypeSelfDeception" CREATE (a)-[:eventType {accordingTo: "gmeow:examples/standpoint-therapist", assertedAt: "2026-06-06T00:00:00Z", confidence: 0.7}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/standpointclaim-bullshit-held-001" AND b.uri = "gmeow:bullshit" CREATE (a)-[:claimModality {accordingTo: "gmeow:examples/standpoint-analyst", assertedAt: "2026-06-05T00:00:00Z", confidence: 0.65}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/standpointclaim-bullshit-001" AND b.uri = "gmeow:bullshit" CREATE (a)-[:claimModality {accordingTo: "gmeow:examples/standpoint-analyst", assertedAt: "2026-04-01T00:00:00Z", confidence: 0.7}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-distortion-001" AND b.uri = "gmeow:examples/standpointclaim-distortion-projected-001" CREATE (a)-[:projectedStandpoint {assertedAt: "2026-06-04T00:00:00Z", confidence: 0.85}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-bullshit-001" AND b.uri = "gmeow:examples/standpointclaim-bullshit-held-001" CREATE (a)-[:heldStandpoint {assertedAt: "2026-06-05T00:00:00Z", confidence: 0.65}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/gi-alice" AND b.uri = "gmeow:genderWoman" CREATE (a)-[:genderValue {assertedAt: "2019-06-01T00:00:00Z", confidence: 0.98, validFrom: "2019-06-01"}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/crimea" AND b.uri = "gmeow:examples/russia" CREATE (a)-[:containedInPlace {accordingTo: "gmeow:examples/standpoint-ru", confidence: 0.9, mappedFrom: "gmeow:examples/src-ru-decree", validFrom: "2014-03-18T00:00:00Z"}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-lie-001" AND b.uri = "gmeow:examples/standpointclaim-lie-held-001" CREATE (a)-[:heldStandpoint {assertedAt: "2026-06-01T00:00:00Z", confidence: 0.8}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/standpointclaim-self-deception-projected-001" AND b.uri = "gmeow:unequivocal" CREATE (a)-[:claimModality {accordingTo: "gmeow:examples/standpoint-avowed-self", assertedAt: "2026-06-06T00:00:00Z", confidence: 0.75}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-distortion-001" AND b.uri = "gmeow:examples/standpoint-spin-doctor" CREATE (a)-[:hasParticipant {accordingTo: "gmeow:examples/standpoint-investigator", assertedAt: "2026-06-04T00:00:00Z", confidence: 0.85}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/claim-hogwarts-exists" AND b.uri = "gmeow:veridicalityLicensedFalsehood" CREATE (a)-[:claimVeridicality {accordingTo: "gmeow:examples/standpoint-publisher", assertedAt: "2026-03-01T00:00:00Z", confidence: 0.95}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/standpointclaim-paltering-held-001" AND b.uri = "gmeow:refuted" CREATE (a)-[:claimModality {accordingTo: "gmeow:examples/standpoint-investigator", assertedAt: "2026-06-02T00:00:00Z", confidence: 0.78}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-deception-001" AND b.uri = "gmeow:examples/standpointclaim-held-001" CREATE (a)-[:heldStandpoint {assertedAt: "2026-01-15T00:00:00Z", confidence: 0.75}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-deception-001" AND b.uri = "gmeow:examples/standpointclaim-projected-001" CREATE (a)-[:projectedStandpoint {assertedAt: "2026-01-15T00:00:00Z", confidence: 0.9}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/claim-hogwarts-in-canon" AND b.uri = "gmeow:examples/narrative-frame-harry-potter" CREATE (a)-[:accordingTo {accordingTo: "gmeow:examples/standpoint-publisher", assertedAt: "2026-06-07T00:00:00Z", confidence: 0.95}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/standpointclaim-distortion-held-001" AND b.uri = "gmeow:probable" CREATE (a)-[:claimModality {accordingTo: "gmeow:examples/standpoint-deceiver", assertedAt: "2026-06-04T00:00:00Z", confidence: 0.7}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-paltering-001" AND b.uri = "gmeow:examples/proposition-paltering-implicated-001" CREATE (a)-[:implicates {assertedAt: "2026-06-02T00:00:00Z", confidence: 0.75}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/rights/contested-trademark" AND b.uri = "gmeow:examples/rights/omega" CREATE (a)-[:trademarkHolder {accordingTo: "gmeow:examples/rights/standpoint-omega", confidence: 0.6}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-paltering-001" AND b.uri = "gmeow:examples/standpointclaim-paltering-projected-001" CREATE (a)-[:projectedStandpoint {assertedAt: "2026-06-02T00:00:00Z", confidence: 0.85}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-self-deception-001" AND b.uri = "gmeow:examples/agent-self-001" CREATE (a)-[:hasParticipant {accordingTo: "gmeow:examples/standpoint-therapist", assertedAt: "2026-06-06T00:00:00Z", confidence: 0.7}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/territory-x" AND b.uri = "gmeow:examples/polity-y" CREATE (a)-[:containedInPlace {accordingTo: "gmeow:examples/standpoint-2025-historiography", assertedAt: "2025-01-01T00:00:00Z", standpointModality: "gmeow:conceivable", validFrom: "1850-01-01T00:00:00Z", validUntil: "1860-12-31T00:00:00Z"}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/standpointclaim-lie-projected-001" AND b.uri = "gmeow:unequivocal" CREATE (a)-[:claimModality {accordingTo: "gmeow:examples/standpoint-deceiver", assertedAt: "2026-06-01T00:00:00Z", confidence: 0.9}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/slam-cell-42" AND b.uri = "gmeow:referenceFrameRobotSLAM" CREATE (a)-[:hasReferenceFrame {accordingTo: "gmeow:examples/robot-sensor-standpoint", assertedAt: "2026-06-07T09:30:00Z", confidence: 0.72}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/event-bullshit-001" AND b.uri = "gmeow:examples/standpointclaim-bullshit-projected-001" CREATE (a)-[:projectedStandpoint {assertedAt: "2026-06-05T00:00:00Z", confidence: 0.8}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/alice" AND b.uri = "gmeow:examples/lang-toki-pona" CREATE (a)-[:knowsLanguage {confidence: 0.6, importanceLevel: 2, mappedFrom: "gmeow:examples/agent-corpus-classifier"}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/crimea" AND b.uri = "gmeow:examples/ukraine" CREATE (a)-[:containedInPlace {accordingTo: "gmeow:examples/standpoint-un", confidence: 0.9, validFrom: "1991-12-01T00:00:00Z"}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/claim-hogwarts-in-canon" AND b.uri = "gmeow:veridicalityLicensedFalsehood" CREATE (a)-[:claimVeridicality {accordingTo: "gmeow:examples/standpoint-publisher", assertedAt: "2026-06-07T00:00:00Z", confidence: 0.95}]->(b);

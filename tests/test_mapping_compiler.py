@@ -35,7 +35,7 @@ def test_dsl_parses() -> None:
     Validate that the mapping DSL loads correctly and contains the expected
     counts and profiles.
 
-    Asserts that the loaded DSL has 1439 term equivalences, 35 functions,
+    Asserts that the loaded DSL has 1449 term equivalences, 36 functions,
     45 mapping sets, more than 30 projection cells, and that the set of
     profiles used in projection bindings equals the module-level `_PROFILES`.
     """
@@ -219,7 +219,8 @@ def test_dsl_parses() -> None:
     # Issue #213 deception: +7 (fnStandpointDivergence, fnImplicatesInContext,
     # fnMaximViolationType, fnDeceptionCueScore, fnCredibilityScore,
     # fnPropagationMutationDistance, fnArgumentAcceptability).
-    assert len(dsl.functions) == 35
+    # Issue #234 software identity over history: +1 (fnComposeMailmapMapping).
+    assert len(dsl.functions) == 36
     # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint,
     # gmeow-events, gmeow-rights, gmeow-coreference, gmeow-determinacy, gmeow-privacy).
     # Issue #70 adds gmeow-qudt, gmeow-fibo, gmeow-temporal.
@@ -546,9 +547,9 @@ def test_fno_emits_fnom_implementation_mapping() -> None:
     """Each function declares its SPARQL implementation via fno:/fnom: vocabulary."""
     graph = emit_fno(load_dsl(), load_merged_graph(include_imports=False))
     assert (
-        len(set(graph.subjects(RDF.type, FNO.Implementation))) == 7
+        len(set(graph.subjects(RDF.type, FNO.Implementation))) == 8
     )  # one per profile WITH transforms (owl-time is pure templateAtoms — none;
-    # web-annotation added #27)
+    # web-annotation added #27; mailmap added #234)
     bound = False
     for mapping in graph.subjects(RDF.type, FNO.Mapping):
         if graph.value(mapping, FNO.function) != GM.fnComposeBcp47:

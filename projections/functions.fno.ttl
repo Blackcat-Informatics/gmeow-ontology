@@ -91,6 +91,13 @@ gmeow:fnComposeBcp47 a fno:Function ;
     fno:expects ( gmeow:paramLanguageCode gmeow:paramScriptCode ) ;
     fno:returns ( gmeow:outComposeBcp47 ) .
 
+gmeow:fnComposeMailmapMapping a fno:Function ;
+    rdfs:label "compose canonical + old bytes → .mailmap mapping line"@en ;
+    dcterms:description "Composes a .mailmap mapping line for a superseded AuthorIdentity: CONCAT(canonical mailmapEntry, ' ', old authorIdentityString). This is the suppression projection — the old identity is retained in the graph but remapped in the generated .mailmap (Principle 10)."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/mailmap.rq> ;
+    fno:expects ( gmeow:paramMailmapEntry gmeow:paramAuthorIdentityString ) ;
+    fno:returns ( gmeow:outComposeMailmapMapping ) .
+
 gmeow:fnEventTypeToSummary a fno:Function ;
     rdfs:label "event type label → iCalendar SUMMARY"@en ;
     dcterms:description "Downcasts an event's open gmeow:eventType vocabulary to a single human-readable iCalendar SUMMARY: the rdfs:label of a gmeow:EventType value is emitted as ical:summary. The full multi-type richness collapses to one title string."@en ;
@@ -206,6 +213,10 @@ gmeow:fnTaggingToAnnotation a fno:Function ;
 gmeow:implBot a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/bot.rq> .
+
+gmeow:implMailmap a fno:Implementation ;
+    dcterms:format "application/sparql-query" ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/mailmap.rq> .
 
 gmeow:implWebAnnotation a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
@@ -331,6 +342,10 @@ gmeow:outComposeBcp47 a fno:Output ;
     fno:predicate gmeow:projectedLanguageTag ;
     fno:type xsd:string .
 
+gmeow:outComposeMailmapMapping a fno:Output ;
+    fno:predicate gmeow:projectedMailmapMapping ;
+    fno:type rdfs:Literal .
+
 gmeow:outEventTypeToSummary a fno:Output ;
     fno:predicate gmeow:projectedSummary ;
     fno:type rdfs:Literal .
@@ -402,6 +417,11 @@ gmeow:paramAsWKT a fno:Parameter ;
     fno:required true ;
     fno:type rdfs:Literal .
 
+gmeow:paramAuthorIdentityString a fno:Parameter ;
+    fno:predicate gmeow:authorIdentityString ;
+    fno:required true ;
+    fno:type rdfs:Literal .
+
 gmeow:paramCountryCode a fno:Parameter ;
     fno:predicate gmeow:countryCode ;
     fno:required false ;
@@ -434,6 +454,11 @@ gmeow:paramHonorific a fno:Parameter ;
 
 gmeow:paramLanguageCode a fno:Parameter ;
     fno:predicate gmeow:languageCode ;
+    fno:required true ;
+    fno:type rdfs:Literal .
+
+gmeow:paramMailmapEntry a fno:Parameter ;
+    fno:predicate gmeow:mailmapEntry ;
     fno:required true ;
     fno:type rdfs:Literal .
 
@@ -770,6 +795,23 @@ gmeow:implSchemaOrg a fno:Implementation ;
             rdfs:label "fnComposeBcp47 output ↦ ?bcp47"@en ;
             fnom:functionOutput gmeow:outComposeBcp47 ;
             fnom:implementationProperty "bcp47" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "fnComposeMailmapMapping → mailmap (FnO mapping)"@en ;
+    fno:function gmeow:fnComposeMailmapMapping ;
+    fno:implementation gmeow:implMailmap ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramAuthorIdentityString ↦ ?oldBytes"@en ;
+            fnom:functionParameter gmeow:paramAuthorIdentityString ;
+            fnom:implementationProperty "oldBytes" ],
+        [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramMailmapEntry ↦ ?canonicalLine"@en ;
+            fnom:functionParameter gmeow:paramMailmapEntry ;
+            fnom:implementationProperty "canonicalLine" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnComposeMailmapMapping output ↦ ?mapping"@en ;
+            fnom:functionOutput gmeow:outComposeMailmapMapping ;
+            fnom:implementationProperty "mapping" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnEventTypeToSummary → ical (FnO mapping)"@en ;

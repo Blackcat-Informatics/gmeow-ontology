@@ -152,6 +152,16 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/examples/territory-x>
         gmeow:containedInPlace  <https://blackcatinformatics.ca/gmeow/examples/polity-y> .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-ai-commit-authorship>
+        rdf:reifies         <<( <https://blackcatinformatics.ca/gmeow/examples/aiCommit> gmeow:authoredBy <https://blackcatinformatics.ca/gmeow/examples/copilot> )>>;
+        gmeow:assertedAt    "2026-06-09T10:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence    0.9;
+        gmeow:selfAsserted  true;
+        gmeow:validFrom     "2026-06-09"^^xsd:date .
+
+<https://blackcatinformatics.ca/gmeow/examples/aiCommit>
+        gmeow:authoredBy  <https://blackcatinformatics.ca/gmeow/examples/copilot> .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-event-omission-001>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/event-omission-001> gmeow:eventType gmeow:eventTypeOmission )>>;
         gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator>;
