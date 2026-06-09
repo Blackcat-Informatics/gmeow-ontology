@@ -63,6 +63,7 @@ classes:
     - holdsAccount
     - holdsKey
     - knowsLanguage
+    - mailmapEntry
     - memberOf
     - nativeLanguage
     - telephone
@@ -167,6 +168,13 @@ classes:
     - authMethod
     - authResult
     - authServer
+  AuthorIdentity:
+    class_uri: https://blackcatinformatics.ca/gmeow/AuthorIdentity
+    title: Author Identity
+    is_a: InformationObject
+    slots:
+    - authorIdentityString
+    - canonicalizedIdentity
   Axis:
     class_uri: https://blackcatinformatics.ca/gmeow/Axis
     title: Axis
@@ -329,6 +337,8 @@ classes:
     - authorTime
     - authoredBy
     - commitAncestor
+    - commitAuthorIdentity
+    - commitCommitterIdentity
     - commitDescendant
     - commitInRepository
     - commitTree
@@ -2730,6 +2740,12 @@ slots:
     range: string
     domain: AuthenticationResult
     multivalued: false
+  authorIdentityString:
+    slot_uri: https://blackcatinformatics.ca/gmeow/authorIdentityString
+    title: author identity string
+    range: string
+    domain: AuthorIdentity
+    multivalued: false
   authorTime:
     slot_uri: https://blackcatinformatics.ca/gmeow/authorTime
     title: author time
@@ -2814,6 +2830,12 @@ slots:
     title: build source
     range: string
     domain: BuildActivity
+    multivalued: true
+  canonicalizedIdentity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/canonicalizedIdentity
+    title: canonicalized identity
+    range: Agent
+    domain: AuthorIdentity
     multivalued: true
   capacityOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/capacityOf
@@ -2955,6 +2977,18 @@ slots:
     range: Commit
     domain: Commit
     multivalued: true
+  commitAuthorIdentity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/commitAuthorIdentity
+    title: commit author identity
+    range: AuthorIdentity
+    domain: Commit
+    multivalued: false
+  commitCommitterIdentity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/commitCommitterIdentity
+    title: commit committer identity
+    range: AuthorIdentity
+    domain: Commit
+    multivalued: false
   commitDescendant:
     slot_uri: https://blackcatinformatics.ca/gmeow/commitDescendant
     title: commit descendant
@@ -5122,6 +5156,11 @@ slots:
     range: string
     domain: Mailbox
     multivalued: false
+  mailmapEntry:
+    slot_uri: https://blackcatinformatics.ca/gmeow/mailmapEntry
+    title: mailmap entry
+    range: string
+    domain: Agent
   maintenanceStatus:
     slot_uri: https://blackcatinformatics.ca/gmeow/maintenanceStatus
     title: maintenance status

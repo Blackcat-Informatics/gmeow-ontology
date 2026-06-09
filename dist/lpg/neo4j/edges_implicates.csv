@@ -1,0 +1,2 @@
+id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
+edge:cafa89a0befa4fce,gmeow:examples/event-paltering-001,gmeow:examples/proposition-paltering-implicated-001,implicates,,2026-06-02T00:00:00Z,0.75,,,,,,

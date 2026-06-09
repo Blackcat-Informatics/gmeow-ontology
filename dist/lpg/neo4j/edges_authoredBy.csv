@@ -1,2 +1,2 @@
 id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:83c6e6e11b265efa,gmeow:examples/gi-alice,gmeow:genderWoman,genderValue,,2019-06-01T00:00:00Z,0.98,,,,,2019-06-01,
+edge:520d41adcb6e0d23,gmeow:examples/aiCommit,gmeow:examples/copilot,authoredBy,,2026-06-09T10:00:00Z,0.9,,,True,,2026-06-09,

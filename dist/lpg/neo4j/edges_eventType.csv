@@ -1,2 +1,8 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,standpointModality,validFrom,validUntil
-edge:4f841006190116a5,gmeow:examples/event-deception-001,gmeow:eventTypeDeception,eventType,gmeow:examples/standpoint-investigator,2026-01-15T00:00:00Z,0.85,,,,,
+id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
+edge:048213457285f206,gmeow:examples/event-paltering-001,gmeow:eventTypePaltering,eventType,gmeow:examples/standpoint-investigator,2026-06-02T00:00:00Z,0.82,,,,,,
+edge:22c995f95974e2b0,gmeow:examples/event-distortion-001,gmeow:eventTypeDistortion,eventType,gmeow:examples/standpoint-investigator,2026-06-04T00:00:00Z,0.75,,,,,,
+edge:456d9676ff48a00e,gmeow:examples/event-lie-001,gmeow:eventTypeLie,eventType,gmeow:examples/standpoint-investigator,2026-06-01T00:00:00Z,0.88,,,,,,
+edge:4911c7b99e674cfc,gmeow:examples/event-omission-001,gmeow:eventTypeOmission,eventType,gmeow:examples/standpoint-investigator,2026-06-03T00:00:00Z,0.8,,,,,,
+edge:4f841006190116a5,gmeow:examples/event-deception-001,gmeow:eventTypeDeception,eventType,gmeow:examples/standpoint-investigator,2026-01-15T00:00:00Z,0.85,,,,,,
+edge:55055cdbc05680fe,gmeow:examples/event-bullshit-001,gmeow:eventTypeBullshit,eventType,gmeow:examples/standpoint-analyst,2026-06-05T00:00:00Z,0.72,,,,,,
+edge:638e59997549032e,gmeow:examples/event-self-deception-001,gmeow:eventTypeSelfDeception,eventType,gmeow:examples/standpoint-therapist,2026-06-06T00:00:00Z,0.7,,,,,,

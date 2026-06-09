@@ -1858,6 +1858,7 @@ export interface Agent {
     holdsAccount?: OnlineAccount[],
     holdsKey?: CryptographicKey[],
     knowsLanguage?: Language[],
+    mailmapEntry?: string,
     memberOf?: Organization[],
     nativeLanguage?: Language[],
     telephone?: string,
@@ -1978,6 +1979,13 @@ export interface AuthenticationResult extends InformationObject {
     authMethod?: string,
     authResult?: string,
     authServer?: string,
+}
+
+
+
+export interface AuthorIdentity extends InformationObject {
+    authorIdentityString?: string,
+    canonicalizedIdentity?: Agent[],
 }
 
 
@@ -2168,6 +2176,8 @@ export interface Commit extends Activity {
     authorTime?: string,
     authoredBy?: Agent[],
     commitAncestor?: Commit[],
+    commitAuthorIdentity?: AuthorIdentity,
+    commitCommitterIdentity?: AuthorIdentity,
     commitDescendant?: Commit[],
     commitInRepository?: Repository,
     commitTree?: SourceTree,

@@ -1,0 +1,64 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Projection mappings: GMEOW → .mailmap downcast (issue #234).
+# Compiled to projections/mailmap.edoal.ttl + queries/projections/mailmap.rq
+# by `gmeow compile-mappings`.
+#
+# The canonical source is the AuthorIdentity + NameUsage graph in the ontology;
+# .mailmap is a deliberately lossy, generated projection (Principle 4).
+# Superseded identities are retained with gmeow:displayable false and emitted as
+# remapping lines, never deleted (Principle 10).
+
+gmeow:mapMailmapCanonical a gmeow:ProjectionMapping ;
+    rdfs:label "Agent mailmapEntry → canonical .mailmap line"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "agent" ;
+        gmeow:value "line" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "agent" ; gmeow:predicate gmeow:mailmapEntry ; gmeow:objectVar "line" ]
+        ) ;
+        gmeow:edoalSource gmeow:mailmapEntry
+    ] ;
+    gmeow:hasBinding [
+        gmeow:profile "mailmap" ;
+        gmeow:toPredicate gmeow:mailmapEntry ;
+        gmeow:relation "=" ;
+        gmeow:confidence 1.0 ;
+        gmeow:lossyDrop "none — this is a 1:1 echo of the canonical mailmap line"
+    ] .
+
+gmeow:mapMailmapSuppressed a gmeow:ProjectionMapping ;
+    rdfs:label "suppressed AuthorIdentity → .mailmap remapping line"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "oldId" ;
+        gmeow:value "mapping" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "oldId" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:AuthorIdentity ]
+            [ gmeow:subjectVar "oldId" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ]
+            [ gmeow:subjectVar "oldId" ; gmeow:predicate gmeow:authorIdentityString ; gmeow:objectVar "oldBytes" ]
+            [ gmeow:subjectVar "oldId" ; gmeow:predicate gmeow:canonicalizedIdentity ; gmeow:objectVar "agent" ]
+            [ gmeow:subjectVar "agent" ; gmeow:predicate gmeow:mailmapEntry ; gmeow:objectVar "canonicalLine" ]
+        ) ;
+        gmeow:bind [
+            gmeow:bindVar "mapping" ;
+            gmeow:bindExpr [
+                gmeow:exprOp gmeow:opConcat ;
+                gmeow:exprArgs (
+                    [ gmeow:exprVar "canonicalLine" ]
+                    " "
+                    [ gmeow:exprVar "oldBytes" ]
+                )
+            ]
+        ] ;
+        gmeow:edoalSource gmeow:canonicalizedIdentity
+    ] ;
+    gmeow:hasBinding [
+        gmeow:profile "mailmap" ;
+        gmeow:toPredicate gmeow:projectedMailmapMapping ;
+        gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnComposeMailmapMapping ;
+        gmeow:confidence 1.0 ;
+        gmeow:lossyDrop "standpoint, period, and confidence metadata are dropped; only the canonical→old bytes mapping survives"
+    ] .

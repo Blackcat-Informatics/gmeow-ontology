@@ -1,2 +1,2 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,standpointModality,validFrom,validUntil
-edge:313d4f8a17abf5c5,gmeow:examples/telling-social-post-001,gmeow:examples/telling-article-001,propagatesFrom,gmeow:examples/standpoint-factchecker,2026-05-10T00:00:00Z,0.78,,,,,
+id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
+edge:313d4f8a17abf5c5,gmeow:examples/telling-social-post-001,gmeow:examples/telling-article-001,propagatesFrom,gmeow:examples/standpoint-factchecker,2026-05-10T00:00:00Z,0.78,,,,,,

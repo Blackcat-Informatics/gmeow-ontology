@@ -549,6 +549,12 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
         "MIT",
         "schema",
     ),
+    "fibo-fnd-pas-ps": AlignmentTarget(
+        "FIBO ProductsAndServices",
+        PREFIXES["fibo-fnd-pas-ps"],
+        "MIT",
+        "schema",
+    ),
     "brick": AlignmentTarget("Brick", PREFIXES["brick"], "BSD-3-Clause", "schema"),
     "bot": AlignmentTarget(
         "BOT (Building Topology Ontology)", PREFIXES["bot"], "BSD-3-Clause", "schema"

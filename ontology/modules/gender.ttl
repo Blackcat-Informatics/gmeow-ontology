@@ -30,11 +30,11 @@ gmeow:IdentityFacet
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:selfAsserted
-    a owl:DatatypeProperty ;
+    a owl:AnnotationProperty ;
     rdfs:domain gmeow:IdentityFacet ;
     rdfs:range xsd:boolean ;
     rdfs:label "self-asserted"@en ;
-    skos:definition "Whether an identity facet was asserted by the person themselves (true — the top authority) rather than recorded or inferred by a third party (false). Non-functional: a multi-source merge may carry both a self-assertion and a third-party record, which coexist rather than force a contradiction."@en ;
+    skos:definition "Whether an identity facet was asserted by the person themselves (true — the top authority) rather than recorded or inferred by a third party (false). Also usable as a statement-level annotation (RDF 1.2 / OWL axiom) to mark a quoted claim as self-asserted. Non-functional: a multi-source merge may carry both a self-assertion and a third-party record, which coexist rather than force a contradiction."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
