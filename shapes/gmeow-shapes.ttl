@@ -1067,6 +1067,16 @@ gmeow:ConsentWellformednessShape
 # is a Violation (mechanical guard against silent disclosure).
 # --------------------------------------------------------------------------- #
 
+# --------------------------------------------------------------------------- #
+# Disclosure leak detection (#225)
+#
+# The FILTER below hardcodes the five public ProjectionContext consumers.
+# This allowlist is the intentional definition of "public" for leak-detection;
+# when new public consumers are added to the ontology they must also be added
+# here (Principle 4: one canonical source — the shape is canonical for leak
+# detection, the ontology is canonical for vocabulary).
+# --------------------------------------------------------------------------- #
+
 gmeow:DisclosureLeakShape
     a sh:NodeShape ;
     rdfs:label "Disclosure leak shape" ;

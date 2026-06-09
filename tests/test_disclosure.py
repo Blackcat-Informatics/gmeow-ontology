@@ -13,7 +13,7 @@ from itertools import combinations
 from pathlib import Path
 
 import pytest
-from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
+from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef, Variable
 from rdflib.query import ResultRow
 
 from gmeow_tools.config import NAMESPACE
@@ -202,14 +202,20 @@ def test_project_when_in_sparql_query() -> None:
 
 
 def test_public_candidates_query_runnable() -> None:
-    """public-candidates.rq must execute without error against the coverage fixture."""
+    """public-candidates.rq must execute without error against the coverage fixture.
+
+    Binds ?consumer to consumerPublicSite to verify parameterised filtering.
+    """
     from gmeow_tools.config import QUERIES_DIR
 
     query_path = QUERIES_DIR / "competency" / "public-candidates.rq"
     if not query_path.exists():
-        pytest.skip("public-candidates.rq not yet authored")
+        pytest.fail(f"Missing required competency query: {query_path}")
     src = _projection_source()
-    result = src.query(query_path.read_text(encoding="utf-8"))
+    result = src.query(
+        query_path.read_text(encoding="utf-8"),
+        initBindings={Variable("consumer"): GM.consumerPublicSite},
+    )
     # Must return at least the public-safe alice.
     rows = list(result)
     assert any(
@@ -224,7 +230,7 @@ def test_privacy_leaks_query_runnable() -> None:
 
     query_path = QUERIES_DIR / "competency" / "privacy-leaks.rq"
     if not query_path.exists():
-        pytest.skip("privacy-leaks.rq not yet authored")
+        pytest.fail(f"Missing required competency query: {query_path}")
     src = _projection_source()
     result = src.query(query_path.read_text(encoding="utf-8"))
     rows = list(result)

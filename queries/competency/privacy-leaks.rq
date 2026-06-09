@@ -1,8 +1,10 @@
 # privacy-leaks.rq (#225)
 # SELECT facts that are configured to leak: a neverPublic or internalOnly fact
 # that is nevertheless eligible for a public consumer.
-# Public consumers are those whose identifier starts with "consumer" and is NOT
-# consumerInternalArchive or consumerAgentMemory or consumerResearchQueue.
+# Public consumers are explicitly enumerated below (allowlist): consumerPublicSite,
+# consumerWikidata, consumerWikipedia, consumerSchemaOrgJsonLd, consumerFoafExport.
+# This list is the intentional definition of "public" for leak-detection purposes;
+# new public consumers must be added here and in the ontology simultaneously.
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 

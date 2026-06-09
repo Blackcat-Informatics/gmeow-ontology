@@ -440,14 +440,16 @@ def _pattern(graph: Graph, node: Node) -> MappingPattern:
             _item(graph, a) for a in _rdf_list(graph, graph.value(node, GM.atom))
         ),
         suppress_when=tuple(
-            _atom(graph, a) for a in graph.objects(node, GM.suppressWhen)
+            _atom(graph, a)
+            for a in sorted(graph.objects(node, GM.suppressWhen), key=str)
         ),
         project_when=tuple(
             _atom(graph, a)
             for a in sorted(graph.objects(node, GM.projectWhen), key=str)
         ),
         exclude_when=tuple(
-            _atom(graph, a) for a in graph.objects(node, GM.excludeWhen)
+            _atom(graph, a)
+            for a in sorted(graph.objects(node, GM.excludeWhen), key=str)
         ),
         filters=tuple(_expr(graph, f) for f in graph.objects(node, GM.filter)),
         binds=tuple(_bind(graph, b) for b in graph.objects(node, GM.bind)),

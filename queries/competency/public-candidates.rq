@@ -1,6 +1,8 @@
 # public-candidates.rq (#225)
 # SELECT facts that are safe candidates for projection to a given public consumer.
-# Parameters: ?consumer (bind to the target ProjectionContext, e.g. consumerPublicSite).
+# ?consumer is an optional filter parameter: if left unbound the query returns
+# candidates for all consumers; callers may restrict results by binding ?consumer
+# via initial bindings or a VALUES clause (e.g. VALUES ?consumer { gmeow:consumerPublicSite }).
 # A fact is a public candidate when:
 #   - it has a disclosure policy that is NOT internalOnly / sensitive / neverPublic
 #   - it is explicitly eligible for the given consumer
