@@ -8,29 +8,43 @@ fires when the engines would disagree.
 
 from __future__ import annotations
 
+import pytest
 from rdflib import RDF, XSD, Graph, Literal, URIRef
 
 from gmeow_tools import sparql
-from gmeow_tools.engine_crosscheck import crosscheck_all, crosscheck_query
+from gmeow_tools.engine_crosscheck import (
+    CrosscheckResult,
+    crosscheck_all,
+    crosscheck_query,
+)
 
 _WIDGET = URIRef("https://example.org/Widget")
 
 
-def test_every_committed_query_agrees_across_engines() -> None:
+@pytest.fixture(scope="module")
+def crosscheck_results() -> list[CrosscheckResult]:
+    """Run the full engine cross-check once and share it across tests."""
+    return crosscheck_all()
+
+
+def test_every_committed_query_agrees_across_engines(
+    crosscheck_results: list[CrosscheckResult],
+) -> None:
     """rdflib and pyoxigraph return identical answers for every committed query."""
-    results = crosscheck_all()
-    diverged = [r for r in results if not r.agree and not r.skipped]
+    diverged = [r for r in crosscheck_results if not r.agree and not r.skipped]
     assert not diverged, "engine divergence:\n" + "\n".join(
         f"  [{r.form}] {r.name}: {r.detail}" for r in diverged
     )
     # Sanity: the gate actually exercised a meaningful number of queries.
-    checked = [r for r in results if not r.skipped]
+    checked = [r for r in crosscheck_results if not r.skipped]
     assert len(checked) >= 50
 
 
-def test_skips_are_only_multi_query_demo_files() -> None:
+def test_skips_are_only_multi_query_demo_files(
+    crosscheck_results: list[CrosscheckResult],
+) -> None:
     """Any skipped file is skipped because BOTH engines reject it (not one-sided)."""
-    for result in crosscheck_all():
+    for result in crosscheck_results:
         if result.skipped:
             assert "both engines rejected" in result.detail
 
