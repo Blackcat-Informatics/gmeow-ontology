@@ -39,3 +39,11 @@ gmeow:hasParty
     rdfs:label "has party"@en ;
     skos:definition "Relates an agreement to an agent that is bound by it."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:foundedOn
+    a owl:ObjectProperty ;
+    rdfs:domain gufo:Relator ;
+    rdfs:range gmeow:Agreement ;
+    rdfs:label "founded on"@en ;
+    skos:definition "The agreement or contract that grounds this relator — in UFO terms, the set of commitments on which the relator is founded. Reusable across any relator (Membership, KinRelationship, etc.)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

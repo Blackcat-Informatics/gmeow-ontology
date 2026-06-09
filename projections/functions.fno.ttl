@@ -218,6 +218,10 @@ gmeow:implMailmap a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/mailmap.rq> .
 
+gmeow:implResume a fno:Implementation ;
+    dcterms:format "application/sparql-query" ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/resume.rq> .
+
 gmeow:implWebAnnotation a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/web-annotation.rq> .
@@ -301,13 +305,6 @@ gmeow:fnBirthEventToDate a fno:Function ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
     fno:expects ( gmeow:paramEventTime ) ;
     fno:returns ( gmeow:outBirthEventToDate ) .
-
-gmeow:fnMembershipToJobTitle a fno:Function ;
-    rdfs:label "Membership + Role → schema:jobTitle"@en ;
-    dcterms:description "Extracts a job title by traversing the reified relator: a gmeow:Membership (gmeow:membershipMember ?person, gmeow:hasRole ?role) yields ?person schema:jobTitle = the role's label. GMEOW models a job as a role played in a membership; this downcasts the role label to the flat schema:jobTitle / vCard TITLE field."@en ;
-    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
-    fno:expects ( gmeow:paramHasRole ) ;
-    fno:returns ( gmeow:outMembershipToJobTitle ) .
 
 gmeow:fnParticipationToEventRole a fno:Function ;
     rdfs:label "Participation → schema event-role edge"@en ;
@@ -532,6 +529,13 @@ gmeow:paramWasAttributedTo a fno:Parameter ;
     fno:required false ;
     fno:type gmeow:Agent .
 
+gmeow:fnMembershipToJobTitle a fno:Function ;
+    rdfs:label "Membership + Role → schema:jobTitle"@en ;
+    dcterms:description "Extracts a job title by traversing the reified relator: a gmeow:Membership (gmeow:membershipMember ?person, gmeow:hasRole ?role) yields ?person schema:jobTitle = the role's label. GMEOW models a job as a role played in a membership; this downcasts the role label to the flat schema:jobTitle / vCard TITLE field."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/resume.rq> ;
+    fno:expects ( gmeow:paramHasRole ) ;
+    fno:returns ( gmeow:outMembershipToJobTitle ) .
+
 gmeow:fnNicknameName a fno:Function ;
     rdfs:label "nickname-purpose PersonName → foaf:nick"@en ;
     dcterms:description "Returns the gmeow:fullName of a PersonName whose gmeow:namePurpose is gmeow:namePurposeNickname, for emission as foaf:nick / vcard:nickname / schema:alternateName. The nickname is a structured name in GMEOW; this downcasts it to the flat nick field."@en ;
@@ -569,10 +573,6 @@ gmeow:outHonorificToAffix a fno:Output ;
     fno:predicate gmeow:projectedAffix ;
     fno:type xsd:string .
 
-gmeow:outMembershipToJobTitle a fno:Output ;
-    fno:predicate gmeow:projectedJobTitle ;
-    fno:type rdfs:Literal .
-
 gmeow:outPlaceTypeToClass a fno:Output ;
     fno:predicate gmeow:projectedType ;
     fno:type rdfs:Class .
@@ -595,11 +595,6 @@ gmeow:paramHasGenderIdentity a fno:Parameter ;
     fno:required true ;
     fno:type gmeow:GenderIdentity .
 
-gmeow:paramHasRole a fno:Parameter ;
-    fno:predicate gmeow:hasRole ;
-    fno:required true ;
-    fno:type gmeow:Role .
-
 gmeow:paramPlaceType a fno:Parameter ;
     fno:predicate gmeow:placeType ;
     fno:required true ;
@@ -608,6 +603,10 @@ gmeow:paramPlaceType a fno:Parameter ;
 gmeow:implFoaf a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/foaf.rq> .
+
+gmeow:outMembershipToJobTitle a fno:Output ;
+    fno:predicate gmeow:projectedJobTitle ;
+    fno:type rdfs:Literal .
 
 gmeow:outNicknameName a fno:Output ;
     fno:predicate gmeow:projectedNick ;
@@ -641,6 +640,11 @@ gmeow:paramHasPlaceName a fno:Parameter ;
     fno:predicate gmeow:hasPlaceName ;
     fno:required true ;
     fno:type gmeow:PlaceName .
+
+gmeow:paramHasRole a fno:Parameter ;
+    fno:predicate gmeow:hasRole ;
+    fno:required true ;
+    fno:type gmeow:Role .
 
 gmeow:paramHasWebPage a fno:Parameter ;
     fno:predicate gmeow:hasWebPage ;
@@ -889,6 +893,19 @@ gmeow:implSchemaOrg a fno:Implementation ;
             rdfs:label "fnLatLongToWktPoint output ↦ ?pointWkt"@en ;
             fnom:functionOutput gmeow:outLatLongToWktPoint ;
             fnom:implementationProperty "pointWkt" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "fnMembershipToJobTitle → resume (FnO mapping)"@en ;
+    fno:function gmeow:fnMembershipToJobTitle ;
+    fno:implementation gmeow:implResume ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramHasRole ↦ ?role"@en ;
+            fnom:functionParameter gmeow:paramHasRole ;
+            fnom:implementationProperty "role" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnMembershipToJobTitle output ↦ ?title"@en ;
+            fnom:functionOutput gmeow:outMembershipToJobTitle ;
+            fnom:implementationProperty "title" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnMembershipToJobTitle → schema-org (FnO mapping)"@en ;

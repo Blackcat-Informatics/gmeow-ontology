@@ -157,6 +157,16 @@ gmeow:eventTypeMerge      a gmeow:EventType ; rdfs:label "merge"@en ;      skos:
 gmeow:eventTypeCodeReview a gmeow:EventType ; rdfs:label "code review"@en ; skos:definition "The event of reviewing code changes for quality, correctness, and policy compliance."@en .
 
 # --------------------------------------------------------------------------- #
+# Employment event types — values, not Event subclasses (Principle 9)
+# --------------------------------------------------------------------------- #
+
+gmeow:eventTypeHiring      a gmeow:EventType ; rdfs:label "hiring"@en ;      skos:definition "The event of an agent beginning employment with an organization."@en .
+gmeow:eventTypePromotion   a gmeow:EventType ; rdfs:label "promotion"@en ;   skos:definition "The event of an agent advancing in rank, role, or compensation within an organization."@en .
+gmeow:eventTypeTransfer    a gmeow:EventType ; rdfs:label "transfer"@en ;    skos:definition "The event of an agent moving from one organizational unit or location to another."@en .
+gmeow:eventTypeResignation a gmeow:EventType ; rdfs:label "resignation"@en ; skos:definition "The event of an agent voluntarily ending employment."@en .
+gmeow:eventTypeTermination a gmeow:EventType ; rdfs:label "termination"@en ; skos:definition "The event of an agent's employment being ended by the organization."@en .
+
+# --------------------------------------------------------------------------- #
 # Participant role — an OPEN value vocabulary. Generalizes the former genealogy
 # hasPrincipal / hasWitness / hasOfficiant subproperties into role values borne
 # on a gmeow:Participation relator.
@@ -178,6 +188,8 @@ gmeow:roleWitness              a gmeow:ParticipantRole ; rdfs:label "witness"@en
 gmeow:roleVictim               a gmeow:ParticipantRole ; rdfs:label "victim"@en ;             skos:definition "An entity harmed by the event — distinct from, and never inferred from, any other role."@en .
 gmeow:roleAgent                a gmeow:ParticipantRole ; rdfs:label "agent"@en ;              skos:definition "An agent that carried out or caused the event (the active party)."@en .
 gmeow:roleBeneficiary          a gmeow:ParticipantRole ; rdfs:label "beneficiary"@en ;        skos:definition "An entity that benefited from the event."@en .
+gmeow:roleEmployee           a gmeow:ParticipantRole ; rdfs:label "employee"@en ;             skos:definition "The agent employed in an employment event."@en .
+gmeow:roleEmployer           a gmeow:ParticipantRole ; rdfs:label "employer"@en ;             skos:definition "The organization employing in an employment event."@en .
 
 # --------------------------------------------------------------------------- #
 # Temporal precision — an OPEN value vocabulary for the granularity of an event's

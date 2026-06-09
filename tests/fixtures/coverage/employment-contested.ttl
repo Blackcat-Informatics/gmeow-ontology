@@ -1,0 +1,66 @@
+# Coverage slice (#51): contested employment facts — standpoint-indexed,
+# coexisting, NO winner. Exercises contested employment (memberOf via Employment
+# relator), rival role claims, and a withdrawn employment record with
+# gmeow:displayable false (Principle 10). Native GMEOW terms only.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/employment/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:standpoint-hr-a a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-hr-b a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# A contested employment: two rival HR departments claim the same person as an employee.
+ex:worker a gmeow:Person .
+
+ex:orgA a gmeow:Organization .
+ex:orgB a gmeow:Organization .
+
+# Flat memberOf claims (the 80% case) coexist.
+ex:worker gmeow:memberOf ex:orgA , ex:orgB .
+
+ex:claimMemberOfA a owl:Axiom ;
+    owl:annotatedSource   ex:worker ;
+    owl:annotatedProperty gmeow:memberOf ;
+    owl:annotatedTarget   ex:orgA ;
+    gmeow:accordingTo ex:standpoint-hr-a ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    gmeow:confidence 0.9 .
+
+ex:claimMemberOfB a owl:Axiom ;
+    owl:annotatedSource   ex:worker ;
+    owl:annotatedProperty gmeow:memberOf ;
+    owl:annotatedTarget   ex:orgB ;
+    gmeow:accordingTo ex:standpoint-hr-b ;
+    gmeow:standpointModality gmeow:unequivocal ;
+    gmeow:confidence 0.85 .
+
+# Reified Employment relators with contested role claims.
+ex:empA a gmeow:Employment ;
+    gmeow:membershipMember ex:worker ;
+    gmeow:membershipOrganization ex:orgA ;
+    gmeow:employmentType gmeow:employmentTypeFullTime ;
+    gmeow:employmentRole [ a gmeow:Role ; rdfs:label "Engineer"@en ] ;
+    gmeow:employmentInterval [ a gmeow:TimeInterval ;
+        gmeow:startedAtTime "2020-01-15T00:00:00Z"^^xsd:dateTime ] .
+
+ex:empB a gmeow:Employment ;
+    gmeow:membershipMember ex:worker ;
+    gmeow:membershipOrganization ex:orgB ;
+    gmeow:employmentType gmeow:employmentTypeContract ;
+    gmeow:employmentRole [ a gmeow:Role ; rdfs:label "Consultant"@en ] ;
+    gmeow:employmentInterval [ a gmeow:TimeInterval ;
+        gmeow:startedAtTime "2021-06-01T00:00:00Z"^^xsd:dateTime ] .
+
+# A withdrawn employment — retained with displayable false.
+ex:withdrawnEmployment a gmeow:Employment ;
+    gmeow:membershipMember ex:worker ;
+    gmeow:membershipOrganization ex:orgA ;
+    gmeow:employmentType gmeow:employmentTypeIntern ;
+    gmeow:employmentRole [ a gmeow:Role ; rdfs:label "Intern"@en ] ;
+    gmeow:employmentInterval [ a gmeow:TimeInterval ;
+        gmeow:startedAtTime "2019-06-01T00:00:00Z"^^xsd:dateTime ;
+        gmeow:endedAtTime   "2019-08-31T00:00:00Z"^^xsd:dateTime ] ;
+    gmeow:displayable false .

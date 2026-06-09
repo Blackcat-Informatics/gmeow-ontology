@@ -218,7 +218,9 @@ def test_dsl_parses() -> None:
     # height/dateCreated x5, Web Annotation selector types x4, EXIF width/height/
     # orientation/dateTime x4, IIIF Canvas/Annotation/width/height x4,
     # CIDOC-CRM production x1, CRMdig area x1, Wikidata region/spatial-relation x2).
-    assert len(dsl.equivalences) == 1487
+    # Issue #23 employment / CV-résumé block: +8 (schema.org x4, Wikidata x2,
+    # W3C ORG x1, ESCO x1).
+    assert len(dsl.equivalences) == 1495
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -258,7 +260,8 @@ def test_dsl_parses() -> None:
     # Issue #226 procedure / execution / step: +1 (gmeow-procedures.sssom.tsv).
     # Issue #63 first-class annotation & PKM layer: +1 (gmeow-notes.sssom.tsv).
     # Issue #22 image super-ontology: +1 (gmeow-images.sssom.tsv).
-    assert len(dsl.mapping_sets) == 47
+    # Issue #23 employment: +1 (gmeow-employment.sssom.tsv).
+    assert len(dsl.mapping_sets) == 48
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}
@@ -564,9 +567,9 @@ def test_fno_emits_fnom_implementation_mapping() -> None:
     """Each function declares its SPARQL implementation via fno:/fnom: vocabulary."""
     graph = emit_fno(load_dsl(), load_merged_graph(include_imports=False))
     assert (
-        len(set(graph.subjects(RDF.type, FNO.Implementation))) == 8
+        len(set(graph.subjects(RDF.type, FNO.Implementation))) == 9
     )  # one per profile WITH transforms (owl-time is pure templateAtoms — none;
-    # web-annotation added #27; mailmap added #234)
+    # web-annotation added #27; mailmap added #234; resume added #23)
     bound = False
     for mapping in graph.subjects(RDF.type, FNO.Mapping):
         if graph.value(mapping, FNO.function) != GM.fnComposeBcp47:

@@ -461,6 +461,17 @@ export enum DisclosurePolicyEnum {
     sensitive = "policySensitive",
 };
 
+export enum EmploymentTypeEnum {
+
+    apprentice = "employmentTypeApprentice",
+    contract = "employmentTypeContract",
+    freelance = "employmentTypeFreelance",
+    full_time = "employmentTypeFullTime",
+    intern = "employmentTypeIntern",
+    part_time = "employmentTypePartTime",
+    volunteer = "employmentTypeVolunteer",
+};
+
 export enum EntityEnum {
 
     raw_root_data_source = "procedureIngestionRawRoot",
@@ -500,6 +511,7 @@ export enum EventTypeEnum {
     first_communion = "eventTypeFirstCommunion",
     funeral = "eventTypeFuneral",
     graduation = "eventTypeGraduation",
+    hiring = "eventTypeHiring",
     image_annotation = "eventTypeImageAnnotation",
     image_capture = "eventTypeImageCapture",
     image_processing = "eventTypeImageProcessing",
@@ -516,14 +528,18 @@ export enum EventTypeEnum {
     ordination = "eventTypeOrdination",
     paltering = "eventTypePaltering",
     probate = "eventTypeProbate",
+    promotion = "eventTypePromotion",
     push = "eventTypePush",
     release = "eventTypeRelease",
     residence = "eventTypeResidence",
+    resignation = "eventTypeResignation",
     retirement = "eventTypeRetirement",
     self_deception = "eventTypeSelfDeception",
     separation = "eventTypeSeparation",
     supersession = "eventTypeSupersession",
     survey = "eventTypeSurvey",
+    termination = "eventTypeTermination",
+    transfer = "eventTypeTransfer",
     will = "eventTypeWill",
     work_conception = "eventTypeWorkConception",
 };
@@ -1148,6 +1164,8 @@ export enum ParticipantRoleEnum {
     deceived = "roleDeceived",
     deceiver = "roleDeceiver",
     dupe = "roleDupe",
+    employee = "roleEmployee",
+    employer = "roleEmployer",
     intermediary = "roleIntermediary",
     officiant = "roleOfficiant",
     organizer = "roleOrganizer",
@@ -1575,6 +1593,15 @@ export enum SelectorTypeEnum {
     run_length_encoded = "selectorTypeRunLengthEncoded",
     SVG_path = "selectorTypeSvgPath",
     Web_Annotation_fragment = "selectorTypeWebAnnotationFragment",
+};
+
+export enum SeniorityLevelEnum {
+
+    entry_level = "seniorityEntry",
+    executive = "seniorityExecutive",
+    lead = "seniorityLead",
+    mid_level = "seniorityMid",
+    senior = "senioritySenior",
 };
 
 export enum SensitivityLevelEnum {
@@ -2588,6 +2615,22 @@ export interface EmailMessage extends Message {
     sender?: EmailAddress[],
     subjectPrefix?: string,
     to?: EmailAddress[],
+}
+
+
+
+export interface Employment extends Membership {
+    employmentCompensation?: MonetaryAmount[],
+    employmentInterval?: TimeInterval[],
+    employmentOccupation?: Occupation,
+    employmentRole?: Role,
+    employmentSeniority?: SeniorityLevel,
+    employmentType?: EmploymentType,
+}
+
+
+
+export interface EmploymentType {
 }
 
 
@@ -4160,6 +4203,11 @@ export interface Selector extends EvidenceSpan {
 
 
 export interface SelectorType {
+}
+
+
+
+export interface SeniorityLevel {
 }
 
 
