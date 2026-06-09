@@ -1550,6 +1550,414 @@
             "title": "Article",
             "type": "object"
         },
+        "Asset": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "acquireLicensePage": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "assetIdentifier": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "assetType": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/AssetType"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "attributionText": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionUrl": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "authorityLink": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "counterpartOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "existenceInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAccessibilityNeed": {
+                    "items": {
+                        "$ref": "#/$defs/AccessibilityFacet"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAppellation": {
+                    "items": {
+                        "$ref": "#/$defs/Appellation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAttestation": {
+                    "items": {
+                        "$ref": "#/$defs/Attestation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCopyright": {
+                    "items": {
+                        "$ref": "#/$defs/Copyright"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCreationEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDestructionEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLicense": {
+                    "items": {
+                        "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasPose": {
+                    "items": {
+                        "$ref": "#/$defs/Pose"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasRightsStatement": {
+                    "items": {
+                        "$ref": "#/$defs/RightsStatement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryObservation": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryObservation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryQuantity": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryQuantity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSpatialMeasurement": {
+                    "items": {
+                        "$ref": "#/$defs/SpatialMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasStream": {
+                    "items": {
+                        "$ref": "#/$defs/Stream"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTag": {
+                    "items": {
+                        "$ref": "#/$defs/Tag"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTrademark": {
+                    "items": {
+                        "$ref": "#/$defs/Trademark"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasVersion": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasWebPage": {
+                    "items": {
+                        "$ref": "#/$defs/WebPage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAccessibleForFree": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "isReferencedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isResultOf": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "locatedAt": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "provenance": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "proximity": {
+                    "items": {
+                        "$ref": "#/$defs/ProximityMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "storedIn": {
+                    "items": {
+                        "$ref": "#/$defs/StorageLocation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersededBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersedes": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "usageInfo": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionFingerprint": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionLabel": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "wasAttributedTo": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasGeneratedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Activity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Asset",
+            "type": "object"
+        },
+        "AssetType": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "AssetType",
+            "type": "object"
+        },
+        "AssetTypeEnum": {
+            "description": "",
+            "enum": [
+                "assetTypeBond",
+                "assetTypeCommodity",
+                "assetTypeCryptocurrency",
+                "assetTypeRealEstate",
+                "assetTypeStock"
+            ],
+            "title": "AssetTypeEnum",
+            "type": "string"
+        },
         "AtomicConstraint": {
             "additionalProperties": false,
             "description": "",
@@ -12469,6 +12877,475 @@
             "title": "Credential",
             "type": "object"
         },
+        "CryptoWallet": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "accountBalance": {
+                    "items": {
+                        "$ref": "#/$defs/MonetaryAmount"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "accountCurrency": {
+                    "items": {
+                        "$ref": "#/$defs/ReferenceFrame"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "accountHolder": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "accountNumber": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "accountType": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/FinancialAccountType"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "acquireLicensePage": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionText": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionUrl": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "authorityLink": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "bic": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contributesToFrame": {
+                    "items": {
+                        "$ref": "#/$defs/NarrativeReferenceFrame"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "counterpartOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "detectedMediaType": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "existenceInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAccessibilityNeed": {
+                    "items": {
+                        "$ref": "#/$defs/AccessibilityFacet"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAppellation": {
+                    "items": {
+                        "$ref": "#/$defs/Appellation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAttestation": {
+                    "items": {
+                        "$ref": "#/$defs/Attestation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCopyright": {
+                    "items": {
+                        "$ref": "#/$defs/Copyright"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCreationEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDestructionEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLicense": {
+                    "items": {
+                        "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasPose": {
+                    "items": {
+                        "$ref": "#/$defs/Pose"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasRightsStatement": {
+                    "items": {
+                        "$ref": "#/$defs/RightsStatement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryObservation": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryObservation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryQuantity": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryQuantity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSpatialMeasurement": {
+                    "items": {
+                        "$ref": "#/$defs/SpatialMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasStream": {
+                    "items": {
+                        "$ref": "#/$defs/Stream"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTag": {
+                    "items": {
+                        "$ref": "#/$defs/Tag"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTrademark": {
+                    "items": {
+                        "$ref": "#/$defs/Trademark"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasVersion": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasWebPage": {
+                    "items": {
+                        "$ref": "#/$defs/WebPage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "iban": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "isAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAccessibleForFree": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "isReferencedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isResultOf": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "locatedAt": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "provenance": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "proximity": {
+                    "items": {
+                        "$ref": "#/$defs/ProximityMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "storedIn": {
+                    "items": {
+                        "$ref": "#/$defs/StorageLocation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersededBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersedes": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "usageInfo": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionFingerprint": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionLabel": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "walletAddress": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "walletKey": {
+                    "items": {
+                        "$ref": "#/$defs/CryptographicKey"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "walletScheme": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/WalletScheme"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "wasAttributedTo": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasGeneratedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Activity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "CryptoWallet",
+            "type": "object"
+        },
         "CryptographicKey": {
             "additionalProperties": false,
             "description": "",
@@ -20294,6 +21171,376 @@
             "title": "FinancialAccountTypeEnum",
             "type": "string"
         },
+        "FinancialTransaction": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "after": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "before": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "coincidesWith": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "contains": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "deceptionCue": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "deceptiveIntentClaim": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "during": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "earliestStart": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "eventAspect": {
+                    "items": {
+                        "$ref": "#/$defs/GrammaticalAspect"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventLocation": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventObservation": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventSpacetime": {
+                    "items": {
+                        "$ref": "#/$defs/LocationState"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventTemporalFrame": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TemporalFrame"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "eventTense": {
+                    "items": {
+                        "$ref": "#/$defs/GrammaticalTense"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventTime": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "eventTrajectory": {
+                    "items": {
+                        "$ref": "#/$defs/Trajectory"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventType": {
+                    "items": {
+                        "$ref": "#/$defs/EventType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "finishedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "finishes": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDuration": {
+                    "items": {
+                        "$ref": "#/$defs/Duration"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasParticipant": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSubEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "heldStandpoint": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "implicates": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "latestEnd": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "maximViolationType": {
+                    "items": {
+                        "$ref": "#/$defs/MaximViolationType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "meets": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "metBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "occurrenceOfSeries": {
+                    "items": {
+                        "$ref": "#/$defs/EventSeries"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "overlappedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "overlaps": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "projectedStandpoint": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "propagationMutationDistance": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "startedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "starts": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "subEventOf": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "temporalPrecision": {
+                    "items": {
+                        "$ref": "#/$defs/TemporalPrecision"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "transactionAmount": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/MonetaryAmount"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "transactionStatus": {
+                    "items": {
+                        "$ref": "#/$defs/TransactionStatus"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "transactionType": {
+                    "items": {
+                        "$ref": "#/$defs/TransactionType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "FinancialTransaction",
+            "type": "object"
+        },
         "ForgePlatform": {
             "additionalProperties": false,
             "description": "",
@@ -23003,6 +24250,59 @@
             "title": "Group",
             "type": "object"
         },
+        "Holding": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "holdingAgent": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Agent"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "holdingAsset": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Asset"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "holdingCostBasis": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/MonetaryAmount"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "holdingPeriod": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "holdingQuantity": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Holding",
+            "type": "object"
+        },
         "Honorific": {
             "additionalProperties": false,
             "description": "",
@@ -24379,6 +25679,711 @@
             "title": "InterpersonalRelationship",
             "type": "object"
         },
+        "Invoice": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "abstract": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "acquireLicensePage": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionText": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionUrl": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "audience": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "authorityLink": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "bibliographicCitation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "conformsTo": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "contributesToFrame": {
+                    "items": {
+                        "$ref": "#/$defs/NarrativeReferenceFrame"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "counterpartOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dateAccepted": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "dateAvailable": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "dateCreated": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "dateModified": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "datePublished": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "dateSubmitted": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "detectedMediaType": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "editionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/CreativeWork"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "existenceInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "extent": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "hasAccessibilityNeed": {
+                    "items": {
+                        "$ref": "#/$defs/AccessibilityFacet"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAppellation": {
+                    "items": {
+                        "$ref": "#/$defs/Appellation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAttestation": {
+                    "items": {
+                        "$ref": "#/$defs/Attestation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAuthor": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasContributor": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCopyright": {
+                    "items": {
+                        "$ref": "#/$defs/Copyright"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCreationEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDestructionEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasEditor": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasIllustrator": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLicense": {
+                    "items": {
+                        "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasNarrator": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasPose": {
+                    "items": {
+                        "$ref": "#/$defs/Pose"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasRightsStatement": {
+                    "items": {
+                        "$ref": "#/$defs/RightsStatement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryObservation": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryObservation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryQuantity": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryQuantity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSpatialMeasurement": {
+                    "items": {
+                        "$ref": "#/$defs/SpatialMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasStream": {
+                    "items": {
+                        "$ref": "#/$defs/Stream"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTag": {
+                    "items": {
+                        "$ref": "#/$defs/Tag"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTitle": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWorkTitle"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTrademark": {
+                    "items": {
+                        "$ref": "#/$defs/Trademark"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTranslator": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasVersion": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasWebPage": {
+                    "items": {
+                        "$ref": "#/$defs/WebPage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "identifier": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "invoiceAmount": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/MonetaryAmount"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "invoiceDueDate": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "invoiceIssuer": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "invoiceRecipient": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "invoiceStatus": {
+                    "items": {
+                        "$ref": "#/$defs/InvoiceStatus"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAccessibleForFree": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "isReferencedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isRequiredBy": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isResultOf": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "locatedAt": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "medium": {
+                    "items": {
+                        "$ref": "#/$defs/CarrierMedium"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "propagatesFrom": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "provenance": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "proximity": {
+                    "items": {
+                        "$ref": "#/$defs/ProximityMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "realizedThrough": {
+                    "items": {
+                        "$ref": "#/$defs/Expression"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "requires": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "sourceFor": {
+                    "items": {
+                        "$ref": "#/$defs/NarrativeReferenceFrame"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "sourceLocation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "sourceModifiedAt": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "spatialCoverage": {
+                    "items": {
+                        "$ref": "#/$defs/Place"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "storedIn": {
+                    "items": {
+                        "$ref": "#/$defs/StorageLocation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersededBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersedes": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "tableOfContents": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "temporalCoverage": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "title": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "usageInfo": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionFingerprint": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionLabel": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "wasAttributedTo": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasGeneratedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Activity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Invoice",
+            "type": "object"
+        },
+        "InvoiceStatus": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "InvoiceStatus",
+            "type": "object"
+        },
+        "InvoiceStatusEnum": {
+            "description": "",
+            "enum": [
+                "invoiceStatusCancelled",
+                "invoiceStatusDraft",
+                "invoiceStatusOverdue",
+                "invoiceStatusPaid",
+                "invoiceStatusSent"
+            ],
+            "title": "InvoiceStatusEnum",
+            "type": "string"
+        },
         "Issue": {
             "additionalProperties": false,
             "description": "",
@@ -25418,6 +27423,357 @@
                 }
             },
             "title": "Item",
+            "type": "object"
+        },
+        "JournalEntry": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "after": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "before": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "coincidesWith": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "contains": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "deceptionCue": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "deceptiveIntentClaim": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "during": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "earliestStart": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "eventAspect": {
+                    "items": {
+                        "$ref": "#/$defs/GrammaticalAspect"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventLocation": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventObservation": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventSpacetime": {
+                    "items": {
+                        "$ref": "#/$defs/LocationState"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventTemporalFrame": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TemporalFrame"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "eventTense": {
+                    "items": {
+                        "$ref": "#/$defs/GrammaticalTense"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventTime": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "eventTrajectory": {
+                    "items": {
+                        "$ref": "#/$defs/Trajectory"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventType": {
+                    "items": {
+                        "$ref": "#/$defs/EventType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "finishedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "finishes": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDuration": {
+                    "items": {
+                        "$ref": "#/$defs/Duration"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasParticipant": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSubEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "heldStandpoint": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "implicates": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "journalEntryPostings": {
+                    "items": {
+                        "$ref": "#/$defs/Posting"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "latestEnd": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "maximViolationType": {
+                    "items": {
+                        "$ref": "#/$defs/MaximViolationType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "meets": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "metBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "occurrenceOfSeries": {
+                    "items": {
+                        "$ref": "#/$defs/EventSeries"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "overlappedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "overlaps": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "projectedStandpoint": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "propagationMutationDistance": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "startedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "starts": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "subEventOf": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "temporalPrecision": {
+                    "items": {
+                        "$ref": "#/$defs/TemporalPrecision"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "JournalEntry",
             "type": "object"
         },
         "JurisdictionTenure": {
@@ -27916,6 +30272,441 @@
             },
             "title": "LanguageVersion",
             "type": "object"
+        },
+        "LedgerAccount": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "acquireLicensePage": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionText": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionUrl": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "authorityLink": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contributesToFrame": {
+                    "items": {
+                        "$ref": "#/$defs/NarrativeReferenceFrame"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "counterpartOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "detectedMediaType": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "existenceInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAccessibilityNeed": {
+                    "items": {
+                        "$ref": "#/$defs/AccessibilityFacet"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAppellation": {
+                    "items": {
+                        "$ref": "#/$defs/Appellation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAttestation": {
+                    "items": {
+                        "$ref": "#/$defs/Attestation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCopyright": {
+                    "items": {
+                        "$ref": "#/$defs/Copyright"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCreationEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDestructionEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLicense": {
+                    "items": {
+                        "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasPose": {
+                    "items": {
+                        "$ref": "#/$defs/Pose"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasRightsStatement": {
+                    "items": {
+                        "$ref": "#/$defs/RightsStatement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryObservation": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryObservation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryQuantity": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryQuantity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSpatialMeasurement": {
+                    "items": {
+                        "$ref": "#/$defs/SpatialMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasStream": {
+                    "items": {
+                        "$ref": "#/$defs/Stream"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTag": {
+                    "items": {
+                        "$ref": "#/$defs/Tag"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTrademark": {
+                    "items": {
+                        "$ref": "#/$defs/Trademark"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasVersion": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasWebPage": {
+                    "items": {
+                        "$ref": "#/$defs/WebPage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAccessibleForFree": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "isReferencedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isResultOf": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "ledgerAccountCurrency": {
+                    "items": {
+                        "$ref": "#/$defs/ReferenceFrame"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "ledgerAccountHolder": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "ledgerAccountType": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/LedgerAccountType"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "locatedAt": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "provenance": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "proximity": {
+                    "items": {
+                        "$ref": "#/$defs/ProximityMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "storedIn": {
+                    "items": {
+                        "$ref": "#/$defs/StorageLocation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersededBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersedes": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "usageInfo": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionFingerprint": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionLabel": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "wasAttributedTo": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasGeneratedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Activity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "LedgerAccount",
+            "type": "object"
+        },
+        "LedgerAccountType": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "LedgerAccountType",
+            "type": "object"
+        },
+        "LedgerAccountTypeEnum": {
+            "description": "",
+            "enum": [
+                "ledgerAccountTypeAsset",
+                "ledgerAccountTypeEquity",
+                "ledgerAccountTypeExpense",
+                "ledgerAccountTypeLiability",
+                "ledgerAccountTypeRevenue"
+            ],
+            "title": "LedgerAccountTypeEnum",
+            "type": "string"
         },
         "LedgerEvent": {
             "additionalProperties": false,
@@ -41424,6 +44215,87 @@
             "title": "OnlineAccount",
             "type": "object"
         },
+        "Order": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "hasAgreementName": {
+                    "items": {
+                        "$ref": "#/$defs/AgreementName"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasParty": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "orderAmount": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/MonetaryAmount"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "orderBuyer": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "orderSeller": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "orderStatus": {
+                    "items": {
+                        "$ref": "#/$defs/OrderStatus"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Order",
+            "type": "object"
+        },
+        "OrderStatus": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "OrderStatus",
+            "type": "object"
+        },
+        "OrderStatusEnum": {
+            "description": "",
+            "enum": [
+                "orderStatusCancelled",
+                "orderStatusConfirmed",
+                "orderStatusDelivered",
+                "orderStatusPending",
+                "orderStatusShipped"
+            ],
+            "title": "OrderStatusEnum",
+            "type": "string"
+        },
         "Organization": {
             "additionalProperties": false,
             "description": "",
@@ -42979,9 +45851,12 @@
                 "roleDeceived",
                 "roleDeceiver",
                 "roleDupe",
+                "roleIntermediary",
                 "roleOfficiant",
                 "roleOrganizer",
                 "roleParticipantPrincipal",
+                "rolePayee",
+                "rolePayer",
                 "rolePerformer",
                 "roleSpinDoctor",
                 "roleVictim",
@@ -43677,6 +46552,403 @@
             },
             "title": "Patent",
             "type": "object"
+        },
+        "Payment": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "after": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "before": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "coincidesWith": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "contains": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "deceptionCue": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "deceptiveIntentClaim": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "during": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "earliestStart": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "eventAspect": {
+                    "items": {
+                        "$ref": "#/$defs/GrammaticalAspect"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventLocation": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventObservation": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventSpacetime": {
+                    "items": {
+                        "$ref": "#/$defs/LocationState"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventTemporalFrame": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TemporalFrame"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "eventTense": {
+                    "items": {
+                        "$ref": "#/$defs/GrammaticalTense"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventTime": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "eventTrajectory": {
+                    "items": {
+                        "$ref": "#/$defs/Trajectory"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventType": {
+                    "items": {
+                        "$ref": "#/$defs/EventType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "finishedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "finishes": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDuration": {
+                    "items": {
+                        "$ref": "#/$defs/Duration"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasParticipant": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSubEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "heldStandpoint": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "implicates": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "latestEnd": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "maximViolationType": {
+                    "items": {
+                        "$ref": "#/$defs/MaximViolationType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "meets": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "metBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "occurrenceOfSeries": {
+                    "items": {
+                        "$ref": "#/$defs/EventSeries"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "overlappedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "overlaps": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "paymentMethod": {
+                    "items": {
+                        "$ref": "#/$defs/PaymentMethod"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "projectedStandpoint": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "propagationMutationDistance": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "startedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "starts": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "subEventOf": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "temporalPrecision": {
+                    "items": {
+                        "$ref": "#/$defs/TemporalPrecision"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "transactionAmount": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/MonetaryAmount"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "transactionStatus": {
+                    "items": {
+                        "$ref": "#/$defs/TransactionStatus"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "transactionType": {
+                    "items": {
+                        "$ref": "#/$defs/TransactionType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Payment",
+            "type": "object"
+        },
+        "PaymentMethod": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "PaymentMethod",
+            "type": "object"
+        },
+        "PaymentMethodEnum": {
+            "description": "",
+            "enum": [
+                "paymentMethodBankTransfer",
+                "paymentMethodCash",
+                "paymentMethodCheque",
+                "paymentMethodCreditCard",
+                "paymentMethodCrypto"
+            ],
+            "title": "PaymentMethodEnum",
+            "type": "string"
         },
         "PeriodType": {
             "additionalProperties": false,
@@ -45823,6 +49095,69 @@
             },
             "title": "PostalAddress",
             "type": "object"
+        },
+        "Posting": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "postingAccount": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/LedgerAccount"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "postingAmount": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/MonetaryAmount"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "postingDirection": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/PostingDirection"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "postingJournalEntry": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/JournalEntry"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                }
+            },
+            "title": "Posting",
+            "type": "object"
+        },
+        "PostingDirection": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "PostingDirection",
+            "type": "object"
+        },
+        "PostingDirectionEnum": {
+            "description": "",
+            "enum": [
+                "postingDirectionCredit",
+                "postingDirectionDebit"
+            ],
+            "title": "PostingDirectionEnum",
+            "type": "string"
         },
         "PrivacyNotice": {
             "additionalProperties": false,
@@ -72185,11 +75520,36 @@
             "title": "TransactionStatus",
             "type": "object"
         },
+        "TransactionStatusEnum": {
+            "description": "",
+            "enum": [
+                "transactionStatusCompleted",
+                "transactionStatusFailed",
+                "transactionStatusPending",
+                "transactionStatusReversed"
+            ],
+            "title": "TransactionStatusEnum",
+            "type": "string"
+        },
         "TransactionType": {
             "additionalProperties": false,
             "description": "",
             "title": "TransactionType",
             "type": "object"
+        },
+        "TransactionTypeEnum": {
+            "description": "",
+            "enum": [
+                "transactionTypeDeposit",
+                "transactionTypeFee",
+                "transactionTypeInterest",
+                "transactionTypePayment",
+                "transactionTypeRefund",
+                "transactionTypeTransfer",
+                "transactionTypeWithdrawal"
+            ],
+            "title": "TransactionTypeEnum",
+            "type": "string"
         },
         "TransliterationScheme": {
             "additionalProperties": false,
@@ -75269,6 +78629,23 @@
                 "virtualLocationTypeWebsite"
             ],
             "title": "VirtualLocationTypeEnum",
+            "type": "string"
+        },
+        "WalletScheme": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "WalletScheme",
+            "type": "object"
+        },
+        "WalletSchemeEnum": {
+            "description": "",
+            "enum": [
+                "walletSchemeBTC",
+                "walletSchemeETH",
+                "walletSchemeSOL",
+                "walletSchemeXMR"
+            ],
+            "title": "WalletSchemeEnum",
             "type": "string"
         },
         "WebPage": {
