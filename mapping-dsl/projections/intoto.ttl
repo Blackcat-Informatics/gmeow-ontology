@@ -1,0 +1,40 @@
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix intoto: <https://in-toto.io/Statement/v1#> .
+
+# Projection mappings: GMEOW attestation → in-toto statement/envelope shape.
+# No stable in-toto RDF vocabulary exists; this is a loose directional downcast
+# generating SPARQL CONSTRUCT queries and EDOAL cells (Principle 5).
+
+gmeow:mapInTotoStatement a gmeow:ProjectionMapping ;
+    rdfs:label "Attestation → intoto:Statement"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "att" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "att" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Attestation ]
+            [ gmeow:subjectVar "att" ; gmeow:predicate gmeow:attestedSubject ; gmeow:objectVar "subj" ; gmeow:optional true ]
+            [ gmeow:subjectVar "att" ; gmeow:predicate gmeow:attestationType ; gmeow:objectVar "ptype" ; gmeow:optional true ] ) ;
+        gmeow:edoalSource gmeow:Attestation ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "intoto" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget intoto:Statement ; gmeow:edoalTargetKind "class" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "att" ; gmeow:tPred rdf:type ; gmeow:tObjValue intoto:Statement ]
+            [ gmeow:tSubj "att" ; gmeow:tPred intoto:subject ; gmeow:tObj "subj" ]
+            [ gmeow:tSubj "att" ; gmeow:tPred intoto:predicateType ; gmeow:tObj "ptype" ] ) ;
+        gmeow:lossyDrop "attestation artifact, attester, policy, verification result, transparency log, temporal scope" ] .
+
+gmeow:mapInTotoSignature a gmeow:ProjectionMapping ;
+    rdfs:label "CryptographicSignature → intoto:signature"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "sig" ; gmeow:value "keyid" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "sig" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:CryptographicSignature ]
+            [ gmeow:subjectVar "sig" ; gmeow:predicate gmeow:signingKey ; gmeow:objectVar "key" ]
+            [ gmeow:subjectVar "key" ; gmeow:predicate gmeow:keyId ; gmeow:objectVar "keyid" ; gmeow:optional true ] ) ;
+        gmeow:edoalSource gmeow:CryptographicSignature ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "intoto" ; gmeow:toPredicate intoto:signature ; gmeow:relation "<=" ;
+        gmeow:confidence 0.6 ;
+        gmeow:lossyDrop "signature bytes, algorithm, signed-by identity" ] .

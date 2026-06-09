@@ -2091,6 +2091,15 @@
                   }
                 ]
               },
+              "hasSLSALevel": {
+                "items": {
+                  "$ref": "#/$defs/SLSALevel"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "issuedAt": {
                 "format": "date-time",
                 "type": [
@@ -6643,6 +6652,509 @@
             ],
             "title": "BranchConditionTypeEnum",
             "type": "string"
+          },
+          "BuildActivity": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "after": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "before": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "buildConfigUri": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "buildOutput": {
+                "items": {
+                  "$ref": "#/$defs/Distribution"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "buildSource": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "coincidesWith": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "contains": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "deceptionCue": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "deceptiveIntentClaim": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "during": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "earliestStart": {
+                "format": "date-time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "eventAspect": {
+                "items": {
+                  "$ref": "#/$defs/GrammaticalAspect"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventInterval": {
+                "items": {
+                  "$ref": "#/$defs/TimeInterval"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventObservation": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventSpacetime": {
+                "items": {
+                  "$ref": "#/$defs/LocationState"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventTemporalFrame": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/TemporalFrame"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "eventTense": {
+                "items": {
+                  "$ref": "#/$defs/GrammaticalTense"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventTime": {
+                "format": "date-time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "eventTrajectory": {
+                "items": {
+                  "$ref": "#/$defs/Trajectory"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventType": {
+                "items": {
+                  "$ref": "#/$defs/EventType"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "finishedBy": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "finishes": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDuration": {
+                "items": {
+                  "$ref": "#/$defs/Duration"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasParticipant": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSubEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "heldStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "implicates": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "latestEnd": {
+                "format": "date-time",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "maximViolationType": {
+                "items": {
+                  "$ref": "#/$defs/MaximViolationType"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "meets": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "metBy": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "occurrenceOfSeries": {
+                "items": {
+                  "$ref": "#/$defs/EventSeries"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "overlappedBy": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "overlaps": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "projectedStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "propagationMutationDistance": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "startedBy": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "starts": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "subEventOf": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "temporalPrecision": {
+                "items": {
+                  "$ref": "#/$defs/TemporalPrecision"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "wasAssociatedWith": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "BuildActivity",
+            "type": "object"
+          },
+          "Builder": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "email": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "endorses": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAgreement": {
+                "items": {
+                  "$ref": "#/$defs/Agreement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasContactPoint": {
+                "items": {
+                  "$ref": "#/$defs/ContactPoint"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasMet": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSkill": {
+                "items": {
+                  "$ref": "#/$defs/Skill"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasUsed": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasWorkedWith": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "holdsAccount": {
+                "items": {
+                  "$ref": "#/$defs/OnlineAccount"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "holdsKey": {
+                "items": {
+                  "$ref": "#/$defs/CryptographicKey"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "knowsLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "memberOf": {
+                "items": {
+                  "$ref": "#/$defs/Organization"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "nativeLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "telephone": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "title": "Builder",
+            "type": "object"
           },
           "CadastralReference": {
             "additionalProperties": false,
@@ -17777,6 +18289,7 @@
               "eventTypeBarMitzvah",
               "eventTypeBatMitzvah",
               "eventTypeBirth",
+              "eventTypeBuild",
               "eventTypeBurial",
               "eventTypeCensus",
               "eventTypeCensusActivity",
@@ -52142,6 +52655,12 @@
                   "null"
                 ]
               },
+              "releaseDoi": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
               "releaseOf": {
                 "anyOf": [
                   {
@@ -53825,6 +54344,23 @@
             },
             "title": "Rule",
             "type": "object"
+          },
+          "SLSALevel": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "SLSALevel",
+            "type": "object"
+          },
+          "SLSALevelEnum": {
+            "description": "",
+            "enum": [
+              "slsaLevel1",
+              "slsaLevel2",
+              "slsaLevel3",
+              "slsaLevel4"
+            ],
+            "title": "SLSALevelEnum",
+            "type": "string"
           },
           "SMIMESignature": {
             "additionalProperties": false,

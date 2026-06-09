@@ -652,11 +652,11 @@
     void:triples 4 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-entity-77a672-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://www.wikidata.org/entity/ (154)" ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.wikidata.org/entity/ (155)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget wd: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 154 .
+    void:triples 155 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-entity-77a672-skos_exactMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:exactMatch links to http://www.wikidata.org/entity/ (35)" ;
@@ -841,11 +841,11 @@
     void:triples 1 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-lime-b3a463-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://www.w3.org/ns/lemon/lime# (1)" ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.w3.org/ns/lemon/lime# (2)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget lime: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 1 .
+    void:triples 2 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-lrmoo-761269-owl_equivalentClass> a void:Linkset ;
     rdfs:label "GMEOW owl:equivalentClass links to http://iflastandards.info/ns/lrm/lrmoo/ (4)" ;
@@ -1036,12 +1036,19 @@
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
     void:triples 1 .
 
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ontolex-163f42-skos_broadMatch> a void:Linkset ;
+    rdfs:label "GMEOW skos:broadMatch links to http://www.w3.org/ns/lemon/ontolex# (2)" ;
+    void:linkPredicate skos:broadMatch ;
+    void:objectsTarget ontolex: ;
+    void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
+    void:triples 2 .
+
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ontolex-163f42-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://www.w3.org/ns/lemon/ontolex# (1)" ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.w3.org/ns/lemon/ontolex# (3)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget ontolex: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 1 .
+    void:triples 3 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ontology-062289-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to https://www.opmw.org/ontology/ (3)" ;
@@ -1177,11 +1184,11 @@
     void:triples 2 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-prov-938d3d-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://www.w3.org/ns/prov# (31)" ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.w3.org/ns/prov# (34)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget prov: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 31 .
+    void:triples 34 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-prov-938d3d-skos_exactMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:exactMatch links to http://www.w3.org/ns/prov# (3)" ;
@@ -1617,6 +1624,7 @@
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-om-1.8-4d900f-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-om-1.8-4d900f-skos_relatedMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ontolex-163f42-rdfs_subClassOf>,
+        <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ontolex-163f42-skos_broadMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ontolex-163f42-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ontology-062289-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ontology-2592f3-skos_closeMatch>,

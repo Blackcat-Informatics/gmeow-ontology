@@ -436,6 +436,7 @@ export enum EventTypeEnum {
     bar_mitzvah = "eventTypeBarMitzvah",
     bat_mitzvah = "eventTypeBatMitzvah",
     birth = "eventTypeBirth",
+    build = "eventTypeBuild",
     burial = "eventTypeBurial",
     census = "eventTypeCensus",
     census_activity = "eventTypeCensusActivity",
@@ -1421,6 +1422,14 @@ export enum RouteKindEnum {
     walking_route = "routeKindWalking",
 };
 
+export enum SLSALevelEnum {
+
+    SLSA_Level_1 = "slsaLevel1",
+    SLSA_Level_2 = "slsaLevel2",
+    SLSA_Level_3 = "slsaLevel3",
+    SLSA_Level_4 = "slsaLevel4",
+};
+
 export enum ScriptRoleEnum {
 
     decorative = "scriptRoleDecorative",
@@ -1832,6 +1841,7 @@ export interface Attestation {
     attestedClaim?: Observation[],
     attestedSubject?: Entity[],
     attester?: Agent,
+    hasSLSALevel?: SLSALevel[],
     issuedAt?: string,
     transparencyLogEntry?: TransparencyLogEntry[],
     verificationActivity?: VerificationActivity[],
@@ -1920,6 +1930,19 @@ export interface Branch extends InformationObject {
 
 
 export interface BranchConditionType {
+}
+
+
+
+export interface BuildActivity extends Activity {
+    buildConfigUri?: string,
+    buildOutput?: Distribution[],
+    buildSource?: string[],
+}
+
+
+
+export interface Builder extends SoftwareAgent {
 }
 
 
@@ -3618,6 +3641,7 @@ export interface RelayHop {
 
 
 export interface Release extends Event {
+    releaseDoi?: string,
     releaseOf?: Project,
     releaseTag?: Tag[],
     releaseVersion?: string,
@@ -3704,6 +3728,11 @@ export interface Rule {
     ruleConsequence?: Duty[],
     ruleConstraint?: Constraint[],
     ruleTarget?: Entity,
+}
+
+
+
+export interface SLSALevel {
 }
 
 

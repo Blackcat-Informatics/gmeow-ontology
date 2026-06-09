@@ -1,0 +1,164 @@
+# Fixture: MeowGraph v1.0.0 — a complete verifiable release chain.
+# Exercises BuildActivity, Builder, Attestation, CryptographicSignature,
+# TransparencyLogEntry, and cross-module wiring (#233).
+#
+# Chain: signed commit → signed tag → build → attestation → cosign signature
+#        → Rekor entry → DOI + SWHID.
+
+@prefix ex:    <https://example.org/verifiable-release/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --------------------------------------------------------------------------- #
+# 1. Alice — the release author — and her Ed25519 signing key
+# --------------------------------------------------------------------------- #
+
+ex:alice a gmeow:Person ;
+    rdfs:label "Alice"@en ;
+    gmeow:holdsKey ex:aliceEd25519 .
+
+ex:aliceEd25519 a gmeow:CryptographicKey ;
+    gmeow:keyScheme gmeow:keySchemeSSH ;
+    gmeow:keyAlgorithm "ed25519" ;
+    gmeow:keyMaterial "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID…" ;
+    gmeow:fingerprint "SHA256:abc123…" .
+
+# --------------------------------------------------------------------------- #
+# 2. The release commit, signed by Alice
+# --------------------------------------------------------------------------- #
+
+ex:repo a gmeow:Repository ;
+    rdfs:label "meowgraph"@en ;
+    gmeow:repositoryType gmeow:repoTypeGit ;
+    gmeow:cloneUrl "https://github.com/example/meowgraph.git" ;
+    gmeow:webUrl "https://github.com/example/meowgraph" .
+
+ex:releaseCommit a gmeow:Commit ;
+    rdfs:label "Release commit for v1.0.0"@en ;
+    gmeow:commitInRepository ex:repo ;
+    gmeow:authoredBy ex:alice ;
+    gmeow:committedBy ex:alice ;
+    gmeow:authorTime "2026-03-15T09:00:00Z"^^xsd:dateTime ;
+    gmeow:committerTime "2026-03-15T09:00:00Z"^^xsd:dateTime ;
+    gmeow:contentDigest "swh:1:rev:0123456789abcdef0123456789abcdef01234567" ;
+    gmeow:hasSignature ex:commitSignature .
+
+ex:commitSignature a gmeow:CryptographicSignature ;
+    gmeow:signatureAlgorithm "ed25519" ;
+    gmeow:signedBy ex:alice ;
+    gmeow:signingKey ex:aliceEd25519 .
+
+# --------------------------------------------------------------------------- #
+# 3. Signed tag v1.0.0 pointing to the release commit
+# --------------------------------------------------------------------------- #
+
+ex:tagV1_0_0 a gmeow:Tag ;
+    rdfs:label "v1.0.0"@en ;
+    gmeow:pointsToCommit ex:releaseCommit ;
+    gmeow:hasSignature ex:tagSignature .
+
+ex:tagSignature a gmeow:CryptographicSignature ;
+    gmeow:signatureAlgorithm "ed25519" ;
+    gmeow:signedBy ex:alice ;
+    gmeow:signingKey ex:aliceEd25519 .
+
+# --------------------------------------------------------------------------- #
+# 4. Release v1.0.0 with DOI
+# --------------------------------------------------------------------------- #
+
+ex:v1_0_0 a gmeow:Release ;
+    rdfs:label "MeowGraph v1.0.0"@en ;
+    gmeow:releaseOf ex:meowgraph ;
+    gmeow:releaseVersion "v1.0.0" ;
+    gmeow:releaseTag ex:tagV1_0_0 ;
+    gmeow:releaseDoi "10.5281/zenodo.1234567" ;
+    gmeow:eventTime "2026-03-15T12:00:00Z"^^xsd:dateTime .
+
+ex:meowgraph a gmeow:SoftwareProject ;
+    rdfs:label "MeowGraph"@en .
+
+# --------------------------------------------------------------------------- #
+# 5. GitHub Actions BuildActivity producing a .tar.gz Distribution
+# --------------------------------------------------------------------------- #
+
+ex:githubActions a gmeow:Builder ;
+    rdfs:label "GitHub Actions"@en .
+
+ex:buildV1_0_0 a gmeow:BuildActivity ;
+    rdfs:label "Build MeowGraph v1.0.0"@en ;
+    gmeow:eventType gmeow:eventTypeBuild ;
+    gmeow:buildSource ex:releaseCommit ;
+    gmeow:buildOutput ex:distTarball ;
+    gmeow:buildConfigUri "https://github.com/example/meowgraph/blob/v1.0.0/.github/workflows/release.yml" ;
+    gmeow:hasParticipant ex:githubActions ;
+    gmeow:eventTime "2026-03-15T10:00:00Z"^^xsd:dateTime .
+
+ex:distTarball a gmeow:Distribution ;
+    rdfs:label "meowgraph-1.0.0.tar.gz"@en ;
+    gmeow:distributionFormat "tar.gz" ;
+    gmeow:contentDigest "sha256:deadbeef…" .
+
+# --------------------------------------------------------------------------- #
+# 6. in-toto / SLSA attestation for the build (DSSE envelope)
+# --------------------------------------------------------------------------- #
+
+ex:slsaAttestation a gmeow:Attestation ;
+    gmeow:attester ex:githubActions ;
+    gmeow:attestedSubject ex:distTarball ;
+    gmeow:attestationType gmeow:attestationTypeSLSAProvenance ;
+    gmeow:hasSLSALevel gmeow:slsaLevel3 ;
+    gmeow:attestationArtifact ex:slsaArtifact ;
+    gmeow:hasSignature ex:dsseSignature ;
+    gmeow:transparencyLogEntry ex:rekorEntry ;
+    gmeow:verificationActivity ex:verifyAttestation ;
+    gmeow:verificationResult ex:verifyResult ;
+    gmeow:issuedAt "2026-03-15T10:05:00Z"^^xsd:dateTime .
+
+ex:slsaArtifact a gmeow:AttestationArtifact ;
+    gmeow:artifactMediaType "application/vnd.in-toto+json" ;
+    gmeow:contentDigest "sha256:slsaabc…" .
+
+ex:dsseSignature a gmeow:CryptographicSignature ;
+    gmeow:signatureAlgorithm "ed25519" ;
+    gmeow:signedBy ex:githubActions ;
+    gmeow:signingKey ex:githubActionsKey .
+
+ex:githubActionsKey a gmeow:CryptographicKey ;
+    gmeow:keyScheme gmeow:keySchemeSSH ;
+    gmeow:keyAlgorithm "ed25519" ;
+    gmeow:keyMaterial "ssh-ed25519 AAAA…github-actions…" .
+
+# --------------------------------------------------------------------------- #
+# 7. Cosign signature over the distribution artifact
+# --------------------------------------------------------------------------- #
+
+ex:cosignSignature a gmeow:CryptographicSignature ;
+    gmeow:signatureAlgorithm "ed25519" ;
+    gmeow:signedBy ex:alice ;
+    gmeow:signingKey ex:aliceEd25519 .
+
+ex:distTarball gmeow:hasSignature ex:cosignSignature .
+
+# --------------------------------------------------------------------------- #
+# 8. Rekor transparency-log entry proving inclusion
+# --------------------------------------------------------------------------- #
+
+ex:rekorEntry a gmeow:TransparencyLogEntry ;
+    gmeow:logEntryUrl "https://rekor.sigstore.dev/api/v1/log/entries/24296fb24b8ad77a…" ;
+    gmeow:logEntryIndex 12345678 .
+
+# --------------------------------------------------------------------------- #
+# 9. Verification activity and result for the attestation
+# --------------------------------------------------------------------------- #
+
+ex:verifyAttestation a gmeow:VerificationActivity ;
+    gmeow:wasAssociatedWith ex:verifierBot ;
+    gmeow:eventTime "2026-03-15T10:10:00Z"^^xsd:dateTime .
+
+ex:verifierBot a gmeow:SoftwareAgent ;
+    rdfs:label "SLSA Verifier Bot"@en .
+
+ex:verifyResult a gmeow:VerificationResult ;
+    gmeow:hasVerificationStatus gmeow:verificationStatusVerified ;
+    gmeow:verifiedBy ex:verifierBot .

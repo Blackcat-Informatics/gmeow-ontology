@@ -1,0 +1,41 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix slsa:  <https://slsa.dev/provenance/v1#> .
+
+# Projection mappings: GMEOW software build → SLSA provenance JSON shape.
+# No stable SLSA RDF vocabulary exists; this is a loose directional downcast
+# generating SPARQL CONSTRUCT queries and EDOAL cells (Principle 5).
+
+gmeow:mapSlsaProvenance a gmeow:ProjectionMapping ;
+    rdfs:label "BuildActivity → slsa:Provenance"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "build" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "build" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:BuildActivity ]
+            [ gmeow:subjectVar "build" ; gmeow:predicate gmeow:buildOutput ; gmeow:objectVar "dist" ; gmeow:optional true ]
+            [ gmeow:subjectVar "build" ; gmeow:predicate gmeow:buildSource ; gmeow:objectVar "src" ; gmeow:optional true ]
+            [ gmeow:subjectVar "build" ; gmeow:predicate gmeow:buildConfigUri ; gmeow:objectVar "cfg" ; gmeow:optional true ] ) ;
+        gmeow:edoalSource gmeow:BuildActivity ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "slsa" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget slsa:Provenance ; gmeow:edoalTargetKind "class" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "build" ; gmeow:tPred rdf:type ; gmeow:tObjValue slsa:Provenance ]
+            [ gmeow:tSubj "build" ; gmeow:tPred slsa:subject ; gmeow:tObj "dist" ]
+            [ gmeow:tSubj "build" ; gmeow:tPred slsa:materials ; gmeow:tObj "src" ]
+            [ gmeow:tSubj "build" ; gmeow:tPred slsa:buildConfigURI ; gmeow:tObj "cfg" ] ) ;
+        gmeow:lossyDrop "builder identity, temporal scope, event type, multiple artifacts" ] .
+
+gmeow:mapSlsaLevel a gmeow:ProjectionMapping ;
+    rdfs:label "hasSLSALevel → slsa:buildLevel"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "att" ; gmeow:value "lvl" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "att" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Attestation ]
+            [ gmeow:subjectVar "att" ; gmeow:predicate gmeow:hasSLSALevel ; gmeow:objectVar "lvl" ] ) ;
+        gmeow:edoalSource gmeow:hasSLSALevel ] ;
+    gmeow:hasBinding [
+        gmeow:profile "slsa" ; gmeow:toPredicate slsa:buildLevel ; gmeow:relation "<=" ;
+        gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "attester identity, attestation artifact, verification result" ] .

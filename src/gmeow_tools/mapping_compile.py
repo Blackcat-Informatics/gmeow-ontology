@@ -93,6 +93,9 @@ _PROFILES = (
     "ivoa",
     "iptc",
     "loinc",
+    "slsa",
+    "intoto",
+    "sigstore",
 )
 _FNO_FILE = "functions.fno.ttl"
 #: Hand-authored FnO file the compiler reads (for the lint) but never writes.
