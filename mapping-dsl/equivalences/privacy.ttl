@@ -190,3 +190,79 @@ gmeow:eqPrivacy016 a gmeow:TermEquivalence ;
     gmeow:confidence 0.6 ;
     gmeow:comment "the data controller is the party issuing the privacy policy (ODRL assigner analogue)" ;
     gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Disclosure policy / consumer projection alignments (#225)
+# --------------------------------------------------------------------------- #
+
+gmeow:eqPrivacy017 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ProjectionContext ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject dpv:Recipient ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "DPV Recipient is the party receiving data; GMEOW ProjectionContext is the consumer/audience of a projection" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy018 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:DisclosurePolicy ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject dpv:ProcessingContext ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "DPV ProcessingContext is a broad context class; GMEOW DisclosurePolicy is a claim-scoped classification" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy019 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:DisclosurePolicy ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject odrl:Policy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "ODRL Policy is a full deontic expression; GMEOW DisclosurePolicy is a lighter-weight claim-scoped classification" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy020 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eligibleForConsumer ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject schema:audience ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "schema.org audience is the intended consumer of a CreativeWork; GMEOW eligibleForConsumer is universal and claim-scoped" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy021 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasDisclosurePolicy ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject dpv:hasProcessingContext ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "DPV hasProcessingContext links a process to its context; GMEOW hasDisclosurePolicy is domain-free" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy022 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:policyPublicOnlyWithIndependentSource ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject odrl:purpose ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "the conditional independent-source requirement is a purpose-like constraint on disclosure" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy023 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:consumerWikidata ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q2013 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Wikidata" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .
+
+gmeow:eqPrivacy024 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:consumerWikipedia ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q52 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Wikipedia" ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" .

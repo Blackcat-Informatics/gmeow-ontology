@@ -207,6 +207,74 @@ gmeow:sensitivityRestricted        a gmeow:SensitivityLevel ; rdfs:label "restri
 gmeow:sensitivitySensitivePersonal a gmeow:SensitivityLevel ; rdfs:label "sensitive personal"@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
+# Consumer Projection Context — the audience / consumer axis (#225).
+#
+# Every value or claim may name the projection consumers it is eligible for.
+# This is the *who* layer of disclosure control: which downstream consumers
+# (internal archive, agent memory, Wikidata, Wikipedia, public site, …) may
+# receive the fact. Orthogonal to sensitivity, determinacy, confidence, and
+# granularity (Principle 9). The eligibility decision (k-anonymity, source
+# independence) stays in the solver layer (P12).
+# --------------------------------------------------------------------------- #
+
+gmeow:ProjectionContext
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Projection Context"@en ;
+    skos:definition "The consumer or audience for which a fact is eligible to be projected — an open value vocabulary of individuals (never subclasses). Names downstream targets such as internal archives, agent memory, Wikidata, Wikipedia, or public websites. The *who* layer of disclosure control, orthogonal to sensitivity, determinacy, confidence, and granularity (Principle 9). Eligibility decisions (k-anonymity, source-independence checks) are solver-layer computations (P12); the vocabulary is the ontology deliverable."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eligibleForConsumer
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:ProjectionContext ;
+    rdfs:label "eligible for consumer"@en ;
+    skos:definition "Relates a value, entity, or claim to the projection consumers it is eligible for — the explicit *who* facet of disclosure control. Domain-free (universal, like hasGranularity and hasSensitivity). NOT functional: in a multi-source merge sources may state different consumer eligibilities, and those claims coexist rather than force the reasoner to collapse distinct consumers (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Seeds
+gmeow:consumerInternalArchive     a gmeow:ProjectionContext ; rdfs:label "internal archive"@en ;     skos:definition "The consumer is an internal archival system — not publicly visible."@en ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:consumerAgentMemory         a gmeow:ProjectionContext ; rdfs:label "agent memory"@en ;         skos:definition "The consumer is an AI agent's working memory or retrieval store."@en ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:consumerWikidata            a gmeow:ProjectionContext ; rdfs:label "Wikidata"@en ;            skos:definition "The consumer is Wikidata — a structured, editable knowledge base."@en ;            rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:consumerWikipedia           a gmeow:ProjectionContext ; rdfs:label "Wikipedia"@en ;           skos:definition "The consumer is Wikipedia — an encyclopedic article."@en ;           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:consumerPublicSite          a gmeow:ProjectionContext ; rdfs:label "public site"@en ;          skos:definition "The consumer is a public-facing website or application."@en ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:consumerSchemaOrgJsonLd     a gmeow:ProjectionContext ; rdfs:label "schema.org JSON-LD"@en ;  skos:definition "The consumer is a schema.org JSON-LD markup export."@en ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:consumerFoafExport          a gmeow:ProjectionContext ; rdfs:label "FOAF export"@en ;          skos:definition "The consumer is a FOAF/RDF social-graph export."@en ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:consumerResearchQueue       a gmeow:ProjectionContext ; rdfs:label "research queue"@en ;       skos:definition "The consumer is a human-curated research or verification queue."@en ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Disclosure Policy — the access-classification axis (#225).
+#
+# Every value or claim may carry a disclosure policy that classifies its
+# suitability for public release. This is the *what* layer: internal-only,
+# sensitive, public-careful, public-safe, never-public, or public-only-with-
+# independent-source. It layers over the existing sensitivity/coarsen/suppress
+# machinery (#72/#73) and pairs with the evidence module's sourceIndependence
+# (#224) for the conditional case.
+# --------------------------------------------------------------------------- #
+
+gmeow:DisclosurePolicy
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Disclosure Policy"@en ;
+    skos:definition "The disclosure posture of a value or claim — an open value vocabulary of individuals (never subclasses) classifying whether and under what conditions the fact may be projected to consumers. The *what* layer of disclosure control: internalOnly, sensitive, publicCareful, publicSafe, neverPublic, or publicOnlyWithIndependentSource. Orthogonal to sensitivity, determinacy, confidence, and granularity (Principle 9). The conditional case (publicOnlyWithIndependentSource) is resolved against the evidence module's sourceIndependence axis (#224) in the solver layer (P12)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasDisclosurePolicy
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:DisclosurePolicy ;
+    rdfs:label "has disclosure policy"@en ;
+    skos:definition "Relates a value, entity, or claim to its disclosure policy — the explicit *what* facet of disclosure control. Domain-free (universal, like hasGranularity and hasSensitivity). NOT functional: in a multi-source merge sources may state different policies, and those claims coexist rather than force the reasoner to collapse distinct policies (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Seeds
+gmeow:policyInternalOnly                   a gmeow:DisclosurePolicy ; rdfs:label "internal only"@en ;                   skos:definition "The fact must never leave internal systems."@en ;                   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:policySensitive                      a gmeow:DisclosurePolicy ; rdfs:label "sensitive"@en ;                      skos:definition "The fact is sensitive and requires case-by-case review before any projection."@en ;                      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:policyPublicCareful                  a gmeow:DisclosurePolicy ; rdfs:label "public careful"@en ;                  skos:definition "The fact may be public but warrants caution — check context and consent before projecting."@en ;                  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:policyPublicSafe                     a gmeow:DisclosurePolicy ; rdfs:label "public safe"@en ;                     skos:definition "The fact is safe for broad public projection without additional review."@en ;                     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:policyNeverPublic                    a gmeow:DisclosurePolicy ; rdfs:label "never public"@en ;                    skos:definition "The fact must never be projected to any public consumer — private-sourced or otherwise restricted."@en ;                    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:policyPublicOnlyWithIndependentSource  a gmeow:DisclosurePolicy ; rdfs:label "public only with independent source"@en ;  skos:definition "The fact may be projected to public consumers ONLY when supported by an editorially independent source (resolved against gmeow:sourceIndependence in the solver layer, P12)."@en ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
 # Units — cross-cutting unit linkage for measurements (#67).
 #
 # Domain-free object property pointing to QUDT by reference. Temporal
