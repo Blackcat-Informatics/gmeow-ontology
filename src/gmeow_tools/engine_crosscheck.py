@@ -27,6 +27,7 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import cast
 
+import pyoxigraph
 from rdflib import BNode, Graph, Literal, URIRef
 from rdflib.namespace import XSD
 from rdflib.query import ResultRow
@@ -118,9 +119,9 @@ def _term_key(term: object) -> object:
     if term is None:
         return None
     if isinstance(term, URIRef | BNode):
-        # Blank-node labels are not engine-stable; compare by kind only would be
-        # unsafe, but the committed queries return no blank nodes, so the label
-        # is stable enough in practice. Fall back to its string form.
+        # A URI compares by its IRI string. Blank-node *labels* are not engine-
+        # stable, so blank nodes compare by kind only — sound here because the
+        # committed queries return no blank nodes (and none in a row position).
         return ("uri", str(term)) if isinstance(term, URIRef) else ("bnode",)
     if isinstance(term, Literal):
         datatype = term.datatype
@@ -151,7 +152,7 @@ def _row_keys(
 
 
 def crosscheck_query(
-    name: str, query_text: str, data_graph: Graph, store: object
+    name: str, query_text: str, data_graph: Graph, store: pyoxigraph.Store
 ) -> CrosscheckResult:
     """Run one query on both engines over the same data and compare by value.
 
@@ -160,9 +161,6 @@ def crosscheck_query(
     check is **skipped** and reported as such — never silently dropped. If only
     one engine errors, that is a genuine divergence.
     """
-    import pyoxigraph
-
-    assert isinstance(store, pyoxigraph.Store)
     form = _query_form(query_text)
     a_ok, a_val, a_err = _run_rdflib(form, query_text, data_graph)
     b_ok, b_val, b_err = _run_pyox(form, query_text, store)
@@ -205,13 +203,15 @@ def _run_rdflib(
         return False, None, type(exc).__name__
 
 
-def _run_pyox(form: str, query_text: str, store: object) -> tuple[bool, object, str]:
+def _run_pyox(
+    form: str, query_text: str, store: pyoxigraph.Store
+) -> tuple[bool, object, str]:
     try:
         if form == "CONSTRUCT":
-            return True, _triple_keys(sparql.construct(store, query_text)), ""  # type: ignore[arg-type]
+            return True, _triple_keys(sparql.construct(store, query_text)), ""
         if form == "ASK":
-            return True, sparql.ask(store, query_text), ""  # type: ignore[arg-type]
-        return True, _row_keys(sparql.select(store, query_text)), ""  # type: ignore[arg-type]
+            return True, sparql.ask(store, query_text), ""
+        return True, _row_keys(sparql.select(store, query_text)), ""
     except Exception as exc:
         return False, None, type(exc).__name__
 
@@ -224,7 +224,7 @@ def _delta(a: object, b: object) -> str:
     return f"rdflib-only={only_a!r} pyox-only={only_b!r}"
 
 
-def _projection_data() -> tuple[Graph, object]:
+def _projection_data() -> tuple[Graph, pyoxigraph.Store]:
     """The merged ontology plus the projection example fixtures, both engines."""
     graph = load_merged_graph(include_imports=False)
     paths = [
@@ -242,7 +242,7 @@ def crosscheck_all() -> list[CrosscheckResult]:
     base_store = sparql.merged_store(include_imports=False)
     proj_graph, proj_store = _projection_data()
 
-    plan: list[tuple[Path, Graph, object]] = []
+    plan: list[tuple[Path, Graph, pyoxigraph.Store]] = []
     for directory in (COMPETENCY_DIR, QC_DIR, VERIFY_DIR, TEMPORAL_QUERY_DIR):
         for rq in sorted(directory.glob("*.rq")):
             plan.append((rq, base_graph, base_store))

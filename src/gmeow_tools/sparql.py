@@ -33,8 +33,12 @@ from gmeow_tools.graph import bind_prefixes, iter_source_files
 _TURTLE = pyoxigraph.RdfFormat.TURTLE
 _NT = pyoxigraph.RdfFormat.N_TRIPLES
 
-#: pyoxigraph does not export a single ``Term`` union, so name the RDF term types
-#: a query solution can hold (a triple term may appear under RDF 1.2).
+#: pyoxigraph does not export a single ``Term`` union, so name the term types a
+#: query solution / substitution can hold — the full set ``Store.query`` expects.
+#: ``pyoxigraph.Triple`` (a quoted triple, RDF 1.2) is included for completeness,
+#: but ``_to_rdflib`` rejects it explicitly: rdflib 7.6 has no quoted-triple *term*
+#: type, and the SELECT/CONSTRUCT queries this module serves never project one (the
+#: RDF 1.2 statement round-trip uses the dedicated ``rdf12_pyoxigraph`` path).
 type _OxTerm = (
     pyoxigraph.NamedNode | pyoxigraph.BlankNode | pyoxigraph.Literal | pyoxigraph.Triple
 )
@@ -200,4 +204,9 @@ def _to_rdflib(value: _OxTerm | None) -> Identifier | None:
         if datatype == "http://www.w3.org/2001/XMLSchema#string":
             return Literal(value.value)
         return Literal(value.value, datatype=URIRef(datatype))
-    raise TypeError(f"unexpected SPARQL term: {value!r}")
+    # A quoted triple term (RDF 1.2) has no rdflib term-type counterpart in
+    # rdflib 7.6 and never appears in the queries this helper serves; surface it
+    # explicitly rather than silently mishandling it.
+    raise NotImplementedError(
+        f"quoted-triple SELECT result is not representable as an rdflib term: {value!r}"
+    )

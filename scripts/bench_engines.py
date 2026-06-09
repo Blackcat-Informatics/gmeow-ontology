@@ -10,11 +10,9 @@ It is a manual diagnostic, not a test (no asserts, no CI gate).
 
 from __future__ import annotations
 
-import io
 import time
 from collections.abc import Callable
 
-import pyoxigraph
 import rdflib
 
 from gmeow_tools import sparql
@@ -59,17 +57,13 @@ def main() -> None:
     store = sparql.store_with(*fixtures)
     query = (PROJECTION_QUERY_DIR / "schema-org.rq").read_text(encoding="utf-8")
 
-    def pyox_construct() -> object:
-        results = store.query(query)
-        buffer = io.BytesIO()
-        pyoxigraph.serialize(results, buffer, format=pyoxigraph.RdfFormat.N_TRIPLES)
-        graph = rdflib.Graph()
-        graph.parse(data=buffer.getvalue(), format="nt")
-        return graph
-
     print("\nschema-org CONSTRUCT projection:")
     _time("(d) rdflib .query()", lambda: src.query(query).graph, n=3)
-    _time("(e) pyoxigraph + hand-off to rdflib", pyox_construct, n=3)
+    _time(
+        "(e) pyoxigraph + hand-off to rdflib",
+        lambda: sparql.construct(store, query),
+        n=3,
+    )
 
     print("\nSHACL shapes parse (per run_shacl call before caching):")
     _time(
