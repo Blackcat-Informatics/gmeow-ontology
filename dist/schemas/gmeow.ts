@@ -38,6 +38,15 @@ export enum ArcTypeEnum {
     redemption = "arcTypeRedemption",
 };
 
+export enum AssetTypeEnum {
+
+    bond = "assetTypeBond",
+    commodity = "assetTypeCommodity",
+    cryptocurrency = "assetTypeCryptocurrency",
+    real_estate = "assetTypeRealEstate",
+    stock = "assetTypeStock",
+};
+
 export enum AttestationTypeEnum {
 
     AI_output_attestation = "attestationTypeAIOutput",
@@ -674,6 +683,15 @@ export enum HonorificPositionEnum {
     suffix = "honorificPositionSuffix",
 };
 
+export enum InvoiceStatusEnum {
+
+    cancelled = "invoiceStatusCancelled",
+    draft = "invoiceStatusDraft",
+    overdue = "invoiceStatusOverdue",
+    paid = "invoiceStatusPaid",
+    sent = "invoiceStatusSent",
+};
+
 export enum KeySchemeEnum {
 
     Nostr = "keySchemeNostr",
@@ -766,6 +784,15 @@ export enum LanguageVarietyKindEnum {
     slang = "kindSlang",
     sociolect = "kindSociolect",
     standard = "kindStandard",
+};
+
+export enum LedgerAccountTypeEnum {
+
+    asset = "ledgerAccountTypeAsset",
+    equity = "ledgerAccountTypeEquity",
+    expense = "ledgerAccountTypeExpense",
+    liability = "ledgerAccountTypeLiability",
+    revenue = "ledgerAccountTypeRevenue",
 };
 
 export enum LedgerFinalityStatusEnum {
@@ -1064,6 +1091,15 @@ export enum ObservationTypeEnum {
     streaming = "observationTypeStreaming",
 };
 
+export enum OrderStatusEnum {
+
+    cancelled = "orderStatusCancelled",
+    confirmed = "orderStatusConfirmed",
+    delivered = "orderStatusDelivered",
+    pending = "orderStatusPending",
+    shipped = "orderStatusShipped",
+};
+
 export enum OrganizationEnum {
 
     International_Commission_on_Stratigraphy = "agentInternationalCommissionOnStratigraphy",
@@ -1078,13 +1114,25 @@ export enum ParticipantRoleEnum {
     deceived = "roleDeceived",
     deceiver = "roleDeceiver",
     dupe = "roleDupe",
+    intermediary = "roleIntermediary",
     officiant = "roleOfficiant",
     organizer = "roleOrganizer",
     principal_SOLIDUS_subject = "roleParticipantPrincipal",
+    payee = "rolePayee",
+    payer = "rolePayer",
     performer = "rolePerformer",
     spin_doctor = "roleSpinDoctor",
     victim = "roleVictim",
     witness = "roleWitness",
+};
+
+export enum PaymentMethodEnum {
+
+    bank_transfer = "paymentMethodBankTransfer",
+    cash = "paymentMethodCash",
+    cheque = "paymentMethodCheque",
+    credit_card = "paymentMethodCreditCard",
+    cryptocurrency = "paymentMethodCrypto",
 };
 
 export enum PeriodTypeEnum {
@@ -1131,6 +1179,12 @@ export enum PlaceTypeEnum {
     room = "placeTypeRoom",
     site_SOLIDUS_campus = "placeTypeSite",
     thoroughfare_SOLIDUS_street = "placeTypeThoroughfare",
+};
+
+export enum PostingDirectionEnum {
+
+    credit = "postingDirectionCredit",
+    debit = "postingDirectionDebit",
 };
 
 export enum ProcedureEnum {
@@ -1646,6 +1700,25 @@ export enum TrademarkStatusEnum {
     unregistered_LEFT_PARENTHESISTRADE_MARK_SIGNRIGHT_PARENTHESIS = "trademarkStatusUnregistered",
 };
 
+export enum TransactionStatusEnum {
+
+    completed = "transactionStatusCompleted",
+    failed = "transactionStatusFailed",
+    pending = "transactionStatusPending",
+    reversed = "transactionStatusReversed",
+};
+
+export enum TransactionTypeEnum {
+
+    deposit = "transactionTypeDeposit",
+    fee = "transactionTypeFee",
+    interest = "transactionTypeInterest",
+    payment = "transactionTypePayment",
+    refund = "transactionTypeRefund",
+    transfer = "transactionTypeTransfer",
+    withdrawal = "transactionTypeWithdrawal",
+};
+
 export enum TransliterationSchemeEnum {
 
     BGNSOLIDUSPCGN_romanization = "schemeBGNPCGN",
@@ -1706,6 +1779,14 @@ export enum VirtualLocationTypeEnum {
     video_conference = "virtualLocationTypeVideoConference",
     virtual_event_space = "virtualLocationTypeVirtualEventSpace",
     website = "virtualLocationTypeWebsite",
+};
+
+export enum WalletSchemeEnum {
+
+    Bitcoin = "walletSchemeBTC",
+    Ethereum = "walletSchemeETH",
+    Solana = "walletSchemeSOL",
+    Monero = "walletSchemeXMR",
 };
 
 export enum WritingSystemTypeEnum {
@@ -1830,6 +1911,18 @@ export interface ArchaeologicalFindContext {
 
 
 export interface Article extends Work {
+}
+
+
+
+export interface Asset extends Entity {
+    assetIdentifier?: string,
+    assetType?: AssetType,
+}
+
+
+
+export interface AssetType {
 }
 
 
@@ -2263,6 +2356,14 @@ export interface Credential extends Entity {
 
 
 
+export interface CryptoWallet extends FinancialAccount {
+    walletAddress?: string,
+    walletKey?: CryptographicKey[],
+    walletScheme?: WalletScheme,
+}
+
+
+
 export interface CryptographicKey extends InformationObject {
     fingerprint?: string,
     keyAlgorithm?: string,
@@ -2548,6 +2649,14 @@ export interface FinancialAccountType {
 
 
 
+export interface FinancialTransaction extends Event {
+    transactionAmount?: MonetaryAmount,
+    transactionStatus?: TransactionStatus[],
+    transactionType?: TransactionType[],
+}
+
+
+
 export interface ForgePlatform extends Entity {
 }
 
@@ -2656,6 +2765,16 @@ export interface Group extends Entity {
 
 
 
+export interface Holding {
+    holdingAgent?: Agent,
+    holdingAsset?: Asset,
+    holdingCostBasis?: MonetaryAmount,
+    holdingPeriod?: TimeInterval[],
+    holdingQuantity?: string,
+}
+
+
+
 export interface Honorific {
     honorificClass?: HonorificClass[],
     honorificPosition?: HonorificPosition,
@@ -2733,6 +2852,21 @@ export interface InterpersonalRelationship {
 
 
 
+export interface Invoice extends Document {
+    invoiceAmount?: MonetaryAmount,
+    invoiceDueDate?: string,
+    invoiceIssuer?: Agent[],
+    invoiceRecipient?: Agent[],
+    invoiceStatus?: InvoiceStatus[],
+}
+
+
+
+export interface InvoiceStatus {
+}
+
+
+
 export interface Issue extends InformationObject {
 }
 
@@ -2741,6 +2875,12 @@ export interface Issue extends InformationObject {
 export interface Item extends CreativeWork {
     exemplifies?: Manifestation[],
     hasCarrier?: PhysicalObject[],
+}
+
+
+
+export interface JournalEntry extends Event {
+    journalEntryPostings?: Posting[],
 }
 
 
@@ -2857,6 +2997,19 @@ export interface LanguageVarietyKind {
 
 
 export interface LanguageVersion extends Language {
+}
+
+
+
+export interface LedgerAccount extends InformationObject {
+    ledgerAccountCurrency?: ReferenceFrame[],
+    ledgerAccountHolder?: Agent[],
+    ledgerAccountType?: LedgerAccountType,
+}
+
+
+
+export interface LedgerAccountType {
 }
 
 
@@ -3287,6 +3440,20 @@ export interface OnlineAccount extends InformationObject {
 
 
 
+export interface Order extends Agreement {
+    orderAmount?: MonetaryAmount,
+    orderBuyer?: Agent[],
+    orderSeller?: Agent[],
+    orderStatus?: OrderStatus[],
+}
+
+
+
+export interface OrderStatus {
+}
+
+
+
 export interface Organization extends Agent {
     hasMember?: Agent[],
     hasOrganizationName?: OrganizationName[],
@@ -3349,6 +3516,17 @@ export interface Participation {
 
 
 export interface Patent extends Work {
+}
+
+
+
+export interface Payment extends FinancialTransaction {
+    paymentMethod?: PaymentMethod[],
+}
+
+
+
+export interface PaymentMethod {
 }
 
 
@@ -3454,6 +3632,20 @@ export interface PostalAddress extends ContactPoint {
     postalAddressFrame?: ReferenceFrame,
     postalCode?: string,
     streetAddress?: string,
+}
+
+
+
+export interface Posting {
+    postingAccount?: LedgerAccount,
+    postingAmount?: MonetaryAmount,
+    postingDirection?: PostingDirection,
+    postingJournalEntry?: JournalEntry,
+}
+
+
+
+export interface PostingDirection {
 }
 
 
@@ -4307,6 +4499,11 @@ export interface VirtualLocation extends Location {
 
 
 export interface VirtualLocationType {
+}
+
+
+
+export interface WalletScheme {
 }
 
 

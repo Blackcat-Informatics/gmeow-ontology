@@ -1,0 +1,23 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:      <https://blackcatinformatics.ca/gmeow/examples/finance/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+# Alice holds 10 shares of ACME stock with a cost basis of $1,000 USD.
+ex:alice a gmeow:Agent .
+
+ex:acmeStock
+    a gmeow:Asset ;
+    gmeow:assetType gmeow:assetTypeStock ;
+    gmeow:assetIdentifier "ACME" .
+
+ex:aliceHolding
+    a gmeow:Holding ;
+    gmeow:holdingAgent ex:alice ;
+    gmeow:holdingAsset ex:acmeStock ;
+    gmeow:holdingQuantity "10.0"^^xsd:decimal ;
+    gmeow:holdingCostBasis ex:costBasis .
+
+ex:costBasis
+    a gmeow:MonetaryAmount ;
+    gmeow:monetaryValue "1000.00"^^xsd:decimal ;
+    gmeow:currency gmeow:referenceFrameUSD .

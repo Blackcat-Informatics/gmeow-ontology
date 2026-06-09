@@ -1,0 +1,20 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:      <https://blackcatinformatics.ca/gmeow/examples/finance/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+# A well-formed invoice from Bob to Alice for consulting services.
+ex:alice a gmeow:Agent .
+ex:bob   a gmeow:Agent .
+
+ex:invoice001
+    a gmeow:Invoice ;
+    gmeow:invoiceAmount ex:invoiceAmount ;
+    gmeow:invoiceIssuer ex:bob ;
+    gmeow:invoiceRecipient ex:alice ;
+    gmeow:invoiceDueDate "2026-02-15T23:59:59Z"^^xsd:dateTime ;
+    gmeow:invoiceStatus gmeow:invoiceStatusSent .
+
+ex:invoiceAmount
+    a gmeow:MonetaryAmount ;
+    gmeow:monetaryValue "500.00"^^xsd:decimal ;
+    gmeow:currency gmeow:referenceFrameCAD .

@@ -208,7 +208,8 @@ def test_dsl_parses() -> None:
     # Issue #215 speech-act deceptions: +5 (eventTypeLie/Distortion/Bullshit/
     # SelfDeception → Wikidata x4 + Frankfurt essay x1). Paltering removed —
     # no valid Wikidata QID found.
-    assert len(dsl.equivalences) == 1439
+    # Issue #64 financial slice Phases B-D: +10 (schema.org finance x5, FIBO x5).
+    assert len(dsl.equivalences) == 1449
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
