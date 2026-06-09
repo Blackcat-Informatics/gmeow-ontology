@@ -2126,3 +2126,65 @@ gmeow:ReadingOrderShape
     rdfs:label "Reading Order Shape" ;
     rdfs:comment "Documentation only — asserts no property constraints. gmeow:ReadingOrder is a gmeow:Standpoint subclass; Standpoint declares no owl:Restriction requirements in the ontology, so this shape serves as a marker confirming ReadingOrder instances are valid without additional closed-world checks." ;
     sh:targetClass gmeow:ReadingOrder .
+
+# =========================================================================== #
+# Finance module (#64) — MonetaryAmount and FinancialAccount shapes
+# =========================================================================== #
+
+# Every MonetaryAmount must have exactly one currency (frame-relativity, P11).
+gmeow:MonetaryAmountHasCurrencyShape
+    a sh:NodeShape ;
+    rdfs:label "MonetaryAmount currency shape" ;
+    sh:targetClass gmeow:MonetaryAmount ;
+    sh:property [
+        sh:path gmeow:currency ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class gmeow:ReferenceFrame ;
+        sh:severity sh:Violation ;
+        sh:message "Every MonetaryAmount must have exactly one currency reference frame (gmeow:currency)." ;
+    ] .
+
+# FinancialAccount well-formedness — holder (required) and type (functional).
+gmeow:FinancialAccountShape
+    a sh:NodeShape ;
+    rdfs:label "FinancialAccount shape" ;
+    sh:targetClass gmeow:FinancialAccount ;
+    sh:property [
+        sh:path gmeow:accountHolder ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class gmeow:Agent ;
+        sh:severity sh:Violation ;
+        sh:message "Every FinancialAccount must have at least one account holder (gmeow:accountHolder)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:accountCurrency ;
+        sh:nodeKind sh:IRI ;
+        sh:class gmeow:ReferenceFrame ;
+        sh:severity sh:Violation ;
+        sh:message "Each gmeow:accountCurrency value on a FinancialAccount must be a gmeow:ReferenceFrame." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:accountType ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class gmeow:FinancialAccountType ;
+        sh:severity sh:Violation ;
+        sh:message "A FinancialAccount must have at most one account type (gmeow:accountType)." ;
+    ] .
+
+# Every MonetaryAmount must have exactly one monetary value.
+gmeow:MonetaryAmountHasValueShape
+    a sh:NodeShape ;
+    rdfs:label "MonetaryAmount value shape" ;
+    sh:targetClass gmeow:MonetaryAmount ;
+    sh:property [
+        sh:path gmeow:monetaryValue ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:severity sh:Violation ;
+        sh:message "Every MonetaryAmount must have exactly one monetary value (gmeow:monetaryValue, xsd:decimal)." ;
+    ] .

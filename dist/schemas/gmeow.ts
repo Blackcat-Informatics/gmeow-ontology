@@ -469,6 +469,14 @@ export enum EvidenceClassEnum {
     verified_evidence = "evidenceVERIFIED",
 };
 
+export enum FinancialAccountTypeEnum {
+
+    bank_account = "accountTypeBank",
+    credit_account = "accountTypeCredit",
+    investment_account = "accountTypeInvestment",
+    wallet = "accountTypeWallet",
+};
+
 export enum FrameKindEnum {
 
     cartesian = "frameKindCartesian",
@@ -1156,20 +1164,28 @@ export enum QualityDimensionEnum {
 
 export enum ReferenceFrameEnum {
 
+    Australian_Dollar_Currency_Reference_Frame = "referenceFrameAUD",
     Altitude_Above_Ground_Level_Reference_Frame = "referenceFrameAltitudeAGL",
     Altitude_Above_Mean_Sea_Level_Reference_Frame = "referenceFrameAltitudeMSL",
     Audio_Spectrum_Reference_Frame = "referenceFrameAudioSpectrum",
     BGP_Autonomous_System_Reference_Frame = "referenceFrameBGP",
+    Bitcoin_Currency_Reference_Frame = "referenceFrameBTC",
+    Canadian_Dollar_Currency_Reference_Frame = "referenceFrameCAD",
+    Swiss_Franc_Currency_Reference_Frame = "referenceFrameCHF",
     CIE_LASTERISKaASTERISKbASTERISK_Perceptually_Uniform_Reference_Frame = "referenceFrameCIELAB",
     CIE_1931_XYZ_Tristimulus_Reference_Frame = "referenceFrameCIEXYZ",
     CMYK_Colourspace_Reference_Frame = "referenceFrameCMYK",
+    Chinese_Yuan_Currency_Reference_Frame = "referenceFrameCNY",
     Celestial_Equatorial_Reference_Frame = "referenceFrameCelestialEquatorial",
     DNS_Name_Space_Reference_Frame = "referenceFrameDNS",
     Depth_Below_Chart_Datum_Reference_Frame = "referenceFrameDepthBelowChartDatum",
     Depth_Below_Mean_Sea_Level_Reference_Frame = "referenceFrameDepthBelowSeaLevel",
+    Ethereum_Currency_Reference_Frame = "referenceFrameETH",
+    Euro_Currency_Reference_Frame = "referenceFrameEUR",
     English_Language_Reference_Frame = "referenceFrameEnglish",
     FK5_Equatorial_Reference_Frame = "referenceFrameFK5",
     ICAO_Flight_Level_Reference_Frame = "referenceFrameFlightLevel",
+    British_Pound_Currency_Reference_Frame = "referenceFrameGBP",
     GRCh38_Human_Reference_Assembly = "referenceFrameGRCh38",
     Galactic_Coordinate_Reference_Frame = "referenceFrameGalactic",
     Geohash_Reference_Frame = "referenceFrameGeohash",
@@ -1179,6 +1195,7 @@ export enum ReferenceFrameEnum {
     IPv4_Address_Space_Reference_Frame = "referenceFrameIPv4",
     IPv6_Address_Space_Reference_Frame = "referenceFrameIPv6",
     Internet_Topology_Reference_Frame = "referenceFrameInternet",
+    Japanese_Yen_Currency_Reference_Frame = "referenceFrameJPY",
     Latent_Vector_Space_Reference_Frame = "referenceFrameLatentVectorSpace",
     Local_Grid_Cartesian_Reference_Frame = "referenceFrameLocalGrid",
     MAC_Address_Space_Reference_Frame = "referenceFrameMAC",
@@ -2299,6 +2316,23 @@ export interface Filename extends Appellation {
 
 
 
+export interface FinancialAccount extends InformationObject {
+    accountBalance?: MonetaryAmount[],
+    accountCurrency?: ReferenceFrame[],
+    accountHolder?: Agent[],
+    accountNumber?: string,
+    accountType?: FinancialAccountType,
+    bic?: string,
+    iban?: string,
+}
+
+
+
+export interface FinancialAccountType {
+}
+
+
+
 export interface ForgePlatform extends Entity {
 }
 
@@ -2848,6 +2882,13 @@ export interface MessageParticipantRole {
 
 
 export interface MetricKind {
+}
+
+
+
+export interface MonetaryAmount extends Entity {
+    currency?: ReferenceFrame,
+    monetaryValue?: string,
 }
 
 
@@ -3855,6 +3896,16 @@ export interface Trajectory extends Entity {
     hasTrajectorySample?: LocationState[],
     trajectoryOf?: Entity,
     trajectoryReferenceFrame?: ReferenceFrame,
+}
+
+
+
+export interface TransactionStatus {
+}
+
+
+
+export interface TransactionType {
 }
 
 

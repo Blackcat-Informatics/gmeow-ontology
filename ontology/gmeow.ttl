@@ -38,6 +38,7 @@
         <https://blackcatinformatics.ca/gmeow/modules/entities> ,
         <https://blackcatinformatics.ca/gmeow/modules/organization> ,
         <https://blackcatinformatics.ca/gmeow/modules/accounts> ,
+        <https://blackcatinformatics.ca/gmeow/modules/finance> ,
         <https://blackcatinformatics.ca/gmeow/modules/creative-works> ,
         <https://blackcatinformatics.ca/gmeow/modules/documents> ,
         <https://blackcatinformatics.ca/gmeow/modules/software> ,

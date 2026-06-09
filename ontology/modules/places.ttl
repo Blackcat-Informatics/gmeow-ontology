@@ -1106,6 +1106,96 @@ gmeow:referenceFrameUSD
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
 
+gmeow:referenceFrameEUR
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Euro Currency Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmCurrency ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameGBP
+    a gmeow:ReferenceFrame ;
+    rdfs:label "British Pound Currency Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmCurrency ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameJPY
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Japanese Yen Currency Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmCurrency ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameCAD
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Canadian Dollar Currency Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmCurrency ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameCHF
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Swiss Franc Currency Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmCurrency ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameAUD
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Australian Dollar Currency Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmCurrency ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameCNY
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Chinese Yuan Currency Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmCurrency ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameBTC
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Bitcoin Currency Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmCurrency ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+gmeow:referenceFrameETH
+    a gmeow:ReferenceFrame ;
+    rdfs:label "Ethereum Currency Reference Frame"@en ;
+    gmeow:frameRealm gmeow:frameRealmCurrency ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
 gmeow:referenceFrameGregorian
     a gmeow:ReferenceFrame ;
     rdfs:label "Gregorian Calendar Reference Frame"@en ;

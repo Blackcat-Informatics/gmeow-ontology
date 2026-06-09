@@ -42,3 +42,21 @@ gmeow:eqFibo002 a gmeow:TermEquivalence ;
     gmeow:confidence 0.8 ;
     gmeow:comment "links a monetary amount to its currency frame" ;
     gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
+
+gmeow:eqFibo003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:MonetaryAmount ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject fibo-fnd-acc-cur:MonetaryAmount ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "a quantity of money expressed as a value in a currency" ;
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
+
+gmeow:eqFibo004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:currency ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject fibo-fnd-acc-cur:hasCurrency ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "links a monetary amount to its currency frame (subproperty of hasReferenceFrame)" ;
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
