@@ -44,16 +44,64 @@ gmeow:NarrativeFrameLink
     skos:definition "A reified relator that binds a source narrative frame, a target narrative frame, and the relation type between them into a single node. The canonical form when the specific frame-to-frame relation must itself be a node (e.g. to attach provenance, confidence, temporal scope, or standpoint); the flat shortcuts are gmeow:hasNarrativeFrameRelation and gmeow:relatesToFrame. Structurally the Tagging/NameUsage idiom wearing a different hat."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:CharacterArc
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Character Arc"@en ;
+    skos:definition "A first-class interpretive/structural information object describing a character's trajectory through a narrative — a standpoint-scoped analysis, never canonical truth. A gufo:Kind with distinct identity criteria (subject, frame, and type). Cross-continuity variants are linked by counterpartOf, never merged."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 # =========================================================================== #
 # PROPERTIES
 # =========================================================================== #
 
 gmeow:sourceFor
     a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:contributesToFrame ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range gmeow:NarrativeReferenceFrame ;
     rdfs:label "source for"@en ;
     skos:definition "Relates a creative work (a BookRelease, SerialInstallment, film, game, or other out-of-universe artifact) to the narrative reference frame it contributes to, witnesses, revises, or serves as a source for. Non-functional: a work may source several frames, and a frame may have many sources. The specific role (source, witness, revision, adaptation) is carried by gmeow:accordingTo on the claim or by a reified relator when needed."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:contributesToFrame
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InformationObject ;
+    rdfs:range gmeow:NarrativeReferenceFrame ;
+    rdfs:label "contributes to frame"@en ;
+    skos:definition "Relates a creative work or content segment to the narrative reference frame it contributes claims to. Broader than gmeow:sourceFor: a segment may contribute to a frame without being the primary source. Non-functional: an information object may contribute to many frames."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:arcSubject
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:CharacterArc ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "arc subject"@en ;
+    skos:definition "The entity whose arc is described — a person, organization, or other narrative entity. Functional: one subject per CharacterArc."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:arcFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:CharacterArc ;
+    rdfs:range gmeow:NarrativeReferenceFrame ;
+    rdfs:label "arc frame"@en ;
+    skos:definition "The narrative reference frame within which this arc is interpreted. Functional: one frame per CharacterArc; cross-continuity arcs are separate instances linked by counterpartOf."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:arcType
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:CharacterArc ;
+    rdfs:range gmeow:ArcType ;
+    rdfs:label "arc type"@en ;
+    skos:definition "The interpretive type of this character arc — a value from the open gmeow:ArcType vocabulary. Functional: one type per CharacterArc."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:arcEvidence
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CharacterArc ;
+    rdfs:range gmeow:InformationObject ;
+    rdfs:label "arc evidence"@en ;
+    skos:definition "The creative works or content segments that provide evidence for this arc interpretation. Non-functional: an arc may be evidenced by many segments or works."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasNarrativeFrameRelation
@@ -129,3 +177,25 @@ gmeow:relationAdaptationOf
     a gmeow:NarrativeFrameRelation ;
     rdfs:label "adaptation of"@en ;
     skos:definition "A narrative frame that adapts another frame into a different medium or format."@en .
+
+# =========================================================================== #
+# ARC TYPE VALUE VOCABULARY — individuals, never subclasses (Principle 9)
+# =========================================================================== #
+
+gmeow:ArcType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Arc Type"@en ;
+    skos:definition "The interpretive type of a character arc — a VALUE vocabulary (individuals, never subclasses). Coming-of-age, redemption, and fall are examples; the set is open."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# ArcType seeds
+# --------------------------------------------------------------------------- #
+
+gmeow:arcTypeComingOfAge a gmeow:ArcType ; rdfs:label "coming-of-age"@en ; skos:definition "A transition from childhood to maturity."@en .
+gmeow:arcTypeRedemption   a gmeow:ArcType ; rdfs:label "redemption"@en ;   skos:definition "A moral recovery or atonement for past failings."@en .
+gmeow:arcTypeFall         a gmeow:ArcType ; rdfs:label "fall"@en ;         skos:definition "A decline from a state of grace, power, or virtue."@en .
+gmeow:arcTypeCorruption   a gmeow:ArcType ; rdfs:label "corruption"@en ;   skos:definition "A moral or ethical degradation."@en .
+gmeow:arcTypeQuest        a gmeow:ArcType ; rdfs:label "quest"@en ;        skos:definition "A journey toward a goal that transforms the protagonist."@en .
+gmeow:arcTypeRecovery     a gmeow:ArcType ; rdfs:label "recovery"@en ;     skos:definition "A return to health, wholeness, or stability after loss."@en .

@@ -13,7 +13,8 @@ ex:sam a gmeow:Person ;
     gmeow:description "Backend engineer; enjoys ontologies and strong tea."@en ;
     gmeow:hasWebPage <https://sam.example.com/> ;
     gmeow:hasName ex:samLegal , ex:samNick ;
-    gmeow:memberOf ex:acme .
+    gmeow:memberOf ex:acme ;
+    gmeow:eligibleForConsumer gmeow:consumerPublicSite .
 
 # A web presence is a first-class WebPage whose IRI is its URL.
 <https://sam.example.com/> a gmeow:WebPage ; gmeow:name "Sam's site"@en .

@@ -91,6 +91,9 @@ classes:
     - nameScript
     - romanization
     - transliterationScheme
+  ArcType:
+    class_uri: https://blackcatinformatics.ca/gmeow/ArcType
+    title: Arc Type
   ArchaeologicalFindContext:
     class_uri: https://blackcatinformatics.ca/gmeow/ArchaeologicalFindContext
     title: Archaeological Find Context
@@ -249,6 +252,15 @@ classes:
     - certifiedIdentity
     - certifiedKey
     - certifier
+  CharacterArc:
+    class_uri: https://blackcatinformatics.ca/gmeow/CharacterArc
+    title: Character Arc
+    is_a: InformationObject
+    slots:
+    - arcEvidence
+    - arcFrame
+    - arcSubject
+    - arcType
   CitationAct:
     class_uri: https://blackcatinformatics.ca/gmeow/CitationAct
     title: Citation Act
@@ -305,6 +317,17 @@ classes:
     slots:
     - containmentChild
     - containmentParent
+  ContentSegment:
+    class_uri: https://blackcatinformatics.ca/gmeow/ContentSegment
+    title: Content Segment
+    is_a: InformationObject
+    slots:
+    - segmentIndex
+    - segmentOf
+    - segmentType
+  ContentSegmentType:
+    class_uri: https://blackcatinformatics.ca/gmeow/ContentSegmentType
+    title: Content Segment Type
   Contract:
     class_uri: https://blackcatinformatics.ca/gmeow/Contract
     title: Contract
@@ -712,6 +735,7 @@ classes:
     title: Information Object
     is_a: Entity
     slots:
+    - contributesToFrame
     - detectedMediaType
   Inscription:
     class_uri: https://blackcatinformatics.ca/gmeow/Inscription
@@ -913,6 +937,10 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/LifeEvent
     title: Life Event
     is_a: Event
+  LiteraryWork:
+    class_uri: https://blackcatinformatics.ca/gmeow/LiteraryWork
+    title: Literary Work
+    is_a: Work
   Location:
     class_uri: https://blackcatinformatics.ca/gmeow/Location
     title: Location
@@ -978,6 +1006,7 @@ classes:
     slots:
     - embodies
     - exemplifiedBy
+    - hasManifestationFormat
   ManifestationFormat:
     class_uri: https://blackcatinformatics.ca/gmeow/ManifestationFormat
     title: Manifestation Format
@@ -1432,6 +1461,10 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Quantity
     title: Quantity
     is_a: Entity
+  ReadingOrder:
+    class_uri: https://blackcatinformatics.ca/gmeow/ReadingOrder
+    title: Reading Order
+    is_a: Standpoint
   RecurrenceRule:
     class_uri: https://blackcatinformatics.ca/gmeow/RecurrenceRule
     title: Recurrence Rule
@@ -1667,6 +1700,10 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/SerialInstallment
     title: Serial Installment
     is_a: Manifestation
+  SerialWork:
+    class_uri: https://blackcatinformatics.ca/gmeow/SerialWork
+    title: Serial Work
+    is_a: Work
   SexAssignedAtBirth:
     class_uri: https://blackcatinformatics.ca/gmeow/SexAssignedAtBirth
     title: Sex Assigned at Birth
@@ -2128,6 +2165,30 @@ slots:
     title: aggregation function
     range: AggregationFunction
     domain: SpatialAggregation
+    multivalued: false
+  arcEvidence:
+    slot_uri: https://blackcatinformatics.ca/gmeow/arcEvidence
+    title: arc evidence
+    range: InformationObject
+    domain: CharacterArc
+    multivalued: true
+  arcFrame:
+    slot_uri: https://blackcatinformatics.ca/gmeow/arcFrame
+    title: arc frame
+    range: NarrativeReferenceFrame
+    domain: CharacterArc
+    multivalued: false
+  arcSubject:
+    slot_uri: https://blackcatinformatics.ca/gmeow/arcSubject
+    title: arc subject
+    range: Entity
+    domain: CharacterArc
+    multivalued: false
+  arcType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/arcType
+    title: arc type
+    range: ArcType
+    domain: CharacterArc
     multivalued: false
   artifactMediaType:
     slot_uri: https://blackcatinformatics.ca/gmeow/artifactMediaType
@@ -2609,6 +2670,12 @@ slots:
     range: string
     domain: SmartContract
     multivalued: false
+  contributesToFrame:
+    slot_uri: https://blackcatinformatics.ca/gmeow/contributesToFrame
+    title: contributes to frame
+    range: NarrativeReferenceFrame
+    domain: InformationObject
+    multivalued: true
   contributionDegree:
     slot_uri: https://blackcatinformatics.ca/gmeow/contributionDegree
     title: contribution degree
@@ -3485,6 +3552,12 @@ slots:
     range: License
     domain: Entity
     multivalued: true
+  hasManifestationFormat:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasManifestationFormat
+    title: has manifestation format
+    range: ManifestationFormat
+    domain: Manifestation
+    multivalued: false
   hasMeasuredCondition:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasMeasuredCondition
     title: has measured condition
@@ -3725,6 +3798,11 @@ slots:
     title: has route segment
     range: Route
     domain: Route
+    multivalued: true
+  hasSegment:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasSegment
+    title: has segment
+    range: ContentSegment
     multivalued: true
   hasSensitivity:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasSensitivity
@@ -5405,6 +5483,24 @@ slots:
     range: TimeInterval
     domain: WritingSystemUsage
     multivalued: true
+  segmentIndex:
+    slot_uri: https://blackcatinformatics.ca/gmeow/segmentIndex
+    title: segment index
+    range: integer
+    domain: ContentSegment
+    multivalued: false
+  segmentOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/segmentOf
+    title: segment of
+    range: Entity
+    domain: ContentSegment
+    multivalued: true
+  segmentType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/segmentType
+    title: segment type
+    range: ContentSegmentType
+    domain: ContentSegment
+    multivalued: false
   selectorLocator:
     slot_uri: https://blackcatinformatics.ca/gmeow/selectorLocator
     title: selector locator
@@ -6315,6 +6411,27 @@ enums:
       aggSum:
         meaning: https://blackcatinformatics.ca/gmeow/aggSum
         title: sum
+  ArcTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ArcType
+    permissible_values:
+      arcTypeComingOfAge:
+        meaning: https://blackcatinformatics.ca/gmeow/arcTypeComingOfAge
+        title: coming-of-age
+      arcTypeCorruption:
+        meaning: https://blackcatinformatics.ca/gmeow/arcTypeCorruption
+        title: corruption
+      arcTypeFall:
+        meaning: https://blackcatinformatics.ca/gmeow/arcTypeFall
+        title: fall
+      arcTypeQuest:
+        meaning: https://blackcatinformatics.ca/gmeow/arcTypeQuest
+        title: quest
+      arcTypeRecovery:
+        meaning: https://blackcatinformatics.ca/gmeow/arcTypeRecovery
+        title: recovery
+      arcTypeRedemption:
+        meaning: https://blackcatinformatics.ca/gmeow/arcTypeRedemption
+        title: redemption
   AttestationTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/AttestationType
     permissible_values:
@@ -6861,6 +6978,27 @@ enums:
       operatorNeq:
         meaning: https://blackcatinformatics.ca/gmeow/operatorNeq
         title: not equal to
+  ContentSegmentTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ContentSegmentType
+    permissible_values:
+      segmentTypeBackMatter:
+        meaning: https://blackcatinformatics.ca/gmeow/segmentTypeBackMatter
+        title: back matter
+      segmentTypeChapter:
+        meaning: https://blackcatinformatics.ca/gmeow/segmentTypeChapter
+        title: chapter
+      segmentTypeFrontMatter:
+        meaning: https://blackcatinformatics.ca/gmeow/segmentTypeFrontMatter
+        title: front matter
+      segmentTypeParagraph:
+        meaning: https://blackcatinformatics.ca/gmeow/segmentTypeParagraph
+        title: paragraph
+      segmentTypeScene:
+        meaning: https://blackcatinformatics.ca/gmeow/segmentTypeScene
+        title: scene
+      segmentTypeSection:
+        meaning: https://blackcatinformatics.ca/gmeow/segmentTypeSection
+        title: section
   ContributionDegreeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ContributionDegree
     permissible_values:
@@ -8136,6 +8274,9 @@ enums:
       formatAudiobook:
         meaning: https://blackcatinformatics.ca/gmeow/formatAudiobook
         title: audiobook
+      formatComicIssue:
+        meaning: https://blackcatinformatics.ca/gmeow/formatComicIssue
+        title: comic issue
       formatDigitalFile:
         meaning: https://blackcatinformatics.ca/gmeow/formatDigitalFile
         title: digital file
@@ -8157,6 +8298,9 @@ enums:
       formatWebPage:
         meaning: https://blackcatinformatics.ca/gmeow/formatWebPage
         title: web page
+      formatWebSerial:
+        meaning: https://blackcatinformatics.ca/gmeow/formatWebSerial
+        title: web serial
   MentalReferenceFrameEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/MentalReferenceFrame
     permissible_values:
