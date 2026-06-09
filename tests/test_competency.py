@@ -44,6 +44,16 @@ def _query_terms(filename: str) -> set[str]:
     return terms
 
 
+def _query_terms_on_graph(filename: str, graph: Graph) -> set[str]:
+    """Run a competency query against a specific graph (for inline-data tests)."""
+    query = (COMPETENCY_DIR / filename).read_text(encoding="utf-8")
+    terms: set[str] = set()
+    for row in graph.query(query):
+        assert isinstance(row, ResultRow)
+        terms.add(str(row[0]))
+    return terms
+
+
 def test_competency_agents_query() -> None:
     results = _query_terms("agents.rq")
     # Agent and its skeleton subclasses must be returned.
@@ -405,11 +415,18 @@ def test_competency_deception_types_query() -> None:
     terms = _query_terms("deception-types.rq")
     for term in (
         "eventTypeDeception",
+        "eventTypeLie",
+        "eventTypePaltering",
+        "eventTypeOmission",
+        "eventTypeDistortion",
+        "eventTypeBullshit",
+        "eventTypeSelfDeception",
         "ClaimVeridicality",
         "veridicalityUntrue",
         "veridicalityLicensedFalsehood",
     ):
         assert NAMESPACE + term in terms
+    assert len(terms) >= 10
 
 
 def test_competency_deception_roles_query() -> None:
@@ -419,9 +436,103 @@ def test_competency_deception_roles_query() -> None:
         "roleDeceived",
         "roleBeneficiaryOfDeception",
         "roleDupe",
+        "roleSpinDoctor",
     ):
         assert NAMESPACE + term in terms
-    assert len(terms) >= 4
+    assert len(terms) >= 5
+
+
+def test_competency_deception_lie_query() -> None:
+    """Lie = held refuted + projected unequivocal."""
+    g = Graph()
+    g.add((EX.event1, RDF.type, GMEOW.Event))
+    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeLie))
+    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
+    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
+    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimA, GMEOW.claimModality, GMEOW.refuted))
+    g.add((EX.claimB, GMEOW.claimModality, GMEOW.unequivocal))
+    terms = _query_terms_on_graph("deception-lie.rq", g)
+    assert str(EX.event1) in terms
+
+
+def test_competency_deception_omission_query() -> None:
+    """Omission = held present, no projected."""
+    g = Graph()
+    g.add((EX.event1, RDF.type, GMEOW.Event))
+    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeOmission))
+    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
+    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
+    terms = _query_terms_on_graph("deception-omission.rq", g)
+    assert str(EX.event1) in terms
+
+
+def test_competency_deception_paltering_query() -> None:
+    """Paltering = projected implicates false P', held refutes P'."""
+    g = Graph()
+    g.add((EX.event1, RDF.type, GMEOW.Event))
+    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypePaltering))
+    g.add((EX.event1, GMEOW.implicates, EX.propositionPprime))
+    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
+    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
+    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimA, GMEOW.claimModality, GMEOW.refuted))
+    terms = _query_terms_on_graph("deception-paltering.rq", g)
+    assert str(EX.event1) in terms
+
+
+def test_competency_deception_bullshit_query() -> None:
+    """Bullshit = held modality = bullshit, projected unequivocal."""
+    g = Graph()
+    g.add((EX.event1, RDF.type, GMEOW.Event))
+    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeBullshit))
+    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
+    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
+    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimA, GMEOW.claimModality, GMEOW.bullshit))
+    g.add((EX.claimB, GMEOW.claimModality, GMEOW.unequivocal))
+    terms = _query_terms_on_graph("deception-bullshit.rq", g)
+    assert str(EX.event1) in terms
+
+
+def test_competency_deception_distortion_query() -> None:
+    """Distortion = held probable + projected unequivocal."""
+    g = Graph()
+    g.add((EX.event1, RDF.type, GMEOW.Event))
+    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeDistortion))
+    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
+    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
+    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimA, GMEOW.claimModality, GMEOW.probable))
+    g.add((EX.claimB, GMEOW.claimModality, GMEOW.unequivocal))
+    terms = _query_terms_on_graph("deception-distortion.rq", g)
+    assert str(EX.event1) in terms
+
+
+def test_competency_deception_licensed_falsehood_query() -> None:
+    """Negative test: fiction claims must NOT be returned as lies."""
+    g = Graph()
+    g.add((EX.fictionClaim, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.fictionClaim, GMEOW.accordingTo, EX.narrativeFrame))
+    g.add(
+        (EX.fictionClaim, GMEOW.claimVeridicality, GMEOW.veridicalityLicensedFalsehood)
+    )
+    terms = _query_terms_on_graph("deception-licensed-falsehood.rq", g)
+    assert len(terms) == 0
+
+
+def test_competency_deception_self_deception_query() -> None:
+    """Self-deception = event with eventTypeSelfDeception and a participant."""
+    g = Graph()
+    g.add((EX.event1, RDF.type, GMEOW.Event))
+    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeSelfDeception))
+    g.add((EX.event1, GMEOW.hasParticipant, EX.agent1))
+    terms = _query_terms_on_graph("deception-self-deception.rq", g)
+    assert str(EX.event1) in terms
 
 
 def test_competency_myths_query() -> None:

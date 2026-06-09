@@ -8109,6 +8109,9 @@ enums:
       eventTypeBuild:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeBuild
         title: build
+      eventTypeBullshit:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeBullshit
+        title: bullshit
       eventTypeBurial:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeBurial
         title: burial
@@ -8151,6 +8154,9 @@ enums:
       eventTypeDissolution:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeDissolution
         title: dissolution
+      eventTypeDistortion:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeDistortion
+        title: distortion / spin
       eventTypeDivorce:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeDivorce
         title: divorce
@@ -8178,6 +8184,9 @@ enums:
       eventTypeImmigration:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeImmigration
         title: immigration
+      eventTypeLie:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeLie
+        title: lie / falsification
       eventTypeManifestationProduction:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeManifestationProduction
         title: manifestation production
@@ -8196,9 +8205,15 @@ enums:
       eventTypeNaturalization:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeNaturalization
         title: naturalization
+      eventTypeOmission:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeOmission
+        title: omission / concealment
       eventTypeOrdination:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeOrdination
         title: ordination
+      eventTypePaltering:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypePaltering
+        title: paltering
       eventTypeProbate:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeProbate
         title: probate
@@ -8214,6 +8229,9 @@ enums:
       eventTypeRetirement:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeRetirement
         title: retirement
+      eventTypeSelfDeception:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeSelfDeception
+        title: self-deception
       eventTypeSeparation:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeSeparation
         title: separation
@@ -9102,6 +9120,21 @@ enums:
       formatWebSerial:
         meaning: https://blackcatinformatics.ca/gmeow/formatWebSerial
         title: web serial
+  MaximViolationTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/MaximViolationType
+    permissible_values:
+      maximViolationManner:
+        meaning: https://blackcatinformatics.ca/gmeow/maximViolationManner
+        title: maxim violation — manner
+      maximViolationQuality:
+        meaning: https://blackcatinformatics.ca/gmeow/maximViolationQuality
+        title: maxim violation — quality
+      maximViolationQuantity:
+        meaning: https://blackcatinformatics.ca/gmeow/maximViolationQuantity
+        title: maxim violation — quantity
+      maximViolationRelation:
+        meaning: https://blackcatinformatics.ca/gmeow/maximViolationRelation
+        title: maxim violation — relation
   MentalReferenceFrameEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/MentalReferenceFrame
     permissible_values:
@@ -9607,6 +9640,9 @@ enums:
       rolePerformer:
         meaning: https://blackcatinformatics.ca/gmeow/rolePerformer
         title: performer
+      roleSpinDoctor:
+        meaning: https://blackcatinformatics.ca/gmeow/roleSpinDoctor
+        title: spin doctor
       roleVictim:
         meaning: https://blackcatinformatics.ca/gmeow/roleVictim
         title: victim

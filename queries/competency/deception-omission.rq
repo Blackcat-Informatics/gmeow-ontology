@@ -1,0 +1,12 @@
+# Competency question: "Which events are omissions?"
+# An omission = deception event with heldStandpoint but no projectedStandpoint.
+# Expected: event-omission-001.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?event WHERE {
+    ?event gmeow:eventType gmeow:eventTypeOmission .
+    ?event gmeow:heldStandpoint ?heldClaim .
+    FILTER NOT EXISTS { ?event gmeow:projectedStandpoint ?anyProjected . }
+}
+ORDER BY ?event

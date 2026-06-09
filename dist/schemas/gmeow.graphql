@@ -437,6 +437,7 @@ enum EventTypeEnum
     eventTypeBatMitzvah
     eventTypeBirth
     eventTypeBuild
+    eventTypeBullshit
     eventTypeBurial
     eventTypeCensus
     eventTypeCensusActivity
@@ -451,6 +452,7 @@ enum EventTypeEnum
     eventTypeDeception
     eventTypeDestruction
     eventTypeDissolution
+    eventTypeDistortion
     eventTypeDivorce
     eventTypeEmigration
     eventTypeEngagement
@@ -460,18 +462,22 @@ enum EventTypeEnum
     eventTypeFuneral
     eventTypeGraduation
     eventTypeImmigration
+    eventTypeLie
     eventTypeManifestationProduction
     eventTypeMarriage
     eventTypeMerge
     eventTypeMilitaryService
     eventTypeNameChange
     eventTypeNaturalization
+    eventTypeOmission
     eventTypeOrdination
+    eventTypePaltering
     eventTypeProbate
     eventTypePush
     eventTypeRelease
     eventTypeResidence
     eventTypeRetirement
+    eventTypeSelfDeception
     eventTypeSeparation
     eventTypeSupersession
     eventTypeSurvey
@@ -854,6 +860,14 @@ enum ManifestationFormatEnum
     formatWebSerial
   }
 
+enum MaximViolationTypeEnum
+  {
+    maximViolationManner
+    maximViolationQuality
+    maximViolationQuantity
+    maximViolationRelation
+  }
+
 enum MentalReferenceFrameEnum
   {
     referenceFrameAffectiveCircumplex
@@ -1068,6 +1082,7 @@ enum ParticipantRoleEnum
     roleOrganizer
     roleParticipantPrincipal
     rolePerformer
+    roleSpinDoctor
     roleVictim
     roleWitness
   }
