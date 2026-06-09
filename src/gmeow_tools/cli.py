@@ -536,6 +536,23 @@ def wikidata_coverage(
 
 
 @app.command()
+def dc_coverage(
+    json_mode: bool = typer.Option(
+        False, "--json", help="Emit machine-readable JSON instead of plain text."
+    ),
+    threshold: float = typer.Option(
+        0.5, "--threshold", help="Flag mappings below this confidence level."
+    ),
+) -> None:
+    """Report Dublin Core mapping coverage by namespace (offline)."""
+    from gmeow_tools.dc_coverage import render_report, run_coverage
+
+    report = run_coverage(threshold=threshold)
+    text = render_report(report, json_mode=json_mode)
+    console.print(text)
+
+
+@app.command()
 def metadata() -> None:
     """Generate the VoID and DCAT dataset descriptions."""
     from gmeow_tools.metadata import write_metadata

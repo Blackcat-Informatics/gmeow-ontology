@@ -198,3 +198,95 @@ gmeow:segmentTypeScene       a gmeow:ContentSegmentType ; rdfs:label "scene"@en 
 gmeow:segmentTypeParagraph   a gmeow:ContentSegmentType ; rdfs:label "paragraph"@en ;   skos:definition "A distinct section of writing covering a single theme."@en .
 gmeow:segmentTypeFrontMatter a gmeow:ContentSegmentType ; rdfs:label "front matter"@en ; skos:definition "Preliminary material at the beginning of a book — title page, preface, table of contents."@en .
 gmeow:segmentTypeBackMatter  a gmeow:ContentSegmentType ; rdfs:label "back matter"@en ;  skos:definition "Supplementary material at the end of a book — appendix, bibliography, index."@en .
+
+# --- DC date refinements (issue #60) --------------------------------------- #
+
+gmeow:dateCreated
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "date created"@en ;
+    skos:definition "The date a creative work was created. Distinct from datePublished (the issue/release date) and from the creation event's full temporal extent."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:dateModified
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "date modified"@en ;
+    skos:definition "The date a creative work was last modified."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:dateAvailable
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "date available"@en ;
+    skos:definition "The date a creative work became or will become available."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:dateAccepted
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "date accepted"@en ;
+    skos:definition "The date a creative work was accepted (e.g. by a journal, conference, or repository)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:dateSubmitted
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "date submitted"@en ;
+    skos:definition "The date a creative work was submitted for review or publication."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --- DC description refinements (issue #60) -------------------------------- #
+
+gmeow:abstract
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "abstract"@en ;
+    skos:definition "A summary of the content of a creative work."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:tableOfContents
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "table of contents"@en ;
+    skos:definition "A list of subunits of a creative work."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --- DC bibliographic refinements (issue #60) ------------------------------ #
+
+gmeow:bibliographicCitation
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "bibliographic citation"@en ;
+    skos:definition "A bibliographic reference for a creative work."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:extent
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "extent"@en ;
+    skos:definition "The size or duration of a creative work."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Collection
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Work ;
+    rdfs:label "Collection"@en ;
+    skos:definition "An aggregation of resources. A specialization of gmeow:Work."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Service
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Work ;
+    rdfs:label "Service"@en ;
+    skos:definition "A system that provides one or more functions. A specialization of gmeow:Work."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

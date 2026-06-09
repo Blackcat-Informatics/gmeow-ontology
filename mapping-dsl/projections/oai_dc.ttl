@@ -1,0 +1,401 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dc:      <http://purl.org/dc/elements/1.1/> .
+
+# Projection mappings: GMEOW → OAI-DC (unqualified 15-element Dublin Core).
+# Compiled to projections/oai_dc.edoal.ttl + queries/projections/oai_dc.rq by
+# `gmeow compile-mappings`.
+#
+# This is the DUMB-DOWN of the qualified dcterms projection: every refinement
+# collapses to its broader 15-element dc: form. The lossiness is explicit and
+# documented per cell.
+# Note: dc:type is reserved — GMEOW has no direct workType property.
+
+gmeow:mapOaiDcTitle a gmeow:ProjectionMapping ;
+    rdfs:label "title → dc:title"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "title" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:title ; gmeow:objectVar "title" ] ) ;
+        gmeow:edoalSource gmeow:title ] ;
+    gmeow:hasBinding [ gmeow:profile "oai_dc" ; gmeow:toPredicate dc:title ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapOaiDcCreator a gmeow:ProjectionMapping ;
+    rdfs:label "hasAuthor → dc:creator"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "author" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasAuthor ; gmeow:objectVar "author" ] ) ;
+        gmeow:edoalSource gmeow:hasAuthor ] ;
+    gmeow:hasBinding [ gmeow:profile "oai_dc" ; gmeow:toPredicate dc:creator ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapOaiDcContributor a gmeow:ProjectionMapping ;
+    rdfs:label "hasContributor → dc:contributor"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "contrib" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasContributor ; gmeow:objectVar "contrib" ] ) ;
+        gmeow:edoalSource gmeow:hasContributor ] ;
+    gmeow:hasBinding [ gmeow:profile "oai_dc" ; gmeow:toPredicate dc:contributor ; gmeow:relation "=" ; gmeow:confidence 0.85 ] .
+
+gmeow:mapOaiDcSubject a gmeow:ProjectionMapping ;
+    rdfs:label "isAbout → dc:subject"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "topic" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:isAbout ; gmeow:objectVar "topic" ] ) ;
+        gmeow:edoalSource gmeow:isAbout ] ;
+    gmeow:hasBinding [ gmeow:profile "oai_dc" ; gmeow:toPredicate dc:subject ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapOaiDcDescription a gmeow:ProjectionMapping ;
+    rdfs:label "description → dc:description"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "desc" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:description ; gmeow:objectVar "desc" ] ) ;
+        gmeow:edoalSource gmeow:description ] ;
+    gmeow:hasBinding [ gmeow:profile "oai_dc" ; gmeow:toPredicate dc:description ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapOaiDcDate a gmeow:ProjectionMapping ;
+    rdfs:label "datePublished → dc:date (dumb-down: all date refinements collapse)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "date" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:datePublished ; gmeow:objectVar "date" ] ) ;
+        gmeow:edoalSource gmeow:datePublished ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:date ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "dcterms:created / modified / issued / valid / available / dateAccepted / dateCopyrighted / dateSubmitted all collapse to dc:date" ] .
+
+gmeow:mapOaiDcIdentifier a gmeow:ProjectionMapping ;
+    rdfs:label "identifier → dc:identifier"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "id" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:identifier ; gmeow:objectVar "id" ] ) ;
+        gmeow:edoalSource gmeow:identifier ] ;
+    gmeow:hasBinding [ gmeow:profile "oai_dc" ; gmeow:toPredicate dc:identifier ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapOaiDcSource a gmeow:ProjectionMapping ;
+    rdfs:label "sourceLocation → dc:source"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "src" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:sourceLocation ; gmeow:objectVar "src" ] ) ;
+        gmeow:edoalSource gmeow:sourceLocation ] ;
+    gmeow:hasBinding [ gmeow:profile "oai_dc" ; gmeow:toPredicate dc:source ; gmeow:relation "=" ; gmeow:confidence 0.8 ] .
+
+gmeow:mapOaiDcLanguage a gmeow:ProjectionMapping ;
+    rdfs:label "nameLanguage → dc:language (anchored on work)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "lang" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "work" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( gmeow:hasAppellation gmeow:hasName gmeow:hasTitle ) ] ;
+              gmeow:objectVar "name" ]
+            [ gmeow:subjectVar "name" ; gmeow:predicate gmeow:nameLanguage ; gmeow:objectVar "lang" ]
+        ) ;
+        gmeow:edoalSource gmeow:nameLanguage ] ;
+    gmeow:hasBinding [ gmeow:profile "oai_dc" ; gmeow:toPredicate dc:language ; gmeow:relation "=" ; gmeow:confidence 0.8 ] .
+
+gmeow:mapOaiDcRelation a gmeow:ProjectionMapping ;
+    rdfs:label "hasPart / partOf → dc:relation (dumb-down: all relation refinements collapse)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "rel" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasPart ; gmeow:objectVar "rel" ]
+        ) ;
+        gmeow:edoalSource gmeow:hasPart ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:relation ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "dcterms:hasPart / isPartOf / references / isReferencedBy / requires / isRequiredBy / replaces / isReplacedBy / hasVersion / isVersionOf / conformsTo all collapse to dc:relation" ] .
+
+gmeow:mapOaiDcRelation2 a gmeow:ProjectionMapping ;
+    rdfs:label "partOf → dc:relation (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "rel" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:partOf ; gmeow:objectVar "rel" ]
+        ) ;
+        gmeow:edoalSource gmeow:partOf ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:relation ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "dcterms:hasPart / isPartOf / references / isReferencedBy / requires / isRequiredBy / replaces / isReplacedBy / hasVersion / isVersionOf / conformsTo all collapse to dc:relation" ] .
+
+gmeow:mapOaiDcRights a gmeow:ProjectionMapping ;
+    rdfs:label "hasLicense / rightsHolder → dc:rights (dumb-down: all rights refinements collapse)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "lic" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasLicense ; gmeow:objectVar "lic" ] ) ;
+        gmeow:edoalSource gmeow:hasLicense ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:rights ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "dcterms:license / rightsHolder / accessRights all collapse to dc:rights" ] .
+
+gmeow:mapOaiDcCoverage a gmeow:ProjectionMapping ;
+    rdfs:label "containedInPlace → dc:coverage (spatial coverage dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "cov" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:containedInPlace ; gmeow:objectVar "cov" ] ) ;
+        gmeow:edoalSource gmeow:containedInPlace ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:coverage ; gmeow:relation "<=" ; gmeow:confidence 0.5 ;
+        gmeow:lossyDrop "dcterms:spatial / temporal collapse to dc:coverage; GMEOW containedInPlace is the nearest flat spatial hook" ] .
+
+gmeow:mapOaiDcFormat a gmeow:ProjectionMapping ;
+    rdfs:label "dc:format (projected from Manifestation via embodies)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "fmt" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:embodiedIn ; gmeow:objectVar "manif" ]
+            [ gmeow:subjectVar "manif" ; gmeow:predicate gmeow:hasFormat ; gmeow:objectVar "fmt" ] ) ;
+        gmeow:edoalSource gmeow:hasFormat ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:format ; gmeow:relation "<=" ; gmeow:confidence 0.6 ;
+        gmeow:lossyDrop "GMEOW hasFormat lives on Manifestation, not Work; the projection traverses embodies" ] .
+
+gmeow:mapOaiDcPublisher a gmeow:ProjectionMapping ;
+    rdfs:label "dc:publisher (projected from production activity agent)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "pub" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:wasGeneratedBy ; gmeow:objectVar "act" ]
+            [ gmeow:subjectVar "act" ; gmeow:predicate gmeow:wasAssociatedWith ; gmeow:objectVar "pub" ] ) ;
+        gmeow:edoalSource gmeow:wasGeneratedBy ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:publisher ; gmeow:relation "<=" ; gmeow:confidence 0.5 ;
+        gmeow:lossyDrop "GMEOW has no flat publisher property; the projection traverses wasGeneratedBy→wasAssociatedWith and is lossy" ] .
+
+# --- OAI-DC dumb-down projections for DC refinements (issue #60) ----------- #
+
+gmeow:mapOaiDcDateCreated a gmeow:ProjectionMapping ;
+    rdfs:label "dateCreated → dc:date (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "date" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:dateCreated ; gmeow:objectVar "date" ] ) ;
+        gmeow:edoalSource gmeow:dateCreated ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:date ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "all date refinements (created/modified/issued/available/accepted/submitted) collapse to dc:date" ] .
+
+gmeow:mapOaiDcDateModified a gmeow:ProjectionMapping ;
+    rdfs:label "dateModified → dc:date (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "date" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:dateModified ; gmeow:objectVar "date" ] ) ;
+        gmeow:edoalSource gmeow:dateModified ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:date ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "all date refinements collapse to dc:date" ] .
+
+gmeow:mapOaiDcDateAvailable a gmeow:ProjectionMapping ;
+    rdfs:label "dateAvailable → dc:date (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "date" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:dateAvailable ; gmeow:objectVar "date" ] ) ;
+        gmeow:edoalSource gmeow:dateAvailable ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:date ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "all date refinements collapse to dc:date" ] .
+
+gmeow:mapOaiDcDateAccepted a gmeow:ProjectionMapping ;
+    rdfs:label "dateAccepted → dc:date (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "date" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:dateAccepted ; gmeow:objectVar "date" ] ) ;
+        gmeow:edoalSource gmeow:dateAccepted ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:date ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "all date refinements collapse to dc:date" ] .
+
+gmeow:mapOaiDcDateSubmitted a gmeow:ProjectionMapping ;
+    rdfs:label "dateSubmitted → dc:date (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "date" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:dateSubmitted ; gmeow:objectVar "date" ] ) ;
+        gmeow:edoalSource gmeow:dateSubmitted ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:date ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "all date refinements collapse to dc:date" ] .
+
+gmeow:mapOaiDcAbstract a gmeow:ProjectionMapping ;
+    rdfs:label "abstract → dc:description (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "val" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:abstract ; gmeow:objectVar "val" ] ) ;
+        gmeow:edoalSource gmeow:abstract ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:description ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "abstract/tableOfContents collapse to dc:description" ] .
+
+gmeow:mapOaiDcTableOfContents a gmeow:ProjectionMapping ;
+    rdfs:label "tableOfContents → dc:description (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "val" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:tableOfContents ; gmeow:objectVar "val" ] ) ;
+        gmeow:edoalSource gmeow:tableOfContents ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:description ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "abstract/tableOfContents collapse to dc:description" ] .
+
+gmeow:mapOaiDcReferences a gmeow:ProjectionMapping ;
+    rdfs:label "references → dc:relation (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "rel" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:references ; gmeow:objectVar "rel" ] ) ;
+        gmeow:edoalSource gmeow:references ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:relation ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
+
+gmeow:mapOaiDcIsReferencedBy a gmeow:ProjectionMapping ;
+    rdfs:label "isReferencedBy → dc:relation (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "rel" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:isReferencedBy ; gmeow:objectVar "rel" ] ) ;
+        gmeow:edoalSource gmeow:isReferencedBy ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:relation ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
+
+gmeow:mapOaiDcRequires a gmeow:ProjectionMapping ;
+    rdfs:label "requires → dc:relation (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "rel" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:requires ; gmeow:objectVar "rel" ] ) ;
+        gmeow:edoalSource gmeow:requires ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:relation ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
+
+gmeow:mapOaiDcIsRequiredBy a gmeow:ProjectionMapping ;
+    rdfs:label "isRequiredBy → dc:relation (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "rel" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:isRequiredBy ; gmeow:objectVar "rel" ] ) ;
+        gmeow:edoalSource gmeow:isRequiredBy ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:relation ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
+
+gmeow:mapOaiDcReplaces a gmeow:ProjectionMapping ;
+    rdfs:label "supersedes → dc:relation (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "rel" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:supersedes ; gmeow:objectVar "rel" ] ) ;
+        gmeow:edoalSource gmeow:supersedes ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:relation ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
+
+gmeow:mapOaiDcIsReplacedBy a gmeow:ProjectionMapping ;
+    rdfs:label "supersededBy → dc:relation (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "rel" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:supersededBy ; gmeow:objectVar "rel" ] ) ;
+        gmeow:edoalSource gmeow:supersededBy ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:relation ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
+
+gmeow:mapOaiDcHasVersion a gmeow:ProjectionMapping ;
+    rdfs:label "hasVersion → dc:relation (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "rel" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasVersion ; gmeow:objectVar "rel" ] ) ;
+        gmeow:edoalSource gmeow:hasVersion ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:relation ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
+
+gmeow:mapOaiDcIsVersionOf a gmeow:ProjectionMapping ;
+    rdfs:label "versionOf → dc:relation (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "rel" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:versionOf ; gmeow:objectVar "rel" ] ) ;
+        gmeow:edoalSource gmeow:versionOf ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:relation ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
+
+gmeow:mapOaiDcConformsTo a gmeow:ProjectionMapping ;
+    rdfs:label "conformsTo → dc:relation (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "rel" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:conformsTo ; gmeow:objectVar "rel" ] ) ;
+        gmeow:edoalSource gmeow:conformsTo ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:relation ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
+
+gmeow:mapOaiDcSpatial a gmeow:ProjectionMapping ;
+    rdfs:label "spatialCoverage → dc:coverage (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "cov" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:spatialCoverage ; gmeow:objectVar "cov" ] ) ;
+        gmeow:edoalSource gmeow:spatialCoverage ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:coverage ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "spatial/temporal coverage refinements collapse to dc:coverage" ] .
+
+gmeow:mapOaiDcTemporal a gmeow:ProjectionMapping ;
+    rdfs:label "temporalCoverage → dc:coverage (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "cov" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:temporalCoverage ; gmeow:objectVar "cov" ] ) ;
+        gmeow:edoalSource gmeow:temporalCoverage ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:coverage ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "spatial/temporal coverage refinements collapse to dc:coverage" ] .
+
+gmeow:mapOaiDcBibliographicCitation a gmeow:ProjectionMapping ;
+    rdfs:label "bibliographicCitation → dc:relation (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "rel" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:bibliographicCitation ; gmeow:objectVar "rel" ] ) ;
+        gmeow:edoalSource gmeow:bibliographicCitation ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:relation ; gmeow:relation "<=" ; gmeow:confidence 0.6 ;
+        gmeow:lossyDrop "bibliographicCitation has no direct 15-element mapping; falls to dc:relation" ] .
+
+gmeow:mapOaiDcExtent a gmeow:ProjectionMapping ;
+    rdfs:label "extent → dc:format (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "fmt" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:extent ; gmeow:objectVar "fmt" ] ) ;
+        gmeow:edoalSource gmeow:extent ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:format ; gmeow:relation "<=" ; gmeow:confidence 0.6 ;
+        gmeow:lossyDrop "extent/medium collapse to dc:format" ] .
+
+gmeow:mapOaiDcMedium a gmeow:ProjectionMapping ;
+    rdfs:label "medium → dc:format (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "fmt" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:medium ; gmeow:objectVar "fmt" ] ) ;
+        gmeow:edoalSource gmeow:medium ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:format ; gmeow:relation "<=" ; gmeow:confidence 0.6 ;
+        gmeow:lossyDrop "extent/medium collapse to dc:format" ] .
+
+gmeow:mapOaiDcAudience a gmeow:ProjectionMapping ;
+    rdfs:label "audience → dc:description (no direct 15-element mapping)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "desc" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:audience ; gmeow:objectVar "desc" ] ) ;
+        gmeow:edoalSource gmeow:audience ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:description ; gmeow:relation "<=" ; gmeow:confidence 0.5 ;
+        gmeow:lossyDrop "audience has no direct 15-element mapping; falls to dc:description" ] .
+
+gmeow:mapOaiDcProvenance a gmeow:ProjectionMapping ;
+    rdfs:label "provenance → dc:source (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "src" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:provenance ; gmeow:objectVar "src" ] ) ;
+        gmeow:edoalSource gmeow:provenance ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:source ; gmeow:relation "<=" ; gmeow:confidence 0.5 ;
+        gmeow:lossyDrop "provenance falls to dc:source in the 15-element dumb-down" ] .
+
+gmeow:mapOaiDcAccessRights a gmeow:ProjectionMapping ;
+    rdfs:label "conditionsOfAccess → dc:rights (dumb-down)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "work" ; gmeow:value "rights" ;
+        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:conditionsOfAccess ; gmeow:objectVar "rights" ] ) ;
+        gmeow:edoalSource gmeow:conditionsOfAccess ] ;
+    gmeow:hasBinding [
+        gmeow:profile "oai_dc" ; gmeow:toPredicate dc:rights ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "license/rightsHolder/accessRights all collapse to dc:rights" ] .

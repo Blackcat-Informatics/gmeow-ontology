@@ -141,6 +141,7 @@ PREFIXES: dict[str, str] = {
     # Metadata / documentation
     "dcterms": "http://purl.org/dc/terms/",
     "dc": "http://purl.org/dc/elements/1.1/",
+    "dcmitype": "http://purl.org/dc/dcmitype/",
     "vann": "http://purl.org/vocab/vann/",
     "void": "http://rdfs.org/ns/void#",
     "dcat": "http://www.w3.org/ns/dcat#",
@@ -438,6 +439,9 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "time": AlignmentTarget("OWL-Time", PREFIXES["time"], "CC-BY-4.0", "schema"),
     "schema": AlignmentTarget(
         "Schema.org", PREFIXES["schema"], "CC-BY-SA-3.0", "schema"
+    ),
+    "dcterms": AlignmentTarget(
+        "DCMI Metadata Terms", PREFIXES["dcterms"], "CC0-1.0", "schema"
     ),
     "gedcom": AlignmentTarget(
         "W3C GEDCOM", PREFIXES["gedcom"], "W3C-Document", "schema"

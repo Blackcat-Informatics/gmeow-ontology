@@ -1797,13 +1797,17 @@ type Article
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -1815,8 +1819,18 @@ type Article
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -1825,9 +1839,15 @@ type Article
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
     realizedThrough: [Expression]
   }
@@ -1866,13 +1886,17 @@ type Attachment
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -1928,13 +1952,17 @@ type AttestationArtifact
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -1983,13 +2011,17 @@ type AuthenticationResult
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -2042,13 +2074,17 @@ type BiologicalSequenceLocation
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -2104,13 +2140,17 @@ type Block
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -2152,13 +2192,17 @@ type BlockchainAccount
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -2196,13 +2240,17 @@ type BlockchainNetwork
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -2241,13 +2289,17 @@ type BodyPart
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -2288,13 +2340,17 @@ type BookRelease
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -2306,8 +2362,18 @@ type BookRelease
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -2316,9 +2382,15 @@ type BookRelease
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
     embodies: [Expression]
     exemplifiedBy: [Item]
@@ -2351,13 +2423,17 @@ type Branch
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -2397,13 +2473,17 @@ type CadastralReference
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -2481,13 +2561,17 @@ type CelestialLocation
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -2560,13 +2644,17 @@ type CharacterArc
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -2603,6 +2691,87 @@ type CitationIntent
 
 type ClaimVeridicality
   {
+  }
+
+type Collection
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
+    datePublished: String
+    dateSubmitted: String
+    editionOf: CreativeWork
+    extent: String
+    hasAuthor: [Agent]
+    hasContributor: [Agent]
+    hasEditor: [Agent]
+    hasIllustrator: [Agent]
+    hasNarrator: [Agent]
+    hasTitle: [CreativeWorkTitle]
+    hasTranslator: [Agent]
+    identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
+    sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
+    title: String
+    realizedThrough: [Expression]
   }
 
 type Commit
@@ -2714,13 +2883,17 @@ type ContentSegment
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -2836,13 +3009,17 @@ type CreativeWork
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -2854,8 +3031,18 @@ type CreativeWork
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -2864,9 +3051,15 @@ type CreativeWork
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
   }
 
@@ -2912,13 +3105,17 @@ type Credential
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -2956,13 +3153,17 @@ type CryptographicKey
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -3008,13 +3209,17 @@ type CryptographicSignature
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -3060,13 +3265,17 @@ type Dataset
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -3078,8 +3287,18 @@ type Dataset
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -3088,9 +3307,15 @@ type Dataset
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
     realizedThrough: [Expression]
   }
@@ -3137,13 +3362,17 @@ type Distribution
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -3184,13 +3413,17 @@ type DKIMSignature
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -3236,13 +3469,17 @@ type Document
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -3254,8 +3491,18 @@ type Document
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -3264,9 +3511,15 @@ type Document
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
     realizedThrough: [Expression]
   }
@@ -3297,13 +3550,17 @@ type Duration
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -3359,13 +3616,17 @@ type EmailMessage
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -3388,7 +3649,6 @@ type EmailMessage
     partOfThread: [Thread]
     preview: String
     receivedAt: String
-    references: [Message]
     residesIn: [Mailbox]
     rfcMessageId: String
     sentAt: String
@@ -3429,13 +3689,17 @@ type Entity
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -3531,13 +3795,17 @@ type EventSeries
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -3585,13 +3853,17 @@ type Expression
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -3603,8 +3875,18 @@ type Expression
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -3613,9 +3895,15 @@ type Expression
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
     embodiedIn: [Manifestation]
     realizes: [Work]
@@ -3647,13 +3935,17 @@ type Family
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -3704,13 +3996,17 @@ type FinancialAccount
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -3761,13 +4057,17 @@ type ForgePlatform
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -3805,13 +4105,17 @@ type FormalLanguage
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -3894,13 +4198,17 @@ type Geocode
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -3946,13 +4254,17 @@ type GeoCoordinates
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -3993,13 +4305,17 @@ type Geometry
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -4062,13 +4378,17 @@ type Group
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -4169,13 +4489,17 @@ type InformationObject
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -4215,13 +4539,17 @@ type Inscription
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -4292,13 +4620,17 @@ type Issue
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -4338,13 +4670,17 @@ type Item
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -4356,8 +4692,18 @@ type Item
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -4366,9 +4712,15 @@ type Item
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
     exemplifies: [Manifestation]
     hasCarrier: [PhysicalObject]
@@ -4430,13 +4782,17 @@ type Language
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -4607,13 +4963,17 @@ type LanguageVariety
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -4668,13 +5028,17 @@ type LanguageVersion
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -4770,13 +5134,17 @@ type LedgerTransaction
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -4821,13 +5189,17 @@ type LexicalForm
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -4875,13 +5247,17 @@ type LexicalItem
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -4983,13 +5359,17 @@ type LiteraryWork
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -5001,8 +5381,18 @@ type LiteraryWork
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -5011,9 +5401,15 @@ type LiteraryWork
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
     realizedThrough: [Expression]
   }
@@ -5044,13 +5440,17 @@ type Location
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -5105,13 +5505,17 @@ type LocationState
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -5161,13 +5565,17 @@ type Mailbox
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -5221,13 +5629,17 @@ type Manifestation
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -5239,8 +5651,18 @@ type Manifestation
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -5249,9 +5671,15 @@ type Manifestation
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
     embodies: [Expression]
     exemplifiedBy: [Item]
@@ -5288,13 +5716,17 @@ type Mark
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -5339,13 +5771,17 @@ type MeasuredValue
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -5397,13 +5833,17 @@ type MediaObject
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -5415,8 +5855,18 @@ type MediaObject
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -5425,9 +5875,15 @@ type MediaObject
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
     embodies: [Expression]
     exemplifiedBy: [Item]
@@ -5467,13 +5923,17 @@ type MentalReferenceFrame
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -5524,13 +5984,17 @@ type MergeRequest
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -5570,13 +6034,17 @@ type Message
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -5599,7 +6067,6 @@ type Message
     partOfThread: [Thread]
     preview: String
     receivedAt: String
-    references: [Message]
     residesIn: [Mailbox]
     rfcMessageId: String
     sentAt: String
@@ -5633,13 +6100,17 @@ type MessageHeader
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -5705,13 +6176,17 @@ type MonetaryAmount
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -5751,13 +6226,17 @@ type NamedPeriod
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -5800,13 +6279,17 @@ type NamePart
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -5885,13 +6368,17 @@ type NarrativeReferenceFrame
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -5944,13 +6431,17 @@ type NetworkAddress
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -5995,13 +6486,17 @@ type NotationSystem
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -6141,13 +6636,17 @@ type Occupation
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -6185,13 +6684,17 @@ type OnlineAccount
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -6269,13 +6772,17 @@ type Orientation
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -6323,13 +6830,17 @@ type Package
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -6389,13 +6900,17 @@ type Patent
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -6407,8 +6922,18 @@ type Patent
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -6417,9 +6942,15 @@ type Patent
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
     realizedThrough: [Expression]
   }
@@ -6511,13 +7042,17 @@ type PGPSignature
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -6567,13 +7102,17 @@ type PhysicalObject
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -6613,13 +7152,17 @@ type Place
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -6715,13 +7258,17 @@ type Pose
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -6775,13 +7322,17 @@ type PrivacyNotice
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -6840,13 +7391,17 @@ type Profile
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -6889,13 +7444,17 @@ type ProgrammingLanguage
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -6953,13 +7512,17 @@ type Project
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -7007,13 +7570,17 @@ type PronounSet
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -7093,13 +7660,17 @@ type Quantity
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -7137,13 +7708,17 @@ type ReadingOrder
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -7182,13 +7757,17 @@ type RecurrenceRule
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -7229,13 +7808,17 @@ type Ref
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -7276,13 +7859,17 @@ type ReferenceFrame
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -7333,13 +7920,17 @@ type ReferencePosition
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -7448,13 +8039,17 @@ type Repository
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -7502,13 +8097,17 @@ type Review
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -7591,13 +8190,17 @@ type Route
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -7653,13 +8256,17 @@ type ScalarQuantity
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -7721,13 +8328,17 @@ type Selector
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -7793,13 +8404,17 @@ type SensorPlatform
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -7838,13 +8453,17 @@ type SensoryEnvironment
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -7927,13 +8546,17 @@ type SensoryQuantity
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -7971,13 +8594,17 @@ type SequenceCoordinates
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -8019,13 +8646,17 @@ type SequenceFeature
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -8069,13 +8700,17 @@ type SerialInstallment
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -8087,8 +8722,18 @@ type SerialInstallment
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -8097,9 +8742,15 @@ type SerialInstallment
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
     embodies: [Expression]
     exemplifiedBy: [Item]
@@ -8132,13 +8783,17 @@ type SerialWork
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -8150,8 +8805,18 @@ type SerialWork
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -8160,9 +8825,96 @@ type SerialWork
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
+    title: String
+    realizedThrough: [Expression]
+  }
+
+type Service
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
+    datePublished: String
+    dateSubmitted: String
+    editionOf: CreativeWork
+    extent: String
+    hasAuthor: [Agent]
+    hasContributor: [Agent]
+    hasEditor: [Agent]
+    hasIllustrator: [Agent]
+    hasNarrator: [Agent]
+    hasTitle: [CreativeWorkTitle]
+    hasTranslator: [Agent]
+    identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
+    sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
     realizedThrough: [Expression]
   }
@@ -8211,13 +8963,17 @@ type Skill
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -8255,13 +9011,17 @@ type SmartContract
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -8300,13 +9060,17 @@ type SMIMESignature
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -8382,13 +9146,17 @@ type SoftwareProduct
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -8400,8 +9168,18 @@ type SoftwareProduct
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -8410,9 +9188,15 @@ type SoftwareProduct
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
     realizedThrough: [Expression]
   }
@@ -8443,13 +9227,17 @@ type SoftwareProject
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -8494,13 +9282,17 @@ type SourceDirectory
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -8540,13 +9332,17 @@ type SourceFile
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -8590,13 +9386,17 @@ type SourceNode
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -8636,13 +9436,17 @@ type SourceRole
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -8654,8 +9458,18 @@ type SourceRole
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -8664,9 +9478,15 @@ type SourceRole
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
   }
 
@@ -8700,13 +9520,17 @@ type SourceTree
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -8763,13 +9587,17 @@ type SpatialBin
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -8837,13 +9665,17 @@ type SpatialCoordinates
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -8897,13 +9729,17 @@ type Standpoint
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -8977,13 +9813,17 @@ type StorageLocation
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -9050,13 +9890,17 @@ type Stream
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -9099,13 +9943,17 @@ type Summary
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -9145,13 +9993,17 @@ type SymbolicSystem
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -9196,13 +10048,17 @@ type Tag
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -9255,13 +10111,17 @@ type TagScheme
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -9305,13 +10165,17 @@ type TemporalFrame
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -9392,13 +10256,17 @@ type TextExtraction
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -9410,8 +10278,18 @@ type TextExtraction
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -9420,9 +10298,15 @@ type TextExtraction
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
     realizedThrough: [Expression]
   }
@@ -9453,13 +10337,17 @@ type Thread
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -9521,13 +10409,17 @@ type TimeScale
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -9582,13 +10474,17 @@ type Trajectory
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -9641,13 +10537,17 @@ type TransparencyLogEntry
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -9776,13 +10676,17 @@ type VerificationResult
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -9856,13 +10760,17 @@ type VersionSet
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -9902,13 +10810,17 @@ type VirtualLocation
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -9971,13 +10883,17 @@ type WebPage
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -9989,8 +10905,18 @@ type WebPage
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -9999,9 +10925,15 @@ type WebPage
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
     embodies: [Expression]
     exemplifiedBy: [Item]
@@ -10034,13 +10966,17 @@ type Work
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]
@@ -10052,8 +10988,18 @@ type Work
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
     datePublished: String
+    dateSubmitted: String
     editionOf: CreativeWork
+    extent: String
     hasAuthor: [Agent]
     hasContributor: [Agent]
     hasEditor: [Agent]
@@ -10062,9 +11008,15 @@ type Work
     hasTitle: [CreativeWorkTitle]
     hasTranslator: [Agent]
     identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
     sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
     title: String
     realizedThrough: [Expression]
   }
@@ -10095,13 +11047,17 @@ type WritingSystem
     hasStream: [Stream]
     hasTag: [Tag]
     hasTrademark: [Trademark]
+    hasVersion: [Entity]
     hasWebPage: [WebPage]
     isAbout: [Entity]
     isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
     isResultOf: [Observation]
     locatedAt: [Location]
     name: String
+    provenance: String
     proximity: [ProximityMeasurement]
+    references: [Entity]
     storedIn: [StorageLocation]
     supersededBy: [Entity]
     supersedes: [Entity]

@@ -1,0 +1,46 @@
+shapeID,shapeLabel,propertyID,propertyLabel,mandatory,repeatable,valueNodeType,valueDataType,valueConstraint,valueConstraintType,valueShape,note
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:title,Title,FALSE,TRUE,Literal,xsd:string,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:creator,Creator,FALSE,TRUE,IRI,,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:contributor,Contributor,FALSE,TRUE,IRI,,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:subject,Subject,FALSE,TRUE,IRI,,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:description,Description,FALSE,TRUE,Literal,xsd:string,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:publisher,Publisher,FALSE,TRUE,IRI,,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:date,Date,FALSE,TRUE,Literal,xsd:dateTime,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:type,Type,FALSE,TRUE,IRI,,dcmitype:,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:format,Format,FALSE,TRUE,Literal,xsd:string,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:identifier,Identifier,FALSE,TRUE,Literal,xsd:string,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:source,Source,FALSE,TRUE,IRI,,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:language,Language,FALSE,TRUE,IRI,,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:relation,Relation,FALSE,TRUE,IRI,,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:coverage,Coverage,FALSE,TRUE,IRI,,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:rights,Rights,FALSE,TRUE,Literal,xsd:string,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:created,Created,FALSE,TRUE,Literal,xsd:dateTime,,,,"Refinement of dcterms:date; projected from gmeow:dateCreated"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:modified,Modified,FALSE,TRUE,Literal,xsd:dateTime,,,,"Refinement of dcterms:date; projected from gmeow:dateModified"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:issued,Issued,FALSE,TRUE,Literal,xsd:dateTime,,,,"Refinement of dcterms:date; projected from gmeow:datePublished"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:available,Available,FALSE,TRUE,Literal,xsd:dateTime,,,,"Refinement of dcterms:date; projected from gmeow:dateAvailable"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:dateAccepted,Date Accepted,FALSE,TRUE,Literal,xsd:dateTime,,,,"Refinement of dcterms:date; projected from gmeow:dateAccepted"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:dateSubmitted,Date Submitted,FALSE,TRUE,Literal,xsd:dateTime,,,,"Refinement of dcterms:date; projected from gmeow:dateSubmitted"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:dateCopyrighted,Date Copyrighted,FALSE,TRUE,Literal,xsd:dateTime,,,,"Refinement of dcterms:date; projected from gmeow:copyrightYear"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:abstract,Abstract,FALSE,TRUE,Literal,xsd:string,,,,"Refinement of dcterms:description; projected from gmeow:abstract"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:tableOfContents,Table Of Contents,FALSE,TRUE,Literal,xsd:string,,,,"Refinement of dcterms:description; projected from gmeow:tableOfContents"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:references,References,FALSE,TRUE,IRI,,,,,"Refinement of dcterms:relation; projected from gmeow:references"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:isReferencedBy,Is Referenced By,FALSE,TRUE,IRI,,,,,"Refinement of dcterms:relation; projected from gmeow:isReferencedBy"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:requires,Requires,FALSE,TRUE,IRI,,,,,"Refinement of dcterms:relation; projected from gmeow:requires"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:isRequiredBy,Is Required By,FALSE,TRUE,IRI,,,,,"Refinement of dcterms:relation; projected from gmeow:isRequiredBy"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:replaces,Replaces,FALSE,TRUE,IRI,,,,,"Refinement of dcterms:relation; projected from gmeow:supersedes"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:isReplacedBy,Is Replaced By,FALSE,TRUE,IRI,,,,,"Refinement of dcterms:relation; projected from gmeow:supersededBy"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:hasVersion,Has Version,FALSE,TRUE,IRI,,,,,"Refinement of dcterms:relation; projected from gmeow:hasVersion"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:isVersionOf,Is Version Of,FALSE,TRUE,IRI,,,,,"Refinement of dcterms:relation; projected from gmeow:versionOf"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:conformsTo,Conforms To,FALSE,TRUE,IRI,,,,,"Refinement of dcterms:relation; projected from gmeow:conformsTo"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:hasPart,Has Part,FALSE,TRUE,IRI,,,,,"Refinement of dcterms:relation; projected from gmeow:hasPart"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:isPartOf,Is Part Of,FALSE,TRUE,IRI,,,,,"Refinement of dcterms:relation; projected from gmeow:partOf"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:spatial,Spatial,FALSE,TRUE,IRI,,,,,"Refinement of dcterms:coverage; projected from gmeow:spatialCoverage"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:temporal,Temporal,FALSE,TRUE,Literal,xsd:string,,,,"Refinement of dcterms:coverage; projected from gmeow:temporalCoverage"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:bibliographicCitation,Bibliographic Citation,FALSE,TRUE,Literal,xsd:string,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:extent,Extent,FALSE,TRUE,Literal,xsd:string,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:medium,Medium,FALSE,TRUE,IRI,,,,,"Value from open gmeow:CarrierMedium vocabulary"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:audience,Audience,FALSE,TRUE,IRI,,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:provenance,Provenance,FALSE,TRUE,Literal,xsd:string,,,,
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:license,License,FALSE,TRUE,IRI,,,,,"Refinement of dcterms:rights; projected from gmeow:hasLicense"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:rightsHolder,Rights Holder,FALSE,TRUE,IRI,,,,,"Refinement of dcterms:rights; projected from gmeow:copyrightHolder"
+https://blackcatinformatics.ca/gmeow/shapes/dc-work,Dublin Core Work,dcterms:accessRights,Access Rights,FALSE,TRUE,Literal,xsd:string,,,,"Refinement of dcterms:rights; projected from gmeow:conditionsOfAccess"

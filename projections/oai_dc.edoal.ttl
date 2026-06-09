@@ -1,0 +1,329 @@
+@prefix align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix edoal: <http://ns.inria.org/edoal/1.0/#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/projections/oai_dc> a align:Alignment ;
+    rdfs:label "GMEOW → oai_dc (EDOAL)"@en ;
+    align:level "2EDOAL" ;
+    align:map [ a align:Cell ;
+            rdfs:label "abstract → dc:description (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:abstract ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:description ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "conditionsOfAccess → dc:rights (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:conditionsOfAccess ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:rights ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ],
+        [ a align:Cell ;
+            rdfs:label "audience → dc:description (no direct 15-element mapping)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:audience ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:description ] ;
+            align:relation "<=" ;
+            edoal:measure 5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "bibliographicCitation → dc:relation (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:bibliographicCitation ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:relation ] ;
+            align:relation "<=" ;
+            edoal:measure 6e-01 ],
+        [ a align:Cell ;
+            rdfs:label "conformsTo → dc:relation (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:conformsTo ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:relation ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ],
+        [ a align:Cell ;
+            rdfs:label "hasContributor → dc:contributor"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasContributor ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:contributor ] ;
+            align:relation "=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "containedInPlace → dc:coverage (spatial coverage dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:containedInPlace ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:coverage ] ;
+            align:relation "<=" ;
+            edoal:measure 5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "hasAuthor → dc:creator"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasAuthor ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:creator ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "dateAccepted → dc:date (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:dateAccepted ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:date ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "dateAvailable → dc:date (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:dateAvailable ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:date ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "dateCreated → dc:date (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:dateCreated ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:date ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "dateModified → dc:date (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:dateModified ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:date ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "dateSubmitted → dc:date (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:dateSubmitted ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:date ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "datePublished → dc:date (dumb-down: all date refinements collapse)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:datePublished ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:date ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "description → dc:description"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:description ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:description ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "extent → dc:format (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:extent ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:format ] ;
+            align:relation "<=" ;
+            edoal:measure 6e-01 ],
+        [ a align:Cell ;
+            rdfs:label "dc:format (projected from Manifestation via embodies)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasFormat ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:format ] ;
+            align:relation "<=" ;
+            edoal:measure 6e-01 ],
+        [ a align:Cell ;
+            rdfs:label "hasVersion → dc:relation (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasVersion ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:relation ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ],
+        [ a align:Cell ;
+            rdfs:label "identifier → dc:identifier"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:identifier ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:identifier ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "isReferencedBy → dc:relation (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:isReferencedBy ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:relation ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ],
+        [ a align:Cell ;
+            rdfs:label "supersededBy → dc:relation (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:supersededBy ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:relation ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ],
+        [ a align:Cell ;
+            rdfs:label "isRequiredBy → dc:relation (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:isRequiredBy ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:relation ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ],
+        [ a align:Cell ;
+            rdfs:label "versionOf → dc:relation (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:versionOf ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:relation ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ],
+        [ a align:Cell ;
+            rdfs:label "nameLanguage → dc:language (anchored on work)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:nameLanguage ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:language ] ;
+            align:relation "=" ;
+            edoal:measure 8e-01 ],
+        [ a align:Cell ;
+            rdfs:label "medium → dc:format (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:medium ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:format ] ;
+            align:relation "<=" ;
+            edoal:measure 6e-01 ],
+        [ a align:Cell ;
+            rdfs:label "provenance → dc:source (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:provenance ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:source ] ;
+            align:relation "<=" ;
+            edoal:measure 5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "dc:publisher (projected from production activity agent)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:wasGeneratedBy ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:publisher ] ;
+            align:relation "<=" ;
+            edoal:measure 5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "references → dc:relation (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:references ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:relation ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ],
+        [ a align:Cell ;
+            rdfs:label "partOf → dc:relation (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:partOf ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:relation ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ],
+        [ a align:Cell ;
+            rdfs:label "hasPart / partOf → dc:relation (dumb-down: all relation refinements collapse)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasPart ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:relation ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ],
+        [ a align:Cell ;
+            rdfs:label "supersedes → dc:relation (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:supersedes ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:relation ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ],
+        [ a align:Cell ;
+            rdfs:label "requires → dc:relation (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:requires ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:relation ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ],
+        [ a align:Cell ;
+            rdfs:label "hasLicense / rightsHolder → dc:rights (dumb-down: all rights refinements collapse)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasLicense ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:rights ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ],
+        [ a align:Cell ;
+            rdfs:label "sourceLocation → dc:source"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:sourceLocation ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:source ] ;
+            align:relation "=" ;
+            edoal:measure 8e-01 ],
+        [ a align:Cell ;
+            rdfs:label "spatialCoverage → dc:coverage (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:spatialCoverage ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:coverage ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ],
+        [ a align:Cell ;
+            rdfs:label "isAbout → dc:subject"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:isAbout ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:subject ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "tableOfContents → dc:description (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:tableOfContents ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:description ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "temporalCoverage → dc:coverage (dumb-down)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:temporalCoverage ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:coverage ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ],
+        [ a align:Cell ;
+            rdfs:label "title → dc:title"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:title ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri dc:title ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ] ;
+    align:onto1 [ a align:Ontology ;
+            align:formalism [ align:name "GMEOW" ] ] ;
+    align:onto2 [ a align:Ontology ;
+            align:formalism [ align:name "oai_dc" ] ] ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment "GENERATED by `gmeow compile-mappings` from mapping-dsl/ — DO NOT EDIT."@en .

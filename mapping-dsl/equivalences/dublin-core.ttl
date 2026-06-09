@@ -1,0 +1,394 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix dcmitype: <http://purl.org/dc/dcmitype/> .
+
+# Term equivalences for Dublin Core — cross-cutting DCMI Terms and DCMI Type
+# alignments (issue #60). Compiled to mappings/gmeow-dublin-core.sssom.tsv by
+# `gmeow compile-mappings`.
+
+gmeow:mapsetDublinCore a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/dublin-core" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Dublin Core maximal alignment (issue #60). DCMI Terms properties and DCMI Type classes mapped to GMEOW canonical terms. dc: element alignments are derived via the dumb-down principle (dcterms:X rdfs:subPropertyOf dc:X), not hand-authored here." .
+
+# --- DCMI Type Vocabulary classes ------------------------------------------ #
+
+gmeow:eqDcType001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Document ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcmitype:Text ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "A GMEOW Document (abstract intellectual work of textual content) is a DCMI Text" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcType002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Dataset ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcmitype:Dataset ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "A GMEOW Dataset is a DCMI Dataset" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcType003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:MediaObject ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject dcmitype:Image ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "GMEOW MediaObject covers image, audio, and video; DCMI Image is one possible specialization" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcType004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:MediaObject ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject dcmitype:Sound ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "GMEOW MediaObject covers image, audio, and video; DCMI Sound is one possible specialization" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcType005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:MediaObject ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject dcmitype:MovingImage ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "GMEOW MediaObject covers image, audio, and video; DCMI MovingImage is one possible specialization" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcType006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SoftwareProject ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcmitype:Software ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "A GMEOW SoftwareProject is a DCMI Software" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcType007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Event ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcmitype:Event ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "A GMEOW Event is a DCMI Event" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcType008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:PhysicalObject ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcmitype:PhysicalObject ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "A GMEOW PhysicalObject is a DCMI PhysicalObject" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcType009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:WebPage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcmitype:InteractiveResource ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "A GMEOW WebPage is a DCMI InteractiveResource" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+# --- DCMI Terms property cross-cuts ---------------------------------------- #
+
+gmeow:eqDcTerms001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasTitle ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:title ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms title — GMEOW's reified CreativeWorkTitle downcasts to dcterms:title by projection" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:description ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:description ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:isAbout ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:subject ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasPart ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:hasPart ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:partOf ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:isPartOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:sourceLocation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:source ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:nameLanguage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:language ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+# --- DC refinement alignments (issue #60) ---------------------------------- #
+
+gmeow:eqDcTerms008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:dateCreated ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:created ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "DCTerms created — the creation date of a creative work" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:dateModified ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:modified ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "DCTerms modified — the last modification date of a creative work (distinct from sourceModifiedAt which is source-specific)" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:dateAvailable ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:available ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "DCTerms available — the date a creative work became or will become available" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:dateAccepted ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:dateAccepted ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "DCTerms dateAccepted — the date a creative work was accepted" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms012 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:dateSubmitted ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:dateSubmitted ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "DCTerms dateSubmitted — the date a creative work was submitted" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:abstract ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:abstract ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "DCTerms abstract — a summary of the content of a creative work" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms014 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:tableOfContents ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:tableOfContents ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "DCTerms tableOfContents — a list of subunits of a creative work" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms015 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:references ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:references ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms references — a related resource that is referenced by the described resource. GMEOW references is general (formerly message-scoped, now Entity-scoped)." ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:isReferencedBy ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:isReferencedBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms isReferencedBy — a related resource that references the described resource" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms017 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:requires ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:requires ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "DCTerms requires — a related resource that is required by the described resource" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms018 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:isRequiredBy ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:isRequiredBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "DCTerms isRequiredBy — a related resource that requires the described resource" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms019 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:supersedes ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:replaces ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms replaces — a related resource that is superseded by the described resource" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms020 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:supersededBy ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:isReplacedBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms isReplacedBy — a related resource that supersedes the described resource" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms021 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasVersion ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:hasVersion ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms hasVersion — a related resource that is a version of the described resource" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms022 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:versionOf ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:isVersionOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms isVersionOf — a related resource of which the described resource is a version" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms023 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:conformsTo ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:conformsTo ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms conformsTo — an established standard to which the described resource conforms" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms024 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:spatialCoverage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:spatial ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "DCTerms spatial — the spatial extent or scope of a creative work" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms025 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:temporalCoverage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:temporal ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "DCTerms temporal — the temporal extent or scope of a creative work" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms026 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:bibliographicCitation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:bibliographicCitation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "DCTerms bibliographicCitation — a bibliographic reference for a creative work" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms027 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:extent ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:extent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "DCTerms extent — the size or duration of a creative work" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms028 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:medium ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:medium ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "DCTerms medium — the material or physical carrier of a creative work" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms029 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:audience ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:audience ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "DCTerms audience — the intended audience of a creative work" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms030 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:provenance ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:provenance ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "DCTerms provenance — a statement of changes in ownership and custody" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms031 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:conditionsOfAccess ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:accessRights ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms accessRights — conditions under which the asset may be accessed" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcType010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Collection ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcmitype:Collection ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "A GMEOW Collection is a DCMI Collection" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcType011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Service ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcmitype:Service ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "A GMEOW Service is a DCMI Service" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .

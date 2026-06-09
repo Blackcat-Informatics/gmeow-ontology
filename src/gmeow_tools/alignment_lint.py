@@ -751,3 +751,132 @@ def findings_to_result(findings: list[AlignmentFinding]) -> ValidationResult:
         elif finding.severity is Severity.WARNING:
             result.warnings.append(finding.render())
     return result
+
+
+# --------------------------------------------------------------------------- #
+# DC dumb-down / refinement lint (issue #60)
+# --------------------------------------------------------------------------- #
+
+#: dcterms refinements → broader dcterms element (per DCMI specification).
+_DCTERMS_REFINEMENTS: dict[str, str] = {
+    # description refinements
+    "dcterms:abstract": "dcterms:description",
+    "dcterms:tableOfContents": "dcterms:description",
+    # date refinements
+    "dcterms:created": "dcterms:date",
+    "dcterms:modified": "dcterms:date",
+    "dcterms:issued": "dcterms:date",
+    "dcterms:valid": "dcterms:date",
+    "dcterms:available": "dcterms:date",
+    "dcterms:dateAccepted": "dcterms:date",
+    "dcterms:dateCopyrighted": "dcterms:date",
+    "dcterms:dateSubmitted": "dcterms:date",
+    # relation refinements
+    "dcterms:references": "dcterms:relation",
+    "dcterms:isReferencedBy": "dcterms:relation",
+    "dcterms:requires": "dcterms:relation",
+    "dcterms:isRequiredBy": "dcterms:relation",
+    "dcterms:replaces": "dcterms:relation",
+    "dcterms:isReplacedBy": "dcterms:relation",
+    "dcterms:hasPart": "dcterms:relation",
+    "dcterms:isPartOf": "dcterms:relation",
+    "dcterms:hasVersion": "dcterms:relation",
+    "dcterms:isVersionOf": "dcterms:relation",
+    "dcterms:conformsTo": "dcterms:relation",
+    # rights refinements
+    "dcterms:license": "dcterms:rights",
+    "dcterms:rightsHolder": "dcterms:rights",
+    "dcterms:accessRights": "dcterms:rights",
+    # coverage refinements
+    "dcterms:spatial": "dcterms:coverage",
+    "dcterms:temporal": "dcterms:coverage",
+    # format refinements
+    "dcterms:extent": "dcterms:format",
+    "dcterms:medium": "dcterms:format",
+    # identifier refinements
+    "dcterms:bibliographicCitation": "dcterms:identifier",
+}
+
+#: Grandfathered hand-authored dc: alignments (existing before issue #60).
+_GRANDFATHERED_DC: frozenset[str] = frozenset(
+    {
+        # mapping-dsl/equivalences/rights.ttl eqRights068
+        "dc:rights",
+    }
+)
+
+
+def lint_dc_refinement(
+    *,
+    mappings_dir: Path = MAPPINGS_DIR,
+) -> list[AlignmentFinding]:
+    """Lint DC alignments for refinement consistency and dumb-down hygiene.
+
+    Two checks:
+
+    1. **Refinement consistency**: if a dcterms refinement is aligned, the broader
+       dcterms element should also be aligned.
+    2. **No hand-authored dc:**: ``dc:`` element alignments should not be authored
+       in the DSL; they are derived from ``dcterms:`` via the subproperty dumb-down.
+       Existing grandfathered alignments are exempt.
+
+    Returns findings ordered severity-first.
+    """
+    mappings = load_mappings(mappings_dir)
+
+    # Collect all aligned target terms by CURIE.
+    aligned_targets: set[str] = set()
+    for m in mappings:
+        aligned_targets.add(m.object_id)
+
+    findings: list[AlignmentFinding] = []
+
+    # --- Check 1: refinement consistency ---
+    # The synthetic AlignmentFinding below represents a refinement→broader
+    # relationship, not an actual mapping row; subject_id/refinement and
+    # object_id/broader are connected by dcterms:refines, not skos:closeMatch.
+    for refinement, broader in _DCTERMS_REFINEMENTS.items():
+        refinement_aligned = refinement in aligned_targets
+        broader_aligned = broader in aligned_targets
+        if refinement_aligned and not broader_aligned:
+            findings.append(
+                AlignmentFinding(
+                    severity=Severity.WARNING,
+                    check="dc-refinement",
+                    subject_id=refinement,
+                    predicate_id="dcterms:refines",
+                    object_id=broader,
+                    message=(
+                        f"{refinement} is aligned but its broader "
+                        f"element {broader} is not"
+                    ),
+                    suggestion=(
+                        f"add an alignment for {broader} or document why it is absent"
+                    ),
+                )
+            )
+
+    # --- Check 2: no hand-authored dc: alignments ---
+    for m in mappings:
+        if m.object_id.startswith("dc:") and m.object_id not in _GRANDFATHERED_DC:
+            findings.append(
+                AlignmentFinding(
+                    severity=Severity.WARNING,
+                    check="dc-hand-authored",
+                    subject_id=m.subject_id,
+                    predicate_id=m.predicate_id,
+                    object_id=m.object_id,
+                    message=(
+                        f"{m.object_id} is hand-authored; "
+                        "dc: alignments should be derived from dcterms: via dumb-down"
+                    ),
+                    suggestion=(
+                        "remove the dc: alignment and rely on the "
+                        "dcterms:→dc: subproperty derivation"
+                    ),
+                )
+            )
+
+    order = {Severity.ERROR: 0, Severity.WARNING: 1, Severity.INFO: 2}
+    findings.sort(key=lambda f: (order[f.severity], f.check, f.subject_id, f.object_id))
+    return findings
