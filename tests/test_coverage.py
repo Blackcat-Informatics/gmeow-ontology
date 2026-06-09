@@ -195,6 +195,57 @@ def test_language_varieties_slice_covered() -> None:
         assert GMEOW + prop in report.covered_predicates
 
 
+def test_notation_slice_covered() -> None:
+    report = run_coverage()
+    # The notation fixture exercises symbolic systems, notation systems, and the
+    # reified usage relator (#172).
+    for cls in (
+        "SymbolicSystem",
+        "NotationSystem",
+        "NotationSystemUsage",
+    ):
+        assert GMEOW + cls in report.covered_classes
+    for prop in (
+        "symbolicSystemKind",
+        "notationSystemKind",
+        "notationUsageTarget",
+        "notationUsageNotationSystem",
+        "notationUsageRole",
+        "notationUsageInterval",
+        "writingSystemAsNotation",
+    ):
+        assert GMEOW + prop in report.covered_predicates
+
+
+def test_archaeological_evidence_slice_covered() -> None:
+    report = run_coverage()
+    # The archaeological-evidence fixture exercises inscription layer separation,
+    # competing readings, translations, and find context (#173).
+    for cls in (
+        "Inscription",
+        "InscriptionReading",
+        "InscriptionTransliteration",
+        "InscriptionTranslation",
+        "ScriptLanguageAttribution",
+        "ArchaeologicalFindContext",
+    ):
+        assert GMEOW + cls in report.covered_classes
+    for prop in (
+        "inscriptionCarrier",
+        "carrierType",
+        "readingOf",
+        "transliterationOf",
+        "translationOf",
+        "attributionTarget",
+        "attributedLanguage",
+        "attributedScript",
+        "findContextTarget",
+        "findContextPlace",
+        "findContextDating",
+    ):
+        assert GMEOW + prop in report.covered_predicates
+
+
 def test_contact_field_alignments_covered() -> None:
     report = run_coverage()
     # The new SSSOM alignments move these previously-gap external IRIs (used heavily
