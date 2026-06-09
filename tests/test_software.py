@@ -11,7 +11,7 @@ from __future__ import annotations
 from itertools import combinations
 from pathlib import Path
 
-from rdflib import OWL, RDF, RDFS, Graph, Namespace
+from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace
 
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.validate import run_shacl
@@ -19,6 +19,7 @@ from gmeow_tools.validate import run_shacl
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
 GUFO = Namespace("http://purl.org/nemo/gufo#")
+XSD = Namespace("http://www.w3.org/2001/XMLSchema#")
 EX = Namespace("https://example.org/software/")
 SOFTWARE_FIXTURE = Path(__file__).parent / "fixtures" / "software.ttl"
 
@@ -180,3 +181,150 @@ def test_software_event_types_seeded() -> None:
     }
     actual = set(g.subjects(RDF.type, GM.EventType))
     assert expected <= actual, f"Missing software EventType seeds: {expected - actual}"
+
+
+# --------------------------------------------------------------------------- #
+# Phase B — git provenance deepening (#232)
+# --------------------------------------------------------------------------- #
+
+
+def test_new_classes_are_owl_classes_with_correct_parents() -> None:
+    g = _graph()
+    assert (GM.Blob, RDF.type, OWL.Class) in g
+    assert (GM.Blob, RDFS.subClassOf, GM.SourceNode) in g
+    assert (GM.TreeEntry, RDF.type, OWL.Class) in g
+    assert (GM.TreeEntry, RDFS.subClassOf, GM.InformationObject) in g
+    assert (GM.Push, RDF.type, OWL.Class) in g
+    assert (GM.Push, RDFS.subClassOf, GM.Activity) in g
+    assert (GM.Merge, RDF.type, OWL.Class) in g
+    assert (GM.Merge, RDFS.subClassOf, GM.Activity) in g
+    assert (GM.CodeReview, RDF.type, OWL.Class) in g
+    assert (GM.CodeReview, RDFS.subClassOf, GM.Event) in g
+    assert (GM.Diff, RDF.type, OWL.Class) in g
+    assert (GM.Diff, RDFS.subClassOf, GM.InformationObject) in g
+
+
+def test_commit_ancestor_is_transitive_and_derived_from_subproperty() -> None:
+    g = _graph()
+    assert (GM.commitAncestor, RDF.type, OWL.TransitiveProperty) in g
+    assert (GM.commitAncestor, RDFS.subPropertyOf, GM.wasDerivedFrom) in g
+
+
+def test_parent_commit_is_subproperty_of_commit_ancestor() -> None:
+    g = _graph()
+    assert (GM.parentCommit, RDFS.subPropertyOf, GM.commitAncestor) in g
+
+
+def test_commit_descendant_is_inverse_of_commit_ancestor() -> None:
+    g = _graph()
+    assert (GM.commitDescendant, OWL.inverseOf, GM.commitAncestor) in g
+
+
+def test_tree_entry_properties_exist() -> None:
+    g = _graph()
+    assert (GM.treeEntryName, RDFS.domain, GM.TreeEntry) in g
+    assert (GM.treeEntryMode, RDFS.domain, GM.TreeEntry) in g
+    assert (GM.treeEntryObject, RDFS.domain, GM.TreeEntry) in g
+    assert (GM.treeEntryObject, RDFS.range, GM.SourceNode) in g
+
+
+def test_diff_properties_exist() -> None:
+    g = _graph()
+    assert (GM.diffFrom, RDFS.domain, GM.Diff) in g
+    assert (GM.diffFrom, RDFS.range, GM.Commit) in g
+    assert (GM.diffTo, RDFS.domain, GM.Diff) in g
+    assert (GM.diffTo, RDFS.range, GM.Commit) in g
+
+
+def test_push_merge_review_properties_exist() -> None:
+    g = _graph()
+    assert (GM.pushTarget, RDFS.domain, GM.Push) in g
+    assert (GM.mergeBase, RDFS.domain, GM.Merge) in g
+    assert (GM.mergeSource, RDFS.domain, GM.Merge) in g
+    assert (GM.mergeTarget, RDFS.domain, GM.Merge) in g
+    assert (GM.mergeTarget, RDF.type, OWL.FunctionalProperty) in g
+    assert (GM.reviewOf, RDFS.domain, GM.CodeReview) in g
+    assert (GM.reviewCommit, RDFS.domain, GM.CodeReview) in g
+
+
+def test_materialization_depth_property_exists() -> None:
+    g = _graph()
+    assert (GM.materializationDepth, RDFS.domain, GM.Repository) in g
+    assert (GM.materializationDepth, RDFS.range, XSD.nonNegativeInteger) in g
+
+
+# --------------------------------------------------------------------------- #
+# Fixture: MeowGraph Phase B — 3-commit DAG, blobs, tree entries, events
+# --------------------------------------------------------------------------- #
+
+
+def test_fixture_has_three_commit_dag() -> None:
+    g = _fixture()
+    # commitInitial is the root (no parentCommit)
+    assert (EX.commitInitial, GM.parentCommit, None) not in g
+    # commitFeature has commitInitial as parent
+    assert (EX.commitFeature, GM.parentCommit, EX.commitInitial) in g
+    # commitMerge has both parents
+    assert (EX.commitMerge, GM.parentCommit, EX.commitInitial) in g
+    assert (EX.commitMerge, GM.parentCommit, EX.commitFeature) in g
+
+
+def test_fixture_has_commit_ancestor_closure() -> None:
+    g = _fixture()
+    # commitFeature commitAncestor commitInitial (direct)
+    assert (EX.commitFeature, GM.commitAncestor, EX.commitInitial) in g
+    # commitMerge commitAncestor both (direct assertions in fixture)
+    assert (EX.commitMerge, GM.commitAncestor, EX.commitInitial) in g
+    assert (EX.commitMerge, GM.commitAncestor, EX.commitFeature) in g
+
+
+def test_fixture_has_blobs_and_tree_entries() -> None:
+    g = _fixture()
+    assert (EX.readmeBlob, RDF.type, GM.Blob) in g
+    assert (EX.mainPyBlob, RDF.type, GM.Blob) in g
+    assert (EX.readmeEntry, RDF.type, GM.TreeEntry) in g
+    assert (EX.readmeEntry, GM.treeEntryName, None) in g
+    assert (EX.readmeEntry, GM.treeEntryMode, None) in g
+    assert (EX.readmeEntry, GM.treeEntryObject, EX.readmeBlob) in g
+    assert (EX.mainPyEntry, RDF.type, GM.TreeEntry) in g
+    assert (EX.mainPyEntry, GM.treeEntryObject, EX.mainPyBlob) in g
+
+
+def test_fixture_has_push_event() -> None:
+    g = _fixture()
+    assert (EX.pushFeature, RDF.type, GM.Push) in g
+    assert (EX.pushFeature, GM.pushTarget, EX.repo) in g
+    assert (EX.pushFeature, GM.eventType, GM.eventTypePush) in g
+
+
+def test_fixture_has_merge_event() -> None:
+    g = _fixture()
+    assert (EX.mergeFeature, RDF.type, GM.Merge) in g
+    assert (EX.mergeFeature, GM.mergeBase, EX.commitInitial) in g
+    assert (EX.mergeFeature, GM.mergeSource, EX.featureBranch) in g
+    assert (EX.mergeFeature, GM.mergeTarget, EX.mainBranch) in g
+    assert (EX.mergeFeature, GM.eventType, GM.eventTypeMerge) in g
+
+
+def test_fixture_has_code_review_event() -> None:
+    g = _fixture()
+    assert (EX.reviewFeature, RDF.type, GM.CodeReview) in g
+    assert (EX.reviewFeature, GM.reviewOf, EX.mrFeature) in g
+    assert (EX.reviewFeature, GM.reviewCommit, EX.commitFeature) in g
+    assert (EX.reviewFeature, GM.eventType, GM.eventTypeCodeReview) in g
+
+
+def test_fixture_has_diff() -> None:
+    g = _fixture()
+    assert (EX.diffInitialFeature, RDF.type, GM.Diff) in g
+    assert (EX.diffInitialFeature, GM.diffFrom, EX.commitInitial) in g
+    assert (EX.diffInitialFeature, GM.diffTo, EX.commitFeature) in g
+
+
+def test_fixture_repository_has_materialization_depth() -> None:
+    g = _fixture()
+    vals = list(g.objects(EX.repo, GM.materializationDepth))
+    assert len(vals) == 1
+    val = Literal(vals[0])
+    assert val.datatype == XSD.nonNegativeInteger
+    assert str(val) == "2"

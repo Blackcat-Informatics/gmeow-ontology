@@ -1,9 +1,12 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://example.org/software/> .
 
-# MeowGraph — a fictional software project used as the Phase A fixture.
-# Demonstrates all five facets: Project, Product, Codebase, Repository, History.
+# MeowGraph — a fictional software project used as the Phase A + B fixture.
+# Demonstrates all five facets plus git provenance deepening:
+#   Blob, TreeEntry, Push, Merge, CodeReview, Diff, commitAncestor/commitDescendant,
+#   materializationDepth, and a 3-commit DAG (linear + merge).
 
 # --------------------------------------------------------------------------- #
 # Facet 1 — Project (endeavour)
@@ -27,11 +30,33 @@ ex:meowgraphProduct a gmeow:SoftwareProduct ;
     gmeow:workType gmeow:workTypeSoftware .
 
 # --------------------------------------------------------------------------- #
-# Facet 3 — Codebase (content-addressed)
+# Facet 3 — Codebase (content-addressed) with Merkle structure
 # --------------------------------------------------------------------------- #
 
+ex:readmeBlob a gmeow:Blob ;
+    gmeow:contentDigest "git:blob:readme:abc123" .
+
+ex:mainPyBlob a gmeow:Blob ;
+    gmeow:contentDigest "git:blob:main:def456" .
+
+ex:readmeEntry a gmeow:TreeEntry ;
+    gmeow:treeEntryName "README.md" ;
+    gmeow:treeEntryMode "100644" ;
+    gmeow:treeEntryObject ex:readmeBlob .
+
+ex:mainPyEntry a gmeow:TreeEntry ;
+    gmeow:treeEntryName "main.py" ;
+    gmeow:treeEntryMode "100755" ;
+    gmeow:treeEntryObject ex:mainPyBlob .
+
 ex:treeInitial a gmeow:SourceTree ;
-    gmeow:contentDigest "git:abc123…" .
+    gmeow:contentDigest "git:tree:initial:abc123" .
+
+ex:treeFeature a gmeow:SourceTree ;
+    gmeow:contentDigest "git:tree:feature:def456" .
+
+ex:treeMerged a gmeow:SourceTree ;
+    gmeow:contentDigest "git:tree:merged:789abc" .
 
 # --------------------------------------------------------------------------- #
 # Facet 4 — Repository (location)
@@ -42,13 +67,26 @@ ex:repo a gmeow:Repository ;
     gmeow:repositoryType gmeow:repoTypeGit ;
     gmeow:hostedAt ex:github ;
     gmeow:cloneUrl "https://github.com/example/meowgraph.git" ;
-    gmeow:webUrl "https://github.com/example/meowgraph" .
+    gmeow:webUrl "https://github.com/example/meowgraph" ;
+    gmeow:materializationDepth "2"^^xsd:nonNegativeInteger .
 
 ex:github a gmeow:ForgePlatform ;
     rdfs:label "GitHub"@en .
 
+ex:mainBranch a gmeow:Branch ;
+    rdfs:label "main"@en ;
+    gmeow:pointsToCommit ex:commitMerge .
+
+ex:featureBranch a gmeow:Branch ;
+    rdfs:label "feature/add-purring"@en ;
+    gmeow:pointsToCommit ex:commitFeature .
+
 # --------------------------------------------------------------------------- #
-# Facet 5 — History (provenance events)
+# Facet 5 — History (provenance events) — 3-commit DAG
+#
+#   commitInitial ──→ commitFeature
+#          │
+#          └────────→ commitMerge  (merge of feature into main)
 # --------------------------------------------------------------------------- #
 
 ex:commitInitial a gmeow:Commit ;
@@ -60,6 +98,30 @@ ex:commitInitial a gmeow:Commit ;
     gmeow:commitTree ex:treeInitial ;
     gmeow:contentDigest "git:deadbeef…" .
 
+ex:commitFeature a gmeow:Commit ;
+    gmeow:commitInRepository ex:repo ;
+    gmeow:authoredBy ex:bob ;
+    gmeow:committedBy ex:bob ;
+    gmeow:parentCommit ex:commitInitial ;
+    gmeow:commitAncestor ex:commitInitial ;
+    gmeow:authorTime "2026-01-20T10:30:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+    gmeow:committerTime "2026-01-20T10:30:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+    gmeow:commitTree ex:treeFeature ;
+    gmeow:contentDigest "git:c0ffee…" .
+
+ex:commitMerge a gmeow:Commit ;
+    gmeow:commitInRepository ex:repo ;
+    gmeow:authoredBy ex:alice ;
+    gmeow:committedBy ex:alice ;
+    gmeow:parentCommit ex:commitInitial ;
+    gmeow:parentCommit ex:commitFeature ;
+    gmeow:commitAncestor ex:commitInitial ;
+    gmeow:commitAncestor ex:commitFeature ;
+    gmeow:authorTime "2026-01-21T14:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+    gmeow:committerTime "2026-01-21T14:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+    gmeow:commitTree ex:treeMerged ;
+    gmeow:contentDigest "git:baadf00d…" .
+
 ex:v1_0_0 a gmeow:Release ;
     rdfs:label "MeowGraph v1.0.0"@en ;
     gmeow:releaseOf ex:meowgraph ;
@@ -67,11 +129,50 @@ ex:v1_0_0 a gmeow:Release ;
     gmeow:eventTime "2026-02-01T12:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 
 # --------------------------------------------------------------------------- #
+# Collaboration events — Push, Merge, CodeReview
+# --------------------------------------------------------------------------- #
+
+ex:pushFeature a gmeow:Push ;
+    gmeow:eventType gmeow:eventTypePush ;
+    gmeow:pushTarget ex:repo ;
+    gmeow:hasParticipant ex:bob ;
+    gmeow:eventTime "2026-01-20T10:35:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+
+ex:mergeFeature a gmeow:Merge ;
+    gmeow:eventType gmeow:eventTypeMerge ;
+    gmeow:mergeBase ex:commitInitial ;
+    gmeow:mergeSource ex:featureBranch ;
+    gmeow:mergeTarget ex:mainBranch ;
+    gmeow:hasParticipant ex:alice ;
+    gmeow:eventTime "2026-01-21T14:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+
+ex:reviewFeature a gmeow:CodeReview ;
+    gmeow:eventType gmeow:eventTypeCodeReview ;
+    gmeow:reviewOf ex:mrFeature ;
+    gmeow:reviewCommit ex:commitFeature ;
+    gmeow:hasParticipant ex:alice ;
+    gmeow:eventTime "2026-01-20T16:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+
+ex:mrFeature a gmeow:MergeRequest ;
+    rdfs:label "Add purring support"@en .
+
+# --------------------------------------------------------------------------- #
+# Diff — between initial and feature commits
+# --------------------------------------------------------------------------- #
+
+ex:diffInitialFeature a gmeow:Diff ;
+    gmeow:diffFrom ex:commitInitial ;
+    gmeow:diffTo ex:commitFeature .
+
+# --------------------------------------------------------------------------- #
 # Contributors — human + AI (Principle 9)
 # --------------------------------------------------------------------------- #
 
 ex:alice a gmeow:Person ;
     rdfs:label "Alice"@en .
+
+ex:bob a gmeow:Person ;
+    rdfs:label "Bob"@en .
 
 ex:copilot a gmeow:SoftwareAgent ;
     rdfs:label "GitHub Copilot"@en .

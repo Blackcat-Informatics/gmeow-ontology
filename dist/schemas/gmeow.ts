@@ -1811,6 +1811,11 @@ export interface BiologicalSequenceLocation extends Location {
 
 
 
+export interface Blob extends SourceNode {
+}
+
+
+
 export interface Block extends InformationObject {
     blockHash?: string,
     blockNumber?: number,
@@ -1942,6 +1947,13 @@ export interface ClaimVeridicality {
 
 
 
+export interface CodeReview extends Event {
+    reviewCommit?: Commit[],
+    reviewOf?: MergeRequest[],
+}
+
+
+
 export interface Collection extends Work {
 }
 
@@ -1950,6 +1962,8 @@ export interface Collection extends Work {
 export interface Commit extends Activity {
     authorTime?: string,
     authoredBy?: Agent[],
+    commitAncestor?: Commit[],
+    commitDescendant?: Commit[],
     commitInRepository?: Repository,
     commitTree?: SourceTree,
     committedBy?: Agent[],
@@ -2170,6 +2184,13 @@ export interface DerivationKind {
 
 
 export interface Determinacy {
+}
+
+
+
+export interface Diff extends InformationObject {
+    diffFrom?: Commit,
+    diffTo?: Commit,
 }
 
 
@@ -2879,6 +2900,14 @@ export interface MentalReferenceFrame extends ReferenceFrame {
 
 
 
+export interface Merge extends Activity {
+    mergeBase?: Commit[],
+    mergeSource?: Ref[],
+    mergeTarget?: Ref,
+}
+
+
+
 export interface MergeRequest extends InformationObject {
 }
 
@@ -3352,6 +3381,12 @@ export interface ProximityMeasurement extends Measurement {
 
 
 
+export interface Push extends Activity {
+    pushTarget?: string[],
+}
+
+
+
 export interface QualityAssessment extends Observation {
     assessedEntity?: Entity[],
     qualityDimension?: QualityDimension[],
@@ -3448,6 +3483,7 @@ export interface Release extends Event {
 export interface Repository extends InformationObject {
     cloneUrl?: string,
     hostedAt?: ForgePlatform[],
+    materializationDepth?: string,
     repositoryType?: RepositoryType,
     webUrl?: string,
 }
@@ -3980,6 +4016,14 @@ export interface TransliterationScheme {
 export interface TransparencyLogEntry extends InformationObject {
     logEntryIndex?: number,
     logEntryUrl?: string,
+}
+
+
+
+export interface TreeEntry extends InformationObject {
+    treeEntryMode?: string,
+    treeEntryName?: string,
+    treeEntryObject?: SourceNode,
 }
 
 
