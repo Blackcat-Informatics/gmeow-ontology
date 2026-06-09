@@ -169,6 +169,10 @@ classes:
     is_a: Location
     slots:
     - hasSequenceFeature
+  Blob:
+    class_uri: https://blackcatinformatics.ca/gmeow/Blob
+    title: Blob
+    is_a: SourceNode
   Block:
     class_uri: https://blackcatinformatics.ca/gmeow/Block
     title: Block
@@ -280,6 +284,13 @@ classes:
   ClaimVeridicality:
     class_uri: https://blackcatinformatics.ca/gmeow/ClaimVeridicality
     title: Claim Veridicality
+  CodeReview:
+    class_uri: https://blackcatinformatics.ca/gmeow/CodeReview
+    title: Code Review
+    is_a: Event
+    slots:
+    - reviewCommit
+    - reviewOf
   Collection:
     class_uri: https://blackcatinformatics.ca/gmeow/Collection
     title: Collection
@@ -291,6 +302,8 @@ classes:
     slots:
     - authorTime
     - authoredBy
+    - commitAncestor
+    - commitDescendant
     - commitInRepository
     - commitTree
     - committedBy
@@ -474,6 +487,13 @@ classes:
   Determinacy:
     class_uri: https://blackcatinformatics.ca/gmeow/Determinacy
     title: Determinacy
+  Diff:
+    class_uri: https://blackcatinformatics.ca/gmeow/Diff
+    title: Diff
+    is_a: InformationObject
+    slots:
+    - diffFrom
+    - diffTo
   DisclosurePolicy:
     class_uri: https://blackcatinformatics.ca/gmeow/DisclosurePolicy
     title: Disclosure Policy
@@ -1091,6 +1111,14 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/MentalReferenceFrame
     title: Mental Reference Frame
     is_a: ReferenceFrame
+  Merge:
+    class_uri: https://blackcatinformatics.ca/gmeow/Merge
+    title: Merge
+    is_a: Activity
+    slots:
+    - mergeBase
+    - mergeSource
+    - mergeTarget
   MergeRequest:
     class_uri: https://blackcatinformatics.ca/gmeow/MergeRequest
     title: Merge Request
@@ -1506,6 +1534,12 @@ classes:
     is_a: Measurement
     slots:
     - proximityTo
+  Push:
+    class_uri: https://blackcatinformatics.ca/gmeow/Push
+    title: Push
+    is_a: Activity
+    slots:
+    - pushTarget
   QualityAssessment:
     class_uri: https://blackcatinformatics.ca/gmeow/QualityAssessment
     title: Quality Assessment
@@ -1598,6 +1632,7 @@ classes:
     slots:
     - cloneUrl
     - hostedAt
+    - materializationDepth
     - repositoryType
     - webUrl
   RepositoryType:
@@ -2051,6 +2086,14 @@ classes:
     slots:
     - logEntryIndex
     - logEntryUrl
+  TreeEntry:
+    class_uri: https://blackcatinformatics.ca/gmeow/TreeEntry
+    title: Tree Entry
+    is_a: InformationObject
+    slots:
+    - treeEntryMode
+    - treeEntryName
+    - treeEntryObject
   TrustAssertion:
     class_uri: https://blackcatinformatics.ca/gmeow/TrustAssertion
     title: Trust Assertion
@@ -2679,6 +2722,18 @@ slots:
     range: Event
     domain: Event
     multivalued: true
+  commitAncestor:
+    slot_uri: https://blackcatinformatics.ca/gmeow/commitAncestor
+    title: commit ancestor
+    range: Commit
+    domain: Commit
+    multivalued: true
+  commitDescendant:
+    slot_uri: https://blackcatinformatics.ca/gmeow/commitDescendant
+    title: commit descendant
+    range: Commit
+    domain: Commit
+    multivalued: true
   commitInRepository:
     slot_uri: https://blackcatinformatics.ca/gmeow/commitInRepository
     title: commit in repository
@@ -3017,6 +3072,18 @@ slots:
     title: determinacy model
     range: Determinacy
     domain: ReferenceFrame
+    multivalued: false
+  diffFrom:
+    slot_uri: https://blackcatinformatics.ca/gmeow/diffFrom
+    title: diff from
+    range: Commit
+    domain: Diff
+    multivalued: false
+  diffTo:
+    slot_uri: https://blackcatinformatics.ca/gmeow/diffTo
+    title: diff to
+    range: Commit
+    domain: Diff
     multivalued: false
   dimensionCount:
     slot_uri: https://blackcatinformatics.ca/gmeow/dimensionCount
@@ -4650,6 +4717,12 @@ slots:
     range: string
     domain: Mark
     multivalued: false
+  materializationDepth:
+    slot_uri: https://blackcatinformatics.ca/gmeow/materializationDepth
+    title: materialization depth
+    range: string
+    domain: Repository
+    multivalued: false
   matrixShape:
     slot_uri: https://blackcatinformatics.ca/gmeow/matrixShape
     title: matrix shape
@@ -4745,6 +4818,24 @@ slots:
     title: membership organization
     range: Organization
     domain: Membership
+    multivalued: false
+  mergeBase:
+    slot_uri: https://blackcatinformatics.ca/gmeow/mergeBase
+    title: merge base
+    range: Commit
+    domain: Merge
+    multivalued: true
+  mergeSource:
+    slot_uri: https://blackcatinformatics.ca/gmeow/mergeSource
+    title: merge source
+    range: Ref
+    domain: Merge
+    multivalued: true
+  mergeTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/mergeTarget
+    title: merge target
+    range: Ref
+    domain: Merge
     multivalued: false
   metBy:
     slot_uri: https://blackcatinformatics.ca/gmeow/metBy
@@ -5348,6 +5439,12 @@ slots:
     range: Entity
     domain: ProximityMeasurement
     multivalued: false
+  pushTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/pushTarget
+    title: push target
+    range: string
+    domain: Push
+    multivalued: true
   qualityDimension:
     slot_uri: https://blackcatinformatics.ca/gmeow/qualityDimension
     title: quality dimension
@@ -5632,6 +5729,18 @@ slots:
     title: resides in
     range: Mailbox
     domain: Message
+    multivalued: true
+  reviewCommit:
+    slot_uri: https://blackcatinformatics.ca/gmeow/reviewCommit
+    title: review commit
+    range: Commit
+    domain: CodeReview
+    multivalued: true
+  reviewOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/reviewOf
+    title: review of
+    range: MergeRequest
+    domain: CodeReview
     multivalued: true
   rfcMessageId:
     slot_uri: https://blackcatinformatics.ca/gmeow/rfcMessageId
@@ -6368,6 +6477,24 @@ slots:
     range: TransparencyLogEntry
     domain: Attestation
     multivalued: true
+  treeEntryMode:
+    slot_uri: https://blackcatinformatics.ca/gmeow/treeEntryMode
+    title: tree entry mode
+    range: string
+    domain: TreeEntry
+    multivalued: false
+  treeEntryName:
+    slot_uri: https://blackcatinformatics.ca/gmeow/treeEntryName
+    title: tree entry name
+    range: string
+    domain: TreeEntry
+    multivalued: false
+  treeEntryObject:
+    slot_uri: https://blackcatinformatics.ca/gmeow/treeEntryObject
+    title: tree entry object
+    range: SourceNode
+    domain: TreeEntry
+    multivalued: false
   trustLevel:
     slot_uri: https://blackcatinformatics.ca/gmeow/trustLevel
     title: trust level

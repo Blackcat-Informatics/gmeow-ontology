@@ -104,3 +104,97 @@ gmeow:RepositoryTypeShape
         sh:severity sh:Violation ;
         sh:message "A Repository must declare its gmeow:repositoryType." ;
     ] .
+
+# --------------------------------------------------------------------------- #
+# Blob must carry a content digest (git hash or SWHID).
+# --------------------------------------------------------------------------- #
+
+gmeow:BlobContentDigestShape
+    a sh:NodeShape ;
+    rdfs:label "Blob content digest shape" ;
+    sh:targetClass gmeow:Blob ;
+    sh:property [
+        sh:path gmeow:contentDigest ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Blob must carry at least one gmeow:contentDigest (git hash or SWHID)." ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# TreeEntry must have name, mode, and object.
+# --------------------------------------------------------------------------- #
+
+gmeow:TreeEntryCompletenessShape
+    a sh:NodeShape ;
+    rdfs:label "Tree entry completeness shape" ;
+    sh:targetClass gmeow:TreeEntry ;
+    sh:property [
+        sh:path gmeow:treeEntryName ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A TreeEntry must have exactly one gmeow:treeEntryName." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:treeEntryMode ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A TreeEntry must have exactly one gmeow:treeEntryMode." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:treeEntryObject ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A TreeEntry must have exactly one gmeow:treeEntryObject." ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Diff must have both from and to commits.
+# --------------------------------------------------------------------------- #
+
+gmeow:DiffEndpointShape
+    a sh:NodeShape ;
+    rdfs:label "Diff endpoint shape" ;
+    sh:targetClass gmeow:Diff ;
+    sh:property [
+        sh:path gmeow:diffFrom ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Diff must have a gmeow:diffFrom commit." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:diffTo ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Diff must have a gmeow:diffTo commit." ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Merge must have a merge base and a source ref.
+# --------------------------------------------------------------------------- #
+
+gmeow:MergeBaseShape
+    a sh:NodeShape ;
+    rdfs:label "Merge base shape" ;
+    sh:targetClass gmeow:Merge ;
+    sh:property [
+        sh:path gmeow:mergeBase ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Merge must have a gmeow:mergeBase commit." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:mergeSource ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Merge must have a gmeow:mergeSource ref." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:mergeTarget ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Merge must have exactly one gmeow:mergeTarget ref." ;
+    ] .

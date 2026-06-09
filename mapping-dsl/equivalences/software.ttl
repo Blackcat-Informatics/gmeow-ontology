@@ -8,6 +8,7 @@
 @prefix spdx:    <http://spdx.org/rdf/terms#> .
 @prefix codemeta: <https://codemeta.github.io/terms/#> .
 @prefix forgefed: <https://forgefed.org/ns#> .
+@prefix swh:     <https://www.softwareheritage.org/data-model/> .
 
 # Software five-facet de-conflation alignments.
 # Compiled to mappings/gmeow-software.sssom.tsv by `gmeow compile-mappings`.
@@ -21,7 +22,7 @@ gmeow:mapsetSoftware a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/software" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Five-facet software de-conflation alignments to DOAP, schema.org, SPDX, CodeMeta, and ForgeFed. GMEOW rebuilds the distinction natively and bridges by reference (Principle 5)." .
+    gmeow:setComment "Five-facet software de-conflation alignments to DOAP, schema.org, SPDX, CodeMeta, ForgeFed, and Software Heritage. GMEOW rebuilds the distinction natively and bridges by reference (Principle 5)." .
 
 # --------------------------------------------------------------------------- #
 # DOAP — lossy closeMatch because DOAP conflates project, product, repo, history
@@ -149,4 +150,62 @@ gmeow:eqSw012 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:comment "ForgeFed Ticket ≈ GMEOW Issue (both are tracked work items)." ;
+    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Software Heritage — informal concept URIs (no standard RDF ontology published)
+# --------------------------------------------------------------------------- #
+
+gmeow:eqSw013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Blob ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject swh:Content ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Software Heritage Content is content-addressed file content; GMEOW Blob is the raw content facet (bytes only, no name)." ;
+    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+
+gmeow:eqSw014 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SourceFile ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject swh:Content ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Software Heritage Content is also the closest match for GMEOW SourceFile, which adds the named-in-tree aspect on top of raw content." ;
+    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+
+gmeow:eqSw015 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SourceTree ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject swh:Directory ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Software Heritage Directory is a content-addressed tree of files and subdirectories; direct correspondence to GMEOW SourceTree." ;
+    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+
+gmeow:eqSw016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Commit ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject swh:Revision ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Software Heritage Revision is a commit/revision with author, committer, timestamp, and tree; direct correspondence to GMEOW Commit." ;
+    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+
+gmeow:eqSw017 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Release ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject swh:Release ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Software Heritage Release is a named revision (tag); direct correspondence to GMEOW Release." ;
+    gmeow:sssomFile "gmeow-software.sssom.tsv" .
+
+gmeow:eqSw018 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Repository ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject swh:Origin ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "Software Heritage Origin is a repository origin URL; GMEOW Repository is the location/hosting facet, which may carry additional metadata." ;
     gmeow:sssomFile "gmeow-software.sssom.tsv" .

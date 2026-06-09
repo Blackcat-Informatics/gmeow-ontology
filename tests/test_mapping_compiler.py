@@ -200,7 +200,8 @@ def test_dsl_parses() -> None:
     # Issue #60 Dublin Core maximal alignment: +46 (dcterms props + dcmitype classes
     # + DC refinements date/description/relation/coverage/bibliographic/medium/
     # audience/provenance/accessRights; overlaps none of the above issues).
-    assert len(dsl.equivalences) == 1389
+    # Issue #232 git provenance deepening: +6 (Software Heritage alignments).
+    assert len(dsl.equivalences) == 1395
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
