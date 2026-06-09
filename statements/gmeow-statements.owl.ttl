@@ -94,6 +94,14 @@
     gmeow:assertedAt "2026-01-15T00:00:00+00:00"^^xsd:dateTime ;
     gmeow:confidence 0.75 .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-myth-propagation-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:propagatesFrom ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/telling-social-post-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/telling-article-001> ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-factchecker> ;
+    gmeow:assertedAt "2026-05-10T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.78 .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-projected-001> a owl:Axiom ;
     owl:annotatedProperty gmeow:projectedStandpoint ;
     owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-deception-001> ;
@@ -197,6 +205,8 @@
 <https://blackcatinformatics.ca/gmeow/examples/slam-cell-42> gmeow:hasReferenceFrame gmeow:referenceFrameRobotSLAM .
 
 <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-001> gmeow:claimModality gmeow:bullshit .
+
+<https://blackcatinformatics.ca/gmeow/examples/telling-social-post-001> gmeow:propagatesFrom <https://blackcatinformatics.ca/gmeow/examples/telling-article-001> .
 
 <https://blackcatinformatics.ca/gmeow/examples/territory-x> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/polity-y> .
 

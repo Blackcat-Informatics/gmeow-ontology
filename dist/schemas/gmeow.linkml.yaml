@@ -429,6 +429,7 @@ classes:
     - identifier
     - isRequiredBy
     - medium
+    - propagatesFrom
     - requires
     - sourceFor
     - sourceLocation
@@ -1179,6 +1180,15 @@ classes:
     slots:
     - currency
     - monetaryValue
+  Myth:
+    class_uri: https://blackcatinformatics.ca/gmeow/Myth
+    title: Myth
+    is_a: SocialObject
+    slots:
+    - affectedConsumerSurface
+    - hasMythTelling
+    - mythFrame
+    - recurringRisk
   NamePart:
     class_uri: https://blackcatinformatics.ca/gmeow/NamePart
     title: Name Part
@@ -1827,6 +1837,10 @@ classes:
     is_a: Entity
     slots:
     - contractAddress
+  SocialObject:
+    class_uri: https://blackcatinformatics.ca/gmeow/SocialObject
+    title: Social Object
+    is_a: Entity
   SoftwareAgent:
     class_uri: https://blackcatinformatics.ca/gmeow/SoftwareAgent
     title: Software Agent
@@ -2295,6 +2309,12 @@ slots:
     title: adjacent to
     range: Location
     domain: Location
+    multivalued: true
+  affectedConsumerSurface:
+    slot_uri: https://blackcatinformatics.ca/gmeow/affectedConsumerSurface
+    title: affected consumer surface
+    range: ProjectionContext
+    domain: Myth
     multivalued: true
   affectedLanguage:
     slot_uri: https://blackcatinformatics.ca/gmeow/affectedLanguage
@@ -3852,6 +3872,12 @@ slots:
     range: Person
     domain: Person
     multivalued: true
+  hasMythTelling:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasMythTelling
+    title: has myth telling
+    range: CreativeWork
+    domain: Myth
+    multivalued: true
   hasName:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasName
     title: has name
@@ -4867,6 +4893,12 @@ slots:
     range: decimal
     domain: MonetaryAmount
     multivalued: false
+  mythFrame:
+    slot_uri: https://blackcatinformatics.ca/gmeow/mythFrame
+    title: myth frame
+    range: NarrativeReferenceFrame
+    domain: Myth
+    multivalued: false
   name:
     slot_uri: https://blackcatinformatics.ca/gmeow/name
     title: name
@@ -5417,6 +5449,12 @@ slots:
     range: string
     domain: PronounSet
     multivalued: false
+  propagatesFrom:
+    slot_uri: https://blackcatinformatics.ca/gmeow/propagatesFrom
+    title: propagates from
+    range: CreativeWork
+    domain: CreativeWork
+    multivalued: true
   propagationMutationDistance:
     slot_uri: https://blackcatinformatics.ca/gmeow/propagationMutationDistance
     title: propagation mutation distance
@@ -5575,6 +5613,11 @@ slots:
     range: string
     domain: RecurrenceRule
     multivalued: false
+  recurringRisk:
+    slot_uri: https://blackcatinformatics.ca/gmeow/recurringRisk
+    title: recurring risk
+    range: boolean
+    domain: Myth
   referenceAuthority:
     slot_uri: https://blackcatinformatics.ca/gmeow/referenceAuthority
     title: reference authority

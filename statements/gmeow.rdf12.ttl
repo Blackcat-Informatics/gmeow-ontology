@@ -176,6 +176,15 @@ PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
         gmeow:heldStandpoint       <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-held-001>;
         gmeow:projectedStandpoint  <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-projected-001> .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-myth-propagation-001>
+        rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/telling-social-post-001> gmeow:propagatesFrom <https://blackcatinformatics.ca/gmeow/examples/telling-article-001> )>>;
+        gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-factchecker>;
+        gmeow:assertedAt   "2026-05-10T00:00:00+00:00"^^xsd:dateTime;
+        gmeow:confidence   0.78 .
+
+<https://blackcatinformatics.ca/gmeow/examples/telling-social-post-001>
+        gmeow:propagatesFrom  <https://blackcatinformatics.ca/gmeow/examples/telling-article-001> .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-crimea-in-ukraine-per-un>
         rdf:reifies        <<( <https://blackcatinformatics.ca/gmeow/examples/crimea> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/ukraine> )>>;
         gmeow:accordingTo  <https://blackcatinformatics.ca/gmeow/examples/standpoint-un>;

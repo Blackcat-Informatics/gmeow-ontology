@@ -93,6 +93,10 @@ CREATE (n:Resource {uri: "gmeow:examples/standpointclaim-held-001"});
 
 CREATE (n:Resource {uri: "gmeow:examples/standpointclaim-projected-001"});
 
+CREATE (n:Resource {uri: "gmeow:examples/telling-article-001"});
+
+CREATE (n:Resource {uri: "gmeow:examples/telling-social-post-001"});
+
 CREATE (n:Resource {uri: "gmeow:examples/territory-x"});
 
 CREATE (n:Resource {uri: "gmeow:examples/ukraine"});
@@ -106,6 +110,7 @@ CREATE (n:Resource {uri: "gmeow:referenceFrameRobotSLAM"});
 CREATE (n:Resource {uri: "gmeow:veridicalityLicensedFalsehood"});
 
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/rights/photo-copyright" AND b.uri = "gmeow:examples/rights/jane" CREATE (a)-[:copyrightHolder {assertedAt: "2026-03-01T00:00:00Z", confidence: 0.85, mappedFrom: "gmeow:examples/rights/src-rights-register"}]->(b);
+MATCH (a), (b) WHERE a.uri = "gmeow:examples/telling-social-post-001" AND b.uri = "gmeow:examples/telling-article-001" CREATE (a)-[:propagatesFrom {accordingTo: "gmeow:examples/standpoint-factchecker", assertedAt: "2026-05-10T00:00:00Z", confidence: 0.78}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/attestation-factcheck-001" AND b.uri = "gmeow:attestationTypeFactCheck" CREATE (a)-[:attestationType {accordingTo: "gmeow:examples/standpoint-factchecker", assertedAt: "2026-02-01T00:00:00Z", confidence: 0.92}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/referenceFrameRobotEndEffector" AND b.uri = "gmeow:referenceFrameRobotBase" CREATE (a)-[:parentFrame {assertedAt: "2026-06-07T10:00:00Z", confidence: 0.95, validFrom: "2026-06-07T10:00:00Z", validUntil: "2026-06-07T10:05:00Z"}]->(b);
 MATCH (a), (b) WHERE a.uri = "gmeow:examples/rights/contested-trademark" AND b.uri = "gmeow:examples/rights/acme" CREATE (a)-[:trademarkHolder {accordingTo: "gmeow:examples/rights/standpoint-acme", confidence: 0.6}]->(b);

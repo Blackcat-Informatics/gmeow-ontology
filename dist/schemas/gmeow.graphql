@@ -1841,6 +1841,7 @@ type Article
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -2434,6 +2435,7 @@ type BookRelease
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -2857,6 +2859,7 @@ type Collection
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -3149,6 +3152,7 @@ type CreativeWork
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -3405,6 +3409,7 @@ type Dataset
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -3661,6 +3666,7 @@ type Document
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -4045,6 +4051,7 @@ type Expression
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -4862,6 +4869,7 @@ type Item
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -5551,6 +5559,7 @@ type LiteraryWork
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -5821,6 +5830,7 @@ type Manifestation
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -6025,6 +6035,7 @@ type MediaObject
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -6392,6 +6403,58 @@ type MonetaryAmount
     wasGeneratedBy: [Activity]
     currency: ReferenceFrame
     monetaryValue: Float
+  }
+
+type Myth
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    affectedConsumerSurface: [ProjectionContext]
+    hasMythTelling: [CreativeWork]
+    mythFrame: NarrativeReferenceFrame
+    recurringRisk: Boolean
   }
 
 type NamedPeriod
@@ -7138,6 +7201,7 @@ type Patent
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -8983,6 +9047,7 @@ type SerialInstallment
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -9066,6 +9131,7 @@ type SerialWork
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -9147,6 +9213,7 @@ type Service
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -9329,6 +9396,54 @@ type SMIMESignature
     verificationStatus: String
   }
 
+type SocialObject
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+  }
+
 type SoftwareAgent
   {
     email: String
@@ -9429,6 +9544,7 @@ type SoftwareProduct
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -9719,6 +9835,7 @@ type SourceRole
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -10539,6 +10656,7 @@ type TextExtraction
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -11219,6 +11337,7 @@ type WebPage
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String
@@ -11302,6 +11421,7 @@ type Work
     identifier: String
     isRequiredBy: [CreativeWork]
     medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
     requires: [CreativeWork]
     sourceFor: [NarrativeReferenceFrame]
     sourceLocation: String

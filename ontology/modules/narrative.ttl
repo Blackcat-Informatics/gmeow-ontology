@@ -4,6 +4,7 @@
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/modules/narrative>
     a owl:Ontology ;
@@ -199,3 +200,58 @@ gmeow:arcTypeFall         a gmeow:ArcType ; rdfs:label "fall"@en ;         skos:
 gmeow:arcTypeCorruption   a gmeow:ArcType ; rdfs:label "corruption"@en ;   skos:definition "A moral or ethical degradation."@en .
 gmeow:arcTypeQuest        a gmeow:ArcType ; rdfs:label "quest"@en ;        skos:definition "A journey toward a goal that transforms the protagonist."@en .
 gmeow:arcTypeRecovery     a gmeow:ArcType ; rdfs:label "recovery"@en ;     skos:definition "A return to health, wholeness, or stability after loss."@en .
+
+# =========================================================================== #
+# MYTH — socially-sustained narrative whose currency is independent of truth-value
+# (issue #214, Deception EPIC #212)
+# =========================================================================== #
+
+gmeow:Myth
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:SocialObject ;
+    rdfs:label "Myth"@en ;
+    skos:definition "A socially-sustained narrative whose currency is independent of its truth-value — a founding myth, an urban legend, a propaganda narrative, or a debunked claim that persists. GMEOW asserts no truth verdict on a myth (Principle 1); in-myth claims are scoped accordingTo an associated gmeow:NarrativeReferenceFrame. A myth is the abstract narrative (WEMI Work level); concrete tellings are linked via gmeow:hasMythTelling."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:subClassOf
+        [ a owl:Restriction ; owl:onProperty gmeow:hasMythTelling ; owl:someValuesFrom gmeow:CreativeWork ] .
+
+gmeow:hasMythTelling
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Myth ;
+    rdfs:range gmeow:CreativeWork ;
+    rdfs:label "has myth telling"@en ;
+    skos:definition "Relates a myth to its concrete tellings or expressions — a BookRelease, Article, MediaObject, social post, or other CreativeWork. Non-functional: co-equal tellings coexist; superseded tellings are set gmeow:displayable false (Principle 10)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:mythFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Myth ;
+    rdfs:range gmeow:NarrativeReferenceFrame ;
+    rdfs:label "myth frame"@en ;
+    skos:definition "The narrative reference frame under which in-myth claims hold true. Functional: one frame per Myth. In-myth claims are scoped accordingTo this frame."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:propagatesFrom
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:wasDerivedFrom ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range gmeow:CreativeWork ;
+    rdfs:label "propagates from"@en ;
+    skos:definition "The propagation edge linking one myth telling to the telling it was derived from — reusing the PROV-O lineage spine so myth-spread is not a parallel graph (Principle 4). The propagating agent is a gmeow:Participation with roleDupe (unwitting) or roleDeceiver (knowing)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:recurringRisk
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Myth ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "recurring risk"@en ;
+    skos:definition "A flag indicating that this myth or false claim is a repeat offender — agents and generated reports re-introduce it, so audit tooling can prioritise active correction over one-off debunking."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:affectedConsumerSurface
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Myth ;
+    rdfs:range gmeow:ProjectionContext ;
+    rdfs:label "affected consumer surface"@en ;
+    skos:definition "The projection consumer surfaces that a myth tends to leak into — e.g. Wikipedia, public site, agent memory — so that a correction can be scoped to the surfaces that actually carry the bad claim. Reuses the gmeow:ProjectionContext vocabulary (#225)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
