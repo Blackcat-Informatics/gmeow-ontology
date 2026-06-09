@@ -89,3 +89,16 @@ def load_merged_graph(*, include_imports: bool = True) -> Graph:
         g.add(triple)
     bind_prefixes(g)
     return g
+
+
+def shared_merged_graph(*, include_imports: bool = False) -> Graph:
+    """Return the cached merged graph directly, without copying.
+
+    This is the **read-only** fast path: callers that only query the merged
+    ontology avoid the per-call triple-by-triple copy that
+    :func:`load_merged_graph` pays. The returned graph is the shared cache —
+    callers MUST NOT mutate it. Use :func:`load_merged_graph` when you need a
+    graph you can add to, or :func:`gmeow_tools.sparql.store_with` for a fast,
+    isolated store seeded with extra instance data.
+    """
+    return _build_merged_graph(include_imports)

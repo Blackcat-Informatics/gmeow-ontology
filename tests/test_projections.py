@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pyoxigraph
 from rdflib import RDF, XSD, Graph, Literal, URIRef
 
+from gmeow_tools import sparql
 from gmeow_tools.config import FIXTURES_DIR, PROJECTION_QUERY_DIR, PROJECTIONS_DIR
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.projections import PROFILES, project_examples, project_graph
@@ -26,15 +28,20 @@ BOT = "https://w3id.org/bot#"
 EX_PLACES = "https://blackcatinformatics.ca/gmeow/examples/places/"
 
 
-def _source() -> Graph:
-    graph = load_merged_graph(include_imports=False)
-    graph.parse(FIXTURES_DIR / "places.ttl", format="turtle")
-    graph.parse(FIXTURES_DIR / "names.ttl", format="turtle")
-    graph.parse(FIXTURES_DIR / "languages.ttl", format="turtle")
-    graph.parse(FIXTURES_DIR / "identity.ttl", format="turtle")
-    graph.parse(FIXTURES_DIR / "contact-fields.ttl", format="turtle")
-    graph.parse(FIXTURES_DIR / "coreference.ttl", format="turtle")
-    return graph
+_SOURCE_FIXTURES = (
+    "places.ttl",
+    "names.ttl",
+    "languages.ttl",
+    "identity.ttl",
+    "contact-fields.ttl",
+    "coreference.ttl",
+)
+
+
+def _source() -> pyoxigraph.Store:
+    """The merged ontology + worked-example fixtures as a fast pyoxigraph store."""
+    paths = [FIXTURES_DIR / name for name in _SOURCE_FIXTURES]
+    return sparql.store_with(*paths, include_imports=False)
 
 
 def _assert_no_gmeow_leakage(graph: Graph) -> None:
@@ -381,15 +388,18 @@ def test_vcard_geo_projection() -> None:
 def test_bot_projection() -> None:
     """Building topology: placeType → BOT class; containsPlace →
     bot:hasStorey/hasSpace/bot:containsZone; adjacentTo → bot:adjacentZone."""
-    src = _source()
     site = URIRef(LOC + "acmeSite")
     lobby = URIRef(LOC + "lobby")
-    src.add((site, RDF.type, URIRef(GMEOW + "Place")))
-    src.add((site, URIRef(GMEOW + "placeType"), URIRef(GMEOW + "placeTypeSite")))
-    src.add((site, URIRef(GMEOW + "containsPlace"), URIRef(LOC + "officeBuilding")))
-    src.add((lobby, RDF.type, URIRef(GMEOW + "Place")))
-    src.add((lobby, URIRef(GMEOW + "placeType"), URIRef(GMEOW + "placeTypeRoom")))
-    src.add((URIRef(LOC + "cornerOffice"), URIRef(GMEOW + "adjacentTo"), lobby))
+    extra = Graph()
+    extra.add((site, RDF.type, URIRef(GMEOW + "Place")))
+    extra.add((site, URIRef(GMEOW + "placeType"), URIRef(GMEOW + "placeTypeSite")))
+    extra.add((site, URIRef(GMEOW + "containsPlace"), URIRef(LOC + "officeBuilding")))
+    extra.add((lobby, RDF.type, URIRef(GMEOW + "Place")))
+    extra.add((lobby, URIRef(GMEOW + "placeType"), URIRef(GMEOW + "placeTypeRoom")))
+    extra.add((URIRef(LOC + "cornerOffice"), URIRef(GMEOW + "adjacentTo"), lobby))
+    src = sparql.store_with(
+        *[FIXTURES_DIR / name for name in _SOURCE_FIXTURES], extra_triples=extra
+    )
 
     g = project_graph("bot", src)
     building = URIRef(LOC + "officeBuilding")

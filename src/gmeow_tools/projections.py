@@ -14,10 +14,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import pyoxigraph
 from rdflib import Graph
 
+from gmeow_tools import sparql
 from gmeow_tools.config import DIST_DIR, FIXTURES_DIR, PREFIXES, PROJECTION_QUERY_DIR
-from gmeow_tools.graph import bind_prefixes, load_merged_graph
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,23 +63,30 @@ _EXAMPLE_FIXTURES = (
 )
 
 
-def project_graph(profile: str, source: Graph) -> Graph:
-    """Run a profile's CONSTRUCT over a source graph, returning the projection.
+def project_graph(profile: str, source: Graph | pyoxigraph.Store) -> Graph:
+    """Run a profile's CONSTRUCT over a source, returning the projection.
+
+    The CONSTRUCT runs on pyoxigraph (~12x faster than rdflib's engine); the
+    :mod:`gmeow_tools.engine_crosscheck` gate proves the two engines agree, so the
+    output is identical to the former rdflib path.
 
     Args:
         profile: A key of :data:`PROFILES`.
-        source: The graph to project (ontology + instance data).
+        source: The data to project (ontology + instance data), either a
+            pyoxigraph store (preferred — no copy) or an rdflib graph (loaded into
+            a fresh store).
 
     Returns:
         A fresh graph of pure target-vocabulary triples, prefixes bound.
     """
     prof = PROFILES[profile]
     query = (PROJECTION_QUERY_DIR / f"{profile}.rq").read_text(encoding="utf-8")
-    constructed = source.query(query).graph
-    out = Graph()
-    if constructed is not None:
-        out += constructed
-    bind_prefixes(out)
+    store = (
+        source
+        if isinstance(source, pyoxigraph.Store)
+        else sparql.store_from_graph(source)
+    )
+    out = sparql.construct(store, query)
     for prefix in prof.prefixes:
         out.bind(prefix, PREFIXES[prefix])
     return out
@@ -95,19 +103,17 @@ def _serialize(graph: Graph, path: Path) -> Path:
     return path
 
 
-def _example_source() -> Graph:
-    """The asserted ontology plus the locations + naming worked-example fixtures."""
-    graph = load_merged_graph(include_imports=False)
-    for fixture in _EXAMPLE_FIXTURES:
-        graph.parse(FIXTURES_DIR / fixture, format="turtle")
-    return graph
+def _example_store() -> pyoxigraph.Store:
+    """The asserted ontology plus the worked-example fixtures, as a store."""
+    paths = [FIXTURES_DIR / fixture for fixture in _EXAMPLE_FIXTURES]
+    return sparql.store_with(*paths, include_imports=False)
 
 
 def project_examples(dist_dir: Path = DIST_DIR) -> list[Path]:
     """Project the worked-example fixtures to every profile into ``dist_dir``."""
-    source = _example_source()
+    store = _example_store()
     return [
-        _serialize(project_graph(name, source), dist_dir / f"gmeow-example-{name}.ttl")
+        _serialize(project_graph(name, store), dist_dir / f"gmeow-example-{name}.ttl")
         for name in PROFILES
     ]
 
@@ -116,7 +122,7 @@ def project_file(input_path: Path, profile: str, *, dist_dir: Path = DIST_DIR) -
     """Project an input data file to one profile (ontology merged in for context)."""
     from rdflib.util import guess_format
 
-    source = load_merged_graph(include_imports=False)
-    source.parse(input_path, format=guess_format(str(input_path)) or "turtle")
-    out = project_graph(profile, source)
+    data = Graph().parse(input_path, format=guess_format(str(input_path)) or "turtle")
+    store = sparql.store_with(include_imports=False, extra_triples=data)
+    out = project_graph(profile, store)
     return _serialize(out, dist_dir / f"gmeow-{input_path.stem}-{profile}.ttl")

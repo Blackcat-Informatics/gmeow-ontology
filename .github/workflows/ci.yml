@@ -91,6 +91,9 @@ jobs:
       - name: Validate (syntax, lint, SHACL, DSL SHACL)
         run: uv run gmeow validate
 
+      - name: Engine cross-check (rdflib ≡ pyoxigraph on every query)
+        run: uv run gmeow crosscheck-queries
+
       - name: Mapping DSL compiles with no drift
         run: uv run gmeow compile-mappings --check
 

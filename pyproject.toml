@@ -94,6 +94,7 @@ addopts = "-ra --strict-markers"
 markers = [
     "network: tests that require network access (Wikidata/OOPS!/FOOPS!)",
     "docker: tests that require Docker (ROBOT/WIDOCO/Jena)",
+    "ci_only: heavy secondary/external-export transformation tests (LinkML & developer schemas, flattened exports); run in CI and 'make test', excluded from the fast 'make check' gate",
 ]
 
 [tool.codespell]

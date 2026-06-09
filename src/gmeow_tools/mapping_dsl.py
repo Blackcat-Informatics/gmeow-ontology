@@ -16,6 +16,7 @@ SPARQL text deterministically.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 
 from rdflib import RDF, RDFS, Graph, Literal, URIRef
@@ -596,8 +597,16 @@ def _mapping_sets(graph: Graph) -> dict[str, MappingSet]:
     return out
 
 
+@lru_cache(maxsize=2)
 def load_dsl(src: Path = MAPPING_DSL_DIR) -> Dsl:
-    """Parse the whole DSL (vocabulary + equivalence + projection cells)."""
+    """Parse the whole DSL (vocabulary + equivalence + projection cells).
+
+    Parsing the full mapping DSL (~60 Turtle files, twice each for provenance)
+    costs ~15 s, and the compiler tests call this ~30 times; the result is a
+    frozen, never-mutated :class:`Dsl`, so it is cached by source directory. The
+    cache is keyed on ``src`` and assumes the DSL files do not change within a
+    process (true for the CLI, the test suite, and CI).
+    """
     graph = Graph()
     node_to_file: dict[Node, Path] = {}
     for path in sorted(src.rglob("*.ttl")):

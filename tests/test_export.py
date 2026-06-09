@@ -1,4 +1,9 @@
-"""Tests for the flattened export views (tabular + LLM)."""
+"""Tests for the flattened export views (tabular + LLM).
+
+Marked ``ci_only``: these exercise the secondary external-export surface
+(CSV/CSVW, Markdown, JSONL, llms.txt) rather than the core ontology, so they run
+in CI and ``make test`` but are excluded from the fast ``make check`` gate.
+"""
 
 from __future__ import annotations
 
@@ -6,7 +11,11 @@ import csv
 import json
 from pathlib import Path
 
+import pytest
+
 from gmeow_tools.export import collect_terms, curie, export_all
+
+pytestmark = pytest.mark.ci_only
 
 NAMESPACE = "https://blackcatinformatics.ca/gmeow/"
 
