@@ -58,6 +58,8 @@ def test_email_slice_terms_are_covered() -> None:
         GMEOW + "displayName",
         GMEOW + "rawAddressValue",
         GMEOW + "hasMessageParticipant",
+        GMEOW + "threadSubject",
+        GMEOW + "subjectPrefix",
     }
     missing_p = expected_predicates - report.covered_predicates
     assert not missing_p, f"email predicates missing: {missing_p}"

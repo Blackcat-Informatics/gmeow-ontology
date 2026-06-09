@@ -15,7 +15,9 @@
 @prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
-ex:thread1 a gmeow:Thread .
+ex:thread1
+    a gmeow:Thread ;
+    gmeow:threadSubject "Quarterly report" .
 
 ex:msg1
     a schema:EmailMessage, gmeow:EmailMessage ;
@@ -38,6 +40,7 @@ ex:msg2
     a schema:EmailMessage, gmeow:EmailMessage ;
     gmeow:rfcMessageId "<msg2@example.org>" ;
     gmeow:subject "Re: Quarterly report" ;
+    gmeow:subjectPrefix "Re: " ;
     schema:sender ex:addrBob ;
     schema:toRecipient ex:addrAlice ;
     schema:dateSent "2026-06-01T14:30:00Z"^^xsd:dateTime ;

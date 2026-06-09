@@ -597,6 +597,7 @@ classes:
     - hasMessageParticipant
     - replyTo
     - sender
+    - subjectPrefix
     - to
   Entity:
     class_uri: https://blackcatinformatics.ca/gmeow/Entity
@@ -2219,6 +2220,8 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Thread
     title: Thread
     is_a: InformationObject
+    slots:
+    - threadSubject
   TimeInterval:
     class_uri: https://blackcatinformatics.ca/gmeow/TimeInterval
     title: Time Interval
@@ -6838,6 +6841,11 @@ slots:
     title: subject
     range: string
     domain: Message
+  subjectPrefix:
+    slot_uri: https://blackcatinformatics.ca/gmeow/subjectPrefix
+    title: subject prefix
+    range: string
+    domain: EmailMessage
   supersededBy:
     slot_uri: https://blackcatinformatics.ca/gmeow/supersededBy
     title: superseded by
@@ -6973,6 +6981,11 @@ slots:
     range: TextDirection
     domain: WritingSystem
     multivalued: true
+  threadSubject:
+    slot_uri: https://blackcatinformatics.ca/gmeow/threadSubject
+    title: thread subject
+    range: string
+    domain: Thread
   timezone:
     slot_uri: https://blackcatinformatics.ca/gmeow/timezone
     title: timezone

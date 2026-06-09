@@ -14115,6 +14115,9 @@ class EmailMessage(Message):
     sender: Optional[list[EmailAddress]] = Field(default=None, title="sender", json_schema_extra = { "linkml_meta": {'domain': 'EmailMessage',
          'domain_of': ['EmailMessage'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/sender'} })
+    subjectPrefix: Optional[str] = Field(default=None, title="subject prefix", json_schema_extra = { "linkml_meta": {'domain': 'EmailMessage',
+         'domain_of': ['EmailMessage'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/subjectPrefix'} })
     to: Optional[list[EmailAddress]] = Field(default=None, title="to", json_schema_extra = { "linkml_meta": {'domain': 'EmailMessage',
          'domain_of': ['EmailMessage'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/to'} })
@@ -26655,6 +26658,9 @@ class Thread(InformationObject):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Thread'})
 
+    threadSubject: Optional[str] = Field(default=None, title="thread subject", json_schema_extra = { "linkml_meta": {'domain': 'Thread',
+         'domain_of': ['Thread'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/threadSubject'} })
     contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
