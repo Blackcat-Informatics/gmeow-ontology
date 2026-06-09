@@ -177,7 +177,10 @@ def test_dsl_parses() -> None:
     # eventTypeSurvey/Audit→schema x2, ObservationalActivity→OBI/QB x2,
     # Observation→oboe:Observation x1).
     # Issue #224 evidence / source-typing: +7 (CRMinf x3, PROV-O x2, schema.org x2).
-    assert len(dsl.equivalences) == 1258
+    # Issue #129 domain-specific observation profiles: +18
+    # (CRMarchaeo x4, IVOA ObsCore x4, BBC News Ontology x2,
+    # IPTC NewsML-G2 x3, Open Annotation x1, LOINC x2, SNOMED CT x2).
+    assert len(dsl.equivalences) == 1276
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

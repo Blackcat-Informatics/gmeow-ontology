@@ -1,0 +1,70 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix crmarc: <http://www.cidoc-crm.org/crmarchaeo/> .
+
+# Projection mappings: GMEOW → CRMarchaeo for archaeological observation contexts.
+# Compiled to projections/crmarchaeo.edoal.ttl + queries/projections/crmarchaeo.rq by
+# `gmeow compile-mappings`.
+
+# --------------------------------------------------------------------------- #
+# Class projections
+# --------------------------------------------------------------------------- #
+
+gmeow:mapCrmarcExcavationActivity a gmeow:ProjectionMapping ;
+    rdfs:label "ObservationalActivity (excavation) → crmarc:A1_Excavation_Process_Unit"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "act" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "act" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ObservationalActivity ]
+            [ gmeow:subjectVar "act" ; gmeow:predicate gmeow:eventType ; gmeow:objectValue gmeow:eventTypeExcavation ] ) ;
+        gmeow:edoalSource gmeow:ObservationalActivity ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "crmarchaeo" ; gmeow:toClass crmarc:A1_Excavation_Process_Unit ; gmeow:relation "<=" ;
+        gmeow:confidence 0.75 ;
+        gmeow:lossyDrop "the generic observational-activity semantics are narrowed to destructive excavation; non-excavation observational activities are filtered out" ] .
+
+gmeow:mapCrmarcStratigraphicObservation a gmeow:ProjectionMapping ;
+    rdfs:label "Observation → crmarc:S4_Observation"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "obs" ;
+        gmeow:atom ( [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Observation ] ) ;
+        gmeow:edoalSource gmeow:Observation ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "crmarchaeo" ; gmeow:toClass crmarc:S4_Observation ; gmeow:relation "<=" ;
+        gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "standpoint, confidence, temporal scope, and determinacy are dropped; only the physical-layer observation class survives" ] .
+
+# --------------------------------------------------------------------------- #
+# Property projections
+# --------------------------------------------------------------------------- #
+
+gmeow:mapCrmarcObservedFeature a gmeow:ProjectionMapping ;
+    rdfs:label "observedFeature → crmarc:A2_Stratigraphic_Volume_Unit"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "obs" ; gmeow:value "feature" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Observation ]
+            [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:observedFeature ; gmeow:objectVar "feature" ] ) ;
+        gmeow:edoalSource gmeow:observedFeature ] ;
+    gmeow:hasBinding [
+        gmeow:profile "crmarchaeo" ; gmeow:relation "<=" ;
+        gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "the feature is re-typed as a stratigraphic volume unit; non-stratigraphic features lose their original semantics" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "feature" ; gmeow:tPred rdf:type ; gmeow:tObjValue crmarc:A2_Stratigraphic_Volume_Unit ] ) ] .
+
+gmeow:mapCrmarcPhysicalRelation a gmeow:ProjectionMapping ;
+    rdfs:label "connectsTo between Observations → crmarc:AP11_has_physical_relation"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "obs1" ; gmeow:value "obs2" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "obs1" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Observation ]
+            [ gmeow:subjectVar "obs2" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Observation ]
+            [ gmeow:subjectVar "obs1" ; gmeow:predicate gmeow:connectsTo ; gmeow:objectVar "obs2" ] ) ;
+        gmeow:edoalSource gmeow:connectsTo ] ;
+    gmeow:hasBinding [
+        gmeow:profile "crmarchaeo" ; gmeow:toPredicate crmarc:AP11_has_physical_relation ; gmeow:relation "<=" ;
+        gmeow:confidence 0.6 ;
+        gmeow:lossyDrop "the generic GMEOW connectsTo spine is narrowed to CRMarchaeo physical relation (matrix above/below); the specific topological relation type is lost" ] .
