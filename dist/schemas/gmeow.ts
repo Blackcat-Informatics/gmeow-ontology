@@ -159,6 +159,14 @@ export enum AxisEnum {
     Z_axis = "axisZ",
 };
 
+export enum BranchConditionTypeEnum {
+
+    if = "branchConditionIf",
+    loop = "branchConditionLoop",
+    parallel = "branchConditionParallel",
+    switch = "branchConditionSwitch",
+};
+
 export enum CadastralReferenceTypeEnum {
 
     folio_number = "referenceTypeFolio",
@@ -313,6 +321,15 @@ export enum ContributionRoleEnum {
     writing_EN_DASH_review_AMPERSAND_editing = "roleWritingReviewEditing",
 };
 
+export enum ControlFlowEnum {
+
+    flowIngestion1 = "flowIngestion1",
+    flowIngestion2 = "flowIngestion2",
+    flowIngestion3 = "flowIngestion3",
+    flowIngestion4 = "flowIngestion4",
+    flowIngestion5 = "flowIngestion5",
+};
+
 export enum CopyrightStatusEnum {
 
     in_copyright = "copyrightStatusInCopyright",
@@ -405,6 +422,11 @@ export enum DisclosurePolicyEnum {
     sensitive = "policySensitive",
 };
 
+export enum EntityEnum {
+
+    raw_root_data_source = "procedureIngestionRawRoot",
+};
+
 export enum EventTypeEnum {
 
     adoption = "eventTypeAdoption",
@@ -475,6 +497,16 @@ export enum EvidenceClassEnum {
     self_controlled_site_evidence = "evidenceSelfControlledSite",
     source_code_archive_evidence = "evidenceSourceCodeArchive",
     verified_evidence = "evidenceVERIFIED",
+};
+
+export enum ExecutionStatusEnum {
+
+    cancelled = "executionStatusCancelled",
+    failed = "executionStatusFailed",
+    pending = "executionStatusPending",
+    running = "executionStatusRunning",
+    skipped = "executionStatusSkipped",
+    succeeded = "executionStatusSucceeded",
 };
 
 export enum FinancialAccountTypeEnum {
@@ -1085,6 +1117,33 @@ export enum PlaceTypeEnum {
     thoroughfare_SOLIDUS_street = "placeTypeThoroughfare",
 };
 
+export enum ProcedureEnum {
+
+    Canonical_Ingestion_Procedure = "procedureIngestionCanonical",
+};
+
+export enum ProcedureStepEnum {
+
+    derived_claims_SOLIDUS_events_generation = "stepIngestionDerivedClaims",
+    file_copy_SOLIDUS_staging = "stepIngestionFileCopy",
+    OCR_SOLIDUS_text_extraction = "stepIngestionOcrExtract",
+    privacy_posture_assessment = "stepIngestionPrivacyPosture",
+    raw_root_acquisition = "stepIngestionRawRoot",
+    unresolved_leads_identification = "stepIngestionUnresolvedLeads",
+};
+
+export enum ProcedureTypeEnum {
+
+    agent_flow = "procedureTypeAgentFlow",
+    business_process = "procedureTypeBusinessProcess",
+    CI_build = "procedureTypeCiBuild",
+    data_pipeline = "procedureTypeDataPipeline",
+    ingestion = "procedureTypeIngestion",
+    lab_protocol = "procedureTypeLabProtocol",
+    recipe = "procedureTypeRecipe",
+    research_plan = "procedureTypeResearchPlan",
+};
+
 export enum ProficiencyLevelEnum {
 
     CEFR_A1 = "cefrA1",
@@ -1458,6 +1517,16 @@ export enum StandpointModalityEnum {
     probable = "probable",
     refuted_LEFT_PARENTHESISWHITE_SQUARENOT_SIGN_falseRIGHT_PARENTHESIS = "refuted",
     unequivocal_LEFT_PARENTHESISWHITE_SQUARE_trueRIGHT_PARENTHESIS = "unequivocal",
+};
+
+export enum StepTypeEnum {
+
+    atomic_step = "stepTypeAtomic",
+    branch_step = "stepTypeBranch",
+    end_step = "stepTypeEnd",
+    parallel_step = "stepTypeParallel",
+    start_step = "stepTypeStart",
+    subprocess_step = "stepTypeSubprocess",
 };
 
 export enum StorageMediumEnum {
@@ -1850,6 +1919,11 @@ export interface Branch extends InformationObject {
 
 
 
+export interface BranchConditionType {
+}
+
+
+
 export interface CadastralReference extends InformationObject {
     referenceAuthority?: Agent,
     referenceJurisdiction?: Place,
@@ -2049,6 +2123,15 @@ export interface ContributionRole {
 
 
 
+export interface ControlFlow {
+    flowGuard?: BranchConditionType[],
+    flowOrder?: number,
+    flowSource?: ProcedureStep[],
+    flowTarget?: ProcedureStep[],
+}
+
+
+
 export interface CoordinateMatrix {
     coordinateMatrixFrame?: ReferenceFrame,
     matrixShape?: string,
@@ -2165,6 +2248,14 @@ export interface CryptographicSignature extends InformationObject {
 
 
 export interface DKIMSignature extends CryptographicSignature {
+}
+
+
+
+export interface DataFlow {
+    dataFlowEntity?: Entity[],
+    dataFlowSource?: ProcedureStep[],
+    dataFlowTarget?: ProcedureStep[],
 }
 
 
@@ -2366,6 +2457,20 @@ export interface EventType {
 
 
 export interface EvidenceClass {
+}
+
+
+
+export interface Execution extends Event {
+    executesProcedure?: Procedure[],
+    executesStep?: ProcedureStep[],
+    executionParticipant?: Agent[],
+    executionStatus?: ExecutionStatus[],
+}
+
+
+
+export interface ExecutionStatus {
 }
 
 
@@ -3320,6 +3425,36 @@ export interface PrivacyNotice extends InformationObject {
 
 
 
+export interface Procedure extends InformationObject {
+    hasProcedureStep?: ProcedureStep[],
+    hasSubProcedure?: Procedure[],
+    inquiryPriority?: number,
+    inquirySource?: Entity[],
+    inquiryStatus?: ExecutionStatus[],
+    inquiryTheme?: string,
+    procedureType?: ProcedureType[],
+    resolvedByArtifact?: Entity[],
+    subProcedureOf?: Procedure[],
+}
+
+
+
+export interface ProcedureStep extends InformationObject {
+    procedureStepOf?: Procedure[],
+    procedureStepType?: StepType[],
+    stepEnactsProcedure?: Procedure[],
+    stepInput?: string[],
+    stepOutput?: string[],
+    stepParameter?: string[],
+}
+
+
+
+export interface ProcedureType {
+}
+
+
+
 export interface ProfessionalRelationship extends InterpersonalRelationship {
 }
 
@@ -3841,6 +3976,11 @@ export interface StandpointTenure extends TimeScopedRelation {
 
 
 export interface StepParentChild extends ParentChildRelationship {
+}
+
+
+
+export interface StepType {
 }
 
 

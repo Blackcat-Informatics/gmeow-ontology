@@ -2283,3 +2283,102 @@ gmeow:DeceptionCueShape
         sh:severity sh:Violation ;
         sh:message "A deception cue observation must have an observation result (gmeow:observationResult)." ;
     ] .
+
+# =========================================================================== #
+# Procedures module shapes (#226) — plan ⟂ execution de-conflation
+# =========================================================================== #
+
+# An Execution must reference at least one Procedure or ProcedureStep.
+gmeow:ExecutionHasPlanShape
+    a sh:NodeShape ;
+    rdfs:label "Execution must reference a plan or step" ;
+    sh:targetClass gmeow:Execution ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "An Execution must reference at least one Procedure (gmeow:executesProcedure) or ProcedureStep (gmeow:executesStep)." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this a <https://blackcatinformatics.ca/gmeow/Execution> .
+                FILTER NOT EXISTS {
+                    { $this <https://blackcatinformatics.ca/gmeow/executesProcedure> ?p }
+                    UNION
+                    { $this <https://blackcatinformatics.ca/gmeow/executesStep> ?s }
+                }
+            }
+        """ ;
+    ] .
+
+# A ControlFlow must have exactly one source and one target.
+gmeow:ControlFlowHasSourceTargetShape
+    a sh:NodeShape ;
+    rdfs:label "ControlFlow must have source and target" ;
+    sh:targetClass gmeow:ControlFlow ;
+    sh:property [
+        sh:path gmeow:flowSource ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:ProcedureStep ;
+        sh:severity sh:Violation ;
+        sh:message "A ControlFlow must have exactly one flowSource (a ProcedureStep)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:flowTarget ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:ProcedureStep ;
+        sh:severity sh:Violation ;
+        sh:message "A ControlFlow must have exactly one flowTarget (a ProcedureStep)." ;
+    ] .
+
+# A DataFlow must have exactly one source and one target.
+gmeow:DataFlowHasSourceTargetShape
+    a sh:NodeShape ;
+    rdfs:label "DataFlow must have source and target" ;
+    sh:targetClass gmeow:DataFlow ;
+    sh:property [
+        sh:path gmeow:dataFlowSource ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:ProcedureStep ;
+        sh:severity sh:Violation ;
+        sh:message "A DataFlow must have exactly one dataFlowSource (a ProcedureStep)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:dataFlowTarget ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:ProcedureStep ;
+        sh:severity sh:Violation ;
+        sh:message "A DataFlow must have exactly one dataFlowTarget (a ProcedureStep)." ;
+    ] .
+
+# A branch step must be the source of at least two ControlFlow relators.
+gmeow:BranchHasOutgoingFlowsShape
+    a sh:NodeShape ;
+    rdfs:label "Branch step must have at least two outgoing control flows" ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            SELECT ?this WHERE {
+                ?this a <https://blackcatinformatics.ca/gmeow/ProcedureStep> .
+                ?this <https://blackcatinformatics.ca/gmeow/procedureStepType> <https://blackcatinformatics.ca/gmeow/stepTypeBranch> .
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A ProcedureStep of type stepTypeBranch must be the source of at least two ControlFlow relators." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this a <https://blackcatinformatics.ca/gmeow/ProcedureStep> .
+                $this <https://blackcatinformatics.ca/gmeow/procedureStepType> <https://blackcatinformatics.ca/gmeow/stepTypeBranch> .
+                FILTER NOT EXISTS {
+                    ?flow1 a <https://blackcatinformatics.ca/gmeow/ControlFlow> ;
+                           <https://blackcatinformatics.ca/gmeow/flowSource> $this .
+                    ?flow2 a <https://blackcatinformatics.ca/gmeow/ControlFlow> ;
+                           <https://blackcatinformatics.ca/gmeow/flowSource> $this .
+                    FILTER (?flow1 != ?flow2)
+                }
+            }
+        """ ;
+    ] .

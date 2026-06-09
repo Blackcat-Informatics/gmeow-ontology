@@ -55,6 +55,7 @@
         <https://blackcatinformatics.ca/gmeow/modules/agreements> ,
         <https://blackcatinformatics.ca/gmeow/modules/contacts> ,
         <https://blackcatinformatics.ca/gmeow/modules/places> ,
+        <https://blackcatinformatics.ca/gmeow/modules/procedures> ,
         <https://blackcatinformatics.ca/gmeow/modules/expertise> ,
         <https://blackcatinformatics.ca/gmeow/modules/sources> ,
         <https://blackcatinformatics.ca/gmeow/modules/citations> ,

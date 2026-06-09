@@ -204,6 +204,9 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Branch
     title: Branch
     is_a: InformationObject
+  BranchConditionType:
+    class_uri: https://blackcatinformatics.ca/gmeow/BranchConditionType
+    title: Branch Condition Type
   CadastralReference:
     class_uri: https://blackcatinformatics.ca/gmeow/CadastralReference
     title: Cadastral Reference
@@ -366,6 +369,14 @@ classes:
   ContributionRole:
     class_uri: https://blackcatinformatics.ca/gmeow/ContributionRole
     title: Contribution Role
+  ControlFlow:
+    class_uri: https://blackcatinformatics.ca/gmeow/ControlFlow
+    title: Control Flow
+    slots:
+    - flowGuard
+    - flowOrder
+    - flowSource
+    - flowTarget
   CoordinateMatrix:
     class_uri: https://blackcatinformatics.ca/gmeow/CoordinateMatrix
     title: Coordinate Matrix
@@ -475,6 +486,13 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/DKIMSignature
     title: DKIM Signature
     is_a: CryptographicSignature
+  DataFlow:
+    class_uri: https://blackcatinformatics.ca/gmeow/DataFlow
+    title: Data Flow
+    slots:
+    - dataFlowEntity
+    - dataFlowSource
+    - dataFlowTarget
   Dataset:
     class_uri: https://blackcatinformatics.ca/gmeow/Dataset
     title: Dataset
@@ -658,6 +676,18 @@ classes:
   EvidenceClass:
     class_uri: https://blackcatinformatics.ca/gmeow/EvidenceClass
     title: Evidence Class
+  Execution:
+    class_uri: https://blackcatinformatics.ca/gmeow/Execution
+    title: Execution
+    is_a: Event
+    slots:
+    - executesProcedure
+    - executesStep
+    - executionParticipant
+    - executionStatus
+  ExecutionStatus:
+    class_uri: https://blackcatinformatics.ca/gmeow/ExecutionStatus
+    title: Execution Status
   Expression:
     class_uri: https://blackcatinformatics.ca/gmeow/Expression
     title: Expression
@@ -1483,6 +1513,34 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/PrivacyNotice
     title: Privacy Notice
     is_a: InformationObject
+  Procedure:
+    class_uri: https://blackcatinformatics.ca/gmeow/Procedure
+    title: Procedure
+    is_a: InformationObject
+    slots:
+    - hasProcedureStep
+    - hasSubProcedure
+    - inquiryPriority
+    - inquirySource
+    - inquiryStatus
+    - inquiryTheme
+    - procedureType
+    - resolvedByArtifact
+    - subProcedureOf
+  ProcedureStep:
+    class_uri: https://blackcatinformatics.ca/gmeow/ProcedureStep
+    title: Procedure Step
+    is_a: InformationObject
+    slots:
+    - procedureStepOf
+    - procedureStepType
+    - stepEnactsProcedure
+    - stepInput
+    - stepOutput
+    - stepParameter
+  ProcedureType:
+    class_uri: https://blackcatinformatics.ca/gmeow/ProcedureType
+    title: Procedure Type
   ProfessionalRelationship:
     class_uri: https://blackcatinformatics.ca/gmeow/ProfessionalRelationship
     title: Professional Relationship
@@ -1938,6 +1996,9 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/StepParentChild
     title: Step Parent-Child
     is_a: ParentChildRelationship
+  StepType:
+    class_uri: https://blackcatinformatics.ca/gmeow/StepType
+    title: Step Type
   StorageLocation:
     class_uri: https://blackcatinformatics.ca/gmeow/StorageLocation
     title: Storage Location
@@ -2995,6 +3056,24 @@ slots:
     range: ReferenceFrame
     domain: MonetaryAmount
     multivalued: false
+  dataFlowEntity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/dataFlowEntity
+    title: data flow entity
+    range: Entity
+    domain: DataFlow
+    multivalued: true
+  dataFlowSource:
+    slot_uri: https://blackcatinformatics.ca/gmeow/dataFlowSource
+    title: data flow source
+    range: ProcedureStep
+    domain: DataFlow
+    multivalued: true
+  dataFlowTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/dataFlowTarget
+    title: data flow target
+    range: ProcedureStep
+    domain: DataFlow
+    multivalued: true
   dateAccepted:
     slot_uri: https://blackcatinformatics.ca/gmeow/dateAccepted
     title: date accepted
@@ -3286,6 +3365,30 @@ slots:
     range: EventType
     domain: Event
     multivalued: true
+  executesProcedure:
+    slot_uri: https://blackcatinformatics.ca/gmeow/executesProcedure
+    title: executes procedure
+    range: Procedure
+    domain: Execution
+    multivalued: true
+  executesStep:
+    slot_uri: https://blackcatinformatics.ca/gmeow/executesStep
+    title: executes step
+    range: ProcedureStep
+    domain: Execution
+    multivalued: true
+  executionParticipant:
+    slot_uri: https://blackcatinformatics.ca/gmeow/executionParticipant
+    title: execution participant
+    range: Agent
+    domain: Execution
+    multivalued: true
+  executionStatus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/executionStatus
+    title: execution status
+    range: ExecutionStatus
+    domain: Execution
+    multivalued: true
   exemplifiedBy:
     slot_uri: https://blackcatinformatics.ca/gmeow/exemplifiedBy
     title: exemplified by
@@ -3407,6 +3510,29 @@ slots:
     title: finishes
     range: Event
     domain: Event
+    multivalued: true
+  flowGuard:
+    slot_uri: https://blackcatinformatics.ca/gmeow/flowGuard
+    title: flow guard
+    range: BranchConditionType
+    domain: ControlFlow
+    multivalued: true
+  flowOrder:
+    slot_uri: https://blackcatinformatics.ca/gmeow/flowOrder
+    title: flow order
+    range: integer
+    domain: ControlFlow
+  flowSource:
+    slot_uri: https://blackcatinformatics.ca/gmeow/flowSource
+    title: flow source
+    range: ProcedureStep
+    domain: ControlFlow
+    multivalued: true
+  flowTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/flowTarget
+    title: flow target
+    range: ProcedureStep
+    domain: ControlFlow
     multivalued: true
   formOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/formOf
@@ -4002,6 +4128,12 @@ slots:
     title: has privacy notice
     range: PrivacyNotice
     multivalued: true
+  hasProcedureStep:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasProcedureStep
+    title: has procedure step
+    range: ProcedureStep
+    domain: Procedure
+    multivalued: true
   hasProfile:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasProfile
     title: has profile
@@ -4174,6 +4306,12 @@ slots:
     title: has sub-event
     range: Event
     domain: Event
+    multivalued: true
+  hasSubProcedure:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasSubProcedure
+    title: has sub-procedure
+    range: Procedure
+    domain: Procedure
     multivalued: true
   hasTag:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasTag
@@ -4372,6 +4510,28 @@ slots:
     range: datetime
     domain: ImportActivity
     multivalued: false
+  inquiryPriority:
+    slot_uri: https://blackcatinformatics.ca/gmeow/inquiryPriority
+    title: inquiry priority
+    range: integer
+    domain: Procedure
+  inquirySource:
+    slot_uri: https://blackcatinformatics.ca/gmeow/inquirySource
+    title: inquiry source
+    range: Entity
+    domain: Procedure
+    multivalued: true
+  inquiryStatus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/inquiryStatus
+    title: inquiry status
+    range: ExecutionStatus
+    domain: Procedure
+    multivalued: true
+  inquiryTheme:
+    slot_uri: https://blackcatinformatics.ca/gmeow/inquiryTheme
+    title: inquiry theme
+    range: string
+    domain: Procedure
   inscriptionCarrier:
     slot_uri: https://blackcatinformatics.ca/gmeow/inscriptionCarrier
     title: inscription carrier
@@ -5349,6 +5509,24 @@ slots:
     title: preview
     range: string
     domain: Message
+  procedureStepOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/procedureStepOf
+    title: procedure step of
+    range: Procedure
+    domain: ProcedureStep
+    multivalued: true
+  procedureStepType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/procedureStepType
+    title: procedure step type
+    range: StepType
+    domain: ProcedureStep
+    multivalued: true
+  procedureType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/procedureType
+    title: procedure type
+    range: ProcedureType
+    domain: Procedure
+    multivalued: true
   proficiencyAgent:
     slot_uri: https://blackcatinformatics.ca/gmeow/proficiencyAgent
     title: proficiency agent
@@ -5772,6 +5950,12 @@ slots:
     title: resides in
     range: Mailbox
     domain: Message
+    multivalued: true
+  resolvedByArtifact:
+    slot_uri: https://blackcatinformatics.ca/gmeow/resolvedByArtifact
+    title: resolved by artifact
+    range: Entity
+    domain: Procedure
     multivalued: true
   reviewCommit:
     slot_uri: https://blackcatinformatics.ca/gmeow/reviewCommit
@@ -6217,6 +6401,30 @@ slots:
     range: Entity
     domain: RightsStatement
     multivalued: true
+  stepEnactsProcedure:
+    slot_uri: https://blackcatinformatics.ca/gmeow/stepEnactsProcedure
+    title: step enacts procedure
+    range: Procedure
+    domain: ProcedureStep
+    multivalued: true
+  stepInput:
+    slot_uri: https://blackcatinformatics.ca/gmeow/stepInput
+    title: step input
+    range: string
+    domain: ProcedureStep
+    multivalued: true
+  stepOutput:
+    slot_uri: https://blackcatinformatics.ca/gmeow/stepOutput
+    title: step output
+    range: string
+    domain: ProcedureStep
+    multivalued: true
+  stepParameter:
+    slot_uri: https://blackcatinformatics.ca/gmeow/stepParameter
+    title: step parameter
+    range: string
+    domain: ProcedureStep
+    multivalued: true
   storageMedium:
     slot_uri: https://blackcatinformatics.ca/gmeow/storageMedium
     title: storage medium
@@ -6285,6 +6493,12 @@ slots:
     title: sub-organization of
     range: Organization
     domain: Organization
+    multivalued: true
+  subProcedureOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/subProcedureOf
+    title: sub-procedure of
+    range: Procedure
+    domain: Procedure
     multivalued: true
   subject:
     slot_uri: https://blackcatinformatics.ca/gmeow/subject
@@ -7230,6 +7444,21 @@ enums:
       axisZ:
         meaning: https://blackcatinformatics.ca/gmeow/axisZ
         title: Z axis
+  BranchConditionTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/BranchConditionType
+    permissible_values:
+      branchConditionIf:
+        meaning: https://blackcatinformatics.ca/gmeow/branchConditionIf
+        title: if
+      branchConditionLoop:
+        meaning: https://blackcatinformatics.ca/gmeow/branchConditionLoop
+        title: loop
+      branchConditionParallel:
+        meaning: https://blackcatinformatics.ca/gmeow/branchConditionParallel
+        title: parallel
+      branchConditionSwitch:
+        meaning: https://blackcatinformatics.ca/gmeow/branchConditionSwitch
+        title: switch
   CadastralReferenceTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CadastralReferenceType
     permissible_values:
@@ -7575,6 +7804,19 @@ enums:
       roleWritingReviewEditing:
         meaning: https://blackcatinformatics.ca/gmeow/roleWritingReviewEditing
         title: writing – review & editing
+  ControlFlowEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ControlFlow
+    permissible_values:
+      flowIngestion1:
+        meaning: https://blackcatinformatics.ca/gmeow/flowIngestion1
+      flowIngestion2:
+        meaning: https://blackcatinformatics.ca/gmeow/flowIngestion2
+      flowIngestion3:
+        meaning: https://blackcatinformatics.ca/gmeow/flowIngestion3
+      flowIngestion4:
+        meaning: https://blackcatinformatics.ca/gmeow/flowIngestion4
+      flowIngestion5:
+        meaning: https://blackcatinformatics.ca/gmeow/flowIngestion5
   CopyrightStatusEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CopyrightStatus
     permissible_values:
@@ -7788,6 +8030,12 @@ enums:
       policySensitive:
         meaning: https://blackcatinformatics.ca/gmeow/policySensitive
         title: sensitive
+  EntityEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/Entity
+    permissible_values:
+      procedureIngestionRawRoot:
+        meaning: https://blackcatinformatics.ca/gmeow/procedureIngestionRawRoot
+        title: raw root data source
   EventTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/EventType
     permissible_values:
@@ -7986,6 +8234,27 @@ enums:
       evidenceVERIFIED:
         meaning: https://blackcatinformatics.ca/gmeow/evidenceVERIFIED
         title: verified evidence
+  ExecutionStatusEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ExecutionStatus
+    permissible_values:
+      executionStatusCancelled:
+        meaning: https://blackcatinformatics.ca/gmeow/executionStatusCancelled
+        title: cancelled
+      executionStatusFailed:
+        meaning: https://blackcatinformatics.ca/gmeow/executionStatusFailed
+        title: failed
+      executionStatusPending:
+        meaning: https://blackcatinformatics.ca/gmeow/executionStatusPending
+        title: pending
+      executionStatusRunning:
+        meaning: https://blackcatinformatics.ca/gmeow/executionStatusRunning
+        title: running
+      executionStatusSkipped:
+        meaning: https://blackcatinformatics.ca/gmeow/executionStatusSkipped
+        title: skipped
+      executionStatusSucceeded:
+        meaning: https://blackcatinformatics.ca/gmeow/executionStatusSucceeded
+        title: succeeded
   FinancialAccountTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/FinancialAccountType
     permissible_values:
@@ -9406,6 +9675,60 @@ enums:
       placeTypeThoroughfare:
         meaning: https://blackcatinformatics.ca/gmeow/placeTypeThoroughfare
         title: thoroughfare / street
+  ProcedureEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/Procedure
+    permissible_values:
+      procedureIngestionCanonical:
+        meaning: https://blackcatinformatics.ca/gmeow/procedureIngestionCanonical
+        title: Canonical Ingestion Procedure
+  ProcedureStepEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ProcedureStep
+    permissible_values:
+      stepIngestionDerivedClaims:
+        meaning: https://blackcatinformatics.ca/gmeow/stepIngestionDerivedClaims
+        title: derived claims / events generation
+      stepIngestionFileCopy:
+        meaning: https://blackcatinformatics.ca/gmeow/stepIngestionFileCopy
+        title: file copy / staging
+      stepIngestionOcrExtract:
+        meaning: https://blackcatinformatics.ca/gmeow/stepIngestionOcrExtract
+        title: OCR / text extraction
+      stepIngestionPrivacyPosture:
+        meaning: https://blackcatinformatics.ca/gmeow/stepIngestionPrivacyPosture
+        title: privacy posture assessment
+      stepIngestionRawRoot:
+        meaning: https://blackcatinformatics.ca/gmeow/stepIngestionRawRoot
+        title: raw root acquisition
+      stepIngestionUnresolvedLeads:
+        meaning: https://blackcatinformatics.ca/gmeow/stepIngestionUnresolvedLeads
+        title: unresolved leads identification
+  ProcedureTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ProcedureType
+    permissible_values:
+      procedureTypeAgentFlow:
+        meaning: https://blackcatinformatics.ca/gmeow/procedureTypeAgentFlow
+        title: agent flow
+      procedureTypeBusinessProcess:
+        meaning: https://blackcatinformatics.ca/gmeow/procedureTypeBusinessProcess
+        title: business process
+      procedureTypeCiBuild:
+        meaning: https://blackcatinformatics.ca/gmeow/procedureTypeCiBuild
+        title: CI build
+      procedureTypeDataPipeline:
+        meaning: https://blackcatinformatics.ca/gmeow/procedureTypeDataPipeline
+        title: data pipeline
+      procedureTypeIngestion:
+        meaning: https://blackcatinformatics.ca/gmeow/procedureTypeIngestion
+        title: ingestion
+      procedureTypeLabProtocol:
+        meaning: https://blackcatinformatics.ca/gmeow/procedureTypeLabProtocol
+        title: lab protocol
+      procedureTypeRecipe:
+        meaning: https://blackcatinformatics.ca/gmeow/procedureTypeRecipe
+        title: recipe
+      procedureTypeResearchPlan:
+        meaning: https://blackcatinformatics.ca/gmeow/procedureTypeResearchPlan
+        title: research plan
   ProficiencyLevelEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ProficiencyLevel
     permissible_values:
@@ -10306,6 +10629,27 @@ enums:
       unequivocal:
         meaning: https://blackcatinformatics.ca/gmeow/unequivocal
         title: unequivocal (□, true)
+  StepTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/StepType
+    permissible_values:
+      stepTypeAtomic:
+        meaning: https://blackcatinformatics.ca/gmeow/stepTypeAtomic
+        title: atomic step
+      stepTypeBranch:
+        meaning: https://blackcatinformatics.ca/gmeow/stepTypeBranch
+        title: branch step
+      stepTypeEnd:
+        meaning: https://blackcatinformatics.ca/gmeow/stepTypeEnd
+        title: end step
+      stepTypeParallel:
+        meaning: https://blackcatinformatics.ca/gmeow/stepTypeParallel
+        title: parallel step
+      stepTypeStart:
+        meaning: https://blackcatinformatics.ca/gmeow/stepTypeStart
+        title: start step
+      stepTypeSubprocess:
+        meaning: https://blackcatinformatics.ca/gmeow/stepTypeSubprocess
+        title: subprocess step
   StorageMediumEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/StorageMedium
     permissible_values:
