@@ -117,14 +117,26 @@ def test_comment_parent_is_object_property() -> None:
     node = URIRef(GMEOW + "commentParent")
     assert (node, RDF.type, OWL.ObjectProperty) in graph
     # Not declared FunctionalProperty: hasReply is transitive, and in OWL 2 DL
-    # the inverse of a transitive property is non-simple and cannot be functional.
-    # The "one parent per comment" constraint is enforced by SHACL instead.
+    # a transitive property (and its inverse) is non-simple and cannot be
+    # functional.  The "one parent per comment" constraint is enforced by
+    # SHACL (sh:maxCount 1 on commentParent) instead.
     assert (node, RDF.type, OWL.FunctionalProperty) not in graph
 
 
-def test_has_reply_is_transitive() -> None:
+def test_has_direct_reply_is_inverse_of_comment_parent() -> None:
     graph = _graph()
-    assert (URIRef(GMEOW + "hasReply"), RDF.type, OWL.TransitiveProperty) in graph
+    direct = URIRef(GMEOW + "hasDirectReply")
+    parent = URIRef(GMEOW + "commentParent")
+    assert (direct, RDF.type, OWL.ObjectProperty) in graph
+    assert (direct, OWL.inverseOf, parent) in graph
+
+
+def test_has_reply_is_transitive_superproperty() -> None:
+    graph = _graph()
+    reply = URIRef(GMEOW + "hasReply")
+    direct = URIRef(GMEOW + "hasDirectReply")
+    assert (reply, RDF.type, OWL.TransitiveProperty) in graph
+    assert (direct, RDFS.subPropertyOf, reply) in graph
 
 
 def test_mentions_inverse_mentioned_in() -> None:

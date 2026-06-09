@@ -154,13 +154,22 @@ gmeow:commentParent
     skos:definition "The annotation or comment that this comment replies to. Functional per comment: one parent per reply. Top-level comments omit this property. The range is gmeow:Entity (encompassing Annotation and Comment) so that a comment may reply to any annotatable entity without identity clash."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:hasDirectReply
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:commentParent ;
+    rdfs:subPropertyOf gmeow:hasReply ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range gmeow:Comment ;
+    rdfs:label "has direct reply"@en ;
+    skos:definition "Relates an annotation or comment to its immediate reply comment. Non-transitive inverse of commentParent. HasReply is the transitive superproperty that reaches the full reply tree."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:hasReply
     a owl:ObjectProperty, owl:TransitiveProperty ;
-    owl:inverseOf gmeow:commentParent ;
     rdfs:domain gmeow:Entity ;
     rdfs:range gmeow:Comment ;
     rdfs:label "has reply"@en ;
-    skos:definition "Relates an annotation or comment to a reply comment. Transitive: the full reply tree is reachable. Inverse of commentParent. Intentionally kept free of OWL cardinality so that deep thread trees remain DL-regular (no cardinality explosion)."@en ;
+    skos:definition "Relates an annotation or comment to a reply comment. Transitive: the full reply tree is reachable. Superproperty of hasDirectReply. Intentionally kept free of OWL cardinality so that deep thread trees remain DL-regular (no cardinality explosion)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #

@@ -2710,15 +2710,29 @@ gmeow:BranchHasOutgoingFlowsShape
 # Notes & Annotation building block (#63)
 # --------------------------------------------------------------------------- #
 
-gmeow:AnnotationHasTargetShape
+gmeow:AnnotationShape
     a sh:NodeShape ;
-    rdfs:label "Annotation must have a target" ;
+    rdfs:label "Annotation well-formedness shape" ;
     sh:targetClass gmeow:Annotation ;
     sh:property [
         sh:path gmeow:annotationTarget ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:severity sh:Violation ;
-        sh:message "Every Annotation must have at least one annotationTarget." ;
+        sh:message "Every Annotation must have exactly one annotationTarget." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:annotationBody ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An Annotation may have at most one annotationBody." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:annotationMotivation ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every Annotation must have exactly one annotationMotivation." ;
     ] .
 
 gmeow:HighlightHasSelectorShape
@@ -2734,13 +2748,14 @@ gmeow:HighlightHasSelectorShape
 
 gmeow:CommentHasParentShape
     a sh:NodeShape ;
-    rdfs:label "Comment parent must be an Annotation or Comment" ;
+    rdfs:label "Comment parent must be an Entity" ;
     sh:targetClass gmeow:Comment ;
     sh:property [
         sh:path gmeow:commentParent ;
+        sh:maxCount 1 ;
         sh:class gmeow:Entity ;
         sh:severity sh:Violation ;
-        sh:message "A commentParent must point to an Entity (typically an Annotation or Comment)." ;
+        sh:message "A commentParent must point to at most one Entity (typically an Annotation or Comment)." ;
     ] .
 
 gmeow:NoteContentShape
@@ -2768,7 +2783,6 @@ gmeow:RetractedNoteSuppressionShape
                     $this <https://blackcatinformatics.ca/gmeow/displayable> false .
                 }
                 FILTER EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/annotationMotivation> <https://blackcatinformatics.ca/gmeow/motivationReplying> .
                     ?parent <https://blackcatinformatics.ca/gmeow/hasReply> $this .
                     ?parent <https://blackcatinformatics.ca/gmeow/displayable> false .
                 }
