@@ -28,6 +28,16 @@ enum AggregationFunctionEnum
     aggSum
   }
 
+enum ArcTypeEnum
+  {
+    arcTypeComingOfAge
+    arcTypeCorruption
+    arcTypeFall
+    arcTypeQuest
+    arcTypeRecovery
+    arcTypeRedemption
+  }
+
 enum AttestationTypeEnum
   {
     attestationTypeAIOutput
@@ -241,6 +251,16 @@ enum ConstraintOperatorEnum
     operatorLt
     operatorLteq
     operatorNeq
+  }
+
+enum ContentSegmentTypeEnum
+  {
+    segmentTypeBackMatter
+    segmentTypeChapter
+    segmentTypeFrontMatter
+    segmentTypeParagraph
+    segmentTypeScene
+    segmentTypeSection
   }
 
 enum ContributionDegreeEnum
@@ -774,6 +794,7 @@ enum MaintenanceStatusEnum
 enum ManifestationFormatEnum
   {
     formatAudiobook
+    formatComicIssue
     formatDigitalFile
     formatEPUB
     formatHardcover
@@ -781,6 +802,7 @@ enum ManifestationFormatEnum
     formatPaperback
     formatVinyl
     formatWebPage
+    formatWebSerial
   }
 
 enum MentalReferenceFrameEnum
@@ -1708,6 +1730,10 @@ type ArchaeologicalFindContext
     findContextTarget: PhysicalObject
   }
 
+type ArcType
+  {
+  }
+
 type Article
   {
     acquireLicensePage: String
@@ -1750,6 +1776,7 @@ type Article
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     datePublished: String
     editionOf: CreativeWork
@@ -1818,6 +1845,7 @@ type Attachment
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     mediaType: String
     filename: String
@@ -1879,6 +1907,7 @@ type AttestationArtifact
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     artifactMediaType: String
   }
@@ -1933,6 +1962,7 @@ type AuthenticationResult
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     authMethod: String
     authResult: String
@@ -2053,6 +2083,7 @@ type Block
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     blockHash: String
     blockNumber: Int
@@ -2189,6 +2220,7 @@ type BodyPart
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     mediaType: String
   }
@@ -2235,6 +2267,7 @@ type BookRelease
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     datePublished: String
     editionOf: CreativeWork
@@ -2252,6 +2285,7 @@ type BookRelease
     title: String
     embodies: [Expression]
     exemplifiedBy: [Item]
+    hasManifestationFormat: ManifestationFormat
   }
 
 type Branch
@@ -2296,6 +2330,7 @@ type Branch
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
   }
 
@@ -2341,6 +2376,7 @@ type CadastralReference
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     referenceAuthority: Agent
     referenceJurisdiction: Place
@@ -2460,6 +2496,56 @@ type Certification
     certifier: Agent
   }
 
+type CharacterArc
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    proximity: [ProximityMeasurement]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    arcEvidence: [InformationObject]
+    arcFrame: NarrativeReferenceFrame
+    arcSubject: Entity
+    arcType: ArcType
+  }
+
 type CitationAct
   {
     citationIntent: CitationIntent
@@ -2551,6 +2637,59 @@ type ContainmentTenure
     duringInterval: [TimeInterval]
     containmentChild: Place
     containmentParent: Place
+  }
+
+type ContentSegment
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    proximity: [ProximityMeasurement]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    segmentIndex: Int
+    segmentOf: [Entity]
+    segmentType: ContentSegmentType
+  }
+
+type ContentSegmentType
+  {
   }
 
 type Contract
@@ -2663,6 +2802,7 @@ type CreativeWork
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     datePublished: String
     editionOf: CreativeWork
@@ -2782,6 +2922,7 @@ type CryptographicKey
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     fingerprint: String
     keyAlgorithm: String
@@ -2833,6 +2974,7 @@ type CryptographicSignature
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     signatureAlgorithm: String
     signatureOf: [String]
@@ -2884,6 +3026,7 @@ type Dataset
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     datePublished: String
     editionOf: CreativeWork
@@ -2960,6 +3103,7 @@ type Distribution
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     distributionFormat: String
   }
@@ -3006,6 +3150,7 @@ type DKIMSignature
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     signatureAlgorithm: String
     signatureOf: [String]
@@ -3057,6 +3202,7 @@ type Document
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     datePublished: String
     editionOf: CreativeWork
@@ -3179,6 +3325,7 @@ type EmailMessage
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     hasAttachment: [Attachment]
     hasAuthenticationResult: [AuthenticationResult]
@@ -3397,6 +3544,7 @@ type Expression
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     datePublished: String
     editionOf: CreativeWork
@@ -3559,6 +3707,7 @@ type FormalLanguage
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     bcp47Tag: String
     designGoal: String
@@ -3915,6 +4064,7 @@ type InformationObject
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
   }
 
@@ -3960,6 +4110,7 @@ type Inscription
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     inscriptionCarrier: PhysicalObject
   }
@@ -4036,6 +4187,7 @@ type Issue
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
   }
 
@@ -4081,6 +4233,7 @@ type Item
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     datePublished: String
     editionOf: CreativeWork
@@ -4172,6 +4325,7 @@ type Language
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     bcp47Tag: String
     designGoal: String
@@ -4334,6 +4488,7 @@ type LanguageVariety
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     bcp47Tag: String
     designGoal: String
@@ -4394,6 +4549,7 @@ type LanguageVersion
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     bcp47Tag: String
     designGoal: String
@@ -4488,6 +4644,7 @@ type LedgerTransaction
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     transactionHash: String
   }
@@ -4538,6 +4695,7 @@ type LexicalForm
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     formOf: [LexicalItem]
     formRepresentation: String
@@ -4591,6 +4749,7 @@ type LexicalItem
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     hasLexicalForm: [LexicalForm]
     lexicalItemLanguage: Language
@@ -4647,6 +4806,67 @@ type LifeEvent
     starts: [Event]
     subEventOf: [Event]
     temporalPrecision: [TemporalPrecision]
+  }
+
+type LiteraryWork
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    proximity: [ProximityMeasurement]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    datePublished: String
+    editionOf: CreativeWork
+    hasAuthor: [Agent]
+    hasContributor: [Agent]
+    hasEditor: [Agent]
+    hasIllustrator: [Agent]
+    hasNarrator: [Agent]
+    hasTitle: [CreativeWorkTitle]
+    hasTranslator: [Agent]
+    identifier: String
+    sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
+    title: String
+    realizedThrough: [Expression]
   }
 
 type Location
@@ -4808,6 +5028,7 @@ type Mailbox
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     mailboxName: String
     mailboxOfAccount: OnlineAccount
@@ -4867,6 +5088,7 @@ type Manifestation
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     datePublished: String
     editionOf: CreativeWork
@@ -4884,6 +5106,7 @@ type Manifestation
     title: String
     embodies: [Expression]
     exemplifiedBy: [Item]
+    hasManifestationFormat: ManifestationFormat
   }
 
 type ManifestationFormat
@@ -4932,6 +5155,7 @@ type Mark
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     markText: String
   }
@@ -5035,6 +5259,7 @@ type MediaObject
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     datePublished: String
     editionOf: CreativeWork
@@ -5052,6 +5277,7 @@ type MediaObject
     title: String
     embodies: [Expression]
     exemplifiedBy: [Item]
+    hasManifestationFormat: ManifestationFormat
   }
 
 type Membership
@@ -5160,6 +5386,7 @@ type MergeRequest
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
   }
 
@@ -5205,6 +5432,7 @@ type Message
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     hasAttachment: [Attachment]
     hasAuthenticationResult: [AuthenticationResult]
@@ -5267,6 +5495,7 @@ type MessageHeader
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     headerName: String
     headerValue: String
@@ -5387,6 +5616,7 @@ type NamePart
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     namePartType: NamePartType
     partExpansion: String
@@ -5581,6 +5811,7 @@ type NotationSystem
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     symbolicSystemKind: [SymbolicSystemKind]
     notationSystemFor: [Language]
@@ -5761,6 +5992,7 @@ type OnlineAccount
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     accountKey: [CryptographicKey]
     accountName: String
@@ -5898,6 +6130,7 @@ type Package
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     hasDistribution: [Distribution]
     packageOf: [SoftwareProduct]
@@ -5963,6 +6196,7 @@ type Patent
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     datePublished: String
     editionOf: CreativeWork
@@ -6084,6 +6318,7 @@ type PGPSignature
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     signatureAlgorithm: String
     signatureOf: [String]
@@ -6347,6 +6582,7 @@ type PrivacyNotice
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
   }
 
@@ -6411,6 +6647,7 @@ type Profile
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     profileAppliesTo: [String]
     profileDescriptor: String
@@ -6459,6 +6696,7 @@ type ProgrammingLanguage
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     bcp47Tag: String
     designGoal: String
@@ -6576,6 +6814,7 @@ type PronounSet
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     pronounObject: String
     pronounPossessive: String
@@ -6661,6 +6900,51 @@ type Quantity
     wasGeneratedBy: [Activity]
   }
 
+type ReadingOrder
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    proximity: [ProximityMeasurement]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    sharpens: [Standpoint]
+  }
+
 type RecurrenceRule
   {
     acquireLicensePage: String
@@ -6703,6 +6987,7 @@ type RecurrenceRule
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     recurrenceRuleText: String
   }
@@ -6749,6 +7034,7 @@ type Ref
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     pointsToCommit: [Commit]
   }
@@ -6960,6 +7246,7 @@ type Repository
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     cloneUrl: String
     hostedAt: [ForgePlatform]
@@ -7013,6 +7300,7 @@ type Review
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
   }
 
@@ -7229,6 +7517,7 @@ type Selector
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     selectorLocator: String
     selectorPage: String
@@ -7572,6 +7861,7 @@ type SerialInstallment
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     datePublished: String
     editionOf: CreativeWork
@@ -7589,6 +7879,68 @@ type SerialInstallment
     title: String
     embodies: [Expression]
     exemplifiedBy: [Item]
+    hasManifestationFormat: ManifestationFormat
+  }
+
+type SerialWork
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    proximity: [ProximityMeasurement]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    datePublished: String
+    editionOf: CreativeWork
+    hasAuthor: [Agent]
+    hasContributor: [Agent]
+    hasEditor: [Agent]
+    hasIllustrator: [Agent]
+    hasNarrator: [Agent]
+    hasTitle: [CreativeWorkTitle]
+    hasTranslator: [Agent]
+    identifier: String
+    sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
+    title: String
+    realizedThrough: [Expression]
   }
 
 type SexAssignedAtBirth
@@ -7740,6 +8092,7 @@ type SMIMESignature
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     signatureAlgorithm: String
     signatureOf: [String]
@@ -7821,6 +8174,7 @@ type SoftwareProduct
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     datePublished: String
     editionOf: CreativeWork
@@ -7932,6 +8286,7 @@ type SourceDirectory
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
   }
 
@@ -7977,6 +8332,7 @@ type SourceFile
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
   }
 
@@ -8026,6 +8382,7 @@ type SourceNode
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
   }
 
@@ -8071,6 +8428,7 @@ type SourceRole
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     datePublished: String
     editionOf: CreativeWork
@@ -8134,6 +8492,7 @@ type SourceTree
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
   }
 
@@ -8527,6 +8886,7 @@ type Summary
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
   }
 
@@ -8572,6 +8932,7 @@ type SymbolicSystem
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     symbolicSystemKind: [SymbolicSystemKind]
   }
@@ -8622,6 +8983,7 @@ type Tag
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     broaderTag: [Tag]
     narrowerTag: [Tag]
@@ -8680,6 +9042,7 @@ type TagScheme
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
   }
 
@@ -8815,6 +9178,7 @@ type TextExtraction
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     datePublished: String
     editionOf: CreativeWork
@@ -8875,6 +9239,7 @@ type Thread
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
   }
 
@@ -9054,6 +9419,7 @@ type TransparencyLogEntry
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     logEntryIndex: Int
     logEntryUrl: String
@@ -9179,6 +9545,7 @@ type VerificationResult
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     hasVerificationStatus: [VerificationStatus]
     verifiedBy: [Agent]
@@ -9257,6 +9624,7 @@ type VersionSet
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
   }
 
@@ -9371,6 +9739,7 @@ type WebPage
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     datePublished: String
     editionOf: CreativeWork
@@ -9388,6 +9757,7 @@ type WebPage
     title: String
     embodies: [Expression]
     exemplifiedBy: [Item]
+    hasManifestationFormat: ManifestationFormat
   }
 
 type Work
@@ -9432,6 +9802,7 @@ type Work
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     datePublished: String
     editionOf: CreativeWork
@@ -9492,6 +9863,7 @@ type WritingSystem
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
     scriptCode: String
     textDirection: [TextDirection]

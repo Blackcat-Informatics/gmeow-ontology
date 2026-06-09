@@ -35,8 +35,8 @@ def test_dsl_parses() -> None:
     Validate that the mapping DSL loads correctly and contains the expected
     counts and profiles.
 
-    Asserts that the loaded DSL has 1204 term equivalences, 28 functions,
-    34 mapping sets, more than 30 projection cells, and that the set of
+    Asserts that the loaded DSL has 1310 term equivalences, 28 functions,
+    39 mapping sets, more than 30 projection cells, and that the set of
     profiles used in projection bindings equals the module-level `_PROFILES`.
     """
     dsl = load_dsl()
@@ -192,7 +192,9 @@ def test_dsl_parses() -> None:
     #  hasDisclosurePolicy↔dpv:hasProcessingContext,
     #  policyPublicOnlyWithIndependentSource↔odrl:purpose,
     #  consumerWikidata↔wd:Q2013, consumerWikipedia↔wd:Q52).
-    assert len(dsl.equivalences) == 1312
+    # Issue #156 book / narrative model: +6 (schema:Book, bibo:Book,
+    # schema:CreativeWorkSeries, schema:Chapter x2, schema:Role).
+    assert len(dsl.equivalences) == 1318
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

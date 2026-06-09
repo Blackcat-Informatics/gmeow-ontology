@@ -599,3 +599,103 @@ def test_contribution_missing_role_fails_shacl() -> None:
     result = run_shacl(g)
     assert not result.ok
     assert any("Contribution must specify exactly one role" in e for e in result.errors)
+
+
+# =========================================================================== #
+# Book / narrative model additions (issue #156)
+# =========================================================================== #
+
+
+def test_literary_work_subclasses_work() -> None:
+    graph = _graph()
+    assert (GMEOW.LiteraryWork, RDFS.subClassOf, GMEOW.Work) in graph
+
+
+def test_serial_work_subclasses_work() -> None:
+    graph = _graph()
+    assert (GMEOW.SerialWork, RDFS.subClassOf, GMEOW.Work) in graph
+
+
+def test_content_segment_subclasses_information_object() -> None:
+    graph = _graph()
+    assert (
+        GMEOW.ContentSegment,
+        RDFS.subClassOf,
+        GMEOW.InformationObject,
+    ) in graph
+
+
+def test_has_segment_is_subproperty_of_has_part() -> None:
+    graph = _graph()
+    assert (GMEOW.hasSegment, RDFS.subPropertyOf, GMEOW.hasPart) in graph
+
+
+def test_segment_of_is_subproperty_of_part_of() -> None:
+    graph = _graph()
+    assert (GMEOW.segmentOf, RDFS.subPropertyOf, GMEOW.partOf) in graph
+
+
+def test_segment_type_is_functional() -> None:
+    graph = _graph()
+    assert (GMEOW.segmentType, RDF.type, OWL.FunctionalProperty) in graph
+
+
+def test_segment_index_is_functional() -> None:
+    graph = _graph()
+    assert (GMEOW.segmentIndex, RDF.type, OWL.FunctionalProperty) in graph
+
+
+def test_content_segment_type_value_vocab() -> None:
+    graph = _graph()
+    assert (GMEOW.ContentSegmentType, RDFS.subClassOf, GUFO.QualityValue) in graph
+    for ind in (
+        GMEOW.segmentTypeChapter,
+        GMEOW.segmentTypeSection,
+        GMEOW.segmentTypeScene,
+        GMEOW.segmentTypeParagraph,
+        GMEOW.segmentTypeFrontMatter,
+        GMEOW.segmentTypeBackMatter,
+    ):
+        assert (ind, RDF.type, GMEOW.ContentSegmentType) in graph
+
+
+def test_has_manifestation_format_exists() -> None:
+    graph = _graph()
+    prop = GMEOW.hasManifestationFormat
+    assert (prop, RDF.type, OWL.ObjectProperty) in graph
+    assert (prop, RDF.type, OWL.FunctionalProperty) in graph
+    assert (prop, RDFS.domain, GMEOW.Manifestation) in graph
+    assert (prop, RDFS.range, GMEOW.ManifestationFormat) in graph
+
+
+def test_manifestation_format_new_seeds() -> None:
+    graph = _graph()
+    for ind in (
+        GMEOW.formatWebSerial,
+        GMEOW.formatComicIssue,
+    ):
+        assert (ind, RDF.type, GMEOW.ManifestationFormat) in graph
+
+
+def test_content_segment_shacl_passes() -> None:
+    """A well-formed ContentSegment passes SHACL."""
+    g = Graph()
+    g.add((EX.chapter1, RDF.type, GMEOW.ContentSegment))
+    g.add((EX.chapter1, RDFS.label, Literal("Chapter 1")))
+    g.add((EX.chapter1, GMEOW.segmentOf, EX.book))
+    g.add((EX.book, RDF.type, GMEOW.LiteraryWork))
+    g.add((EX.book, RDFS.label, Literal("Test Book")))
+
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+
+
+def test_content_segment_without_container_fails_shacl() -> None:
+    """A ContentSegment with no segmentOf violates SHACL."""
+    g = Graph()
+    g.add((EX.chapter1, RDF.type, GMEOW.ContentSegment))
+    g.add((EX.chapter1, RDFS.label, Literal("Orphan Chapter")))
+
+    result = run_shacl(g)
+    assert not result.ok
+    assert any("ContentSegment must be part of" in e for e in result.errors)
