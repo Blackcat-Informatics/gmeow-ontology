@@ -159,6 +159,14 @@ enum AxisEnum
     axisZ
   }
 
+enum BranchConditionTypeEnum
+  {
+    branchConditionIf
+    branchConditionLoop
+    branchConditionParallel
+    branchConditionSwitch
+  }
+
 enum CadastralReferenceTypeEnum
   {
     referenceTypeFolio
@@ -313,6 +321,15 @@ enum ContributionRoleEnum
     roleWritingReviewEditing
   }
 
+enum ControlFlowEnum
+  {
+    flowIngestion1
+    flowIngestion2
+    flowIngestion3
+    flowIngestion4
+    flowIngestion5
+  }
+
 enum CopyrightStatusEnum
   {
     copyrightStatusInCopyright
@@ -405,6 +422,11 @@ enum DisclosurePolicyEnum
     policySensitive
   }
 
+enum EntityEnum
+  {
+    procedureIngestionRawRoot
+  }
+
 enum EventTypeEnum
   {
     eventTypeAdoption
@@ -475,6 +497,16 @@ enum EvidenceClassEnum
     evidenceSelfControlledSite
     evidenceSourceCodeArchive
     evidenceVERIFIED
+  }
+
+enum ExecutionStatusEnum
+  {
+    executionStatusCancelled
+    executionStatusFailed
+    executionStatusPending
+    executionStatusRunning
+    executionStatusSkipped
+    executionStatusSucceeded
   }
 
 enum FinancialAccountTypeEnum
@@ -1085,6 +1117,33 @@ enum PlaceTypeEnum
     placeTypeThoroughfare
   }
 
+enum ProcedureEnum
+  {
+    procedureIngestionCanonical
+  }
+
+enum ProcedureStepEnum
+  {
+    stepIngestionDerivedClaims
+    stepIngestionFileCopy
+    stepIngestionOcrExtract
+    stepIngestionPrivacyPosture
+    stepIngestionRawRoot
+    stepIngestionUnresolvedLeads
+  }
+
+enum ProcedureTypeEnum
+  {
+    procedureTypeAgentFlow
+    procedureTypeBusinessProcess
+    procedureTypeCiBuild
+    procedureTypeDataPipeline
+    procedureTypeIngestion
+    procedureTypeLabProtocol
+    procedureTypeRecipe
+    procedureTypeResearchPlan
+  }
+
 enum ProficiencyLevelEnum
   {
     cefrA1
@@ -1458,6 +1517,16 @@ enum StandpointModalityEnum
     probable
     refuted
     unequivocal
+  }
+
+enum StepTypeEnum
+  {
+    stepTypeAtomic
+    stepTypeBranch
+    stepTypeEnd
+    stepTypeParallel
+    stepTypeStart
+    stepTypeSubprocess
   }
 
 enum StorageMediumEnum
@@ -2499,6 +2568,10 @@ type Branch
     detectedMediaType: String
   }
 
+type BranchConditionType
+  {
+  }
+
 type CadastralReference
   {
     acquireLicensePage: String
@@ -3035,6 +3108,14 @@ type ContributionRole
   {
   }
 
+type ControlFlow
+  {
+    flowGuard: [BranchConditionType]
+    flowOrder: Int
+    flowSource: [ProcedureStep]
+    flowTarget: [ProcedureStep]
+  }
+
 type CoordinateMatrix
   {
     coordinateMatrixFrame: ReferenceFrame
@@ -3337,6 +3418,13 @@ type CryptographicSignature
     signingDomain: String
     signingKey: CryptographicKey
     verificationStatus: String
+  }
+
+type DataFlow
+  {
+    dataFlowEntity: [Entity]
+    dataFlowSource: [ProcedureStep]
+    dataFlowTarget: [ProcedureStep]
   }
 
 type Dataset
@@ -3978,6 +4066,56 @@ type EventType
   }
 
 type EvidenceClass
+  {
+  }
+
+type Execution
+  {
+    after: [Event]
+    before: [Event]
+    coincidesWith: [Event]
+    contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
+    during: [Event]
+    earliestStart: String
+    eventAspect: [GrammaticalAspect]
+    eventInterval: [TimeInterval]
+    eventLocation: [Location]
+    eventObservation: [Observation]
+    eventSpacetime: [LocationState]
+    eventTemporalFrame: TemporalFrame
+    eventTense: [GrammaticalTense]
+    eventTime: String
+    eventTrajectory: [Trajectory]
+    eventType: [EventType]
+    finishedBy: [Event]
+    finishes: [Event]
+    hasDuration: [Duration]
+    hasParticipant: [Agent]
+    hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
+    latestEnd: String
+    maximViolationType: [MaximViolationType]
+    meets: [Event]
+    metBy: [Event]
+    occurrenceOfSeries: [EventSeries]
+    overlappedBy: [Event]
+    overlaps: [Event]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
+    startedBy: [Event]
+    starts: [Event]
+    subEventOf: [Event]
+    temporalPrecision: [TemporalPrecision]
+    executesProcedure: [Procedure]
+    executesStep: [ProcedureStep]
+    executionParticipant: [Agent]
+    executionStatus: [ExecutionStatus]
+  }
+
+type ExecutionStatus
   {
   }
 
@@ -7604,6 +7742,125 @@ type PrivacyNotice
     detectedMediaType: String
   }
 
+type Procedure
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    hasProcedureStep: [ProcedureStep]
+    hasSubProcedure: [Procedure]
+    inquiryPriority: Int
+    inquirySource: [Entity]
+    inquiryStatus: [ExecutionStatus]
+    inquiryTheme: String
+    procedureType: [ProcedureType]
+    resolvedByArtifact: [Entity]
+    subProcedureOf: [Procedure]
+  }
+
+type ProcedureStep
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    procedureStepOf: [Procedure]
+    procedureStepType: [StepType]
+    stepEnactsProcedure: [Procedure]
+    stepInput: [String]
+    stepOutput: [String]
+    stepParameter: [String]
+  }
+
+type ProcedureType
+  {
+  }
+
 type ProfessionalRelationship
   {
     relationshipInterval: [TimeInterval]
@@ -10141,6 +10398,10 @@ type StepParentChild
   {
     relationshipChild: Person
     relationshipParent: Person
+  }
+
+type StepType
+  {
   }
 
 type StorageLocation

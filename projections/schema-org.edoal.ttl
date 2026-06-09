@@ -464,6 +464,30 @@
                     edoal:uri schema:ComputerLanguage ] ;
             align:relation "=" ],
         [ a align:Cell ;
+            rdfs:label "stepOutput → schema:result"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:stepOutput ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:result ] ;
+            align:relation "<=" ;
+            edoal:measure 7.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "hasProcedureStep → schema:step"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasProcedureStep ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:step ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "stepInput → schema:supply"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:stepInput ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:supply ] ;
+            align:relation "<=" ;
+            edoal:measure 7.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "Tagging relator → schema:keywords (lossy flatten)"@en ;
             align:entity1 [ a edoal:Class ;
                     edoal:uri gmeow:Tagging ] ;
@@ -472,6 +496,14 @@
             align:relation "<=" ;
             edoal:measure 7e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnTagToKeyword ] ],
+        [ a align:Cell ;
+            rdfs:label "stepInput (tool) → schema:tool"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:stepInput ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:tool ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ],
         [ a align:Cell ;
             rdfs:label "hasWebPage → schema:url (the WebPage IRI)"@en ;
             align:entity1 [ a edoal:Relation ;

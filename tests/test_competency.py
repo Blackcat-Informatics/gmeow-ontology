@@ -435,3 +435,32 @@ def test_competency_myths_query() -> None:
     ):
         assert NAMESPACE + term in terms
     assert len(terms) >= 5
+
+
+def test_competency_procedures_query() -> None:
+    terms = _query_terms("procedures.rq")
+    for term in (
+        "Procedure",
+        "ProcedureStep",
+        "Execution",
+        "ControlFlow",
+        "DataFlow",
+    ):
+        assert NAMESPACE + term in terms
+
+
+def test_competency_ingestion_executions_query() -> None:
+    # The query looks for Executions of ingestion procedures that produced
+    # Observations but no Events. In the asserted ontology there are no
+    # Execution individuals, so the query returns an empty set — this is
+    # correct behaviour for the TBox-only graph.
+    terms = _query_terms("ingestion-executions.rq")
+    # Empty result is valid for the TBox; we just verify the query parses and runs.
+    assert terms == set()
+
+
+def test_competency_research_inquiries_query() -> None:
+    # The query looks for open research inquiries. In the asserted ontology
+    # there are no open inquiry instances, so the query returns an empty set.
+    terms = _query_terms("research-inquiries.rq")
+    assert terms == set()
