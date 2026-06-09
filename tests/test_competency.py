@@ -399,3 +399,26 @@ def test_competency_notability_eligible_query() -> None:
         "supportsNotability",
     ):
         assert NAMESPACE + term in terms
+
+
+def test_competency_deception_types_query() -> None:
+    terms = _query_terms("deception-types.rq")
+    for term in (
+        "eventTypeDeception",
+        "ClaimVeridicality",
+        "veridicalityUntrue",
+        "veridicalityLicensedFalsehood",
+    ):
+        assert NAMESPACE + term in terms
+
+
+def test_competency_deception_roles_query() -> None:
+    terms = _query_terms("deception-roles.rq")
+    for term in (
+        "roleDeceiver",
+        "roleDeceived",
+        "roleBeneficiaryOfDeception",
+        "roleDupe",
+    ):
+        assert NAMESPACE + term in terms
+    assert len(terms) >= 4

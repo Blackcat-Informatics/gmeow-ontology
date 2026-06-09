@@ -41,14 +41,14 @@ gmeow:standpointModality
     a owl:AnnotationProperty ;
     rdfs:range gmeow:StandpointModality ;
     rdfs:label "standpoint modality"@en ;
-    skos:definition "The belief value a standpoint assigns the annotated proposition — *how* the standpoint holds it, not merely *that* it holds it. This single axis is at least as expressive as BOTH the Standpoint-Logic modal operators (□_S / ◊_S) AND the CRMinf belief value (true / false / probable / possible): gmeow:unequivocal (□, settled true), gmeow:probable (likely true), gmeow:conceivable (◊, possible), gmeow:refuted (□¬, settled false — the standpoint DENIES the proposition). Optional; ABSENT is read as unequivocal. Orthogonal to gmeow:confidence (our certainty about the standpoint's stance) and gmeow:accordingTo (whose frame). Refutation is what lets GMEOW distinguish a standpoint's explicit denial from its silence — the neutral-stance ambiguity flat models cannot resolve."@en ;
+    skos:definition "The belief value a standpoint assigns the annotated proposition — *how* the standpoint holds it, not merely *that* it holds it. This single axis is at least as expressive as BOTH the Standpoint-Logic modal operators (□_S / ◊_S) AND the CRMinf belief value (true / false / probable / possible): gmeow:unequivocal (□, settled true), gmeow:probable (likely true), gmeow:conceivable (◊, possible), gmeow:refuted (□¬, settled false — the standpoint DENIES the proposition), gmeow:bullshit (indifference to truth — Frankfurt). Optional; ABSENT is read as unequivocal. Orthogonal to gmeow:confidence (our certainty about the standpoint's stance) and gmeow:accordingTo (whose frame). Refutation is what lets GMEOW distinguish a standpoint's explicit denial from its silence — the neutral-stance ambiguity flat models cannot resolve."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:StandpointModality
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Standpoint Modality"@en ;
-    skos:definition "The belief value a standpoint assigns a proposition — a closed value vocabulary spanning the Standpoint-Logic □/◊ and the CRMinf belief value (true/false/probable/possible): gmeow:unequivocal, gmeow:probable, gmeow:conceivable, gmeow:refuted. Absence of a value is read as unequivocal."@en ;
+    skos:definition "The belief value a standpoint assigns a proposition — a closed value vocabulary spanning the Standpoint-Logic □/◊ and the CRMinf belief value (true/false/probable/possible), plus the Frankfurt bullshit modality: gmeow:unequivocal, gmeow:probable, gmeow:conceivable, gmeow:refuted, gmeow:bullshit. Absence of a value is read as unequivocal."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:unequivocal
@@ -70,6 +70,11 @@ gmeow:refuted
     a gmeow:StandpointModality ;
     rdfs:label "refuted (□¬, false)"@en ;
     skos:definition "□¬_S — settled false according to the standpoint: the standpoint DENIES the proposition (CRMinf belief value 'false'). Distinct from silence (no claim) and from low gmeow:confidence — an explicit, recorded denial. The proposition is carried as the subject of the denial, never asserted as a fact of the universal standpoint."@en .
+
+gmeow:bullshit
+    a gmeow:StandpointModality ;
+    rdfs:label "bullshit (indifference to truth)"@en ;
+    skos:definition "The standpoint asserts P with indifference to its truth-value — Frankfurt's bullshit modality. Distinct from lying (which cares about truth and asserts the opposite) and from error (which cares and gets it wrong). A bullshit claim is neither true nor false under the standpoint; it is held without regard for correspondence."@en .
 
 # --------------------------------------------------------------------------- #
 # The standpoint as a first-class frame, and the standpoint poset.
@@ -143,7 +148,7 @@ gmeow:claimModality
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:range gmeow:StandpointModality ;
     rdfs:label "claim modality"@en ;
-    skos:definition "The modality (unequivocal, probable, conceivable, refuted) assigned to a StandpointClaim. Semantically equivalent to observationResult for StandpointClaims, but not declared rdfs:subPropertyOf because StandpointModality (a gufo:QualityValue / abstract individual) is disjoint from gmeow:Entity (a gufo:Endurant) in the DL profile. When a StandpointClaim is flattened to an annotated statement, claimModality becomes standpointModality."@en ;
+    skos:definition "The modality (unequivocal, probable, conceivable, refuted, bullshit) assigned to a StandpointClaim. Semantically equivalent to observationResult for StandpointClaims, but not declared rdfs:subPropertyOf because StandpointModality (a gufo:QualityValue / abstract individual) is disjoint from gmeow:Entity (a gufo:Endurant) in the DL profile. When a StandpointClaim is flattened to an annotated statement, claimModality becomes standpointModality."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #

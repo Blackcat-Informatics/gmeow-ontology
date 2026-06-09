@@ -28,16 +28,6 @@ export enum AggregationFunctionEnum {
     sum = "aggSum",
 };
 
-export enum ArcTypeEnum {
-
-    coming_of_age = "arcTypeComingOfAge",
-    corruption = "arcTypeCorruption",
-    fall = "arcTypeFall",
-    quest = "arcTypeQuest",
-    recovery = "arcTypeRecovery",
-    redemption = "arcTypeRedemption",
-};
-
 export enum AttestationTypeEnum {
 
     AI_output_attestation = "attestationTypeAIOutput",
@@ -45,6 +35,7 @@ export enum AttestationTypeEnum {
     C2PA_manifest = "attestationTypeC2PA",
     DSSE_envelope = "attestationTypeDSSE",
     EAT_token = "attestationTypeEAT",
+    fact_check = "attestationTypeFactCheck",
     git_signed_tag = "attestationTypeGitSignedTag",
     in_toto_attestation = "attestationTypeInToto",
     nanopublication = "attestationTypeNanopublication",
@@ -222,6 +213,12 @@ export enum CitationIntentEnum {
     uses_method_in = "intentUsesMethodIn",
 };
 
+export enum ClaimVeridicalityEnum {
+
+    licensed_falsehood = "veridicalityLicensedFalsehood",
+    untrue = "veridicalityUntrue",
+};
+
 export enum ConflictStrategyEnum {
 
     policy_void_on_conflict = "conflictInvalid",
@@ -253,16 +250,6 @@ export enum ConstraintOperatorEnum {
     not_equal_to = "operatorNeq",
 };
 
-export enum ContentSegmentTypeEnum {
-
-    back_matter = "segmentTypeBackMatter",
-    chapter = "segmentTypeChapter",
-    front_matter = "segmentTypeFrontMatter",
-    paragraph = "segmentTypeParagraph",
-    scene = "segmentTypeScene",
-    section = "segmentTypeSection",
-};
-
 export enum ContributionDegreeEnum {
 
     equal = "degreeEqual",
@@ -272,10 +259,7 @@ export enum ContributionDegreeEnum {
 
 export enum ContributionRoleEnum {
 
-    AI_assistant = "roleAIAssistant",
     author = "roleAuthor",
-    bot_contributor = "roleBotContributor",
-    code_reviewer = "roleCodeReviewer",
     composer = "roleComposer",
     conceptualization = "roleConceptualization",
     cover_artist = "roleCoverArtist",
@@ -292,12 +276,8 @@ export enum ContributionRoleEnum {
     narrator = "roleNarrator",
     photographer = "rolePhotographer",
     project_administration = "roleProjectAdministration",
-    releaser = "roleReleaser",
     resources = "roleResources",
-    security_contact = "roleSecurityContact",
     software = "roleSoftware",
-    software_developer = "roleSoftwareDeveloper",
-    software_maintainer = "roleSoftwareMaintainer",
     supervision = "roleSupervision",
     translator = "roleTranslator",
     validation = "roleValidation",
@@ -388,16 +368,6 @@ export enum DeterminacyEnum {
     vague = "determinacyVague",
 };
 
-export enum DisclosurePolicyEnum {
-
-    internal_only = "policyInternalOnly",
-    never_public = "policyNeverPublic",
-    public_careful = "policyPublicCareful",
-    public_only_with_independent_source = "policyPublicOnlyWithIndependentSource",
-    public_safe = "policyPublicSafe",
-    sensitive = "policySensitive",
-};
-
 export enum EventTypeEnum {
 
     adoption = "eventTypeAdoption",
@@ -412,12 +382,11 @@ export enum EventTypeEnum {
     census_activity = "eventTypeCensusActivity",
     christening = "eventTypeChristening",
     clinical_trial = "eventTypeClinicalTrial",
-    code_review = "eventTypeCodeReview",
-    commit = "eventTypeCommit",
     confirmation = "eventTypeConfirmation",
     creation = "eventTypeCreation",
     cremation = "eventTypeCremation",
     death = "eventTypeDeath",
+    deception = "eventTypeDeception",
     destruction = "eventTypeDestruction",
     dissolution = "eventTypeDissolution",
     divorce = "eventTypeDivorce",
@@ -431,14 +400,11 @@ export enum EventTypeEnum {
     immigration = "eventTypeImmigration",
     manifestation_production = "eventTypeManifestationProduction",
     marriage = "eventTypeMarriage",
-    merge = "eventTypeMerge",
     military_service = "eventTypeMilitaryService",
     name_change = "eventTypeNameChange",
     naturalization = "eventTypeNaturalization",
     ordination = "eventTypeOrdination",
     probate = "eventTypeProbate",
-    push = "eventTypePush",
-    release = "eventTypeRelease",
     residence = "eventTypeResidence",
     retirement = "eventTypeRetirement",
     separation = "eventTypeSeparation",
@@ -467,14 +433,6 @@ export enum EvidenceClassEnum {
     self_controlled_site_evidence = "evidenceSelfControlledSite",
     source_code_archive_evidence = "evidenceSourceCodeArchive",
     verified_evidence = "evidenceVERIFIED",
-};
-
-export enum FinancialAccountTypeEnum {
-
-    bank_account = "accountTypeBank",
-    credit_account = "accountTypeCredit",
-    investment_account = "accountTypeInvestment",
-    wallet = "accountTypeWallet",
 };
 
 export enum FrameKindEnum {
@@ -549,15 +507,6 @@ export enum GeometryTypeEnum {
     multi_polygon = "geometryTypeMultiPolygon",
     point = "geometryTypePoint",
     polygon = "geometryTypePolygon",
-};
-
-export enum GovernanceModelEnum {
-
-    BDFL = "governanceBDFL",
-    corporate = "governanceCorporate",
-    DAO = "governanceDAO",
-    foundation = "governanceFoundation",
-    meritocracy = "governanceMeritocracy",
 };
 
 export enum GrammaticalAspectEnum {
@@ -790,19 +739,9 @@ export enum LicenseFamilyEnum {
     public_domain = "licenseFamilyPublicDomain",
 };
 
-export enum MaintenanceStatusEnum {
-
-    abandoned = "statusAbandoned",
-    active = "statusActive",
-    deprecated = "statusDeprecated",
-    end_of_life = "statusEOL",
-    maintained = "statusMaintained",
-};
-
 export enum ManifestationFormatEnum {
 
     audiobook = "formatAudiobook",
-    comic_issue = "formatComicIssue",
     digital_file = "formatDigitalFile",
     EPUB = "formatEPUB",
     hardcover = "formatHardcover",
@@ -810,7 +749,6 @@ export enum ManifestationFormatEnum {
     paperback = "formatPaperback",
     vinyl = "formatVinyl",
     web_page = "formatWebPage",
-    web_serial = "formatWebSerial",
 };
 
 export enum MentalReferenceFrameEnum {
@@ -1019,6 +957,10 @@ export enum ParticipantRoleEnum {
     agent = "roleAgent",
     attendee = "roleAttendee",
     beneficiary = "roleBeneficiary",
+    beneficiary_of_deception = "roleBeneficiaryOfDeception",
+    deceived = "roleDeceived",
+    deceiver = "roleDeceiver",
+    dupe = "roleDupe",
     officiant = "roleOfficiant",
     organizer = "roleOrganizer",
     principal_SOLIDUS_subject = "roleParticipantPrincipal",
@@ -1037,22 +979,6 @@ export enum PeriodTypeEnum {
     geologic_period = "periodTypeGeologicPeriod",
     historical_dynasty = "periodTypeHistoricalDynasty",
     historical_era = "periodTypeHistoricalEra",
-};
-
-export enum PhysicalCarrierTypeEnum {
-
-    bone = "carrierBone",
-    coin = "carrierCoin",
-    manuscript = "carrierManuscript",
-    metal = "carrierMetal",
-    ostracon = "carrierOstracon",
-    papyrus = "carrierPapyrus",
-    pottery_sherd = "carrierPotterySherd",
-    seal = "carrierSeal",
-    stela = "carrierStela",
-    tablet = "carrierTablet",
-    wall_inscription = "carrierWallInscription",
-    wood = "carrierWood",
 };
 
 export enum PlaceTypeEnum {
@@ -1111,18 +1037,6 @@ export enum ProfileEnum {
     Temporal_Provenance_Profile_LEFT_PARENTHESISfour_clocksRIGHT_PARENTHESIS = "profileTemporalProvenance",
 };
 
-export enum ProjectionContextEnum {
-
-    agent_memory = "consumerAgentMemory",
-    FOAF_export = "consumerFoafExport",
-    internal_archive = "consumerInternalArchive",
-    public_site = "consumerPublicSite",
-    research_queue = "consumerResearchQueue",
-    schemaFULL_STOPorg_JSON_LD = "consumerSchemaOrgJsonLd",
-    Wikidata = "consumerWikidata",
-    Wikipedia = "consumerWikipedia",
-};
-
 export enum PronounSetEnum {
 
     aeSOLIDUSaer = "pronounAeAer",
@@ -1164,28 +1078,20 @@ export enum QualityDimensionEnum {
 
 export enum ReferenceFrameEnum {
 
-    Australian_Dollar_Currency_Reference_Frame = "referenceFrameAUD",
     Altitude_Above_Ground_Level_Reference_Frame = "referenceFrameAltitudeAGL",
     Altitude_Above_Mean_Sea_Level_Reference_Frame = "referenceFrameAltitudeMSL",
     Audio_Spectrum_Reference_Frame = "referenceFrameAudioSpectrum",
     BGP_Autonomous_System_Reference_Frame = "referenceFrameBGP",
-    Bitcoin_Currency_Reference_Frame = "referenceFrameBTC",
-    Canadian_Dollar_Currency_Reference_Frame = "referenceFrameCAD",
-    Swiss_Franc_Currency_Reference_Frame = "referenceFrameCHF",
     CIE_LASTERISKaASTERISKbASTERISK_Perceptually_Uniform_Reference_Frame = "referenceFrameCIELAB",
     CIE_1931_XYZ_Tristimulus_Reference_Frame = "referenceFrameCIEXYZ",
     CMYK_Colourspace_Reference_Frame = "referenceFrameCMYK",
-    Chinese_Yuan_Currency_Reference_Frame = "referenceFrameCNY",
     Celestial_Equatorial_Reference_Frame = "referenceFrameCelestialEquatorial",
     DNS_Name_Space_Reference_Frame = "referenceFrameDNS",
     Depth_Below_Chart_Datum_Reference_Frame = "referenceFrameDepthBelowChartDatum",
     Depth_Below_Mean_Sea_Level_Reference_Frame = "referenceFrameDepthBelowSeaLevel",
-    Ethereum_Currency_Reference_Frame = "referenceFrameETH",
-    Euro_Currency_Reference_Frame = "referenceFrameEUR",
     English_Language_Reference_Frame = "referenceFrameEnglish",
     FK5_Equatorial_Reference_Frame = "referenceFrameFK5",
     ICAO_Flight_Level_Reference_Frame = "referenceFrameFlightLevel",
-    British_Pound_Currency_Reference_Frame = "referenceFrameGBP",
     GRCh38_Human_Reference_Assembly = "referenceFrameGRCh38",
     Galactic_Coordinate_Reference_Frame = "referenceFrameGalactic",
     Geohash_Reference_Frame = "referenceFrameGeohash",
@@ -1195,7 +1101,6 @@ export enum ReferenceFrameEnum {
     IPv4_Address_Space_Reference_Frame = "referenceFrameIPv4",
     IPv6_Address_Space_Reference_Frame = "referenceFrameIPv6",
     Internet_Topology_Reference_Frame = "referenceFrameInternet",
-    Japanese_Yen_Currency_Reference_Frame = "referenceFrameJPY",
     Latent_Vector_Space_Reference_Frame = "referenceFrameLatentVectorSpace",
     Local_Grid_Cartesian_Reference_Frame = "referenceFrameLocalGrid",
     MAC_Address_Space_Reference_Frame = "referenceFrameMAC",
@@ -1249,16 +1154,6 @@ export enum RegulatoryOverlayTypeEnum {
     territorial_sea = "overlayTypeTerritorialSea",
     warning_area = "overlayTypeWarningArea",
     zoning_SOLIDUS_land_use_regulation = "overlayTypeZoning",
-};
-
-export enum RepositoryTypeEnum {
-
-    fossil = "repoTypeFossil",
-    git = "repoTypeGit",
-    mercurial = "repoTypeHg",
-    jujutsu = "repoTypeJJ",
-    pijul = "repoTypePijul",
-    subversion = "repoTypeSVN",
 };
 
 export enum RightsActionEnum {
@@ -1441,6 +1336,7 @@ export enum StandpointEnum {
 
 export enum StandpointModalityEnum {
 
+    bullshit_LEFT_PARENTHESISindifference_to_truthRIGHT_PARENTHESIS = "bullshit",
     conceivable_LEFT_PARENTHESISLOZENGE_possibleRIGHT_PARENTHESIS = "conceivable",
     probable = "probable",
     refuted_LEFT_PARENTHESISWHITE_SQUARENOT_SIGN_falseRIGHT_PARENTHESIS = "refuted",
@@ -1708,21 +1604,6 @@ export interface Appellation {
 
 
 
-export interface ArcType {
-}
-
-
-
-export interface ArchaeologicalFindContext {
-    findContextDating?: TemporalMeasurement[],
-    findContextEvent?: Event[],
-    findContextPlace?: Place[],
-    findContextStratigraphy?: Entity[],
-    findContextTarget?: PhysicalObject,
-}
-
-
-
 export interface Article extends Work {
 }
 
@@ -1827,11 +1708,6 @@ export interface BookRelease extends Manifestation {
 
 
 
-export interface Branch extends InformationObject {
-}
-
-
-
 export interface CadastralReference extends InformationObject {
     referenceAuthority?: Agent,
     referenceJurisdiction?: Place,
@@ -1896,15 +1772,6 @@ export interface Certification {
 
 
 
-export interface CharacterArc extends InformationObject {
-    arcEvidence?: InformationObject[],
-    arcFrame?: NarrativeReferenceFrame,
-    arcSubject?: Entity,
-    arcType?: ArcType,
-}
-
-
-
 export interface CitationAct {
     citationIntent?: CitationIntent,
     citedEntity?: CreativeWork,
@@ -1924,14 +1791,7 @@ export interface CitationIntent {
 
 
 
-export interface Commit extends Activity {
-    authorTime?: string,
-    authoredBy?: Agent[],
-    commitInRepository?: Repository,
-    commitTree?: SourceTree,
-    committedBy?: Agent[],
-    committerTime?: string,
-    parentCommit?: Commit[],
+export interface ClaimVeridicality {
 }
 
 
@@ -1971,19 +1831,6 @@ export interface ContactPoint {
 export interface ContainmentTenure extends TimeScopedRelation {
     containmentChild?: Place,
     containmentParent?: Place,
-}
-
-
-
-export interface ContentSegment extends InformationObject {
-    segmentIndex?: number,
-    segmentOf?: Entity[],
-    segmentType?: ContentSegmentType,
-}
-
-
-
-export interface ContentSegmentType {
 }
 
 
@@ -2055,6 +1902,7 @@ export interface CoverageDepth {
 
 
 export interface CreativeWork extends InformationObject {
+    contentDigest?: string,
     datePublished?: string,
     editionOf?: CreativeWork,
     hasAuthor?: Agent[],
@@ -2131,17 +1979,6 @@ export interface DerivationKind {
 
 
 export interface Determinacy {
-}
-
-
-
-export interface DisclosurePolicy {
-}
-
-
-
-export interface Distribution extends InformationObject {
-    distributionFormat?: string,
 }
 
 
@@ -2223,6 +2060,7 @@ export interface Entity {
     versionLabel?: string,
     versionOf?: Entity,
     wasAttributedTo?: Agent[],
+    wasDerivedFrom?: Entity[],
     wasGeneratedBy?: Activity[],
 }
 
@@ -2250,6 +2088,8 @@ export interface Event {
     before?: Event[],
     coincidesWith?: Event[],
     contains?: Event[],
+    deceptionCue?: Observation[],
+    deceptiveIntentClaim?: StandpointClaim[],
     during?: Event[],
     earliestStart?: string,
     eventAspect?: GrammaticalAspect[],
@@ -2267,12 +2107,17 @@ export interface Event {
     hasDuration?: Duration[],
     hasParticipant?: Agent[],
     hasSubEvent?: Event[],
+    heldStandpoint?: StandpointClaim[],
+    implicates?: Entity[],
     latestEnd?: string,
+    maximViolationType?: MaximViolationType[],
     meets?: Event[],
     metBy?: Event[],
     occurrenceOfSeries?: EventSeries[],
     overlappedBy?: Event[],
     overlaps?: Event[],
+    projectedStandpoint?: StandpointClaim[],
+    propagationMutationDistance?: number,
     startedBy?: Event[],
     starts?: Event[],
     subEventOf?: Event[],
@@ -2312,28 +2157,6 @@ export interface Family extends Group {
 
 export interface Filename extends Appellation {
     claimedMediaType?: string,
-}
-
-
-
-export interface FinancialAccount extends InformationObject {
-    accountBalance?: MonetaryAmount[],
-    accountCurrency?: ReferenceFrame[],
-    accountHolder?: Agent[],
-    accountNumber?: string,
-    accountType?: FinancialAccountType,
-    bic?: string,
-    iban?: string,
-}
-
-
-
-export interface FinancialAccountType {
-}
-
-
-
-export interface ForgePlatform extends Entity {
 }
 
 
@@ -2415,11 +2238,6 @@ export interface GeometryType {
 
 
 
-export interface GovernanceModel {
-}
-
-
-
 export interface GrammaticalAspect {
 }
 
@@ -2471,35 +2289,7 @@ export interface ImportActivity extends Activity {
 
 
 export interface InformationObject extends Entity {
-    contributesToFrame?: NarrativeReferenceFrame[],
     detectedMediaType?: string,
-}
-
-
-
-export interface Inscription extends InformationObject {
-    inscriptionCarrier?: PhysicalObject,
-}
-
-
-
-export interface InscriptionReading {
-    readingOf?: Inscription,
-    readingResult?: LexicalForm[],
-}
-
-
-
-export interface InscriptionTranslation {
-    translationOf?: Inscription,
-    translationResult?: LexicalForm[],
-}
-
-
-
-export interface InscriptionTransliteration {
-    transliterationOf?: Inscription,
-    transliterationResult?: LexicalForm[],
 }
 
 
@@ -2514,11 +2304,6 @@ export interface Instant {
 export interface InterpersonalRelationship {
     relationshipInterval?: TimeInterval[],
     relationshipParty?: Agent[],
-}
-
-
-
-export interface Issue extends InformationObject {
 }
 
 
@@ -2712,11 +2497,6 @@ export interface LifeEvent extends Event {
 
 
 
-export interface LiteraryWork extends Work {
-}
-
-
-
 export interface Location extends Entity {
     adjacentTo?: Location[],
     containedInLocation?: Location[],
@@ -2772,15 +2552,9 @@ export interface MailboxResidence extends TimeScopedRelation {
 
 
 
-export interface MaintenanceStatus {
-}
-
-
-
 export interface Manifestation extends CreativeWork {
     embodies?: Expression[],
     exemplifiedBy?: Item[],
-    hasManifestationFormat?: ManifestationFormat,
 }
 
 
@@ -2792,6 +2566,11 @@ export interface ManifestationFormat {
 
 export interface Mark extends InformationObject {
     markText?: string,
+}
+
+
+
+export interface MaximViolationType {
 }
 
 
@@ -2820,11 +2599,6 @@ export interface Membership {
 
 
 export interface MentalReferenceFrame extends ReferenceFrame {
-}
-
-
-
-export interface MergeRequest extends InformationObject {
 }
 
 
@@ -2882,13 +2656,6 @@ export interface MessageParticipantRole {
 
 
 export interface MetricKind {
-}
-
-
-
-export interface MonetaryAmount extends Entity {
-    currency?: ReferenceFrame,
-    monetaryValue?: string,
 }
 
 
@@ -3000,6 +2767,7 @@ export interface ObservableProperty {
 
 
 export interface Observation {
+    credibilityScore?: string,
     facetSubject?: Person[],
     facetVantage?: Agent[],
     observationEvent?: Event[],
@@ -3083,13 +2851,6 @@ export interface PGPSignature extends CryptographicSignature {
 
 
 
-export interface Package extends InformationObject {
-    hasDistribution?: Distribution[],
-    packageOf?: SoftwareProduct[],
-}
-
-
-
 export interface ParentChildRelationship extends KinRelationship {
     relationshipChild?: Person,
     relationshipParent?: Person,
@@ -3154,14 +2915,7 @@ export interface PersonName extends Appellation {
 
 
 
-export interface PhysicalCarrierType {
-}
-
-
-
 export interface PhysicalObject extends Entity {
-    carrierInscription?: Inscription[],
-    carrierType?: PhysicalCarrierType[],
 }
 
 
@@ -3265,22 +3019,6 @@ export interface Prohibition extends Rule {
 
 
 
-export interface Project extends Entity {
-    governanceModel?: GovernanceModel[],
-    hasRelease?: Release[],
-    hasRepository?: Repository[],
-    maintenanceStatus?: MaintenanceStatus[],
-    projectIdentifier?: string,
-    projectLicense?: License[],
-}
-
-
-
-export interface ProjectionContext {
-}
-
-
-
 export interface PronounSet extends InformationObject {
     pronounObject?: string,
     pronounPossessive?: string,
@@ -3314,19 +3052,8 @@ export interface Quantity extends Entity {
 
 
 
-export interface ReadingOrder extends Standpoint {
-}
-
-
-
 export interface RecurrenceRule extends InformationObject {
     recurrenceRuleText?: string,
-}
-
-
-
-export interface Ref extends InformationObject {
-    pointsToCommit?: Commit[],
 }
 
 
@@ -3382,29 +3109,7 @@ export interface RelayHop {
 
 
 
-export interface Release extends Event {
-    releaseOf?: Project,
-    releaseTag?: Tag[],
-    releaseVersion?: string,
-}
-
-
-
 export interface Repository extends InformationObject {
-    cloneUrl?: string,
-    hostedAt?: ForgePlatform[],
-    repositoryType?: RepositoryType,
-    webUrl?: string,
-}
-
-
-
-export interface RepositoryType {
-}
-
-
-
-export interface Review extends InformationObject {
 }
 
 
@@ -3480,15 +3185,6 @@ export interface SMIMESignature extends CryptographicSignature {
 export interface ScalarQuantity extends Entity {
     quantityUncertainty?: string,
     quantityValue?: string,
-}
-
-
-
-export interface ScriptLanguageAttribution extends Observation {
-    attributedLanguage?: Language[],
-    attributedNotation?: NotationSystem[],
-    attributedScript?: WritingSystem[],
-    attributionTarget?: Inscription,
 }
 
 
@@ -3584,11 +3280,6 @@ export interface SerialInstallment extends Manifestation {
 
 
 
-export interface SerialWork extends Work {
-}
-
-
-
 export interface SexAssignedAtBirth {
 }
 
@@ -3631,33 +3322,16 @@ export interface SoftwareName extends Appellation {
 
 
 
-export interface SoftwareProduct extends Work {
-}
-
-
-
-export interface SoftwareProject extends Project {
+export interface SoftwareProject extends Work {
+    developer?: Agent[],
+    hasRepository?: Repository[],
+    hasSoftwareName?: SoftwareName[],
     writtenInLanguage?: ProgrammingLanguage[],
 }
 
 
 
-export interface SourceDirectory extends SourceTree {
-}
-
-
-
-export interface SourceFile extends SourceNode {
-}
-
-
-
 export interface SourceIndependence {
-}
-
-
-
-export interface SourceNode extends InformationObject {
 }
 
 
@@ -3668,11 +3342,6 @@ export interface SourceRole extends CreativeWork {
 
 
 export interface SourceTier {
-}
-
-
-
-export interface SourceTree extends SourceNode {
 }
 
 
@@ -3709,6 +3378,7 @@ export interface Standpoint extends Entity {
 
 
 export interface StandpointClaim extends Observation {
+    argumentAcceptability?: string,
     claimModality?: StandpointModality,
 }
 
@@ -3900,16 +3570,6 @@ export interface Trajectory extends Entity {
 
 
 
-export interface TransactionStatus {
-}
-
-
-
-export interface TransactionType {
-}
-
-
-
 export interface TransliterationScheme {
 }
 
@@ -3938,7 +3598,6 @@ export interface UsageAttestation extends Observation {
     attestedInContext?: Entity[],
     attestedInLanguage?: Language[],
     attestedInSource?: CreativeWork[],
-    attestedOnCarrier?: PhysicalObject[],
 }
 
 

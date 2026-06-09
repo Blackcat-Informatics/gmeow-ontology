@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from rdflib import RDF, URIRef
+
 from gmeow_tools.coverage import run_coverage
+from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 
@@ -339,3 +342,51 @@ def test_covered_and_gap_are_disjoint() -> None:
     report = run_coverage()
     assert not (report.covered_classes & report.gap_classes)
     assert not (report.covered_predicates & report.gap_predicates)
+
+
+def test_deception_slice_covered() -> None:
+    report = run_coverage()
+    # Classes that appear as rdf:type objects in the deception fixture.
+    expected_classes = {
+        GMEOW + "Event",
+        GMEOW + "StandpointClaim",
+        GMEOW + "Observation",
+        GMEOW + "ClaimVeridicality",
+        GMEOW + "Participation",
+    }
+    # Predicates used in the deception fixture.
+    expected_predicates = {
+        GMEOW + "eventType",
+        GMEOW + "heldStandpoint",
+        GMEOW + "projectedStandpoint",
+        GMEOW + "deceptiveIntentClaim",
+        GMEOW + "implicates",
+        GMEOW + "deceptionCue",
+        GMEOW + "vantage",
+        GMEOW + "observedFeature",
+        GMEOW + "observationResult",
+        GMEOW + "participationEvent",
+        GMEOW + "participationParticipant",
+        GMEOW + "participationRole",
+    }
+    for term in expected_classes:
+        assert term in report.covered_classes, f"{term} not covered"
+    for term in expected_predicates:
+        assert term in report.covered_predicates, f"{term} not covered"
+    # Value individuals are verified directly against the ontology.
+    g = load_merged_graph(include_imports=False)
+    for term in (
+        "eventTypeDeception",
+        "attestationTypeFactCheck",
+        "veridicalityUntrue",
+        "veridicalityLicensedFalsehood",
+        "roleDeceiver",
+        "roleDeceived",
+        "roleBeneficiaryOfDeception",
+        "roleDupe",
+    ):
+        assert (
+            URIRef(GMEOW + term),
+            RDF.type,
+            None,
+        ) in g, f"{term} not found in ontology"

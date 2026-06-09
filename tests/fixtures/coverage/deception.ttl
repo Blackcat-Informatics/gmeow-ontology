@@ -1,0 +1,51 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/test/> .
+
+# Minimal coverage fixture for the deception / falsehood facility (#213).
+# Exercises the core deception terms so they register as covered.
+
+ex:event1 a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeDeception ;
+    gmeow:heldStandpoint ex:claimA ;
+    gmeow:projectedStandpoint ex:claimB ;
+    gmeow:deceptiveIntentClaim ex:claimC ;
+    gmeow:implicates ex:prop1 ;
+    gmeow:deceptionCue ex:cue1 .
+
+ex:claimA a gmeow:StandpointClaim .
+ex:claimB a gmeow:StandpointClaim .
+ex:claimC a gmeow:StandpointClaim .
+
+ex:cue1 a gmeow:Observation ;
+    gmeow:vantage ex:analyst ;
+    gmeow:observedFeature ex:event1 ;
+    gmeow:observationResult ex:result1 .
+
+ex:veridicality1 a gmeow:ClaimVeridicality .
+gmeow:veridicalityUntrue a gmeow:ClaimVeridicality .
+gmeow:veridicalityLicensedFalsehood a gmeow:ClaimVeridicality .
+
+gmeow:roleDeceiver a gmeow:ParticipantRole .
+gmeow:roleDeceived a gmeow:ParticipantRole .
+gmeow:roleBeneficiaryOfDeception a gmeow:ParticipantRole .
+gmeow:roleDupe a gmeow:ParticipantRole .
+
+ex:partDeceiver a gmeow:Participation ;
+    gmeow:participationEvent ex:event1 ;
+    gmeow:participationParticipant ex:deceiver1 ;
+    gmeow:participationRole gmeow:roleDeceiver .
+
+ex:partDeceived a gmeow:Participation ;
+    gmeow:participationEvent ex:event1 ;
+    gmeow:participationParticipant ex:deceived1 ;
+    gmeow:participationRole gmeow:roleDeceived .
+
+ex:partBeneficiary a gmeow:Participation ;
+    gmeow:participationEvent ex:event1 ;
+    gmeow:participationParticipant ex:beneficiary1 ;
+    gmeow:participationRole gmeow:roleBeneficiaryOfDeception .
+
+ex:partDupe a gmeow:Participation ;
+    gmeow:participationEvent ex:event1 ;
+    gmeow:participationParticipant ex:dupe1 ;
+    gmeow:participationRole gmeow:roleDupe .

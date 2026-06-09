@@ -110,21 +110,13 @@ class AggregationFunctionEnum(str, Enum):
     sum = "aggSum"
 
 
-class ArcTypeEnum(str, Enum):
-    coming_of_age = "arcTypeComingOfAge"
-    corruption = "arcTypeCorruption"
-    fall = "arcTypeFall"
-    quest = "arcTypeQuest"
-    recovery = "arcTypeRecovery"
-    redemption = "arcTypeRedemption"
-
-
 class AttestationTypeEnum(str, Enum):
     AI_output_attestation = "attestationTypeAIOutput"
     blockchain_claim = "attestationTypeBlockchainClaim"
     C2PA_manifest = "attestationTypeC2PA"
     DSSE_envelope = "attestationTypeDSSE"
     EAT_token = "attestationTypeEAT"
+    fact_check = "attestationTypeFactCheck"
     git_signed_tag = "attestationTypeGitSignedTag"
     in_toto_attestation = "attestationTypeInToto"
     nanopublication = "attestationTypeNanopublication"
@@ -295,6 +287,11 @@ class CitationIntentEnum(str, Enum):
     uses_method_in = "intentUsesMethodIn"
 
 
+class ClaimVeridicalityEnum(str, Enum):
+    licensed_falsehood = "veridicalityLicensedFalsehood"
+    untrue = "veridicalityUntrue"
+
+
 class ConflictStrategyEnum(str, Enum):
     policy_void_on_conflict = "conflictInvalid"
     permission_wins = "conflictPerm"
@@ -323,15 +320,6 @@ class ConstraintOperatorEnum(str, Enum):
     not_equal_to = "operatorNeq"
 
 
-class ContentSegmentTypeEnum(str, Enum):
-    back_matter = "segmentTypeBackMatter"
-    chapter = "segmentTypeChapter"
-    front_matter = "segmentTypeFrontMatter"
-    paragraph = "segmentTypeParagraph"
-    scene = "segmentTypeScene"
-    section = "segmentTypeSection"
-
-
 class ContributionDegreeEnum(str, Enum):
     equal = "degreeEqual"
     lead = "degreeLead"
@@ -339,10 +327,7 @@ class ContributionDegreeEnum(str, Enum):
 
 
 class ContributionRoleEnum(str, Enum):
-    AI_assistant = "roleAIAssistant"
     author = "roleAuthor"
-    bot_contributor = "roleBotContributor"
-    code_reviewer = "roleCodeReviewer"
     composer = "roleComposer"
     conceptualization = "roleConceptualization"
     cover_artist = "roleCoverArtist"
@@ -359,12 +344,8 @@ class ContributionRoleEnum(str, Enum):
     narrator = "roleNarrator"
     photographer = "rolePhotographer"
     project_administration = "roleProjectAdministration"
-    releaser = "roleReleaser"
     resources = "roleResources"
-    security_contact = "roleSecurityContact"
     software = "roleSoftware"
-    software_developer = "roleSoftwareDeveloper"
-    software_maintainer = "roleSoftwareMaintainer"
     supervision = "roleSupervision"
     translator = "roleTranslator"
     validation = "roleValidation"
@@ -449,15 +430,6 @@ class DeterminacyEnum(str, Enum):
     vague = "determinacyVague"
 
 
-class DisclosurePolicyEnum(str, Enum):
-    internal_only = "policyInternalOnly"
-    never_public = "policyNeverPublic"
-    public_careful = "policyPublicCareful"
-    public_only_with_independent_source = "policyPublicOnlyWithIndependentSource"
-    public_safe = "policyPublicSafe"
-    sensitive = "policySensitive"
-
-
 class EventTypeEnum(str, Enum):
     adoption = "eventTypeAdoption"
     annulment = "eventTypeAnnulment"
@@ -471,12 +443,11 @@ class EventTypeEnum(str, Enum):
     census_activity = "eventTypeCensusActivity"
     christening = "eventTypeChristening"
     clinical_trial = "eventTypeClinicalTrial"
-    code_review = "eventTypeCodeReview"
-    commit = "eventTypeCommit"
     confirmation = "eventTypeConfirmation"
     creation = "eventTypeCreation"
     cremation = "eventTypeCremation"
     death = "eventTypeDeath"
+    deception = "eventTypeDeception"
     destruction = "eventTypeDestruction"
     dissolution = "eventTypeDissolution"
     divorce = "eventTypeDivorce"
@@ -490,14 +461,11 @@ class EventTypeEnum(str, Enum):
     immigration = "eventTypeImmigration"
     manifestation_production = "eventTypeManifestationProduction"
     marriage = "eventTypeMarriage"
-    merge = "eventTypeMerge"
     military_service = "eventTypeMilitaryService"
     name_change = "eventTypeNameChange"
     naturalization = "eventTypeNaturalization"
     ordination = "eventTypeOrdination"
     probate = "eventTypeProbate"
-    push = "eventTypePush"
-    release = "eventTypeRelease"
     residence = "eventTypeResidence"
     retirement = "eventTypeRetirement"
     separation = "eventTypeSeparation"
@@ -525,13 +493,6 @@ class EvidenceClassEnum(str, Enum):
     self_controlled_site_evidence = "evidenceSelfControlledSite"
     source_code_archive_evidence = "evidenceSourceCodeArchive"
     verified_evidence = "evidenceVERIFIED"
-
-
-class FinancialAccountTypeEnum(str, Enum):
-    bank_account = "accountTypeBank"
-    credit_account = "accountTypeCredit"
-    investment_account = "accountTypeInvestment"
-    wallet = "accountTypeWallet"
 
 
 class FrameKindEnum(str, Enum):
@@ -601,14 +562,6 @@ class GeometryTypeEnum(str, Enum):
     multi_polygon = "geometryTypeMultiPolygon"
     point = "geometryTypePoint"
     polygon = "geometryTypePolygon"
-
-
-class GovernanceModelEnum(str, Enum):
-    BDFL = "governanceBDFL"
-    corporate = "governanceCorporate"
-    DAO = "governanceDAO"
-    foundation = "governanceFoundation"
-    meritocracy = "governanceMeritocracy"
 
 
 class GrammaticalAspectEnum(str, Enum):
@@ -824,17 +777,8 @@ class LicenseFamilyEnum(str, Enum):
     public_domain = "licenseFamilyPublicDomain"
 
 
-class MaintenanceStatusEnum(str, Enum):
-    abandoned = "statusAbandoned"
-    active = "statusActive"
-    deprecated = "statusDeprecated"
-    end_of_life = "statusEOL"
-    maintained = "statusMaintained"
-
-
 class ManifestationFormatEnum(str, Enum):
     audiobook = "formatAudiobook"
-    comic_issue = "formatComicIssue"
     digital_file = "formatDigitalFile"
     EPUB = "formatEPUB"
     hardcover = "formatHardcover"
@@ -842,7 +786,6 @@ class ManifestationFormatEnum(str, Enum):
     paperback = "formatPaperback"
     vinyl = "formatVinyl"
     web_page = "formatWebPage"
-    web_serial = "formatWebSerial"
 
 
 class MentalReferenceFrameEnum(str, Enum):
@@ -1035,6 +978,10 @@ class ParticipantRoleEnum(str, Enum):
     agent = "roleAgent"
     attendee = "roleAttendee"
     beneficiary = "roleBeneficiary"
+    beneficiary_of_deception = "roleBeneficiaryOfDeception"
+    deceived = "roleDeceived"
+    deceiver = "roleDeceiver"
+    dupe = "roleDupe"
     officiant = "roleOfficiant"
     organizer = "roleOrganizer"
     principal_SOLIDUS_subject = "roleParticipantPrincipal"
@@ -1052,21 +999,6 @@ class PeriodTypeEnum(str, Enum):
     geologic_period = "periodTypeGeologicPeriod"
     historical_dynasty = "periodTypeHistoricalDynasty"
     historical_era = "periodTypeHistoricalEra"
-
-
-class PhysicalCarrierTypeEnum(str, Enum):
-    bone = "carrierBone"
-    coin = "carrierCoin"
-    manuscript = "carrierManuscript"
-    metal = "carrierMetal"
-    ostracon = "carrierOstracon"
-    papyrus = "carrierPapyrus"
-    pottery_sherd = "carrierPotterySherd"
-    seal = "carrierSeal"
-    stela = "carrierStela"
-    tablet = "carrierTablet"
-    wall_inscription = "carrierWallInscription"
-    wood = "carrierWood"
 
 
 class PlaceTypeEnum(str, Enum):
@@ -1120,17 +1052,6 @@ class ProfileEnum(str, Enum):
     Temporal_Provenance_Profile_LEFT_PARENTHESISfour_clocksRIGHT_PARENTHESIS = "profileTemporalProvenance"
 
 
-class ProjectionContextEnum(str, Enum):
-    agent_memory = "consumerAgentMemory"
-    FOAF_export = "consumerFoafExport"
-    internal_archive = "consumerInternalArchive"
-    public_site = "consumerPublicSite"
-    research_queue = "consumerResearchQueue"
-    schemaFULL_STOPorg_JSON_LD = "consumerSchemaOrgJsonLd"
-    Wikidata = "consumerWikidata"
-    Wikipedia = "consumerWikipedia"
-
-
 class PronounSetEnum(str, Enum):
     aeSOLIDUSaer = "pronounAeAer"
     any_pronouns = "pronounAny"
@@ -1169,28 +1090,20 @@ class QualityDimensionEnum(str, Enum):
 
 
 class ReferenceFrameEnum(str, Enum):
-    Australian_Dollar_Currency_Reference_Frame = "referenceFrameAUD"
     Altitude_Above_Ground_Level_Reference_Frame = "referenceFrameAltitudeAGL"
     Altitude_Above_Mean_Sea_Level_Reference_Frame = "referenceFrameAltitudeMSL"
     Audio_Spectrum_Reference_Frame = "referenceFrameAudioSpectrum"
     BGP_Autonomous_System_Reference_Frame = "referenceFrameBGP"
-    Bitcoin_Currency_Reference_Frame = "referenceFrameBTC"
-    Canadian_Dollar_Currency_Reference_Frame = "referenceFrameCAD"
-    Swiss_Franc_Currency_Reference_Frame = "referenceFrameCHF"
     CIE_LASTERISKaASTERISKbASTERISK_Perceptually_Uniform_Reference_Frame = "referenceFrameCIELAB"
     CIE_1931_XYZ_Tristimulus_Reference_Frame = "referenceFrameCIEXYZ"
     CMYK_Colourspace_Reference_Frame = "referenceFrameCMYK"
-    Chinese_Yuan_Currency_Reference_Frame = "referenceFrameCNY"
     Celestial_Equatorial_Reference_Frame = "referenceFrameCelestialEquatorial"
     DNS_Name_Space_Reference_Frame = "referenceFrameDNS"
     Depth_Below_Chart_Datum_Reference_Frame = "referenceFrameDepthBelowChartDatum"
     Depth_Below_Mean_Sea_Level_Reference_Frame = "referenceFrameDepthBelowSeaLevel"
-    Ethereum_Currency_Reference_Frame = "referenceFrameETH"
-    Euro_Currency_Reference_Frame = "referenceFrameEUR"
     English_Language_Reference_Frame = "referenceFrameEnglish"
     FK5_Equatorial_Reference_Frame = "referenceFrameFK5"
     ICAO_Flight_Level_Reference_Frame = "referenceFrameFlightLevel"
-    British_Pound_Currency_Reference_Frame = "referenceFrameGBP"
     GRCh38_Human_Reference_Assembly = "referenceFrameGRCh38"
     Galactic_Coordinate_Reference_Frame = "referenceFrameGalactic"
     Geohash_Reference_Frame = "referenceFrameGeohash"
@@ -1200,7 +1113,6 @@ class ReferenceFrameEnum(str, Enum):
     IPv4_Address_Space_Reference_Frame = "referenceFrameIPv4"
     IPv6_Address_Space_Reference_Frame = "referenceFrameIPv6"
     Internet_Topology_Reference_Frame = "referenceFrameInternet"
-    Japanese_Yen_Currency_Reference_Frame = "referenceFrameJPY"
     Latent_Vector_Space_Reference_Frame = "referenceFrameLatentVectorSpace"
     Local_Grid_Cartesian_Reference_Frame = "referenceFrameLocalGrid"
     MAC_Address_Space_Reference_Frame = "referenceFrameMAC"
@@ -1253,15 +1165,6 @@ class RegulatoryOverlayTypeEnum(str, Enum):
     territorial_sea = "overlayTypeTerritorialSea"
     warning_area = "overlayTypeWarningArea"
     zoning_SOLIDUS_land_use_regulation = "overlayTypeZoning"
-
-
-class RepositoryTypeEnum(str, Enum):
-    fossil = "repoTypeFossil"
-    git = "repoTypeGit"
-    mercurial = "repoTypeHg"
-    jujutsu = "repoTypeJJ"
-    pijul = "repoTypePijul"
-    subversion = "repoTypeSVN"
 
 
 class RightsActionEnum(str, Enum):
@@ -1429,6 +1332,7 @@ class StandpointEnum(str, Enum):
 
 
 class StandpointModalityEnum(str, Enum):
+    bullshit_LEFT_PARENTHESISindifference_to_truthRIGHT_PARENTHESIS = "bullshit"
     conceivable_LEFT_PARENTHESISLOZENGE_possibleRIGHT_PARENTHESIS = "conceivable"
     probable = "probable"
     refuted_LEFT_PARENTHESISWHITE_SQUARENOT_SIGN_falseRIGHT_PARENTHESIS = "refuted"
@@ -1753,36 +1657,6 @@ class AgreementName(Appellation):
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/transliterationScheme'} })
 
 
-class ArcType(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ArcType',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Arc Type'})
-
-    pass
-
-
-class ArchaeologicalFindContext(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ArchaeologicalFindContext',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Archaeological Find Context'})
-
-    findContextDating: Optional[list[TemporalMeasurement]] = Field(default=None, title="find context dating", json_schema_extra = { "linkml_meta": {'domain': 'ArchaeologicalFindContext',
-         'domain_of': ['ArchaeologicalFindContext'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/findContextDating'} })
-    findContextEvent: Optional[list[Event]] = Field(default=None, title="find context event", json_schema_extra = { "linkml_meta": {'domain': 'ArchaeologicalFindContext',
-         'domain_of': ['ArchaeologicalFindContext'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/findContextEvent'} })
-    findContextPlace: Optional[list[Place]] = Field(default=None, title="find context place", json_schema_extra = { "linkml_meta": {'domain': 'ArchaeologicalFindContext',
-         'domain_of': ['ArchaeologicalFindContext'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/findContextPlace'} })
-    findContextStratigraphy: Optional[list[Entity]] = Field(default=None, title="find context stratigraphy", json_schema_extra = { "linkml_meta": {'domain': 'ArchaeologicalFindContext',
-         'domain_of': ['ArchaeologicalFindContext'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/findContextStratigraphy'} })
-    findContextTarget: Optional[PhysicalObject] = Field(default=None, title="find context target", json_schema_extra = { "linkml_meta": {'domain': 'ArchaeologicalFindContext',
-         'domain_of': ['ArchaeologicalFindContext'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/findContextTarget'} })
-
-
 class Attestation(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Attestation',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -1961,6 +1835,14 @@ class CitationIntent(ConfiguredBaseModel):
     pass
 
 
+class ClaimVeridicality(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ClaimVeridicality',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Claim Veridicality'})
+
+    pass
+
+
 class ConflictStrategy(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ConflictStrategy',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -2029,14 +1911,6 @@ class ContactPoint(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ContactPoint',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Contact Point'})
-
-    pass
-
-
-class ContentSegmentType(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ContentSegmentType',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Content Segment Type'})
 
     pass
 
@@ -2206,14 +2080,6 @@ class Determinacy(ConfiguredBaseModel):
     pass
 
 
-class DisclosurePolicy(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/DisclosurePolicy',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Disclosure Policy'})
-
-    pass
-
-
 class EmailAddress(ContactPoint):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/EmailAddress',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -2355,6 +2221,9 @@ class Entity(ConfiguredBaseModel):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -2482,6 +2351,9 @@ class BlockchainAccount(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -2612,6 +2484,9 @@ class BlockchainNetwork(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -2739,6 +2614,9 @@ class Credential(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -2869,6 +2747,9 @@ class Duration(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -2910,6 +2791,12 @@ class Event(ConfiguredBaseModel):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -2961,9 +2848,18 @@ class Event(ConfiguredBaseModel):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -2979,6 +2875,12 @@ class Event(ConfiguredBaseModel):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -3013,6 +2915,12 @@ class Activity(Event):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -3064,9 +2972,18 @@ class Activity(Event):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -3082,130 +2999,12 @@ class Activity(Event):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
-    startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
-    starts: Optional[list[Event]] = Field(default=None, title="starts", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/starts'} })
-    subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
-    temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
-
-
-class Commit(Activity):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Commit',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Commit'})
-
-    authorTime: Optional[datetime ] = Field(default=None, title="author time", json_schema_extra = { "linkml_meta": {'domain': 'Commit',
-         'domain_of': ['Commit'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorTime'} })
-    authoredBy: Optional[list[Agent]] = Field(default=None, title="authored by", json_schema_extra = { "linkml_meta": {'domain': 'Commit',
-         'domain_of': ['Commit'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authoredBy'} })
-    commitInRepository: Optional[Repository] = Field(default=None, title="commit in repository", json_schema_extra = { "linkml_meta": {'domain': 'Commit',
-         'domain_of': ['Commit'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/commitInRepository'} })
-    commitTree: Optional[SourceTree] = Field(default=None, title="commit tree", json_schema_extra = { "linkml_meta": {'domain': 'Commit',
-         'domain_of': ['Commit'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/commitTree'} })
-    committedBy: Optional[list[Agent]] = Field(default=None, title="committed by", json_schema_extra = { "linkml_meta": {'domain': 'Commit',
-         'domain_of': ['Commit'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/committedBy'} })
-    committerTime: Optional[datetime ] = Field(default=None, title="committer time", json_schema_extra = { "linkml_meta": {'domain': 'Commit',
-         'domain_of': ['Commit'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/committerTime'} })
-    parentCommit: Optional[list[Commit]] = Field(default=None, title="parent commit", json_schema_extra = { "linkml_meta": {'domain': 'Commit',
-         'domain_of': ['Commit'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/parentCommit'} })
-    wasAssociatedWith: Optional[list[Agent]] = Field(default=None, title="was associated with", json_schema_extra = { "linkml_meta": {'domain': 'Activity',
-         'domain_of': ['Activity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAssociatedWith'} })
-    after: Optional[list[Event]] = Field(default=None, title="after", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/after'} })
-    before: Optional[list[Event]] = Field(default=None, title="before", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/before'} })
-    coincidesWith: Optional[list[Event]] = Field(default=None, title="coincides with", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/coincidesWith'} })
-    contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
-    during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
-    earliestStart: Optional[datetime ] = Field(default=None, title="earliest start", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/earliestStart'} })
-    eventAspect: Optional[list[GrammaticalAspect]] = Field(default=None, title="event aspect", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventAspect'} })
-    eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
-    eventLocation: Optional[list[Location]] = Field(default=None, title="event location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventLocation'} })
-    eventObservation: Optional[list[Observation]] = Field(default=None, title="event observation", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventObservation'} })
-    eventSpacetime: Optional[list[LocationState]] = Field(default=None, title="event spacetime", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventSpacetime'} })
-    eventTemporalFrame: Optional[TemporalFrame] = Field(default=None, title="event temporal frame", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTemporalFrame'} })
-    eventTense: Optional[list[GrammaticalTense]] = Field(default=None, title="event tense", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTense'} })
-    eventTime: Optional[datetime ] = Field(default=None, title="event time", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTime'} })
-    eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
-    eventType: Optional[list[EventType]] = Field(default=None, title="event type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventType'} })
-    finishedBy: Optional[list[Event]] = Field(default=None, title="finished by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/finishedBy'} })
-    finishes: Optional[list[Event]] = Field(default=None, title="finishes", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/finishes'} })
-    hasDuration: Optional[list[Duration]] = Field(default=None, title="has duration", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDuration'} })
-    hasParticipant: Optional[list[Agent]] = Field(default=None, title="has participant", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasParticipant'} })
-    hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
-    meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
-    metBy: Optional[list[Event]] = Field(default=None, title="met by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/metBy'} })
-    occurrenceOfSeries: Optional[list[EventSeries]] = Field(default=None, title="occurrence of series", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/occurrenceOfSeries'} })
-    overlappedBy: Optional[list[Event]] = Field(default=None, title="overlapped by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlappedBy'} })
-    overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -3348,6 +3147,9 @@ class EventSeries(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -3401,141 +3203,6 @@ class Filename(Appellation):
     transliterationScheme: Optional[list[TransliterationScheme]] = Field(default=None, title="transliteration scheme", json_schema_extra = { "linkml_meta": {'domain': 'Appellation',
          'domain_of': ['Appellation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/transliterationScheme'} })
-
-
-class FinancialAccountType(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/FinancialAccountType',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Financial Account Type'})
-
-    pass
-
-
-class ForgePlatform(Entity):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ForgePlatform',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Forge Platform'})
-
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
 
 
 class FrameKind(ConfiguredBaseModel):
@@ -3701,6 +3368,9 @@ class GeoCoordinates(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -3852,6 +3522,9 @@ class Geocode(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -3991,6 +3664,9 @@ class Geometry(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -4000,14 +3676,6 @@ class GeometryType(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/GeometryType',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Geometry Type'})
-
-    pass
-
-
-class GovernanceModel(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/GovernanceModel',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Governance Model'})
 
     pass
 
@@ -4160,6 +3828,9 @@ class Group(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -4287,6 +3958,9 @@ class Family(Group):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -4380,6 +4054,12 @@ class ImportActivity(Activity):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -4431,9 +4111,18 @@ class ImportActivity(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -4449,6 +4138,12 @@ class ImportActivity(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -4468,9 +4163,6 @@ class InformationObject(Entity):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Information Object'})
 
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -4591,6 +4283,9 @@ class InformationObject(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -4604,9 +4299,6 @@ class AttestationArtifact(InformationObject):
     artifactMediaType: Optional[str] = Field(default=None, title="artifact media type", json_schema_extra = { "linkml_meta": {'domain': 'AttestationArtifact',
          'domain_of': ['AttestationArtifact'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/artifactMediaType'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -4727,6 +4419,9 @@ class AttestationArtifact(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -4746,9 +4441,6 @@ class AuthenticationResult(InformationObject):
     authServer: Optional[str] = Field(default=None, title="authentication server", json_schema_extra = { "linkml_meta": {'domain': 'AuthenticationResult',
          'domain_of': ['AuthenticationResult'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/authServer'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -4869,6 +4561,9 @@ class AuthenticationResult(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -4885,9 +4580,6 @@ class Block(InformationObject):
     blockNumber: Optional[int] = Field(default=None, title="block number", json_schema_extra = { "linkml_meta": {'domain': 'Block',
          'domain_of': ['Block'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/blockNumber'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -5008,6 +4700,9 @@ class Block(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -5021,9 +4716,6 @@ class BodyPart(InformationObject):
     mediaType: Optional[str] = Field(default=None, title="media type", json_schema_extra = { "linkml_meta": {'domain': 'BodyPart',
          'domain_of': ['BodyPart'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/mediaType'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -5144,6 +4836,9 @@ class BodyPart(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -5160,9 +4855,6 @@ class Attachment(BodyPart):
     mediaType: Optional[str] = Field(default=None, title="media type", json_schema_extra = { "linkml_meta": {'domain': 'BodyPart',
          'domain_of': ['BodyPart'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/mediaType'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -5283,139 +4975,9 @@ class Attachment(BodyPart):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class Branch(InformationObject):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Branch',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Branch'})
-
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
-    detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -5438,9 +5000,6 @@ class CadastralReference(InformationObject):
     referenceValue: Optional[str] = Field(default=None, title="reference value", json_schema_extra = { "linkml_meta": {'domain': 'CadastralReference',
          'domain_of': ['CadastralReference'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/referenceValue'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -5561,293 +5120,9 @@ class CadastralReference(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class CharacterArc(InformationObject):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/CharacterArc',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Character Arc'})
-
-    arcEvidence: Optional[list[InformationObject]] = Field(default=None, title="arc evidence", json_schema_extra = { "linkml_meta": {'domain': 'CharacterArc',
-         'domain_of': ['CharacterArc'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/arcEvidence'} })
-    arcFrame: Optional[NarrativeReferenceFrame] = Field(default=None, title="arc frame", json_schema_extra = { "linkml_meta": {'domain': 'CharacterArc',
-         'domain_of': ['CharacterArc'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/arcFrame'} })
-    arcSubject: Optional[Entity] = Field(default=None, title="arc subject", json_schema_extra = { "linkml_meta": {'domain': 'CharacterArc',
-         'domain_of': ['CharacterArc'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/arcSubject'} })
-    arcType: Optional[ArcType] = Field(default=None, title="arc type", json_schema_extra = { "linkml_meta": {'domain': 'CharacterArc',
-         'domain_of': ['CharacterArc'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/arcType'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
-    detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class ContentSegment(InformationObject):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ContentSegment',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Content Segment'})
-
-    segmentIndex: Optional[int] = Field(default=None, title="segment index", json_schema_extra = { "linkml_meta": {'domain': 'ContentSegment',
-         'domain_of': ['ContentSegment'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/segmentIndex'} })
-    segmentOf: Optional[list[Entity]] = Field(default=None, title="segment of", json_schema_extra = { "linkml_meta": {'domain': 'ContentSegment',
-         'domain_of': ['ContentSegment'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/segmentOf'} })
-    segmentType: Optional[ContentSegmentType] = Field(default=None, title="segment type", json_schema_extra = { "linkml_meta": {'domain': 'ContentSegment',
-         'domain_of': ['ContentSegment'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/segmentType'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
-    detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -5858,6 +5133,9 @@ class CreativeWork(InformationObject):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Creative Work'})
 
+    contentDigest: Optional[str] = Field(default=None, title="content digest", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
+         'domain_of': ['CreativeWork'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contentDigest'} })
     datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
@@ -5900,9 +5178,6 @@ class CreativeWork(InformationObject):
     title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -6023,6 +5298,9 @@ class CreativeWork(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -6051,9 +5329,6 @@ class CryptographicKey(InformationObject):
     keyScheme: Optional[KeyScheme] = Field(default=None, title="key scheme", json_schema_extra = { "linkml_meta": {'domain': 'CryptographicKey',
          'domain_of': ['CryptographicKey'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/keyScheme'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -6174,6 +5449,9 @@ class CryptographicKey(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -6202,9 +5480,6 @@ class CryptographicSignature(InformationObject):
     verificationStatus: Optional[str] = Field(default=None, title="verification status", json_schema_extra = { "linkml_meta": {'domain': 'CryptographicSignature',
          'domain_of': ['CryptographicSignature'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/verificationStatus'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -6325,6 +5600,9 @@ class CryptographicSignature(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -6353,9 +5631,6 @@ class DKIMSignature(CryptographicSignature):
     verificationStatus: Optional[str] = Field(default=None, title="verification status", json_schema_extra = { "linkml_meta": {'domain': 'CryptographicSignature',
          'domain_of': ['CryptographicSignature'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/verificationStatus'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -6476,142 +5751,9 @@ class DKIMSignature(CryptographicSignature):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class Distribution(InformationObject):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Distribution',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Distribution'})
-
-    distributionFormat: Optional[str] = Field(default=None, title="distribution format", json_schema_extra = { "linkml_meta": {'domain': 'Distribution',
-         'domain_of': ['Distribution'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/distributionFormat'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
-    detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -6628,6 +5770,9 @@ class Expression(CreativeWork):
     realizes: Optional[list[Work]] = Field(default=None, title="realizes", json_schema_extra = { "linkml_meta": {'domain': 'Expression',
          'domain_of': ['Expression'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/realizes'} })
+    contentDigest: Optional[str] = Field(default=None, title="content digest", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
+         'domain_of': ['CreativeWork'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contentDigest'} })
     datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
@@ -6670,9 +5815,6 @@ class Expression(CreativeWork):
     title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -6793,338 +5935,12 @@ class Expression(CreativeWork):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class FinancialAccount(InformationObject):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/FinancialAccount',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Financial Account'})
-
-    accountBalance: Optional[list[MonetaryAmount]] = Field(default=None, title="account balance", json_schema_extra = { "linkml_meta": {'domain': 'FinancialAccount',
-         'domain_of': ['FinancialAccount'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/accountBalance'} })
-    accountCurrency: Optional[list[ReferenceFrame]] = Field(default=None, title="account currency", json_schema_extra = { "linkml_meta": {'domain': 'FinancialAccount',
-         'domain_of': ['FinancialAccount'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/accountCurrency'} })
-    accountHolder: Optional[list[Agent]] = Field(default=None, title="account holder", json_schema_extra = { "linkml_meta": {'domain': 'FinancialAccount',
-         'domain_of': ['FinancialAccount'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/accountHolder'} })
-    accountNumber: Optional[str] = Field(default=None, title="account number", json_schema_extra = { "linkml_meta": {'domain': 'FinancialAccount',
-         'domain_of': ['FinancialAccount'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/accountNumber'} })
-    accountType: Optional[FinancialAccountType] = Field(default=None, title="account type", json_schema_extra = { "linkml_meta": {'domain': 'FinancialAccount',
-         'domain_of': ['FinancialAccount'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/accountType'} })
-    bic: Optional[str] = Field(default=None, title="BIC", json_schema_extra = { "linkml_meta": {'domain': 'FinancialAccount',
-         'domain_of': ['FinancialAccount'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/bic'} })
-    iban: Optional[str] = Field(default=None, title="IBAN", json_schema_extra = { "linkml_meta": {'domain': 'FinancialAccount',
-         'domain_of': ['FinancialAccount'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/iban'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
-    detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class Inscription(InformationObject):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Inscription',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Inscription'})
-
-    inscriptionCarrier: Optional[PhysicalObject] = Field(default=None, title="inscription carrier", json_schema_extra = { "linkml_meta": {'domain': 'Inscription',
-         'domain_of': ['Inscription'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/inscriptionCarrier'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
-    detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class InscriptionReading(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/InscriptionReading',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Inscription Reading'})
-
-    readingOf: Optional[Inscription] = Field(default=None, title="reading of", json_schema_extra = { "linkml_meta": {'domain': 'InscriptionReading',
-         'domain_of': ['InscriptionReading'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/readingOf'} })
-    readingResult: Optional[list[LexicalForm]] = Field(default=None, title="reading result", json_schema_extra = { "linkml_meta": {'domain': 'InscriptionReading',
-         'domain_of': ['InscriptionReading'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/readingResult'} })
-
-
-class InscriptionTranslation(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/InscriptionTranslation',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Inscription Translation'})
-
-    translationOf: Optional[Inscription] = Field(default=None, title="translation of", json_schema_extra = { "linkml_meta": {'domain': 'InscriptionTranslation',
-         'domain_of': ['InscriptionTranslation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/translationOf'} })
-    translationResult: Optional[list[LexicalForm]] = Field(default=None, title="translation result", json_schema_extra = { "linkml_meta": {'domain': 'InscriptionTranslation',
-         'domain_of': ['InscriptionTranslation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/translationResult'} })
-
-
-class InscriptionTransliteration(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/InscriptionTransliteration',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Inscription Transliteration'})
-
-    transliterationOf: Optional[Inscription] = Field(default=None, title="transliteration of", json_schema_extra = { "linkml_meta": {'domain': 'InscriptionTransliteration',
-         'domain_of': ['InscriptionTransliteration'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/transliterationOf'} })
-    transliterationResult: Optional[list[LexicalForm]] = Field(default=None, title="transliteration result", json_schema_extra = { "linkml_meta": {'domain': 'InscriptionTransliteration',
-         'domain_of': ['InscriptionTransliteration'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/transliterationResult'} })
 
 
 class Instant(ConfiguredBaseModel):
@@ -7166,139 +5982,6 @@ class AcquaintanceRelationship(InterpersonalRelationship):
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/relationshipParty'} })
 
 
-class Issue(InformationObject):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Issue',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Issue'})
-
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
-    detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
 class Item(CreativeWork):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Item',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -7310,6 +5993,9 @@ class Item(CreativeWork):
     hasCarrier: Optional[list[PhysicalObject]] = Field(default=None, title="has carrier", json_schema_extra = { "linkml_meta": {'domain': 'Item',
          'domain_of': ['Item'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCarrier'} })
+    contentDigest: Optional[str] = Field(default=None, title="content digest", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
+         'domain_of': ['CreativeWork'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contentDigest'} })
     datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
@@ -7352,9 +6038,6 @@ class Item(CreativeWork):
     title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -7475,6 +6158,9 @@ class Item(CreativeWork):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -7546,9 +6232,6 @@ class Language(InformationObject):
     usesWritingSystem: Optional[list[WritingSystem]] = Field(default=None, title="uses writing system", json_schema_extra = { "linkml_meta": {'domain': 'Language',
          'domain_of': ['Language'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/usesWritingSystem'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -7669,6 +6352,9 @@ class Language(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -7706,9 +6392,6 @@ class FormalLanguage(Language):
     usesWritingSystem: Optional[list[WritingSystem]] = Field(default=None, title="uses writing system", json_schema_extra = { "linkml_meta": {'domain': 'Language',
          'domain_of': ['Language'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/usesWritingSystem'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -7829,6 +6512,9 @@ class FormalLanguage(Language):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -7860,6 +6546,12 @@ class LanguageChangeEvent(Activity):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -7911,9 +6603,18 @@ class LanguageChangeEvent(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -7929,6 +6630,12 @@ class LanguageChangeEvent(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -7971,6 +6678,12 @@ class LanguageCreation(Activity):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -8022,9 +6735,18 @@ class LanguageCreation(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -8040,6 +6762,12 @@ class LanguageCreation(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -8160,9 +6888,6 @@ class LanguageVariety(Language):
     usesWritingSystem: Optional[list[WritingSystem]] = Field(default=None, title="uses writing system", json_schema_extra = { "linkml_meta": {'domain': 'Language',
          'domain_of': ['Language'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/usesWritingSystem'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -8283,6 +7008,9 @@ class LanguageVariety(Language):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -8328,9 +7056,6 @@ class LanguageVersion(Language):
     usesWritingSystem: Optional[list[WritingSystem]] = Field(default=None, title="uses writing system", json_schema_extra = { "linkml_meta": {'domain': 'Language',
          'domain_of': ['Language'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/usesWritingSystem'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -8451,6 +7176,9 @@ class LanguageVersion(Language):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -8476,6 +7204,12 @@ class LedgerEvent(Event):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -8527,9 +7261,18 @@ class LedgerEvent(Event):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -8545,6 +7288,12 @@ class LedgerEvent(Event):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -8575,9 +7324,6 @@ class LedgerTransaction(InformationObject):
     transactionHash: Optional[str] = Field(default=None, title="transaction hash", json_schema_extra = { "linkml_meta": {'domain': 'LedgerTransaction',
          'domain_of': ['LedgerTransaction'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/transactionHash'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -8698,6 +7444,9 @@ class LedgerTransaction(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -8728,9 +7477,6 @@ class LexicalForm(InformationObject):
     formType: Optional[list[LexicalFormType]] = Field(default=None, title="form type", json_schema_extra = { "linkml_meta": {'domain': 'LexicalForm',
          'domain_of': ['LexicalForm'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/formType'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -8851,6 +7597,9 @@ class LexicalForm(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -8875,9 +7624,6 @@ class LexicalItem(InformationObject):
     lexicalItemLanguage: Optional[Language] = Field(default=None, title="lexical item language", json_schema_extra = { "linkml_meta": {'domain': 'LexicalItem',
          'domain_of': ['LexicalItem'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/lexicalItemLanguage'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -8998,6 +7744,9 @@ class LexicalItem(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -9065,6 +7814,12 @@ class LifeEvent(Event):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -9116,9 +7871,18 @@ class LifeEvent(Event):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -9134,6 +7898,12 @@ class LifeEvent(Event):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -9321,6 +8091,9 @@ class Location(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -9502,6 +8275,9 @@ class BiologicalSequenceLocation(Location):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -9686,6 +8462,9 @@ class CelestialLocation(Location):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -9831,6 +8610,9 @@ class LocationState(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -9863,9 +8645,6 @@ class Mailbox(InformationObject):
     mailboxRole: Optional[str] = Field(default=None, title="mailbox role", json_schema_extra = { "linkml_meta": {'domain': 'Mailbox',
          'domain_of': ['Mailbox'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/mailboxRole'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -9986,17 +8765,12 @@ class Mailbox(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class MaintenanceStatus(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/MaintenanceStatus',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Maintenance Status'})
-
-    pass
 
 
 class Manifestation(CreativeWork):
@@ -10010,9 +8784,9 @@ class Manifestation(CreativeWork):
     exemplifiedBy: Optional[list[Item]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplifiedBy'} })
-    hasManifestationFormat: Optional[ManifestationFormat] = Field(default=None, title="has manifestation format", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
-         'domain_of': ['Manifestation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasManifestationFormat'} })
+    contentDigest: Optional[str] = Field(default=None, title="content digest", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
+         'domain_of': ['CreativeWork'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contentDigest'} })
     datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
@@ -10055,9 +8829,6 @@ class Manifestation(CreativeWork):
     title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -10178,6 +8949,9 @@ class Manifestation(CreativeWork):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -10194,9 +8968,9 @@ class BookRelease(Manifestation):
     exemplifiedBy: Optional[list[Item]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplifiedBy'} })
-    hasManifestationFormat: Optional[ManifestationFormat] = Field(default=None, title="has manifestation format", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
-         'domain_of': ['Manifestation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasManifestationFormat'} })
+    contentDigest: Optional[str] = Field(default=None, title="content digest", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
+         'domain_of': ['CreativeWork'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contentDigest'} })
     datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
@@ -10239,9 +9013,6 @@ class BookRelease(Manifestation):
     title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -10362,6 +9133,9 @@ class BookRelease(Manifestation):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -10383,9 +9157,6 @@ class Mark(InformationObject):
     markText: Optional[str] = Field(default=None, title="mark text", json_schema_extra = { "linkml_meta": {'domain': 'Mark',
          'domain_of': ['Mark'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/markText'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -10506,9 +9277,20 @@ class Mark(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
+
+
+class MaximViolationType(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/MaximViolationType',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Maxim Violation Type'})
+
+    pass
 
 
 class MeasuredValue(Entity):
@@ -10633,6 +9415,9 @@ class MeasuredValue(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -10649,9 +9434,9 @@ class MediaObject(Manifestation):
     exemplifiedBy: Optional[list[Item]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplifiedBy'} })
-    hasManifestationFormat: Optional[ManifestationFormat] = Field(default=None, title="has manifestation format", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
-         'domain_of': ['Manifestation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasManifestationFormat'} })
+    contentDigest: Optional[str] = Field(default=None, title="content digest", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
+         'domain_of': ['CreativeWork'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contentDigest'} })
     datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
@@ -10694,9 +9479,6 @@ class MediaObject(Manifestation):
     title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -10817,6 +9599,9 @@ class MediaObject(Manifestation):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -10836,139 +9621,6 @@ class Membership(ConfiguredBaseModel):
     membershipOrganization: Optional[Organization] = Field(default=None, title="membership organization", json_schema_extra = { "linkml_meta": {'domain': 'Membership',
          'domain_of': ['Membership'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/membershipOrganization'} })
-
-
-class MergeRequest(InformationObject):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/MergeRequest',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Merge Request'})
-
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
-    detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
 
 
 class Message(InformationObject):
@@ -11027,9 +9679,6 @@ class Message(InformationObject):
     subject: Optional[str] = Field(default=None, title="subject", json_schema_extra = { "linkml_meta": {'domain': 'Message',
          'domain_of': ['Message'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subject'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -11150,6 +9799,9 @@ class Message(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -11232,9 +9884,6 @@ class EmailMessage(Message):
     subject: Optional[str] = Field(default=None, title="subject", json_schema_extra = { "linkml_meta": {'domain': 'Message',
          'domain_of': ['Message'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subject'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -11355,6 +10004,9 @@ class EmailMessage(Message):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -11371,9 +10023,6 @@ class MessageHeader(InformationObject):
     headerValue: Optional[str] = Field(default=None, title="header value", json_schema_extra = { "linkml_meta": {'domain': 'MessageHeader',
          'domain_of': ['MessageHeader'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/headerValue'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -11494,6 +10143,9 @@ class MessageHeader(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -11554,139 +10206,6 @@ class MetricKind(ConfiguredBaseModel):
     pass
 
 
-class MonetaryAmount(Entity):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/MonetaryAmount',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Monetary Amount'})
-
-    currency: Optional[ReferenceFrame] = Field(default=None, title="currency", json_schema_extra = { "linkml_meta": {'domain': 'MonetaryAmount',
-         'domain_of': ['MonetaryAmount'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/currency'} })
-    monetaryValue: Optional[Decimal] = Field(default=None, title="monetary value", json_schema_extra = { "linkml_meta": {'domain': 'MonetaryAmount',
-         'domain_of': ['MonetaryAmount'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/monetaryValue'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
 class NamePart(InformationObject):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/NamePart',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -11704,9 +10223,6 @@ class NamePart(InformationObject):
     partText: Optional[str] = Field(default=None, title="part text", json_schema_extra = { "linkml_meta": {'domain': 'NamePart',
          'domain_of': ['NamePart'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/partText'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -11827,6 +10343,9 @@ class NamePart(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -12024,6 +10543,9 @@ class NamedPeriod(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -12184,6 +10706,9 @@ class NetworkAddress(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -12237,6 +10762,9 @@ class Observation(ConfiguredBaseModel):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Observation'})
 
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -12271,6 +10799,9 @@ class Measurement(Observation):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Measurement'})
 
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -12308,6 +10839,9 @@ class Capacity(Measurement):
     capacityOf: Optional[Location] = Field(default=None, title="capacity of", json_schema_extra = { "linkml_meta": {'domain': 'Capacity',
          'domain_of': ['Capacity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/capacityOf'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -12376,6 +10910,12 @@ class ObservationalActivity(Activity):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -12427,9 +10967,18 @@ class ObservationalActivity(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -12445,6 +10994,12 @@ class ObservationalActivity(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -12467,6 +11022,9 @@ class Occupancy(Measurement):
     occupancyOf: Optional[Location] = Field(default=None, title="occupancy of", json_schema_extra = { "linkml_meta": {'domain': 'Occupancy',
          'domain_of': ['Occupancy'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/occupancyOf'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -12618,6 +11176,9 @@ class Occupation(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -12643,9 +11204,6 @@ class OnlineAccount(InformationObject):
     nostrPubkey: Optional[str] = Field(default=None, title="Nostr public key", json_schema_extra = { "linkml_meta": {'domain': 'OnlineAccount',
          'domain_of': ['OnlineAccount'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/nostrPubkey'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -12766,6 +11324,9 @@ class OnlineAccount(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -13012,6 +11573,9 @@ class Orientation(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -13040,9 +11604,6 @@ class PGPSignature(CryptographicSignature):
     verificationStatus: Optional[str] = Field(default=None, title="verification status", json_schema_extra = { "linkml_meta": {'domain': 'CryptographicSignature',
          'domain_of': ['CryptographicSignature'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/verificationStatus'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -13163,145 +11724,9 @@ class PGPSignature(CryptographicSignature):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class Package(InformationObject):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Package',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Package'})
-
-    hasDistribution: Optional[list[Distribution]] = Field(default=None, title="has distribution", json_schema_extra = { "linkml_meta": {'domain': 'Package',
-         'domain_of': ['Package'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDistribution'} })
-    packageOf: Optional[list[SoftwareProduct]] = Field(default=None, title="package of", json_schema_extra = { "linkml_meta": {'domain': 'Package',
-         'domain_of': ['Package'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/packageOf'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
-    detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -13528,25 +11953,11 @@ class PersonName(Appellation):
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/transliterationScheme'} })
 
 
-class PhysicalCarrierType(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/PhysicalCarrierType',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Physical Carrier Type'})
-
-    pass
-
-
 class PhysicalObject(Entity):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/PhysicalObject',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Physical Object'})
 
-    carrierInscription: Optional[list[Inscription]] = Field(default=None, title="carrier inscription", json_schema_extra = { "linkml_meta": {'domain': 'PhysicalObject',
-         'domain_of': ['PhysicalObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/carrierInscription'} })
-    carrierType: Optional[list[PhysicalCarrierType]] = Field(default=None, title="carrier type", json_schema_extra = { "linkml_meta": {'domain': 'PhysicalObject',
-         'domain_of': ['PhysicalObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/carrierType'} })
     acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
@@ -13664,6 +12075,9 @@ class PhysicalObject(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -13881,6 +12295,9 @@ class Place(Location):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -14087,6 +12504,9 @@ class Pose(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -14131,9 +12551,6 @@ class PrivacyNotice(InformationObject):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Privacy Notice'})
 
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -14254,6 +12671,9 @@ class PrivacyNotice(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -14312,9 +12732,6 @@ class Profile(InformationObject):
     profileOpenValue: Optional[list[str]] = Field(default=None, title="profile open value", json_schema_extra = { "linkml_meta": {'domain': 'Profile',
          'domain_of': ['Profile'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/profileOpenValue'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -14435,6 +12852,9 @@ class Profile(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -14472,9 +12892,6 @@ class ProgrammingLanguage(FormalLanguage):
     usesWritingSystem: Optional[list[WritingSystem]] = Field(default=None, title="uses writing system", json_schema_extra = { "linkml_meta": {'domain': 'Language',
          'domain_of': ['Language'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/usesWritingSystem'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -14595,162 +13012,12 @@ class ProgrammingLanguage(FormalLanguage):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class Project(Entity):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Project',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Project'})
-
-    governanceModel: Optional[list[GovernanceModel]] = Field(default=None, title="governance model", json_schema_extra = { "linkml_meta": {'domain': 'Project',
-         'domain_of': ['Project'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/governanceModel'} })
-    hasRelease: Optional[list[Release]] = Field(default=None, title="has release", json_schema_extra = { "linkml_meta": {'domain': 'Project',
-         'domain_of': ['Project'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRelease'} })
-    hasRepository: Optional[list[Repository]] = Field(default=None, title="has repository", json_schema_extra = { "linkml_meta": {'domain': 'Project',
-         'domain_of': ['Project'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRepository'} })
-    maintenanceStatus: Optional[list[MaintenanceStatus]] = Field(default=None, title="maintenance status", json_schema_extra = { "linkml_meta": {'domain': 'Project',
-         'domain_of': ['Project'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maintenanceStatus'} })
-    projectIdentifier: Optional[str] = Field(default=None, title="project identifier", json_schema_extra = { "linkml_meta": {'domain': 'Project',
-         'domain_of': ['Project'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectIdentifier'} })
-    projectLicense: Optional[list[License]] = Field(default=None, title="project license", json_schema_extra = { "linkml_meta": {'domain': 'Project',
-         'domain_of': ['Project'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectLicense'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class ProjectionContext(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ProjectionContext',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Projection Context'})
-
-    pass
 
 
 class PronounSet(InformationObject):
@@ -14773,9 +13040,6 @@ class PronounSet(InformationObject):
     pronounSubject: Optional[str] = Field(default=None, title="pronoun subject", json_schema_extra = { "linkml_meta": {'domain': 'PronounSet',
          'domain_of': ['PronounSet'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/pronounSubject'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -14896,6 +13160,9 @@ class PronounSet(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -14909,6 +13176,9 @@ class ProximityMeasurement(Measurement):
     proximityTo: Optional[Entity] = Field(default=None, title="proximity to", json_schema_extra = { "linkml_meta": {'domain': 'ProximityMeasurement',
          'domain_of': ['ProximityMeasurement'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximityTo'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -14949,6 +13219,9 @@ class QualityAssessment(Observation):
     qualityDimension: Optional[list[QualityDimension]] = Field(default=None, title="quality dimension", json_schema_extra = { "linkml_meta": {'domain': 'QualityAssessment',
          'domain_of': ['QualityAssessment'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/qualityDimension'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -15108,6 +13381,9 @@ class Quantity(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -15121,9 +13397,6 @@ class RecurrenceRule(InformationObject):
     recurrenceRuleText: Optional[str] = Field(default=None, title="recurrence rule text", json_schema_extra = { "linkml_meta": {'domain': 'RecurrenceRule',
          'domain_of': ['RecurrenceRule'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/recurrenceRuleText'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -15244,142 +13517,9 @@ class RecurrenceRule(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class Ref(InformationObject):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Ref',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Ref'})
-
-    pointsToCommit: Optional[list[Commit]] = Field(default=None, title="points to commit", json_schema_extra = { "linkml_meta": {'domain': 'Ref',
-         'domain_of': ['Ref'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/pointsToCommit'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
-    detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -15546,6 +13686,9 @@ class ReferenceFrame(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -15712,6 +13855,9 @@ class MentalReferenceFrame(ReferenceFrame):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -15884,6 +14030,9 @@ class NarrativeReferenceFrame(ReferenceFrame):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -16011,6 +14160,9 @@ class ReferencePosition(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -16046,135 +14198,11 @@ class RelayHop(ConfiguredBaseModel):
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/relayProtocol'} })
 
 
-class Release(Event):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Release',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Release'})
-
-    releaseOf: Optional[Project] = Field(default=None, title="release of", json_schema_extra = { "linkml_meta": {'domain': 'Release',
-         'domain_of': ['Release'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/releaseOf'} })
-    releaseTag: Optional[list[Tag]] = Field(default=None, title="release tag", json_schema_extra = { "linkml_meta": {'domain': 'Release',
-         'domain_of': ['Release'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/releaseTag'} })
-    releaseVersion: Optional[str] = Field(default=None, title="release version", json_schema_extra = { "linkml_meta": {'domain': 'Release',
-         'domain_of': ['Release'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/releaseVersion'} })
-    after: Optional[list[Event]] = Field(default=None, title="after", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/after'} })
-    before: Optional[list[Event]] = Field(default=None, title="before", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/before'} })
-    coincidesWith: Optional[list[Event]] = Field(default=None, title="coincides with", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/coincidesWith'} })
-    contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
-    during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
-    earliestStart: Optional[datetime ] = Field(default=None, title="earliest start", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/earliestStart'} })
-    eventAspect: Optional[list[GrammaticalAspect]] = Field(default=None, title="event aspect", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventAspect'} })
-    eventInterval: Optional[list[TimeInterval]] = Field(default=None, title="event interval", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventInterval'} })
-    eventLocation: Optional[list[Location]] = Field(default=None, title="event location", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventLocation'} })
-    eventObservation: Optional[list[Observation]] = Field(default=None, title="event observation", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventObservation'} })
-    eventSpacetime: Optional[list[LocationState]] = Field(default=None, title="event spacetime", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventSpacetime'} })
-    eventTemporalFrame: Optional[TemporalFrame] = Field(default=None, title="event temporal frame", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTemporalFrame'} })
-    eventTense: Optional[list[GrammaticalTense]] = Field(default=None, title="event tense", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTense'} })
-    eventTime: Optional[datetime ] = Field(default=None, title="event time", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTime'} })
-    eventTrajectory: Optional[list[Trajectory]] = Field(default=None, title="event trajectory", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventTrajectory'} })
-    eventType: Optional[list[EventType]] = Field(default=None, title="event type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/eventType'} })
-    finishedBy: Optional[list[Event]] = Field(default=None, title="finished by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/finishedBy'} })
-    finishes: Optional[list[Event]] = Field(default=None, title="finishes", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/finishes'} })
-    hasDuration: Optional[list[Duration]] = Field(default=None, title="has duration", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDuration'} })
-    hasParticipant: Optional[list[Agent]] = Field(default=None, title="has participant", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasParticipant'} })
-    hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
-    latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
-    meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
-    metBy: Optional[list[Event]] = Field(default=None, title="met by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/metBy'} })
-    occurrenceOfSeries: Optional[list[EventSeries]] = Field(default=None, title="occurrence of series", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/occurrenceOfSeries'} })
-    overlappedBy: Optional[list[Event]] = Field(default=None, title="overlapped by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlappedBy'} })
-    overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
-    startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
-    starts: Optional[list[Event]] = Field(default=None, title="starts", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/starts'} })
-    subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
-    temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
-         'domain_of': ['Event'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
-
-
 class Repository(InformationObject):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Repository',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Repository'})
 
-    cloneUrl: Optional[str] = Field(default=None, title="clone URL", json_schema_extra = { "linkml_meta": {'domain': 'Repository',
-         'domain_of': ['Repository'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cloneUrl'} })
-    hostedAt: Optional[list[ForgePlatform]] = Field(default=None, title="hosted at", json_schema_extra = { "linkml_meta": {'domain': 'Repository',
-         'domain_of': ['Repository'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hostedAt'} })
-    repositoryType: Optional[RepositoryType] = Field(default=None, title="repository type", json_schema_extra = { "linkml_meta": {'domain': 'Repository',
-         'domain_of': ['Repository'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/repositoryType'} })
-    webUrl: Optional[str] = Field(default=None, title="web URL", json_schema_extra = { "linkml_meta": {'domain': 'Repository',
-         'domain_of': ['Repository'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/webUrl'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -16295,147 +14323,9 @@ class Repository(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class RepositoryType(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/RepositoryType',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Repository Type'})
-
-    pass
-
-
-class Review(InformationObject):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Review',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Review'})
-
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
-    detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -16475,6 +14365,9 @@ class RightsStatement(Observation):
     statementAbout: Optional[list[Entity]] = Field(default=None, title="statement about", json_schema_extra = { "linkml_meta": {'domain': 'RightsStatement',
          'domain_of': ['RightsStatement'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/statementAbout'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -16678,6 +14571,9 @@ class Route(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -16802,9 +14698,6 @@ class SMIMESignature(CryptographicSignature):
     verificationStatus: Optional[str] = Field(default=None, title="verification status", json_schema_extra = { "linkml_meta": {'domain': 'CryptographicSignature',
          'domain_of': ['CryptographicSignature'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/verificationStatus'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -16925,6 +14818,9 @@ class SMIMESignature(CryptographicSignature):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -17058,55 +14954,12 @@ class ScalarQuantity(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class ScriptLanguageAttribution(Observation):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ScriptLanguageAttribution',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Script Language Attribution'})
-
-    attributedLanguage: Optional[list[Language]] = Field(default=None, title="attributed language", json_schema_extra = { "linkml_meta": {'domain': 'ScriptLanguageAttribution',
-         'domain_of': ['ScriptLanguageAttribution'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributedLanguage'} })
-    attributedNotation: Optional[list[NotationSystem]] = Field(default=None, title="attributed notation", json_schema_extra = { "linkml_meta": {'domain': 'ScriptLanguageAttribution',
-         'domain_of': ['ScriptLanguageAttribution'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributedNotation'} })
-    attributedScript: Optional[list[WritingSystem]] = Field(default=None, title="attributed script", json_schema_extra = { "linkml_meta": {'domain': 'ScriptLanguageAttribution',
-         'domain_of': ['ScriptLanguageAttribution'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributedScript'} })
-    attributionTarget: Optional[Inscription] = Field(default=None, title="attribution target", json_schema_extra = { "linkml_meta": {'domain': 'ScriptLanguageAttribution',
-         'domain_of': ['ScriptLanguageAttribution'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionTarget'} })
-    facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
-    facetVantage: Optional[list[Agent]] = Field(default=None, title="facet vantage", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetVantage'} })
-    observationEvent: Optional[list[Event]] = Field(default=None, title="observation event", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observationEvent'} })
-    observationMethod: Optional[ObservationMethod] = Field(default=None, title="observation method", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observationMethod'} })
-    observationResult: Optional[list[Entity]] = Field(default=None, title="observation result", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observationResult'} })
-    observationType: Optional[list[ObservationType]] = Field(default=None, title="observation type", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observationType'} })
-    observedFeature: Optional[list[str]] = Field(default=None, title="observed feature", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/observedFeature'} })
-    perceptionEnvironment: Optional[SensoryEnvironment] = Field(default=None, title="perception environment", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/perceptionEnvironment'} })
-    vantage: Optional[list[Entity]] = Field(default=None, title="vantage", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
-         'domain_of': ['Observation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/vantage'} })
 
 
 class ScriptRole(ConfiguredBaseModel):
@@ -17134,9 +14987,6 @@ class Selector(InformationObject):
     selectorTextQuote: Optional[str] = Field(default=None, title="selector text quote", json_schema_extra = { "linkml_meta": {'domain': 'Selector',
          'domain_of': ['Selector'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/selectorTextQuote'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -17257,6 +15107,9 @@ class Selector(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -17444,6 +15297,9 @@ class SensorPlatform(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -17589,6 +15445,9 @@ class SensoryEnvironment(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -17616,6 +15475,9 @@ class SensoryObservation(Observation):
     sensoryResult: Optional[list[SensoryQuantity]] = Field(default=None, title="sensory result", json_schema_extra = { "linkml_meta": {'domain': 'SensoryObservation',
          'domain_of': ['SensoryObservation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/sensoryResult'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -17767,6 +15629,9 @@ class SensoryQuantity(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -17906,6 +15771,9 @@ class SequenceCoordinates(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -18039,6 +15907,9 @@ class SequenceFeature(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -18063,9 +15934,9 @@ class SerialInstallment(Manifestation):
     exemplifiedBy: Optional[list[Item]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplifiedBy'} })
-    hasManifestationFormat: Optional[ManifestationFormat] = Field(default=None, title="has manifestation format", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
-         'domain_of': ['Manifestation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasManifestationFormat'} })
+    contentDigest: Optional[str] = Field(default=None, title="content digest", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
+         'domain_of': ['CreativeWork'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contentDigest'} })
     datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
@@ -18108,9 +15979,6 @@ class SerialInstallment(Manifestation):
     title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -18231,6 +16099,9 @@ class SerialInstallment(Manifestation):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -18395,6 +16266,9 @@ class Skill(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -18525,6 +16399,9 @@ class SmartContract(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -18610,154 +16487,6 @@ class SoftwareName(Appellation):
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/transliterationScheme'} })
 
 
-class SoftwareProject(Project):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SoftwareProject',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Software Project'})
-
-    writtenInLanguage: Optional[list[ProgrammingLanguage]] = Field(default=None, title="written in language", json_schema_extra = { "linkml_meta": {'domain': 'SoftwareProject',
-         'domain_of': ['SoftwareProject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/writtenInLanguage'} })
-    governanceModel: Optional[list[GovernanceModel]] = Field(default=None, title="governance model", json_schema_extra = { "linkml_meta": {'domain': 'Project',
-         'domain_of': ['Project'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/governanceModel'} })
-    hasRelease: Optional[list[Release]] = Field(default=None, title="has release", json_schema_extra = { "linkml_meta": {'domain': 'Project',
-         'domain_of': ['Project'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRelease'} })
-    hasRepository: Optional[list[Repository]] = Field(default=None, title="has repository", json_schema_extra = { "linkml_meta": {'domain': 'Project',
-         'domain_of': ['Project'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRepository'} })
-    maintenanceStatus: Optional[list[MaintenanceStatus]] = Field(default=None, title="maintenance status", json_schema_extra = { "linkml_meta": {'domain': 'Project',
-         'domain_of': ['Project'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maintenanceStatus'} })
-    projectIdentifier: Optional[str] = Field(default=None, title="project identifier", json_schema_extra = { "linkml_meta": {'domain': 'Project',
-         'domain_of': ['Project'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectIdentifier'} })
-    projectLicense: Optional[list[License]] = Field(default=None, title="project license", json_schema_extra = { "linkml_meta": {'domain': 'Project',
-         'domain_of': ['Project'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectLicense'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
 class SourceIndependence(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SourceIndependence',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -18766,277 +16495,14 @@ class SourceIndependence(ConfiguredBaseModel):
     pass
 
 
-class SourceNode(InformationObject):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SourceNode',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Source Node'})
-
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
-    detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class SourceFile(SourceNode):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SourceFile',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Source File'})
-
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
-    detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
 class SourceRole(CreativeWork):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SourceRole',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Source Role'})
 
+    contentDigest: Optional[str] = Field(default=None, title="content digest", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
+         'domain_of': ['CreativeWork'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contentDigest'} })
     datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
@@ -19079,9 +16545,6 @@ class SourceRole(CreativeWork):
     title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -19202,6 +16665,9 @@ class SourceRole(CreativeWork):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -19213,272 +16679,6 @@ class SourceTier(ConfiguredBaseModel):
          'title': 'Source Tier'})
 
     pass
-
-
-class SourceTree(SourceNode):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SourceTree',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Source Tree'})
-
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
-    detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class SourceDirectory(SourceTree):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SourceDirectory',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Source Directory'})
-
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
-    detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
 
 
 class SpatialAggregation(Measurement):
@@ -19495,6 +16695,9 @@ class SpatialAggregation(Measurement):
     minimumPopulation: Optional[str] = Field(default=None, title="minimum population", json_schema_extra = { "linkml_meta": {'domain': 'SpatialAggregation',
          'domain_of': ['SpatialAggregation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/minimumPopulation'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -19736,6 +16939,9 @@ class SpatialBin(Place):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -19866,6 +17072,9 @@ class SpatialCoordinates(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -19879,6 +17088,9 @@ class SpatialMeasurement(Measurement):
     spatialMeasurementOf: Optional[list[Entity]] = Field(default=None, title="spatial measurement of", json_schema_extra = { "linkml_meta": {'domain': 'SpatialMeasurement',
          'domain_of': ['SpatialMeasurement'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/spatialMeasurementOf'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -19925,6 +17137,9 @@ class CoordinateObservation(SpatialMeasurement):
     spatialMeasurementOf: Optional[list[Entity]] = Field(default=None, title="spatial measurement of", json_schema_extra = { "linkml_meta": {'domain': 'SpatialMeasurement',
          'domain_of': ['SpatialMeasurement'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/spatialMeasurementOf'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -20079,136 +17294,9 @@ class Standpoint(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class ReadingOrder(Standpoint):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/ReadingOrder',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Reading Order'})
-
-    sharpens: Optional[list[Standpoint]] = Field(default=None, title="sharpens", json_schema_extra = { "linkml_meta": {'domain': 'Standpoint',
-         'domain_of': ['Standpoint'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/sharpens'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -20219,9 +17307,15 @@ class StandpointClaim(Observation):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Standpoint Claim'})
 
+    argumentAcceptability: Optional[Decimal] = Field(default=None, title="argument acceptability", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
+         'domain_of': ['StandpointClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/argumentAcceptability'} })
     claimModality: Optional[StandpointModality] = Field(default=None, title="claim modality", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
          'domain_of': ['StandpointClaim'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/claimModality'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -20259,9 +17353,15 @@ class SensoryPerception(StandpointClaim):
     perceptionModality: Optional[SensoryModality] = Field(default=None, title="perception modality", json_schema_extra = { "linkml_meta": {'domain': 'SensoryPerception',
          'domain_of': ['SensoryPerception'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/perceptionModality'} })
+    argumentAcceptability: Optional[Decimal] = Field(default=None, title="argument acceptability", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
+         'domain_of': ['StandpointClaim'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/argumentAcceptability'} })
     claimModality: Optional[StandpointModality] = Field(default=None, title="claim modality", json_schema_extra = { "linkml_meta": {'domain': 'StandpointClaim',
          'domain_of': ['StandpointClaim'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/claimModality'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -20497,6 +17597,9 @@ class StorageLocation(Location):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -20655,6 +17758,9 @@ class Stream(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -20665,9 +17771,6 @@ class Summary(InformationObject):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Summary'})
 
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -20788,6 +17891,9 @@ class Summary(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -20801,9 +17907,6 @@ class SymbolicSystem(InformationObject):
     symbolicSystemKind: Optional[list[SymbolicSystemKind]] = Field(default=None, title="symbolic system kind", json_schema_extra = { "linkml_meta": {'domain': 'SymbolicSystem',
          'domain_of': ['SymbolicSystem'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/symbolicSystemKind'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -20924,6 +18027,9 @@ class SymbolicSystem(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -20943,9 +18049,6 @@ class NotationSystem(SymbolicSystem):
     symbolicSystemKind: Optional[list[SymbolicSystemKind]] = Field(default=None, title="symbolic system kind", json_schema_extra = { "linkml_meta": {'domain': 'SymbolicSystem',
          'domain_of': ['SymbolicSystem'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/symbolicSystemKind'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -21066,6 +18169,9 @@ class NotationSystem(SymbolicSystem):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -21096,9 +18202,6 @@ class Tag(InformationObject):
     tagInScheme: Optional[list[TagScheme]] = Field(default=None, title="tag in scheme", json_schema_extra = { "linkml_meta": {'domain': 'Tag',
          'domain_of': ['Tag'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/tagInScheme'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -21219,6 +18322,9 @@ class Tag(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -21229,9 +18335,6 @@ class TagScheme(InformationObject):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Tag Scheme'})
 
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -21352,6 +18455,9 @@ class TagScheme(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -21557,6 +18663,9 @@ class TemporalFrame(ReferenceFrame):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -21582,6 +18691,9 @@ class TemporalMeasurement(Measurement):
     measurementUncertainty: Optional[Decimal] = Field(default=None, title="measurement uncertainty", json_schema_extra = { "linkml_meta": {'domain': 'TemporalMeasurement',
          'domain_of': ['TemporalMeasurement'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/measurementUncertainty'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -21632,9 +18744,6 @@ class Thread(InformationObject):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Thread'})
 
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -21755,6 +18864,9 @@ class Thread(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -21943,6 +19055,9 @@ class TimeScale(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -22280,25 +19395,12 @@ class Trajectory(Entity):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class TransactionStatus(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/TransactionStatus',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Transaction Status'})
-
-    pass
-
-
-class TransactionType(ConfiguredBaseModel):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/TransactionType',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Transaction Type'})
-
-    pass
 
 
 class TransliterationScheme(ConfiguredBaseModel):
@@ -22320,9 +19422,6 @@ class TransparencyLogEntry(InformationObject):
     logEntryUrl: Optional[str] = Field(default=None, title="log entry URL", json_schema_extra = { "linkml_meta": {'domain': 'TransparencyLogEntry',
          'domain_of': ['TransparencyLogEntry'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/logEntryUrl'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -22443,6 +19542,9 @@ class TransparencyLogEntry(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -22490,9 +19592,9 @@ class UsageAttestation(Observation):
     attestedInSource: Optional[list[CreativeWork]] = Field(default=None, title="attested in source", json_schema_extra = { "linkml_meta": {'domain': 'UsageAttestation',
          'domain_of': ['UsageAttestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/attestedInSource'} })
-    attestedOnCarrier: Optional[list[PhysicalObject]] = Field(default=None, title="attested on carrier", json_schema_extra = { "linkml_meta": {'domain': 'UsageAttestation',
-         'domain_of': ['UsageAttestation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attestedOnCarrier'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -22530,6 +19632,9 @@ class Utilization(Measurement):
     utilizationOf: Optional[Location] = Field(default=None, title="utilization of", json_schema_extra = { "linkml_meta": {'domain': 'Utilization',
          'domain_of': ['Utilization'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/utilizationOf'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -22579,6 +19684,12 @@ class VerificationActivity(Activity):
     contains: Optional[list[Event]] = Field(default=None, title="temporally contains", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contains'} })
+    deceptionCue: Optional[list[Observation]] = Field(default=None, title="deception cue", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptionCue'} })
+    deceptiveIntentClaim: Optional[list[StandpointClaim]] = Field(default=None, title="deceptive intent claim", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim'} })
     during: Optional[list[Event]] = Field(default=None, title="during", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/during'} })
@@ -22630,9 +19741,18 @@ class VerificationActivity(Activity):
     hasSubEvent: Optional[list[Event]] = Field(default=None, title="has sub-event", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSubEvent'} })
+    heldStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="held standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/heldStandpoint'} })
+    implicates: Optional[list[Entity]] = Field(default=None, title="implicates", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/implicates'} })
     latestEnd: Optional[datetime ] = Field(default=None, title="latest end", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/latestEnd'} })
+    maximViolationType: Optional[list[MaximViolationType]] = Field(default=None, title="maxim violation type", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/maximViolationType'} })
     meets: Optional[list[Event]] = Field(default=None, title="meets", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/meets'} })
@@ -22648,6 +19768,12 @@ class VerificationActivity(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
+    propagationMutationDistance: Optional[int] = Field(default=None, title="propagation mutation distance", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/propagationMutationDistance'} })
     startedBy: Optional[list[Event]] = Field(default=None, title="started by", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/startedBy'} })
@@ -22673,9 +19799,6 @@ class VerificationResult(InformationObject):
     verifiedBy: Optional[list[Agent]] = Field(default=None, title="verified by", json_schema_extra = { "linkml_meta": {'domain': 'VerificationResult',
          'domain_of': ['VerificationResult'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/verifiedBy'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -22796,6 +19919,9 @@ class VerificationResult(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -22832,6 +19958,9 @@ class VersionMembership(Observation):
     versionSet: Optional[VersionSet] = Field(default=None, title="version set", json_schema_extra = { "linkml_meta": {'domain': 'VersionMembership',
          'domain_of': ['VersionMembership'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionSet'} })
+    credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
+         'domain_of': ['Observation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credibilityScore'} })
     facetSubject: Optional[list[Person]] = Field(default=None, title="facet subject", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
          'domain_of': ['Observation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/facetSubject'} })
@@ -22882,9 +20011,6 @@ class VersionSet(InformationObject):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Version Set'})
 
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -23005,6 +20131,9 @@ class VersionSet(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -23195,6 +20324,9 @@ class VirtualLocation(Location):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -23219,9 +20351,9 @@ class WebPage(Manifestation):
     exemplifiedBy: Optional[list[Item]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplifiedBy'} })
-    hasManifestationFormat: Optional[ManifestationFormat] = Field(default=None, title="has manifestation format", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
-         'domain_of': ['Manifestation'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasManifestationFormat'} })
+    contentDigest: Optional[str] = Field(default=None, title="content digest", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
+         'domain_of': ['CreativeWork'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contentDigest'} })
     datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
@@ -23264,9 +20396,6 @@ class WebPage(Manifestation):
     title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -23387,6 +20516,9 @@ class WebPage(Manifestation):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -23400,6 +20532,9 @@ class Work(CreativeWork):
     realizedThrough: Optional[list[Expression]] = Field(default=None, title="realized through", json_schema_extra = { "linkml_meta": {'domain': 'Work',
          'domain_of': ['Work'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/realizedThrough'} })
+    contentDigest: Optional[str] = Field(default=None, title="content digest", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
+         'domain_of': ['CreativeWork'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contentDigest'} })
     datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
@@ -23442,9 +20577,6 @@ class Work(CreativeWork):
     title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -23565,6 +20697,9 @@ class Work(CreativeWork):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -23578,6 +20713,9 @@ class Article(Work):
     realizedThrough: Optional[list[Expression]] = Field(default=None, title="realized through", json_schema_extra = { "linkml_meta": {'domain': 'Work',
          'domain_of': ['Work'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/realizedThrough'} })
+    contentDigest: Optional[str] = Field(default=None, title="content digest", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
+         'domain_of': ['CreativeWork'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contentDigest'} })
     datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
@@ -23620,9 +20758,6 @@ class Article(Work):
     title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -23743,6 +20878,9 @@ class Article(Work):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -23756,6 +20894,9 @@ class Dataset(Work):
     realizedThrough: Optional[list[Expression]] = Field(default=None, title="realized through", json_schema_extra = { "linkml_meta": {'domain': 'Work',
          'domain_of': ['Work'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/realizedThrough'} })
+    contentDigest: Optional[str] = Field(default=None, title="content digest", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
+         'domain_of': ['CreativeWork'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contentDigest'} })
     datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
@@ -23798,9 +20939,6 @@ class Dataset(Work):
     title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -23921,6 +21059,9 @@ class Dataset(Work):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -23934,6 +21075,9 @@ class Document(Work):
     realizedThrough: Optional[list[Expression]] = Field(default=None, title="realized through", json_schema_extra = { "linkml_meta": {'domain': 'Work',
          'domain_of': ['Work'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/realizedThrough'} })
+    contentDigest: Optional[str] = Field(default=None, title="content digest", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
+         'domain_of': ['CreativeWork'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contentDigest'} })
     datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
@@ -23976,9 +21120,6 @@ class Document(Work):
     title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -24099,184 +21240,9 @@ class Document(Work):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class LiteraryWork(Work):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/LiteraryWork',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Literary Work'})
-
-    realizedThrough: Optional[list[Expression]] = Field(default=None, title="realized through", json_schema_extra = { "linkml_meta": {'domain': 'Work',
-         'domain_of': ['Work'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/realizedThrough'} })
-    datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
-    editionOf: Optional[CreativeWork] = Field(default=None, title="edition of", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/editionOf'} })
-    hasAuthor: Optional[list[Agent]] = Field(default=None, title="has author", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAuthor'} })
-    hasContributor: Optional[list[Agent]] = Field(default=None, title="has contributor", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasContributor'} })
-    hasEditor: Optional[list[Agent]] = Field(default=None, title="has editor", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasEditor'} })
-    hasIllustrator: Optional[list[Agent]] = Field(default=None, title="has illustrator", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasIllustrator'} })
-    hasNarrator: Optional[list[Agent]] = Field(default=None, title="has narrator", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasNarrator'} })
-    hasTitle: Optional[list[CreativeWorkTitle]] = Field(default=None, title="has title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTitle'} })
-    hasTranslator: Optional[list[Agent]] = Field(default=None, title="has translator", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTranslator'} })
-    identifier: Optional[str] = Field(default=None, title="identifier", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/identifier'} })
-    sourceFor: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="source for", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/sourceFor'} })
-    sourceLocation: Optional[str] = Field(default=None, title="source location", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/sourceLocation'} })
-    sourceModifiedAt: Optional[datetime ] = Field(default=None, title="source modified at", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/sourceModifiedAt'} })
-    title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
-    detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -24290,6 +21256,9 @@ class Patent(Work):
     realizedThrough: Optional[list[Expression]] = Field(default=None, title="realized through", json_schema_extra = { "linkml_meta": {'domain': 'Work',
          'domain_of': ['Work'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/realizedThrough'} })
+    contentDigest: Optional[str] = Field(default=None, title="content digest", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
+         'domain_of': ['CreativeWork'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contentDigest'} })
     datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
@@ -24332,9 +21301,6 @@ class Patent(Work):
     title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -24455,19 +21421,37 @@ class Patent(Work):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
 
 
-class SerialWork(Work):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SerialWork',
+class SoftwareProject(Work):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SoftwareProject',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Serial Work'})
+         'title': 'Software Project'})
 
+    developer: Optional[list[Agent]] = Field(default=None, title="developer", json_schema_extra = { "linkml_meta": {'domain': 'SoftwareProject',
+         'domain_of': ['SoftwareProject'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/developer'} })
+    hasRepository: Optional[list[Repository]] = Field(default=None, title="has repository", json_schema_extra = { "linkml_meta": {'domain': 'SoftwareProject',
+         'domain_of': ['SoftwareProject'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRepository'} })
+    hasSoftwareName: Optional[list[SoftwareName]] = Field(default=None, title="has software name", json_schema_extra = { "linkml_meta": {'domain': 'SoftwareProject',
+         'domain_of': ['SoftwareProject'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSoftwareName'} })
+    writtenInLanguage: Optional[list[ProgrammingLanguage]] = Field(default=None, title="written in language", json_schema_extra = { "linkml_meta": {'domain': 'SoftwareProject',
+         'domain_of': ['SoftwareProject'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/writtenInLanguage'} })
     realizedThrough: Optional[list[Expression]] = Field(default=None, title="realized through", json_schema_extra = { "linkml_meta": {'domain': 'Work',
          'domain_of': ['Work'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/realizedThrough'} })
+    contentDigest: Optional[str] = Field(default=None, title="content digest", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
+         'domain_of': ['CreativeWork'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contentDigest'} })
     datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
@@ -24510,9 +21494,6 @@ class SerialWork(Work):
     title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -24633,184 +21614,9 @@ class SerialWork(Work):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
-    wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
-
-
-class SoftwareProduct(Work):
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SoftwareProduct',
-         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Software Product'})
-
-    realizedThrough: Optional[list[Expression]] = Field(default=None, title="realized through", json_schema_extra = { "linkml_meta": {'domain': 'Work',
-         'domain_of': ['Work'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/realizedThrough'} })
-    datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
-    editionOf: Optional[CreativeWork] = Field(default=None, title="edition of", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/editionOf'} })
-    hasAuthor: Optional[list[Agent]] = Field(default=None, title="has author", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAuthor'} })
-    hasContributor: Optional[list[Agent]] = Field(default=None, title="has contributor", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasContributor'} })
-    hasEditor: Optional[list[Agent]] = Field(default=None, title="has editor", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasEditor'} })
-    hasIllustrator: Optional[list[Agent]] = Field(default=None, title="has illustrator", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasIllustrator'} })
-    hasNarrator: Optional[list[Agent]] = Field(default=None, title="has narrator", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasNarrator'} })
-    hasTitle: Optional[list[CreativeWorkTitle]] = Field(default=None, title="has title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTitle'} })
-    hasTranslator: Optional[list[Agent]] = Field(default=None, title="has translator", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTranslator'} })
-    identifier: Optional[str] = Field(default=None, title="identifier", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/identifier'} })
-    sourceFor: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="source for", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/sourceFor'} })
-    sourceLocation: Optional[str] = Field(default=None, title="source location", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/sourceLocation'} })
-    sourceModifiedAt: Optional[datetime ] = Field(default=None, title="source modified at", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/sourceModifiedAt'} })
-    title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
-         'domain_of': ['CreativeWork'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
-    detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
-    acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
-    attributionText: Optional[str] = Field(default=None, title="attribution text", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionText'} })
-    attributionUrl: Optional[str] = Field(default=None, title="attribution url", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributionUrl'} })
-    authorityLink: Optional[list[str]] = Field(default=None, title="authority link", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/authorityLink'} })
-    cites: Optional[list[CreativeWork]] = Field(default=None, title="cites", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/cites'} })
-    conditionsOfAccess: Optional[str] = Field(default=None, title="conditions of access", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/conditionsOfAccess'} })
-    counterpartOf: Optional[list[Entity]] = Field(default=None, title="counterpart of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/counterpartOf'} })
-    description: Optional[str] = Field(default=None, title="description", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/description'} })
-    existenceInterval: Optional[list[TimeInterval]] = Field(default=None, title="existence interval", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/existenceInterval'} })
-    hasAccessibilityNeed: Optional[list[AccessibilityFacet]] = Field(default=None, title="has accessibility need", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAccessibilityNeed'} })
-    hasAppellation: Optional[list[Appellation]] = Field(default=None, title="has appellation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAppellation'} })
-    hasAttestation: Optional[list[Attestation]] = Field(default=None, title="has attestation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasAttestation'} })
-    hasCopyright: Optional[list[Copyright]] = Field(default=None, title="has copyright", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCopyright'} })
-    hasCreationEvent: Optional[list[Event]] = Field(default=None, title="has creation event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasCreationEvent'} })
-    hasDestructionEvent: Optional[list[Event]] = Field(default=None, title="has destruction event", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasDestructionEvent'} })
-    hasLicense: Optional[list[License]] = Field(default=None, title="has license", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasLicense'} })
-    hasPose: Optional[list[Pose]] = Field(default=None, title="has pose", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasPose'} })
-    hasRightsStatement: Optional[list[RightsStatement]] = Field(default=None, title="has rights statement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRightsStatement'} })
-    hasSensoryObservation: Optional[list[SensoryObservation]] = Field(default=None, title="has sensory observation", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryObservation'} })
-    hasSensoryQuantity: Optional[list[SensoryQuantity]] = Field(default=None, title="has sensory quantity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSensoryQuantity'} })
-    hasSpatialMeasurement: Optional[list[SpatialMeasurement]] = Field(default=None, title="has spatial measurement", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement'} })
-    hasStream: Optional[list[Stream]] = Field(default=None, title="has stream", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasStream'} })
-    hasTag: Optional[list[Tag]] = Field(default=None, title="has tag", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTag'} })
-    hasTrademark: Optional[list[Trademark]] = Field(default=None, title="has trademark", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasTrademark'} })
-    hasWebPage: Optional[list[WebPage]] = Field(default=None, title="has web page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasWebPage'} })
-    isAbout: Optional[list[Entity]] = Field(default=None, title="is about", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAbout'} })
-    isAccessibleForFree: Optional[bool] = Field(default=None, title="is accessible for free", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isAccessibleForFree'} })
-    isResultOf: Optional[list[Observation]] = Field(default=None, title="is result of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/isResultOf'} })
-    locatedAt: Optional[list[Location]] = Field(default=None, title="located at", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/locatedAt'} })
-    name: Optional[str] = Field(default=None, title="name", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/name'} })
-    proximity: Optional[list[ProximityMeasurement]] = Field(default=None, title="proximity", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/proximity'} })
-    storedIn: Optional[list[StorageLocation]] = Field(default=None, title="stored in", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/storedIn'} })
-    supersededBy: Optional[list[Entity]] = Field(default=None, title="superseded by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersededBy'} })
-    supersedes: Optional[list[Entity]] = Field(default=None, title="supersedes", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/supersedes'} })
-    usageInfo: Optional[str] = Field(default=None, title="usage info", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/usageInfo'} })
-    versionFingerprint: Optional[str] = Field(default=None, title="version fingerprint", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionFingerprint'} })
-    versionLabel: Optional[str] = Field(default=None, title="version label", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionLabel'} })
-    versionOf: Optional[Entity] = Field(default=None, title="version of", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/versionOf'} })
-    wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
-         'domain_of': ['Entity'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -24824,6 +21630,9 @@ class TextExtraction(Document):
     realizedThrough: Optional[list[Expression]] = Field(default=None, title="realized through", json_schema_extra = { "linkml_meta": {'domain': 'Work',
          'domain_of': ['Work'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/realizedThrough'} })
+    contentDigest: Optional[str] = Field(default=None, title="content digest", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
+         'domain_of': ['CreativeWork'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contentDigest'} })
     datePublished: Optional[datetime ] = Field(default=None, title="date published", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/datePublished'} })
@@ -24866,9 +21675,6 @@ class TextExtraction(Document):
     title: Optional[str] = Field(default=None, title="title", json_schema_extra = { "linkml_meta": {'domain': 'CreativeWork',
          'domain_of': ['CreativeWork'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/title'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -24989,6 +21795,9 @@ class TextExtraction(Document):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -25011,9 +21820,6 @@ class WritingSystem(InformationObject):
     writingSystemType: Optional[list[WritingSystemType]] = Field(default=None, title="writing system type", json_schema_extra = { "linkml_meta": {'domain': 'WritingSystem',
          'domain_of': ['WritingSystem'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/writingSystemType'} })
-    contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
-         'domain_of': ['InformationObject'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
     detectedMediaType: Optional[str] = Field(default=None, title="detected media type", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/detectedMediaType'} })
@@ -25134,6 +21940,9 @@ class WritingSystem(InformationObject):
     wasAttributedTo: Optional[list[Agent]] = Field(default=None, title="was attributed to", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasAttributedTo'} })
+    wasDerivedFrom: Optional[list[Entity]] = Field(default=None, title="was derived from", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
+         'domain_of': ['Entity'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasDerivedFrom'} })
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
@@ -25176,8 +21985,6 @@ AggregationFunction.model_rebuild()
 Agreement.model_rebuild()
 Appellation.model_rebuild()
 AgreementName.model_rebuild()
-ArcType.model_rebuild()
-ArchaeologicalFindContext.model_rebuild()
 Attestation.model_rebuild()
 AttestationPolicy.model_rebuild()
 AttestationType.model_rebuild()
@@ -25191,6 +21998,7 @@ CelestialReferenceOrigin.model_rebuild()
 Certification.model_rebuild()
 CitationAct.model_rebuild()
 CitationIntent.model_rebuild()
+ClaimVeridicality.model_rebuild()
 ConflictStrategy.model_rebuild()
 Connection.model_rebuild()
 Constraint.model_rebuild()
@@ -25198,7 +22006,6 @@ AtomicConstraint.model_rebuild()
 ConstraintLogic.model_rebuild()
 ConstraintOperator.model_rebuild()
 ContactPoint.model_rebuild()
-ContentSegmentType.model_rebuild()
 Contract.model_rebuild()
 Contribution.model_rebuild()
 ContributionDegree.model_rebuild()
@@ -25212,7 +22019,6 @@ CreativeWorkType.model_rebuild()
 DatingMethod.model_rebuild()
 DerivationKind.model_rebuild()
 Determinacy.model_rebuild()
-DisclosurePolicy.model_rebuild()
 EmailAddress.model_rebuild()
 Entity.model_rebuild()
 BlockchainAccount.model_rebuild()
@@ -25222,13 +22028,10 @@ Duration.model_rebuild()
 EtymologicalDerivation.model_rebuild()
 Event.model_rebuild()
 Activity.model_rebuild()
-Commit.model_rebuild()
 EventSeries.model_rebuild()
 EventType.model_rebuild()
 EvidenceClass.model_rebuild()
 Filename.model_rebuild()
-FinancialAccountType.model_rebuild()
-ForgePlatform.model_rebuild()
 FrameKind.model_rebuild()
 FrameRealm.model_rebuild()
 Gender.model_rebuild()
@@ -25237,7 +22040,6 @@ GeoCoordinates.model_rebuild()
 Geocode.model_rebuild()
 Geometry.model_rebuild()
 GeometryType.model_rebuild()
-GovernanceModel.model_rebuild()
 GrammaticalAspect.model_rebuild()
 GrammaticalTense.model_rebuild()
 GranularityLevel.model_rebuild()
@@ -25256,25 +22058,15 @@ AuthenticationResult.model_rebuild()
 Block.model_rebuild()
 BodyPart.model_rebuild()
 Attachment.model_rebuild()
-Branch.model_rebuild()
 CadastralReference.model_rebuild()
-CharacterArc.model_rebuild()
-ContentSegment.model_rebuild()
 CreativeWork.model_rebuild()
 CryptographicKey.model_rebuild()
 CryptographicSignature.model_rebuild()
 DKIMSignature.model_rebuild()
-Distribution.model_rebuild()
 Expression.model_rebuild()
-FinancialAccount.model_rebuild()
-Inscription.model_rebuild()
-InscriptionReading.model_rebuild()
-InscriptionTranslation.model_rebuild()
-InscriptionTransliteration.model_rebuild()
 Instant.model_rebuild()
 InterpersonalRelationship.model_rebuild()
 AcquaintanceRelationship.model_rebuild()
-Issue.model_rebuild()
 Item.model_rebuild()
 KeyScheme.model_rebuild()
 KinRelationship.model_rebuild()
@@ -25309,15 +22101,14 @@ CelestialLocation.model_rebuild()
 LocationState.model_rebuild()
 LogicalConstraint.model_rebuild()
 Mailbox.model_rebuild()
-MaintenanceStatus.model_rebuild()
 Manifestation.model_rebuild()
 BookRelease.model_rebuild()
 ManifestationFormat.model_rebuild()
 Mark.model_rebuild()
+MaximViolationType.model_rebuild()
 MeasuredValue.model_rebuild()
 MediaObject.model_rebuild()
 Membership.model_rebuild()
-MergeRequest.model_rebuild()
 Message.model_rebuild()
 EmailMessage.model_rebuild()
 MessageHeader.model_rebuild()
@@ -25325,7 +22116,6 @@ MessageKeyword.model_rebuild()
 MessageParticipant.model_rebuild()
 MessageParticipantRole.model_rebuild()
 MetricKind.model_rebuild()
-MonetaryAmount.model_rebuild()
 NamePart.model_rebuild()
 NamePartType.model_rebuild()
 NamePurpose.model_rebuild()
@@ -25352,7 +22142,6 @@ Organization.model_rebuild()
 OrganizationName.model_rebuild()
 Orientation.model_rebuild()
 PGPSignature.model_rebuild()
-Package.model_rebuild()
 ParentChildRelationship.model_rebuild()
 AdoptiveParentChild.model_rebuild()
 BiologicalParentChild.model_rebuild()
@@ -25362,7 +22151,6 @@ Participation.model_rebuild()
 PeriodType.model_rebuild()
 Person.model_rebuild()
 PersonName.model_rebuild()
-PhysicalCarrierType.model_rebuild()
 PhysicalObject.model_rebuild()
 Place.model_rebuild()
 PlaceName.model_rebuild()
@@ -25377,25 +22165,19 @@ ProficiencyModality.model_rebuild()
 ProficiencyScale.model_rebuild()
 Profile.model_rebuild()
 ProgrammingLanguage.model_rebuild()
-Project.model_rebuild()
-ProjectionContext.model_rebuild()
 PronounSet.model_rebuild()
 ProximityMeasurement.model_rebuild()
 QualityAssessment.model_rebuild()
 QualityDimension.model_rebuild()
 Quantity.model_rebuild()
 RecurrenceRule.model_rebuild()
-Ref.model_rebuild()
 ReferenceFrame.model_rebuild()
 MentalReferenceFrame.model_rebuild()
 NarrativeReferenceFrame.model_rebuild()
 ReferencePosition.model_rebuild()
 RegulatoryOverlayType.model_rebuild()
 RelayHop.model_rebuild()
-Release.model_rebuild()
 Repository.model_rebuild()
-RepositoryType.model_rebuild()
-Review.model_rebuild()
 RightsAction.model_rebuild()
 RightsStatement.model_rebuild()
 RightsType.model_rebuild()
@@ -25410,7 +22192,6 @@ Permission.model_rebuild()
 Prohibition.model_rebuild()
 SMIMESignature.model_rebuild()
 ScalarQuantity.model_rebuild()
-ScriptLanguageAttribution.model_rebuild()
 ScriptRole.model_rebuild()
 Selector.model_rebuild()
 SensitivityLevel.model_rebuild()
@@ -25432,21 +22213,15 @@ Skill.model_rebuild()
 SmartContract.model_rebuild()
 SoftwareAgent.model_rebuild()
 SoftwareName.model_rebuild()
-SoftwareProject.model_rebuild()
 SourceIndependence.model_rebuild()
-SourceNode.model_rebuild()
-SourceFile.model_rebuild()
 SourceRole.model_rebuild()
 SourceTier.model_rebuild()
-SourceTree.model_rebuild()
-SourceDirectory.model_rebuild()
 SpatialAggregation.model_rebuild()
 SpatialBin.model_rebuild()
 SpatialCoordinates.model_rebuild()
 SpatialMeasurement.model_rebuild()
 CoordinateObservation.model_rebuild()
 Standpoint.model_rebuild()
-ReadingOrder.model_rebuild()
 StandpointClaim.model_rebuild()
 SensoryPerception.model_rebuild()
 StandpointModality.model_rebuild()
@@ -25482,8 +22257,6 @@ StandpointTenure.model_rebuild()
 Trademark.model_rebuild()
 TrademarkStatus.model_rebuild()
 Trajectory.model_rebuild()
-TransactionStatus.model_rebuild()
-TransactionType.model_rebuild()
 TransliterationScheme.model_rebuild()
 TransparencyLogEntry.model_rebuild()
 TrustAssertion.model_rebuild()
@@ -25503,10 +22276,8 @@ Work.model_rebuild()
 Article.model_rebuild()
 Dataset.model_rebuild()
 Document.model_rebuild()
-LiteraryWork.model_rebuild()
 Patent.model_rebuild()
-SerialWork.model_rebuild()
-SoftwareProduct.model_rebuild()
+SoftwareProject.model_rebuild()
 TextExtraction.model_rebuild()
 WritingSystem.model_rebuild()
 WritingSystemType.model_rebuild()

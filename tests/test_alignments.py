@@ -303,3 +303,51 @@ def test_quantity_uncertainty_aligned_to_qudt() -> None:
         SKOS.closeMatch,
         URIRef("http://qudt.org/schema/qudt/standardUncertainty"),
     ) in graph
+
+
+def test_deception_event_type_aligned_to_wikidata() -> None:
+    """gmeow:eventTypeDeception maps to wd:Q170028 (#213)."""
+    from rdflib.namespace import SKOS
+
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "eventTypeDeception"),
+        SKOS.closeMatch,
+        URIRef("http://www.wikidata.org/entity/Q170028"),
+    ) in graph
+
+
+def test_claim_review_aligned_to_attestation() -> None:
+    """schema:ClaimReview maps to gmeow:Attestation as lossy projection (#213)."""
+    from rdflib.namespace import SKOS
+
+    graph = _graph()
+    assert (
+        URIRef("https://schema.org/ClaimReview"),
+        SKOS.relatedMatch,
+        URIRef(GMEOW + "Attestation"),
+    ) in graph
+
+
+def test_rating_aligned_to_verification_result() -> None:
+    """schema:Rating maps to gmeow:VerificationResult (#213)."""
+    from rdflib.namespace import SKOS
+
+    graph = _graph()
+    assert (
+        URIRef("https://schema.org/Rating"),
+        SKOS.closeMatch,
+        URIRef(GMEOW + "VerificationResult"),
+    ) in graph
+
+
+def test_bullshit_modality_aligned_to_crminf() -> None:
+    """gmeow:bullshit extends CRMinf I6_Belief_Value (#213)."""
+    from rdflib.namespace import SKOS
+
+    graph = _graph()
+    assert (
+        URIRef(GMEOW + "bullshit"),
+        SKOS.relatedMatch,
+        URIRef("http://www.ics.forth.gr/isl/CRMinf/I6_Belief_Value"),
+    ) in graph

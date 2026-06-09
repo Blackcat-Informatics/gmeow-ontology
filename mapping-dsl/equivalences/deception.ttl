@@ -1,0 +1,97 @@
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix schema: <https://schema.org/> .
+@prefix prov:   <http://www.w3.org/ns/prov#> .
+@prefix crminf: <http://www.ics.forth.gr/isl/CRMinf/> .
+@prefix wd:     <http://www.wikidata.org/entity/> .
+
+# Term equivalences for the deception / falsehood / misinformation facility (#213) —
+# GMEOW authoring source. Compiled to mappings/gmeow-deception.sssom.tsv by
+# `gmeow compile-mappings`. All alignments are BY REFERENCE (Principle 5); GMEOW
+# never imports an external axiom. See docs/deception.md.
+
+gmeow:mapsetDeception a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/deception" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """Deception / falsehood / misinformation alignments (#213).
+        FORMAL GROUNDING: gmeow:heldStandpoint / gmeow:projectedStandpoint realise the divergence model of deception as standpoint-indexed claims; gmeow:bullshit is the Frankfurt modality integrated into the Standpoint-Logic value space.
+        schema.org: ClaimReview is an attestation act (not a truth verdict); Rating is a lossy projection to VerificationResult.
+        CRMinf: I6_Belief_Value aligns to gmeow:StandpointModality (including the bullshit modality); I1_Argumentation is referenced for the solver-layer argument-acceptability function.
+        PROV-O: deception events are prov:Activity; standpoint claims are prov:Entity.
+        Wikidata: wd:Q170028 (deception) aligns to gmeow:eventTypeDeception.
+        AIF (Argument Interchange Format) is referenced in the solver layer (fnArgumentAcceptability) but not aligned via TermEquivalence because AIF lacks a stable, resolvable RDF namespace suitable for SSSOM rows.""" .
+
+# schema.org — ClaimReview as attestation act (lossy projection).
+gmeow:eqDeception001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject schema:ClaimReview ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject gmeow:Attestation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "schema:ClaimReview is a fact-checking act; in GMEOW it is an Attestation with attestationTypeFactCheck. The single-verdict model of ClaimReview is a lossy projection — GMEOW keeps every standpoint's assessment as a coexisting claim." ;
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+
+gmeow:eqDeception002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject schema:Rating ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gmeow:VerificationResult ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "schema:Rating (the outcome of a ClaimReview) projects to gmeow:VerificationResult — a lossy downcast dropping the standpoint axis and confidence." ;
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+
+# PROV-O — deception events as activities, claims as entities.
+gmeow:eqDeception003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Event ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject prov:Activity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.4 ;
+    gmeow:comment "a deception event is a provenance activity; the specific deception semantics are GMEOW-specific and not entailed by PROV-O" ;
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+
+gmeow:eqDeception004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:StandpointClaim ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject prov:Entity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.4 ;
+    gmeow:comment "a standpoint claim (held or projected) is a provenance entity attributed to its standpoint agent" ;
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+
+# CRMinf — belief value and argumentation.
+gmeow:eqDeception005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:StandpointModality ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crminf:I6_Belief_Value ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "GMEOW's StandpointModality (unequivocal/probable/conceivable/refuted/bullshit) spans and extends CRMinf's I6 Belief Value" ;
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+
+gmeow:eqDeception006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:deceptiveIntentClaim ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crminf:I1_Argumentation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.4 ;
+    gmeow:comment "an attribution of deceptive intent is an argumentation act in the CRMinf sense; acceptability is computed externally (Principle 12)" ;
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+
+# Wikidata — deception concept.
+gmeow:eqDeception007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeDeception ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q170028 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "Wikidata 'deception' (Q170028) — the act of propagating beliefs that are not true" ;
+    gmeow:sssomFile "gmeow-deception.sssom.tsv" .
+
+# AIF (Argument Interchange Format) is referenced in the solver layer
+# (fnArgumentAcceptability) but not aligned via TermEquivalence because AIF
+# lacks a stable, resolvable RDF namespace suitable for SSSOM rows.

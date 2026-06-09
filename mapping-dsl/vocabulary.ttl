@@ -554,3 +554,45 @@ gmeow:fnLatLongToGeoUri a gmeow:ProjectionFunction ;
     dcterms:description "Composes separate decimal latitude and longitude into a geo: URI (RFC 5870, e.g. geo:53.544972,-113.924398). The URI identifies a geographic point independent of any particular serialization format (WKT, GeoJSON, vCard GEO, …). Used as the minted node IRI for vCard Geo projections and as a canonical, dereferenceable location identifier."@en ;
     gmeow:fnInput gmeow:latitude , gmeow:longitude ;
     gmeow:fnOutput gmeow:projectedGeoUri ; gmeow:fnOutputType xsd:anyURI .
+
+gmeow:fnStandpointDivergence a gmeow:ProjectionFunction ;
+    rdfs:label "held + projected standpoint → divergence text"@en ;
+    dcterms:description "Computes the divergence between a held standpoint and a projected standpoint as a human-readable text. Lossy: the full semantic content of each standpoint is collapsed to a single divergence description."@en ;
+    gmeow:fnInput gmeow:heldStandpoint , gmeow:projectedStandpoint ;
+    gmeow:fnOutput gmeow:projectedDivergence ; gmeow:fnOutputType xsd:string .
+
+gmeow:fnImplicatesInContext a gmeow:ProjectionFunction ;
+    rdfs:label "implicates → contextual implication text"@en ;
+    dcterms:description "Projects an event's implicature relation to a contextual implication text. The paltering mechanism — a literally true statement that misleadingly implies a false conclusion. Lossy: the full implicature chain is collapsed to a single text string."@en ;
+    gmeow:fnInput gmeow:implicates ;
+    gmeow:fnOutput gmeow:projectedImplication ; gmeow:fnOutputType xsd:string .
+
+gmeow:fnMaximViolationType a gmeow:ProjectionFunction ;
+    rdfs:label "maxim violation → violation type label"@en ;
+    dcterms:description "Projects a maxim violation to a violation type label. Solver-layer computation (Principle 12). Lossy: the full conversational context is dropped."@en ;
+    gmeow:fnInput gmeow:maximViolationType ;
+    gmeow:fnOutput gmeow:projectedMaximViolation ; gmeow:fnOutputType xsd:string .
+
+gmeow:fnDeceptionCueScore a gmeow:ProjectionFunction ;
+    rdfs:label "deception cue → cue score"@en ;
+    dcterms:description "Projects a deception cue observation to a numerical cue score. The scoring and weighting of cues is solver-layer (Principle 12). Lossy: the full observation metadata is dropped."@en ;
+    gmeow:fnInput gmeow:deceptionCue ;
+    gmeow:fnOutput gmeow:projectedCueScore ; gmeow:fnOutputType xsd:decimal .
+
+gmeow:fnCredibilityScore a gmeow:ProjectionFunction ;
+    rdfs:label "credibility → score"@en ;
+    dcterms:description "Projects a credibility assessment to a numerical score. Solver-layer computation (Principle 12). Lossy: the full evidentiary basis is dropped."@en ;
+    gmeow:fnInput gmeow:credibilityScore ;
+    gmeow:fnOutput gmeow:projectedCredibility ; gmeow:fnOutputType xsd:decimal .
+
+gmeow:fnPropagationMutationDistance a gmeow:ProjectionFunction ;
+    rdfs:label "propagation mutation distance → integer"@en ;
+    dcterms:description "Projects the mutation distance of a propagated deceptive claim to an integer count. Measures how many hops/transmissions before the claim mutates. Solver-layer computation (Principle 12)."@en ;
+    gmeow:fnInput gmeow:propagationMutationDistance ;
+    gmeow:fnOutput gmeow:projectedMutationDistance ; gmeow:fnOutputType xsd:integer .
+
+gmeow:fnArgumentAcceptability a gmeow:ProjectionFunction ;
+    rdfs:label "argument acceptability → score"@en ;
+    dcterms:description "Projects an argument's acceptability to a numerical score. Solver-layer computation (Principle 12), referencing AIF (Argument Interchange Format). Lossy: the full argument structure is dropped."@en ;
+    gmeow:fnInput gmeow:argumentAcceptability ;
+    gmeow:fnOutput gmeow:projectedAcceptability ; gmeow:fnOutputType xsd:decimal .
