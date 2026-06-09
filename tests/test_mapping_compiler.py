@@ -35,8 +35,8 @@ def test_dsl_parses() -> None:
     Validate that the mapping DSL loads correctly and contains the expected
     counts and profiles.
 
-    Asserts that the loaded DSL has 1399 term equivalences, 35 functions,
-    43 mapping sets, more than 30 projection cells, and that the set of
+    Asserts that the loaded DSL has 1434 term equivalences, 35 functions,
+    45 mapping sets, more than 30 projection cells, and that the set of
     profiles used in projection bindings equals the module-level `_PROFILES`.
     """
     dsl = load_dsl()
@@ -203,7 +203,9 @@ def test_dsl_parses() -> None:
     # Issue #232 git provenance deepening: +6 (Software Heritage alignments).
     # Issue #214 myth: +4 (Myth→Wikidata x3, hasMythTelling→schema:CreativeWork x1).
     # Issue #169 lexicon: +9 (OntoLex x4, LIME x1, PROV-O x3, Wikidata x1).
-    assert len(dsl.equivalences) == 1408
+    # Issue #226 procedure / execution / step: +26 (P-Plan x4, PROV-O x4,
+    # schema.org x4, OPMW x3, OBI x3, BPMN x4, RO-Crate x4).
+    assert len(dsl.equivalences) == 1434
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -239,7 +241,8 @@ def test_dsl_parses() -> None:
     # Issue #213 deception: +1 (gmeow-deception.sssom.tsv).
     # Issue #60 Dublin Core maximal alignment: +1 (gmeow-dublin-core.sssom.tsv).
     # Issue #169 lexicon: +1 (gmeow-lexicon.sssom.tsv).
-    assert len(dsl.mapping_sets) == 44
+    # Issue #226 procedure / execution / step: +1 (gmeow-procedures.sssom.tsv).
+    assert len(dsl.mapping_sets) == 45
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}

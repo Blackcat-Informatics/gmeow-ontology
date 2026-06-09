@@ -6589,6 +6589,23 @@
             "title": "Branch",
             "type": "object"
         },
+        "BranchConditionType": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "BranchConditionType",
+            "type": "object"
+        },
+        "BranchConditionTypeEnum": {
+            "description": "",
+            "enum": [
+                "branchConditionIf",
+                "branchConditionLoop",
+                "branchConditionParallel",
+                "branchConditionSwitch"
+            ],
+            "title": "BranchConditionTypeEnum",
+            "type": "string"
+        },
         "CadastralReference": {
             "additionalProperties": false,
             "description": "",
@@ -10510,6 +10527,59 @@
             "title": "ContributionRoleEnum",
             "type": "string"
         },
+        "ControlFlow": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "flowGuard": {
+                    "items": {
+                        "$ref": "#/$defs/BranchConditionType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "flowOrder": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "flowSource": {
+                    "items": {
+                        "$ref": "#/$defs/ProcedureStep"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "flowTarget": {
+                    "items": {
+                        "$ref": "#/$defs/ProcedureStep"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "ControlFlow",
+            "type": "object"
+        },
+        "ControlFlowEnum": {
+            "description": "",
+            "enum": [
+                "flowIngestion1",
+                "flowIngestion2",
+                "flowIngestion3",
+                "flowIngestion4",
+                "flowIngestion5"
+            ],
+            "title": "ControlFlowEnum",
+            "type": "string"
+        },
         "CoordinateMatrix": {
             "additionalProperties": false,
             "description": "",
@@ -13185,6 +13255,41 @@
                 }
             },
             "title": "DKIMSignature",
+            "type": "object"
+        },
+        "DataFlow": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "dataFlowEntity": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dataFlowSource": {
+                    "items": {
+                        "$ref": "#/$defs/ProcedureStep"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "dataFlowTarget": {
+                    "items": {
+                        "$ref": "#/$defs/ProcedureStep"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "DataFlow",
             "type": "object"
         },
         "Dataset": {
@@ -16785,6 +16890,14 @@
             "title": "Entity",
             "type": "object"
         },
+        "EntityEnum": {
+            "description": "",
+            "enum": [
+                "procedureIngestionRawRoot"
+            ],
+            "title": "EntityEnum",
+            "type": "string"
+        },
         "EntityExistence": {
             "additionalProperties": false,
             "description": "",
@@ -17698,6 +17811,403 @@
                 "evidenceVERIFIED"
             ],
             "title": "EvidenceClassEnum",
+            "type": "string"
+        },
+        "Execution": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "after": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "before": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "coincidesWith": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "contains": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "deceptionCue": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "deceptiveIntentClaim": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "during": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "earliestStart": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "eventAspect": {
+                    "items": {
+                        "$ref": "#/$defs/GrammaticalAspect"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventLocation": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventObservation": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventSpacetime": {
+                    "items": {
+                        "$ref": "#/$defs/LocationState"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventTemporalFrame": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TemporalFrame"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "eventTense": {
+                    "items": {
+                        "$ref": "#/$defs/GrammaticalTense"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventTime": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "eventTrajectory": {
+                    "items": {
+                        "$ref": "#/$defs/Trajectory"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventType": {
+                    "items": {
+                        "$ref": "#/$defs/EventType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "executesProcedure": {
+                    "items": {
+                        "$ref": "#/$defs/Procedure"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "executesStep": {
+                    "items": {
+                        "$ref": "#/$defs/ProcedureStep"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "executionParticipant": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "executionStatus": {
+                    "items": {
+                        "$ref": "#/$defs/ExecutionStatus"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "finishedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "finishes": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDuration": {
+                    "items": {
+                        "$ref": "#/$defs/Duration"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasParticipant": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSubEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "heldStandpoint": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "implicates": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "latestEnd": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "maximViolationType": {
+                    "items": {
+                        "$ref": "#/$defs/MaximViolationType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "meets": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "metBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "occurrenceOfSeries": {
+                    "items": {
+                        "$ref": "#/$defs/EventSeries"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "overlappedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "overlaps": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "projectedStandpoint": {
+                    "items": {
+                        "$ref": "#/$defs/StandpointClaim"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "propagationMutationDistance": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "startedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "starts": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "subEventOf": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "temporalPrecision": {
+                    "items": {
+                        "$ref": "#/$defs/TemporalPrecision"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Execution",
+            "type": "object"
+        },
+        "ExecutionStatus": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "ExecutionStatus",
+            "type": "object"
+        },
+        "ExecutionStatusEnum": {
+            "description": "",
+            "enum": [
+                "executionStatusCancelled",
+                "executionStatusFailed",
+                "executionStatusPending",
+                "executionStatusRunning",
+                "executionStatusSkipped",
+                "executionStatusSucceeded"
+            ],
+            "title": "ExecutionStatusEnum",
             "type": "string"
         },
         "Expression": {
@@ -45172,6 +45682,955 @@
             "title": "PrivacyNotice",
             "type": "object"
         },
+        "Procedure": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "acquireLicensePage": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionText": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionUrl": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "authorityLink": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contributesToFrame": {
+                    "items": {
+                        "$ref": "#/$defs/NarrativeReferenceFrame"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "counterpartOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "detectedMediaType": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "existenceInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAccessibilityNeed": {
+                    "items": {
+                        "$ref": "#/$defs/AccessibilityFacet"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAppellation": {
+                    "items": {
+                        "$ref": "#/$defs/Appellation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAttestation": {
+                    "items": {
+                        "$ref": "#/$defs/Attestation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCopyright": {
+                    "items": {
+                        "$ref": "#/$defs/Copyright"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCreationEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDestructionEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLicense": {
+                    "items": {
+                        "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasPose": {
+                    "items": {
+                        "$ref": "#/$defs/Pose"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasProcedureStep": {
+                    "items": {
+                        "$ref": "#/$defs/ProcedureStep"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasRightsStatement": {
+                    "items": {
+                        "$ref": "#/$defs/RightsStatement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryObservation": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryObservation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryQuantity": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryQuantity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSpatialMeasurement": {
+                    "items": {
+                        "$ref": "#/$defs/SpatialMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasStream": {
+                    "items": {
+                        "$ref": "#/$defs/Stream"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSubProcedure": {
+                    "items": {
+                        "$ref": "#/$defs/Procedure"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTag": {
+                    "items": {
+                        "$ref": "#/$defs/Tag"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTrademark": {
+                    "items": {
+                        "$ref": "#/$defs/Trademark"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasVersion": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasWebPage": {
+                    "items": {
+                        "$ref": "#/$defs/WebPage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "inquiryPriority": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "inquirySource": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "inquiryStatus": {
+                    "items": {
+                        "$ref": "#/$defs/ExecutionStatus"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "inquiryTheme": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "isAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAccessibleForFree": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "isReferencedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isResultOf": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "locatedAt": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "procedureType": {
+                    "items": {
+                        "$ref": "#/$defs/ProcedureType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "provenance": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "proximity": {
+                    "items": {
+                        "$ref": "#/$defs/ProximityMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resolvedByArtifact": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "storedIn": {
+                    "items": {
+                        "$ref": "#/$defs/StorageLocation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "subProcedureOf": {
+                    "items": {
+                        "$ref": "#/$defs/Procedure"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersededBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersedes": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "usageInfo": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionFingerprint": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionLabel": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "wasAttributedTo": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasGeneratedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Activity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Procedure",
+            "type": "object"
+        },
+        "ProcedureEnum": {
+            "description": "",
+            "enum": [
+                "procedureIngestionCanonical"
+            ],
+            "title": "ProcedureEnum",
+            "type": "string"
+        },
+        "ProcedureStep": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "acquireLicensePage": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionText": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionUrl": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "authorityLink": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contributesToFrame": {
+                    "items": {
+                        "$ref": "#/$defs/NarrativeReferenceFrame"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "counterpartOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "detectedMediaType": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "existenceInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAccessibilityNeed": {
+                    "items": {
+                        "$ref": "#/$defs/AccessibilityFacet"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAppellation": {
+                    "items": {
+                        "$ref": "#/$defs/Appellation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAttestation": {
+                    "items": {
+                        "$ref": "#/$defs/Attestation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCopyright": {
+                    "items": {
+                        "$ref": "#/$defs/Copyright"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCreationEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDestructionEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLicense": {
+                    "items": {
+                        "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasPose": {
+                    "items": {
+                        "$ref": "#/$defs/Pose"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasRightsStatement": {
+                    "items": {
+                        "$ref": "#/$defs/RightsStatement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryObservation": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryObservation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryQuantity": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryQuantity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSpatialMeasurement": {
+                    "items": {
+                        "$ref": "#/$defs/SpatialMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasStream": {
+                    "items": {
+                        "$ref": "#/$defs/Stream"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTag": {
+                    "items": {
+                        "$ref": "#/$defs/Tag"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTrademark": {
+                    "items": {
+                        "$ref": "#/$defs/Trademark"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasVersion": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasWebPage": {
+                    "items": {
+                        "$ref": "#/$defs/WebPage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAccessibleForFree": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "isReferencedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isResultOf": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "locatedAt": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "procedureStepOf": {
+                    "items": {
+                        "$ref": "#/$defs/Procedure"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "procedureStepType": {
+                    "items": {
+                        "$ref": "#/$defs/StepType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "provenance": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "proximity": {
+                    "items": {
+                        "$ref": "#/$defs/ProximityMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stepEnactsProcedure": {
+                    "items": {
+                        "$ref": "#/$defs/Procedure"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stepInput": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stepOutput": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "stepParameter": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "storedIn": {
+                    "items": {
+                        "$ref": "#/$defs/StorageLocation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersededBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersedes": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "usageInfo": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionFingerprint": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionLabel": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "wasAttributedTo": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasGeneratedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Activity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "ProcedureStep",
+            "type": "object"
+        },
+        "ProcedureStepEnum": {
+            "description": "",
+            "enum": [
+                "stepIngestionDerivedClaims",
+                "stepIngestionFileCopy",
+                "stepIngestionOcrExtract",
+                "stepIngestionPrivacyPosture",
+                "stepIngestionRawRoot",
+                "stepIngestionUnresolvedLeads"
+            ],
+            "title": "ProcedureStepEnum",
+            "type": "string"
+        },
+        "ProcedureType": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "ProcedureType",
+            "type": "object"
+        },
+        "ProcedureTypeEnum": {
+            "description": "",
+            "enum": [
+                "procedureTypeAgentFlow",
+                "procedureTypeBusinessProcess",
+                "procedureTypeCiBuild",
+                "procedureTypeDataPipeline",
+                "procedureTypeIngestion",
+                "procedureTypeLabProtocol",
+                "procedureTypeRecipe",
+                "procedureTypeResearchPlan"
+            ],
+            "title": "ProcedureTypeEnum",
+            "type": "string"
+        },
         "ProfessionalRelationship": {
             "additionalProperties": false,
             "description": "",
@@ -64654,6 +66113,25 @@
             },
             "title": "StepParentChild",
             "type": "object"
+        },
+        "StepType": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "StepType",
+            "type": "object"
+        },
+        "StepTypeEnum": {
+            "description": "",
+            "enum": [
+                "stepTypeAtomic",
+                "stepTypeBranch",
+                "stepTypeEnd",
+                "stepTypeParallel",
+                "stepTypeStart",
+                "stepTypeSubprocess"
+            ],
+            "title": "StepTypeEnum",
+            "type": "string"
         },
         "StorageLocation": {
             "additionalProperties": false,

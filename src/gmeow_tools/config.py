@@ -216,6 +216,11 @@ PREFIXES: dict[str, str] = {
     "schema": "https://schema.org/",
     "gedcom": "http://www.w3.org/2000/10/swap/pim/gedcom#",
     "vcard": "http://www.w3.org/2006/vcard/ns#",
+    # Workflow / process alignment (#226)
+    "pplan": "http://purl.org/net/p-plan#",
+    "opmw": "https://www.opmw.org/ontology/",
+    "bpmn": "http://www.omg.org/spec/BPMN/20100524/MODEL#",
+    "ro_crate": "https://w3id.org/ro/crate/#",
     # Building ontologies: Brick (building systems), BOT (building topology),
     # ifcOWL (IFC4)
     "brick": "https://brickschema.org/schema/Brick#",
