@@ -149,6 +149,28 @@ gmeow:derivationSource   rdfs:subPropertyOf gmeow:observedFeature .
 # which are NOT subclasses of Observation, so they cannot be subproperties.
 gmeow:notationUsageTarget   rdfs:subPropertyOf gmeow:observedFeature .
 
+# Archaeological evidence bridges (declared here because the super-properties live here).
+# Only domain-specific properties whose domain is an Observation subclass are subsumed.
+gmeow:readingOf               rdfs:subPropertyOf gmeow:observedFeature .
+gmeow:readingResult           rdfs:subPropertyOf gmeow:observationResult .
+gmeow:transliterationOf       rdfs:subPropertyOf gmeow:observedFeature .
+gmeow:transliterationResult   rdfs:subPropertyOf gmeow:observationResult .
+gmeow:translationOf           rdfs:subPropertyOf gmeow:observedFeature .
+gmeow:translationResult       rdfs:subPropertyOf gmeow:observationResult .
+gmeow:attributionTarget       rdfs:subPropertyOf gmeow:observedFeature .
+gmeow:attributedLanguage      rdfs:subPropertyOf gmeow:observationResult .
+gmeow:attributedScript        rdfs:subPropertyOf gmeow:observationResult .
+gmeow:attributedNotation      rdfs:subPropertyOf gmeow:observationResult .
+gmeow:findContextTarget       rdfs:subPropertyOf gmeow:observedFeature .
+gmeow:findContextPlace        rdfs:subPropertyOf gmeow:observationResult .
+gmeow:findContextStratigraphy rdfs:subPropertyOf gmeow:observationResult .
+gmeow:findContextDating       rdfs:subPropertyOf gmeow:observationResult .
+# Note: findContextEvent is deliberately NOT subsumed under observationResult
+# because gmeow:Event (range of findContextEvent) is a gufo:Event, while
+# gmeow:observationResult has range gmeow:Entity (= gufo:Endurant), and in
+# gUFO gufo:Event and gufo:Endurant are disjoint. Subsumption would make the
+# property unsatisfiable (Principle 8: reasoning-centric).
+
 # =========================================================================== #
 # OBSERVATION → EVENT LINKAGE (lightweight — heavy form uses ObservingActivity)
 # =========================================================================== #

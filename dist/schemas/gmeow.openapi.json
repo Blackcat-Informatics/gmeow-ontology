@@ -812,6 +812,60 @@
             "title": "Appellation",
             "type": "object"
           },
+          "ArchaeologicalFindContext": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "findContextDating": {
+                "items": {
+                  "$ref": "#/$defs/TemporalMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "findContextEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "findContextPlace": {
+                "items": {
+                  "$ref": "#/$defs/Place"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "findContextStratigraphy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "findContextTarget": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/PhysicalObject"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "title": "ArchaeologicalFindContext",
+            "type": "object"
+          },
           "Article": {
             "additionalProperties": false,
             "description": "",
@@ -17267,6 +17321,444 @@
             "title": "InformationObject",
             "type": "object"
           },
+          "Inscription": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "acquireLicensePage": {
+                "format": "uri",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "attributionText": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "attributionUrl": {
+                "format": "uri",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "authorityLink": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "cites": {
+                "items": {
+                  "$ref": "#/$defs/CreativeWork"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "conditionsOfAccess": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "counterpartOf": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "detectedMediaType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "existenceInterval": {
+                "items": {
+                  "$ref": "#/$defs/TimeInterval"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAccessibilityNeed": {
+                "items": {
+                  "$ref": "#/$defs/AccessibilityFacet"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAppellation": {
+                "items": {
+                  "$ref": "#/$defs/Appellation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasAttestation": {
+                "items": {
+                  "$ref": "#/$defs/Attestation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCopyright": {
+                "items": {
+                  "$ref": "#/$defs/Copyright"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasCreationEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDestructionEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasLicense": {
+                "items": {
+                  "$ref": "#/$defs/License"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasPose": {
+                "items": {
+                  "$ref": "#/$defs/Pose"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasRightsStatement": {
+                "items": {
+                  "$ref": "#/$defs/RightsStatement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryObservation": {
+                "items": {
+                  "$ref": "#/$defs/SensoryObservation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSensoryQuantity": {
+                "items": {
+                  "$ref": "#/$defs/SensoryQuantity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSpatialMeasurement": {
+                "items": {
+                  "$ref": "#/$defs/SpatialMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasStream": {
+                "items": {
+                  "$ref": "#/$defs/Stream"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTag": {
+                "items": {
+                  "$ref": "#/$defs/Tag"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasTrademark": {
+                "items": {
+                  "$ref": "#/$defs/Trademark"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasWebPage": {
+                "items": {
+                  "$ref": "#/$defs/WebPage"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "inscriptionCarrier": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/PhysicalObject"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "isAbout": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "isAccessibleForFree": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "isResultOf": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "locatedAt": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "proximity": {
+                "items": {
+                  "$ref": "#/$defs/ProximityMeasurement"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "storedIn": {
+                "items": {
+                  "$ref": "#/$defs/StorageLocation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersededBy": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "supersedes": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "usageInfo": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "versionFingerprint": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "versionLabel": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "versionOf": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Entity"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "wasAttributedTo": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "wasGeneratedBy": {
+                "items": {
+                  "$ref": "#/$defs/Activity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "Inscription",
+            "type": "object"
+          },
+          "InscriptionReading": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "readingOf": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Inscription"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "readingResult": {
+                "items": {
+                  "$ref": "#/$defs/LexicalForm"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "InscriptionReading",
+            "type": "object"
+          },
+          "InscriptionTranslation": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "translationOf": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Inscription"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "translationResult": {
+                "items": {
+                  "$ref": "#/$defs/LexicalForm"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "InscriptionTranslation",
+            "type": "object"
+          },
+          "InscriptionTransliteration": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "transliterationOf": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Inscription"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "transliterationResult": {
+                "items": {
+                  "$ref": "#/$defs/LexicalForm"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "InscriptionTransliteration",
+            "type": "object"
+          },
           "Instant": {
             "additionalProperties": false,
             "description": "",
@@ -33175,6 +33667,31 @@
             "title": "PersonName",
             "type": "object"
           },
+          "PhysicalCarrierType": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "PhysicalCarrierType",
+            "type": "object"
+          },
+          "PhysicalCarrierTypeEnum": {
+            "description": "",
+            "enum": [
+              "carrierBone",
+              "carrierCoin",
+              "carrierManuscript",
+              "carrierMetal",
+              "carrierOstracon",
+              "carrierPapyrus",
+              "carrierPotterySherd",
+              "carrierSeal",
+              "carrierStela",
+              "carrierTablet",
+              "carrierWallInscription",
+              "carrierWood"
+            ],
+            "title": "PhysicalCarrierTypeEnum",
+            "type": "string"
+          },
           "PhysicalObject": {
             "additionalProperties": false,
             "description": "",
@@ -33202,6 +33719,24 @@
               "authorityLink": {
                 "items": {
                   "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "carrierInscription": {
+                "items": {
+                  "$ref": "#/$defs/Inscription"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "carrierType": {
+                "items": {
+                  "$ref": "#/$defs/PhysicalCarrierType"
                 },
                 "type": [
                   "array",
@@ -41676,6 +42211,134 @@
               }
             },
             "title": "ScalarQuantity",
+            "type": "object"
+          },
+          "ScriptLanguageAttribution": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "attributedLanguage": {
+                "items": {
+                  "$ref": "#/$defs/Language"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributedNotation": {
+                "items": {
+                  "$ref": "#/$defs/NotationSystem"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributedScript": {
+                "items": {
+                  "$ref": "#/$defs/WritingSystem"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attributionTarget": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Inscription"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "facetSubject": {
+                "items": {
+                  "$ref": "#/$defs/Person"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "facetVantage": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "observationEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "observationMethod": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ObservationMethod"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "observationResult": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "observationType": {
+                "items": {
+                  "$ref": "#/$defs/ObservationType"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "observedFeature": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "perceptionEnvironment": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/SensoryEnvironment"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "vantage": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "ScriptLanguageAttribution",
             "type": "object"
           },
           "ScriptRole": {
@@ -55639,6 +56302,15 @@
               "attestedInSource": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "attestedOnCarrier": {
+                "items": {
+                  "$ref": "#/$defs/PhysicalObject"
                 },
                 "type": [
                   "array",
