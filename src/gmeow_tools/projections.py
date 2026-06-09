@@ -110,13 +110,69 @@ def _example_store() -> pyoxigraph.Store:
     return sparql.store_with(*paths, include_imports=False)
 
 
+def _write_oai_dc_xml(graph: Graph, dist_dir: Path, stem: str) -> list[Path]:
+    """Serialize an OAI-DC projection graph as OAI-PMH Dublin Core XML.
+
+    The XML follows the OAI-DC schema:
+    ``http://www.openarchives.org/OAI/2.0/oai_dc/``.
+    Each distinct subject gets its own ``<oai_dc:dc>`` document.
+    """
+    from collections import defaultdict
+    from xml.etree import ElementTree as ET
+
+    dc_ns = "http://purl.org/dc/elements/1.1/"
+    oai_dc_ns = "http://www.openarchives.org/OAI/2.0/oai_dc/"
+    xsi_ns = "http://www.w3.org/2001/XMLSchema-instance"
+
+    ET.register_namespace("oai_dc", oai_dc_ns)
+    ET.register_namespace("dc", dc_ns)
+    ET.register_namespace("xsi", xsi_ns)
+
+    dist_dir.mkdir(parents=True, exist_ok=True)
+
+    # Group triples by subject to prevent mixing different resources.
+    from typing import Any
+
+    subjects: defaultdict[str, list[tuple[str, Any]]] = defaultdict(list)
+    for s_node, p_node, o_node in graph:
+        p_str = str(p_node)
+        if p_str.startswith(dc_ns):
+            subjects[str(s_node)].append((p_str, o_node))
+
+    paths: list[Path] = []
+    for idx, s in enumerate(sorted(subjects), start=1):
+        root = ET.Element(f"{{{oai_dc_ns}}}dc")
+        root.set(
+            f"{{{xsi_ns}}}schemaLocation",
+            f"{oai_dc_ns} http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
+        )
+
+        for p_str, o_node in sorted(subjects[s], key=lambda t: (t[0], str(t[1]))):
+            local = p_str.replace(dc_ns, "")
+            elem = ET.SubElement(root, f"{{{dc_ns}}}{local}")
+            if hasattr(o_node, "language") and o_node.language:
+                elem.set("{http://www.w3.org/XML/1998/namespace}lang", o_node.language)
+            elem.text = str(o_node)
+
+        tree = ET.ElementTree(root)
+        ET.indent(tree, space="  ")
+        path = dist_dir / f"{stem}-{idx:03d}.xml"
+        tree.write(path, encoding="utf-8", xml_declaration=True)
+        paths.append(path)
+
+    return paths
+
+
 def project_examples(dist_dir: Path = DIST_DIR) -> list[Path]:
     """Project the worked-example fixtures to every profile into ``dist_dir``."""
     store = _example_store()
-    return [
-        _serialize(project_graph(name, store), dist_dir / f"gmeow-example-{name}.ttl")
-        for name in PROFILES
-    ]
+    paths: list[Path] = []
+    for name in PROFILES:
+        graph = project_graph(name, store)
+        paths.append(_serialize(graph, dist_dir / f"gmeow-example-{name}.ttl"))
+        if name == "oai_dc":
+            paths.extend(_write_oai_dc_xml(graph, dist_dir, "gmeow-example-oai_dc"))
+    return paths
 
 
 def project_file(input_path: Path, profile: str, *, dist_dir: Path = DIST_DIR) -> Path:

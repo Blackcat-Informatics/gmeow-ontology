@@ -375,6 +375,15 @@ gmeow:eqDcTerms031 a gmeow:TermEquivalence ;
     gmeow:comment "DCTerms accessRights — conditions under which the asset may be accessed" ;
     gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
 
+gmeow:eqDcTerms032 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasManifestationFormat ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:format ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "DCTerms format — the file format, physical medium, or dimensions of the resource. GMEOW hasManifestationFormat covers the physical/digital carrier aspect; extent covers the size/duration aspect." ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
 gmeow:eqDcType010 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:Collection ;
     gmeow:alignPredicate skos:closeMatch ;
