@@ -155,7 +155,15 @@ gmeow:attestedInContext
     rdfs:domain gmeow:UsageAttestation ;
     rdfs:range gmeow:Entity ;
     rdfs:label "attested in context"@en ;
-    skos:definition "The corpus, platform, community, dataset, or broader context in which the attested form was observed. NON-FUNCTIONAL: a form may be attested in multiple contexts simultaneously, and context assignments are standpoint-scoped."@en ;
+    skos:definition "The corpus, platform, community, dataset, inscription, or broader context in which the attested form was observed. NON-FUNCTIONAL: a form may be attested in multiple contexts simultaneously, and context assignments are standpoint-scoped."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:attestedOnCarrier
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:UsageAttestation ;
+    rdfs:range gmeow:PhysicalObject ;
+    rdfs:label "attested on carrier"@en ;
+    skos:definition "The physical archaeological carrier on which an attested form was observed — a tablet, ostracon, seal, coin, manuscript, or wall. NON-FUNCTIONAL: an attestation may reference multiple carriers (e.g. duplicate impressions), and competing carrier attributions coexist (Principle 9). This is the language-facing hook from UsageAttestation to archaeological evidence (#173)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:attestationInterval

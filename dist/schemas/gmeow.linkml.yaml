@@ -91,6 +91,15 @@ classes:
     - nameScript
     - romanization
     - transliterationScheme
+  ArchaeologicalFindContext:
+    class_uri: https://blackcatinformatics.ca/gmeow/ArchaeologicalFindContext
+    title: Archaeological Find Context
+    slots:
+    - findContextDating
+    - findContextEvent
+    - findContextPlace
+    - findContextStratigraphy
+    - findContextTarget
   Article:
     class_uri: https://blackcatinformatics.ca/gmeow/Article
     title: Article
@@ -701,6 +710,30 @@ classes:
     is_a: Entity
     slots:
     - detectedMediaType
+  Inscription:
+    class_uri: https://blackcatinformatics.ca/gmeow/Inscription
+    title: Inscription
+    is_a: InformationObject
+    slots:
+    - inscriptionCarrier
+  InscriptionReading:
+    class_uri: https://blackcatinformatics.ca/gmeow/InscriptionReading
+    title: Inscription Reading
+    slots:
+    - readingOf
+    - readingResult
+  InscriptionTranslation:
+    class_uri: https://blackcatinformatics.ca/gmeow/InscriptionTranslation
+    title: Inscription Translation
+    slots:
+    - translationOf
+    - translationResult
+  InscriptionTransliteration:
+    class_uri: https://blackcatinformatics.ca/gmeow/InscriptionTransliteration
+    title: Inscription Transliteration
+    slots:
+    - transliterationOf
+    - transliterationResult
   Instant:
     class_uri: https://blackcatinformatics.ca/gmeow/Instant
     title: Instant
@@ -1256,10 +1289,16 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/PersonName
     title: Person Name
     is_a: Appellation
+  PhysicalCarrierType:
+    class_uri: https://blackcatinformatics.ca/gmeow/PhysicalCarrierType
+    title: Physical Carrier Type
   PhysicalObject:
     class_uri: https://blackcatinformatics.ca/gmeow/PhysicalObject
     title: Physical Object
     is_a: Entity
+    slots:
+    - carrierInscription
+    - carrierType
   Place:
     class_uri: https://blackcatinformatics.ca/gmeow/Place
     title: Place
@@ -1533,6 +1572,15 @@ classes:
     slots:
     - quantityUncertainty
     - quantityValue
+  ScriptLanguageAttribution:
+    class_uri: https://blackcatinformatics.ca/gmeow/ScriptLanguageAttribution
+    title: Script Language Attribution
+    is_a: Observation
+    slots:
+    - attributedLanguage
+    - attributedNotation
+    - attributedScript
+    - attributionTarget
   ScriptRole:
     class_uri: https://blackcatinformatics.ca/gmeow/ScriptRole
     title: Script Role
@@ -1908,6 +1956,7 @@ classes:
     - attestedInContext
     - attestedInLanguage
     - attestedInSource
+    - attestedOnCarrier
   Utilization:
     class_uri: https://blackcatinformatics.ca/gmeow/Utilization
     title: Utilization
@@ -2176,6 +2225,12 @@ slots:
     range: CreativeWork
     domain: UsageAttestation
     multivalued: true
+  attestedOnCarrier:
+    slot_uri: https://blackcatinformatics.ca/gmeow/attestedOnCarrier
+    title: attested on carrier
+    range: PhysicalObject
+    domain: UsageAttestation
+    multivalued: true
   attestedSubject:
     slot_uri: https://blackcatinformatics.ca/gmeow/attestedSubject
     title: attested subject
@@ -2187,6 +2242,30 @@ slots:
     title: attester
     range: Agent
     domain: Attestation
+    multivalued: false
+  attributedLanguage:
+    slot_uri: https://blackcatinformatics.ca/gmeow/attributedLanguage
+    title: attributed language
+    range: Language
+    domain: ScriptLanguageAttribution
+    multivalued: true
+  attributedNotation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/attributedNotation
+    title: attributed notation
+    range: NotationSystem
+    domain: ScriptLanguageAttribution
+    multivalued: true
+  attributedScript:
+    slot_uri: https://blackcatinformatics.ca/gmeow/attributedScript
+    title: attributed script
+    range: WritingSystem
+    domain: ScriptLanguageAttribution
+    multivalued: true
+  attributionTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/attributionTarget
+    title: attribution target
+    range: Inscription
+    domain: ScriptLanguageAttribution
     multivalued: false
   attributionText:
     slot_uri: https://blackcatinformatics.ca/gmeow/attributionText
@@ -2279,6 +2358,18 @@ slots:
     range: Location
     domain: Capacity
     multivalued: false
+  carrierInscription:
+    slot_uri: https://blackcatinformatics.ca/gmeow/carrierInscription
+    title: carrier inscription
+    range: Inscription
+    domain: PhysicalObject
+    multivalued: true
+  carrierType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/carrierType
+    title: carrier type
+    range: PhysicalCarrierType
+    domain: PhysicalObject
+    multivalued: true
   cc:
     slot_uri: https://blackcatinformatics.ca/gmeow/cc
     title: cc
@@ -2914,6 +3005,36 @@ slots:
     title: finality status
     range: LedgerFinalityStatus
     multivalued: true
+  findContextDating:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findContextDating
+    title: find context dating
+    range: TemporalMeasurement
+    domain: ArchaeologicalFindContext
+    multivalued: true
+  findContextEvent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findContextEvent
+    title: find context event
+    range: Event
+    domain: ArchaeologicalFindContext
+    multivalued: true
+  findContextPlace:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findContextPlace
+    title: find context place
+    range: Place
+    domain: ArchaeologicalFindContext
+    multivalued: true
+  findContextStratigraphy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findContextStratigraphy
+    title: find context stratigraphy
+    range: Entity
+    domain: ArchaeologicalFindContext
+    multivalued: true
+  findContextTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findContextTarget
+    title: find context target
+    range: PhysicalObject
+    domain: ArchaeologicalFindContext
+    multivalued: false
   fingerprint:
     slot_uri: https://blackcatinformatics.ca/gmeow/fingerprint
     title: fingerprint
@@ -3849,6 +3970,12 @@ slots:
     title: ingested at
     range: datetime
     domain: ImportActivity
+    multivalued: false
+  inscriptionCarrier:
+    slot_uri: https://blackcatinformatics.ca/gmeow/inscriptionCarrier
+    title: inscription carrier
+    range: PhysicalObject
+    domain: Inscription
     multivalued: false
   instantValue:
     slot_uri: https://blackcatinformatics.ca/gmeow/instantValue
@@ -4958,6 +5085,18 @@ slots:
     range: Location
     domain: Location
     multivalued: true
+  readingOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/readingOf
+    title: reading of
+    range: Inscription
+    domain: InscriptionReading
+    multivalued: false
+  readingResult:
+    slot_uri: https://blackcatinformatics.ca/gmeow/readingResult
+    title: reading result
+    range: LexicalForm
+    domain: InscriptionReading
+    multivalued: true
   realizedThrough:
     slot_uri: https://blackcatinformatics.ca/gmeow/realizedThrough
     title: realized through
@@ -5797,6 +5936,30 @@ slots:
     title: transforms to
     range: ReferenceFrame
     domain: ReferenceFrame
+    multivalued: true
+  translationOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/translationOf
+    title: translation of
+    range: Inscription
+    domain: InscriptionTranslation
+    multivalued: false
+  translationResult:
+    slot_uri: https://blackcatinformatics.ca/gmeow/translationResult
+    title: translation result
+    range: LexicalForm
+    domain: InscriptionTranslation
+    multivalued: true
+  transliterationOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/transliterationOf
+    title: transliteration of
+    range: Inscription
+    domain: InscriptionTransliteration
+    multivalued: false
+  transliterationResult:
+    slot_uri: https://blackcatinformatics.ca/gmeow/transliterationResult
+    title: transliteration result
+    range: LexicalForm
+    domain: InscriptionTransliteration
     multivalued: true
   transliterationScheme:
     slot_uri: https://blackcatinformatics.ca/gmeow/transliterationScheme
@@ -8483,6 +8646,45 @@ enums:
       periodTypeHistoricalEra:
         meaning: https://blackcatinformatics.ca/gmeow/periodTypeHistoricalEra
         title: historical era
+  PhysicalCarrierTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/PhysicalCarrierType
+    permissible_values:
+      carrierBone:
+        meaning: https://blackcatinformatics.ca/gmeow/carrierBone
+        title: bone
+      carrierCoin:
+        meaning: https://blackcatinformatics.ca/gmeow/carrierCoin
+        title: coin
+      carrierManuscript:
+        meaning: https://blackcatinformatics.ca/gmeow/carrierManuscript
+        title: manuscript
+      carrierMetal:
+        meaning: https://blackcatinformatics.ca/gmeow/carrierMetal
+        title: metal
+      carrierOstracon:
+        meaning: https://blackcatinformatics.ca/gmeow/carrierOstracon
+        title: ostracon
+      carrierPapyrus:
+        meaning: https://blackcatinformatics.ca/gmeow/carrierPapyrus
+        title: papyrus
+      carrierPotterySherd:
+        meaning: https://blackcatinformatics.ca/gmeow/carrierPotterySherd
+        title: pottery sherd
+      carrierSeal:
+        meaning: https://blackcatinformatics.ca/gmeow/carrierSeal
+        title: seal
+      carrierStela:
+        meaning: https://blackcatinformatics.ca/gmeow/carrierStela
+        title: stela
+      carrierTablet:
+        meaning: https://blackcatinformatics.ca/gmeow/carrierTablet
+        title: tablet
+      carrierWallInscription:
+        meaning: https://blackcatinformatics.ca/gmeow/carrierWallInscription
+        title: wall inscription
+      carrierWood:
+        meaning: https://blackcatinformatics.ca/gmeow/carrierWood
+        title: wood
   PlaceTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PlaceType
     permissible_values:

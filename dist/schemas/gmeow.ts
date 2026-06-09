@@ -999,6 +999,22 @@ export enum PeriodTypeEnum {
     historical_era = "periodTypeHistoricalEra",
 };
 
+export enum PhysicalCarrierTypeEnum {
+
+    bone = "carrierBone",
+    coin = "carrierCoin",
+    manuscript = "carrierManuscript",
+    metal = "carrierMetal",
+    ostracon = "carrierOstracon",
+    papyrus = "carrierPapyrus",
+    pottery_sherd = "carrierPotterySherd",
+    seal = "carrierSeal",
+    stela = "carrierStela",
+    tablet = "carrierTablet",
+    wall_inscription = "carrierWallInscription",
+    wood = "carrierWood",
+};
+
 export enum PlaceTypeEnum {
 
     administrative_area = "placeTypeAdministrativeArea",
@@ -1627,6 +1643,16 @@ export interface Appellation {
     nameScript?: string,
     romanization?: string,
     transliterationScheme?: TransliterationScheme[],
+}
+
+
+
+export interface ArchaeologicalFindContext {
+    findContextDating?: TemporalMeasurement[],
+    findContextEvent?: Event[],
+    findContextPlace?: Place[],
+    findContextStratigraphy?: Entity[],
+    findContextTarget?: PhysicalObject,
 }
 
 
@@ -2340,6 +2366,33 @@ export interface InformationObject extends Entity {
 
 
 
+export interface Inscription extends InformationObject {
+    inscriptionCarrier?: PhysicalObject,
+}
+
+
+
+export interface InscriptionReading {
+    readingOf?: Inscription,
+    readingResult?: LexicalForm[],
+}
+
+
+
+export interface InscriptionTranslation {
+    translationOf?: Inscription,
+    translationResult?: LexicalForm[],
+}
+
+
+
+export interface InscriptionTransliteration {
+    transliterationOf?: Inscription,
+    transliterationResult?: LexicalForm[],
+}
+
+
+
 export interface Instant {
     inTemporalFrame?: TemporalFrame[],
     instantValue?: string,
@@ -2977,7 +3030,14 @@ export interface PersonName extends Appellation {
 
 
 
+export interface PhysicalCarrierType {
+}
+
+
+
 export interface PhysicalObject extends Entity {
+    carrierInscription?: Inscription[],
+    carrierType?: PhysicalCarrierType[],
 }
 
 
@@ -3286,6 +3346,15 @@ export interface SMIMESignature extends CryptographicSignature {
 export interface ScalarQuantity extends Entity {
     quantityUncertainty?: string,
     quantityValue?: string,
+}
+
+
+
+export interface ScriptLanguageAttribution extends Observation {
+    attributedLanguage?: Language[],
+    attributedNotation?: NotationSystem[],
+    attributedScript?: WritingSystem[],
+    attributionTarget?: Inscription,
 }
 
 
@@ -3720,6 +3789,7 @@ export interface UsageAttestation extends Observation {
     attestedInContext?: Entity[],
     attestedInLanguage?: Language[],
     attestedInSource?: CreativeWork[],
+    attestedOnCarrier?: PhysicalObject[],
 }
 
 

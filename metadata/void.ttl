@@ -15,6 +15,7 @@
 @prefix crmarc: <http://www.cidoc-crm.org/crmarchaeo/> .
 @prefix crmgeo: <http://www.ics.forth.gr/isl/CRMgeo/> .
 @prefix crminf: <http://www.ics.forth.gr/isl/CRMinf/> .
+@prefix crmsci: <http://www.cidoc-crm.org/extensions/crmsci/> .
 @prefix dc: <http://purl.org/dc/elements/1.1/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix doap: <http://usefulinc.com/ns/doap#> .
@@ -249,11 +250,11 @@
     void:triples 1 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-CRMinf-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://www.ics.forth.gr/isl/CRMinf/ (3)" ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.ics.forth.gr/isl/CRMinf/ (5)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget crminf: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 3 .
+    void:triples 5 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-CRMinf-skos_relatedMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:relatedMatch links to http://www.ics.forth.gr/isl/CRMinf/ (5)" ;
@@ -354,11 +355,11 @@
     void:triples 1 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-cidoc-crm-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://www.cidoc-crm.org/cidoc-crm/ (26)" ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.cidoc-crm.org/cidoc-crm/ (30)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget crm: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 26 .
+    void:triples 30 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-cidoc-crm-skos_relatedMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:relatedMatch links to http://www.cidoc-crm.org/cidoc-crm/ (10)" ;
@@ -438,11 +439,11 @@
     void:triples 5 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-crmarchaeo-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://www.cidoc-crm.org/crmarchaeo/ (3)" ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.cidoc-crm.org/crmarchaeo/ (5)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget crmarc: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 3 .
+    void:triples 5 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-crmarchaeo-skos_relatedMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:relatedMatch links to http://www.cidoc-crm.org/crmarchaeo/ (1)" ;
@@ -450,6 +451,13 @@
     void:objectsTarget crmarc: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
     void:triples 1 .
+
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-crmsci-skos_closeMatch> a void:Linkset ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.cidoc-crm.org/extensions/crmsci/ (3)" ;
+    void:linkPredicate skos:closeMatch ;
+    void:objectsTarget crmsci: ;
+    void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
+    void:triples 3 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-cube-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to http://purl.org/linked-data/cube# (4)" ;
@@ -807,11 +815,11 @@
     void:triples 1 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-oa-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://www.w3.org/ns/oa# (5)" ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.w3.org/ns/oa# (8)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget oa: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 5 .
+    void:triples 8 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-oa-skos_relatedMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:relatedMatch links to http://www.w3.org/ns/oa# (5)" ;
@@ -982,11 +990,11 @@
     void:triples 2 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-prov-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://www.w3.org/ns/prov# (25)" ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.w3.org/ns/prov# (27)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget prov: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 25 .
+    void:triples 27 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-prov-skos_exactMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:exactMatch links to http://www.w3.org/ns/prov# (3)" ;
@@ -1311,6 +1319,7 @@
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-credentials-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-crmarchaeo-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-crmarchaeo-skos_relatedMatch>,
+        <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-crmsci-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-cube-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-cube-skos_relatedMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-direct-skos_closeMatch>,
@@ -1456,6 +1465,7 @@
         bbc:,
         ifc:,
         crmarc:,
+        crmsci:,
         gn:,
         tags:,
         ivoa:,

@@ -1,0 +1,149 @@
+# Coverage fixture for the archaeological evidence layer (#173).
+# Worked examples: cuneiform tablet with competing readings, undeciphered
+# Linear A-like inscription, and an ostracon with disputed language attribution.
+
+@prefix ex:     <https://example.org/arch/> .
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix time:   <http://www.w3.org/2006/time#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Standpoints ------------------------------------------------------------- #
+
+ex:standpoint-epigrapher-a  a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-epigrapher-b  a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:standpoint-excavator-x   a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# --- Languages & scripts ----------------------------------------------------- #
+
+ex:sumerian a gmeow:Language ; gmeow:languageCode "sux" .
+ex:akkadian a gmeow:Language ; gmeow:languageCode "akk" .
+ex:mycenaeanGreek a gmeow:Language ; gmeow:languageCode "gmy" .
+
+ex:cuneiform a gmeow:WritingSystem ; gmeow:scriptCode "Xsux" .
+ex:linearB a gmeow:WritingSystem ; gmeow:scriptCode "Linb" .
+
+# --- Example 1: Cuneiform tablet with layer separation ----------------------- #
+
+ex:tablet1 a gmeow:PhysicalObject ;
+    gmeow:carrierType gmeow:carrierTablet .
+
+ex:inscription1 a gmeow:Inscription ;
+    gmeow:inscriptionCarrier ex:tablet1 .
+
+ex:readingA a gmeow:LexicalForm ;
+    gmeow:formRepresentation "𒀭" ;
+    gmeow:formType gmeow:formWritten .
+
+ex:readingB a gmeow:LexicalForm ;
+    gmeow:formRepresentation "𒀭𒈹" ;
+    gmeow:formType gmeow:formWritten .
+
+ex:inscriptionReadingA a gmeow:InscriptionReading ;
+    gmeow:readingOf ex:inscription1 ;
+    gmeow:readingResult ex:readingA ;
+    gmeow:vantage ex:standpoint-epigrapher-a ;
+    gmeow:confidence 0.75 .
+
+ex:inscriptionReadingB a gmeow:InscriptionReading ;
+    gmeow:readingOf ex:inscription1 ;
+    gmeow:readingResult ex:readingB ;
+    gmeow:vantage ex:standpoint-epigrapher-b ;
+    gmeow:confidence 0.60 .
+
+ex:transliteration1 a gmeow:InscriptionTransliteration ;
+    gmeow:transliterationOf ex:inscription1 ;
+    gmeow:transliterationResult [
+        a gmeow:LexicalForm ;
+        gmeow:formRepresentation "an" ;
+        gmeow:formType gmeow:formTransliterated
+    ] ;
+    gmeow:vantage ex:standpoint-epigrapher-a ;
+    gmeow:confidence 0.80 .
+
+ex:translation1 a gmeow:InscriptionTranslation ;
+    gmeow:translationOf ex:inscription1 ;
+    gmeow:translationResult [
+        a gmeow:LexicalForm ;
+        gmeow:formRepresentation "god" ;
+        gmeow:formType gmeow:formTranslated
+    ] ;
+    gmeow:vantage ex:standpoint-epigrapher-a ;
+    gmeow:confidence 0.70 .
+
+ex:findSpot a gmeow:Place .
+
+ex:dating1 a gmeow:TemporalMeasurement ;
+    gmeow:vantage ex:standpoint-excavator-x ;
+    gmeow:observedFeature ex:tablet1 ;
+    gmeow:measurementMethod gmeow:datingMethodStratigraphicCorrelation ;
+    gmeow:measuredAge "3200"^^xsd:decimal ;
+    gmeow:hasUnit <http://qudt.org/vocab/unit/YR> ;
+    gmeow:measurementUncertainty "100"^^xsd:decimal .
+
+ex:findContext1 a gmeow:ArchaeologicalFindContext ;
+    gmeow:findContextTarget ex:tablet1 ;
+    gmeow:findContextPlace ex:findSpot ;
+    gmeow:findContextDating ex:dating1 ;
+    gmeow:vantage ex:standpoint-excavator-x ;
+    gmeow:confidence 0.90 .
+
+ex:attributionA a gmeow:ScriptLanguageAttribution ;
+    gmeow:attributionTarget ex:inscription1 ;
+    gmeow:attributedLanguage ex:sumerian ;
+    gmeow:attributedScript ex:cuneiform ;
+    gmeow:vantage ex:standpoint-epigrapher-a ;
+    gmeow:confidence 0.85 .
+
+ex:attributionB a gmeow:ScriptLanguageAttribution ;
+    gmeow:attributionTarget ex:inscription1 ;
+    gmeow:attributedLanguage ex:akkadian ;
+    gmeow:attributedScript ex:cuneiform ;
+    gmeow:vantage ex:standpoint-epigrapher-b ;
+    gmeow:confidence 0.60 .
+
+# --- Example 2: Undeciphered Linear A-like inscription ----------------------- #
+
+ex:tablet2 a gmeow:PhysicalObject ;
+    gmeow:carrierType gmeow:carrierTablet .
+
+ex:inscription2 a gmeow:Inscription ;
+    gmeow:inscriptionCarrier ex:tablet2 .
+
+ex:linearA a gmeow:NotationSystem ;
+    gmeow:symbolicSystemKind gmeow:symbolicKindEncoding .
+
+ex:undecipheredAttribution a gmeow:ScriptLanguageAttribution ;
+    gmeow:attributionTarget ex:inscription2 ;
+    gmeow:attributedNotation ex:linearA ;
+    gmeow:hasDeterminacy gmeow:determinacyDisputed ;
+    gmeow:vantage ex:standpoint-epigrapher-a ;
+    gmeow:confidence 0.40 .
+
+# --- Example 3: Ostracon with UsageAttestation hook -------------------------- #
+
+ex:ostracon1 a gmeow:PhysicalObject ;
+    gmeow:carrierType gmeow:carrierOstracon .
+
+ex:inscription3 a gmeow:Inscription ;
+    gmeow:inscriptionCarrier ex:ostracon1 .
+
+ex:reading3 a gmeow:LexicalForm ;
+    gmeow:formRepresentation "𐃠" ;
+    gmeow:formType gmeow:formWritten .
+
+ex:sourceArchive a gmeow:CreativeWork ;
+    gmeow:sourceLocation "https://example.org/archive/ostracon-1" .
+
+ex:carrierAttestation a gmeow:UsageAttestation ;
+    gmeow:attestedForm ex:reading3 ;
+    gmeow:attestedInSource ex:sourceArchive ;
+    gmeow:attestedOnCarrier ex:ostracon1 ;
+    gmeow:confidence 0.90 .
+
+ex:attribution3 a gmeow:ScriptLanguageAttribution ;
+    gmeow:attributionTarget ex:inscription3 ;
+    gmeow:attributedLanguage ex:mycenaeanGreek ;
+    gmeow:attributedScript ex:linearB ;
+    gmeow:vantage ex:standpoint-epigrapher-a ;
+    gmeow:confidence 0.75 .
