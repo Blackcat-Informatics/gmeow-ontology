@@ -125,6 +125,7 @@ class MappingPattern:
     value: str | None
     atoms: tuple[Atom | OptionalGroup, ...]
     suppress_when: tuple[Atom, ...] = ()
+    project_when: tuple[Atom, ...] = ()
     exclude_when: tuple[Atom, ...] = ()
     filters: tuple[Expr, ...] = ()
     binds: tuple[Bind, ...] = ()
@@ -440,6 +441,10 @@ def _pattern(graph: Graph, node: Node) -> MappingPattern:
         ),
         suppress_when=tuple(
             _atom(graph, a) for a in graph.objects(node, GM.suppressWhen)
+        ),
+        project_when=tuple(
+            _atom(graph, a)
+            for a in sorted(graph.objects(node, GM.projectWhen), key=str)
         ),
         exclude_when=tuple(
             _atom(graph, a) for a in graph.objects(node, GM.excludeWhen)

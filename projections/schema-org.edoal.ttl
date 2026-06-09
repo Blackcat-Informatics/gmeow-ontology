@@ -127,7 +127,7 @@
             edoal:measure 1e+00 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnSubOrgToDepartment ] ],
         [ a align:Cell ;
-            rdfs:label "gmeow:description → schema:description"@en ;
+            rdfs:label "gmeow:description → schema:description (public-site consumer only)"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:description ] ;
             align:entity2 [ a edoal:Property ;

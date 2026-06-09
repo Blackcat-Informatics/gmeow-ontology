@@ -10211,6 +10211,25 @@
             "title": "DeterminacyEnum",
             "type": "string"
           },
+          "DisclosurePolicy": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "DisclosurePolicy",
+            "type": "object"
+          },
+          "DisclosurePolicyEnum": {
+            "description": "",
+            "enum": [
+              "policyInternalOnly",
+              "policyNeverPublic",
+              "policyPublicCareful",
+              "policyPublicOnlyWithIndependentSource",
+              "policyPublicSafe",
+              "policySensitive"
+            ],
+            "title": "DisclosurePolicyEnum",
+            "type": "string"
+          },
           "Distribution": {
             "additionalProperties": false,
             "description": "",
@@ -36965,6 +36984,27 @@
             },
             "title": "Project",
             "type": "object"
+          },
+          "ProjectionContext": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "ProjectionContext",
+            "type": "object"
+          },
+          "ProjectionContextEnum": {
+            "description": "",
+            "enum": [
+              "consumerAgentMemory",
+              "consumerFoafExport",
+              "consumerInternalArchive",
+              "consumerPublicSite",
+              "consumerResearchQueue",
+              "consumerSchemaOrgJsonLd",
+              "consumerWikidata",
+              "consumerWikipedia"
+            ],
+            "title": "ProjectionContextEnum",
+            "type": "string"
           },
           "PronounSet": {
             "additionalProperties": false,

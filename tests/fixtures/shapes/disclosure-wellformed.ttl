@@ -1,0 +1,16 @@
+# Well-formed disclosure fixture (#225). A public-safe name eligible for a
+# public consumer — no leak, no warning. run_shacl MUST conform.
+
+@prefix ex:    <https://example.org/disclosure/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:alice a gmeow:Person ;
+    rdfs:label "Alice" ;
+    gmeow:hasName ex:aliceName .
+
+ex:aliceName a gmeow:PersonName ;
+    rdfs:label "Alice Public" ;
+    gmeow:fullName "Alice Public" ;
+    gmeow:hasDisclosurePolicy gmeow:policyPublicSafe ;
+    gmeow:eligibleForConsumer gmeow:consumerPublicSite .

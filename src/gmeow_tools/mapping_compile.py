@@ -885,6 +885,8 @@ def _branch(cell: ProjectionCell, b: ProfileBinding) -> str:
         lines.append(f"BIND ( {render_expr(bind.expr)} AS ?{bind.var} )")
     for atom in (*p.suppress_when, *p.exclude_when):
         lines.append(f"FILTER NOT EXISTS {{ {_atom_triple(atom)} }}")
+    for atom in p.project_when:
+        lines.append(f"FILTER EXISTS {{ {_atom_triple(atom)} }}")
     for flt in p.filters:
         lines.append(f"FILTER( {render_expr(flt)} )")
 

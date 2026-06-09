@@ -1,0 +1,26 @@
+# Coverage fixture for disclosure policy / consumer projection tests (#225).
+#
+# Alice: public-safe name, eligible for public site.
+# Bob: internal-only name, eligible only for internal archive.
+# SecretPlace: never-public place, erroneously also eligible for Wikidata (leak case).
+
+@prefix ex:    <https://example.org/disclosure/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:alice a gmeow:Person ;
+    rdfs:label "Alice" ;
+    gmeow:description "Alice Public" ;
+    gmeow:hasDisclosurePolicy gmeow:policyPublicSafe ;
+    gmeow:eligibleForConsumer gmeow:consumerPublicSite .
+
+ex:bob a gmeow:Person ;
+    rdfs:label "Bob" ;
+    gmeow:description "Bob Internal" ;
+    gmeow:hasDisclosurePolicy gmeow:policyInternalOnly ;
+    gmeow:eligibleForConsumer gmeow:consumerInternalArchive .
+
+ex:secretPlace a gmeow:Place ;
+    rdfs:label "Secret Laboratory" ;
+    gmeow:hasDisclosurePolicy gmeow:policyNeverPublic ;
+    gmeow:eligibleForConsumer gmeow:consumerWikidata .

@@ -1,0 +1,20 @@
+# public-candidates.rq (#225)
+# SELECT facts that are safe candidates for projection to a given public consumer.
+# Parameters: ?consumer (bind to the target ProjectionContext, e.g. consumerPublicSite).
+# A fact is a public candidate when:
+#   - it has a disclosure policy that is NOT internalOnly / sensitive / neverPublic
+#   - it is explicitly eligible for the given consumer
+#   - it is not marked displayable false (suppressed)
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?fact ?policy WHERE {
+    ?fact gmeow:hasDisclosurePolicy ?policy .
+    ?fact gmeow:eligibleForConsumer ?consumer .
+    FILTER(?policy NOT IN (
+        gmeow:policyInternalOnly,
+        gmeow:policySensitive,
+        gmeow:policyNeverPublic
+    ))
+    FILTER NOT EXISTS { ?fact gmeow:displayable false }
+}

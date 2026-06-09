@@ -15,19 +15,27 @@
 #   skos: http://www.w3.org/2004/02/skos/core#
 #   wd: http://www.wikidata.org/entity/
 subject_id	predicate_id	object_id	object_label	mapping_justification	confidence	comment
+gmeow:DisclosurePolicy	skos:relatedMatch	dpv:ProcessingContext		semapv:ManualMappingCuration	0.75	DPV ProcessingContext is a broad context class; GMEOW DisclosurePolicy is a claim-scoped classification
+gmeow:DisclosurePolicy	skos:relatedMatch	odrl:Policy		semapv:ManualMappingCuration	0.7	ODRL Policy is a full deontic expression; GMEOW DisclosurePolicy is a lighter-weight claim-scoped classification
 gmeow:PrivacyNotice	skos:closeMatch	dpv:PrivacyNotice		semapv:ManualMappingCuration	0.85	the privacy-notice concept in both vocabularies
 gmeow:PrivacyNotice	skos:closeMatch	schema:PrivacyPolicy		semapv:ManualMappingCuration	0.8	schema.org privacy policy (a CreativeWork)
+gmeow:ProjectionContext	skos:relatedMatch	dpv:Recipient		semapv:ManualMappingCuration	0.8	DPV Recipient is the party receiving data; GMEOW ProjectionContext is the consumer/audience of a projection
 gmeow:SensitivityLevel	skos:closeMatch	dpv:SensitivityLevel		semapv:ManualMappingCuration	0.85	DPV's SensitivityLevel is scoped to its process/entity model; GMEOW's is a universal QualityValue facet
 gmeow:SensitivityLevel	skos:closeMatch	gufo:QualityValue		semapv:ManualMappingCuration	1.0	gmeow:SensitivityLevel is declared rdfs:subClassOf gufo:QualityValue in the ontology
 gmeow:actionProcessPersonalData	skos:closeMatch	odrl:use		semapv:ManualMappingCuration	0.8	processing personal data is the privacy-scoped form of odrl:use
 gmeow:actionProcessPersonalData	skos:relatedMatch	dpv:Processing		semapv:ManualMappingCuration	0.7	DPV Processing is a class (process/activity), not an action value; relatedMatch is the best fit
+gmeow:consumerWikidata	skos:closeMatch	wd:Q2013	Wikidata	semapv:ManualMappingCuration	1.0	
+gmeow:consumerWikipedia	skos:closeMatch	wd:Q52	Wikipedia	semapv:ManualMappingCuration	1.0	
+gmeow:eligibleForConsumer	skos:relatedMatch	schema:audience		semapv:ManualMappingCuration	0.7	schema.org audience is the intended consumer of a CreativeWork; GMEOW eligibleForConsumer is universal and claim-scoped
 gmeow:hasDataController	skos:closeMatch	dpv:hasDataController		semapv:ManualMappingCuration	0.9	the data-controller property in both vocabularies
 gmeow:hasDataController	skos:relatedMatch	odrl:assigner		semapv:ManualMappingCuration	0.6	the data controller is the party issuing the privacy policy (ODRL assigner analogue)
 gmeow:hasDataSubject	skos:closeMatch	dpv:hasDataSubject		semapv:ManualMappingCuration	0.9	the data-subject property in both vocabularies
 gmeow:hasDataSubject	skos:relatedMatch	odrl:assignee		semapv:ManualMappingCuration	0.6	the data subject is the party to whom the privacy policy applies (ODRL assignee analogue)
+gmeow:hasDisclosurePolicy	skos:relatedMatch	dpv:hasProcessingContext		semapv:ManualMappingCuration	0.7	DPV hasProcessingContext links a process to its context; GMEOW hasDisclosurePolicy is domain-free
 gmeow:hasPrivacyNotice	skos:closeMatch	dpv:hasNotice		semapv:ManualMappingCuration	0.75	DPV hasNotice links a process to its notice; GMEOW hasPrivacyNotice is domain-free
 gmeow:hasPrivacyNotice	skos:relatedMatch	schema:publishingPrinciples		semapv:ManualMappingCuration	0.6	schema.org publishing principles (may include privacy policy)
 gmeow:hasSensitivity	skos:closeMatch	dpv:hasSensitivityLevel		semapv:ManualMappingCuration	0.8	DPV hasSensitivityLevel is scoped to processes/entities; GMEOW hasSensitivity is universal and domain-free
+gmeow:policyPublicOnlyWithIndependentSource	skos:relatedMatch	odrl:purpose		semapv:ManualMappingCuration	0.6	the conditional independent-source requirement is a purpose-like constraint on disclosure
 gmeow:sensitivityConfidential	skos:closeMatch	wd:Q188475	confidentiality	semapv:ManualMappingCuration	0.8	
 gmeow:sensitivitySensitivePersonal	skos:closeMatch	dpv:SensitivePersonalData		semapv:ManualMappingCuration	0.9	the special-category personal-data tier in both vocabularies
 gmeow:sensitivitySensitivePersonal	skos:closeMatch	wd:Q2796	personal data	semapv:ManualMappingCuration	0.85	

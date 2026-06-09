@@ -368,6 +368,16 @@ enum DeterminacyEnum
     determinacyVague
   }
 
+enum DisclosurePolicyEnum
+  {
+    policyInternalOnly
+    policyNeverPublic
+    policyPublicCareful
+    policyPublicOnlyWithIndependentSource
+    policyPublicSafe
+    policySensitive
+  }
+
 enum EventTypeEnum
   {
     eventTypeAdoption
@@ -1069,6 +1079,18 @@ enum ProfileEnum
     profileReferenceFrame
     profileTemporalFrame
     profileTemporalProvenance
+  }
+
+enum ProjectionContextEnum
+  {
+    consumerAgentMemory
+    consumerFoafExport
+    consumerInternalArchive
+    consumerPublicSite
+    consumerResearchQueue
+    consumerSchemaOrgJsonLd
+    consumerWikidata
+    consumerWikipedia
   }
 
 enum PronounSetEnum
@@ -2889,6 +2911,10 @@ type DerivationKind
   }
 
 type Determinacy
+  {
+  }
+
+type DisclosurePolicy
   {
   }
 
@@ -6502,6 +6528,10 @@ type Project
     maintenanceStatus: [MaintenanceStatus]
     projectIdentifier: String
     projectLicense: [License]
+  }
+
+type ProjectionContext
+  {
   }
 
 type PronounSet

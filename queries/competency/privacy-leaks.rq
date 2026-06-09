@@ -1,0 +1,20 @@
+# privacy-leaks.rq (#225)
+# SELECT facts that are configured to leak: a neverPublic or internalOnly fact
+# that is nevertheless eligible for a public consumer.
+# Public consumers are those whose identifier starts with "consumer" and is NOT
+# consumerInternalArchive or consumerAgentMemory or consumerResearchQueue.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?fact ?policy ?consumer WHERE {
+    ?fact gmeow:hasDisclosurePolicy ?policy .
+    ?fact gmeow:eligibleForConsumer ?consumer .
+    FILTER(?policy IN (gmeow:policyNeverPublic, gmeow:policyInternalOnly))
+    FILTER(?consumer IN (
+        gmeow:consumerPublicSite,
+        gmeow:consumerWikidata,
+        gmeow:consumerWikipedia,
+        gmeow:consumerSchemaOrgJsonLd,
+        gmeow:consumerFoafExport
+    ))
+}
