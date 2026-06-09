@@ -180,7 +180,9 @@ def test_dsl_parses() -> None:
     # Issue #129 domain-specific observation profiles: +18
     # (CRMarchaeo x4, IVOA ObsCore x4, BBC News Ontology x2,
     # IPTC NewsML-G2 x3, Open Annotation x1, LOINC x2, SNOMED CT x2).
-    assert len(dsl.equivalences) == 1276
+    # Issue #231 software five-facet de-conflation: +12 (DOAP x3, schema.org x3,
+    # SPDX x2, CodeMeta x1, ForgeFed x3).
+    assert len(dsl.equivalences) == 1288
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -207,7 +209,8 @@ def test_dsl_parses() -> None:
     # Issue #211 citation & credit module: +1 (gmeow-citations.sssom.tsv).
     # Issue #172 notation and symbolic systems: +1 (gmeow-notation.sssom.tsv).
     # Issue #224 evidence: +1 (gmeow-evidence.sssom.tsv).
-    assert len(dsl.mapping_sets) == 37
+    # Issue #231 software five-facet de-conflation: +1 (gmeow-software.sssom.tsv).
+    assert len(dsl.mapping_sets) == 38
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}

@@ -17,6 +17,7 @@ from gmeow_tools.config import (
     MAPPING_DSL_DIR,
     NAMESPACE,
     SHAPES_FILE,
+    SOFTWARE_SHAPES_FILE,
     STATEMENT_DSL_DIR,
 )
 from gmeow_tools.graph import iter_source_files, load_merged_graph
@@ -163,6 +164,8 @@ def run_shacl(
     from pyshacl import validate as shacl_validate
 
     shapes_graph = Graph().parse(shapes_path, format="turtle")
+    if SOFTWARE_SHAPES_FILE.exists():
+        shapes_graph.parse(SOFTWARE_SHAPES_FILE, format="turtle")
     conforms, report_graph, report_text = shacl_validate(
         data_graph,
         shacl_graph=shapes_graph,

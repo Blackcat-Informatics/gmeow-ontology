@@ -34,11 +34,10 @@ gmeow:sourceModifiedAt
 
 gmeow:contentDigest
     a owl:DatatypeProperty ;
-    rdfs:domain gmeow:CreativeWork ;
     rdfs:range rdfs:Literal ;
     rdfs:label "content digest"@en ;
-    skos:definition "A content hash of the source's bytes (e.g. \"blake3:…\") — the reliable carrier identity (two imports of the same bytes are the same source, regardless of mtime or path). Not functional: a source may carry digests under several algorithms."@en ;
-    skos:scopeNote "Typically asserted on a Manifestation or Item."@en ;
+    skos:definition "A content hash of an object's bytes (e.g. \"blake3:…\", \"sha256:…\", \"git:…\") — the reliable identity by content (two objects with the same bytes are the same object, regardless of path, name, or mtime). Domain-free: applies to creative works, source files, commits, distributions, and any other content-addressable artifact. Not functional: an object may carry digests under several algorithms."@en ;
+    skos:scopeNote "Typically asserted on a Manifestation, Item, SourceFile, Commit, or Distribution."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:sourceLocation

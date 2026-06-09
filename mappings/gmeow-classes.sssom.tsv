@@ -55,7 +55,7 @@ gmeow:Place	owl:equivalentClass	schema:Place	semapv:ManualMappingCuration	1.0
 gmeow:PostalAddress	owl:equivalentClass	schema:PostalAddress	semapv:ManualMappingCuration	1.0	
 gmeow:Profile	skos:relatedMatch	prof:Profile	semapv:ManualMappingCuration	0.8	GMEOW Profile is a narrower closed-descriptor-schema construct; PROF is a broader specification-profile vocabulary.
 gmeow:Role	owl:equivalentClass	org:Role	semapv:ManualMappingCuration	1.0	
-gmeow:SoftwareProject	owl:equivalentClass	doap:Project	semapv:ManualMappingCuration	1.0	
+gmeow:SoftwareProject	skos:closeMatch	doap:Project	semapv:ManualMappingCuration	0.7	
 gmeow:WebPage	owl:equivalentClass	schema:WebPage	semapv:ManualMappingCuration	1.0	
 org:FormalOrganization	rdfs:subClassOf	gmeow:Organization	semapv:ManualMappingCuration	1.0	formal org is an organization
 prov:Entity	skos:closeMatch	gmeow:Entity	semapv:ManualMappingCuration	0.7	
@@ -66,7 +66,7 @@ schema:ImageObject	rdfs:subClassOf	gmeow:MediaObject	semapv:ManualMappingCuratio
 schema:NewsArticle	rdfs:subClassOf	gmeow:Article	semapv:ManualMappingCuration	1.0	
 schema:OrganizationRole	rdfs:subClassOf	gmeow:Role	semapv:ManualMappingCuration	0.9	
 schema:ScholarlyArticle	rdfs:subClassOf	gmeow:Article	semapv:ManualMappingCuration	1.0	
-schema:SoftwareApplication	rdfs:subClassOf	gmeow:SoftwareProject	semapv:ManualMappingCuration	0.8	
-schema:SoftwareSourceCode	rdfs:subClassOf	gmeow:SoftwareProject	semapv:ManualMappingCuration	0.9	
+schema:SoftwareApplication	skos:closeMatch	gmeow:SoftwareProduct	semapv:ManualMappingCuration	0.7	
+schema:SoftwareSourceCode	skos:closeMatch	gmeow:SoftwareProduct	semapv:ManualMappingCuration	0.8	
 sioc:UserAccount	rdfs:subClassOf	gmeow:OnlineAccount	semapv:ManualMappingCuration	0.9	
 vcard:Address	skos:closeMatch	gmeow:PostalAddress	semapv:ManualMappingCuration	0.9	

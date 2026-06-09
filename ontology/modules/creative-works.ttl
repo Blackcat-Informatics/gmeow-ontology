@@ -314,7 +314,16 @@ gmeow:roleSupervision           a gmeow:ContributionRole ; rdfs:label "supervisi
 gmeow:roleValidation            a gmeow:ContributionRole ; rdfs:label "validation"@en ;             skos:definition "Verification, whether as a part of the activity or separate, of the overall replication/reproducibility of results/experiments and other research outputs."@en .
 gmeow:roleVisualization         a gmeow:ContributionRole ; rdfs:label "visualization"@en ;          skos:definition "Preparation, creation and/or presentation of the published work, specifically visualization/data presentation."@en .
 gmeow:roleWritingOriginalDraft  a gmeow:ContributionRole ; rdfs:label "writing – original draft"@en ;  skos:definition "Creation and/or presentation of the published work, specifically writing the initial draft."@en .
-gmeow:roleWritingReviewEditing  a gmeow:ContributionRole ; rdfs:label "writing – review & editing"@en ; skos:definition "Critical review, commentary or revision – including pre- or post-publication stages."@en .
+gmeow:roleWritingReviewEditing  a gmeow:ContributionRole ; rdfs:label "writing – review & editing"@en ;  skos:definition "Critical review, commentary or revision – including pre- or post-publication stages."@en .
+
+# Software-specific contribution roles (open vocabulary seeds)
+gmeow:roleSoftwareMaintainer  a gmeow:ContributionRole ; rdfs:label "software maintainer"@en ;  skos:definition "An agent with ongoing responsibility for a software project — triaging issues, reviewing contributions, and cutting releases."@en .
+gmeow:roleSoftwareDeveloper   a gmeow:ContributionRole ; rdfs:label "software developer"@en ;   skos:definition "An agent who writes code, fixes bugs, or implements features in a software project."@en .
+gmeow:roleCodeReviewer        a gmeow:ContributionRole ; rdfs:label "code reviewer"@en ;         skos:definition "An agent who reviews code changes for quality, correctness, and policy compliance before merge."@en .
+gmeow:roleReleaser            a gmeow:ContributionRole ; rdfs:label "releaser"@en ;             skos:definition "An agent who cuts and publishes software releases."@en .
+gmeow:roleSecurityContact     a gmeow:ContributionRole ; rdfs:label "security contact"@en ;     skos:definition "An agent responsible for receiving and handling security vulnerability reports."@en .
+gmeow:roleBotContributor      a gmeow:ContributionRole ; rdfs:label "bot contributor"@en ;      skos:definition "An automated bot or CI agent that contributes to a project — e.g. dependency updates, formatting bots."@en .
+gmeow:roleAIAssistant         a gmeow:ContributionRole ; rdfs:label "AI assistant"@en ;         skos:definition "An AI system that assists in creating or editing software — attributed and confidence-weighted, never ground truth (Principle 9)."@en .
 
 # --------------------------------------------------------------------------- #
 # ManifestationFormat seeds
