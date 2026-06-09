@@ -339,12 +339,23 @@ def test_ontolex_projection() -> None:
 
 def test_project_examples_round_trip(tmp_path: Path) -> None:
     written = project_examples(dist_dir=tmp_path)
-    assert {p.name for p in written} == {
-        f"gmeow-example-{name}.ttl" for name in PROFILES
+    names = {p.name for p in written}
+    # One Turtle per profile.
+    for profile in PROFILES:
+        assert f"gmeow-example-{profile}.ttl" in names
+    # OAI-DC emits one XML per subject; verify at least one exists.
+    xml_names = {
+        n for n in names if n.startswith("gmeow-example-oai_dc-") and n.endswith(".xml")
     }
+    assert len(xml_names) >= 1
     for path in written:
         assert path.exists()
-        assert len(Graph().parse(path, format="turtle")) > 0
+        if path.suffix == ".ttl":
+            assert len(Graph().parse(path, format="turtle")) > 0
+        elif path.suffix == ".xml":
+            from xml.etree import ElementTree as ET
+
+            ET.parse(path)  # raises if malformed
 
 
 # --------------------------------------------------------------------------- #

@@ -94,6 +94,7 @@ cross-module DCMI Type Vocabulary classes.
 | `gmeow:hasPart` | closeMatch | `dcterms:hasPart` |
 | `gmeow:partOf` | closeMatch | `dcterms:isPartOf` |
 | `gmeow:datePublished` | closeMatch | `dcterms:issued` |
+| `gmeow:hasManifestationFormat` | closeMatch | `dcterms:format` |
 
 ### DCMI Type Vocabulary (`dcmitype:`)
 
@@ -156,7 +157,29 @@ emitted for OAI-PMH harvestability. Every refinement collapses to its broader 15
 class-based). `dc:coverage` is projected from `gmeow:spatialCoverage`,
 `gmeow:temporalCoverage`, and (as a fallback) `gmeow:containedInPlace`.
 
+OAI-DC XML examples are also emitted during `gmeow build` as
+`dist/gmeow-example-oai_dc-*.xml` (one file per subject, OAI-PMH harvestable).
+
 Compiled to `projections/oai_dc.edoal.ttl` + `queries/projections/oai_dc.rq`.
+
+---
+
+## Known gaps (intentional)
+
+The following DCMI Terms have no direct GMEOW equivalent without minting new
+ontology terms. They are documented here as intentional gaps per Principle 1
+(SOTA by being SOTA) — GMEOW models the concept correctly and bridges when a
+suitable term exists, never forcing a weak alignment.
+
+| DC term | status | reason |
+|---|---|---|
+| `dcterms:publisher` | unmapped | No `publisher` property; PROV-O `wasAttributedTo` covers attribution generically |
+| `dcterms:valid` | unmapped | No validity-interval property; `validFrom`/`validUntil` are annotation properties on statements/facets |
+| `dcterms:type` | unmapped | Intentionally broad; GMEOW uses class-based typing (`rdf:type`) and `dcmitype:` alignments |
+| `dcterms:relation` | unmapped | Intentionally broad; refinements (`hasPart`, `isPartOf`, `references`, etc.) are mapped |
+| `dcterms:date` | unmapped | Intentionally broad; refinements (`created`, `modified`, `issued`, etc.) are mapped |
+| `dcterms:coverage` | unmapped | Intentionally broad; refinements (`spatial`, `temporal`) are mapped |
+| `dcmitype:StillImage` | unmapped | No `StillImage` class; `MediaObject` → `Image` via `relatedMatch` |
 
 ---
 
