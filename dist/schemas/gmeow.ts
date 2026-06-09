@@ -28,6 +28,16 @@ export enum AggregationFunctionEnum {
     sum = "aggSum",
 };
 
+export enum ArcTypeEnum {
+
+    coming_of_age = "arcTypeComingOfAge",
+    corruption = "arcTypeCorruption",
+    fall = "arcTypeFall",
+    quest = "arcTypeQuest",
+    recovery = "arcTypeRecovery",
+    redemption = "arcTypeRedemption",
+};
+
 export enum AttestationTypeEnum {
 
     AI_output_attestation = "attestationTypeAIOutput",
@@ -241,6 +251,16 @@ export enum ConstraintOperatorEnum {
     less_than = "operatorLt",
     less_than_or_equal_to = "operatorLteq",
     not_equal_to = "operatorNeq",
+};
+
+export enum ContentSegmentTypeEnum {
+
+    back_matter = "segmentTypeBackMatter",
+    chapter = "segmentTypeChapter",
+    front_matter = "segmentTypeFrontMatter",
+    paragraph = "segmentTypeParagraph",
+    scene = "segmentTypeScene",
+    section = "segmentTypeSection",
 };
 
 export enum ContributionDegreeEnum {
@@ -764,6 +784,7 @@ export enum MaintenanceStatusEnum {
 export enum ManifestationFormatEnum {
 
     audiobook = "formatAudiobook",
+    comic_issue = "formatComicIssue",
     digital_file = "formatDigitalFile",
     EPUB = "formatEPUB",
     hardcover = "formatHardcover",
@@ -771,6 +792,7 @@ export enum ManifestationFormatEnum {
     paperback = "formatPaperback",
     vinyl = "formatVinyl",
     web_page = "formatWebPage",
+    web_serial = "formatWebSerial",
 };
 
 export enum MentalReferenceFrameEnum {
@@ -1647,6 +1669,11 @@ export interface Appellation {
 
 
 
+export interface ArcType {
+}
+
+
+
 export interface ArchaeologicalFindContext {
     findContextDating?: TemporalMeasurement[],
     findContextEvent?: Event[],
@@ -1830,6 +1857,15 @@ export interface Certification {
 
 
 
+export interface CharacterArc extends InformationObject {
+    arcEvidence?: InformationObject[],
+    arcFrame?: NarrativeReferenceFrame,
+    arcSubject?: Entity,
+    arcType?: ArcType,
+}
+
+
+
 export interface CitationAct {
     citationIntent?: CitationIntent,
     citedEntity?: CreativeWork,
@@ -1896,6 +1932,19 @@ export interface ContactPoint {
 export interface ContainmentTenure extends TimeScopedRelation {
     containmentChild?: Place,
     containmentParent?: Place,
+}
+
+
+
+export interface ContentSegment extends InformationObject {
+    segmentIndex?: number,
+    segmentOf?: Entity[],
+    segmentType?: ContentSegmentType,
+}
+
+
+
+export interface ContentSegmentType {
 }
 
 
@@ -2361,6 +2410,7 @@ export interface ImportActivity extends Activity {
 
 
 export interface InformationObject extends Entity {
+    contributesToFrame?: NarrativeReferenceFrame[],
     detectedMediaType?: string,
 }
 
@@ -2601,6 +2651,11 @@ export interface LifeEvent extends Event {
 
 
 
+export interface LiteraryWork extends Work {
+}
+
+
+
 export interface Location extends Entity {
     adjacentTo?: Location[],
     containedInLocation?: Location[],
@@ -2664,6 +2719,7 @@ export interface MaintenanceStatus {
 export interface Manifestation extends CreativeWork {
     embodies?: Expression[],
     exemplifiedBy?: Item[],
+    hasManifestationFormat?: ManifestationFormat,
 }
 
 
@@ -3185,6 +3241,11 @@ export interface Quantity extends Entity {
 
 
 
+export interface ReadingOrder extends Standpoint {
+}
+
+
+
 export interface RecurrenceRule extends InformationObject {
     recurrenceRuleText?: string,
 }
@@ -3446,6 +3507,11 @@ export interface SequenceFeatureType {
 
 
 export interface SerialInstallment extends Manifestation {
+}
+
+
+
+export interface SerialWork extends Work {
 }
 
 

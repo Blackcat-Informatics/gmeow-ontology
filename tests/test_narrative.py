@@ -192,3 +192,86 @@ def test_narrative_frame_link_shacl_passes() -> None:
 
     result = run_shacl(g)
     assert result.ok, "\n".join(result.errors)
+
+
+# =========================================================================== #
+# Book / narrative model additions (issue #156)
+# =========================================================================== #
+
+
+def test_contributes_to_frame_exists() -> None:
+    graph = _graph()
+    prop = GMEOW.contributesToFrame
+    assert (prop, RDF.type, OWL.ObjectProperty) in graph
+    assert (prop, RDFS.domain, GMEOW.InformationObject) in graph
+    assert (prop, RDFS.range, GMEOW.NarrativeReferenceFrame) in graph
+
+
+def test_character_arc_subclasses_information_object() -> None:
+    graph = _graph()
+    assert (
+        GMEOW.CharacterArc,
+        RDFS.subClassOf,
+        GMEOW.InformationObject,
+    ) in graph
+
+
+def test_character_arc_properties_exist() -> None:
+    graph = _graph()
+    for prop in (GMEOW.arcSubject, GMEOW.arcFrame, GMEOW.arcType):
+        assert (prop, RDF.type, OWL.ObjectProperty) in graph
+        assert (prop, RDF.type, OWL.FunctionalProperty) in graph
+    assert (GMEOW.arcEvidence, RDF.type, OWL.ObjectProperty) in graph
+
+
+def test_arc_type_value_vocab() -> None:
+    graph = _graph()
+    assert (GMEOW.ArcType, RDFS.subClassOf, GUFO.QualityValue) in graph
+    for ind in (
+        GMEOW.arcTypeComingOfAge,
+        GMEOW.arcTypeRedemption,
+        GMEOW.arcTypeFall,
+        GMEOW.arcTypeCorruption,
+        GMEOW.arcTypeQuest,
+        GMEOW.arcTypeRecovery,
+    ):
+        assert (ind, RDF.type, GMEOW.ArcType) in graph
+
+
+def test_reading_order_subclasses_standpoint() -> None:
+    graph = _graph()
+    assert (GMEOW.ReadingOrder, RDFS.subClassOf, GMEOW.Standpoint) in graph
+
+
+def test_character_arc_shacl_passes() -> None:
+    """A well-formed CharacterArc passes SHACL."""
+    g = Graph()
+    _add_narrative_frame(g, EX.hpCanon, EX.axisPlot)
+
+    g.add((EX.harryArc, RDF.type, GMEOW.CharacterArc))
+    g.add((EX.harryArc, GMEOW.arcSubject, EX.harry))
+    g.add((EX.harryArc, GMEOW.arcFrame, EX.hpCanon))
+    g.add((EX.harryArc, GMEOW.arcType, GMEOW.arcTypeComingOfAge))
+    g.add((EX.harry, RDF.type, GMEOW.Entity))
+    g.add((GMEOW.arcTypeComingOfAge, RDF.type, GMEOW.ArcType))
+
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+
+
+def test_character_arc_missing_subject_fails_shacl() -> None:
+    """A CharacterArc missing arcSubject violates SHACL."""
+    g = Graph()
+    _add_narrative_frame(g, EX.hpCanon, EX.axisPlot)
+
+    g.add((EX.harryArc, RDF.type, GMEOW.CharacterArc))
+    g.add((EX.harryArc, GMEOW.arcFrame, EX.hpCanon))
+    g.add((EX.harryArc, GMEOW.arcType, GMEOW.arcTypeComingOfAge))
+    g.add((GMEOW.arcTypeComingOfAge, RDF.type, GMEOW.ArcType))
+
+    result = run_shacl(g)
+    assert not result.ok
+    assert any(
+        "CharacterArc must have exactly one gmeow:arcSubject" in e
+        for e in result.errors
+    )

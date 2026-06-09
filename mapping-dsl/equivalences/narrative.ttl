@@ -5,6 +5,7 @@
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 @prefix schema: <https://schema.org/> .
 @prefix wd: <http://www.wikidata.org/entity/> .
+@prefix bibo: <http://purl.org/ontology/bibo/> .
 
 # Narrative reference frame and creative-work alignments.
 # Compiled to mappings/gmeow-narrative.sssom.tsv by `gmeow compile-mappings`.
@@ -49,4 +50,58 @@ gmeow:eqNarrative004 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:comment "Wikidata 'fictional world' — close match to narrative frame." ;
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+
+gmeow:eqNarrative005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:LiteraryWork ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:Book ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "Lossy: schema.org collapses WEMI; schema:Book may denote abstract work or concrete edition." ;
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+
+gmeow:eqNarrative006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:LiteraryWork ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject bibo:Book ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "bibo:Book is scholarly-publication-scoped; gmeow:LiteraryWork is universal." ;
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+
+gmeow:eqNarrative007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SerialWork ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:CreativeWorkSeries ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "schema:CreativeWorkSeries is broader (includes TV, film, game series)." ;
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+
+gmeow:eqNarrative008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SerialInstallment ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:Chapter ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "Lossy: schema:Chapter is WebPageElement-scoped; gmeow:SerialInstallment is broader." ;
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+
+gmeow:eqNarrative009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ContentSegment ;
+    gmeow:alignPredicate skos:narrowMatch ;
+    gmeow:alignObject schema:Chapter ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "Lossy: schema:Chapter is WebPageElement-scoped and narrower than gmeow:ContentSegment." ;
+    gmeow:sssomFile "gmeow-narrative.sssom.tsv" .
+
+gmeow:eqNarrative010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Contribution ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:Role ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "Lossy: schema:Role is a class, not a relator; GMEOW Contribution is a reified node." ;
     gmeow:sssomFile "gmeow-narrative.sssom.tsv" .

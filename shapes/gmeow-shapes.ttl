@@ -2001,3 +2001,63 @@ gmeow:NotabilityRequirementShape
             }
         """ ;
     ] .
+
+gmeow:ContentSegmentShape
+    a sh:NodeShape ;
+    rdfs:label "Content Segment Shape" ;
+    sh:targetClass gmeow:ContentSegment ;
+    sh:property [
+        sh:path gmeow:segmentOf ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ContentSegment must be part of at least one whole (gmeow:segmentOf)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:segmentType ;
+        sh:maxCount 1 ;
+        sh:class gmeow:ContentSegmentType ;
+        sh:severity sh:Violation ;
+        sh:message "A ContentSegment must have at most one gmeow:segmentType." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:segmentIndex ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:severity sh:Violation ;
+        sh:message "A ContentSegment must have at most one gmeow:segmentIndex." ;
+    ] .
+
+gmeow:CharacterArcShape
+    a sh:NodeShape ;
+    rdfs:label "Character Arc Shape" ;
+    sh:targetClass gmeow:CharacterArc ;
+    sh:property [
+        sh:path gmeow:arcSubject ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:Entity ;
+        sh:severity sh:Violation ;
+        sh:message "A CharacterArc must have exactly one gmeow:arcSubject." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:arcFrame ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:NarrativeReferenceFrame ;
+        sh:severity sh:Violation ;
+        sh:message "A CharacterArc must have exactly one gmeow:arcFrame." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:arcType ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:ArcType ;
+        sh:severity sh:Violation ;
+        sh:message "A CharacterArc must have exactly one gmeow:arcType." ;
+    ] .
+
+gmeow:ReadingOrderShape
+    a sh:NodeShape ;
+    rdfs:label "Reading Order Shape" ;
+    rdfs:comment "Documentation only — asserts no property constraints. gmeow:ReadingOrder is a gmeow:Standpoint subclass; Standpoint declares no owl:Restriction requirements in the ontology, so this shape serves as a marker confirming ReadingOrder instances are valid without additional closed-world checks." ;
+    sh:targetClass gmeow:ReadingOrder .

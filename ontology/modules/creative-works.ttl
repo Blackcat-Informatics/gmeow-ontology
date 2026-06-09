@@ -259,6 +259,14 @@ gmeow:ManifestationFormat
     skos:definition "The physical or digital format of a Manifestation — a VALUE vocabulary (individuals, never subclasses). Hardcover, paperback, EPUB, PDF, audiobook, vinyl, and web-page are examples; the set is open."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:hasManifestationFormat
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Manifestation ;
+    rdfs:range gmeow:ManifestationFormat ;
+    rdfs:label "has manifestation format"@en ;
+    skos:definition "The physical or digital format of this manifestation — hardcover, EPUB, audiobook, web serial, etc. A value from the open gmeow:ManifestationFormat vocabulary."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:CarrierMedium
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
@@ -337,6 +345,8 @@ gmeow:formatAudiobook   a gmeow:ManifestationFormat ; rdfs:label "audiobook"@en 
 gmeow:formatVinyl       a gmeow:ManifestationFormat ; rdfs:label "vinyl"@en ;       skos:definition "A vinyl phonograph record."@en .
 gmeow:formatDigitalFile a gmeow:ManifestationFormat ; rdfs:label "digital file"@en ; skos:definition "A generic digital file format."@en .
 gmeow:formatWebPage     a gmeow:ManifestationFormat ; rdfs:label "web page"@en ;    skos:definition "A web page or online document."@en .
+gmeow:formatWebSerial   a gmeow:ManifestationFormat ; rdfs:label "web serial"@en ;   skos:definition "A serialized work published incrementally online."@en .
+gmeow:formatComicIssue  a gmeow:ManifestationFormat ; rdfs:label "comic issue"@en ;  skos:definition "A single issue of a comic book series."@en .
 
 # --------------------------------------------------------------------------- #
 # CarrierMedium seeds
