@@ -1,0 +1,106 @@
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# SHACL shapes for the software module.
+# These guard the five-facet orthogonality and validate instance data.
+
+# --------------------------------------------------------------------------- #
+# De-conflation guard: no individual may be typed as two of the six main
+# facet classes. The facets are orthogonal — Project, SoftwareProduct,
+# SourceTree, Repository, Commit, Release — and must never be bridged by
+# subclassing or equivalence (mirrors IdentityAxisOrthogonalityShape).
+# --------------------------------------------------------------------------- #
+
+gmeow:SoftwareFacetOrthogonalityShape
+    a sh:NodeShape ;
+    rdfs:label "Software facet orthogonality data-check" ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            SELECT ?this WHERE {
+                ?this a/rdfs:subClassOf* ?facet .
+                FILTER(?facet IN (
+                    <https://blackcatinformatics.ca/gmeow/Project>,
+                    <https://blackcatinformatics.ca/gmeow/SoftwareProduct>,
+                    <https://blackcatinformatics.ca/gmeow/SourceTree>,
+                    <https://blackcatinformatics.ca/gmeow/Repository>,
+                    <https://blackcatinformatics.ca/gmeow/Commit>,
+                    <https://blackcatinformatics.ca/gmeow/Release>
+                ))
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "An individual may fill at most one software facet; the six facets are orthogonal and must never be bridged by subclassing or equivalence (Principle 9)." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this a/rdfs:subClassOf* ?a ;
+                      a/rdfs:subClassOf* ?b .
+                FILTER(STR(?a) < STR(?b))
+                FILTER(?a IN (
+                    <https://blackcatinformatics.ca/gmeow/Project>,
+                    <https://blackcatinformatics.ca/gmeow/SoftwareProduct>,
+                    <https://blackcatinformatics.ca/gmeow/SourceTree>,
+                    <https://blackcatinformatics.ca/gmeow/Repository>,
+                    <https://blackcatinformatics.ca/gmeow/Commit>,
+                    <https://blackcatinformatics.ca/gmeow/Release>
+                ))
+                FILTER(?b IN (
+                    <https://blackcatinformatics.ca/gmeow/Project>,
+                    <https://blackcatinformatics.ca/gmeow/SoftwareProduct>,
+                    <https://blackcatinformatics.ca/gmeow/SourceTree>,
+                    <https://blackcatinformatics.ca/gmeow/Repository>,
+                    <https://blackcatinformatics.ca/gmeow/Commit>,
+                    <https://blackcatinformatics.ca/gmeow/Release>
+                ))
+            }
+        """ ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Commit must carry a content digest (git hash or SWHID).
+# --------------------------------------------------------------------------- #
+
+gmeow:CommitContentDigestShape
+    a sh:NodeShape ;
+    rdfs:label "Commit content digest shape" ;
+    sh:targetClass gmeow:Commit ;
+    sh:property [
+        sh:path gmeow:contentDigest ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Commit must carry at least one gmeow:contentDigest (git hash or SWHID)." ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Release must belong to a project.
+# --------------------------------------------------------------------------- #
+
+gmeow:ReleaseProjectShape
+    a sh:NodeShape ;
+    rdfs:label "Release project shape" ;
+    sh:targetClass gmeow:Release ;
+    sh:property [
+        sh:path gmeow:releaseOf ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Release must be the release of at least one Project." ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Repository must have a repository type.
+# --------------------------------------------------------------------------- #
+
+gmeow:RepositoryTypeShape
+    a sh:NodeShape ;
+    rdfs:label "Repository type shape" ;
+    sh:targetClass gmeow:Repository ;
+    sh:property [
+        sh:path gmeow:repositoryType ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Repository must declare its gmeow:repositoryType." ;
+    ] .

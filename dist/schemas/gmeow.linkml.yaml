@@ -184,6 +184,10 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/BookRelease
     title: Book Release
     is_a: Manifestation
+  Branch:
+    class_uri: https://blackcatinformatics.ca/gmeow/Branch
+    title: Branch
+    is_a: InformationObject
   CadastralReference:
     class_uri: https://blackcatinformatics.ca/gmeow/CadastralReference
     title: Cadastral Reference
@@ -252,6 +256,18 @@ classes:
   CitationIntent:
     class_uri: https://blackcatinformatics.ca/gmeow/CitationIntent
     title: Citation Intent
+  Commit:
+    class_uri: https://blackcatinformatics.ca/gmeow/Commit
+    title: Commit
+    is_a: Activity
+    slots:
+    - authorTime
+    - authoredBy
+    - commitInRepository
+    - commitTree
+    - committedBy
+    - committerTime
+    - parentCommit
   ConflictStrategy:
     class_uri: https://blackcatinformatics.ca/gmeow/ConflictStrategy
     title: Conflict Strategy
@@ -339,7 +355,6 @@ classes:
     title: Creative Work
     is_a: InformationObject
     slots:
-    - contentDigest
     - datePublished
     - editionOf
     - hasAuthor
@@ -404,6 +419,12 @@ classes:
   Determinacy:
     class_uri: https://blackcatinformatics.ca/gmeow/Determinacy
     title: Determinacy
+  Distribution:
+    class_uri: https://blackcatinformatics.ca/gmeow/Distribution
+    title: Distribution
+    is_a: InformationObject
+    slots:
+    - distributionFormat
   Document:
     class_uri: https://blackcatinformatics.ca/gmeow/Document
     title: Document
@@ -482,7 +503,6 @@ classes:
     - versionLabel
     - versionOf
     - wasAttributedTo
-    - wasDerivedFrom
     - wasGeneratedBy
   EntityExistence:
     class_uri: https://blackcatinformatics.ca/gmeow/EntityExistence
@@ -565,6 +585,10 @@ classes:
     is_a: Appellation
     slots:
     - claimedMediaType
+  ForgePlatform:
+    class_uri: https://blackcatinformatics.ca/gmeow/ForgePlatform
+    title: Forge Platform
+    is_a: Entity
   FormalLanguage:
     class_uri: https://blackcatinformatics.ca/gmeow/FormalLanguage
     title: Formal Language
@@ -630,6 +654,9 @@ classes:
   GeometryType:
     class_uri: https://blackcatinformatics.ca/gmeow/GeometryType
     title: Geometry Type
+  GovernanceModel:
+    class_uri: https://blackcatinformatics.ca/gmeow/GovernanceModel
+    title: Governance Model
   GrammaticalAspect:
     class_uri: https://blackcatinformatics.ca/gmeow/GrammaticalAspect
     title: Grammatical Aspect
@@ -686,6 +713,10 @@ classes:
     slots:
     - relationshipInterval
     - relationshipParty
+  Issue:
+    class_uri: https://blackcatinformatics.ca/gmeow/Issue
+    title: Issue
+    is_a: InformationObject
   Item:
     class_uri: https://blackcatinformatics.ca/gmeow/Item
     title: Item
@@ -901,6 +932,9 @@ classes:
     slots:
     - residenceMailbox
     - residentMessage
+  MaintenanceStatus:
+    class_uri: https://blackcatinformatics.ca/gmeow/MaintenanceStatus
+    title: Maintenance Status
   Manifestation:
     class_uri: https://blackcatinformatics.ca/gmeow/Manifestation
     title: Manifestation
@@ -940,6 +974,10 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/MentalReferenceFrame
     title: Mental Reference Frame
     is_a: ReferenceFrame
+  MergeRequest:
+    class_uri: https://blackcatinformatics.ca/gmeow/MergeRequest
+    title: Merge Request
+    is_a: InformationObject
   Message:
     class_uri: https://blackcatinformatics.ca/gmeow/Message
     title: Message
@@ -1155,6 +1193,13 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/PGPSignature
     title: PGP Signature
     is_a: CryptographicSignature
+  Package:
+    class_uri: https://blackcatinformatics.ca/gmeow/Package
+    title: Package
+    is_a: InformationObject
+    slots:
+    - hasDistribution
+    - packageOf
   ParentChildRelationship:
     class_uri: https://blackcatinformatics.ca/gmeow/ParentChildRelationship
     title: Parent-Child Relationship
@@ -1301,6 +1346,17 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Prohibition
     title: Prohibition
     is_a: Rule
+  Project:
+    class_uri: https://blackcatinformatics.ca/gmeow/Project
+    title: Project
+    is_a: Entity
+    slots:
+    - governanceModel
+    - hasRelease
+    - hasRepository
+    - maintenanceStatus
+    - projectIdentifier
+    - projectLicense
   PronounSet:
     class_uri: https://blackcatinformatics.ca/gmeow/PronounSet
     title: Pronoun Set
@@ -1337,6 +1393,12 @@ classes:
     is_a: InformationObject
     slots:
     - recurrenceRuleText
+  Ref:
+    class_uri: https://blackcatinformatics.ca/gmeow/Ref
+    title: Ref
+    is_a: InformationObject
+    slots:
+    - pointsToCommit
   ReferenceFrame:
     class_uri: https://blackcatinformatics.ca/gmeow/ReferenceFrame
     title: Reference Frame
@@ -1384,9 +1446,29 @@ classes:
     - relayBy
     - relayFrom
     - relayProtocol
+  Release:
+    class_uri: https://blackcatinformatics.ca/gmeow/Release
+    title: Release
+    is_a: Event
+    slots:
+    - releaseOf
+    - releaseTag
+    - releaseVersion
   Repository:
     class_uri: https://blackcatinformatics.ca/gmeow/Repository
     title: Repository
+    is_a: InformationObject
+    slots:
+    - cloneUrl
+    - hostedAt
+    - repositoryType
+    - webUrl
+  RepositoryType:
+    class_uri: https://blackcatinformatics.ca/gmeow/RepositoryType
+    title: Repository Type
+  Review:
+    class_uri: https://blackcatinformatics.ca/gmeow/Review
+    title: Review
     is_a: InformationObject
   RightsAction:
     class_uri: https://blackcatinformatics.ca/gmeow/RightsAction
@@ -1564,18 +1646,31 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/SoftwareName
     title: Software Name
     is_a: Appellation
+  SoftwareProduct:
+    class_uri: https://blackcatinformatics.ca/gmeow/SoftwareProduct
+    title: Software Product
+    is_a: Work
   SoftwareProject:
     class_uri: https://blackcatinformatics.ca/gmeow/SoftwareProject
     title: Software Project
-    is_a: Work
+    is_a: Project
     slots:
-    - developer
-    - hasRepository
-    - hasSoftwareName
     - writtenInLanguage
+  SourceDirectory:
+    class_uri: https://blackcatinformatics.ca/gmeow/SourceDirectory
+    title: Source Directory
+    is_a: SourceTree
+  SourceFile:
+    class_uri: https://blackcatinformatics.ca/gmeow/SourceFile
+    title: Source File
+    is_a: SourceNode
   SourceIndependence:
     class_uri: https://blackcatinformatics.ca/gmeow/SourceIndependence
     title: Source Independence
+  SourceNode:
+    class_uri: https://blackcatinformatics.ca/gmeow/SourceNode
+    title: Source Node
+    is_a: InformationObject
   SourceRole:
     class_uri: https://blackcatinformatics.ca/gmeow/SourceRole
     title: Source Role
@@ -1583,6 +1678,10 @@ classes:
   SourceTier:
     class_uri: https://blackcatinformatics.ca/gmeow/SourceTier
     title: Source Tier
+  SourceTree:
+    class_uri: https://blackcatinformatics.ca/gmeow/SourceTree
+    title: Source Tree
+    is_a: SourceNode
   SpatialAggregation:
     class_uri: https://blackcatinformatics.ca/gmeow/SpatialAggregation
     title: Spatial Aggregation
@@ -2117,6 +2216,17 @@ slots:
     range: string
     domain: AuthenticationResult
     multivalued: false
+  authorTime:
+    slot_uri: https://blackcatinformatics.ca/gmeow/authorTime
+    title: author time
+    range: datetime
+    domain: Commit
+  authoredBy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/authoredBy
+    title: authored by
+    range: Agent
+    domain: Commit
+    multivalued: true
   authorityLink:
     slot_uri: https://blackcatinformatics.ca/gmeow/authorityLink
     title: authority link
@@ -2257,6 +2367,11 @@ slots:
     title: claimed media type
     range: string
     domain: Filename
+  cloneUrl:
+    slot_uri: https://blackcatinformatics.ca/gmeow/cloneUrl
+    title: clone URL
+    range: string
+    domain: Repository
   coarsenTo:
     slot_uri: https://blackcatinformatics.ca/gmeow/coarsenTo
     title: coarsen to
@@ -2274,6 +2389,29 @@ slots:
     range: Event
     domain: Event
     multivalued: true
+  commitInRepository:
+    slot_uri: https://blackcatinformatics.ca/gmeow/commitInRepository
+    title: commit in repository
+    range: Repository
+    domain: Commit
+    multivalued: false
+  commitTree:
+    slot_uri: https://blackcatinformatics.ca/gmeow/commitTree
+    title: commit tree
+    range: SourceTree
+    domain: Commit
+    multivalued: false
+  committedBy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/committedBy
+    title: committed by
+    range: Agent
+    domain: Commit
+    multivalued: true
+  committerTime:
+    slot_uri: https://blackcatinformatics.ca/gmeow/committerTime
+    title: committer time
+    range: datetime
+    domain: Commit
   conditionsOfAccess:
     slot_uri: https://blackcatinformatics.ca/gmeow/conditionsOfAccess
     title: conditions of access
@@ -2368,7 +2506,6 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/contentDigest
     title: content digest
     range: string
-    domain: CreativeWork
   contractAddress:
     slot_uri: https://blackcatinformatics.ca/gmeow/contractAddress
     title: contract address
@@ -2531,12 +2668,6 @@ slots:
     range: Determinacy
     domain: ReferenceFrame
     multivalued: false
-  developer:
-    slot_uri: https://blackcatinformatics.ca/gmeow/developer
-    title: developer
-    range: Agent
-    domain: SoftwareProject
-    multivalued: true
   dimensionCount:
     slot_uri: https://blackcatinformatics.ca/gmeow/dimensionCount
     title: dimension count
@@ -2552,6 +2683,11 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/displayable
     title: displayable
     range: boolean
+  distributionFormat:
+    slot_uri: https://blackcatinformatics.ca/gmeow/distributionFormat
+    title: distribution format
+    range: string
+    domain: Distribution
   domainPart:
     slot_uri: https://blackcatinformatics.ca/gmeow/domainPart
     title: domain part
@@ -2917,6 +3053,12 @@ slots:
     range: GeometryType
     domain: Geometry
     multivalued: true
+  governanceModel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/governanceModel
+    title: governance model
+    range: GovernanceModel
+    domain: Project
+    multivalued: true
   hasAccessibilityFeature:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasAccessibilityFeature
     title: has accessibility feature
@@ -3105,6 +3247,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasDeterminacy
     title: has determinacy
     range: Determinacy
+    multivalued: true
+  hasDistribution:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasDistribution
+    title: has distribution
+    range: Distribution
+    domain: Package
     multivalued: true
   hasDuration:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasDuration
@@ -3400,11 +3548,17 @@ slots:
     range: RelayHop
     domain: Message
     multivalued: true
+  hasRelease:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasRelease
+    title: has release
+    range: Release
+    domain: Project
+    multivalued: true
   hasRepository:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasRepository
     title: has repository
     range: Repository
-    domain: SoftwareProject
+    domain: Project
     multivalued: true
   hasRightsStatement:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasRightsStatement
@@ -3491,7 +3645,6 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasSoftwareName
     title: has software name
     range: SoftwareName
-    domain: SoftwareProject
     multivalued: true
   hasSpatialMeasurement:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasSpatialMeasurement
@@ -3658,6 +3811,12 @@ slots:
     range: integer
     domain: RelayHop
     multivalued: false
+  hostedAt:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hostedAt
+    title: hosted at
+    range: ForgePlatform
+    domain: Repository
+    multivalued: true
   identifier:
     slot_uri: https://blackcatinformatics.ca/gmeow/identifier
     title: identifier
@@ -4028,6 +4187,12 @@ slots:
     range: string
     domain: Mailbox
     multivalued: false
+  maintenanceStatus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/maintenanceStatus
+    title: maintenance status
+    range: MaintenanceStatus
+    domain: Project
+    multivalued: true
   mappedFrom:
     slot_uri: https://blackcatinformatics.ca/gmeow/mappedFrom
     title: mapped from
@@ -4370,6 +4535,18 @@ slots:
     range: ScalarQuantity
     domain: RegulatoryOverlay
     multivalued: true
+  packageOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/packageOf
+    title: package of
+    range: SoftwareProduct
+    domain: Package
+    multivalued: true
+  parentCommit:
+    slot_uri: https://blackcatinformatics.ca/gmeow/parentCommit
+    title: parent commit
+    range: Commit
+    domain: Commit
+    multivalued: true
   parentFrame:
     slot_uri: https://blackcatinformatics.ca/gmeow/parentFrame
     title: parent frame
@@ -4551,6 +4728,12 @@ slots:
     range: string
     domain: Geocode
     multivalued: false
+  pointsToCommit:
+    slot_uri: https://blackcatinformatics.ca/gmeow/pointsToCommit
+    title: points to commit
+    range: Commit
+    domain: Ref
+    multivalued: true
   poseFrame:
     slot_uri: https://blackcatinformatics.ca/gmeow/poseFrame
     title: pose frame
@@ -4630,6 +4813,17 @@ slots:
     title: profile open value
     range: string
     domain: Profile
+    multivalued: true
+  projectIdentifier:
+    slot_uri: https://blackcatinformatics.ca/gmeow/projectIdentifier
+    title: project identifier
+    range: string
+    domain: Project
+  projectLicense:
+    slot_uri: https://blackcatinformatics.ca/gmeow/projectLicense
+    title: project license
+    range: License
+    domain: Project
     multivalued: true
   pronounObject:
     slot_uri: https://blackcatinformatics.ca/gmeow/pronounObject
@@ -4887,12 +5081,35 @@ slots:
     range: string
     domain: RelayHop
     multivalued: false
+  releaseOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/releaseOf
+    title: release of
+    range: Project
+    domain: Release
+    multivalued: false
+  releaseTag:
+    slot_uri: https://blackcatinformatics.ca/gmeow/releaseTag
+    title: release tag
+    range: Tag
+    domain: Release
+    multivalued: true
+  releaseVersion:
+    slot_uri: https://blackcatinformatics.ca/gmeow/releaseVersion
+    title: release version
+    range: string
+    domain: Release
   replyTo:
     slot_uri: https://blackcatinformatics.ca/gmeow/replyTo
     title: reply to
     range: EmailAddress
     domain: EmailMessage
     multivalued: true
+  repositoryType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/repositoryType
+    title: repository type
+    range: RepositoryType
+    domain: Repository
+    multivalued: false
   requiresHost:
     slot_uri: https://blackcatinformatics.ca/gmeow/requiresHost
     title: requires host
@@ -5816,8 +6033,7 @@ slots:
   wasDerivedFrom:
     slot_uri: https://blackcatinformatics.ca/gmeow/wasDerivedFrom
     title: was derived from
-    range: Entity
-    domain: Entity
+    range: string
     multivalued: true
   wasGeneratedBy:
     slot_uri: https://blackcatinformatics.ca/gmeow/wasGeneratedBy
@@ -5825,6 +6041,11 @@ slots:
     range: Activity
     domain: Entity
     multivalued: true
+  webUrl:
+    slot_uri: https://blackcatinformatics.ca/gmeow/webUrl
+    title: web URL
+    range: string
+    domain: Repository
   what3words:
     slot_uri: https://blackcatinformatics.ca/gmeow/what3words
     title: what3words
@@ -6476,9 +6697,18 @@ enums:
   ContributionRoleEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ContributionRole
     permissible_values:
+      roleAIAssistant:
+        meaning: https://blackcatinformatics.ca/gmeow/roleAIAssistant
+        title: AI assistant
       roleAuthor:
         meaning: https://blackcatinformatics.ca/gmeow/roleAuthor
         title: author
+      roleBotContributor:
+        meaning: https://blackcatinformatics.ca/gmeow/roleBotContributor
+        title: bot contributor
+      roleCodeReviewer:
+        meaning: https://blackcatinformatics.ca/gmeow/roleCodeReviewer
+        title: code reviewer
       roleComposer:
         meaning: https://blackcatinformatics.ca/gmeow/roleComposer
         title: composer
@@ -6527,12 +6757,24 @@ enums:
       roleProjectAdministration:
         meaning: https://blackcatinformatics.ca/gmeow/roleProjectAdministration
         title: project administration
+      roleReleaser:
+        meaning: https://blackcatinformatics.ca/gmeow/roleReleaser
+        title: releaser
       roleResources:
         meaning: https://blackcatinformatics.ca/gmeow/roleResources
         title: resources
+      roleSecurityContact:
+        meaning: https://blackcatinformatics.ca/gmeow/roleSecurityContact
+        title: security contact
       roleSoftware:
         meaning: https://blackcatinformatics.ca/gmeow/roleSoftware
         title: software
+      roleSoftwareDeveloper:
+        meaning: https://blackcatinformatics.ca/gmeow/roleSoftwareDeveloper
+        title: software developer
+      roleSoftwareMaintainer:
+        meaning: https://blackcatinformatics.ca/gmeow/roleSoftwareMaintainer
+        title: software maintainer
       roleSupervision:
         meaning: https://blackcatinformatics.ca/gmeow/roleSupervision
         title: supervision
@@ -6782,6 +7024,12 @@ enums:
       eventTypeClinicalTrial:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeClinicalTrial
         title: clinical trial
+      eventTypeCodeReview:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeCodeReview
+        title: code review
+      eventTypeCommit:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeCommit
+        title: commit
       eventTypeConfirmation:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeConfirmation
         title: confirmation
@@ -6833,6 +7081,9 @@ enums:
       eventTypeMarriage:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeMarriage
         title: marriage
+      eventTypeMerge:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeMerge
+        title: merge
       eventTypeMilitaryService:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeMilitaryService
         title: military service
@@ -6848,6 +7099,12 @@ enums:
       eventTypeProbate:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeProbate
         title: probate
+      eventTypePush:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypePush
+        title: push
+      eventTypeRelease:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeRelease
+        title: release
       eventTypeResidence:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeResidence
         title: residence
@@ -7100,6 +7357,24 @@ enums:
       geometryTypePolygon:
         meaning: https://blackcatinformatics.ca/gmeow/geometryTypePolygon
         title: polygon
+  GovernanceModelEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GovernanceModel
+    permissible_values:
+      governanceBDFL:
+        meaning: https://blackcatinformatics.ca/gmeow/governanceBDFL
+        title: BDFL
+      governanceCorporate:
+        meaning: https://blackcatinformatics.ca/gmeow/governanceCorporate
+        title: corporate
+      governanceDAO:
+        meaning: https://blackcatinformatics.ca/gmeow/governanceDAO
+        title: DAO
+      governanceFoundation:
+        meaning: https://blackcatinformatics.ca/gmeow/governanceFoundation
+        title: foundation
+      governanceMeritocracy:
+        meaning: https://blackcatinformatics.ca/gmeow/governanceMeritocracy
+        title: meritocracy
   GrammaticalAspectEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GrammaticalAspect
     permissible_values:
@@ -7637,6 +7912,24 @@ enums:
       licenseFamilyPublicDomain:
         meaning: https://blackcatinformatics.ca/gmeow/licenseFamilyPublicDomain
         title: public domain
+  MaintenanceStatusEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/MaintenanceStatus
+    permissible_values:
+      statusAbandoned:
+        meaning: https://blackcatinformatics.ca/gmeow/statusAbandoned
+        title: abandoned
+      statusActive:
+        meaning: https://blackcatinformatics.ca/gmeow/statusActive
+        title: active
+      statusDeprecated:
+        meaning: https://blackcatinformatics.ca/gmeow/statusDeprecated
+        title: deprecated
+      statusEOL:
+        meaning: https://blackcatinformatics.ca/gmeow/statusEOL
+        title: end of life
+      statusMaintained:
+        meaning: https://blackcatinformatics.ca/gmeow/statusMaintained
+        title: maintained
   ManifestationFormatEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ManifestationFormat
     permissible_values:
@@ -8634,6 +8927,27 @@ enums:
       overlayTypeZoning:
         meaning: https://blackcatinformatics.ca/gmeow/overlayTypeZoning
         title: zoning / land-use regulation
+  RepositoryTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/RepositoryType
+    permissible_values:
+      repoTypeFossil:
+        meaning: https://blackcatinformatics.ca/gmeow/repoTypeFossil
+        title: fossil
+      repoTypeGit:
+        meaning: https://blackcatinformatics.ca/gmeow/repoTypeGit
+        title: git
+      repoTypeHg:
+        meaning: https://blackcatinformatics.ca/gmeow/repoTypeHg
+        title: mercurial
+      repoTypeJJ:
+        meaning: https://blackcatinformatics.ca/gmeow/repoTypeJJ
+        title: jujutsu
+      repoTypePijul:
+        meaning: https://blackcatinformatics.ca/gmeow/repoTypePijul
+        title: pijul
+      repoTypeSVN:
+        meaning: https://blackcatinformatics.ca/gmeow/repoTypeSVN
+        title: subversion
   RightsActionEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/RightsAction
     permissible_values:

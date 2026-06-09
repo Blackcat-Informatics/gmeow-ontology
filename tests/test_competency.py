@@ -53,7 +53,7 @@ def test_competency_agents_query() -> None:
 
 def test_competency_works_query() -> None:
     terms = _query_terms("works.rq")
-    for term in ("CreativeWork", "Article", "Patent", "Dataset", "SoftwareProject"):
+    for term in ("CreativeWork", "Article", "Patent", "Dataset", "SoftwareProduct"):
         assert NAMESPACE + term in terms
 
 

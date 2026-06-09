@@ -25,10 +25,12 @@ def test_person_unifies_across_vocabularies() -> None:
 
 
 def test_software_project_aligned_to_doap() -> None:
+    """SoftwareProject is now under Project (not Work) so DOAP's conflation is
+    a lossy closeMatch, not equivalence (Principle 6 — greenfield de-conflation)."""
     graph = _graph()
     assert (
         URIRef(GMEOW + "SoftwareProject"),
-        OWL.equivalentClass,
+        SKOS.closeMatch,
         URIRef("http://usefulinc.com/ns/doap#Project"),
     ) in graph
 

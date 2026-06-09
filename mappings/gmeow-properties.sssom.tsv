@@ -32,7 +32,6 @@ gmeow:datePublished	owl:equivalentProperty	schema:datePublished		semapv:ManualMa
 gmeow:description	owl:equivalentProperty	schema:description		semapv:ManualMappingCuration	1.0	
 gmeow:description	skos:closeMatch	dcterms:description		semapv:ManualMappingCuration	0.9	
 gmeow:description	skos:closeMatch	vcard:note		semapv:ManualMappingCuration	0.8	
-gmeow:developer	owl:equivalentProperty	doap:developer		semapv:ManualMappingCuration	1.0	
 gmeow:email	owl:equivalentProperty	schema:email		semapv:ManualMappingCuration	1.0	
 gmeow:email	skos:closeMatch	foaf:mbox		semapv:ManualMappingCuration	0.9	foaf:mbox is an IRI; close not equivalent
 gmeow:email	skos:closeMatch	vcard:hasEmail		semapv:ManualMappingCuration	0.9	
@@ -41,6 +40,7 @@ gmeow:hasAuthor	skos:closeMatch	foaf:maker		semapv:ManualMappingCuration	0.9
 gmeow:hasChild	owl:equivalentProperty	rel:parentOf		semapv:ManualMappingCuration	0.95	
 gmeow:hasChild	owl:equivalentProperty	schema:children		semapv:ManualMappingCuration	1.0	
 gmeow:hasContactPoint	owl:equivalentProperty	schema:contactPoint		semapv:ManualMappingCuration	0.9	
+gmeow:hasContributor	skos:closeMatch	doap:developer		semapv:ManualMappingCuration	0.7	
 gmeow:hasMember	skos:closeMatch	org:member		semapv:ManualMappingCuration	0.8	
 gmeow:hasOccupation	owl:equivalentProperty	schema:hasOccupation		semapv:ManualMappingCuration	1.0	
 gmeow:hasParent	owl:equivalentProperty	rel:childOf		semapv:ManualMappingCuration	0.95	childOf points child->parent = hasParent

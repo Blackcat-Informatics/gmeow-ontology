@@ -138,6 +138,16 @@ gmeow:eventTypeExpressionCreation      a gmeow:EventType ; rdfs:label "expressio
 gmeow:eventTypeManifestationProduction a gmeow:EventType ; rdfs:label "manifestation production"@en ; skos:definition "The event of producing a concrete edition, format, or release — the act that brings a gmeow:Manifestation into existence (printing, pressing, digital publishing)."@en .
 
 # --------------------------------------------------------------------------- #
+# Software event types — values, not Event subclasses (Principle 9)
+# --------------------------------------------------------------------------- #
+
+gmeow:eventTypeCommit     a gmeow:EventType ; rdfs:label "commit"@en ;     skos:definition "The event of recording a version-control commit — a content-addressed snapshot of a codebase."@en .
+gmeow:eventTypeRelease    a gmeow:EventType ; rdfs:label "release"@en ;    skos:definition "The event of publishing a software release — producing a versioned product with associated artifacts."@en .
+gmeow:eventTypePush       a gmeow:EventType ; rdfs:label "push"@en ;       skos:definition "The event of pushing commits to a remote repository."@en .
+gmeow:eventTypeMerge      a gmeow:EventType ; rdfs:label "merge"@en ;      skos:definition "The event of merging one branch of development into another."@en .
+gmeow:eventTypeCodeReview a gmeow:EventType ; rdfs:label "code review"@en ; skos:definition "The event of reviewing code changes for quality, correctness, and policy compliance."@en .
+
+# --------------------------------------------------------------------------- #
 # Participant role — an OPEN value vocabulary. Generalizes the former genealogy
 # hasPrincipal / hasWitness / hasOfficiant subproperties into role values borne
 # on a gmeow:Participation relator.

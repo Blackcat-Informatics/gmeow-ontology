@@ -473,13 +473,16 @@ def test_has_agreement_name_subproperty_of_hasappellation() -> None:
 
 
 def test_has_software_name_subproperty_of_hasappellation() -> None:
-    """hasSoftwareName is the software-project-scoped specialization of hasAppellation
-    (issue #97)."""
+    """hasSoftwareName is the software-scoped specialization of hasAppellation
+    (issue #97), domain-free so it can attach to both SoftwareProject and
+    SoftwareProduct (issue #231)."""
     graph = _graph()
     hsn = URIRef(GMEOW + "hasSoftwareName")
     assert (hsn, RDF.type, OWL.ObjectProperty) in graph
     assert (hsn, RDFS.subPropertyOf, URIRef(GMEOW + "hasAppellation")) in graph
-    assert (hsn, RDFS.domain, URIRef(GMEOW + "SoftwareProject")) in graph
+    # Domain is inherited from hasAppellation (Entity), not restricted to
+    # SoftwareProject, so both projects and products can bear software names.
+    assert (hsn, RDFS.domain, URIRef(GMEOW + "SoftwareProject")) not in graph
     assert (hsn, RDFS.range, URIRef(GMEOW + "SoftwareName")) in graph
 
 
