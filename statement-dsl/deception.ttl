@@ -87,3 +87,17 @@ ex:claim-bullshit-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.7 ] ,
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-04-01T00:00:00Z"^^xsd:dateTime ] ,
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-analyst ] .
+
+# 7. A myth telling propagation — one CreativeWork telling derives from another,
+#    scoped with confidence and a standpoint (issue #214, Deception EPIC #212).
+#    The propagation agent may bear roleDupe (unwitting) or roleDeceiver (knowing).
+ex:claim-myth-propagation-001 a gmeow:StatementMetadata ;
+    rdfs:label "Myth telling propagation — social-post telling derived from article telling"@en ;
+    gmeow:reifier    ex:claim-myth-propagation-001 ;
+    gmeow:qSubject   ex:telling-social-post-001 ;
+    gmeow:qPredicate gmeow:propagatesFrom ;
+    gmeow:qObject    ex:telling-article-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.78 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-05-10T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-factchecker ] .

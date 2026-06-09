@@ -1,0 +1,18 @@
+# Competency question: "What myths exist and how do their tellings propagate?"
+# Expected: gmeow:Myth, gmeow:hasMythTelling, gmeow:mythFrame, gmeow:propagatesFrom,
+#           and gmeow:wasDerivedFrom (the PROV-O lineage spine reused by propagation).
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?term WHERE {
+    { BIND(gmeow:Myth AS ?term) }
+    UNION { BIND(gmeow:hasMythTelling AS ?term) }
+    UNION { BIND(gmeow:mythFrame AS ?term) }
+    UNION { BIND(gmeow:propagatesFrom AS ?term) }
+    UNION {
+        gmeow:propagatesFrom rdfs:subPropertyOf+ gmeow:wasDerivedFrom .
+        BIND(gmeow:wasDerivedFrom AS ?term)
+    }
+}
+ORDER BY ?term

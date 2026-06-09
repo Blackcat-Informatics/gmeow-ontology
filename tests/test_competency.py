@@ -422,3 +422,16 @@ def test_competency_deception_roles_query() -> None:
     ):
         assert NAMESPACE + term in terms
     assert len(terms) >= 4
+
+
+def test_competency_myths_query() -> None:
+    terms = _query_terms("myths.rq")
+    for term in (
+        "Myth",
+        "hasMythTelling",
+        "mythFrame",
+        "propagatesFrom",
+        "wasDerivedFrom",
+    ):
+        assert NAMESPACE + term in terms
+    assert len(terms) >= 5

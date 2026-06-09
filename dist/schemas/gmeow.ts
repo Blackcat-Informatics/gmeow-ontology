@@ -2114,6 +2114,7 @@ export interface CreativeWork extends InformationObject {
     identifier?: string,
     isRequiredBy?: CreativeWork[],
     medium?: CarrierMedium[],
+    propagatesFrom?: CreativeWork[],
     requires?: CreativeWork[],
     sourceFor?: NarrativeReferenceFrame[],
     sourceLocation?: string,
@@ -2976,6 +2977,15 @@ export interface MonetaryAmount extends Entity {
 
 
 
+export interface Myth extends SocialObject {
+    affectedConsumerSurface?: ProjectionContext[],
+    hasMythTelling?: CreativeWork[],
+    mythFrame?: NarrativeReferenceFrame,
+    recurringRisk?: boolean,
+}
+
+
+
 export interface NamePart extends InformationObject {
     namePartType?: NamePartType,
     partExpansion?: string,
@@ -3713,6 +3723,11 @@ export interface Skill extends Entity {
 
 export interface SmartContract extends Entity {
     contractAddress?: string,
+}
+
+
+
+export interface SocialObject extends Entity {
 }
 
 

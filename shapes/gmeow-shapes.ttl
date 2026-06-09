@@ -2121,6 +2121,41 @@ gmeow:CharacterArcShape
         sh:message "A CharacterArc must have exactly one gmeow:arcType." ;
     ] .
 
+gmeow:MythShape
+    a sh:NodeShape ;
+    rdfs:label "Myth Shape" ;
+    sh:targetClass gmeow:Myth ;
+    sh:property [
+        sh:path gmeow:mythFrame ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:NarrativeReferenceFrame ;
+        sh:severity sh:Violation ;
+        sh:message "A Myth must have exactly one gmeow:mythFrame." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:hasMythTelling ;
+        sh:minCount 0 ;
+        sh:class gmeow:CreativeWork ;
+        sh:severity sh:Violation ;
+        sh:message "A Myth telling must be a gmeow:CreativeWork." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:recurringRisk ;
+        sh:minCount 0 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:severity sh:Violation ;
+        sh:message "A Myth may have at most one gmeow:recurringRisk boolean." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:affectedConsumerSurface ;
+        sh:minCount 0 ;
+        sh:class gmeow:ProjectionContext ;
+        sh:severity sh:Violation ;
+        sh:message "A Myth affected consumer surface must be a gmeow:ProjectionContext." ;
+    ] .
+
 gmeow:ReadingOrderShape
     a sh:NodeShape ;
     rdfs:label "Reading Order Shape" ;

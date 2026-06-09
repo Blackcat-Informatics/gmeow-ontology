@@ -61,6 +61,13 @@ gmeow:PhysicalObject
     skos:definition "An entity that is a material thing occupying space and time — a device, instrument, vehicle, building, or natural body. Distinct from Agent (which acts and bears responsibility) and InformationObject (which carries information content). The sortal for pose-bearing, sensor-hosting, and spatially-located things that are not agents."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:SocialObject
+    a owl:Class, gufo:Category ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Social Object"@en ;
+    skos:definition "An entity that exists by virtue of social convention, collective acceptance, or sustained narrative practice — a myth, an urban legend, an agreement, a standpoint, or a socially-constituted institution. Distinct from PhysicalObject (material) and overlapping with InformationObject (a myth is both social and informational). No disjointness with InformationObject is asserted so that socially-sustained narratives may carry information content without identity clash."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 # --------------------------------------------------------------------------- #
 # Universal mereology — the broad part/whole spine (#76).
 #
