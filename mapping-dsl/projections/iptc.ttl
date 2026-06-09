@@ -1,0 +1,73 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix bbc:   <http://www.bbc.co.uk/ontologies/news/> .
+@prefix iptc:  <http://iptc.org/std/NewsML-G2/> .
+@prefix oa:    <http://www.w3.org/ns/oa#> .
+
+# Projection mappings: GMEOW → BBC News Ontology + IPTC + Open Annotation for
+# media and journalism observation contexts.
+# Compiled to projections/iptc.edoal.ttl + queries/projections/iptc.rq by
+# `gmeow compile-mappings`.
+
+# --------------------------------------------------------------------------- #
+# Class projections
+# --------------------------------------------------------------------------- #
+
+gmeow:mapIptcNewsEvent a gmeow:ProjectionMapping ;
+    rdfs:label "StandpointClaim → bbc:NewsEvent"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "claim" ;
+        gmeow:atom ( [ gmeow:subjectVar "claim" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:StandpointClaim ] ) ;
+        gmeow:edoalSource gmeow:StandpointClaim ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "iptc" ; gmeow:toClass bbc:NewsEvent ; gmeow:relation "<=" ;
+        gmeow:confidence 0.75 ;
+        gmeow:lossyDrop "confidence, determinacy, temporal scope, and standpoint metadata are dropped; only the reported event class survives" ] .
+
+gmeow:mapIptcNewsMessage a gmeow:ProjectionMapping ;
+    rdfs:label "ObservationalActivity → iptc:NewsMessage"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "act" ;
+        gmeow:atom ( [ gmeow:subjectVar "act" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ObservationalActivity ] ) ;
+        gmeow:edoalSource gmeow:ObservationalActivity ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "iptc" ; gmeow:toClass iptc:NewsMessage ; gmeow:relation "<=" ;
+        gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "the generic observational activity is narrowed to a news message container; scientific or archaeological activities lose their specific semantics" ] .
+
+# --------------------------------------------------------------------------- #
+# Property projections
+# --------------------------------------------------------------------------- #
+
+gmeow:mapIptcAssertor a gmeow:ProjectionMapping ;
+    rdfs:label "vantage (journalist/org) → iptc:Assertor"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "claim" ; gmeow:value "source" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "claim" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:StandpointClaim ]
+            [ gmeow:subjectVar "claim" ; gmeow:predicate gmeow:vantage ; gmeow:objectVar "source" ] ) ;
+        gmeow:edoalSource gmeow:vantage ] ;
+    gmeow:hasBinding [
+        gmeow:profile "iptc" ; gmeow:relation "<=" ;
+        gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "the full GMEOW vantage (human, machine, sensor, or organisation) is narrowed to a journalistic assertor" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "source" ; gmeow:tPred rdf:type ; gmeow:tObjValue iptc:Assertor ] ) ] .
+
+gmeow:mapIptcOpenAnnotation a gmeow:ProjectionMapping ;
+    rdfs:label "StandpointClaim → oa:Annotation with target"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "claim" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "claim" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:StandpointClaim ]
+            [ gmeow:subjectVar "claim" ; gmeow:predicate gmeow:observedFeature ; gmeow:objectVar "feature" ] ) ;
+        gmeow:edoalSource gmeow:StandpointClaim ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "iptc" ; gmeow:toClass oa:Annotation ; gmeow:relation "<=" ;
+        gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "standpoint, confidence, and temporal scope are flattened; the observed feature projects to oa:hasTarget; oa:hasBody is omitted because the claim IRI has no separate content node in this pattern" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "claim" ; gmeow:tPred rdf:type ; gmeow:tObjValue oa:Annotation ]
+            [ gmeow:tSubj "claim" ; gmeow:tPred oa:hasTarget ; gmeow:tObj "feature" ] ) ] .

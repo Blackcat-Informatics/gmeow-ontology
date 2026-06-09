@@ -1,0 +1,107 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix obscore: <http://www.ivoa.net/rdf/ObsCore#> .
+
+# Projection mappings: GMEOW → IVOA ObsCore for astronomical observation datasets.
+# Compiled to projections/ivoa.edoal.ttl + queries/projections/ivoa.rq by
+# `gmeow compile-mappings`.
+
+# --------------------------------------------------------------------------- #
+# Class projections
+# --------------------------------------------------------------------------- #
+
+gmeow:mapIvoaObsDataset a gmeow:ProjectionMapping ;
+    rdfs:label "SensoryObservation → obscore:ObsDataset"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "obs" ;
+        gmeow:atom ( [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensoryObservation ] ) ;
+        gmeow:edoalSource gmeow:SensoryObservation ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ivoa" ; gmeow:toClass obscore:ObsDataset ; gmeow:relation "<=" ;
+        gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "determinacy, granularity, standpoint, and reference-frame metadata are dropped; only the generic dataset class survives" ] .
+
+# --------------------------------------------------------------------------- #
+# Property projections
+# --------------------------------------------------------------------------- #
+
+gmeow:mapIvoaReferenceFrame a gmeow:ProjectionMapping ;
+    rdfs:label "hasReferenceFrame → obscore:coordsys"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "obs" ; gmeow:value "frame" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensoryObservation ]
+            [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:hasReferenceFrame ; gmeow:objectVar "frame" ] ) ;
+        gmeow:edoalSource gmeow:hasReferenceFrame ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ivoa" ; gmeow:toPredicate obscore:coordsys ; gmeow:relation "<=" ;
+        gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "the full GMEOW reference-frame profile is flattened to a coordinate-system string or IRI" ] .
+
+gmeow:mapIvoaFacility a gmeow:ProjectionMapping ;
+    rdfs:label "Sensor (telescope) → obscore:facility"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "obs" ; gmeow:value "sensor" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensoryObservation ]
+            [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:vantage ; gmeow:objectVar "sensor" ]
+            [ gmeow:subjectVar "sensor" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Sensor ] ) ;
+        gmeow:edoalSource gmeow:vantage ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ivoa" ; gmeow:toPredicate obscore:facility ; gmeow:relation "<=" ;
+        gmeow:confidence 0.75 ;
+        gmeow:lossyDrop "the telescope/facility node is preserved, but agent roles and platform location are dropped" ] .
+
+gmeow:mapIvoaInstrument a gmeow:ProjectionMapping ;
+    rdfs:label "Sensor (instrument) → obscore:instrument"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "obs" ; gmeow:value "sensor" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensoryObservation ]
+            [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:vantage ; gmeow:objectVar "sensor" ]
+            [ gmeow:subjectVar "sensor" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Sensor ] ) ;
+        gmeow:edoalSource gmeow:vantage ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ivoa" ; gmeow:toPredicate obscore:instrument ; gmeow:relation "<=" ;
+        gmeow:confidence 0.75 ;
+        gmeow:lossyDrop "the instrument node is preserved, but agent roles and platform location are dropped" ] .
+
+gmeow:mapIvoaObservable a gmeow:ProjectionMapping ;
+    rdfs:label "ScalarQuantity → obscore:observable"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "obs" ; gmeow:value "qty" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensoryObservation ]
+            [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:observationResult ; gmeow:objectVar "qty" ]
+            [ gmeow:subjectVar "qty" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ScalarQuantity ] ) ;
+        gmeow:edoalSource gmeow:observationResult ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ivoa" ; gmeow:toPredicate obscore:observable ; gmeow:relation "<=" ;
+        gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "unit, determinacy, granularity, and reference frame are dropped; only the measured physical quantity survives" ] .
+
+# --------------------------------------------------------------------------- #
+# Datacube axes: one result node is projected to all four ObsCore axes.
+# This is intentionally lossy: GMEOW does not split results into spectral/spatial/
+# temporal/observable axes; the projection materialises all four for IVOA consumers.
+# --------------------------------------------------------------------------- #
+
+gmeow:mapIvoaObsCoreAxes a gmeow:ProjectionMapping ;
+    rdfs:label "observationResult → ObsCore spectral/spatial/time/observable axes"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "obs" ; gmeow:value "result" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensoryObservation ]
+            [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:observationResult ; gmeow:objectVar "result" ] ) ;
+        gmeow:edoalSource gmeow:observationResult ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ivoa" ; gmeow:relation "<=" ;
+        gmeow:confidence 0.65 ;
+        gmeow:lossyDrop "the single GMEOW result node is replicated across all four ObsCore axes; axis-specific metadata (units, coverage, resolution) is not preserved" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "obs" ; gmeow:tPred obscore:spectralAxis ; gmeow:tObj "result" ]
+            [ gmeow:tSubj "obs" ; gmeow:tPred obscore:spatialAxis ; gmeow:tObj "result" ]
+            [ gmeow:tSubj "obs" ; gmeow:tPred obscore:timeAxis ; gmeow:tObj "result" ]
+            [ gmeow:tSubj "obs" ; gmeow:tPred obscore:observableAxis ; gmeow:tObj "result" ] ) ] .

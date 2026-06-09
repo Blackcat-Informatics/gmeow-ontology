@@ -15,6 +15,12 @@
 @prefix obi: <http://purl.obolibrary.org/obo/OBI_> .
 @prefix qb: <http://purl.org/linked-data/cube#> .
 @prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix obscore: <http://www.ivoa.net/rdf/ObsCore#> .
+@prefix bbc: <http://www.bbc.co.uk/ontologies/news/> .
+@prefix iptc: <http://iptc.org/std/NewsML-G2/> .
+@prefix loinc: <http://loinc.org/rdf/> .
+@prefix snomed: <http://snomed.info/id/> .
+@prefix oa: <http://www.w3.org/ns/oa#> .
 
 # Term equivalences for the observation domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-observations.sssom.tsv by `gmeow compile-mappings`.
@@ -581,4 +587,174 @@ gmeow:eqObs058 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:comment "An ObservationalActivity that produces aggregate statistical data (e.g. a census) projects to an RDF Data Cube DataSet. Related match because the activity and the dataset are distinct: one generates the other." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Issue #129 — Domain-specific observation profiles
+# --------------------------------------------------------------------------- #
+
+# Archaeological — CRMarchaeo
+gmeow:eqObs060 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ObservationalActivity ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject crmarc:A1_Excavation_Process_Unit ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "CRMarchaeo A1 Excavation Process Unit is the closest class for an observational activity whose event type is excavation. Related match because A1 is specifically about destructive excavation, not any observational activity." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs061 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Observation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crmarc:S4_Observation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "CRMarchaeo S4 Observation is the closest CRM class for a stratigraphic or physical-layer observation." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs062 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ObservedFeature ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crmarc:A2_Stratigraphic_Volume_Unit ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "CRMarchaeo A2 Stratigraphic Volume Unit is the physical layer being observed in an archaeological context." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+# Astronomical — IVOA / ObsCore
+gmeow:eqObs063 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SensoryObservation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject obscore:ObsDataset ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "IVOA ObsCore ObsDataset is the closest class for an astronomical observation dataset." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs064 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasReferenceFrame ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject obscore:coordsys ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "IVOA ObsCore coordsys carries coordinate system metadata for celestial reference frames. Related match because GMEOW hasReferenceFrame is more general (spatial, temporal, and celestial frames)." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs065 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Sensor ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject obscore:facility ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "IVOA ObsCore facility identifies the telescope or observatory that produced the observation." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs066 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Sensor ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject obscore:instrument ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "IVOA ObsCore instrument identifies the instrument aboard the facility. Two relatedMatch rows because GMEOW Sensor unifies facility and instrument." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs067 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ScalarQuantity ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject obscore:observable ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "IVOA ObsCore observable is the measured physical quantity in an astronomical dataset (e.g. flux, counts)." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+# Media / Journalism — BBC + IPTC + OA
+gmeow:eqObs068 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:StandpointClaim ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject bbc:NewsEvent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "BBC NewsEvent is a reported real-world event; GMEOW StandpointClaim generalises this to any standpoint-indexed claim, not only news." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs069 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:vantage ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject iptc:Assertor ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "IPTC Assertor is the person or organisation making the claim; GMEOW vantage is broader (human, machine, organisational, or sensor standpoint)." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs070 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ObservationalActivity ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject iptc:NewsMessage ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "IPTC NewsMessage is the report container; GMEOW ObservationalActivity is broader than journalism (science, archaeology, clinical trials, etc.)." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs071 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:StandpointClaim ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject oa:Annotation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "Open Annotation Annotation is the closest W3C construct for a standpoint-indexed claim with body (the claim) and target (the observed feature). The projection layer provides the directional mapping to oa:hasBody / oa:hasTarget." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+# Clinical — LOINC + SNOMED CT
+gmeow:eqObs072 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SensoryObservation ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject loinc:LabTest ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "LOINC LabTest is the closest LOINC class for a laboratory test observation. Related match because GMEOW SensoryObservation covers any sensory/perceptual observation, not only lab tests." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs073 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ObservableProperty ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject loinc:Component ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "LOINC Component identifies what is being measured (glucose, WBC, etc.)." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs074 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ObservationMethod ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject loinc:Method ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "LOINC Method describes how a laboratory test was performed; close match to GMEOW ObservationMethod in clinical contexts." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs075 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ScalarQuantity ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject loinc:Quantity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "LOINC Quantity is the numeric result with unit in a lab test context." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs076 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ObservedFeature ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject snomed:116154003 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "SNOMED CT Patient is the subject of a clinical observation. Related match because observedFeature is more general (any entity, not only patients)." ;
+    gmeow:sssomFile "gmeow-observations.sssom.tsv" .
+
+gmeow:eqObs077 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SensoryObservation ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject snomed:404684003 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "SNOMED CT ClinicalFinding is an observation interpreted as a diagnosis or finding." ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" .

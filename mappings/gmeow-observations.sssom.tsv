@@ -6,19 +6,25 @@
 # mapping_date: 2026-06-03
 # comment: Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. gmeow:ScalarQuantity is canonical — no faithful external term captures the unit+determinacy+granularity bundle in one node. Added (#68): StandpointClaim → sosa:Observation; Agent → sosa:Sensor (the observer/sensor/perceiver is a standpoint). Added (#69): IdentityFacet, NameUsage, RightsStatement, and KinRelationship → sosa:Observation (universal claim construct); facetSubject / facetVantage → sosa:hasFeatureOfInterest / sosa:madeBySensor. Added (#77): gmeow:Quantity and gmeow:MeasuredValue are equivalent aliases for ScalarQuantity; aligned to QUDT qudt:QuantityValue. Added (#96): Stream → sosa:ObservationCollection; streamSample → sosa:hasMember; Agent → sosa:Platform; streamSensor → sosa:madeBySensor; streamInterval → sosa:phenomenonTime; Observation → sosa:Sampling. Added (#125): SpatialMeasurement and CoordinateObservation → sosa:Observation, iso19156:OM_Observation / OM_GeometryObservation, crmarc:S4_Observation; coordinateResult / geometryResult → sosa:hasResult. Added (#126): Sensor → sosa:Sensor (precise alignment, superseding Agent broadMatch); SensorPlatform → sosa:Platform (precise alignment, superseding Agent relatedMatch); ObservableProperty → sosa:ObservableProperty; SensoryQuantity → sosa:Result; sensoryProperty → sosa:observedProperty; platformLocation → geo:location; Sensor → obi:device; observationMethod → oboe:Protocol / obi:assay; ObservableProperty → oboe:Characteristic / pato:quality; SensoryObservation → qb:Observation; hasUnit → om:Unit.
 # curie_map:
+#   bbc: http://www.bbc.co.uk/ontologies/news/
 #   crm: http://www.cidoc-crm.org/cidoc-crm/
 #   crmarc: http://www.cidoc-crm.org/crmarchaeo/
 #   geo: http://www.opengis.net/ont/geosparql#
 #   gmeow: https://blackcatinformatics.ca/gmeow/
+#   iptc: http://iptc.org/std/NewsML-G2/
 #   iso19156: http://www.isotc211.org/iso19156/
+#   loinc: http://loinc.org/rdf/
+#   oa: http://www.w3.org/ns/oa#
 #   obi: http://purl.obolibrary.org/obo/OBI_
 #   oboe: http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#
+#   obscore: http://www.ivoa.net/rdf/ObsCore#
 #   om: http://www.wurvoc.org/vocabularies/om-1.8/
 #   pato: http://purl.obolibrary.org/obo/PATO_
 #   prov: http://www.w3.org/ns/prov#
 #   qb: http://purl.org/linked-data/cube#
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
+#   snomed: http://snomed.info/id/
 #   sosa: http://www.w3.org/ns/sosa/
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:Agent	skos:broadMatch	sosa:Sensor	semapv:ManualMappingCuration	0.75	An agent acting as vantage/observer/perceiver IS a standpoint (Principle 9). sosa:Sensor is device-centric and narrower; the alignment bridges the SOSA sensor concept to the broader GMEOW agent-as-standpoint doctrine.
@@ -33,32 +39,49 @@ gmeow:NameUsage	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.
 gmeow:ObservableProperty	skos:closeMatch	oboe:Characteristic	semapv:ManualMappingCuration	0.8	OBOE Characteristic is the property being measured; GMEOW ObservableProperty is a value vocabulary (individuals).
 gmeow:ObservableProperty	skos:closeMatch	pato:0000001	semapv:ManualMappingCuration	0.75	PATO quality (PATO:0000001) is the broadest quality class; GMEOW ObservableProperty is a value vocabulary of specific observable properties.
 gmeow:ObservableProperty	skos:closeMatch	sosa:ObservableProperty	semapv:ManualMappingCuration	0.9	A property that can be observed or measured by a sensor. GMEOW models it as a gufo:QualityValue vocabulary (individuals); SOSA as a class.
+gmeow:ObservableProperty	skos:relatedMatch	loinc:Component	semapv:ManualMappingCuration	0.75	LOINC Component identifies what is being measured (glucose, WBC, etc.).
 gmeow:Observation	skos:broadMatch	sosa:Sampling	semapv:ManualMappingCuration	0.8	A sampling act is a kind of observation; GMEOW models it through observationTypeSampling.
 gmeow:Observation	skos:closeMatch	crm:E13_Attribute_Assignment	semapv:ManualMappingCuration	0.9	CIDOC-CRM E13 Attribute Assignment is the closest CRM class for an observation: it is both the activity of assigning an attribute and, in GMEOW terms, the observation that results from such an activity. The event perspective is aligned to gmeow:ObservationalActivity in the events mapping set.
+gmeow:Observation	skos:closeMatch	crmarc:S4_Observation	semapv:ManualMappingCuration	0.85	CRMarchaeo S4 Observation is the closest CRM class for a stratigraphic or physical-layer observation.
 gmeow:Observation	skos:closeMatch	oboe:Observation	semapv:ManualMappingCuration	0.85	OBOE Observation is the core observation construct in the Extensible Observation Ontology; GMEOW Observation unifies it with measurement, standpoint claim, and identity claim.
 gmeow:Observation	skos:closeMatch	prov:Entity	semapv:ManualMappingCuration	0.8	An Observation is a relator (gufo), but as a named individual it is also a prov:Entity that can be attributed, derived, and versioned.
 gmeow:Observation	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.95	
+gmeow:ObservationMethod	skos:closeMatch	loinc:Method	semapv:ManualMappingCuration	0.85	LOINC Method describes how a laboratory test was performed; close match to GMEOW ObservationMethod in clinical contexts.
 gmeow:ObservationMethod	skos:closeMatch	sosa:Procedure	semapv:ManualMappingCuration	0.85	
 gmeow:ObservationalActivity	skos:closeMatch	obi:0000011	semapv:ManualMappingCuration	0.8	OBI investigation (OBI:0000011) is a planned process with the objective to produce information about some evaluant — the closest OBI class for a structured observational activity such as a clinical trial or survey.
+gmeow:ObservationalActivity	skos:relatedMatch	crmarc:A1_Excavation_Process_Unit	semapv:ManualMappingCuration	0.75	CRMarchaeo A1 Excavation Process Unit is the closest class for an observational activity whose event type is excavation. Related match because A1 is specifically about destructive excavation, not any observational activity.
+gmeow:ObservationalActivity	skos:relatedMatch	iptc:NewsMessage	semapv:ManualMappingCuration	0.7	IPTC NewsMessage is the report container; GMEOW ObservationalActivity is broader than journalism (science, archaeology, clinical trials, etc.).
 gmeow:ObservationalActivity	skos:relatedMatch	qb:DataSet	semapv:ManualMappingCuration	0.6	An ObservationalActivity that produces aggregate statistical data (e.g. a census) projects to an RDF Data Cube DataSet. Related match because the activity and the dataset are distinct: one generates the other.
+gmeow:ObservedFeature	skos:closeMatch	crmarc:A2_Stratigraphic_Volume_Unit	semapv:ManualMappingCuration	0.8	CRMarchaeo A2 Stratigraphic Volume Unit is the physical layer being observed in an archaeological context.
+gmeow:ObservedFeature	skos:relatedMatch	snomed:116154003	semapv:ManualMappingCuration	0.7	SNOMED CT Patient is the subject of a clinical observation. Related match because observedFeature is more general (any entity, not only patients).
 gmeow:Quantity	skos:closeMatch	sosa:Result	semapv:ManualMappingCuration	0.7	sosa:Result is broader (any result); gmeow:Quantity is the domain-neutral alias for ScalarQuantity (#77).
 gmeow:RightsStatement	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.8	SOSA does not distinguish observation types; a rights claim is a kind of observation in the universal stack.
 gmeow:ScalarQuantity	skos:closeMatch	sosa:Result	semapv:ManualMappingCuration	0.7	sosa:Result is broader (any result); gmeow:ScalarQuantity is specifically a scalar numeric with unit+determinacy+granularity.
+gmeow:ScalarQuantity	skos:relatedMatch	loinc:Quantity	semapv:ManualMappingCuration	0.75	LOINC Quantity is the numeric result with unit in a lab test context.
+gmeow:ScalarQuantity	skos:relatedMatch	obscore:observable	semapv:ManualMappingCuration	0.7	IVOA ObsCore observable is the measured physical quantity in an astronomical dataset (e.g. flux, counts).
 gmeow:ScalarQuantity	skos:relatedMatch	om:Measure	semapv:ManualMappingCuration	0.7	OM Measure is a broader concept; GMEOW ScalarQuantity bundles value, unit, determinacy, and granularity in one node. Related match for coordinate precision and uncertainty.
 gmeow:Sensor	skos:closeMatch	obi:0000968	semapv:ManualMappingCuration	0.8	OBI device (OBI:0000968) is a material entity that is designed to perform a function. A GMEOW Sensor is an Agent (observer) that may be realised by a device.
 gmeow:Sensor	skos:closeMatch	sosa:Sensor	semapv:ManualMappingCuration	0.9	Precise alignment: a GMEOW Sensor is a more specific kind of Agent that acts as vantage in a SensoryObservation. Supersedes the broader Agent → sosa:Sensor broadMatch (eqObs018).
+gmeow:Sensor	skos:relatedMatch	obscore:facility	semapv:ManualMappingCuration	0.75	IVOA ObsCore facility identifies the telescope or observatory that produced the observation.
+gmeow:Sensor	skos:relatedMatch	obscore:instrument	semapv:ManualMappingCuration	0.75	IVOA ObsCore instrument identifies the instrument aboard the facility. Two relatedMatch rows because GMEOW Sensor unifies facility and instrument.
 gmeow:SensorPlatform	skos:closeMatch	sosa:Platform	semapv:ManualMappingCuration	0.85	Precise alignment: a GMEOW SensorPlatform hosts sensors and is situated at a place. Supersedes the broader Agent → sosa:Platform relatedMatch (eqObs031).
+gmeow:SensoryObservation	skos:closeMatch	obscore:ObsDataset	semapv:ManualMappingCuration	0.85	IVOA ObsCore ObsDataset is the closest class for an astronomical observation dataset.
 gmeow:SensoryObservation	skos:closeMatch	qb:Observation	semapv:ManualMappingCuration	0.75	QB Observation is contextual — a SensoryObservation becomes a QB Observation when it is part of a qb:DataSet / qb:Slice. The alignment is closeMatch with context note.
+gmeow:SensoryObservation	skos:relatedMatch	loinc:LabTest	semapv:ManualMappingCuration	0.8	LOINC LabTest is the closest LOINC class for a laboratory test observation. Related match because GMEOW SensoryObservation covers any sensory/perceptual observation, not only lab tests.
+gmeow:SensoryObservation	skos:relatedMatch	snomed:404684003	semapv:ManualMappingCuration	0.75	SNOMED CT ClinicalFinding is an observation interpreted as a diagnosis or finding.
 gmeow:SensoryQuantity	skos:closeMatch	sosa:Result	semapv:ManualMappingCuration	0.85	sosa:Result is broader (any result); gmeow:SensoryQuantity is specifically a scalar numeric with unit+determinacy+granularity, equivalent to gmeow:ScalarQuantity (#77, #126).
 gmeow:SpatialMeasurement	skos:closeMatch	iso19156:OM_Observation	semapv:ManualMappingCuration	0.85	ISO 19156 O&M is the conceptual geographic standard that inspired SOSA/SSN. SpatialMeasurement aligns to the generic OM_Observation.
 gmeow:SpatialMeasurement	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.9	SOSA does not distinguish spatial measurement types; SpatialMeasurement is a kind of Observation.
 gmeow:StandpointClaim	skos:closeMatch	sosa:Observation	semapv:ManualMappingCuration	0.9	SOSA does not distinguish observation types; a standpoint claim is a kind of observation, and the standpoint-indexed statement realises sosa:Observation.
+gmeow:StandpointClaim	skos:relatedMatch	bbc:NewsEvent	semapv:ManualMappingCuration	0.75	BBC NewsEvent is a reported real-world event; GMEOW StandpointClaim generalises this to any standpoint-indexed claim, not only news.
+gmeow:StandpointClaim	skos:relatedMatch	oa:Annotation	semapv:ManualMappingCuration	0.8	Open Annotation Annotation is the closest W3C construct for a standpoint-indexed claim with body (the claim) and target (the observed feature). The projection layer provides the directional mapping to oa:hasBody / oa:hasTarget.
 gmeow:Stream	skos:closeMatch	sosa:ObservationCollection	semapv:ManualMappingCuration	0.85	SOSA has no first-class Stream; ObservationCollection is the closest grouping construct.
 gmeow:claimModality	skos:closeMatch	sosa:hasResult	semapv:ManualMappingCuration	0.75	the modality result of a standpoint claim is the SOSA result of the observation (#127)
 gmeow:coordinateResult	skos:closeMatch	sosa:hasResult	semapv:ManualMappingCuration	0.9	coordinateResult is the GeoCoordinates-specific subproperty of observationResult; aligns to SOSA's generic hasResult.
 gmeow:facetSubject	skos:closeMatch	sosa:hasFeatureOfInterest	semapv:ManualMappingCuration	0.9	facetSubject is the observedFeature of an identity claim; aligns to SOSA's feature of interest.
 gmeow:facetVantage	skos:closeMatch	sosa:madeBySensor	semapv:ManualMappingCuration	0.75	facetVantage is the asserting agent of an identity claim; aligns to SOSA's sensor (device-centric, broader via broadMatch on Agent).
 gmeow:geometryResult	skos:closeMatch	sosa:hasResult	semapv:ManualMappingCuration	0.9	geometryResult is the Geometry-specific subproperty of observationResult; aligns to SOSA's generic hasResult.
+gmeow:hasReferenceFrame	skos:relatedMatch	obscore:coordsys	semapv:ManualMappingCuration	0.7	IVOA ObsCore coordsys carries coordinate system metadata for celestial reference frames. Related match because GMEOW hasReferenceFrame is more general (spatial, temporal, and celestial frames).
 gmeow:hasUnit	skos:closeMatch	om:Unit	semapv:ManualMappingCuration	0.85	OM Unit is the unit of measure in the OM ontology; GMEOW hasUnit points to QUDT by default, with OM as an alternative by reference.
 gmeow:observationMethod	skos:closeMatch	crm:P33_used_specific_technique	semapv:ManualMappingCuration	0.85	
 gmeow:observationMethod	skos:closeMatch	obi:0000070	semapv:ManualMappingCuration	0.75	OBI assay (OBI:0000070) is a planned process with the objective to produce information about some evaluant. Aligns to the procedure/method of an observation.
@@ -78,3 +101,4 @@ gmeow:streamSensor	skos:closeMatch	sosa:madeBySensor	semapv:ManualMappingCuratio
 gmeow:vantage	skos:closeMatch	crm:P14_carried_out_by	semapv:ManualMappingCuration	0.8	crm:P14 is event-centric; gmeow:vantage is relator-centric. Semantic alignment on 'who performed it'.
 gmeow:vantage	skos:closeMatch	prov:wasAttributedTo	semapv:ManualMappingCuration	0.85	prov:wasAttributedTo is a property, gmeow:vantage is a property; the alignment is on the semantic axis (who is responsible), not structural identity.
 gmeow:vantage	skos:closeMatch	sosa:madeBySensor	semapv:ManualMappingCuration	0.7	SOSA is device-centric; gmeow:vantage covers human standpoints, organizations, and sensors alike. CloseMatch with a note.
+gmeow:vantage	skos:relatedMatch	iptc:Assertor	semapv:ManualMappingCuration	0.7	IPTC Assertor is the person or organisation making the claim; GMEOW vantage is broader (human, machine, organisational, or sensor standpoint).
