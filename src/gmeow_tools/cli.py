@@ -14,6 +14,7 @@ import typer
 from rich.console import Console
 
 from gmeow_tools import __version__
+from gmeow_tools.projections import PROFILES as _PROFILES
 
 app = typer.Typer(
     name="gmeow",
@@ -735,7 +736,7 @@ def lpg(
 def project(
     profile: str = typer.Option(
         "all",
-        help="Target profile: all|schema-org|geosparql|vcard|foaf|ical|owl-time.",
+        help="Target profile: all|" + "|".join(sorted(_PROFILES)) + ".",
     ),
     data: str = typer.Option(
         "", help="GMEOW data file to project (default: the worked-example fixtures)."

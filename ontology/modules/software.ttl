@@ -6,6 +6,11 @@
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
+# Redeclare gmeow:Agent as an owl:Class early so ROBOT's Turtle parser sees the
+# class declaration before any Phase-D property range uses it. Agent is canonically
+# defined in core.ttl; this local redeclaration is a parse-order guard only.
+gmeow:Agent a owl:Class .
+
 <https://blackcatinformatics.ca/gmeow/modules/software>
     a owl:Ontology ;
     rdfs:label "GMEOW Software Module"@en ;
@@ -281,7 +286,7 @@ gmeow:authoredBy
     rdfs:domain gmeow:Commit ;
     rdfs:range gmeow:Agent ;
     rdfs:label "authored by"@en ;
-    skos:definition "The agent who authored the changes in a commit — the creative origin of the patch. Distinct from the committer (who applied the commit to the repository). Author ≠ committer is valid and common."@en ;
+    skos:definition "The agent who authored the changes in a commit — the creative origin of the patch. Distinct from the committer (who applied the commit to the repository). Author and committer may differ."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:committedBy
@@ -700,13 +705,70 @@ gmeow:slsaLevel4 a gmeow:SLSALevel ; rdfs:label "SLSA Level 4"@en ; skos:definit
 
 gmeow:eventTypeBuild a gmeow:EventType ; rdfs:label "build"@en ; skos:definition "The event of building software from source into distribution artifacts."@en .
 
+# --------------------------------------------------------------------------- #
+# PHASE D — Author identity over immutable history (#234)
+# AuthorIdentity records the raw bytes that appeared in a commit; canonicalized
+# identity links those bytes to the current self-asserted Agent. Superseded
+# identities carry gmeow:displayable false (Principle 10). The .mailmap file is
+# a generated projection, not canonical source (Principle 4).
+# --------------------------------------------------------------------------- #
+
+gmeow:AuthorIdentity
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Author Identity"@en ;
+    skos:definition "A recorded author or committer string in a version-control commit — the raw git bytes (Name <email>). This is the immutable historical assertion, independent of the current canonical agent. Superseded identities are retained with gmeow:displayable false rather than deleted (Principle 10)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:commitAuthorIdentity
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Commit ;
+    rdfs:range gmeow:AuthorIdentity ;
+    rdfs:label "commit author identity"@en ;
+    skos:definition "The recorded author identity of a commit — the raw historical bytes. Distinct from gmeow:authoredBy, which points to the canonical agent currently understood to have authored the changes."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:commitCommitterIdentity
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Commit ;
+    rdfs:range gmeow:AuthorIdentity ;
+    rdfs:label "commit committer identity"@en ;
+    skos:definition "The recorded committer identity of a commit — the raw historical bytes. Distinct from gmeow:committedBy, which points to the canonical agent currently understood to have committed the changes."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:authorIdentityString
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:AuthorIdentity ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "author identity string"@en ;
+    skos:definition "The raw author or committer bytes as they appeared in the commit object, typically 'Name <email>'."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:canonicalizedIdentity
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AuthorIdentity ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "canonicalized identity"@en ;
+    skos:definition "The current self-asserted agent to which a historical AuthorIdentity is understood to refer. Old and new identities coexist as co-equal standpoints, never merged by identical identity (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:mailmapEntry
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "mailmap entry"@en ;
+    skos:definition "The canonical .mailmap line for an agent — typically 'Canonical Name <canonical@example.com>'. This is the source value from which the .mailmap projection is generated (Principle 4)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE — EL someValuesFrom for reasoner visibility
 # =========================================================================== #
 
 gmeow:Commit rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:authoredBy ;      owl:someValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:commitTree ;      owl:someValuesFrom gmeow:SourceTree ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:authoredBy ;           owl:someValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:commitAuthorIdentity ;  owl:someValuesFrom gmeow:AuthorIdentity ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:commitCommitterIdentity ; owl:someValuesFrom gmeow:AuthorIdentity ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:commitTree ;           owl:someValuesFrom gmeow:SourceTree ] .
 
 gmeow:Release rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:releaseOf ;       owl:someValuesFrom gmeow:Project ] .

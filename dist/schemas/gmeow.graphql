@@ -1893,6 +1893,7 @@ type Agent
     holdsAccount: [OnlineAccount]
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
+    mailmapEntry: String
     memberOf: [Organization]
     nativeLanguage: [Language]
     telephone: String
@@ -2266,6 +2267,58 @@ type AuthenticationResult
     authMethod: String
     authResult: String
     authServer: String
+  }
+
+type AuthorIdentity
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    authorIdentityString: String
+    canonicalizedIdentity: [Agent]
   }
 
 type Axis
@@ -2791,6 +2844,7 @@ type Builder
     holdsAccount: [OnlineAccount]
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
+    mailmapEntry: String
     memberOf: [Organization]
     nativeLanguage: [Language]
     telephone: String
@@ -3212,6 +3266,8 @@ type Commit
     authorTime: String
     authoredBy: [Agent]
     commitAncestor: [Commit]
+    commitAuthorIdentity: AuthorIdentity
+    commitCommitterIdentity: AuthorIdentity
     commitDescendant: [Commit]
     commitInRepository: Repository
     commitTree: SourceTree
@@ -7664,6 +7720,7 @@ type Organization
     holdsAccount: [OnlineAccount]
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
+    mailmapEntry: String
     memberOf: [Organization]
     nativeLanguage: [Language]
     telephone: String
@@ -7970,6 +8027,7 @@ type Person
     holdsAccount: [OnlineAccount]
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
+    mailmapEntry: String
     memberOf: [Organization]
     nativeLanguage: [Language]
     telephone: String
@@ -9539,6 +9597,7 @@ type Sensor
     holdsAccount: [OnlineAccount]
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
+    mailmapEntry: String
     memberOf: [Organization]
     nativeLanguage: [Language]
     telephone: String
@@ -10324,6 +10383,7 @@ type SoftwareAgent
     holdsAccount: [OnlineAccount]
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
+    mailmapEntry: String
     memberOf: [Organization]
     nativeLanguage: [Language]
     telephone: String

@@ -45,6 +45,7 @@ PROFILES: dict[str, Profile] = {
     "ontolex": Profile("ontolex", ("ontolex", "lime", "rdf")),
     "web-annotation": Profile("web-annotation", ("oa",)),
     "bot": Profile("bot", ("bot",)),
+    "mailmap": Profile("mailmap", ("gmeow",)),
 }
 
 #: Worked-example inputs (locations + naming + languages + identity + contacts +
@@ -61,6 +62,7 @@ _EXAMPLE_FIXTURES = (
     "events.ttl",
     "rights.ttl",
     "tags.ttl",
+    "identity-over-history.ttl",
 )
 
 

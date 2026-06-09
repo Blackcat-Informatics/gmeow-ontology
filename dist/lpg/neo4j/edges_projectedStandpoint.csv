@@ -1,2 +1,7 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,standpointModality,validFrom,validUntil
-edge:c2d2f6650d86ab94,gmeow:examples/event-deception-001,gmeow:examples/standpointclaim-projected-001,projectedStandpoint,,2026-01-15T00:00:00Z,0.9,,,,,
+id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
+edge:4fa3ee99d2272e47,gmeow:examples/event-lie-001,gmeow:examples/standpointclaim-lie-projected-001,projectedStandpoint,,2026-06-01T00:00:00Z,0.9,,,,,,
+edge:5855ad24e1165faf,gmeow:examples/event-self-deception-001,gmeow:examples/standpointclaim-self-deception-projected-001,projectedStandpoint,,2026-06-06T00:00:00Z,0.75,,,,,,
+edge:7f1a94a038e642b1,gmeow:examples/event-distortion-001,gmeow:examples/standpointclaim-distortion-projected-001,projectedStandpoint,,2026-06-04T00:00:00Z,0.85,,,,,,
+edge:c2d2f6650d86ab94,gmeow:examples/event-deception-001,gmeow:examples/standpointclaim-projected-001,projectedStandpoint,,2026-01-15T00:00:00Z,0.9,,,,,,
+edge:d83cb7a56e9d6900,gmeow:examples/event-paltering-001,gmeow:examples/standpointclaim-paltering-projected-001,projectedStandpoint,,2026-06-02T00:00:00Z,0.85,,,,,,
+edge:efb9e33e65167966,gmeow:examples/event-bullshit-001,gmeow:examples/standpointclaim-bullshit-projected-001,projectedStandpoint,,2026-06-05T00:00:00Z,0.8,,,,,,
