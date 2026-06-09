@@ -79,4 +79,5 @@
         <https://blackcatinformatics.ca/gmeow/modules/aggregation> ,
         <https://blackcatinformatics.ca/gmeow/modules/attestation> ,
         <https://blackcatinformatics.ca/gmeow/modules/accessibility> ,
+        <https://blackcatinformatics.ca/gmeow/modules/notes> ,
         <https://blackcatinformatics.ca/gmeow/modules/deception> .

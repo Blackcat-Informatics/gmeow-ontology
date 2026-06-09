@@ -1,0 +1,210 @@
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+@prefix oa:     <http://www.w3.org/ns/oa#> .
+@prefix as:     <https://www.w3.org/ns/activitystreams#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# Projection mappings: GMEOW notes & annotations → W3C Web Annotation, schema.org,
+# ActivityStreams, and Markdown wikilinks.
+# Compiled to projections/*.edoal.ttl + queries/projections/*.rq by
+# `gmeow compile-mappings`.
+
+# --------------------------------------------------------------------------- #
+# W3C Web Annotation — Annotation relator → oa:Annotation
+# --------------------------------------------------------------------------- #
+
+gmeow:mapOaAnnotation a gmeow:ProjectionMapping ;
+    rdfs:label "Annotation relator → oa:Annotation (body/target/motivatedBy)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ann" ; gmeow:value "ann" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "ann" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Annotation ]
+            [ gmeow:subjectVar "ann" ; gmeow:predicate gmeow:annotationTarget ; gmeow:objectVar "target" ]
+            [ gmeow:subjectVar "ann" ; gmeow:predicate gmeow:annotationMotivation ; gmeow:objectVar "motiv" ]
+            [ gmeow:subjectVar "ann" ; gmeow:predicate gmeow:annotationBody ; gmeow:objectVar "body" ; gmeow:optional true ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "ann" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "target" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:Annotation ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "web-annotation" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget oa:Annotation ; gmeow:edoalTargetKind "class" ;
+        gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "provenance, confidence, temporal scope, standpoint, suppression dropped; body may be absent (highlights/bookmarks)" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "ann" ; gmeow:tPred rdf:type ; gmeow:tObjValue oa:Annotation ]
+            [ gmeow:tSubj "ann" ; gmeow:tPred oa:hasTarget ; gmeow:tObj "target" ]
+            [ gmeow:tSubj "ann" ; gmeow:tPred oa:motivatedBy ; gmeow:tObj "motiv" ]
+            [ gmeow:tSubj "ann" ; gmeow:tPred oa:hasBody ; gmeow:tObj "body" ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# W3C Web Annotation — Highlight → oa:Annotation (target + selector, no body)
+# --------------------------------------------------------------------------- #
+
+gmeow:mapOaHighlight a gmeow:ProjectionMapping ;
+    rdfs:label "Highlight → oa:Annotation (SpecificResource + selector, no body)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "hl" ; gmeow:value "hl" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "hl" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Highlight ]
+            [ gmeow:subjectVar "hl" ; gmeow:predicate gmeow:annotationTarget ; gmeow:objectVar "target" ]
+            [ gmeow:subjectVar "hl" ; gmeow:predicate gmeow:annotationTargetSpan ; gmeow:objectVar "span" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "hl" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "target" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:mint [ gmeow:bindVar "sr" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "hl" ] ) ]
+                    "-specific-resource" ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:Highlight ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "web-annotation" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget oa:Annotation ; gmeow:edoalTargetKind "class" ;
+        gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "body absent by design; selector precision (prefix/suffix) dropped if not projected; provenance/confidence/standpoint dropped" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "hl" ; gmeow:tPred rdf:type ; gmeow:tObjValue oa:Annotation ]
+            [ gmeow:tSubj "hl" ; gmeow:tPred oa:hasTarget ; gmeow:tObj "sr" ]
+            [ gmeow:tSubj "sr" ; gmeow:tPred rdf:type ; gmeow:tObjValue oa:SpecificResource ]
+            [ gmeow:tSubj "sr" ; gmeow:tPred oa:hasSource ; gmeow:tObj "target" ]
+            [ gmeow:tSubj "sr" ; gmeow:tPred oa:hasSelector ; gmeow:tObj "span" ]
+            [ gmeow:tSubj "hl" ; gmeow:tPred oa:motivatedBy ; gmeow:tObjValue oa:highlighting ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# W3C Web Annotation — Bookmark → oa:Annotation (target only, no body/selector)
+# --------------------------------------------------------------------------- #
+
+gmeow:mapOaBookmark a gmeow:ProjectionMapping ;
+    rdfs:label "Bookmark → oa:Annotation (target only, motivatedBy bookmarking)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "bm" ; gmeow:value "bm" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "bm" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Bookmark ]
+            [ gmeow:subjectVar "bm" ; gmeow:predicate gmeow:annotationTarget ; gmeow:objectVar "target" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "bm" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "target" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:Bookmark ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "web-annotation" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget oa:Annotation ; gmeow:edoalTargetKind "class" ;
+        gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "body and selector absent by design; provenance/confidence/standpoint dropped" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "bm" ; gmeow:tPred rdf:type ; gmeow:tObjValue oa:Annotation ]
+            [ gmeow:tSubj "bm" ; gmeow:tPred oa:hasTarget ; gmeow:tObj "target" ]
+            [ gmeow:tSubj "bm" ; gmeow:tPred oa:motivatedBy ; gmeow:tObjValue oa:bookmarking ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# W3C Web Annotation — Comment → oa:Annotation (replying)
+# --------------------------------------------------------------------------- #
+
+gmeow:mapOaComment a gmeow:ProjectionMapping ;
+    rdfs:label "Comment → oa:Annotation (body = comment, target = parent, motivatedBy replying)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cmt" ; gmeow:value "cmt" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "cmt" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Comment ]
+            [ gmeow:subjectVar "cmt" ; gmeow:predicate gmeow:commentParent ; gmeow:objectVar "parent" ]
+            [ gmeow:subjectVar "cmt" ; gmeow:predicate gmeow:noteContent ; gmeow:objectVar "content" ; gmeow:optional true ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "cmt" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "parent" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:Comment ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "web-annotation" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget oa:Annotation ; gmeow:edoalTargetKind "class" ;
+        gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "thread depth, reply tree, standpoint, confidence, temporal scope dropped; only direct parent-target survives" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "cmt" ; gmeow:tPred rdf:type ; gmeow:tObjValue oa:Annotation ]
+            [ gmeow:tSubj "cmt" ; gmeow:tPred oa:hasTarget ; gmeow:tObj "parent" ]
+            [ gmeow:tSubj "cmt" ; gmeow:tPred oa:hasBody ; gmeow:tObj "content" ]
+            [ gmeow:tSubj "cmt" ; gmeow:tPred oa:motivatedBy ; gmeow:tObjValue oa:replying ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# schema.org — Note → schema:NoteDigitalDocument
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaNote a gmeow:ProjectionMapping ;
+    rdfs:label "Note → schema:NoteDigitalDocument"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "note" ; gmeow:value "note" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "note" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Note ]
+            [ gmeow:subjectVar "note" ; gmeow:predicate gmeow:noteContent ; gmeow:objectVar "content" ; gmeow:optional true ]
+            [ gmeow:subjectVar "note" ; gmeow:predicate gmeow:noteAuthor ; gmeow:objectVar "author" ; gmeow:optional true ]
+            [ gmeow:subjectVar "note" ; gmeow:predicate gmeow:commentParent ; gmeow:objectVar "parent" ; gmeow:optional true ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "note" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "parent" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:Note ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget schema:NoteDigitalDocument ; gmeow:edoalTargetKind "class" ;
+        gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "standpoint, confidence, temporal scope, suppression state, aboutness, tagging dropped; Comment-specific typing collapsed to schema:NoteDigitalDocument (rdflib UNION limit)" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "note" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:NoteDigitalDocument ]
+            [ gmeow:tSubj "note" ; gmeow:tPred schema:text ; gmeow:tObj "content" ]
+            [ gmeow:tSubj "note" ; gmeow:tPred schema:author ; gmeow:tObj "author" ]
+            [ gmeow:tSubj "note" ; gmeow:tPred schema:parentItem ; gmeow:tObj "parent" ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# ActivityStreams — Note → as:Note
+# --------------------------------------------------------------------------- #
+
+gmeow:mapAsNote a gmeow:ProjectionMapping ;
+    rdfs:label "Note → as:Note"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "note" ; gmeow:value "note" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "note" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Note ]
+            [ gmeow:subjectVar "note" ; gmeow:predicate gmeow:noteContent ; gmeow:objectVar "content" ; gmeow:optional true ]
+            [ gmeow:subjectVar "note" ; gmeow:predicate gmeow:noteAuthor ; gmeow:objectVar "author" ; gmeow:optional true ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "note" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:Note ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "activitystreams" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget as:Note ; gmeow:edoalTargetKind "class" ;
+        gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "standpoint, confidence, temporal scope, suppression state, aboutness, tagging, backlinks dropped" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "note" ; gmeow:tPred rdf:type ; gmeow:tObjValue as:Note ]
+            [ gmeow:tSubj "note" ; gmeow:tPred as:content ; gmeow:tObj "content" ]
+            [ gmeow:tSubj "note" ; gmeow:tPred as:attributedTo ; gmeow:tObj "author" ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# Markdown / Wikilink — mentions / relatedNote → flat wikilink graph
+# --------------------------------------------------------------------------- #
+
+gmeow:mapMarkdownMentions a gmeow:ProjectionMapping ;
+    rdfs:label "mentions → gmeow:hasWikilink (markdown round-trip)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "src" ; gmeow:value "tgt" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "src" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Note ]
+            [ gmeow:subjectVar "src" ; gmeow:predicate gmeow:mentions ; gmeow:objectVar "tgt" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "src" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "tgt" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:mentions ] ;
+    gmeow:hasBinding [
+        gmeow:profile "markdown" ; gmeow:relation "<=" ;
+        gmeow:toPredicate gmeow:hasWikilink ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "mentions → directed wikilink edge only" ] .
+
+gmeow:mapMarkdownRelatedNote a gmeow:ProjectionMapping ;
+    rdfs:label "relatedNote → gmeow:hasWikilink (symmetric, markdown round-trip)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "a" ; gmeow:value "b" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "a" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Note ]
+            [ gmeow:subjectVar "a" ; gmeow:predicate gmeow:relatedNote ; gmeow:objectVar "b" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "a" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:suppressWhen [ gmeow:subjectVar "b" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:relatedNote ] ;
+    gmeow:hasBinding [
+        gmeow:profile "markdown" ; gmeow:relation "<=" ;
+        gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "relatedNote → bidirectional wikilink edges materialized; standpoint, confidence, temporal scope, suppression, aboutness, tagging dropped" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "a" ; gmeow:tPred gmeow:hasWikilink ; gmeow:tObj "b" ]
+            [ gmeow:tSubj "b" ; gmeow:tPred gmeow:hasWikilink ; gmeow:tObj "a" ] ) ] .

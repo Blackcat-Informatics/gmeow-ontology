@@ -87,6 +87,8 @@ _PROFILES = (
     "spdx",
     "ontolex",
     "web-annotation",
+    "activitystreams",
+    "markdown",
     "bot",
     "sosa",
     "crmarchaeo",

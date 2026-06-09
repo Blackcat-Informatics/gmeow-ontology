@@ -37,7 +37,7 @@ def test_selector_is_kind() -> None:
     g = _graph()
     assert (GMEOW.Selector, RDF.type, OWL.Class) in g
     assert (GMEOW.Selector, RDF.type, GUFO.Kind) in g
-    assert (GMEOW.Selector, RDFS.subClassOf, GMEOW.InformationObject) in g
+    assert (GMEOW.Selector, RDFS.subClassOf, GMEOW.EvidenceSpan) in g
 
 
 def test_source_role_is_role_mixin() -> None:
