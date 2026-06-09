@@ -999,6 +999,22 @@ enum PeriodTypeEnum
     periodTypeHistoricalEra
   }
 
+enum PhysicalCarrierTypeEnum
+  {
+    carrierBone
+    carrierCoin
+    carrierManuscript
+    carrierMetal
+    carrierOstracon
+    carrierPapyrus
+    carrierPotterySherd
+    carrierSeal
+    carrierStela
+    carrierTablet
+    carrierWallInscription
+    carrierWood
+  }
+
 enum PlaceTypeEnum
   {
     placeTypeAdministrativeArea
@@ -1659,6 +1675,15 @@ type Appellation
     nameScript: String
     romanization: String
     transliterationScheme: [TransliterationScheme]
+  }
+
+type ArchaeologicalFindContext
+  {
+    findContextDating: [TemporalMeasurement]
+    findContextEvent: [Event]
+    findContextPlace: [Place]
+    findContextStratigraphy: [Entity]
+    findContextTarget: PhysicalObject
   }
 
 type Article
@@ -3867,6 +3892,70 @@ type InformationObject
     detectedMediaType: String
   }
 
+type Inscription
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    name: String
+    proximity: [ProximityMeasurement]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    detectedMediaType: String
+    inscriptionCarrier: PhysicalObject
+  }
+
+type InscriptionReading
+  {
+    readingOf: Inscription
+    readingResult: [LexicalForm]
+  }
+
+type InscriptionTranslation
+  {
+    translationOf: Inscription
+    translationResult: [LexicalForm]
+  }
+
+type InscriptionTransliteration
+  {
+    transliterationOf: Inscription
+    transliterationResult: [LexicalForm]
+  }
+
 type Instant
   {
     inTemporalFrame: [TemporalFrame]
@@ -5978,6 +6067,10 @@ type PGPSignature
     verificationStatus: String
   }
 
+type PhysicalCarrierType
+  {
+  }
+
 type PhysicalObject
   {
     acquireLicensePage: String
@@ -6020,6 +6113,8 @@ type PhysicalObject
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    carrierInscription: [Inscription]
+    carrierType: [PhysicalCarrierType]
   }
 
 type Place
@@ -7039,6 +7134,23 @@ type ScalarQuantity
     wasGeneratedBy: [Activity]
     quantityUncertainty: Float
     quantityValue: Float
+  }
+
+type ScriptLanguageAttribution
+  {
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    vantage: [Entity]
+    attributedLanguage: [Language]
+    attributedNotation: [NotationSystem]
+    attributedScript: [WritingSystem]
+    attributionTarget: Inscription
   }
 
 type ScriptRole
@@ -8942,6 +9054,7 @@ type UsageAttestation
     attestedInContext: [Entity]
     attestedInLanguage: [Language]
     attestedInSource: [CreativeWork]
+    attestedOnCarrier: [PhysicalObject]
   }
 
 type Utilization

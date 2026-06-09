@@ -182,7 +182,10 @@ def test_dsl_parses() -> None:
     # IPTC NewsML-G2 x3, Open Annotation x1, LOINC x2, SNOMED CT x2).
     # Issue #231 software five-facet de-conflation: +12 (DOAP x3, schema.org x3,
     # SPDX x2, CodeMeta x1, ForgeFed x3).
-    assert len(dsl.equivalences) == 1288
+    # Issue #173 archaeological evidence: +16 (CIDOC-CRM E34, E19, P128, P128i,
+    # CRMarchaeo A2 x2, CRMsci S4 x3, CRMinf I1/I2 x2, PROV-O Activity/generated x2,
+    # Web Annotation x3).
+    assert len(dsl.equivalences) == 1304
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -210,7 +213,8 @@ def test_dsl_parses() -> None:
     # Issue #172 notation and symbolic systems: +1 (gmeow-notation.sssom.tsv).
     # Issue #224 evidence: +1 (gmeow-evidence.sssom.tsv).
     # Issue #231 software five-facet de-conflation: +1 (gmeow-software.sssom.tsv).
-    assert len(dsl.mapping_sets) == 38
+    # Issue #173 archaeological evidence: +1 (gmeow-archaeological-evidence.sssom.tsv).
+    assert len(dsl.mapping_sets) == 39
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}

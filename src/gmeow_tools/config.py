@@ -185,6 +185,7 @@ PREFIXES: dict[str, str] = {
     "snomed": "http://snomed.info/id/",
     "np": "http://www.nanopub.org/nschema#",
     "crm": "http://www.cidoc-crm.org/cidoc-crm/",
+    "crmsci": "http://www.cidoc-crm.org/extensions/crmsci/",
     "crminf": "http://www.ics.forth.gr/isl/CRMinf/",
     "oa": "http://www.w3.org/ns/oa#",
     "cito": "http://purl.org/spar/cito/",
@@ -519,6 +520,7 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
         "BOT (Building Topology Ontology)", PREFIXES["bot"], "BSD-3-Clause", "schema"
     ),
     "ifc": AlignmentTarget("ifcOWL (IFC4)", PREFIXES["ifc"], "Proprietary", "schema"),
+    "crmsci": AlignmentTarget("CRMsci", PREFIXES["crmsci"], "CC-BY-4.0", "schema"),
     "lvont": AlignmentTarget(
         "Lexvo Ontology", PREFIXES["lvont"], "CC-BY-SA-3.0", "schema"
     ),
