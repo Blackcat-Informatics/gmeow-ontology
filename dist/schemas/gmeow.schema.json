@@ -6323,6 +6323,48 @@
                         }
                     ]
                 },
+                "coverageDepth": {
+                    "items": {
+                        "$ref": "#/$defs/CoverageDepth"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasEvidenceClass": {
+                    "items": {
+                        "$ref": "#/$defs/EvidenceClass"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "sourceIndependence": {
+                    "items": {
+                        "$ref": "#/$defs/SourceIndependence"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "sourceTier": {
+                    "items": {
+                        "$ref": "#/$defs/SourceTier"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supportsNotability": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
                 "viaSelector": {
                     "items": {
                         "$ref": "#/$defs/Selector"
@@ -6862,6 +6904,22 @@
             },
             "title": "CoupleRelationship",
             "type": "object"
+        },
+        "CoverageDepth": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "CoverageDepth",
+            "type": "object"
+        },
+        "CoverageDepthEnum": {
+            "description": "",
+            "enum": [
+                "coverageDepthPassingMention",
+                "coverageDepthRoutineFiling",
+                "coverageDepthSignificantCoverage"
+            ],
+            "title": "CoverageDepthEnum",
+            "type": "string"
         },
         "CreativeWork": {
             "additionalProperties": false,
@@ -12168,6 +12226,36 @@
                 "eventTypeWorkConception"
             ],
             "title": "EventTypeEnum",
+            "type": "string"
+        },
+        "EvidenceClass": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "EvidenceClass",
+            "type": "object"
+        },
+        "EvidenceClassEnum": {
+            "description": "",
+            "enum": [
+                "evidenceANECDOTAL",
+                "evidenceFamilyNarrative",
+                "evidenceGeneratedReport",
+                "evidenceIndependentTradePress",
+                "evidenceLegalFiling",
+                "evidenceNewspaperLead",
+                "evidenceOcrExtract",
+                "evidenceOfficialSource",
+                "evidencePrivateCorrespondence",
+                "evidencePrivateScan",
+                "evidencePublicRegistry",
+                "evidenceRUMOR",
+                "evidenceRawArchive",
+                "evidenceSELF",
+                "evidenceSelfControlledSite",
+                "evidenceSourceCodeArchive",
+                "evidenceVERIFIED"
+            ],
+            "title": "EvidenceClassEnum",
             "type": "string"
         },
         "Expression": {
@@ -42997,6 +43085,21 @@
             "title": "SoftwareProject",
             "type": "object"
         },
+        "SourceIndependence": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "SourceIndependence",
+            "type": "object"
+        },
+        "SourceIndependenceEnum": {
+            "description": "",
+            "enum": [
+                "sourceIndependenceIndependent",
+                "sourceIndependenceSelfOrIssuerOriginated"
+            ],
+            "title": "SourceIndependenceEnum",
+            "type": "string"
+        },
         "SourceRole": {
             "additionalProperties": false,
             "description": "",
@@ -43472,6 +43575,22 @@
             },
             "title": "SourceRole",
             "type": "object"
+        },
+        "SourceTier": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "SourceTier",
+            "type": "object"
+        },
+        "SourceTierEnum": {
+            "description": "",
+            "enum": [
+                "sourceTierPrimary",
+                "sourceTierSecondary",
+                "sourceTierTertiary"
+            ],
+            "title": "SourceTierEnum",
+            "type": "string"
         },
         "SpatialAggregation": {
             "additionalProperties": false,

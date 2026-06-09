@@ -296,6 +296,13 @@ enum CopyrightStatusEnum
     copyrightStatusUndetermined
   }
 
+enum CoverageDepthEnum
+  {
+    coverageDepthPassingMention
+    coverageDepthRoutineFiling
+    coverageDepthSignificantCoverage
+  }
+
 enum CreativeWorkTypeEnum
   {
     workTypeAudiovisual
@@ -397,6 +404,27 @@ enum EventTypeEnum
     eventTypeSurvey
     eventTypeWill
     eventTypeWorkConception
+  }
+
+enum EvidenceClassEnum
+  {
+    evidenceANECDOTAL
+    evidenceFamilyNarrative
+    evidenceGeneratedReport
+    evidenceIndependentTradePress
+    evidenceLegalFiling
+    evidenceNewspaperLead
+    evidenceOcrExtract
+    evidenceOfficialSource
+    evidencePrivateCorrespondence
+    evidencePrivateScan
+    evidencePublicRegistry
+    evidenceRUMOR
+    evidenceRawArchive
+    evidenceSELF
+    evidenceSelfControlledSite
+    evidenceSourceCodeArchive
+    evidenceVERIFIED
   }
 
 enum FrameKindEnum
@@ -1274,6 +1302,19 @@ enum SignatureSchemeEnum
     signatureSchemeECDSASecp256k1
     signatureSchemeEd25519
     signatureSchemeRSASHA256
+  }
+
+enum SourceIndependenceEnum
+  {
+    sourceIndependenceIndependent
+    sourceIndependenceSelfOrIssuerOriginated
+  }
+
+enum SourceTierEnum
+  {
+    sourceTierPrimary
+    sourceTierSecondary
+    sourceTierTertiary
   }
 
 enum StandpointEnum
@@ -2306,6 +2347,11 @@ type CitationAct
     citationIntent: CitationIntent
     citedEntity: CreativeWork
     citingEntity: Entity
+    coverageDepth: [CoverageDepth]
+    hasEvidenceClass: [EvidenceClass]
+    sourceIndependence: [SourceIndependence]
+    sourceTier: [SourceTier]
+    supportsNotability: Boolean
     viaSelector: [Selector]
   }
 
@@ -2408,6 +2454,10 @@ type CopyrightStatus
 type CoupleRelationship
   {
     hasPartner: [Person]
+  }
+
+type CoverageDepth
+  {
   }
 
 type CreativeWork
@@ -3101,6 +3151,10 @@ type EventSeries
   }
 
 type EventType
+  {
+  }
+
+type EvidenceClass
   {
   }
 
@@ -7192,6 +7246,10 @@ type SoftwareProject
     writtenInLanguage: [ProgrammingLanguage]
   }
 
+type SourceIndependence
+  {
+  }
+
 type SourceRole
   {
     acquireLicensePage: String
@@ -7251,6 +7309,10 @@ type SourceRole
     sourceLocation: String
     sourceModifiedAt: String
     title: String
+  }
+
+type SourceTier
+  {
   }
 
 type SpatialAggregation
