@@ -2,13 +2,12 @@
 # Expected: eventTypeDeception, ClaimVeridicality, veridicalityUntrue, veridicalityLicensedFalsehood.
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT ?deceptionType WHERE {
     { ?deceptionType a gmeow:EventType . FILTER(?deceptionType = gmeow:eventTypeDeception) }
     UNION
-    { ?deceptionType a gmeow:ClaimVeridicality }
+    { BIND(gmeow:ClaimVeridicality AS ?deceptionType) }
     UNION
-    { ?deceptionType rdfs:subClassOf gmeow:ClaimVeridicality }
+    { ?deceptionType a gmeow:ClaimVeridicality }
 }
 ORDER BY ?deceptionType

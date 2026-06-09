@@ -101,6 +101,7 @@ gmeow:attestationTypeFactCheck
 
 gmeow:claimVeridicality
     a owl:ObjectProperty ;
+    rdfs:domain gmeow:StandpointClaim ;
     rdfs:range gmeow:ClaimVeridicality ;
     rdfs:label "claim veridicality"@en ;
     skos:definition "The veridicality status of a claim — whether it is untrue, licensed-false (fiction, satire, sarcasm), or true. Non-functional: a claim may carry multiple veridicality assessments from different standpoints (Principle 9)."@en ;
@@ -195,9 +196,8 @@ gmeow:argumentAcceptability
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
-# AXIOMATIZED DOCTRINE — open-world someValuesFrom for reasoner visibility.
+# AXIOMATIZED DOCTRINE — deception-specific restrictions are scoped to
+# eventTypeDeception via SHACL (DeceptionEventShape), NOT global OWL
+# restrictions on gmeow:Event, keeping the core Event class clean for
+# non-deceptive events (birth, marriage, etc.). Principle 3.
 # =========================================================================== #
-
-gmeow:Event rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:heldStandpoint ; owl:someValuesFrom gmeow:StandpointClaim ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:projectedStandpoint ; owl:someValuesFrom gmeow:StandpointClaim ] .
