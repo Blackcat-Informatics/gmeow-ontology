@@ -16,6 +16,7 @@ axioms in); linking is always permitted.
 from __future__ import annotations
 
 import csv
+import hashlib
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -155,7 +156,10 @@ def build_linksets(mappings: list[Mapping]) -> Graph:
         predicate = expand_curie(predicate_id)
         slug = predicate_id.replace(":", "_")
         target_slug = target_ns.rstrip("#/").rsplit("/", 1)[-1] or "target"
-        linkset = URIRef(f"{VOID_DATASET_IRI}-linkset-{target_slug}-{slug}")
+        # Collision-safe slug: include a short hash of the full namespace so
+        # distinct namespaces (e.g. .../ns#, .../ns#) do not collide.
+        ns_hash = hashlib.sha256(target_ns.encode()).hexdigest()[:6]
+        linkset = URIRef(f"{VOID_DATASET_IRI}-linkset-{target_slug}-{ns_hash}-{slug}")
         graph.add((linkset, RDF.type, VOID.Linkset))
         graph.add((linkset, VOID.subjectsTarget, dataset))
         graph.add((linkset, VOID.objectsTarget, URIRef(target_ns)))

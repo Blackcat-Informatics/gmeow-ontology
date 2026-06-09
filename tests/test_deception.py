@@ -47,6 +47,7 @@ def test_implicates_property_exists() -> None:
     prop = GMEOW.implicates
     assert (prop, RDF.type, OWL.ObjectProperty) in graph
     assert (prop, RDFS.domain, GMEOW.Event) in graph
+    assert (prop, RDFS.range, GMEOW.Entity) in graph
 
 
 def test_deception_cue_property_exists() -> None:
@@ -143,6 +144,11 @@ def test_deception_cue_shacl_passes() -> None:
     g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeDeception))
     g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
     g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
+    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimA, GMEOW.observationMethod, EX.method1))
+    g.add((EX.claimB, GMEOW.observationMethod, EX.method1))
+    g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
     g.add((EX.cue1, RDF.type, GMEOW.Observation))
     g.add((EX.cue1, GMEOW.vantage, EX.analyst))
     g.add((EX.cue1, GMEOW.observationResult, EX.result1))
