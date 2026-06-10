@@ -185,6 +185,8 @@ The raw header value always remains on `gmeow:userAgent` (Principle 4).
 | Presence of above header | `gmeow:readReceiptRequested` | `xsd:boolean` |
 
 The boolean `gmeow:readReceiptRequested` is a convenience projection derived
-from the presence of `Disposition-Notification-To`. The canonical underlying
-fact is the `gmeow:dispositionNotificationTo` address (or addresses). The raw
-header is also preserved in `rfc822_headers`.
+from the presence of `Disposition-Notification-To`. It is intentionally
+**non-functional**: different sources or parsers may disagree or strip the
+header (Principle 9). The canonical underlying fact is the
+`gmeow:dispositionNotificationTo` address (or addresses). The raw header is
+also preserved in `rfc822_headers`.

@@ -37,7 +37,7 @@ gmeow:replyTo	skos:closeMatch	nmo:replyTo	semapv:ManualMappingCuration	0.9
 gmeow:rfcMessageId	skos:closeMatch	nmo:messageId	semapv:ManualMappingCuration	0.95	
 gmeow:sentAt	skos:closeMatch	nmo:sentDate	semapv:ManualMappingCuration	0.95	
 gmeow:sentAt	skos:closeMatch	schema:dateSent	semapv:ManualMappingCuration	0.95	
+gmeow:sentBySoftware	skos:closeMatch	schema:agent	semapv:ManualMappingCuration	0.7	
 gmeow:subject	skos:closeMatch	nmo:messageSubject	semapv:ManualMappingCuration	0.95	
 gmeow:to	skos:closeMatch	nmo:to	semapv:ManualMappingCuration	0.95	
 gmeow:to	skos:closeMatch	schema:toRecipient	semapv:ManualMappingCuration	0.95	
-gmeow:userAgent	skos:closeMatch	schema:agent	semapv:ManualMappingCuration	0.5	

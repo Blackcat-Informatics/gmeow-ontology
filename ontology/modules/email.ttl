@@ -605,11 +605,11 @@ gmeow:precedence
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:readReceiptRequested
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    a owl:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:range xsd:boolean ;
     rdfs:label "read receipt requested"@en ;
-    skos:definition "Whether the message requests a read receipt (convenience projection derived from the presence of a Disposition-Notification-To header). The canonical underlying fact is gmeow:dispositionNotificationTo."@en ;
+    skos:definition "Whether the message requests a read receipt (convenience projection derived from the presence of a Disposition-Notification-To header). Not functional: different sources or parsers may disagree or strip the header (Principle 9). The canonical underlying fact is gmeow:dispositionNotificationTo."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:dispositionNotificationTo
