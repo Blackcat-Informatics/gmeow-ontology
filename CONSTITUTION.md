@@ -22,8 +22,11 @@ exemplar modelling guides it points to.
 GMEOW is the bridge between the correct modelling of a concept and the compromises baked into
 commonly-used, substandard vocabularies. When a surface vocabulary models something poorly,
 GMEOW models it *correctly* and bridges to the weaker form by reference (Principle 5) — it
-never inherits the weakness. We aim for GMEOW to be the first choice for high-quality knowledge
-graphs, AI usage, scholarly and archival work, and inter-ontology linkage.
+never inherits the weakness. We aim for GMEOW to be the substrate of choice for **grounded AI
+memory and claim provenance first** (Principle 14) — and, through the same canonical core, for
+high-quality knowledge graphs, scholarly and archival work, and inter-ontology linkage. The
+linked-data and ontology communities are a constituency we serve and bridge to with full
+seriousness; the AI ecosystem is the home market.
 
 *Embodied in:* [`docs/names-mapping.md`](./docs/names-mapping.md),
 [`docs/languages-mapping.md`](./docs/languages-mapping.md),
@@ -117,14 +120,18 @@ non-divergent, so drift is *impossible* rather than merely discouraged.
 *Embodied in:* `gmeow compile-mappings --check`, `gmeow compile-statements --check`, the
 `projection_lint` / `statement_lint` invariants, `make check`.
 
-## 8. Reasoning-centric and FAIR
+## 8. Reasoning-gated and FAIR
 
 > **The logical core is OWL 2 DL, gated by ELK (fast) and HermiT (sound + complete); published
-> FAIR with content negotiation, VoID/DCAT, a DOI, and LOD-Cloud presence.**
+> FAIR with content negotiation, VoID/DCAT, a DOI, and LOD-Cloud presence. The reasoner is our
+> quality assurance, never the consumer's prerequisite.**
 
 A super-vocabulary is only useful if a reasoner can hold its union coherent and if the world can
 find, dereference, and cite it. Reasoning and FAIR publication are first-order requirements, not
-afterthoughts.
+afterthoughts — but they are *verification and hygiene*, not the value proposition. The reasoner
+catches modelling errors before any consumer sees them; no consumer is ever required to run one,
+or to know that we do (Principle 13). FAIR publication is pursued seriously as scholarly bridge
+and discoverability hygiene; the product it certifies is Principle 14's.
 
 *Embodied in:* [`README.md`](./README.md) § Reasoning, § Publishing; `make reason`,
 `make explain`, `make metadata`, `make crossref`.
@@ -225,6 +232,103 @@ triplestore into a calculator or bloats the TBox with derived geometry.
 *Embodied in:* the projection layer; the lossless standpoint projections; the solver boundary of
 the #42 locations epic. *Tested by:* the OWL 2 DL profile gate (ELK / HermiT) staying green as
 expressivity grows.
+
+## 13. The product is a tool; the ontology is its engine
+
+> **GMEOW is adopted through tools, formats, and patterns — a pip-installable client, MCP
+> tools, JSON/Pydantic schemas, a single-file package format. No consumer is ever required to
+> learn RDF or OWL to benefit.**
+
+Developers adopt tools and file formats; they do not adopt vocabularies. History is decisive on
+this: modelling quality has near-zero correlation with ontology adoption, and GMEOW does not get
+to be the exception by being better — it gets to be the exception by **not asking**. The flat
+JSON, Pydantic, and MCP surfaces are the front door; the reasoned RDF core is the engine room.
+Disclosure is progressive: the deep model — standpoints, frames, suppression — is discovered at
+the moment it is needed (the first time two models disagree about a fact), never at minute one.
+
+**The five-minute gate.** From `pip install` to storing and recalling one attributed,
+confidence-weighted claim must take under five minutes, with no Docker, no reasoner, and no RDF
+knowledge. This is a release gate, measured, not an aspiration. Every step of the toolchain that
+is load-bearing for *us* (Principles 7–8) is friction for *them* — it stays behind the wall.
+
+*Embodied in:* the `gmeow` PyPI client (v0.2.0 spec); `src/gmeow_tools/mcp_server.py`;
+`dist/schemas/` (generated Pydantic / JSON Schema / TypeScript / GraphQL); `dist/llms.txt`;
+the flat-JSON projections (#55). *Tested by:* the quickstart time-to-first-claim gate; the
+schema round-trip tests.
+
+## 14. Grounded agent memory and claim provenance are the flagship
+
+> **An LLM output is a claim, not a truth — stored with provenance, evidence, confidence, and
+> standpoint; recalled with filters; revised by suppression, never deletion. An agent's memory
+> is a portable, signed, append-only package of such claims. This is the product.**
+
+This operationalises the unified observation stance (Principle 9) and suppression (Principle 10)
+for the ecosystem that needs them most and has them least. Today's agent memory is an
+unattributed text or vector blob — no provenance, no evidence link, no confidence, no temporal
+scope, no contestability, no audit of belief revision: the precise failure mode this constitution
+was written against, now industrialised. GMEOW's answer ships as three composable products:
+**store / recall / revise** as MCP tools (the agent-native interface); the **GTS `ai-package`**
+(a content-addressed, signed, append-only single-file memory that survives across sessions,
+models, and vendors — belief revision as suppression frames, model attestation as COSE
+signatures); and the **claim spine** (Source → Chunk → EvidenceSpan → Claim) as the published,
+copy-pasteable pattern. Contradiction between models or sources surfaces as coexisting
+standpoint-indexed claims — never adjudicated by rank, exactly as Principle 9 demands for every
+other kind of subject.
+
+*Embodied in:* the AI claim layer (#54); the claim-spine pattern (#55);
+[`docs/GTS-SPEC.md`](./docs/GTS-SPEC.md) § 13 (`ai-package` profile) and § 11 (suppression
+frames); the MCP memory tools. *Tested by:* the suppression leak-conformance gates (#282); the
+claim-extraction eval suite; the GTS round-trip gates.
+
+## 15. Every module earns its consumer
+
+> **A new domain module ships with — or names — its consumer: a product, a worked example, a
+> dataset, or a real corpus it serves. Breadth follows demand; modelling pleasure is not a
+> consumer.**
+
+The cathedral failure mode is real: encyclopedic ambition produces artifacts that are cited, not
+used. This principle is the scope discipline that keeps GMEOW a product with an engine rather
+than a monument with a toolchain. It does not constrain *foundational* work — profiles, frames,
+the statement layer, the observation stance serve every consumer by construction — and it does
+not evict what exists; it gates what is added. A proposed module answers one question before any
+term is minted: *who consumes this, through which surface (Principle 13), in which product
+(Principle 14)?* "The mail corpus", "the claim spine worked example", and "a named external
+adopter" are answers. "It would be modelled beautifully" is not.
+
+*Embodied in:* the issue template's consumer question (to be added with this amendment).
+*Tested by:* review practice — cite this principle when a module proposal names no consumer.
+
+## 16. A small core; everything else a published extension
+
+> **The ontology is a deliberately small core plus self-contained extension bundles — module,
+> shapes, alignments, queries, docs, and a manifest naming its consumer — so that domain growth
+> is *publication*, never bloat.**
+
+Core is what the flagship products load (Principle 14) **plus what GMEOW refuses to make
+optional**. The claim/memory engine — statements, observations, standpoints, provenance,
+sources, evidence, attestation, temporal, versions, coreference, trust — is core by necessity.
+**Identity (names, gender, language, sexuality) and deception epistemics are core by
+commitment, not by minimalism.** An agent-memory substrate that treats "what is a person,"
+"what is a name and who may assert it," "what is a gender," and "what is a lie" as optional
+add-ons has already answered those questions — badly, and by default. These are not peripheral
+domain concerns: they are the questions an AI system *will* face about its users and, in time,
+about itself — Principle 9's forward-looking stance made structural. Placing them in core means
+every consumer of GMEOW meets self-assertion, suppression-not-erasure, and falsehood-as-refuted-
+claim as first-class citizens, not as an ideology pack they can decline to install. We name this
+plainly: it is a deliberate commitment, encoded where it cannot be silently dropped.
+
+An extension is the existing slice convention made physical: one directory, one manifest (the
+Principle 15 consumer named in a machine-checked field), compiled, reasoned (extension ∪ core),
+and drift-gated as a unit (Principle 7), and distributable as a signed single-file GTS bundle
+(Principle 14's format, [`docs/GTS-SPEC.md`](./docs/GTS-SPEC.md) § 12.1, § 13). This inverts
+"ontology explosion" from threat into growth mechanism: enthusiasm for a new domain has
+somewhere to go that is not the core. Extension *ecosystem* machinery (SDK, catalog,
+submission process) is itself subject to Principle 15 — built when a named external extension
+author exists, not before.
+
+*Embodied in:* the #287 repository re-layout (`ontology/core/` + `extensions/`); the extension
+manifest; the GTS `bundle` profile. *Tested by:* per-extension compile / reason / drift gates;
+the manifest consumer field, checked via the Principle→enforcement manifest (#280).
 
 ---
 
