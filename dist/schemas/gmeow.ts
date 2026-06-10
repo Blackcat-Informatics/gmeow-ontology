@@ -1317,14 +1317,26 @@ export enum ProcedureTypeEnum {
 
 export enum ProficiencyLevelEnum {
 
+    assessed_beginner = "assessedBeginner",
+    assessed_competent = "assessedCompetent",
+    assessed_expert = "assessedExpert",
     CEFR_A1 = "cefrA1",
     CEFR_A2 = "cefrA2",
     CEFR_B1 = "cefrB1",
     CEFR_B2 = "cefrB2",
     CEFR_C1 = "cefrC1",
     CEFR_C2 = "cefrC2",
+    Dreyfus_advanced_beginner = "dreyfusAdvancedBeginner",
+    Dreyfus_competent = "dreyfusCompetent",
+    Dreyfus_expert = "dreyfusExpert",
+    Dreyfus_novice = "dreyfusNovice",
+    Dreyfus_proficient = "dreyfusProficient",
     heritage = "levelHeritage",
     native = "levelNative",
+    NIH_advanced = "nihAdvanced",
+    NIH_beginner = "nihBeginner",
+    NIH_expert = "nihExpert",
+    NIH_intermediate = "nihIntermediate",
 };
 
 export enum ProficiencyModalityEnum {
@@ -1341,8 +1353,11 @@ export enum ProficiencyModalityEnum {
 export enum ProficiencyScaleEnum {
 
     ACTFL = "scaleACTFL",
+    assessed = "scaleAssessed",
     CEFR = "scaleCEFR",
+    Dreyfus = "scaleDreyfus",
     ILR = "scaleILR",
+    NIH = "scaleNIH",
     self_reported = "scaleSelfReported",
 };
 
@@ -2028,6 +2043,7 @@ export interface Agent {
     hasUsed?: Entity[],
     hasWorkedWith?: Agent[],
     holdsAccount?: OnlineAccount[],
+    holdsCredential?: Credential[],
     holdsKey?: CryptographicKey[],
     knowsLanguage?: Language[],
     mailmapEntry?: string,
@@ -2579,6 +2595,8 @@ export interface CreativeWorkType {
 
 
 export interface Credential extends Entity {
+    credentialFor?: string[],
+    credentialIssuer?: Organization,
 }
 
 
@@ -3783,6 +3801,7 @@ export interface Occupancy extends Measurement {
 
 
 export interface Occupation extends Entity {
+    occupationClassification?: string,
 }
 
 
@@ -4525,6 +4544,16 @@ export interface SiteType {
 
 
 export interface Skill extends Entity {
+}
+
+
+
+export interface SkillProficiency {
+    skillProficiencyAgent?: Agent,
+    skillProficiencyInterval?: TimeInterval[],
+    skillProficiencyLevel?: ProficiencyLevel,
+    skillProficiencyOf?: Skill,
+    skillProficiencyScale?: ProficiencyScale,
 }
 
 

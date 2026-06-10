@@ -17,6 +17,8 @@
 @prefix sioc: <http://rdfs.org/sioc/ns#> .
 @prefix time: <http://www.w3.org/2006/time#> .
 @prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
+@prefix esco: <http://data.europa.eu/esco/model#> .
+@prefix ceterms: <https://purl.org/ctdl/terms/> .
 
 # Term equivalences for the classes domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-classes.sssom.tsv by `gmeow compile-mappings`.
@@ -436,4 +438,33 @@ gmeow:eqClasses051 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
     gmeow:comment "ORG ChangeEvent is an event (merger, split, rename, etc.)" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+# --- Expertise / CV depth (issue #263) ------------------------------------- #
+
+gmeow:eqClasses052 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Skill ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject esco:Skill ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "ESCO skill — the European skills/competences framework" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses053 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Occupation ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject esco:Occupation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "ESCO occupation is ISCO-grounded; GMEOW Occupation is the superset" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses054 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Credential ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject ceterms:Credential ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Credential Engine CTDL Credential — superset by reference" ;
     gmeow:sssomFile "gmeow-classes.sssom.tsv" .

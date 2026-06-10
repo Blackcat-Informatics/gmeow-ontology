@@ -117,6 +117,22 @@
             align:relation "<=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
+            rdfs:label "credentialFor → schema:competencyRequired"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:credentialFor ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:competencyRequired ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ],
+        [ a align:Cell ;
+            rdfs:label "credentialIssuer → schema:recognizedBy"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:credentialIssuer ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:recognizedBy ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ],
+        [ a align:Cell ;
             rdfs:label "attributionText → schema:creditText"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:attributionText ] ;
@@ -210,6 +226,14 @@
             align:entity2 [ a edoal:Property ;
                     edoal:uri schema:givenName ] ;
             align:relation "<=" ],
+        [ a align:Cell ;
+            rdfs:label "holdsCredential → schema:hasCredential"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:holdsCredential ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:hasCredential ] ;
+            align:relation "=" ;
+            edoal:measure 9e-01 ],
         [ a align:Cell ;
             rdfs:label "generic hasPart → schema:hasPart"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -644,6 +668,15 @@
                     edoal:uri schema:result ] ;
             align:relation "<=" ;
             edoal:measure 7.5e-01 ],
+        [ a align:Cell ;
+            rdfs:label "SkillProficiency relator → schema:knowsAbout / schema:skills (flatten)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasSkill ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:knowsAbout ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnSkillProficiencyToKnowsAbout ] ],
         [ a align:Cell ;
             rdfs:label "hasProcedureStep → schema:step"@en ;
             align:entity1 [ a edoal:Relation ;

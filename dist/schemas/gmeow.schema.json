@@ -626,6 +626,15 @@
                         "null"
                     ]
                 },
+                "holdsCredential": {
+                    "items": {
+                        "$ref": "#/$defs/Credential"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "holdsKey": {
                     "items": {
                         "$ref": "#/$defs/CryptographicKey"
@@ -8629,6 +8638,15 @@
                         "null"
                     ]
                 },
+                "holdsCredential": {
+                    "items": {
+                        "$ref": "#/$defs/Credential"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "holdsKey": {
                     "items": {
                         "$ref": "#/$defs/CryptographicKey"
@@ -14531,6 +14549,25 @@
                     "type": [
                         "array",
                         "null"
+                    ]
+                },
+                "credentialFor": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "credentialIssuer": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Organization"
+                        },
+                        {
+                            "type": "null"
+                        }
                     ]
                 },
                 "depictedIn": {
@@ -49896,6 +49933,12 @@
                         "null"
                     ]
                 },
+                "occupationClassification": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "provenance": {
                     "type": [
                         "string",
@@ -50649,6 +50692,15 @@
                 "holdsAccount": {
                     "items": {
                         "$ref": "#/$defs/OnlineAccount"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "holdsCredential": {
+                    "items": {
+                        "$ref": "#/$defs/Credential"
                     },
                     "type": [
                         "array",
@@ -53728,6 +53780,15 @@
                 "holdsAccount": {
                     "items": {
                         "$ref": "#/$defs/OnlineAccount"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "holdsCredential": {
+                    "items": {
+                        "$ref": "#/$defs/Credential"
                     },
                     "type": [
                         "array",
@@ -57284,14 +57345,26 @@
         "ProficiencyLevelEnum": {
             "description": "",
             "enum": [
+                "assessedBeginner",
+                "assessedCompetent",
+                "assessedExpert",
                 "cefrA1",
                 "cefrA2",
                 "cefrB1",
                 "cefrB2",
                 "cefrC1",
                 "cefrC2",
+                "dreyfusAdvancedBeginner",
+                "dreyfusCompetent",
+                "dreyfusExpert",
+                "dreyfusNovice",
+                "dreyfusProficient",
                 "levelHeritage",
-                "levelNative"
+                "levelNative",
+                "nihAdvanced",
+                "nihBeginner",
+                "nihExpert",
+                "nihIntermediate"
             ],
             "title": "ProficiencyLevelEnum",
             "type": "string"
@@ -57326,8 +57399,11 @@
             "description": "",
             "enum": [
                 "scaleACTFL",
+                "scaleAssessed",
                 "scaleCEFR",
+                "scaleDreyfus",
                 "scaleILR",
+                "scaleNIH",
                 "scaleSelfReported"
             ],
             "title": "ProficiencyScaleEnum",
@@ -67605,6 +67681,15 @@
                         "null"
                     ]
                 },
+                "holdsCredential": {
+                    "items": {
+                        "$ref": "#/$defs/Credential"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "holdsKey": {
                     "items": {
                         "$ref": "#/$defs/CryptographicKey"
@@ -72678,6 +72763,63 @@
             "title": "Skill",
             "type": "object"
         },
+        "SkillProficiency": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "skillProficiencyAgent": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Agent"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "skillProficiencyInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "skillProficiencyLevel": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ProficiencyLevel"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "skillProficiencyOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Skill"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "skillProficiencyScale": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ProficiencyScale"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                }
+            },
+            "title": "SkillProficiency",
+            "type": "object"
+        },
         "SmartContract": {
             "additionalProperties": false,
             "description": "",
@@ -73580,6 +73722,15 @@
                 "holdsAccount": {
                     "items": {
                         "$ref": "#/$defs/OnlineAccount"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "holdsCredential": {
+                    "items": {
+                        "$ref": "#/$defs/Credential"
                     },
                     "type": [
                         "array",

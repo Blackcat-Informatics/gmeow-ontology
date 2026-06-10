@@ -61,6 +61,7 @@ classes:
     - hasUsed
     - hasWorkedWith
     - holdsAccount
+    - holdsCredential
     - holdsKey
     - knowsLanguage
     - mailmapEntry
@@ -530,6 +531,9 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Credential
     title: Credential
     is_a: Entity
+    slots:
+    - credentialFor
+    - credentialIssuer
   CryptoWallet:
     class_uri: https://blackcatinformatics.ca/gmeow/CryptoWallet
     title: Crypto Wallet
@@ -1585,6 +1589,8 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Occupation
     title: Occupation
     is_a: Entity
+    slots:
+    - occupationClassification
   OnlineAccount:
     class_uri: https://blackcatinformatics.ca/gmeow/OnlineAccount
     title: Online Account
@@ -2229,6 +2235,15 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Skill
     title: Skill
     is_a: Entity
+  SkillProficiency:
+    class_uri: https://blackcatinformatics.ca/gmeow/SkillProficiency
+    title: Skill Proficiency
+    slots:
+    - skillProficiencyAgent
+    - skillProficiencyInterval
+    - skillProficiencyLevel
+    - skillProficiencyOf
+    - skillProficiencyScale
   SmartContract:
     class_uri: https://blackcatinformatics.ca/gmeow/SmartContract
     title: Smart Contract
@@ -3543,6 +3558,18 @@ slots:
     range: CoverageDepth
     domain: CitationAct
     multivalued: true
+  credentialFor:
+    slot_uri: https://blackcatinformatics.ca/gmeow/credentialFor
+    title: credential for
+    range: string
+    domain: Credential
+    multivalued: true
+  credentialIssuer:
+    slot_uri: https://blackcatinformatics.ca/gmeow/credentialIssuer
+    title: credential issuer
+    range: Organization
+    domain: Credential
+    multivalued: false
   credibilityScore:
     slot_uri: https://blackcatinformatics.ca/gmeow/credibilityScore
     title: credibility score
@@ -5137,6 +5164,12 @@ slots:
     range: OnlineAccount
     domain: Agent
     multivalued: true
+  holdsCredential:
+    slot_uri: https://blackcatinformatics.ca/gmeow/holdsCredential
+    title: holds credential
+    range: Credential
+    domain: Agent
+    multivalued: true
   holdsKey:
     slot_uri: https://blackcatinformatics.ca/gmeow/holdsKey
     title: holds key
@@ -6072,6 +6105,11 @@ slots:
     range: Location
     domain: Occupancy
     multivalued: false
+  occupationClassification:
+    slot_uri: https://blackcatinformatics.ca/gmeow/occupationClassification
+    title: occupation classification
+    range: string
+    domain: Occupation
   occurrenceOfSeries:
     slot_uri: https://blackcatinformatics.ca/gmeow/occurrenceOfSeries
     title: occurrence of series
@@ -7331,6 +7369,36 @@ slots:
     title: size estimate
     range: integer
     domain: Message
+  skillProficiencyAgent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/skillProficiencyAgent
+    title: skill proficiency agent
+    range: Agent
+    domain: SkillProficiency
+    multivalued: false
+  skillProficiencyInterval:
+    slot_uri: https://blackcatinformatics.ca/gmeow/skillProficiencyInterval
+    title: skill proficiency interval
+    range: TimeInterval
+    domain: SkillProficiency
+    multivalued: true
+  skillProficiencyLevel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/skillProficiencyLevel
+    title: skill proficiency level
+    range: ProficiencyLevel
+    domain: SkillProficiency
+    multivalued: false
+  skillProficiencyOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/skillProficiencyOf
+    title: skill proficiency of
+    range: Skill
+    domain: SkillProficiency
+    multivalued: false
+  skillProficiencyScale:
+    slot_uri: https://blackcatinformatics.ca/gmeow/skillProficiencyScale
+    title: skill proficiency scale
+    range: ProficiencyScale
+    domain: SkillProficiency
+    multivalued: false
   sourceFor:
     slot_uri: https://blackcatinformatics.ca/gmeow/sourceFor
     title: source for
@@ -11277,6 +11345,15 @@ enums:
   ProficiencyLevelEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ProficiencyLevel
     permissible_values:
+      assessedBeginner:
+        meaning: https://blackcatinformatics.ca/gmeow/assessedBeginner
+        title: assessed beginner
+      assessedCompetent:
+        meaning: https://blackcatinformatics.ca/gmeow/assessedCompetent
+        title: assessed competent
+      assessedExpert:
+        meaning: https://blackcatinformatics.ca/gmeow/assessedExpert
+        title: assessed expert
       cefrA1:
         meaning: https://blackcatinformatics.ca/gmeow/cefrA1
         title: CEFR A1
@@ -11295,12 +11372,39 @@ enums:
       cefrC2:
         meaning: https://blackcatinformatics.ca/gmeow/cefrC2
         title: CEFR C2
+      dreyfusAdvancedBeginner:
+        meaning: https://blackcatinformatics.ca/gmeow/dreyfusAdvancedBeginner
+        title: Dreyfus advanced beginner
+      dreyfusCompetent:
+        meaning: https://blackcatinformatics.ca/gmeow/dreyfusCompetent
+        title: Dreyfus competent
+      dreyfusExpert:
+        meaning: https://blackcatinformatics.ca/gmeow/dreyfusExpert
+        title: Dreyfus expert
+      dreyfusNovice:
+        meaning: https://blackcatinformatics.ca/gmeow/dreyfusNovice
+        title: Dreyfus novice
+      dreyfusProficient:
+        meaning: https://blackcatinformatics.ca/gmeow/dreyfusProficient
+        title: Dreyfus proficient
       levelHeritage:
         meaning: https://blackcatinformatics.ca/gmeow/levelHeritage
         title: heritage
       levelNative:
         meaning: https://blackcatinformatics.ca/gmeow/levelNative
         title: native
+      nihAdvanced:
+        meaning: https://blackcatinformatics.ca/gmeow/nihAdvanced
+        title: NIH advanced
+      nihBeginner:
+        meaning: https://blackcatinformatics.ca/gmeow/nihBeginner
+        title: NIH beginner
+      nihExpert:
+        meaning: https://blackcatinformatics.ca/gmeow/nihExpert
+        title: NIH expert
+      nihIntermediate:
+        meaning: https://blackcatinformatics.ca/gmeow/nihIntermediate
+        title: NIH intermediate
   ProficiencyModalityEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ProficiencyModality
     permissible_values:
@@ -11331,12 +11435,21 @@ enums:
       scaleACTFL:
         meaning: https://blackcatinformatics.ca/gmeow/scaleACTFL
         title: ACTFL
+      scaleAssessed:
+        meaning: https://blackcatinformatics.ca/gmeow/scaleAssessed
+        title: assessed
       scaleCEFR:
         meaning: https://blackcatinformatics.ca/gmeow/scaleCEFR
         title: CEFR
+      scaleDreyfus:
+        meaning: https://blackcatinformatics.ca/gmeow/scaleDreyfus
+        title: Dreyfus
       scaleILR:
         meaning: https://blackcatinformatics.ca/gmeow/scaleILR
         title: ILR
+      scaleNIH:
+        meaning: https://blackcatinformatics.ca/gmeow/scaleNIH
+        title: NIH
       scaleSelfReported:
         meaning: https://blackcatinformatics.ca/gmeow/scaleSelfReported
         title: self-reported

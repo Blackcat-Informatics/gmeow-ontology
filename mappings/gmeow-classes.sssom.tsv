@@ -8,7 +8,9 @@
 # curie_map:
 #   bibframe: http://id.loc.gov/ontologies/bibframe/
 #   bibo: http://purl.org/ontology/bibo/
+#   ceterms: https://purl.org/ctdl/terms/
 #   doap: http://usefulinc.com/ns/doap#
+#   esco: http://data.europa.eu/esco/model#
 #   foaf: http://xmlns.com/foaf/0.1/
 #   gedcom: http://www.w3.org/2000/10/swap/pim/gedcom#
 #   geo: http://www.opengis.net/ont/geosparql#
@@ -35,6 +37,7 @@ gmeow:Agent	owl:equivalentClass	prov:Agent	semapv:ManualMappingCuration	0.95
 gmeow:Article	owl:equivalentClass	schema:Article	semapv:ManualMappingCuration	1.0	
 gmeow:ContactPoint	owl:equivalentClass	schema:ContactPoint	semapv:ManualMappingCuration	1.0	
 gmeow:CreativeWork	owl:equivalentClass	schema:CreativeWork	semapv:ManualMappingCuration	1.0	
+gmeow:Credential	owl:equivalentClass	ceterms:Credential	semapv:ManualMappingCuration	0.9	Credential Engine CTDL Credential — superset by reference
 gmeow:Credential	owl:equivalentClass	schema:EducationalOccupationalCredential	semapv:ManualMappingCuration	1.0	
 gmeow:Dataset	owl:equivalentClass	schema:Dataset	semapv:ManualMappingCuration	1.0	
 gmeow:Document	owl:equivalentClass	schema:DigitalDocument	semapv:ManualMappingCuration	0.9	
@@ -43,6 +46,7 @@ gmeow:GeoCoordinates	owl:equivalentClass	schema:GeoCoordinates	semapv:ManualMapp
 gmeow:Group	owl:equivalentClass	foaf:Group	semapv:ManualMappingCuration	0.95	
 gmeow:MediaObject	owl:equivalentClass	schema:MediaObject	semapv:ManualMappingCuration	1.0	
 gmeow:Membership	owl:equivalentClass	org:Membership	semapv:ManualMappingCuration	1.0	
+gmeow:Occupation	owl:equivalentClass	esco:Occupation	semapv:ManualMappingCuration	0.9	ESCO occupation is ISCO-grounded; GMEOW Occupation is the superset
 gmeow:Occupation	owl:equivalentClass	schema:Occupation	semapv:ManualMappingCuration	1.0	
 gmeow:OnlineAccount	owl:equivalentClass	foaf:OnlineAccount	semapv:ManualMappingCuration	1.0	
 gmeow:Organization	owl:equivalentClass	foaf:Organization	semapv:ManualMappingCuration	1.0	
@@ -56,6 +60,7 @@ gmeow:Post	owl:equivalentClass	org:Post	semapv:ManualMappingCuration	1.0	post (s
 gmeow:PostalAddress	owl:equivalentClass	schema:PostalAddress	semapv:ManualMappingCuration	1.0	
 gmeow:Profile	skos:relatedMatch	prof:Profile	semapv:ManualMappingCuration	0.8	GMEOW Profile is a narrower closed-descriptor-schema construct; PROF is a broader specification-profile vocabulary.
 gmeow:Role	owl:equivalentClass	org:Role	semapv:ManualMappingCuration	1.0	
+gmeow:Skill	skos:closeMatch	esco:Skill	semapv:ManualMappingCuration	0.9	ESCO skill — the European skills/competences framework
 gmeow:SoftwareProject	skos:closeMatch	doap:Project	semapv:ManualMappingCuration	0.7	
 gmeow:WebPage	owl:equivalentClass	schema:WebPage	semapv:ManualMappingCuration	1.0	
 gmeow:organizationTypeCollaboration	skos:closeMatch	org:OrganizationalCollaboration	semapv:ManualMappingCuration	0.9	collaboration type value ≈ organizational collaboration

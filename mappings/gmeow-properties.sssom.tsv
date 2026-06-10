@@ -8,6 +8,7 @@
 # curie_map:
 #   bfo: http://purl.obolibrary.org/obo/
 #   bibo: http://purl.org/ontology/bibo/
+#   ceterms: https://purl.org/ctdl/terms/
 #   crm: http://www.cidoc-crm.org/cidoc-crm/
 #   dcterms: http://purl.org/dc/terms/
 #   doap: http://usefulinc.com/ns/doap#
@@ -28,6 +29,10 @@ gmeow:accountName	owl:equivalentProperty	foaf:accountName		semapv:ManualMappingC
 gmeow:coarsenTo	skos:closeMatch	dpv:Generalisation		semapv:ManualMappingCuration	0.8	DPV Generalisation (reduce granularity/precision by grouping or rounding) — the privacy-technique counterpart of the gmeow:coarsenTo projection-time directive; the seam to PRIV-GEN (#73)
 gmeow:coarserThan	skos:closeMatch	skos:broader		semapv:ManualMappingCuration	0.8	SKOS broader — the generic hierarchical-order counterpart of the granularity-level ordering gmeow:coarserThan
 gmeow:containedInPlace	owl:equivalentProperty	schema:containedInPlace		semapv:ManualMappingCuration	1.0	
+gmeow:credentialFor	skos:closeMatch	schema:competencyRequired		semapv:ManualMappingCuration	0.8	schema.org competencyRequired — the credential-to-skill/occupation link downcasts lossily
+gmeow:credentialIssuer	skos:closeMatch	ceterms:ownedBy		semapv:ManualMappingCuration	0.8	CTDL ownedBy — the organization that owns/issued the credential
+gmeow:credentialIssuer	skos:closeMatch	schema:recognizedBy		semapv:ManualMappingCuration	0.8	schema.org recognizedBy — the credential issuer
+gmeow:credentialIssuer	skos:closeMatch	schema:sourceOrganization		semapv:ManualMappingCuration	0.8	schema.org sourceOrganization — the organization that issued the credential
 gmeow:datePublished	owl:equivalentProperty	schema:datePublished		semapv:ManualMappingCuration	1.0	
 gmeow:datePublished	skos:closeMatch	dcterms:issued		semapv:ManualMappingCuration	0.9	DCTerms issued — the publication date is the issue/release date in DCMI Terms
 gmeow:description	owl:equivalentProperty	schema:description		semapv:ManualMappingCuration	1.0	
@@ -57,11 +62,14 @@ gmeow:hasRepository	skos:closeMatch	doap:repository		semapv:ManualMappingCuratio
 gmeow:hasSibling	owl:equivalentProperty	rel:siblingOf		semapv:ManualMappingCuration	1.0	
 gmeow:hasSibling	owl:equivalentProperty	schema:sibling		semapv:ManualMappingCuration	1.0	
 gmeow:hasSite	skos:closeMatch	org:hasSite		semapv:ManualMappingCuration	0.9	gmeow:hasSite has range gmeow:Location, while org:hasSite has range org:Site; no alignment of gmeow:Location to org:Site exists, so owl:equivalentProperty is too strong.
+gmeow:hasSkill	skos:closeMatch	schema:knowsAbout		semapv:ManualMappingCuration	0.7	schema.org knowsAbout — broader, lossy flattening of SkillProficiency
+gmeow:hasSkill	skos:closeMatch	schema:skills		semapv:ManualMappingCuration	0.8	schema.org skills — the leveled SkillProficiency relator collapses to a flat skill link
 gmeow:hasSpouse	owl:equivalentProperty	rel:spouseOf		semapv:ManualMappingCuration	1.0	
 gmeow:hasSpouse	owl:equivalentProperty	schema:spouse		semapv:ManualMappingCuration	1.0	
 gmeow:hasWebPage	skos:closeMatch	foaf:homepage		semapv:ManualMappingCuration	0.8	
 gmeow:hasWebPage	skos:closeMatch	schema:url		semapv:ManualMappingCuration	0.8	
 gmeow:holdsAccount	owl:equivalentProperty	foaf:account		semapv:ManualMappingCuration	1.0	
+gmeow:holdsCredential	owl:equivalentProperty	schema:hasCredential		semapv:ManualMappingCuration	1.0	
 gmeow:identifier	skos:closeMatch	bibo:doi		semapv:ManualMappingCuration	0.8	
 gmeow:identifier	skos:closeMatch	dcterms:identifier		semapv:ManualMappingCuration	0.9	DCTerms identifier — a formal identifier such as a DOI or patent number
 gmeow:industryClassification	skos:closeMatch	org:classification		semapv:ManualMappingCuration	0.8	industryClassification carries open codes (NAICS/ISIC); org:classification is broader
