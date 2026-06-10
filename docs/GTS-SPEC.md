@@ -638,7 +638,7 @@ A profile is a named set of conventions over the one format (declared in header 
 | `evidence`   | append-only, signatures REQUIRED, **never compacted**; the file is a custody chain.|
 | `image`      | a `blob` (or several representations) + descriptive metadata + analysis frames.    |
 | `ai-package` | a concept + logic + observations + opinions + refuted claims + embeddings + data.  |
-| `opaque`     | carries `encrypt`-class frames; signatures REQUIRED; selective disclosure.         |
+| `opaque`     | `encrypt`-class frames; signatures + pseudonymous `kid`s REQUIRED; selective disclosure. |
 | `bundle`     | a GTS whose `blob`s are themselves GTS files (`mt: application/gts`); §12.1.        |
 
 Profiles constrain conventions, not the wire format; a `generic` reader reads them all. The
@@ -711,7 +711,7 @@ Nothing is rewritten; every accrual is hash-linked and independently signed.
   "pub": { "claim": "I hereby notarized this document.",
            "notary": "did:notary:jane", "ts": "2026-06-09T12:00:00Z" },
   "x": [4, 7],                                            / 7 = cose-encrypt /
-  "to": [ {"kid":"did:court:registry","alg":"ECDH-ES+A256KW"} ],
+  "to": [ {"kid":"anon:7f3a…","alg":"ECDH-ES+A256KW"} ],  / pseudonymous kid (opaque profile, §17) /
   "d": h'COSE_Encrypt(verified ID record + provenance)',
   "sig": h'COSE_Sign1 by did:notary:jane' }
 ```
@@ -765,8 +765,10 @@ verifiable subgraph.
   index, a checkpoint frame, or external framing); a bare CBOR Sequence can desynchronise on
   arbitrary corruption (§9.1). GTS defines no parity/erasure coding — durability against bulk
   loss is the storage layer's concern.
-- `"to"`/`kid` values can leak relationship metadata (who a frame is sealed for); in high-privacy
-  or `opaque` profiles they SHOULD be pairwise or pseudonymous identifiers.
+- `"to"`/`kid` values can leak relationship metadata (who a frame is sealed for). The `opaque`
+  profile therefore REQUIRES pseudonymous `kid`s; other high-privacy profiles SHOULD use them.
+  Use a per-document or pairwise identifier — e.g. `"kid": "anon:<BLAKE3(true-kid ∥ head-id)>"` —
+  or key blinding, so the same recipient is unlinkable across files.
 - A valid signature attests the signer over the frame's bytes; it does **not** assert the truth
   of the claims (consistent with attestation semantics — vouching ≠ correctness).
 - Opaque frames are unreadable but **not** invisible; do not place secrets in `"pub"`,
@@ -793,6 +795,13 @@ A conformant implementation MUST pass a shared corpus. v1 requires at least thes
 8. A nested GTS blob (`mt: application/gts`), recursed and folded.
 9. Suppression over a term-id and over a frame digest.
 10. Truncation detection against a signed head / index `"mmr"` root.
+11. Literal datatype defaulting (§7.1): a literal with `"l"` and no `"dt"` → `rdf:langString`;
+    with neither → `xsd:string`.
+12. A reifier rebound to a different triple → `ConflictingReifier`, first binding kept (§7.8).
+13. A position-constraint violation, e.g. a literal in predicate position → rejected/diagnosed
+    (§7.4).
+14. Blank-node label locality (§7.1, §12.1): identical bnode labels in an outer and a nested GTS
+    remain isolated (not merged).
 
 ## 19. References
 
