@@ -27,13 +27,22 @@ narrow-waist `RDF 1.2 → GTS → *` toolchain.
   ontology + `statements/gmeow.rdf12.ttl` (#271).
 - **Transforms out** — `gts → nquads` (§14) and `gts → {sqlite,duckdb}` (the
   integer-id, dictionary-encoded relational load; the engine resolves ids via join).
+- **COSE signing (§9.2)** — `Writer(signer=…)` COSE_Sign1-signs each frame over its
+  `id` (EdDSA/Ed25519); `read(data, keys=…)` verifies and records per-frame status
+  in `Graph.signatures` (`valid`/`invalid`/`unverified` under a `KeyProvider`). Plus
+  **truncation detection** via `read(data, expected_head=…)` → `TruncatedLog` (#272).
+- **COSE encryption (§9.3)** — `Writer.add_frame(…, encrypt=(kid, key))` seals a
+  payload as `COSE_Encrypt0` (the outermost transform) and records the recipient;
+  `read(data, keys=…)` decrypts when the content key is held, else the frame folds to
+  a `missing-key` **opaque node** with its recipient visible (the opacity invariant) —
+  selective disclosure (#272).
 
 ## Not yet (follow-ups under #267)
 
-COSE signing/encryption and the crypto opaque paths (§9.2–9.3, #272); nested-GTS
-recursion (§12.1); the `index`/MMR acceleration (§6.2); a frame-streaming (vs
-folded-graph) DB load for very large inputs; the transport/packaging ontology
-vocabulary.
+Multi-recipient / ECDH key-wrap (this lands single-recipient `COSE_Encrypt0`);
+`evidence`/`opaque` profile *conformance enforcement* (signatures-required,
+pseudonymous-`kid`); nested-GTS recursion (§12.1); the `index`/MMR acceleration
+(§6.2); a frame-streaming DB load for very large inputs; the packaging vocabulary.
 
 ## Use
 

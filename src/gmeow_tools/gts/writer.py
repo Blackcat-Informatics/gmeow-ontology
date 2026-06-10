@@ -11,6 +11,7 @@ from __future__ import annotations
 import cbor2
 
 from gmeow_tools.gts.codec import DEFAULT_CATALOG, Codec, encode_chain
+from gmeow_tools.gts.crypto import Signer, encrypt0, sign_id
 from gmeow_tools.gts.model import Quad, Term, Triple
 from gmeow_tools.gts.wire import (
     MAGIC,
@@ -53,8 +54,14 @@ class Writer:
         meta: dict[str, object] | None = None,
         *,
         magic_tag: bool = True,
+        signer: Signer | None = None,
     ) -> None:
-        """Initialise the writer and emit the Header (the chain genesis)."""
+        """Initialise the writer and emit the Header (the chain genesis).
+
+        If ``signer`` is given, every appended frame is COSE_Sign1-signed over its
+        ``id`` (§9.2) — the basis of the ``evidence`` profile's chain of custody.
+        """
+        self._signer = signer
         self.catalog = catalog or dict(DEFAULT_CATALOG)
         self._name_to_id = {c.name: i for i, c in self.catalog.items()}
         header: dict[str, object] = {
@@ -89,42 +96,62 @@ class Writer:
         pub: object | None = None,
         to: list[dict[str, object]] | None = None,
         sig: bytes | None = None,
+        encrypt: tuple[str, bytes] | None = None,
     ) -> bytes:
         """Append one frame and return its ``"id"``.
 
         ``payload`` (structured CBOR) and ``raw`` (blob bytes) are mutually exclusive
-        payload sources. When ``transform`` is given, the payload is CBOR-encoded (if
-        structured) and run through the codec chain so ``"d"`` is a byte string (§6.1).
+        payload sources. ``transform`` compresses/encodes the payload; ``encrypt``
+        ``(kid, key)`` then seals it as a ``COSE_Encrypt0`` (the outermost transform)
+        and records the recipient in ``"to"`` (§9.3). ``"d"`` becomes a byte string.
 
         Raises:
-            ValueError: if both ``payload`` and ``raw`` are given, or if ``transform``
-                is requested with neither source.
+            ValueError: if both ``payload`` and ``raw`` are given, or if ``transform``/
+                ``encrypt`` is requested with neither source.
         """
         if payload is not None and raw is not None:
             msg = "payload and raw are mutually exclusive"
             raise ValueError(msg)
-        if transform and payload is None and raw is None:
-            msg = "transform requires a payload or raw source"
+        if (transform or encrypt) and payload is None and raw is None:
+            msg = "transform/encrypt requires a payload or raw source"
             raise ValueError(msg)
         frame: dict[str, object] = {"t": frame_type}
-        if transform:
-            frame["x"] = self._chain_ids(transform)
-            source = raw if raw is not None else canonical(payload)
-            frame["d"] = encode_chain(transform, source)
+        if transform or encrypt is not None:
+            data = raw if raw is not None else canonical(payload)
+            x_ids: list[int] = []
+            if transform:
+                data = encode_chain(transform, data)
+                x_ids += self._chain_ids(transform)
+            if encrypt is not None:
+                encrypt_id = self._name_to_id.get("cose-encrypt0")
+                if encrypt_id is None:
+                    msg = "encrypt requires a catalog entry for 'cose-encrypt0'"
+                    raise ValueError(msg)
+                kid, key = encrypt
+                data = encrypt0(data, kid, key)
+                x_ids.append(encrypt_id)
+            frame["x"] = x_ids
+            frame["d"] = data
         elif raw is not None:
             frame["d"] = raw
         elif payload is not None:
             frame["d"] = payload
         if pub is not None:
             frame["pub"] = pub
-        if to is not None:
-            frame["to"] = to
+        recipients = list(to) if to is not None else []
+        if encrypt is not None:
+            recipients.append({"kid": encrypt[0]})
+        if recipients:
+            frame["to"] = recipients
         frame["prev"] = self._prev
-        frame["id"] = content_id(frame)
+        fid = content_id(frame)
+        frame["id"] = fid
+        if sig is None and self._signer is not None:
+            sig = sign_id(fid, self._signer)
         if sig is not None:
             frame["sig"] = sig
         self._buf += canonical(frame)
-        self._prev = frame["id"]  # type: ignore[assignment]
+        self._prev = fid
         return self._prev
 
     # -- convenience builders -------------------------------------------------
