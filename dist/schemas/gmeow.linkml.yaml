@@ -236,7 +236,12 @@ classes:
     title: Body Part
     is_a: InformationObject
     slots:
+    - charset
+    - contentId
+    - hasContentDisposition
+    - hasContentTransferEncoding
     - mediaType
+    - partId
   BookRelease:
     class_uri: https://blackcatinformatics.ca/gmeow/BookRelease
     title: Book Release
@@ -411,6 +416,9 @@ classes:
     slots:
     - containmentChild
     - containmentParent
+  ContentDisposition:
+    class_uri: https://blackcatinformatics.ca/gmeow/ContentDisposition
+    title: Content Disposition
   ContentSegment:
     class_uri: https://blackcatinformatics.ca/gmeow/ContentSegment
     title: Content Segment
@@ -422,6 +430,9 @@ classes:
   ContentSegmentType:
     class_uri: https://blackcatinformatics.ca/gmeow/ContentSegmentType
     title: Content Segment Type
+  ContentTransferEncoding:
+    class_uri: https://blackcatinformatics.ca/gmeow/ContentTransferEncoding
+    title: Content Transfer Encoding
   Contract:
     class_uri: https://blackcatinformatics.ca/gmeow/Contract
     title: Contract
@@ -1022,6 +1033,10 @@ classes:
     slots:
     - contributesToFrame
     - detectedMediaType
+  InlinePart:
+    class_uri: https://blackcatinformatics.ca/gmeow/InlinePart
+    title: Inline Part
+    is_a: BodyPart
   Inscription:
     class_uri: https://blackcatinformatics.ca/gmeow/Inscription
     title: Inscription
@@ -1392,6 +1407,7 @@ classes:
     - hasAuthenticationResult
     - hasBodyPart
     - hasHeader
+    - hasInlinePart
     - hasKeyword
     - hasMessageKind
     - hasRelayHop
@@ -1443,6 +1459,15 @@ classes:
     slots:
     - currency
     - monetaryValue
+  MultipartBodyPart:
+    class_uri: https://blackcatinformatics.ca/gmeow/MultipartBodyPart
+    title: Multipart Body Part
+    is_a: BodyPart
+    slots:
+    - hasMultipartType
+  MultipartType:
+    class_uri: https://blackcatinformatics.ca/gmeow/MultipartType
+    title: Multipart Type
   Myth:
     class_uri: https://blackcatinformatics.ca/gmeow/Myth
     title: Myth
@@ -3229,6 +3254,11 @@ slots:
     range: LanguageChangeType
     domain: LanguageChangeEvent
     multivalued: true
+  charset:
+    slot_uri: https://blackcatinformatics.ca/gmeow/charset
+    title: charset
+    range: string
+    domain: BodyPart
   citationIntent:
     slot_uri: https://blackcatinformatics.ca/gmeow/citationIntent
     title: citation intent
@@ -3451,6 +3481,11 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/contentDigest
     title: content digest
     range: string
+  contentId:
+    slot_uri: https://blackcatinformatics.ca/gmeow/contentId
+    title: content id
+    range: string
+    domain: BodyPart
   contractAddress:
     slot_uri: https://blackcatinformatics.ca/gmeow/contractAddress
     title: contract address
@@ -4444,6 +4479,18 @@ slots:
     range: ContactPoint
     domain: Agent
     multivalued: true
+  hasContentDisposition:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasContentDisposition
+    title: has content disposition
+    range: ContentDisposition
+    domain: BodyPart
+    multivalued: false
+  hasContentTransferEncoding:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasContentTransferEncoding
+    title: has content transfer encoding
+    range: ContentTransferEncoding
+    domain: BodyPart
+    multivalued: false
   hasContributor:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasContributor
     title: has contributor
@@ -4606,6 +4653,12 @@ slots:
     range: Agent
     domain: CreativeWork
     multivalued: true
+  hasInlinePart:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasInlinePart
+    title: has inline part
+    range: InlinePart
+    domain: Message
+    multivalued: true
   hasKeyword:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasKeyword
     title: has keyword
@@ -4672,6 +4725,12 @@ slots:
     range: Person
     domain: Person
     multivalued: true
+  hasMultipartType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasMultipartType
+    title: has multipart type
+    range: MultipartType
+    domain: MultipartBodyPart
+    multivalued: false
   hasMythTelling:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasMythTelling
     title: has myth telling
@@ -6234,6 +6293,11 @@ slots:
     title: part expansion
     range: string
     domain: NamePart
+  partId:
+    slot_uri: https://blackcatinformatics.ca/gmeow/partId
+    title: part id
+    range: string
+    domain: BodyPart
   partOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/partOf
     title: part of
@@ -8973,6 +9037,15 @@ enums:
       operatorNeq:
         meaning: https://blackcatinformatics.ca/gmeow/operatorNeq
         title: not equal to
+  ContentDispositionEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ContentDisposition
+    permissible_values:
+      contentDispositionAttachment:
+        meaning: https://blackcatinformatics.ca/gmeow/contentDispositionAttachment
+        title: attachment
+      contentDispositionInline:
+        meaning: https://blackcatinformatics.ca/gmeow/contentDispositionInline
+        title: inline
   ContentSegmentTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ContentSegmentType
     permissible_values:
@@ -8994,6 +9067,24 @@ enums:
       segmentTypeSection:
         meaning: https://blackcatinformatics.ca/gmeow/segmentTypeSection
         title: section
+  ContentTransferEncodingEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ContentTransferEncoding
+    permissible_values:
+      transferEncoding7bit:
+        meaning: https://blackcatinformatics.ca/gmeow/transferEncoding7bit
+        title: 7bit
+      transferEncoding8bit:
+        meaning: https://blackcatinformatics.ca/gmeow/transferEncoding8bit
+        title: 8bit
+      transferEncodingBase64:
+        meaning: https://blackcatinformatics.ca/gmeow/transferEncodingBase64
+        title: base64
+      transferEncodingBinary:
+        meaning: https://blackcatinformatics.ca/gmeow/transferEncodingBinary
+        title: binary
+      transferEncodingQuotedPrintable:
+        meaning: https://blackcatinformatics.ca/gmeow/transferEncodingQuotedPrintable
+        title: quoted-printable
   ContributionDegreeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ContributionDegree
     permissible_values:
@@ -10699,6 +10790,33 @@ enums:
       metricSymplectic:
         meaning: https://blackcatinformatics.ca/gmeow/metricSymplectic
         title: phase-space Euclidean
+  MultipartTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/MultipartType
+    permissible_values:
+      multipartTypeAlternative:
+        meaning: https://blackcatinformatics.ca/gmeow/multipartTypeAlternative
+        title: alternative
+      multipartTypeDigest:
+        meaning: https://blackcatinformatics.ca/gmeow/multipartTypeDigest
+        title: digest
+      multipartTypeEncrypted:
+        meaning: https://blackcatinformatics.ca/gmeow/multipartTypeEncrypted
+        title: encrypted
+      multipartTypeMixed:
+        meaning: https://blackcatinformatics.ca/gmeow/multipartTypeMixed
+        title: mixed
+      multipartTypeParallel:
+        meaning: https://blackcatinformatics.ca/gmeow/multipartTypeParallel
+        title: parallel
+      multipartTypeRelated:
+        meaning: https://blackcatinformatics.ca/gmeow/multipartTypeRelated
+        title: related
+      multipartTypeReport:
+        meaning: https://blackcatinformatics.ca/gmeow/multipartTypeReport
+        title: report
+      multipartTypeSigned:
+        meaning: https://blackcatinformatics.ca/gmeow/multipartTypeSigned
+        title: signed
   NamePartTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/NamePartType
     permissible_values:

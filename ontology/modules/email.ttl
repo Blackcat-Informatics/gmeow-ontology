@@ -627,3 +627,128 @@ gmeow:sentBySoftware
     rdfs:label "sent by software"@en ;
     skos:definition "The software agent that sent a message, when parsed and identified from the User-Agent or X-Mailer header. The raw header value remains on gmeow:userAgent (Principle 4)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# MIME body part metadata (issue #133)
+#
+# Reuses the existing BodyPart / Attachment / hasBodyPart spine.
+# MultipartBodyPart and InlinePart are SubKinds of BodyPart.
+# MIME tree structure uses the universal hasPart / partOf spine (Principle 12).
+# Decoded text/HTML content is a derived InformationObject linked by
+# wasDerivedFrom, not a literal on the part (Principle 12).
+# --------------------------------------------------------------------------- #
+
+gmeow:MultipartBodyPart
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:BodyPart ;
+    rdfs:label "Multipart Body Part"@en ;
+    skos:definition "A MIME container part that holds other body parts — the structural node of a multipart/alternative, multipart/mixed, multipart/related, or other multipart subtype. It is itself a BodyPart and participates in the MIME tree via the universal hasPart / partOf spine."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:InlinePart
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:BodyPart ;
+    rdfs:label "Inline Part"@en ;
+    skos:definition "A body part displayed inline within the message body, such as an embedded image or a text/html part rendered as part of the message content. Distinct from Attachment in presentation intent but not declared disjoint — a part's disposition is an attributed fact, not a rigid kind boundary (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:MultipartType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Multipart Type"@en ;
+    skos:definition "The MIME multipart subtype of a MultipartBodyPart — an open value vocabulary (individuals, never subclasses). Standard subtypes are seeded; new subtypes (e.g. form-data) are added as individuals."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:ContentDisposition
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Content Disposition"@en ;
+    skos:definition "The presentation disposition of a body part — inline (displayed as part of the message body) or attachment (presented as a separate file). An open value vocabulary (individuals, never subclasses)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:ContentTransferEncoding
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Content Transfer Encoding"@en ;
+    skos:definition "The MIME content-transfer-encoding of a body part — the mechanism by which the part's content is encoded for transport. An open value vocabulary (individuals, never subclasses)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# MultipartType individuals.
+gmeow:multipartTypeAlternative  a gmeow:MultipartType ; rdfs:label "alternative"@en ; skos:definition "A multipart/alternative container where each child part is a different representation of the same content (RFC 2046)."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:multipartTypeMixed        a gmeow:MultipartType ; rdfs:label "mixed"@en       ; skos:definition "A multipart/mixed container for content with independent parts (RFC 2046)."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:multipartTypeRelated      a gmeow:MultipartType ; rdfs:label "related"@en     ; skos:definition "A multipart/related container where parts reference one another, typically used for HTML with inline images (RFC 2387)."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:multipartTypeSigned       a gmeow:MultipartType ; rdfs:label "signed"@en      ; skos:definition "A multipart/signed container for cryptographically signed content (RFC 1847)."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:multipartTypeEncrypted    a gmeow:MultipartType ; rdfs:label "encrypted"@en   ; skos:definition "A multipart/encrypted container for encrypted content (RFC 1847)."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:multipartTypeReport       a gmeow:MultipartType ; rdfs:label "report"@en      ; skos:definition "A multipart/report container for mail system reports such as delivery status notifications (RFC 3462)."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:multipartTypeDigest       a gmeow:MultipartType ; rdfs:label "digest"@en      ; skos:definition "A multipart/digest container where each child part is a complete RFC 5322 message (RFC 2046)."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:multipartTypeParallel     a gmeow:MultipartType ; rdfs:label "parallel"@en    ; skos:definition "A multipart/parallel container where parts are intended to be viewed simultaneously (RFC 2046)."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# ContentDisposition individuals.
+gmeow:contentDispositionInline     a gmeow:ContentDisposition ; rdfs:label "inline"@en     ; skos:definition "The body part is displayed inline as part of the message body (RFC 2183)."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:contentDispositionAttachment a gmeow:ContentDisposition ; rdfs:label "attachment"@en ; skos:definition "The body part is presented as an attached file (RFC 2183)."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# ContentTransferEncoding individuals.
+gmeow:transferEncodingBase64           a gmeow:ContentTransferEncoding ; rdfs:label "base64"@en           ; skos:definition "Base64 content-transfer-encoding (RFC 2045)."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:transferEncodingQuotedPrintable  a gmeow:ContentTransferEncoding ; rdfs:label "quoted-printable"@en ; skos:definition "Quoted-printable content-transfer-encoding (RFC 2045)."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:transferEncoding7bit             a gmeow:ContentTransferEncoding ; rdfs:label "7bit"@en             ; skos:definition "7-bit content-transfer-encoding — short lines of US-ASCII (RFC 2045)."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:transferEncoding8bit             a gmeow:ContentTransferEncoding ; rdfs:label "8bit"@en             ; skos:definition "8-bit content-transfer-encoding — short lines of octets (RFC 2045)."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:transferEncodingBinary           a gmeow:ContentTransferEncoding ; rdfs:label "binary"@en           ; skos:definition "Binary content-transfer-encoding — arbitrary octets without line-length restrictions (RFC 2045)."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Object properties.
+gmeow:hasMultipartType
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:MultipartBodyPart ;
+    rdfs:range gmeow:MultipartType ;
+    rdfs:label "has multipart type"@en ;
+    skos:definition "Relates a MultipartBodyPart to its MIME multipart subtype (alternative, mixed, related, signed, encrypted, etc.)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasInlinePart
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasBodyPart, gmeow:hasPart ;
+    rdfs:domain gmeow:Message ;
+    rdfs:range gmeow:InlinePart ;
+    rdfs:label "has inline part"@en ;
+    skos:definition "Relates a message to one of its inline body parts — a MIME-structure specialization of the universal gmeow:hasPart spine."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasContentDisposition
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:BodyPart ;
+    rdfs:range gmeow:ContentDisposition ;
+    rdfs:label "has content disposition"@en ;
+    skos:definition "Relates a body part to its Content-Disposition value (inline or attachment)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasContentTransferEncoding
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:BodyPart ;
+    rdfs:range gmeow:ContentTransferEncoding ;
+    rdfs:label "has content transfer encoding"@en ;
+    skos:definition "Relates a body part to its Content-Transfer-Encoding value (base64, quoted-printable, 7bit, 8bit, binary)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Datatype properties.
+gmeow:partId
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:BodyPart ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "part id"@en ;
+    skos:definition "The structural identifier of a MIME part within a message (e.g. '1', '1.2', '2.1.3'). Scoped to the message; the same raw content may have different partIds in different messages."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:contentId
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:BodyPart ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "content id"@en ;
+    skos:definition "The Content-ID header value of a MIME part, used to reference the part from other parts (e.g. cid: references in HTML)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:charset
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:BodyPart ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "charset"@en ;
+    skos:definition "The character encoding of a MIME part's content (e.g. utf-8, iso-8859-1). Stored as a literal because the IANA charset registry is too open to enumerate as a closed value vocabulary."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
