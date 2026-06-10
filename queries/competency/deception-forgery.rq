@@ -1,0 +1,22 @@
+# Competency question: "Which events are forgeries?"
+# A forgery = deception event mimicking a specific genuine artifact with failed signature.
+# Expected: event-forgery-001 (from statement-dsl/deception.ttl).
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?event WHERE {
+    ?event gmeow:eventType gmeow:eventTypeForgery .
+    ?event gmeow:heldStandpoint ?heldClaim .
+    ?event gmeow:projectedStandpoint ?projectedClaim .
+    ?heldClaim gmeow:claimModality gmeow:refuted .
+    ?projectedClaim gmeow:claimModality gmeow:unequivocal .
+    OPTIONAL {
+        ?event gmeow:implicates ?forgedWork .
+        ?forgedWork a gmeow:CreativeWork .
+        ?forgedWork gmeow:counterpartOf ?genuineWork .
+        ?signature a gmeow:CryptographicSignature .
+        ?signature gmeow:signatureOf ?forgedWork .
+        ?signature gmeow:hasVerificationStatus gmeow:verificationStatusFailed .
+    }
+}
+ORDER BY ?event

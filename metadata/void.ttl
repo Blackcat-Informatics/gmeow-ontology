@@ -703,11 +703,11 @@
     void:triples 4 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-entity-77a672-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://www.wikidata.org/entity/ (160)" ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.wikidata.org/entity/ (165)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget wd: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 160 .
+    void:triples 165 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-entity-77a672-skos_exactMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:exactMatch links to http://www.wikidata.org/entity/ (35)" ;

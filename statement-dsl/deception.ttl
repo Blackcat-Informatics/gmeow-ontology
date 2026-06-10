@@ -460,3 +460,298 @@ ex:claim-fiction-veridicality-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.95 ] ,
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-07T00:00:00Z"^^xsd:dateTime ] ,
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-publisher ] .
+
+# =============================================================================
+# Carrier deception exemplars — issue #216.
+# Divergence borne by an artifact or identity binding rather than a speech act.
+# =============================================================================
+
+# 15. FABRICATION — a false CreativeWork whose attested provenance is refuted.
+#     The artifact is invented, not mimicking a specific genuine work.
+ex:claim-event-fabrication-001 a gmeow:StatementMetadata ;
+    rdfs:label "Fabrication event — false artifact with refuted provenance"@en ;
+    gmeow:reifier    ex:claim-event-fabrication-001 ;
+    gmeow:qSubject   ex:event-fabrication-001 ;
+    gmeow:qPredicate gmeow:eventType ;
+    gmeow:qObject    gmeow:eventTypeFabrication ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.82 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-08T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-fabrication-held-001 a gmeow:StatementMetadata ;
+    rdfs:label "Fabrication held standpoint — the artifact's provenance is refuted"@en ;
+    gmeow:reifier    ex:claim-fabrication-held-001 ;
+    gmeow:qSubject   ex:event-fabrication-001 ;
+    gmeow:qPredicate gmeow:heldStandpoint ;
+    gmeow:qObject    ex:standpointclaim-fabrication-held-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.75 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-08T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-fabrication-held-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Fabrication held claim modality — refuted"@en ;
+    gmeow:reifier    ex:claim-fabrication-held-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-fabrication-held-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:refuted ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.75 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-08T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-fabrication-projected-001 a gmeow:StatementMetadata ;
+    rdfs:label "Fabrication projected standpoint — the artifact is presented as genuine"@en ;
+    gmeow:reifier    ex:claim-fabrication-projected-001 ;
+    gmeow:qSubject   ex:event-fabrication-001 ;
+    gmeow:qPredicate gmeow:projectedStandpoint ;
+    gmeow:qObject    ex:standpointclaim-fabrication-projected-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.88 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-08T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-fabrication-projected-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Fabrication projected claim modality — unequivocal (presented as genuine)"@en ;
+    gmeow:reifier    ex:claim-fabrication-projected-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-fabrication-projected-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:unequivocal ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.88 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-08T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-forger ] .
+
+ex:claim-fabrication-verification-001 a gmeow:StatementMetadata ;
+    rdfs:label "Fabrication verification result — provenance check failed"@en ;
+    gmeow:reifier    ex:claim-fabrication-verification-001 ;
+    gmeow:qSubject   ex:verificationresult-fabrication-001 ;
+    gmeow:qPredicate gmeow:hasVerificationStatus ;
+    gmeow:qObject    gmeow:verificationStatusFailed ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.9 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-08T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-verifier ] .
+
+ex:claim-fabrication-implicates-001 a gmeow:StatementMetadata ;
+    rdfs:label "Fabrication event implicates failed verification result"@en ;
+    gmeow:reifier    ex:claim-fabrication-implicates-001 ;
+    gmeow:qSubject   ex:event-fabrication-001 ;
+    gmeow:qPredicate gmeow:implicates ;
+    gmeow:qObject    ex:verificationresult-fabrication-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-08T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+# 16. FORGERY — a fabrication mimicking a specific genuine artifact.
+#     The forged work bears counterpartOf to the genuine work;
+#     a CryptographicSignature verification returns failed.
+ex:claim-event-forgery-001 a gmeow:StatementMetadata ;
+    rdfs:label "Forgery event — forged artifact mimicking a genuine work"@en ;
+    gmeow:reifier    ex:claim-event-forgery-001 ;
+    gmeow:qSubject   ex:event-forgery-001 ;
+    gmeow:qPredicate gmeow:eventType ;
+    gmeow:qObject    gmeow:eventTypeForgery ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-09T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-forgery-held-001 a gmeow:StatementMetadata ;
+    rdfs:label "Forgery held standpoint — the work is not genuine"@en ;
+    gmeow:reifier    ex:claim-forgery-held-001 ;
+    gmeow:qSubject   ex:event-forgery-001 ;
+    gmeow:qPredicate gmeow:heldStandpoint ;
+    gmeow:qObject    ex:standpointclaim-forgery-held-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.8 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-09T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-forgery-held-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Forgery held claim modality — refuted"@en ;
+    gmeow:reifier    ex:claim-forgery-held-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-forgery-held-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:refuted ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.8 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-09T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-forgery-projected-001 a gmeow:StatementMetadata ;
+    rdfs:label "Forgery projected standpoint — presented as genuine"@en ;
+    gmeow:reifier    ex:claim-forgery-projected-001 ;
+    gmeow:qSubject   ex:event-forgery-001 ;
+    gmeow:qPredicate gmeow:projectedStandpoint ;
+    gmeow:qObject    ex:standpointclaim-forgery-projected-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.9 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-09T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-forgery-projected-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Forgery projected claim modality — unequivocal (genuine)"@en ;
+    gmeow:reifier    ex:claim-forgery-projected-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-forgery-projected-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:unequivocal ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.9 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-09T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-forger ] .
+
+ex:claim-forgery-counterpart-001 a gmeow:StatementMetadata ;
+    rdfs:label "Forgery counterpartOf — forged work linked to genuine work it imitates"@en ;
+    gmeow:reifier    ex:claim-forgery-counterpart-001 ;
+    gmeow:qSubject   ex:creativework-forged-001 ;
+    gmeow:qPredicate gmeow:counterpartOf ;
+    gmeow:qObject    ex:creativework-genuine-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-09T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-forgery-signature-fail-001 a gmeow:StatementMetadata ;
+    rdfs:label "Forgery signature verification — cryptographic signature check failed"@en ;
+    gmeow:reifier    ex:claim-forgery-signature-fail-001 ;
+    gmeow:qSubject   ex:cryptographicsignature-forgery-001 ;
+    gmeow:qPredicate gmeow:hasVerificationStatus ;
+    gmeow:qObject    gmeow:verificationStatusFailed ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.92 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-09T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-verifier ] .
+
+ex:claim-forgery-signature-of-001 a gmeow:StatementMetadata ;
+    rdfs:label "Forgery signatureOf — signature is of the forged work"@en ;
+    gmeow:reifier    ex:claim-forgery-signature-of-001 ;
+    gmeow:qSubject   ex:cryptographicsignature-forgery-001 ;
+    gmeow:qPredicate gmeow:signatureOf ;
+    gmeow:qObject    ex:creativework-forged-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.95 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-09T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-forgery-implicates-work-001 a gmeow:StatementMetadata ;
+    rdfs:label "Forgery event implicates forged work"@en ;
+    gmeow:reifier    ex:claim-forgery-implicates-work-001 ;
+    gmeow:qSubject   ex:event-forgery-001 ;
+    gmeow:qPredicate gmeow:implicates ;
+    gmeow:qObject    ex:creativework-forged-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-09T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-forgery-implicates-signature-001 a gmeow:StatementMetadata ;
+    rdfs:label "Forgery event implicates failed signature"@en ;
+    gmeow:reifier    ex:claim-forgery-implicates-signature-001 ;
+    gmeow:qSubject   ex:event-forgery-001 ;
+    gmeow:qPredicate gmeow:implicates ;
+    gmeow:qObject    ex:cryptographicsignature-forgery-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-09T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+# 17. IMPERSONATION — projected identity claim whose subject ≠ the deceiver.
+#     Email spoofing is an instance (failed auth result);
+#     sockpuppet is an instance (counterpartOf identity denied by controller).
+ex:claim-event-impersonation-001 a gmeow:StatementMetadata ;
+    rdfs:label "Impersonation event — projected identity claim with mismatched subject"@en ;
+    gmeow:reifier    ex:claim-event-impersonation-001 ;
+    gmeow:qSubject   ex:event-impersonation-001 ;
+    gmeow:qPredicate gmeow:eventType ;
+    gmeow:qObject    gmeow:eventTypeImpersonation ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.87 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-10T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-impersonation-held-001 a gmeow:StatementMetadata ;
+    rdfs:label "Impersonation held standpoint — the identity claim is false"@en ;
+    gmeow:reifier    ex:claim-impersonation-held-001 ;
+    gmeow:qSubject   ex:event-impersonation-001 ;
+    gmeow:qPredicate gmeow:heldStandpoint ;
+    gmeow:qObject    ex:standpointclaim-impersonation-held-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.78 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-10T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-impersonation-held-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Impersonation held claim modality — refuted"@en ;
+    gmeow:reifier    ex:claim-impersonation-held-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-impersonation-held-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:refuted ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.78 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-10T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-impersonation-projected-001 a gmeow:StatementMetadata ;
+    rdfs:label "Impersonation projected standpoint — identity presented as genuine"@en ;
+    gmeow:reifier    ex:claim-impersonation-projected-001 ;
+    gmeow:qSubject   ex:event-impersonation-001 ;
+    gmeow:qPredicate gmeow:projectedStandpoint ;
+    gmeow:qObject    ex:standpointclaim-impersonation-projected-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-10T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-impersonation-projected-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Impersonation projected claim modality — unequivocal (identity is genuine)"@en ;
+    gmeow:reifier    ex:claim-impersonation-projected-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-impersonation-projected-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:unequivocal ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-10T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-deceiver ] .
+
+ex:claim-impersonation-facet-subject-001 a gmeow:StatementMetadata ;
+    rdfs:label "Impersonation identity facet — projected facet subject is the victim"@en ;
+    gmeow:reifier    ex:claim-impersonation-facet-subject-001 ;
+    gmeow:qSubject   ex:identityfacet-impersonation-001 ;
+    gmeow:qPredicate gmeow:facetSubject ;
+    gmeow:qObject    ex:agent-victim-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.8 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-10T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-impersonation-observedfeature-001 a gmeow:StatementMetadata ;
+    rdfs:label "Impersonation identity facet — facet observes the impersonation event"@en ;
+    gmeow:reifier    ex:claim-impersonation-observedfeature-001 ;
+    gmeow:qSubject   ex:identityfacet-impersonation-001 ;
+    gmeow:qPredicate gmeow:observedFeature ;
+    gmeow:qObject    ex:event-impersonation-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.87 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-10T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-impersonation-implicates-001 a gmeow:StatementMetadata ;
+    rdfs:label "Impersonation event implicates identity facet"@en ;
+    gmeow:reifier    ex:claim-impersonation-implicates-001 ;
+    gmeow:qSubject   ex:event-impersonation-001 ;
+    gmeow:qPredicate gmeow:implicates ;
+    gmeow:qObject    ex:identityfacet-impersonation-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-10T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+# 17b. SOCKPUPPET — an instance of impersonation where the deceiver controls a
+#     counterpartOf identity they deny controlling.
+ex:claim-sockpuppet-counterpart-001 a gmeow:StatementMetadata ;
+    rdfs:label "Sockpuppet — deceiver controls a counterpart identity they deny"@en ;
+    gmeow:reifier    ex:claim-sockpuppet-counterpart-001 ;
+    gmeow:qSubject   ex:identity-sockpuppet-001 ;
+    gmeow:qPredicate gmeow:counterpartOf ;
+    gmeow:qObject    ex:identity-deceiver-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.7 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-10T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .

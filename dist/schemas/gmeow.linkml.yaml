@@ -9175,9 +9175,15 @@ enums:
       eventTypeExpressionCreation:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeExpressionCreation
         title: expression creation
+      eventTypeFabrication:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeFabrication
+        title: fabrication
       eventTypeFirstCommunion:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeFirstCommunion
         title: first communion
+      eventTypeForgery:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeForgery
+        title: forgery
       eventTypeFuneral:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeFuneral
         title: funeral
@@ -9202,6 +9208,9 @@ enums:
       eventTypeImmigration:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeImmigration
         title: immigration
+      eventTypeImpersonation:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeImpersonation
+        title: impersonation
       eventTypeLie:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeLie
         title: lie / falsification

@@ -1,0 +1,20 @@
+# Competency question: "Which events are impersonations?"
+# An impersonation = deception event where a projected identity claim's subject
+# differs from the deceiver.
+# Expected: event-impersonation-001 (from statement-dsl/deception.ttl).
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?event WHERE {
+    ?event gmeow:eventType gmeow:eventTypeImpersonation .
+    ?event gmeow:heldStandpoint ?heldClaim .
+    ?event gmeow:projectedStandpoint ?projectedClaim .
+    ?heldClaim gmeow:claimModality gmeow:refuted .
+    ?projectedClaim gmeow:claimModality gmeow:unequivocal .
+    OPTIONAL {
+        ?facet a gmeow:IdentityFacet .
+        ?facet gmeow:observedFeature ?event .
+        ?facet gmeow:facetSubject ?victim .
+    }
+}
+ORDER BY ?event
