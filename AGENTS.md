@@ -46,6 +46,25 @@ make statements-check # Validate that committed statement artifacts match statem
 make wikidata        # Validate Wikidata QID/PID syntax in the mappings (offline)
 ```
 
+#### Annotation-completeness gate (issue #221)
+
+`make validate` enforces that **every** GMEOW-namespaced term carries three
+annotation properties:
+
+* `rdfs:label` — human-readable name
+* `skos:definition` — human-readable definition
+* `rdfs:isDefinedBy` — pointer to the ontology / module / DSL vocabulary that
+  owns the term
+
+The gate applies to ontology headers, classes, object/datatype/annotation
+properties, datatypes, and individuals. It is implemented in both Python
+(`structural_lint()` in `src/gmeow_tools/validate.py`) and SHACL
+(`shapes/gmeow-shapes.ttl`, `shapes/mapping-dsl-shapes.ttl`,
+`shapes/statement-dsl-shapes.ttl`). Missing annotations are **violations**, not
+warnings. The DSL vocabularies are gated separately through
+`_dsl_shacl()`. New terms that lack these annotations will fail `make validate`
+and CI (Principles 1, 6, 7).
+
 ### Refreshing & Committing Generated Artifacts
 
 When you change canonical sources (ontology modules, mapping-dsl, statement-dsl), the checked-in generated artifacts can become stale. Use these targets to refresh and commit them safely:

@@ -133,6 +133,12 @@ catches modelling errors before any consumer sees them; no consumer is ever requ
 or to know that we do (Principle 13). FAIR publication is pursued seriously as scholarly bridge
 and discoverability hygiene; the product it certifies is Principle 14's.
 
+**Documentation is a first-class artifact.** Every GMEOW-namespaced class, property, annotation
+property, datatype, individual, and ontology header must carry `rdfs:label`, `skos:definition`,
+and `rdfs:isDefinedBy` so the vocabulary is human-readable and machine-discoverable by default.
+This is enforced by the annotation-completeness gate (`make validate`) and is not waived for
+generated artifacts (Principles 4 and 7).
+
 *Embodied in:* [`README.md`](./README.md) § Reasoning, § Publishing; `make reason`,
 `make explain`, `make metadata`, `make crossref`.
 

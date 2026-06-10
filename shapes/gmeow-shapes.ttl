@@ -35,8 +35,8 @@ gmeow:GmeowClassShape
     sh:property [
         sh:path rdfs:isDefinedBy ;
         sh:minCount 1 ;
-        sh:severity sh:Warning ;
-        sh:message "Every GMEOW class should declare rdfs:isDefinedBy the ontology." ;
+        sh:severity sh:Violation ;
+        sh:message "Every GMEOW class must declare rdfs:isDefinedBy the ontology (issue #221)." ;
     ] .
 
 gmeow:GmeowPropertyShape
@@ -49,7 +49,8 @@ gmeow:GmeowPropertyShape
                 ?this a ?t .
                 FILTER(?t IN (
                     <http://www.w3.org/2002/07/owl#ObjectProperty>,
-                    <http://www.w3.org/2002/07/owl#DatatypeProperty>
+                    <http://www.w3.org/2002/07/owl#DatatypeProperty>,
+                    <http://www.w3.org/2002/07/owl#AnnotationProperty>
                 ))
                 FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
             }
@@ -66,6 +67,74 @@ gmeow:GmeowPropertyShape
         sh:minCount 1 ;
         sh:severity sh:Violation ;
         sh:message "Every GMEOW property must carry a skos:definition." ;
+    ] ;
+    sh:property [
+        sh:path rdfs:isDefinedBy ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every GMEOW property must declare rdfs:isDefinedBy the ontology (issue #221)." ;
+    ] .
+
+gmeow:GmeowDatatypeShape
+    a sh:NodeShape ;
+    rdfs:label "GMEOW datatype completeness shape" ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            SELECT ?this WHERE {
+                ?this a <http://www.w3.org/2000/01/rdf-schema#Datatype> .
+                FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
+            }
+        """ ;
+    ] ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every GMEOW datatype must carry at least one rdfs:label (issue #221)." ;
+    ] ;
+    sh:property [
+        sh:path skos:definition ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every GMEOW datatype must carry a skos:definition (issue #221)." ;
+    ] ;
+    sh:property [
+        sh:path rdfs:isDefinedBy ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every GMEOW datatype must declare rdfs:isDefinedBy the ontology (issue #221)." ;
+    ] .
+
+gmeow:GmeowOntologyShape
+    a sh:NodeShape ;
+    rdfs:label "GMEOW ontology header completeness shape" ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            SELECT ?this WHERE {
+                ?this a <http://www.w3.org/2002/07/owl#Ontology> .
+                FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
+            }
+        """ ;
+    ] ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every GMEOW ontology header must carry at least one rdfs:label (issue #221)." ;
+    ] ;
+    sh:property [
+        sh:path skos:definition ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every GMEOW ontology header must carry a skos:definition (issue #221)." ;
+    ] ;
+    sh:property [
+        sh:path rdfs:isDefinedBy ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every GMEOW ontology header must declare rdfs:isDefinedBy itself (issue #221)." ;
     ] .
 
 # --------------------------------------------------------------------------- #
