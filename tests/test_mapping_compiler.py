@@ -220,7 +220,8 @@ def test_dsl_parses() -> None:
     # CIDOC-CRM production x1, CRMdig area x1, Wikidata region/spatial-relation x2).
     # Issue #23 employment / CV-résumé block: +8 (schema.org x4, Wikidata x2,
     # W3C ORG x1, ESCO x1).
-    assert len(dsl.equivalences) == 1495
+    # Issue #137 email behavioral metadata: +1 (sentBySoftware → schema:agent).
+    assert len(dsl.equivalences) == 1496
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
