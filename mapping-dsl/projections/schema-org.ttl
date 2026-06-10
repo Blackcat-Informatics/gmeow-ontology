@@ -883,3 +883,54 @@ gmeow:mapSchemaIndustryIsic a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:isicV4 ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
         gmeow:lossyDrop "only ISIC-V4-scheme classifications are emitted; NAICS and other schemes are dropped" ] .
+
+# --------------------------------------------------------------------------- #
+# Issue #263 — Expertise depth: SkillProficiency and Credential projections
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaSkillProficiency a gmeow:ProjectionMapping ;
+    rdfs:label "SkillProficiency relator → schema:knowsAbout / schema:skills (flatten)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "agent" ; gmeow:value "skill" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "prof" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SkillProficiency ]
+            [ gmeow:subjectVar "prof" ; gmeow:predicate gmeow:skillProficiencyAgent ; gmeow:objectVar "agent" ]
+            [ gmeow:subjectVar "prof" ; gmeow:predicate gmeow:skillProficiencyOf ; gmeow:objectVar "skill" ] ) ;
+        gmeow:edoalSource gmeow:hasSkill ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:knowsAbout ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnSkillProficiencyToKnowsAbout ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "the SkillProficiency relator (level, scale, interval, standpoint, confidence) collapses to a flat schema:knowsAbout edge" ] .
+
+gmeow:mapSchemaHasCredential a gmeow:ProjectionMapping ;
+    rdfs:label "holdsCredential → schema:hasCredential"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "agent" ; gmeow:value "cred" ;
+        gmeow:atom ( [ gmeow:subjectVar "agent" ; gmeow:predicate gmeow:holdsCredential ; gmeow:objectVar "cred" ] ) ;
+        gmeow:edoalSource gmeow:holdsCredential ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:hasCredential ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
+
+gmeow:mapSchemaCredentialIssuer a gmeow:ProjectionMapping ;
+    rdfs:label "credentialIssuer → schema:recognizedBy"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cred" ; gmeow:value "issuer" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "cred" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Credential ]
+            [ gmeow:subjectVar "cred" ; gmeow:predicate gmeow:credentialIssuer ; gmeow:objectVar "issuer" ] ) ;
+        gmeow:edoalSource gmeow:credentialIssuer ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:recognizedBy ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "the issuer organization relator collapses to a flat schema:recognizedBy edge" ] .
+
+gmeow:mapSchemaCredentialFor a gmeow:ProjectionMapping ;
+    rdfs:label "credentialFor → schema:competencyRequired"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cred" ; gmeow:value "target" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "cred" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Credential ]
+            [ gmeow:subjectVar "cred" ; gmeow:predicate gmeow:credentialFor ; gmeow:objectVar "target" ] ) ;
+        gmeow:edoalSource gmeow:credentialFor ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:competencyRequired ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "the Skill/Occupation distinction in credentialFor collapses to schema:competencyRequired" ] .

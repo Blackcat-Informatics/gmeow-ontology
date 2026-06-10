@@ -4,6 +4,7 @@
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema:  <https://schema.org/> .
 
 # FnO catalog of LANGUAGE TRANSFORMATIONS — transliteration, transcription and
 # translation modelled as declarative functions. Unlike functions.fno.ttl (which
@@ -104,3 +105,16 @@ gmeow:pTargetLanguage  a fno:Parameter ; fno:predicate gmeow:targetLanguage ; fn
 gmeow:oTransliterated  a fno:Output ; fno:predicate gmeow:romanization ; fno:type rdfs:Literal .
 gmeow:oTranscribed     a fno:Output ; fno:predicate gmeow:projectedTranscription ; fno:type rdfs:Literal .
 gmeow:oTranslated      a fno:Output ; fno:predicate gmeow:projectedTranslation ; fno:type rdfs:Literal .
+
+# --- Projection-domain transforms (issue #263) ----------------------------- #
+
+gmeow:fnSkillProficiencyToKnowsAbout
+    a fno:Function ;
+    rdfs:label "SkillProficiency → schema:knowsAbout/skills (lossy flatten)"@en ;
+    dcterms:description "Projects a reified gmeow:SkillProficiency relator to a flat schema:knowsAbout or schema:skills edge. Lossy: level, scale, interval, standpoint, and confidence are dropped."@en ;
+    fno:expects ( gmeow:pSkillProficiency ) ;
+    fno:returns ( gmeow:oKnowsAbout ) ;
+    rdfs:seeAlso gmeow:hasSkill .
+
+gmeow:pSkillProficiency a fno:Parameter ; fno:predicate gmeow:hasSkill ; fno:type gmeow:Skill ; fno:required true .
+gmeow:oKnowsAbout       a fno:Output ;     fno:predicate schema:knowsAbout ;     fno:type gmeow:Skill .
