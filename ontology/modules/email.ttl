@@ -840,3 +840,78 @@ gmeow:charset
     rdfs:label "charset"@x-gmeow-english ;
     skos:definition "The character encoding of a MIME part's content (e.g. utf-8, iso-8859-1). Stored as a literal because the IANA charset registry is too open to enumerate as a closed value vocabulary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Calendar invitation bridge — email→event seam (issue #139)
+#
+# Reuses gmeow:Event from events.ttl and gmeow:EventInvitation from calendar.ttl.
+# The email is the carrier; the event is the described occurrence; the social act
+# of invitation is a separate gmeow:EventInvitation relator. iCalendar METHOD is
+# an open value vocabulary (Principle 9 — no overtyping).
+# --------------------------------------------------------------------------- #
+
+gmeow:describesEvent
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:EmailMessage ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "describes event"@x-gmeow-english ;
+    skos:definition "Links an email message to an event described within it — typically parsed from a text/calendar attachment. Non-functional: an email may describe multiple events, and an event may be described by multiple emails (updates, forwards, replies)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eventDescribedBy
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:describesEvent ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:EmailMessage ;
+    rdfs:label "event described by"@x-gmeow-english ;
+    skos:definition "Links an event to an email message that describes it; the inverse of gmeow:describesEvent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:calendarAttachment
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasAttachment ;
+    rdfs:domain gmeow:EmailMessage ;
+    rdfs:range gmeow:Attachment ;
+    rdfs:label "calendar attachment"@x-gmeow-english ;
+    skos:definition "Links a message to the specific attachment that carries iCalendar data (mediaType text/calendar). A specialization of gmeow:hasAttachment that keeps the attachment first-class and separate from the parsed event representation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:calendarUid
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:EmailMessage ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "calendar UID"@x-gmeow-english ;
+    skos:definition "The iCalendar UID of the event described in the message. Non-functional: competing or multiple UIDs may coexist, and updates to the same event may carry the same UID in different messages."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:CalendarMethod
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Calendar Method"@x-gmeow-english ;
+    skos:definition "The iCalendar METHOD of a calendar component carried by an email — a VALUE vocabulary (individuals, never subclasses). Aligned to RFC 5546/iTIP: REQUEST, REPLY, CANCEL, PUBLISH, COUNTER, DECLINECOUNTER, ADD, REFRESH."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasCalendarMethod
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:EmailMessage ;
+    rdfs:range gmeow:CalendarMethod ;
+    rdfs:label "has calendar method"@x-gmeow-english ;
+    skos:definition "Relates an email message to the iCalendar METHOD of the calendar component it carries. Non-functional: a message may theoretically carry multiple methods (though RFC 5546 recommends one per component)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# CalendarMethod individuals (RFC 5546/iTIP).
+gmeow:calendarMethodRequest        a gmeow:CalendarMethod ; rdfs:label "request"@x-gmeow-english        ; skos:definition "An invitation to attend an event (iTIP METHOD=REQUEST)."@x-gmeow-english        ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:calendarMethodReply          a gmeow:CalendarMethod ; rdfs:label "reply"@x-gmeow-english          ; skos:definition "A response to an invitation (iTIP METHOD=REPLY)."@x-gmeow-english          ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:calendarMethodCancel         a gmeow:CalendarMethod ; rdfs:label "cancel"@x-gmeow-english         ; skos:definition "A cancellation of an event (iTIP METHOD=CANCEL)."@x-gmeow-english         ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:calendarMethodPublish        a gmeow:CalendarMethod ; rdfs:label "publish"@x-gmeow-english        ; skos:definition "A published event announcement (iTIP METHOD=PUBLISH)."@x-gmeow-english        ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:calendarMethodCounter        a gmeow:CalendarMethod ; rdfs:label "counter"@x-gmeow-english        ; skos:definition "A counter-proposal to an invitation (iTIP METHOD=COUNTER)."@x-gmeow-english        ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:calendarMethodDeclineCounter a gmeow:CalendarMethod ; rdfs:label "decline counter"@x-gmeow-english ; skos:definition "A decline of a counter-proposal (iTIP METHOD=DECLINECOUNTER)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:calendarMethodAdd            a gmeow:CalendarMethod ; rdfs:label "add"@x-gmeow-english             ; skos:definition "An addition of one or more instances to an existing event (iTIP METHOD=ADD)."@x-gmeow-english             ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:calendarMethodRefresh        a gmeow:CalendarMethod ; rdfs:label "refresh"@x-gmeow-english         ; skos:definition "A request for the latest version of an event (iTIP METHOD=REFRESH)."@x-gmeow-english         ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# MessageKind individual for calendar-invitation messages (overlaps with other kinds).
+gmeow:messageKindCalendarInvitation
+    a gmeow:MessageKind ;
+    rdfs:label "calendar invitation"@x-gmeow-english ;
+    skos:definition "An email whose primary purpose is conveying a calendar invitation, reply, cancellation, or update. Overlaps with other kinds (e.g. auto-generated for system-generated invites) per Principle 9."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
