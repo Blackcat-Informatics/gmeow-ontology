@@ -219,6 +219,14 @@
             align:relation "<=" ;
             edoal:measure 8e-01 ],
         [ a align:Cell ;
+            rdfs:label "hasSite → schema:location"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:hasSite ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:location ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
             rdfs:label "hasTag → schema:keywords (label text, suppress displayable false)"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:hasTag ] ;
@@ -268,6 +276,22 @@
             align:relation "<=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
+            rdfs:label "industryClassification → schema:isicV4"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:industryClassification ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:isicV4 ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ],
+        [ a align:Cell ;
+            rdfs:label "industryClassification → schema:naics"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:industryClassification ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:naics ] ;
+            align:relation "<=" ;
+            edoal:measure 8e-01 ],
+        [ a align:Cell ;
             rdfs:label "isAccessibleForFree → schema:isAccessibleForFree"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:isAccessibleForFree ] ;
@@ -306,6 +330,14 @@
             align:entity2 [ a edoal:Class ;
                     edoal:uri schema:Language ] ;
             align:relation "=" ],
+        [ a align:Cell ;
+            rdfs:label "legalIdentifier (LEI scheme) → schema:leiCode"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:legalIdentifier ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:leiCode ] ;
+            align:relation "<=" ;
+            edoal:measure 9.5e-01 ],
         [ a align:Cell ;
             rdfs:label "hasLicense → schema:license"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -378,6 +410,84 @@
                     edoal:uri schema:occupancy ] ;
             align:relation "<=" ;
             edoal:measure 7e-01 ],
+        [ a align:Cell ;
+            rdfs:label "gmeow:Organization [gmeow:organizationTypeCompany] → schema:Corporation"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:and ( [ a edoal:Class ;
+                                edoal:uri gmeow:Organization ] [ a edoal:AttributeValueRestriction ;
+                                edoal:comparator edoal:equals ;
+                                edoal:onAttribute [ a edoal:Relation ;
+                                        edoal:uri gmeow:organizationType ] ;
+                                edoal:value [ edoal:uri gmeow:organizationTypeCompany ] ] ) ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:Corporation ] ;
+            align:relation "=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnOrganizationTypeToClass ] ],
+        [ a align:Cell ;
+            rdfs:label "gmeow:Organization [gmeow:organizationTypeNonprofit] → schema:NGO"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:and ( [ a edoal:Class ;
+                                edoal:uri gmeow:Organization ] [ a edoal:AttributeValueRestriction ;
+                                edoal:comparator edoal:equals ;
+                                edoal:onAttribute [ a edoal:Relation ;
+                                        edoal:uri gmeow:organizationType ] ;
+                                edoal:value [ edoal:uri gmeow:organizationTypeNonprofit ] ] ) ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:NGO ] ;
+            align:relation "=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnOrganizationTypeToClass ] ],
+        [ a align:Cell ;
+            rdfs:label "gmeow:Organization [gmeow:organizationTypeGovernmentBody] → schema:GovernmentOrganization"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:and ( [ a edoal:Class ;
+                                edoal:uri gmeow:Organization ] [ a edoal:AttributeValueRestriction ;
+                                edoal:comparator edoal:equals ;
+                                edoal:onAttribute [ a edoal:Relation ;
+                                        edoal:uri gmeow:organizationType ] ;
+                                edoal:value [ edoal:uri gmeow:organizationTypeGovernmentBody ] ] ) ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:GovernmentOrganization ] ;
+            align:relation "=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnOrganizationTypeToClass ] ],
+        [ a align:Cell ;
+            rdfs:label "gmeow:Organization [gmeow:organizationTypeEducationalInstitution] → schema:EducationalOrganization"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:and ( [ a edoal:Class ;
+                                edoal:uri gmeow:Organization ] [ a edoal:AttributeValueRestriction ;
+                                edoal:comparator edoal:equals ;
+                                edoal:onAttribute [ a edoal:Relation ;
+                                        edoal:uri gmeow:organizationType ] ;
+                                edoal:value [ edoal:uri gmeow:organizationTypeEducationalInstitution ] ] ) ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:EducationalOrganization ] ;
+            align:relation "=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnOrganizationTypeToClass ] ],
+        [ a align:Cell ;
+            rdfs:label "gmeow:Organization [gmeow:organizationTypeAssociation] → schema:Organization"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:and ( [ a edoal:Class ;
+                                edoal:uri gmeow:Organization ] [ a edoal:AttributeValueRestriction ;
+                                edoal:comparator edoal:equals ;
+                                edoal:onAttribute [ a edoal:Relation ;
+                                        edoal:uri gmeow:organizationType ] ;
+                                edoal:value [ edoal:uri gmeow:organizationTypeAssociation ] ] ) ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:Organization ] ;
+            align:relation "=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnOrganizationTypeToClass ] ],
+        [ a align:Cell ;
+            rdfs:label "gmeow:Organization [gmeow:organizationTypeCollaboration] → schema:Project"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:and ( [ a edoal:Class ;
+                                edoal:uri gmeow:Organization ] [ a edoal:AttributeValueRestriction ;
+                                edoal:comparator edoal:equals ;
+                                edoal:onAttribute [ a edoal:Relation ;
+                                        edoal:uri gmeow:organizationType ] ;
+                                edoal:value [ edoal:uri gmeow:organizationTypeCollaboration ] ] ) ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:Project ] ;
+            align:relation "=" ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnOrganizationTypeToClass ] ],
         [ a align:Cell ;
             rdfs:label "Participation (organizer role) → schema:organizer"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -504,6 +614,21 @@
                     edoal:uri schema:AdministrativeArea ] ;
             align:relation "=" ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnPlaceTypeToClass ] ],
+        [ a align:Cell ;
+            rdfs:label "Post → schema:OrganizationRole (lossy)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:compose ( [ a edoal:Relation ;
+                                edoal:inverse [ a edoal:Relation ;
+                                        edoal:uri gmeow:fillsPost ] ] [ a edoal:Relation ;
+                                edoal:uri gmeow:hasRole ] [ a edoal:Relation ;
+                                edoal:or ( [ a edoal:Relation ;
+                                            edoal:uri rdfs:label ] [ a edoal:Relation ;
+                                            edoal:uri gmeow:name ] ) ] ) ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:roleName ] ;
+            align:relation "<=" ;
+            edoal:measure 7e-01 ;
+            edoal:transformation [ rdfs:seeAlso gmeow:fnPostToOrganizationRole ] ],
         [ a align:Cell ;
             rdfs:label "gmeow:ProgrammingLanguage → schema:ComputerLanguage"@en ;
             align:entity1 [ a edoal:Class ;

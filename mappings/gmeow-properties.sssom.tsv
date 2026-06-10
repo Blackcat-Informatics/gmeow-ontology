@@ -36,6 +36,7 @@ gmeow:description	skos:closeMatch	vcard:note		semapv:ManualMappingCuration	0.8
 gmeow:email	owl:equivalentProperty	schema:email		semapv:ManualMappingCuration	1.0	
 gmeow:email	skos:closeMatch	foaf:mbox		semapv:ManualMappingCuration	0.9	foaf:mbox is an IRI; close not equivalent
 gmeow:email	skos:closeMatch	vcard:hasEmail		semapv:ManualMappingCuration	0.9	
+gmeow:fillsPost	skos:closeMatch	org:holds		semapv:ManualMappingCuration	0.8	fillsPost links Membership→Post; org:holds links Agent→Post (different domain, close not equivalent)
 gmeow:hasAuthor	owl:equivalentProperty	schema:author		semapv:ManualMappingCuration	1.0	
 gmeow:hasAuthor	skos:closeMatch	dcterms:creator		semapv:ManualMappingCuration	0.9	DCTerms creator — GMEOW's flat hasAuthor (chief creator) downcasts to dcterms:creator by projection
 gmeow:hasAuthor	skos:closeMatch	foaf:maker		semapv:ManualMappingCuration	0.9	
@@ -55,6 +56,7 @@ gmeow:hasPart	skos:closeMatch	schema:hasPart		semapv:ManualMappingCuration	0.8
 gmeow:hasRepository	skos:closeMatch	doap:repository		semapv:ManualMappingCuration	0.9	
 gmeow:hasSibling	owl:equivalentProperty	rel:siblingOf		semapv:ManualMappingCuration	1.0	
 gmeow:hasSibling	owl:equivalentProperty	schema:sibling		semapv:ManualMappingCuration	1.0	
+gmeow:hasSite	skos:closeMatch	org:hasSite		semapv:ManualMappingCuration	0.9	gmeow:hasSite has range gmeow:Location, while org:hasSite has range org:Site; no alignment of gmeow:Location to org:Site exists, so owl:equivalentProperty is too strong.
 gmeow:hasSpouse	owl:equivalentProperty	rel:spouseOf		semapv:ManualMappingCuration	1.0	
 gmeow:hasSpouse	owl:equivalentProperty	schema:spouse		semapv:ManualMappingCuration	1.0	
 gmeow:hasWebPage	skos:closeMatch	foaf:homepage		semapv:ManualMappingCuration	0.8	
@@ -62,6 +64,7 @@ gmeow:hasWebPage	skos:closeMatch	schema:url		semapv:ManualMappingCuration	0.8
 gmeow:holdsAccount	owl:equivalentProperty	foaf:account		semapv:ManualMappingCuration	1.0	
 gmeow:identifier	skos:closeMatch	bibo:doi		semapv:ManualMappingCuration	0.8	
 gmeow:identifier	skos:closeMatch	dcterms:identifier		semapv:ManualMappingCuration	0.9	DCTerms identifier — a formal identifier such as a DOI or patent number
+gmeow:industryClassification	skos:closeMatch	org:classification		semapv:ManualMappingCuration	0.8	industryClassification carries open codes (NAICS/ISIC); org:classification is broader
 gmeow:latitude	owl:equivalentProperty	schema:latitude		semapv:ManualMappingCuration	1.0	
 gmeow:longitude	owl:equivalentProperty	schema:longitude		semapv:ManualMappingCuration	1.0	
 gmeow:memberOf	owl:equivalentProperty	schema:memberOf		semapv:ManualMappingCuration	1.0	
@@ -69,6 +72,7 @@ gmeow:memberOf	skos:closeMatch	org:memberOf		semapv:ManualMappingCuration	0.9
 gmeow:name	owl:equivalentProperty	foaf:name		semapv:ManualMappingCuration	1.0	
 gmeow:name	owl:equivalentProperty	schema:name		semapv:ManualMappingCuration	1.0	
 gmeow:name	skos:closeMatch	vcard:fn		semapv:ManualMappingCuration	0.9	
+gmeow:organizationPurpose	owl:equivalentProperty	org:purpose		semapv:ManualMappingCuration	0.9	
 gmeow:partOf	skos:closeMatch	bfo:BFO_0000050	part of	semapv:ManualMappingCuration	0.85	BFO continuant/occurrent parthood is the OBO hub; GMEOW partOf is a broader universal spine across modules
 gmeow:partOf	skos:closeMatch	crm:P46i_forms_part_of		semapv:ManualMappingCuration	0.75	CIDOC CRM P46 inverse forms part of — physical/conceptual object parthood; narrower than GMEOW universal partOf
 gmeow:partOf	skos:closeMatch	dcterms:isPartOf		semapv:ManualMappingCuration	0.75	
@@ -77,8 +81,11 @@ gmeow:partOf	skos:closeMatch	gufo:isCollectionMemberOf		semapv:ManualMappingCura
 gmeow:partOf	skos:closeMatch	gufo:isComponentOf		semapv:ManualMappingCuration	0.65	gUFO component parthood is endurant/component-specific and not generally transitive; GMEOW partOf is broader
 gmeow:partOf	skos:closeMatch	gufo:isSubCollectionOf		semapv:ManualMappingCuration	0.6	gUFO subcollection parthood is collection-specific; GMEOW partOf is the broader cross-module spine
 gmeow:partOf	skos:closeMatch	schema:isPartOf		semapv:ManualMappingCuration	0.8	
+gmeow:postIn	owl:equivalentProperty	org:postIn		semapv:ManualMappingCuration	0.9	
+gmeow:predecessorOrganization	skos:closeMatch	org:originalOrganization		semapv:ManualMappingCuration	0.9	predecessorOrganization on Event ≈ originalOrganization on ChangeEvent
 gmeow:subOrganizationOf	owl:equivalentProperty	org:subOrganizationOf		semapv:ManualMappingCuration	0.9	
 gmeow:subOrganizationOf	owl:equivalentProperty	schema:parentOrganization		semapv:ManualMappingCuration	0.9	
+gmeow:successorOrganization	skos:closeMatch	org:resultingOrganization		semapv:ManualMappingCuration	0.9	successorOrganization on Event ≈ resultingOrganization on ChangeEvent
 gmeow:telephone	owl:equivalentProperty	schema:telephone		semapv:ManualMappingCuration	1.0	
 gmeow:telephone	skos:closeMatch	vcard:hasTelephone		semapv:ManualMappingCuration	0.9	
 gmeow:title	skos:closeMatch	dcterms:title		semapv:ManualMappingCuration	0.9	

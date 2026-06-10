@@ -1,0 +1,17 @@
+# Coverage slice (#258): organizational sites.
+# Exercises hasSite, siteType, and headquarters location queries.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/organizations/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:acme a gmeow:Organization ;
+    gmeow:hasSite ex:hqBuilding , ex:branchOffice .
+
+ex:hqBuilding a gmeow:Place ;
+    gmeow:siteType gmeow:siteTypeHeadquarters ;
+    rdfs:label "Acme HQ"@en .
+
+ex:branchOffice a gmeow:Place ;
+    gmeow:siteType gmeow:siteTypeBranch ;
+    rdfs:label "Acme Downtown Branch"@en .

@@ -602,3 +602,15 @@ gmeow:fnComposeMailmapMapping a gmeow:ProjectionFunction ;
     dcterms:description "Composes a .mailmap mapping line for a superseded AuthorIdentity: CONCAT(canonical mailmapEntry, ' ', old authorIdentityString). This is the suppression projection — the old identity is retained in the graph but remapped in the generated .mailmap (Principle 10)."@en ;
     gmeow:fnInput gmeow:mailmapEntry , gmeow:authorIdentityString ;
     gmeow:fnOutput gmeow:projectedMailmapMapping ; gmeow:fnOutputType rdfs:Literal .
+
+gmeow:fnOrganizationTypeToClass a gmeow:ProjectionFunction ;
+    rdfs:label "organization-type value → target class"@en ;
+    dcterms:description "Maps a gmeow:organizationType value individual (e.g. organizationTypeCompany) to the target vocabulary class to assert via rdf:type (e.g. schema:Corporation). The conditional retyping; organization types without a target class are dropped."@en ;
+    gmeow:fnInput gmeow:organizationType ;
+    gmeow:fnOutput gmeow:projectedType ; gmeow:fnOutputType rdfs:Class .
+
+gmeow:fnPostToOrganizationRole a gmeow:ProjectionFunction ;
+    rdfs:label "Post + Role → schema:roleName (lossy)"@en ;
+    dcterms:description "Extracts a role name by traversing the Post: a gmeow:Post (gmeow:postIn ?org, filled by gmeow:Membership gmeow:hasRole ?role) yields the role's label as schema:roleName. GMEOW models a post as a seat independent of its holder; this downcasts the role label to the flat schema:roleName field, collapsing the seat/holder distinction."@en ;
+    gmeow:fnInput gmeow:hasRole ;
+    gmeow:fnOutput gmeow:projectedRoleName ; gmeow:fnOutputType rdfs:Literal .

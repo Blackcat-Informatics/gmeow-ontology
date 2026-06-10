@@ -1,0 +1,38 @@
+# Coverage slice (#258): multi-organization change events.
+# Exercises merger, predecessor/successor links, and event typing.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/organizations/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:acquiredCo a gmeow:Organization ;
+    rdfs:label "AcquiredCo"@en .
+
+ex:acquirerCo a gmeow:Organization ;
+    rdfs:label "AcquirerCo"@en .
+
+ex:mergedEntity a gmeow:Organization ;
+    rdfs:label "AcquirerCo (post-merger)"@en .
+
+ex:mergerEvent a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeMerger ;
+    gmeow:predecessorOrganization ex:acquiredCo , ex:acquirerCo ;
+    gmeow:successorOrganization ex:mergedEntity ;
+    gmeow:eventTime "2024-01-15T00:00:00Z"^^xsd:dateTime .
+
+# A split event for the split/spin-off shape test.
+ex:parentCo a gmeow:Organization ;
+    rdfs:label "ParentCo"@en .
+
+ex:spinOffA a gmeow:Organization ;
+    rdfs:label "SpinOff A"@en .
+
+ex:spinOffB a gmeow:Organization ;
+    rdfs:label "SpinOff B"@en .
+
+ex:splitEvent a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeSplit ;
+    gmeow:predecessorOrganization ex:parentCo ;
+    gmeow:successorOrganization ex:spinOffA , ex:spinOffB ;
+    gmeow:eventTime "2023-06-01T00:00:00Z"^^xsd:dateTime .

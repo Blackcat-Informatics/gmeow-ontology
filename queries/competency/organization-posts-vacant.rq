@@ -1,0 +1,13 @@
+# Competency question: "What posts are vacant after a member's tenure ended?"
+# Expected: Posts that have no current Membership filling them.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?post ?org WHERE {
+    ?post a gmeow:Post ;
+          gmeow:postIn ?org .
+    FILTER NOT EXISTS {
+        ?membership gmeow:fillsPost ?post .
+    }
+}
+ORDER BY ?org ?post

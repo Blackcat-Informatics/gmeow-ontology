@@ -399,3 +399,41 @@ gmeow:eqClasses047 a gmeow:TermEquivalence ;
     gmeow:confidence 0.8 ;
     gmeow:comment "GMEOW Profile is a narrower closed-descriptor-schema construct; PROF is a broader specification-profile vocabulary." ;
     gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+# --- Organization module deepening (issue #258) ---------------------------- #
+
+gmeow:eqClasses048 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Post ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject org:Post ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "post (seat independent of holder)" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses049 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:organizationTypeCompany ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject org:FormalOrganization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "company type value ≈ formal organization (lossy: not every formal org is a company)" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses050 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:organizationTypeCollaboration ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject org:OrganizationalCollaboration ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "collaboration type value ≈ organizational collaboration" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses051 a gmeow:TermEquivalence ;
+    gmeow:alignSubject org:ChangeEvent ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:Event ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "ORG ChangeEvent is an event (merger, split, rename, etc.)" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .

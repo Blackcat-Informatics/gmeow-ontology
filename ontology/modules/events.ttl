@@ -128,6 +128,20 @@ gmeow:eventTypeSupersession   a gmeow:EventType ; rdfs:label "supersession"@en ;
 gmeow:eventTypeDissolution    a gmeow:EventType ; rdfs:label "dissolution"@en ;    skos:definition "The formal dissolution of a structured entity — an organization, agreement, polity, or marriage. Distinct from general destruction in carrying legal or procedural formality."@en .
 
 # --------------------------------------------------------------------------- #
+# Multi-organization change event types (issue #258). Reuse the universal Event
+# machinery; predecessor/successor organizations are linked via
+# gmeow:predecessorOrganization / gmeow:successorOrganization on the event.
+# Founding/dissolution are NOT duplicated — they use the universal
+# hasCreationEvent / hasDestructionEvent hooks (lifecycle module).
+# --------------------------------------------------------------------------- #
+
+gmeow:eventTypeMerger       a gmeow:EventType ; rdfs:label "merger"@en ;       skos:definition "The event of two or more organizations combining into one or more successor organizations."@en .
+gmeow:eventTypeSplit        a gmeow:EventType ; rdfs:label "split"@en ;        skos:definition "The event of one organization dividing into two or more successor organizations."@en .
+gmeow:eventTypeSpinOff      a gmeow:EventType ; rdfs:label "spin-off"@en ;     skos:definition "The event of a part of an organization breaking away to form a new, independent organization."@en .
+gmeow:eventTypeAcquisition  a gmeow:EventType ; rdfs:label "acquisition"@en ;  skos:definition "The event of one organization acquiring control of another organization."@en .
+gmeow:eventTypeRename       a gmeow:EventType ; rdfs:label "rename"@en ;      skos:definition "The event of an organization changing its name, while remaining the same legal entity. Reuses the names module for the new name plus a temporal tenure (e.g. Facebook → Meta)."@en .
+
+# --------------------------------------------------------------------------- #
 # Creative-work creation event types — WEMI spine (#208). These specialize the
 # universal gmeow:eventTypeCreation for the bibliographic/cultural-heritage
 # domain. They are values, not Event subclasses (Principle 12).
