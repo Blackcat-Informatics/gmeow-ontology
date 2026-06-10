@@ -39,7 +39,7 @@ MESSAGE ?= "chore: regenerate checked-in artifacts"
 .PHONY: help install fmt lint validate crosscheck reason reason-hermit explain verify extract compile-mappings \
         compile-check compile-statements statements-check compile-statements-pyoxigraph statements-check-pyoxigraph \
         compile-schemas schemas-check mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
-        lint-alignment refresh-target-axioms metadata apache docs docs-full rdf12 rdf12-pyoxigraph quality \
+        lint-alignment refresh-target-axioms metadata apache docs docs-full rdf12 quality \
         normalize build export lpg project test test-fast check release regenerate commit clean pull-images
 
 help: ## Show this help.
@@ -116,11 +116,11 @@ compile-statements: $(STAMPS_DIR)/compile-statements ## Compile statement-dsl/ â
 statements-check: compile-statements ## Fail if the committed statement artifacts are stale vs statement-dsl/ (Jena).
 	uv run gmeow compile-statements --check
 
-compile-statements-pyoxigraph: ## Compile statement-dsl/ â†’ RDF 1.2 + OWL downcast (pyoxigraph cross-check).
+compile-statements-pyoxigraph: ## Cross-check statement-dsl/ against committed artifacts (pyoxigraph, read-only).
 	uv run gmeow compile-statements-pyoxigraph
 
 statements-check-pyoxigraph: compile-statements ## Fail if pyoxigraph cross-check artifacts diverge from committed.
-	uv run gmeow compile-statements-pyoxigraph --check
+	uv run gmeow compile-statements-pyoxigraph
 
 $(STAMPS_DIR)/metadata: $(STAMPS_DIR)/compile-mappings $(ONTOLOGY_SRCS) $(IMPORTS_SRCS) $(METADATA_COMPILE_SRCS)
 	@mkdir -p $(STAMPS_DIR)
@@ -187,8 +187,6 @@ docs-full: ## Generate pyLODE + WIDOCO documentation (Docker).
 	uv run gmeow docs --widoco
 
 rdf12: compile-statements ## Emit the RDF 1.2 / RDF* lead artifact + OWL downcast (alias of compile-statements; Jena).
-
-rdf12-pyoxigraph: compile-statements-pyoxigraph ## Emit the RDF 1.2 / RDF* lead artifact + OWL downcast (pyoxigraph alias).
 
 quality: ## Run OOPS! pitfall scan (network, best-effort).
 	uv run gmeow quality

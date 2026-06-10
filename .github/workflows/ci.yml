@@ -212,7 +212,7 @@ jobs:
           docker pull "$ROBOT_IMAGE"
 
       - name: RDF 1.2 + OWL-form no-drift gate (pyoxigraph cross-check)
-        run: uv run gmeow compile-statements-pyoxigraph --check
+        run: uv run gmeow compile-statements-pyoxigraph
 
       - name: pyoxigraph projection / normalization / round-trip tests
         run: uv run pytest -q tests/test_pyoxigraph_crosscheck.py
