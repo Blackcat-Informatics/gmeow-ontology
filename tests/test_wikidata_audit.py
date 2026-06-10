@@ -54,7 +54,9 @@ ex:item ex:ref <https://www.wikidata.org/entity/Q42> .
     assert "should be written as wd:Q42" in findings[0].message
 
 
-def test_audit_file_owl_sameas(tmp_path: Path) -> None:
+def test_audit_file_owl_sameas_not_reported_here(tmp_path: Path) -> None:
+    # The universal owl:sameAs ban lives in validate.py (Principle 5, #284).
+    # wikidata_audit no longer duplicates it.
     path = tmp_path / "sameas.ttl"
     path.write_text("""
 @prefix ex: <http://example.org/> .
@@ -63,10 +65,10 @@ def test_audit_file_owl_sameas(tmp_path: Path) -> None:
 ex:item owl:sameAs wd:Q42 .
 """)
     findings = audit_file(path)
-    sameas_findings = [f for f in findings if "owl:sameAs" in f.message]
-    assert len(sameas_findings) == 1
-    assert sameas_findings[0].severity == "warning"
-    assert "standpoint collapse" in sameas_findings[0].message
+    sameas_findings = [
+        f for f in findings if f.predicate == "http://www.w3.org/2002/07/owl#sameAs"
+    ]
+    assert len(sameas_findings) == 0
 
 
 def test_render_audit_empty() -> None:

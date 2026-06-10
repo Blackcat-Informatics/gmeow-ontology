@@ -12,13 +12,13 @@
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix gedcom: <http://www.w3.org/2000/10/swap/pim/gedcom#> .
 @prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix lcsh: <http://id.loc.gov/authorities/subjects/> .
 @prefix mads: <http://www.loc.gov/mads/rdf/v1#> .
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix ontodm: <http://www.ontodm.com/OntoDM-core/> .
 @prefix openalex-topic: <https://openalex.org/> .
 @prefix org: <http://www.w3.org/ns/org#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix pa: <https://patrickaudley.com/> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -66,9 +66,9 @@ ontodm:OntoDM_817888 a rdfs:Class ;
         foaf:Person,
         schema:Person ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/6000000001001221435> ;
     foaf:givenName "A Non entity"@en ;
     foaf:name "A Non entity"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/6000000001001221435> ;
     schema:gender "Male"@en ;
     schema:givenName "A Non entity"@en ;
     schema:identifier [ a schema:PropertyValue ;
@@ -365,398 +365,398 @@ ontodm:OntoDM_817888 a rdfs:Class ;
 
 wd:Q1110105 a skos:Concept ;
     rdfs:label "LAMP"@en ;
-    owl:sameAs dbr:LAMP_\(software_bundle\) ;
+    skos:exactMatch dbr:LAMP_\(software_bundle\) ;
     skos:prefLabel "LAMP"@en ;
     schema:sameAs dbr:LAMP_\(software_bundle\) .
 
 wd:Q11215810 a skos:Concept ;
     rdfs:label "Security Management"@en ;
-    owl:sameAs dbr:Information_security_management ;
     skos:closeMatch acm:10011007.10011074.10011081.10011091,
         lcsh:sh2009121243 ;
+    skos:exactMatch dbr:Information_security_management ;
     skos:prefLabel "Security Management"@en ;
     schema:sameAs dbr:Information_security_management .
 
 wd:Q1130645 a skos:Concept ;
     rdfs:label "Open Source"@en ;
-    owl:sameAs dbr:Open-source_software ;
     skos:closeMatch esco:b16200f4-4f39-4b8b-aa9d-3568054d6bdb,
         acm:10002951.10003227.10003233.10003597,
         eurovoc:435299,
         lcsh:sh99003437,
         swebok:software-engineering-professional-practice ;
+    skos:exactMatch dbr:Open-source_software ;
     skos:prefLabel "Open Source"@en ;
     schema:sameAs dbr:Open-source_software .
 
 wd:Q11354 a skos:Concept ;
     rdfs:label "Apache"@en ;
-    owl:sameAs dbr:Apache_HTTP_Server ;
     skos:closeMatch esco:0fb753a1-2ef2-4429-84d2-ecb2b24daf7a ;
+    skos:exactMatch dbr:Apache_HTTP_Server ;
     skos:prefLabel "Apache"@en ;
     schema:sameAs dbr:Apache_HTTP_Server .
 
 wd:Q11368 a skos:Concept ;
     rdfs:label "Unix"@en ;
-    owl:sameAs dbr:Unix ;
     skos:closeMatch <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/computing-foundations/operating-system-basics> ;
+    skos:exactMatch dbr:Unix ;
     skos:prefLabel "Unix"@en ;
     schema:sameAs dbr:Unix .
 
 wd:Q1149247 a skos:Concept ;
     rdfs:label "Spatial Analysis"@en ;
-    owl:sameAs dbr:Spatial_analysis ;
     skos:closeMatch acm:10002951.10003227.10003236,
         lcsh:sh85126347 ;
+    skos:exactMatch dbr:Spatial_analysis ;
     skos:prefLabel "Spatial Analysis"@en ;
     schema:sameAs dbr:Spatial_analysis .
 
 wd:Q12350880 a skos:Concept ;
     rdfs:label "Start-ups"@en ;
-    owl:sameAs dbr:Startup_company ;
     skos:closeMatch eurovoc:6755,
         lcsh:sh85091252 ;
+    skos:exactMatch dbr:Startup_company ;
     skos:prefLabel "Start-ups"@en ;
     schema:sameAs dbr:Startup_company .
 
 wd:Q13479982 a skos:Concept ;
     rdfs:label "Cryptocurrency"@en ;
-    owl:sameAs dbr:Cryptocurrency ;
     skos:closeMatch acm:10010405.10003550.10003551,
         eurovoc:c_2ffe4574,
         lcsh:sh2018001347 ;
+    skos:exactMatch dbr:Cryptocurrency ;
     skos:prefLabel "Cryptocurrency"@en ;
     schema:sameAs dbr:Cryptocurrency .
 
 wd:Q1361014 a skos:Concept ;
     rdfs:label "SaaS"@en ;
-    owl:sameAs dbr:Software_as_a_service ;
     skos:closeMatch esco:eeca3780-8049-499f-a268-95a7ad26642c,
         acm:10011007.10011006.10011066.10011068,
         eurovoc:c_433922a6 ;
+    skos:exactMatch dbr:Software_as_a_service ;
     skos:prefLabel "SaaS"@en ;
     schema:sameAs dbr:Software_as_a_service .
 
 wd:Q1473030 a skos:Concept ;
     rdfs:label "Software Design"@en ;
-    owl:sameAs dbr:Software_design ;
     skos:closeMatch esco:2b7a79e5-84d8-4880-be66-3d9bb05bea17,
         acm:10011007.10011074.10011075.10011077,
         lcsh:sh2004001071,
         swebok:software-design ;
+    skos:exactMatch dbr:Software_design ;
     skos:prefLabel "Software Design"@en ;
     schema:sameAs dbr:Software_design .
 
 wd:Q1500070 a skos:Concept ;
     rdfs:label "Product Development"@en ;
-    owl:sameAs dbr:New_product_development ;
     skos:closeMatch acm:10003456.10003457.10003490.10003498,
         eurovoc:71,
         lcsh:sh85091388 ;
+    skos:exactMatch dbr:New_product_development ;
     skos:prefLabel "Product Development"@en ;
     schema:sameAs dbr:New_product_development .
 
 wd:Q161053 a skos:Concept ;
     rdfs:label "Ruby"@en ;
-    owl:sameAs dbr:Ruby_\(programming_language\) ;
     skos:closeMatch esco:0ccdfe98-f845-4598-84a1-3dca66e9d9a3,
         lcsh:sh00000128,
         <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/computing-foundations/programming-language-basics> ;
+    skos:exactMatch dbr:Ruby_\(programming_language\) ;
     skos:prefLabel "Ruby"@en ;
     schema:sameAs dbr:Ruby_\(programming_language\) .
 
 wd:Q1755530 a skos:Concept ;
     rdfs:label "Mobile Applications"@en ;
-    owl:sameAs dbr:Mobile_app ;
     skos:closeMatch acm:10003120.10003138,
         eurovoc:c_8ce6dcec,
         lcsh:sh2014000897 ;
+    skos:exactMatch dbr:Mobile_app ;
     skos:prefLabel "Mobile Applications"@en ;
     schema:sameAs dbr:Mobile_app .
 
 wd:Q177005 a skos:Concept ;
     rdfs:label "AJAX"@en ;
-    owl:sameAs dbr:Ajax_\(programming\) ;
     skos:closeMatch esco:b4dc6e4f-dc7d-445f-8ce2-d7b9d225e282,
         lcsh:sh2006004062 ;
+    skos:exactMatch dbr:Ajax_\(programming\) ;
     skos:prefLabel "AJAX"@en ;
     schema:sameAs dbr:Ajax_\(programming\) .
 
 wd:Q188048 a skos:Concept ;
     rdfs:label "Subversion"@en ;
-    owl:sameAs dbr:Apache_Subversion ;
     skos:closeMatch esco:9d2e926f-53d9-41f5-98f3-19dfaa687f3f,
         acm:10010405.10010497.10010500.10010502,
         swebok:software-configuration-management ;
+    skos:exactMatch dbr:Apache_Subversion ;
     skos:prefLabel "Subversion"@en ;
     schema:sameAs dbr:Apache_Subversion .
 
 wd:Q188860 a skos:Concept ;
     rdfs:label "Software Architecture"@en ;
-    owl:sameAs dbr:Software_architecture ;
     skos:closeMatch esco:2450c3b3-e78e-435b-b84d-e05d984e71dc,
         acm:10011007.10010940.10010971.10010972,
         lcsh:sh2004001071,
         swebok:software-architecture ;
+    skos:exactMatch dbr:Software_architecture ;
     skos:prefLabel "Software Architecture"@en ;
     schema:sameAs dbr:Software_architecture .
 
 wd:Q1894252 a skos:Concept ;
     rdfs:label "Managed Services"@en ;
-    owl:sameAs dbr:Managed_services ;
+    skos:exactMatch dbr:Managed_services ;
     skos:prefLabel "Managed Services"@en ;
     schema:sameAs dbr:Managed_services .
 
 wd:Q189756 a skos:Concept ;
     rdfs:label "REST"@en ;
-    owl:sameAs dbr:Representational_state_transfer ;
     skos:closeMatch acm:10002951.10003260.10003304.10003306,
         lcsh:sh2009000706,
         <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/software-design/architectural-styles> ;
+    skos:exactMatch dbr:Representational_state_transfer ;
     skos:prefLabel "REST"@en ;
     schema:sameAs dbr:Representational_state_transfer .
 
 wd:Q189920 a skos:Concept ;
     rdfs:label "Web Services"@en ;
-    owl:sameAs dbr:Web_service ;
     skos:closeMatch acm:10002951.10003260.10003304,
         lcsh:sh2003001435 ;
+    skos:exactMatch dbr:Web_service ;
     skos:prefLabel "Web Services"@en ;
     schema:sameAs dbr:Web_service .
 
 wd:Q193410 a skos:Concept ;
     rdfs:label "Data Center"@en ;
-    owl:sameAs dbr:Data_center ;
     skos:closeMatch acm:10002951.10003227.10003228.10010925,
         eurovoc:5355,
         lcsh:sh85035856 ;
+    skos:exactMatch dbr:Data_center ;
     skos:prefLabel "Data Center"@en ;
     schema:sameAs dbr:Data_center .
 
 wd:Q193424 a skos:Concept ;
     rdfs:label "Web Applications"@en ;
-    owl:sameAs dbr:Web_application ;
     skos:closeMatch acm:10002951.10003260.10003282,
         lcsh:sh2012001728 ;
+    skos:exactMatch dbr:Web_application ;
     skos:prefLabel "Web Applications"@en ;
     schema:sameAs dbr:Web_application .
 
 wd:Q2002 a skos:Concept ;
     rdfs:label "jQuery"@en ;
-    owl:sameAs dbr:JQuery ;
+    skos:exactMatch dbr:JQuery ;
     skos:prefLabel "jQuery"@en ;
     schema:sameAs dbr:JQuery .
 
 wd:Q2005 a skos:Concept ;
     rdfs:label "JavaScript"@en ;
-    owl:sameAs dbr:JavaScript ;
     skos:closeMatch esco:3cd569a2-4f88-4c1e-9995-8dce8c5e51a7,
         lcsh:sh96004880,
         <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/computing-foundations/programming-language-basics> ;
+    skos:exactMatch dbr:JavaScript ;
     skos:prefLabel "JavaScript"@en ;
     schema:sameAs dbr:JavaScript .
 
 wd:Q2115 a skos:Concept ;
     rdfs:label "XML"@en ;
-    owl:sameAs dbr:XML ;
     skos:closeMatch esco:0af062de-eb43-41e9-9b96-249e2cd22d26,
         acm:10002951.10003260.10003309.10010512.10003310,
         lcsh:sh97007825 ;
+    skos:exactMatch dbr:XML ;
     skos:prefLabel "XML"@en ;
     schema:sameAs dbr:XML .
 
 wd:Q235460 a skos:Concept ;
     rdfs:label "Scrum"@en ;
-    owl:sameAs dbr:Scrum_\(software_development\) ;
     skos:closeMatch esco:0a9acb6b-1139-4be9-b431-3a80a959f2f4,
         lcsh:sh2001003039,
         <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/software-engineering-process/agile-methods> ;
+    skos:exactMatch dbr:Scrum_\(software_development\) ;
     skos:prefLabel "Scrum"@en ;
     schema:sameAs dbr:Scrum_\(software_development\) .
 
 wd:Q237087 a skos:Concept ;
     rdfs:label "PKI"@en ;
-    owl:sameAs dbr:Public_key_infrastructure ;
     skos:closeMatch acm:10002978.10002979.10002981,
         lcsh:sh2002004634 ;
+    skos:exactMatch dbr:Public_key_infrastructure ;
     skos:prefLabel "PKI"@en ;
     schema:sameAs dbr:Public_key_infrastructure .
 
 wd:Q2374463 a skos:Concept ;
     rdfs:label "Data Science"@en ;
-    owl:sameAs dbr:Data_science ;
     skos:closeMatch acm:10002951.10003227.10003241.10003244,
         eurovoc:c_2df9b142 ;
+    skos:exactMatch dbr:Data_science ;
     skos:prefLabel "Data Science"@en ;
     schema:sameAs dbr:Data_science .
 
 wd:Q3027448 a skos:Concept ;
     rdfs:label "Network Security"@en ;
-    owl:sameAs dbr:Network_security ;
     skos:closeMatch esco:2ddb1226-1117-4eb4-ae65-3a2f5a5a3c80,
         acm:10002978.10003014,
         lcsh:sh94001277 ;
+    skos:exactMatch dbr:Network_security ;
     skos:prefLabel "Network Security"@en ;
     schema:sameAs dbr:Network_security .
 
 wd:Q341 a skos:Concept ;
     rdfs:label "Agile Methodologies"@en ;
-    owl:sameAs dbr:Agile_software_development ;
     skos:closeMatch esco:dba46f87-0831-49cd-a1c7-340a653c0221,
         acm:10011007.10011074.10011081.10011082.10011083,
         lcsh:sh2007006411,
         <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/software-engineering-process/agile-methods> ;
+    skos:exactMatch dbr:Agile_software_development ;
     skos:prefLabel "Agile Methodologies"@en ;
     schema:sameAs dbr:Agile_software_development .
 
 wd:Q386275 a skos:Concept ;
     rdfs:label "Web Development"@en ;
-    owl:sameAs dbr:Web_development ;
     skos:closeMatch esco:69bbd53f-fbb0-4476-b4b2-ef7844464e28,
         eurovoc:c_b1ac7db6,
         lcsh:sh98004795 ;
+    skos:exactMatch dbr:Web_development ;
     skos:prefLabel "Web Development"@en ;
     schema:sameAs dbr:Web_development .
 
 wd:Q388 a skos:Concept ;
     rdfs:label "Linux"@en ;
-    owl:sameAs dbr:Linux ;
     skos:closeMatch <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/computing-foundations/operating-system-basics> ;
+    skos:exactMatch dbr:Linux ;
     skos:prefLabel "Linux"@en ;
     schema:sameAs dbr:Linux .
 
 wd:Q3908516 a skos:Concept ;
     rdfs:label "Entrepreneurship"@en ;
-    owl:sameAs dbr:Entrepreneurship ;
     skos:closeMatch esco:658605f2-1c95-49f0-bd98-0af7b15ad0b0,
         acm:10003456.10003457.10003458,
         eurovoc:6749,
         lcsh:sh85044149 ;
+    skos:exactMatch dbr:Entrepreneurship ;
     skos:prefLabel "Entrepreneurship"@en ;
     schema:sameAs dbr:Entrepreneurship .
 
 wd:Q40880 a skos:Concept ;
     rdfs:label "Amazon Web Services (AWS)"@en ;
-    owl:sameAs dbr:Amazon_Web_Services ;
+    skos:exactMatch dbr:Amazon_Web_Services ;
     skos:prefLabel "Amazon Web Services (AWS)"@en ;
     schema:sameAs dbr:Amazon_Web_Services .
 
 wd:Q41487 a skos:Concept ;
     rdfs:label "Cryptography"@en ;
-    owl:sameAs dbr:Cryptography ;
     skos:closeMatch esco:d32db06e-bd06-4415-a7ab-1b0ee68caa9a,
         acm:10002978.10002979,
         eurovoc:6778,
         lcsh:sh85034453 ;
+    skos:exactMatch dbr:Cryptography ;
     skos:prefLabel "Cryptography"@en ;
     schema:sameAs dbr:Cryptography .
 
 wd:Q42478 a skos:Concept ;
     rdfs:label "Perl"@en ;
-    owl:sameAs dbr:Perl_\(programming_language\) ;
     skos:closeMatch esco:401eb8d8-6daa-4f8b-90ad-60afc71eb4f8,
         lcsh:sh95010633,
         <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/computing-foundations/programming-language-basics> ;
+    skos:exactMatch dbr:Perl_\(programming_language\) ;
     skos:prefLabel "Perl"@en ;
     schema:sameAs dbr:Perl_\(programming_language\) .
 
 wd:Q484847 a skos:Concept ;
     rdfs:label "E-commerce"@en ;
-    owl:sameAs dbr:E-commerce ;
     skos:closeMatch esco:b1272de4-1f5f-408b-8b26-061f2550fc72,
         acm:10010405.10003550,
         eurovoc:6089,
         lcsh:sh96008434 ;
+    skos:exactMatch dbr:E-commerce ;
     skos:prefLabel "E-commerce"@en ;
     schema:sameAs dbr:E-commerce .
 
 wd:Q5390 a skos:Concept ;
     rdfs:label "Mobile Devices"@en ;
-    owl:sameAs dbr:Mobile_device ;
     skos:closeMatch acm:10003120.10003138.10003141.10010898,
         lcsh:sh95004596 ;
+    skos:exactMatch dbr:Mobile_device ;
     skos:prefLabel "Mobile Devices"@en ;
     schema:sameAs dbr:Mobile_device .
 
 wd:Q59 a skos:Concept ;
     rdfs:label "PHP"@en ;
-    owl:sameAs dbr:PHP ;
     skos:closeMatch esco:4350c38d-0fe9-4ca7-bab9-40ed7f72b04f,
         lcsh:sh99002710,
         <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/computing-foundations/programming-language-basics> ;
+    skos:exactMatch dbr:PHP ;
     skos:prefLabel "PHP"@en ;
     schema:sameAs dbr:PHP .
 
 wd:Q638608 a skos:Concept ;
     rdfs:label "Software Development"@en ;
-    owl:sameAs dbr:Software_development ;
     skos:closeMatch acm:10011007.10011074.10011092,
         eurovoc:1696,
         lcsh:sh85029535,
         swebok:software-construction ;
+    skos:exactMatch dbr:Software_development ;
     skos:prefLabel "Software Development"@en ;
     schema:sameAs dbr:Software_development .
 
 wd:Q7245249 a skos:Concept ;
     rdfs:label "Program Management"@en ;
-    owl:sameAs dbr:Program_management ;
     skos:closeMatch esco:7111b95d-0ce3-441a-9d92-4c75d05c4388,
         acm:10003456.10003457.10003490.10003491,
         lcsh:sh85065919,
         swebok:software-engineering-management ;
+    skos:exactMatch dbr:Program_management ;
     skos:prefLabel "Program Management"@en ;
     schema:sameAs dbr:Program_management .
 
 wd:Q745482 a skos:Concept ;
     rdfs:label "Scalability"@en ;
-    owl:sameAs dbr:Scalability ;
     skos:closeMatch acm:10002951.10003317.10003365,
         lcsh:sh2002004878,
         <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/software-architecture/quality-attributes> ;
+    skos:exactMatch dbr:Scalability ;
     skos:prefLabel "Scalability"@en ;
     schema:sameAs dbr:Scalability .
 
 wd:Q79872 a skos:Concept ;
     rdfs:label "OOP"@en ;
-    owl:sameAs dbr:Object-oriented_programming ;
     skos:closeMatch esco:5b9cde20-f1b9-4adc-bfb3-dbf70b14138d,
         acm:10011007.10011074.10011092.10011093,
         lcsh:sh87007503,
         <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/software-design/design-strategies> ;
+    skos:exactMatch dbr:Object-oriented_programming ;
     skos:prefLabel "OOP"@en ;
     schema:sameAs dbr:Object-oriented_programming .
 
 wd:Q80993 a skos:Concept ;
     rdfs:label "Software Engineering"@en ;
-    owl:sameAs dbr:Software_engineering ;
     skos:closeMatch acm:10011007.10011074,
         eurovoc:1696,
         lcsh:sh87007398,
         swebok:software-engineering ;
+    skos:exactMatch dbr:Software_engineering ;
     skos:prefLabel "Software Engineering"@en ;
     schema:sameAs dbr:Software_engineering .
 
 wd:Q850 a skos:Concept ;
     rdfs:label "MySQL"@en ;
-    owl:sameAs dbr:MySQL ;
     skos:closeMatch esco:4da171e5-779c-4983-a76f-91c16751e99f ;
+    skos:exactMatch dbr:MySQL ;
     skos:prefLabel "MySQL"@en ;
     schema:sameAs dbr:MySQL .
 
 wd:Q8513 a skos:Concept ;
     rdfs:label "Databases"@en ;
-    owl:sameAs dbr:Database ;
     skos:closeMatch esco:43ae58b9-5e56-4524-b45a-b422777a0576,
         acm:10002951.10002952,
         eurovoc:4821,
         lcsh:sh85035848,
         <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/computing-foundations/database-basics> ;
+    skos:exactMatch dbr:Database ;
     skos:prefLabel "Databases"@en ;
     schema:sameAs dbr:Database .
 
 wd:Q94 a skos:Concept ;
     rdfs:label "Android"@en ;
-    owl:sameAs dbr:Android_\(operating_system\) ;
     skos:closeMatch esco:d8829a1d-dbde-435b-b921-29d6462f35c9 ;
+    skos:exactMatch dbr:Android_\(operating_system\) ;
     skos:prefLabel "Android"@en ;
     schema:sameAs dbr:Android_\(operating_system\) .
 
@@ -838,8 +838,6 @@ wd:Q94 a skos:Concept ;
 <https://patrickaudley.com/#concept-ai-agents> a skos:Concept ;
     rdfs:label "Intelligent Agents (Agentic AI)"@en ;
     mads:authoritativeLabel "Intelligent Agents (Agentic AI)"@en ;
-    owl:sameAs dbr:Intelligent_agent,
-        wd:Q170978 ;
     skos:broader <https://patrickaudley.com/#concept-artificial-intelligence> ;
     skos:closeMatch acm:10010147.10010178.10010219.10010220,
         <unesco-thesaurus:3055> ;
@@ -856,8 +854,6 @@ wd:Q94 a skos:Concept ;
     rdfs:label "Bioinformatics"@en ;
     mads:authoritativeLabel "Bioinformatics"@en ;
     mads:hasCloseExternalAuthority lcsh:sh00003585 ;
-    owl:sameAs dbr:Bioinformatics,
-        wd:Q128570 ;
     skos:broader <https://patrickaudley.com/#concept-computer-science> ;
     skos:closeMatch acm:10010405.10010444.10010450,
         eurovoc:c_f0a7cb51,
@@ -875,8 +871,6 @@ wd:Q94 a skos:Concept ;
 <https://patrickaudley.com/#concept-biometrics> a skos:Concept ;
     rdfs:label "Biometric Authentication"@en ;
     mads:authoritativeLabel "Biometric Authentication"@en ;
-    owl:sameAs dbr:Biometrics,
-        wd:Q160665 ;
     skos:broader <https://patrickaudley.com/#concept-security> ;
     skos:closeMatch esco:3c35dfa4-6dae-45a5-ae0a-f6a45923a95f ;
     skos:exactMatch dbr:Biometrics,
@@ -892,8 +886,6 @@ wd:Q94 a skos:Concept ;
     rdfs:label "Cloud Computing"@en ;
     mads:authoritativeLabel "Cloud Computing"@en ;
     mads:hasCloseExternalAuthority lcsh:sh2008004883 ;
-    owl:sameAs dbr:Cloud_computing,
-        wd:Q483639 ;
     skos:broader <https://patrickaudley.com/#concept-computer-science> ;
     skos:closeMatch esco:bd14968e-e409-45af-b362-3495ed7b10e0,
         acm:10003033.10003099.10003100,
@@ -926,8 +918,6 @@ wd:Q94 a skos:Concept ;
 <https://patrickaudley.com/#concept-generative-ai> a skos:Concept ;
     rdfs:label "Generative AI"@en ;
     mads:authoritativeLabel "Generative AI"@en ;
-    owl:sameAs dbr:Generative_artificial_intelligence,
-        wd:Q108235848 ;
     skos:broader <https://patrickaudley.com/#concept-artificial-intelligence> ;
     skos:exactMatch dbr:Generative_artificial_intelligence,
         wd:Q108235848 ;
@@ -941,8 +931,6 @@ wd:Q94 a skos:Concept ;
 <https://patrickaudley.com/#concept-high-performance-computing> a skos:Concept ;
     rdfs:label "High Performance Computing"@en ;
     mads:authoritativeLabel "High Performance Computing"@en ;
-    owl:sameAs dbr:High-performance_computing,
-        wd:Q189940 ;
     skos:broader <https://patrickaudley.com/#concept-computer-science> ;
     skos:closeMatch <http://www.sac.gov.cn/gbt/13745/5203020>,
         swebok:concurrency ;
@@ -958,8 +946,6 @@ wd:Q94 a skos:Concept ;
 <https://patrickaudley.com/#concept-large-language-models> a skos:Concept ;
     rdfs:label "Large Language Models"@en ;
     mads:authoritativeLabel "Large Language Models"@en ;
-    owl:sameAs dbr:Large_language_model,
-        wd:Q115305900 ;
     skos:broader <https://patrickaudley.com/#concept-artificial-intelligence> ;
     skos:closeMatch swebok:llm_engineering ;
     skos:exactMatch dbr:Large_language_model,
@@ -974,8 +960,6 @@ wd:Q94 a skos:Concept ;
 <https://patrickaudley.com/#concept-linked-data> a skos:Concept ;
     rdfs:label "Linked Data"@en ;
     mads:authoritativeLabel "Linked Data"@en ;
-    owl:sameAs dbr:Linked_data,
-        wd:Q515701 ;
     skos:broader <https://patrickaudley.com/#concept-semantic-web> ;
     skos:exactMatch dbr:Linked_data,
         wd:Q515701 ;
@@ -990,8 +974,6 @@ wd:Q94 a skos:Concept ;
     rdfs:label "Public Key Infrastructure"@en ;
     mads:authoritativeLabel "Public Key Infrastructure"@en ;
     mads:hasCloseExternalAuthority lcsh:sh2002004634 ;
-    owl:sameAs dbr:Public_key_infrastructure,
-        wd:Q224049 ;
     skos:broader <https://patrickaudley.com/#concept-cryptography> ;
     skos:closeMatch acm:10002978.10002979.10002981,
         eurovoc:5181,
@@ -1009,8 +991,6 @@ wd:Q94 a skos:Concept ;
 <https://patrickaudley.com/#concept-semantic-analysis> a skos:Concept ;
     rdfs:label "Semantic Analysis"@en ;
     mads:authoritativeLabel "Semantic Analysis"@en ;
-    owl:sameAs dbr:Semantic_analysis_\(linguistics\),
-        wd:Q1144262 ;
     skos:broader <https://patrickaudley.com/#concept-artificial-intelligence> ;
     skos:closeMatch esco:fff0e2cd-d0bd-4b02-9daf-158b79d9688a,
         acm:10010147.10010178.10010179,
@@ -1027,7 +1007,6 @@ wd:Q94 a skos:Concept ;
 <https://patrickaudley.com/#concept-solution-architecture> a skos:Concept ;
     rdfs:label "Solution Architecture"@en ;
     mads:authoritativeLabel "Solution Architecture"@en ;
-    owl:sameAs wd:Q7558977 ;
     skos:broader <https://patrickaudley.com/#concept-management-consulting> ;
     skos:closeMatch esco:2450c3b3-e78e-435b-b84d-e05d984e71dc,
         <http://www.sac.gov.cn/gbt/13745/5204070>,
@@ -2355,8 +2334,6 @@ wd:Q94 a skos:Concept ;
     rdfs:label "C++ (programming language)"@en ;
     mads:authoritativeLabel "C++ (programming language)"@en ;
     mads:hasCloseExternalAuthority lcsh:sh87007505 ;
-    owl:sameAs <http://dbpedia.org/resource/C++>,
-        wd:Q2407 ;
     skos:closeMatch acm:10011007.10011006.10011008,
         eurovoc:1696,
         lcsh:sh87007505,
@@ -2374,8 +2351,6 @@ wd:Q94 a skos:Concept ;
     rdfs:label "Cryptography"@en ;
     mads:authoritativeLabel "Cryptography"@en ;
     mads:hasCloseExternalAuthority lcsh:sh85034453 ;
-    owl:sameAs dbr:Cryptography,
-        wd:Q41048 ;
     skos:broader <https://patrickaudley.com/#concept-computer-science> ;
     skos:closeMatch esco:d32db06e-bd06-4415-a7ab-1b0ee68caa9a,
         acm:10002978.10002979,
@@ -2397,8 +2372,6 @@ wd:Q94 a skos:Concept ;
     rdfs:label "Geomatics"@en ;
     mads:authoritativeLabel "Geomatics"@en ;
     mads:hasCloseExternalAuthority lcsh:sh99004272 ;
-    owl:sameAs dbr:Geomatics,
-        wd:Q1399449 ;
     skos:closeMatch acm:10002951.10003227.10003236.10003237,
         lcsh:sh99004272 ;
     skos:exactMatch dbr:Geomatics,
@@ -2414,8 +2387,6 @@ wd:Q94 a skos:Concept ;
     rdfs:label "Go (programming language)"@en ;
     mads:authoritativeLabel "Go (programming language)"@en ;
     mads:hasCloseExternalAuthority lcsh:sh2012000746 ;
-    owl:sameAs dbr:Go_\(programming_language\),
-        wd:Q37227 ;
     skos:closeMatch acm:10011007.10011006.10011008,
         eurovoc:1696,
         lcsh:sh2012000746,
@@ -2433,8 +2404,6 @@ wd:Q94 a skos:Concept ;
     rdfs:label "Machine Learning"@en ;
     mads:authoritativeLabel "Machine Learning"@en ;
     mads:hasCloseExternalAuthority lcsh:sh85079324 ;
-    owl:sameAs dbr:Machine_learning,
-        wd:Q2539 ;
     skos:broader <https://patrickaudley.com/#concept-computer-science> ;
     skos:closeMatch esco:8369c2d6-c100-4cf6-bd83-9668d8678433,
         acm:10010147.10010257,
@@ -2455,8 +2424,6 @@ wd:Q94 a skos:Concept ;
 <https://patrickaudley.com/#concept-postgresql> a skos:Concept ;
     rdfs:label "PostgreSQL"@en ;
     mads:authoritativeLabel "PostgreSQL"@en ;
-    owl:sameAs dbr:PostgreSQL,
-        wd:Q192490 ;
     skos:closeMatch acm:10002951.10002952,
         eurovoc:435299,
         <http://www.sac.gov.cn/gbt/13745/5204050>,
@@ -2474,8 +2441,6 @@ wd:Q94 a skos:Concept ;
     rdfs:label "Python (programming language)"@en ;
     mads:authoritativeLabel "Python (programming language)"@en ;
     mads:hasCloseExternalAuthority lcsh:sh96008834 ;
-    owl:sameAs dbr:Python_\(programming_language\),
-        wd:Q28865 ;
     skos:closeMatch acm:10011007.10011006.10011008,
         eurovoc:1696,
         lcsh:sh96008834,
@@ -2493,8 +2458,6 @@ wd:Q94 a skos:Concept ;
     rdfs:label "Satellite Imagery"@en ;
     mads:authoritativeLabel "Satellite Imagery"@en ;
     mads:hasCloseExternalAuthority lcsh:sh85112798 ;
-    owl:sameAs dbr:Satellite_imagery,
-        wd:Q725252 ;
     skos:closeMatch lcsh:sh85112798 ;
     skos:exactMatch dbr:Satellite_imagery,
         wd:Q725252 ;
@@ -2509,8 +2472,6 @@ wd:Q94 a skos:Concept ;
     rdfs:label "Information Security"@en ;
     mads:authoritativeLabel "Information Security"@en ;
     mads:hasCloseExternalAuthority lcsh:sh90001862 ;
-    owl:sameAs dbr:Information_security,
-        wd:Q3510521 ;
     skos:broader <https://patrickaudley.com/#concept-computer-science> ;
     skos:closeMatch esco:11eebd42-44ab-401d-8a2c-bdb9fc9beb50,
         acm:10002978.10002991,
@@ -2533,8 +2494,6 @@ wd:Q94 a skos:Concept ;
 <https://patrickaudley.com/#concept-topological-data-analysis> a skos:Concept ;
     rdfs:label "Topological Data Analysis"@en ;
     mads:authoritativeLabel "Topological Data Analysis"@en ;
-    owl:sameAs dbr:Topological_data_analysis,
-        wd:Q7825166 ;
     skos:broader <https://patrickaudley.com/#concept-mathematics> ;
     skos:closeMatch acm:10002950.10003741.10003742,
         <http://www.sac.gov.cn/gbt/13745/11045> ;
@@ -2941,6 +2900,53 @@ I would love to hear your thoughts or see if anyone else is building in this exa
     schema:identifier "GB/T 42131-2022"@en ;
     schema:name "GB/T 42131-2022 Artificial intelligence - Technical framework of knowledge graph"@en .
 
+wd:Q2407 a skos:Concept ;
+    rdfs:label "C++"@en ;
+    skos:closeMatch esco:b633eb55-8f1f-4ae6-ab4c-2022ffe2cb7f,
+        lcsh:sh87007505,
+        <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/computing-foundations/programming-language-basics> ;
+    skos:exactMatch <http://dbpedia.org/resource/C++> ;
+    skos:prefLabel "C++"@en ;
+    schema:sameAs <http://dbpedia.org/resource/C++> .
+
+wd:Q28865 a skos:Concept ;
+    rdfs:label "Python"@en ;
+    skos:closeMatch esco:ccd0a1d9-afda-43d9-b901-96344886e14d,
+        lcsh:sh96008834,
+        <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/computing-foundations/programming-language-basics> ;
+    skos:exactMatch dbr:Python_\(programming_language\) ;
+    skos:prefLabel "Python"@en ;
+    schema:sameAs dbr:Python_\(programming_language\) .
+
+wd:Q3510521 a skos:Concept ;
+    rdfs:label "Security"@en ;
+    skos:closeMatch esco:8088750d-8388-4170-a76f-48354c469c44,
+        acm:10002978,
+        eurovoc:c_04ae3ba8,
+        lcsh:sh90001862,
+        <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/software-quality/software-safety> ;
+    skos:exactMatch dbr:Computer_security ;
+    skos:prefLabel "Security"@en ;
+    schema:sameAs dbr:Computer_security .
+
+wd:Q37227 a skos:Concept ;
+    rdfs:label "Go"@en ;
+    skos:closeMatch lcsh:sh2012000746,
+        <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/computing-foundations/programming-language-basics> ;
+    skos:exactMatch dbr:Go_\(programming_language\) ;
+    skos:prefLabel "Go"@en ;
+    schema:sameAs dbr:Go_\(programming_language\) .
+
+wd:Q483639 a skos:Concept ;
+    rdfs:label "Cloud Computing"@en ;
+    skos:closeMatch esco:bd14968e-e409-45af-b362-3495ed7b10e0,
+        acm:10003033.10003099.10003100,
+        eurovoc:c_433922a6,
+        lcsh:sh2008004883 ;
+    skos:exactMatch dbr:Cloud_computing ;
+    skos:prefLabel "Cloud Computing"@en ;
+    schema:sameAs dbr:Cloud_computing .
+
 <https://github.com/paudley> a foaf:OnlineAccount,
         schema:ProfilePage ;
     foaf:accountName "paudley"@en ;
@@ -2979,8 +2985,6 @@ I would love to hear your thoughts or see if anyone else is building in this exa
     rdfs:label "Ontology Engineering"@en ;
     mads:authoritativeLabel "Ontology Engineering"@en ;
     mads:hasCloseExternalAuthority lcsh:sh2005006014 ;
-    owl:sameAs dbr:Ontology_engineering,
-        wd:Q1414433 ;
     skos:broader <https://patrickaudley.com/#concept-semantic-web> ;
     skos:closeMatch acm:10010147.10010178.10010187.10010195,
         lcsh:sh2005006014,
@@ -3099,9 +3103,9 @@ I would love to hear your thoughts or see if anyone else is building in this exa
     rel:parentOf <https://patrickaudley.com/#fam-FSI16> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-FSF10> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/GFK2-36M> ;
     foaf:familyName "Bogaychuk"@en ;
     foaf:name "Theory Bogaychuk"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/GFK2-36M> ;
     schema:birthDate "1800"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -3136,10 +3140,10 @@ I would love to hear your thoughts or see if anyone else is building in this exa
     rel:parentOf <https://patrickaudley.com/#fam-I346260450790014791> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023949360030240> ;
-    owl:sameAs <https://www.geni.com/profile/index/347523573330012640> ;
     foaf:familyName "?"@en ;
     foaf:givenName "Doni"@en ;
     foaf:name "Doni ?"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347523573330012640> ;
     schema:children <https://patrickaudley.com/#fam-I346260450790014791> ;
     schema:familyName "?"@en ;
     schema:gender "Female"@en ;
@@ -3158,10 +3162,10 @@ I would love to hear your thoughts or see if anyone else is building in this exa
     rel:childOf <https://patrickaudley.com/#fam-I347433177240005497> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4530111458190033104> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/4530111435070112037> ;
     foaf:familyName "Halliday"@en ;
     foaf:givenName "Carrisa"@en ;
     foaf:name "Carrisa Halliday"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/4530111435070112037> ;
     schema:familyName "Halliday"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Carrisa"@en ;
@@ -3180,10 +3184,10 @@ I would love to hear your thoughts or see if anyone else is building in this exa
     rel:parentOf <https://patrickaudley.com/#fam-I345333199860006780> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F6000000012555758491> ;
-    owl:sameAs <https://www.geni.com/profile/index/6000000012567313495> ;
     foaf:familyName "Audley"@en ;
     foaf:givenName "Samuel John"@en ;
     foaf:name "Samuel John Audley"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/6000000012567313495> ;
     schema:birthDate "1850-01-17"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -3610,53 +3614,6 @@ Married Kate Stephens; Q3 1881 at Sandwell Registry Office, West Bromwich
     schema:name "paudley@tanka.com"@en ;
     schema:startDate "2017-01"@en .
 
-wd:Q2407 a skos:Concept ;
-    rdfs:label "C++"@en ;
-    owl:sameAs <http://dbpedia.org/resource/C++> ;
-    skos:closeMatch esco:b633eb55-8f1f-4ae6-ab4c-2022ffe2cb7f,
-        lcsh:sh87007505,
-        <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/computing-foundations/programming-language-basics> ;
-    skos:prefLabel "C++"@en ;
-    schema:sameAs <http://dbpedia.org/resource/C++> .
-
-wd:Q28865 a skos:Concept ;
-    rdfs:label "Python"@en ;
-    owl:sameAs dbr:Python_\(programming_language\) ;
-    skos:closeMatch esco:ccd0a1d9-afda-43d9-b901-96344886e14d,
-        lcsh:sh96008834,
-        <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/computing-foundations/programming-language-basics> ;
-    skos:prefLabel "Python"@en ;
-    schema:sameAs dbr:Python_\(programming_language\) .
-
-wd:Q3510521 a skos:Concept ;
-    rdfs:label "Security"@en ;
-    owl:sameAs dbr:Computer_security ;
-    skos:closeMatch esco:8088750d-8388-4170-a76f-48354c469c44,
-        acm:10002978,
-        eurovoc:c_04ae3ba8,
-        lcsh:sh90001862,
-        <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/software-quality/software-safety> ;
-    skos:prefLabel "Security"@en ;
-    schema:sameAs dbr:Computer_security .
-
-wd:Q37227 a skos:Concept ;
-    rdfs:label "Go"@en ;
-    owl:sameAs dbr:Go_\(programming_language\) ;
-    skos:closeMatch lcsh:sh2012000746,
-        <https://www.computer.org/education/bodies-of-knowledge/software-engineering/v4/computing-foundations/programming-language-basics> ;
-    skos:prefLabel "Go"@en ;
-    schema:sameAs dbr:Go_\(programming_language\) .
-
-wd:Q483639 a skos:Concept ;
-    rdfs:label "Cloud Computing"@en ;
-    owl:sameAs dbr:Cloud_computing ;
-    skos:closeMatch esco:bd14968e-e409-45af-b362-3495ed7b10e0,
-        acm:10003033.10003099.10003100,
-        eurovoc:c_433922a6,
-        lcsh:sh2008004883 ;
-    skos:prefLabel "Cloud Computing"@en ;
-    schema:sameAs dbr:Cloud_computing .
-
 <https://orcid.org/0000-0003-4382-7625> a foaf:OnlineAccount,
         schema:ProfilePage ;
     foaf:accountName "0000-0003-4382-7625"@en ;
@@ -3687,8 +3644,6 @@ wd:Q483639 a skos:Concept ;
 <https://patrickaudley.com/#concept-knowledge-graph> a skos:Concept ;
     rdfs:label "Knowledge Graph"@en ;
     mads:authoritativeLabel "Knowledge Graph"@en ;
-    owl:sameAs dbr:Knowledge_graph,
-        wd:Q33002955 ;
     skos:broader <https://patrickaudley.com/#concept-semantic-web> ;
     skos:closeMatch acm:10010147.10010178.10010187,
         <http://www.sac.gov.cn/gbt/13745/5202070> ;
@@ -3704,8 +3659,6 @@ wd:Q483639 a skos:Concept ;
 <https://patrickaudley.com/#concept-manifold-learning> a skos:Concept ;
     rdfs:label "Manifold Learning"@en ;
     mads:authoritativeLabel "Manifold Learning"@en ;
-    owl:sameAs dbr:Nonlinear_dimensionality_reduction,
-        wd:Q1191596 ;
     skos:broader <https://patrickaudley.com/#concept-machine-learning> ;
     skos:closeMatch acm:10010147.10010257.10010258.10010260.10010271,
         swebok:embedding_models ;
@@ -3721,8 +3674,6 @@ wd:Q483639 a skos:Concept ;
 <https://patrickaudley.com/#concept-mathematics> a skos:Concept ;
     rdfs:label "Mathematics"@en ;
     mads:authoritativeLabel "Mathematics"@en ;
-    owl:sameAs dbr:Mathematics,
-        wd:Q395 ;
     skos:closeMatch esco:4339176e-3acd-4f7f-a5d9-445bee3d23f2,
         acm:10002950,
         <http://www.sac.gov.cn/gbt/13745/110>,
@@ -3742,8 +3693,6 @@ wd:Q483639 a skos:Concept ;
     rdfs:label "Spectral Graph Theory"@en ;
     mads:authoritativeLabel "Spectral Graph Theory"@en ;
     mads:hasCloseExternalAuthority lcsh:sh85126408 ;
-    owl:sameAs dbr:Spectral_graph_theory,
-        wd:Q1064327 ;
     skos:broader <https://patrickaudley.com/#concept-mathematics> ;
     skos:closeMatch acm:10002950.10003624.10003633,
         acm:10010147.10010257.10010321.10010335,
@@ -3816,10 +3765,10 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-FSI25> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-FSF16> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/P63C-3B5> ;
     foaf:familyName "Meikle Burns"@en ;
     foaf:knows <https://patrickaudley.com/#fam-FSI25> ;
     foaf:name "Jessie Meikle Burns"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/P63C-3B5> ;
     schema:familyName "Meikle Burns"@en ;
     schema:gender "Female"@en ;
     schema:identifier [ a schema:PropertyValue ;
@@ -3837,10 +3786,10 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-FSI23> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-FSF15> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/KZ15-4K4> ;
     foaf:familyName "Brown"@en ;
     foaf:knows <https://patrickaudley.com/#fam-FSI23> ;
     foaf:name "Katharine Brown"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/KZ15-4K4> ;
     schema:birthDate "1785"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -3872,11 +3821,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I347481454670011203> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023718110030293> ;
-    owl:sameAs <https://www.geni.com/profile/index/347516790770011254> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Adele"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347481454670011203> ;
     foaf:name "Adele Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347516790770011254> ;
     schema:familyName "Chernipeski"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Adele"@en ;
@@ -3895,11 +3844,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I343715065440012354> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023084560030275> ;
-    owl:sameAs <https://www.geni.com/profile/index/349253363430011510> ;
     foaf:familyName "Buchanan"@en ;
     foaf:givenName "Viki"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I343715065440012354> ;
     foaf:name "Viki Buchanan"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349253363430011510> ;
     schema:familyName "Buchanan"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Viki"@en ;
@@ -3918,11 +3867,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I353228349760001770> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023624440030249> ;
-    owl:sameAs <https://www.geni.com/profile/index/361178738540010076> ;
     foaf:familyName "Brockman"@en ;
     foaf:givenName "??"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I353228349760001770> ;
     foaf:name "?? Brockman"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/361178738540010076> ;
     schema:familyName "Brockman"@en ;
     schema:gender "Female"@en ;
     schema:givenName "??"@en ;
@@ -3940,8 +3889,6 @@ wd:Q483639 a skos:Concept ;
         schema:PostalAddress ;
     geo: <https://patrickaudley.com/#main-address-geo> ;
     geo:sfWithin wd:Q16 ;
-    owl:sameAs "geonames:6154383/"@en,
-        "tgn:1013303"@en ;
     vcard:country-name "Canada"@en ;
     vcard:locality "Spruce Grove"@en ;
     vcard:postal-code "T7X 1R6"@en ;
@@ -3951,8 +3898,6 @@ wd:Q483639 a skos:Concept ;
     schema:addressLocality "Spruce Grove"@en ;
     schema:addressRegion "AB"@en ;
     schema:containedInPlace [ a schema:Place ;
-            owl:sameAs "geonames:6251999/"@en,
-                "tgn:7005685"@en ;
             schema:name "Canada"@en ] ;
     schema:email "mailto:paudley@blackcat.ca"@en ;
     schema:name "Patrick Colm Audley"@en ;
@@ -4223,8 +4168,6 @@ wd:Q483639 a skos:Concept ;
     rdfs:label "Artificial Intelligence"@en ;
     mads:authoritativeLabel "Artificial Intelligence"@en ;
     mads:hasCloseExternalAuthority lcsh:sh85008180 ;
-    owl:sameAs dbr:Artificial_intelligence,
-        wd:Q11660 ;
     skos:broader <https://patrickaudley.com/#concept-computer-science> ;
     skos:closeMatch esco:e465a154-93f7-4973-9ce1-31659fe16dd2,
         acm:10010147.10010178,
@@ -4245,8 +4188,6 @@ wd:Q483639 a skos:Concept ;
 <https://patrickaudley.com/#concept-management-consulting> a skos:Concept ;
     rdfs:label "Management Consulting"@en ;
     mads:authoritativeLabel "Management Consulting"@en ;
-    owl:sameAs dbr:Management_consulting,
-        wd:Q4116214 ;
     skos:closeMatch eurovoc:2602,
         swebok:software_engineering_management,
         <unesco-thesaurus:1183> ;
@@ -4263,8 +4204,6 @@ wd:Q483639 a skos:Concept ;
     rdfs:label "Semantic Web"@en ;
     mads:authoritativeLabel "Semantic Web"@en ;
     mads:hasCloseExternalAuthority lcsh:sh2002000569 ;
-    owl:sameAs dbr:Semantic_Web,
-        wd:Q54837 ;
     skos:closeMatch esco:fda917eb-0d6a-4371-8c93-2a10bf950966,
         acm:10002951.10003260.10003309.10003315,
         eurovoc:7219,
@@ -4393,10 +4332,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347497262130013517> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023129740030207> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347497365660013465> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Nicolaus"@en ;
     foaf:name "Nicolaus Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347497365660013465> ;
     schema:familyName "Chernipeski"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Nicolaus"@en ;
@@ -4417,10 +4356,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347557770710012647> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023196760030254> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347557908000013531> ;
     foaf:familyName "Neudorf"@en ;
     foaf:givenName "Natalia"@en ;
     foaf:name "Natalia Neudorf"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347557908000013531> ;
     schema:familyName "Neudorf"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Natalia"@en ;
@@ -4456,10 +4395,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I349209344810013602> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023623790030246> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/349209261440013536> ;
     foaf:familyName "Sturrock"@en ;
     foaf:givenName "Brooklyn"@en ;
     foaf:name "Brooklyn Sturrock"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349209261440013536> ;
     schema:familyName "Sturrock"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Brooklyn"@en ;
@@ -4669,9 +4608,9 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-FSI15> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-FSF6> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/LZRW-H33> ;
     foaf:knows <https://patrickaudley.com/#fam-FSI15> ;
     foaf:name "Maria"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/LZRW-H33> ;
     schema:birthDate "1836"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -4704,10 +4643,10 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-FSI14> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-FSF6> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/LZRW-H9X> ;
     foaf:familyName "Hrynyk"@en ;
     foaf:knows <https://patrickaudley.com/#fam-FSI14> ;
     foaf:name "Wasyl Hrynyk"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/LZRW-H9X> ;
     schema:birthDate "1833"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -4742,9 +4681,9 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-FSF10> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-FSF7> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/G4D1-V5G> ;
     foaf:familyName "Bohaychuk"@en ;
     foaf:name "Theory Bohaychuk"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/G4D1-V5G> ;
     schema:birthDate "1830"@en ;
     schema:children <https://patrickaudley.com/#fam-FSI11> ;
     schema:familyName "Bohaychuk"@en ;
@@ -4765,10 +4704,10 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-FSI17> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-FSF11> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/KCMD-ZP5> ;
     foaf:familyName "Brown"@en ;
     foaf:knows <https://patrickaudley.com/#fam-FSI17> ;
     foaf:name "James Brown"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/KCMD-ZP5> ;
     schema:birthDate "1828"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -4802,10 +4741,10 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-FSI24> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-FSF13> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/GDL2-B4N> ;
     foaf:familyName "Forrest"@en ;
     foaf:knows <https://patrickaudley.com/#fam-FSI24> ;
     foaf:name "Joan Forrest"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/GDL2-B4N> ;
     schema:birthDate "1804"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -4839,10 +4778,10 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-FSI22> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-FSF13> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/LWR2-JYM> ;
     foaf:familyName "Templeton"@en ;
     foaf:knows <https://patrickaudley.com/#fam-FSI22> ;
     foaf:name "William Templeton"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/LWR2-JYM> ;
     schema:birthDate "1797"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -4878,10 +4817,10 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-FSI25> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-FSF14> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/GNMF-QDV> ;
     foaf:familyName "Meikle"@en ;
     foaf:knows <https://patrickaudley.com/#fam-FSI25> ;
     foaf:name "Janet Meikle"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/GNMF-QDV> ;
     schema:birthDate "1807"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -4916,10 +4855,10 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-FSI23> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-FSF12> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/KHXK-KD7> ;
     foaf:familyName "Sommerville"@en ;
     foaf:knows <https://patrickaudley.com/#fam-FSI23> ;
     foaf:name "Anne Sommerville"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/KHXK-KD7> ;
     schema:birthDate "1798-05-12"@en ;
     schema:birthPlace [ a schema:Place ;
             schema:name "Carmichael, Lanarkshire, Scotland"@en ] ;
@@ -4966,11 +4905,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I347432831780007900> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023129740030207> ;
-    owl:sameAs <https://www.geni.com/profile/index/347497262130013517> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Lois"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347432831780007900> ;
     foaf:name "Lois Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347497262130013517> ;
     schema:children <https://patrickaudley.com/#fam-I347497365660013465> ;
     schema:familyName "Chernipeski"@en ;
     schema:gender "Female"@en ;
@@ -4991,11 +4930,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I346260450790014791> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023196760030254> ;
-    owl:sameAs <https://www.geni.com/profile/index/347557770710012647> ;
     foaf:familyName "?"@en ;
     foaf:givenName "Rosalee"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I346260450790014791> ;
     foaf:name "Rosalee ?"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347557770710012647> ;
     schema:children <https://patrickaudley.com/#fam-I347557908000013531> ;
     schema:familyName "?"@en ;
     schema:gender "Female"@en ;
@@ -5016,11 +4955,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I347443254130003215> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023326800030226> ;
-    owl:sameAs <https://www.geni.com/profile/index/348876594000005798> ;
     foaf:familyName "?"@en ;
     foaf:givenName "Betty"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347443254130003215> ;
     foaf:name "Betty ?"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/348876594000005798> ;
     schema:children <https://patrickaudley.com/#fam-I348876207650006113> ;
     schema:familyName "?"@en ;
     schema:gender "Female"@en ;
@@ -5041,11 +4980,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I349208992390012641> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023623790030246> ;
-    owl:sameAs <https://www.geni.com/profile/index/349209344810013602> ;
     foaf:familyName "X"@en ;
     foaf:givenName "Lorenzo"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I349208992390012641> ;
     foaf:name "Lorenzo X"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349209344810013602> ;
     schema:children <https://patrickaudley.com/#fam-I349209261440013536> ;
     schema:familyName "X"@en ;
     schema:gender "Male"@en ;
@@ -5183,10 +5122,10 @@ wd:Q483639 a skos:Concept ;
     rel:siblingOf <https://patrickaudley.com/#fam-I347563088670012645> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023729110030215> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347522327790013461> ;
     foaf:familyName "?"@en ;
     foaf:givenName "Sandy"@en ;
     foaf:name "Sandy ?"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347522327790013461> ;
     schema:familyName "?"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Sandy"@en ;
@@ -5209,10 +5148,10 @@ wd:Q483639 a skos:Concept ;
     rel:siblingOf <https://patrickaudley.com/#fam-I347522327790013461> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023729110030215> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347563088670012645> ;
     foaf:familyName "Floyd"@en ;
     foaf:givenName "Kim"@en ;
     foaf:name "Kim Floyd"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347563088670012645> ;
     schema:familyName "Floyd"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Kim"@en ;
@@ -5235,10 +5174,10 @@ wd:Q483639 a skos:Concept ;
     rel:siblingOf <https://patrickaudley.com/#fam-I353228349760001770> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023337020030240> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/361183272650010051> ;
     foaf:familyName "Brockman"@en ;
     foaf:givenName "Harvey"@en ;
     foaf:name "Harvey Brockman"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/361183272650010051> ;
     schema:familyName "Brockman"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Harvey"@en ;
@@ -5261,9 +5200,9 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I6000000012926707391> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F6000000012926707394> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/6000000012926511105> ;
     foaf:givenName "Eva"@en ;
     foaf:name "Eva"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/6000000012926511105> ;
     schema:gender "Female"@en ;
     schema:givenName "Eva"@en ;
     schema:identifier [ a schema:PropertyValue ;
@@ -5285,10 +5224,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I6000000012926738210> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F6000000012926547739> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/6000000012926526899> ;
     foaf:familyName "McPherson"@en ;
     foaf:givenName "Niel"@en ;
     foaf:name "Niel McPherson"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/6000000012926526899> ;
     schema:familyName "McPherson"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Niel"@en ;
@@ -5311,9 +5250,9 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I6000000012926707391> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F6000000012926707394> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/6000000012926609793> ;
     foaf:givenName "Stella"@en ;
     foaf:name "Stella"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/6000000012926609793> ;
     schema:gender "Female"@en ;
     schema:givenName "Stella"@en ;
     schema:identifier [ a schema:PropertyValue ;
@@ -5335,10 +5274,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I6000000012926609793> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F6000000012926707394> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/6000000012926707391> ;
     foaf:familyName "Morrison"@en ;
     foaf:givenName "RoseMarie"@en ;
     foaf:name "RoseMarie Morrison"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/6000000012926707391> ;
     schema:familyName "Morrison"@en ;
     schema:gender "Female"@en ;
     schema:givenName "RoseMarie"@en ;
@@ -5363,10 +5302,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I6000000012926614282> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F6000000012926547739> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/6000000012926738210> ;
     foaf:familyName "Jones"@en ;
     foaf:givenName "Nathan"@en ;
     foaf:name "Nathan Jones"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/6000000012926738210> ;
     schema:familyName "Jones"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Nathan"@en ;
@@ -5463,10 +5402,10 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023793440030262> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023750210030222> ;
-    owl:sameAs <https://www.geni.com/profile/index/343747060870013073> ;
     foaf:familyName "Kuchmak"@en ;
     foaf:givenName "Jerry"@en ;
     foaf:name "Jerry Kuchmak"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/343747060870013073> ;
     schema:birthDate "1969-07-03"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -5507,11 +5446,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I347442977800005470> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023729110030215> ;
-    owl:sameAs <https://www.geni.com/profile/index/347443380630005580> ;
     foaf:familyName "Floyd"@en ;
     foaf:givenName "Gilbert (Gil)"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347442977800005470> ;
     foaf:name "Gilbert (Gil) Floyd"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347443380630005580> ;
     schema:children <https://patrickaudley.com/#fam-I347522327790013461>,
         <https://patrickaudley.com/#fam-I347563088670012645> ;
     schema:familyName "Floyd"@en ;
@@ -5534,11 +5473,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I348315785690002132> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023337020030240> ;
-    owl:sameAs <https://www.geni.com/profile/index/347522582900004938> ;
     foaf:familyName "Brockman"@en ;
     foaf:givenName "Jessie"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I348315785690002132> ;
     foaf:name "Jessie Brockman"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347522582900004938> ;
     schema:children <https://patrickaudley.com/#fam-I353228349760001770>,
         <https://patrickaudley.com/#fam-I361183272650010051> ;
     schema:familyName "Brockman"@en ;
@@ -5561,11 +5500,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I347522582900004938> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023337020030240> ;
-    owl:sameAs <https://www.geni.com/profile/index/348315785690002132> ;
     foaf:familyName "Brockman"@en ;
     foaf:givenName "Harry Elmer"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347522582900004938> ;
     foaf:name "Harry Elmer Brockman"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/348315785690002132> ;
     schema:children <https://patrickaudley.com/#fam-I353228349760001770>,
         <https://patrickaudley.com/#fam-I361183272650010051> ;
     schema:familyName "Brockman"@en ;
@@ -5588,11 +5527,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I349292198910006187> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023167080030223> ;
-    owl:sameAs <https://www.geni.com/profile/index/349292637370004174> ;
     foaf:familyName "Bayrack"@en ;
     foaf:givenName "Guido"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I349292198910006187> ;
     foaf:name "Guido Bayrack"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349292637370004174> ;
     schema:children <https://patrickaudley.com/#fam-I343726644670011172>,
         <https://patrickaudley.com/#fam-I349310862300012662> ;
     schema:familyName "Bayrack"@en ;
@@ -5616,10 +5555,10 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023167080030223> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023481230030286> ;
-    owl:sameAs <https://www.geni.com/profile/index/349310862300012662> ;
     foaf:familyName "Bayrack"@en ;
     foaf:givenName "William"@en ;
     foaf:name "William Bayrack"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349310862300012662> ;
     schema:familyName "Bayrack"@en ;
     schema:gender "Male"@en ;
     schema:givenName "William"@en ;
@@ -5680,8 +5619,6 @@ wd:Q483639 a skos:Concept ;
     rdfs:label "Computer Science"@en ;
     mads:authoritativeLabel "Computer Science"@en ;
     mads:hasCloseExternalAuthority lcsh:sh89003285 ;
-    owl:sameAs dbr:Computer_science,
-        wd:Q21198 ;
     skos:closeMatch esco:7b5cce4d-c7fe-4119-b48f-70aa05391787,
         acm:10010147,
         eurovoc:5188,
@@ -5708,10 +5645,10 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-FSF7> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-FSF4> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/G485-913> ;
     foaf:familyName "Bohaychuk"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I345315884160007124> ;
     foaf:name "Teodor Bohaychuk"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/G485-913> ;
     schema:birthDate "1853"@en ;
     schema:birthPlace [ a schema:Place ;
             schema:name "Halychyna, Ukraine"@en ] ;
@@ -5782,10 +5719,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347454185160013360> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023808490030274> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347453487990012448> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Darcy"@en ;
     foaf:name "Darcy Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347453487990012448> ;
     schema:familyName "Chernipeski"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Darcy"@en ;
@@ -5810,10 +5747,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347454185160013360> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023808490030274> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347453687450012449> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Melody"@en ;
     foaf:name "Melody Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347453687450012449> ;
     schema:familyName "Chernipeski"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Melody"@en ;
@@ -5838,10 +5775,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347453687450012449> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023808490030274> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347454185160013360> ;
     foaf:familyName "Borchowitz"@en ;
     foaf:givenName "Twyla"@en ;
     foaf:name "Twyla Borchowitz"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347454185160013360> ;
     schema:familyName "Borchowitz"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Twyla"@en ;
@@ -5866,10 +5803,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347518403970013460> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023191390030249> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347517875640013491> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Randy"@en ;
     foaf:name "Randy Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347517875640013491> ;
     schema:familyName "Chernipeski"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Randy"@en ;
@@ -5894,10 +5831,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347518403970013460> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023191390030249> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347518165240013527> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Curtis"@en ;
     foaf:name "Curtis Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347518165240013527> ;
     schema:familyName "Chernipeski"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Curtis"@en ;
@@ -5922,10 +5859,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347518165240013527> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023191390030249> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347518403970013460> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Albert"@en ;
     foaf:name "Albert Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347518403970013460> ;
     schema:familyName "Chernipeski"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Albert"@en ;
@@ -5950,10 +5887,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347521880260013508> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023680980030283> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347521390610011201> ;
     foaf:familyName "Brockman"@en ;
     foaf:givenName "Cedrick (Buddy)"@en ;
     foaf:name "Cedrick (Buddy) Brockman"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347521390610011201> ;
     schema:familyName "Brockman"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Cedrick (Buddy)"@en ;
@@ -5978,10 +5915,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347521880260013508> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023680980030283> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347521586270013525> ;
     foaf:familyName "Brockman"@en ;
     foaf:givenName "Curtis"@en ;
     foaf:name "Curtis Brockman"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347521586270013525> ;
     schema:familyName "Brockman"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Curtis"@en ;
@@ -6006,10 +5943,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347521586270013525> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023680980030283> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347521880260013508> ;
     foaf:familyName "Brockman"@en ;
     foaf:givenName "?"@en ;
     foaf:name "? Brockman"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347521880260013508> ;
     schema:familyName "Brockman"@en ;
     schema:gender "Male"@en ;
     schema:givenName "?"@en ;
@@ -6034,10 +5971,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I370438599880012326> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023224750030290> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347525725570004929> ;
     foaf:familyName "Knight"@en ;
     foaf:givenName "Patsy"@en ;
     foaf:name "Patsy Knight"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347525725570004929> ;
     schema:familyName "Knight"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Patsy"@en ;
@@ -6062,10 +5999,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I370438599880012326> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023224750030290> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347525973590010221> ;
     foaf:familyName "Chamberlain"@en ;
     foaf:givenName "Elizabeth (Liz)"@en ;
     foaf:name "Elizabeth (Liz) Chamberlain"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347525973590010221> ;
     schema:familyName "Chamberlain"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Elizabeth (Liz)"@en ;
@@ -6090,10 +6027,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347529194440001323> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023202770030257> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347528779750007032> ;
     foaf:familyName "?"@en ;
     foaf:givenName "Linda"@en ;
     foaf:name "Linda ?"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347528779750007032> ;
     schema:familyName "?"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Linda"@en ;
@@ -6118,10 +6055,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347529194440001323> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023202770030257> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347528991970004892> ;
     foaf:familyName "Cherney"@en ;
     foaf:givenName "Gordon"@en ;
     foaf:name "Gordon Cherney"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347528991970004892> ;
     schema:familyName "Cherney"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Gordon"@en ;
@@ -6146,10 +6083,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347528991970004892> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023202770030257> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347529194440001323> ;
     foaf:familyName "Cherney"@en ;
     foaf:givenName "Judy"@en ;
     foaf:name "Judy Cherney"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347529194440001323> ;
     schema:familyName "Cherney"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Judy"@en ;
@@ -6174,10 +6111,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I5062141162150052417> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023194060030251> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/348427637130012645> ;
     foaf:familyName "Shulz"@en ;
     foaf:givenName "Sergey"@en ;
     foaf:name "Sergey Shulz"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/348427637130012645> ;
     schema:familyName "Shulz"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Sergey"@en ;
@@ -6202,10 +6139,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I349208992390012641> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023194290030252> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/349208901200013522> ;
     foaf:familyName "Sturrock"@en ;
     foaf:givenName "Brent"@en ;
     foaf:name "Brent Sturrock"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349208901200013522> ;
     schema:familyName "Sturrock"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Brent"@en ;
@@ -6230,11 +6167,11 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-F6000000000026694139> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023167080030223> ;
-    owl:sameAs <https://www.geni.com/profile/index/349292198910006187> ;
     foaf:familyName "Semeniuk"@en ;
     foaf:givenName "Sonia Caroline"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I349292637370004174> ;
     foaf:name "Sonia Caroline Semeniuk"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349292198910006187> ;
     schema:children <https://patrickaudley.com/#fam-I343726644670011172>,
         <https://patrickaudley.com/#fam-I349310862300012662> ;
     schema:familyName "Semeniuk"@en ;
@@ -6258,10 +6195,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347525973590010221> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023224750030290> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/370438599880012326> ;
     foaf:familyName "Knight"@en ;
     foaf:givenName "Chris"@en ;
     foaf:name "Chris Knight"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/370438599880012326> ;
     schema:familyName "Knight"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Chris"@en ;
@@ -6286,10 +6223,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I348427637130012645> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023194060030251> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/5062141162150052417> ;
     foaf:familyName "Chuprova"@en ;
     foaf:givenName "Olga"@en ;
     foaf:name "Olga Chuprova"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/5062141162150052417> ;
     schema:familyName "Chuprova"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Olga"@en ;
@@ -6314,10 +6251,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I6000000006437435013> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F6000000006437360158> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/6000000006436848959> ;
     foaf:familyName "Farrell"@en ;
     foaf:givenName "Ruth"@en ;
     foaf:name "Ruth Farrell"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/6000000006436848959> ;
     schema:familyName "Farrell"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Ruth"@en ;
@@ -6342,10 +6279,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I6000000006436848959> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F6000000006437360158> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/6000000006437435013> ;
     foaf:familyName "Farrell"@en ;
     foaf:givenName "Mary"@en ;
     foaf:name "Mary Farrell"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/6000000006437435013> ;
     schema:familyName "Farrell"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Mary"@en ;
@@ -6370,11 +6307,11 @@ wd:Q483639 a skos:Concept ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-FSF12>,
         <https://patrickaudley.com/#fam-FSF15> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/GMJW-WXJ> ;
     foaf:familyName "Weir"@en ;
     foaf:knows <https://patrickaudley.com/#fam-FSI27>,
         <https://patrickaudley.com/#fam-FSI29> ;
     foaf:name "James Weir"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/GMJW-WXJ> ;
     schema:birthDate "1791"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -6407,11 +6344,11 @@ wd:Q483639 a skos:Concept ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-FSF14>,
         <https://patrickaudley.com/#fam-FSF16> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/299M-SM8> ;
     foaf:familyName "Burns"@en ;
     foaf:knows <https://patrickaudley.com/#fam-FSI26>,
         <https://patrickaudley.com/#fam-FSI28> ;
     foaf:name "Robert Burns"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/299M-SM8> ;
     schema:birthDate "1807"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -6484,11 +6421,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I347431417910005574> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023224750030290> ;
-    owl:sameAs <https://www.geni.com/profile/index/347432341770005580> ;
     foaf:familyName "Knight"@en ;
     foaf:givenName "Harry"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347431417910005574> ;
     foaf:name "Harry Knight"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347432341770005580> ;
     schema:children <https://patrickaudley.com/#fam-I347525725570004929>,
         <https://patrickaudley.com/#fam-I347525973590010221>,
         <https://patrickaudley.com/#fam-I370438599880012326> ;
@@ -6513,11 +6450,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I347432976740007947> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023202770030257> ;
-    owl:sameAs <https://www.geni.com/profile/index/347435102990007949> ;
     foaf:familyName "Cherney"@en ;
     foaf:givenName "MaryAnne"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347432976740007947> ;
     foaf:name "MaryAnne Cherney"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347435102990007949> ;
     schema:children <https://patrickaudley.com/#fam-I347528779750007032>,
         <https://patrickaudley.com/#fam-I347528991970004892>,
         <https://patrickaudley.com/#fam-I347529194440001323> ;
@@ -6542,11 +6479,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I347442611090010125> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023680980030283> ;
-    owl:sameAs <https://www.geni.com/profile/index/347444481330001102> ;
     foaf:familyName "Brockman"@en ;
     foaf:givenName "Martha"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347442611090010125> ;
     foaf:name "Martha Brockman"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347444481330001102> ;
     schema:children <https://patrickaudley.com/#fam-I347521390610011201>,
         <https://patrickaudley.com/#fam-I347521586270013525>,
         <https://patrickaudley.com/#fam-I347521880260013508> ;
@@ -6571,11 +6508,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I347430384090003360> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023808490030274> ;
-    owl:sameAs <https://www.geni.com/profile/index/347453126470012444> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Lily (Lil)"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347430384090003360> ;
     foaf:name "Lily (Lil) Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347453126470012444> ;
     schema:children <https://patrickaudley.com/#fam-I347453487990012448>,
         <https://patrickaudley.com/#fam-I347453687450012449>,
         <https://patrickaudley.com/#fam-I347454185160013360> ;
@@ -6600,11 +6537,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I347481454670011203> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023191390030249> ;
-    owl:sameAs <https://www.geni.com/profile/index/347516997070011246> ;
     foaf:familyName "Mandzuk"@en ;
     foaf:givenName "Dorothy"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347481454670011203> ;
     foaf:name "Dorothy Mandzuk"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347516997070011246> ;
     schema:children <https://patrickaudley.com/#fam-I347517875640013491>,
         <https://patrickaudley.com/#fam-I347518165240013527>,
         <https://patrickaudley.com/#fam-I347518403970013460> ;
@@ -6629,11 +6566,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I348424876710013524> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023194060030251> ;
-    owl:sameAs <https://www.geni.com/profile/index/348424709360013529> ;
     foaf:familyName "Chuprova"@en ;
     foaf:givenName "Nina"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I348424876710013524> ;
     foaf:name "Nina Chuprova"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/348424709360013529> ;
     schema:children <https://patrickaudley.com/#fam-I346259692220011914>,
         <https://patrickaudley.com/#fam-I348427637130012645>,
         <https://patrickaudley.com/#fam-I5062141162150052417> ;
@@ -6658,11 +6595,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I348424709360013529> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023194060030251> ;
-    owl:sameAs <https://www.geni.com/profile/index/348424876710013524> ;
     foaf:familyName "Chuprov"@en ;
     foaf:givenName "Valeriy"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I348424709360013529> ;
     foaf:name "Valeriy Chuprov"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/348424876710013524> ;
     schema:children <https://patrickaudley.com/#fam-I346259692220011914>,
         <https://patrickaudley.com/#fam-I348427637130012645>,
         <https://patrickaudley.com/#fam-I5062141162150052417> ;
@@ -6687,11 +6624,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I349209101360012698> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023194290030252> ;
-    owl:sameAs <https://www.geni.com/profile/index/349208685700011518> ;
     foaf:familyName "Sturrock"@en ;
     foaf:givenName "Bruce"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I349209101360012698> ;
     foaf:name "Bruce Sturrock"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349208685700011518> ;
     schema:children <https://patrickaudley.com/#fam-I343715379720012354>,
         <https://patrickaudley.com/#fam-I349208901200013522>,
         <https://patrickaudley.com/#fam-I349208992390012641> ;
@@ -6716,11 +6653,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I349208685700011518> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023194290030252> ;
-    owl:sameAs <https://www.geni.com/profile/index/349209101360012698> ;
     foaf:familyName "Sturrock"@en ;
     foaf:givenName "Joyce"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I349208685700011518> ;
     foaf:name "Joyce Sturrock"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349209101360012698> ;
     schema:children <https://patrickaudley.com/#fam-I343715379720012354>,
         <https://patrickaudley.com/#fam-I349208901200013522>,
         <https://patrickaudley.com/#fam-I349208992390012641> ;
@@ -6765,11 +6702,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I6000000006437379116> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F6000000006437360158> ;
-    owl:sameAs <https://www.geni.com/profile/index/6000000006437360154> ;
     foaf:familyName "Rauschkolb"@en ;
     foaf:givenName "Elizabeth Willams"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I6000000006437379116> ;
     foaf:name "Elizabeth Willams Rauschkolb"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/6000000006437360154> ;
     schema:children <https://patrickaudley.com/#fam-I6000000001276589004>,
         <https://patrickaudley.com/#fam-I6000000006436848959>,
         <https://patrickaudley.com/#fam-I6000000006437435013> ;
@@ -6794,11 +6731,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I6000000006437360154> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F6000000006437360158> ;
-    owl:sameAs <https://www.geni.com/profile/index/6000000006437379116> ;
     foaf:familyName "Farrell"@en ;
     foaf:givenName "Gordon Lee"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I6000000006437360154> ;
     foaf:name "Gordon Lee Farrell"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/6000000006437379116> ;
     schema:children <https://patrickaudley.com/#fam-I6000000001276589004>,
         <https://patrickaudley.com/#fam-I6000000006436848959>,
         <https://patrickaudley.com/#fam-I6000000006437435013> ;
@@ -6844,10 +6781,10 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-FSF12> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-FSF11> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/LYGL-9Q5> ;
     foaf:familyName "Weir"@en ;
     foaf:knows <https://patrickaudley.com/#fam-FSI18> ;
     foaf:name "Mary Weir"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/LYGL-9Q5> ;
     schema:birthDate "1828"@en ;
     schema:birthPlace [ a schema:Place ;
             schema:name "Lubus Farm, Lesmahagow, Lanarkshire, Scotland"@en ] ;
@@ -6878,10 +6815,10 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-FSF14> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-FSF9> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/L8Q3-TJK> ;
     foaf:familyName "Burns"@en ;
     foaf:knows <https://patrickaudley.com/#fam-FSI20> ;
     foaf:name "Newman Lockhart Burns"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/L8Q3-TJK> ;
     schema:birthDate "1841"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -6925,10 +6862,10 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-FSF13> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-FSF9> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/LH3R-FTL> ;
     foaf:familyName "Templeton"@en ;
     foaf:knows <https://patrickaudley.com/#fam-FSI19> ;
     foaf:name "Marion Templeton"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/LH3R-FTL> ;
     schema:birthDate "1836"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -6991,10 +6928,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I346259431860011885> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023218500030283> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/346259121460012085> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Gary"@en ;
     foaf:name "Gary Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/346259121460012085> ;
     schema:familyName "Chernipeski"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Gary"@en ;
@@ -7021,10 +6958,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I352709640870011936> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023530230030203> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347434139670007915> ;
     foaf:familyName "Grabo"@en ;
     foaf:givenName "Debra"@en ;
     foaf:name "Debra Grabo"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347434139670007915> ;
     schema:familyName "Grabo"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Debra"@en ;
@@ -7051,10 +6988,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I6000000003208662556> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023487710030288> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347459325960011224> ;
     foaf:familyName "Roberts"@en ;
     foaf:givenName "Margaret Anne"@en ;
     foaf:name "Margaret Anne Roberts"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347459325960011224> ;
     schema:familyName "Roberts"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Margaret Anne"@en ;
@@ -7123,10 +7060,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I353228453420013980> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4033551328190011154> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/348322757210013497> ;
     foaf:familyName "Summerton"@en ;
     foaf:givenName "Marion Elizabeth"@en ;
     foaf:name "Marion Elizabeth Summerton"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/348322757210013497> ;
     schema:birthDate "1904-08-16"@en ;
     schema:deathDate "1999"@en ;
     schema:familyName "Summerton"@en ;
@@ -7155,10 +7092,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I353228453420013980> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4033551328190011154> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/348327948540013488> ;
     foaf:familyName "Summerton"@en ;
     foaf:givenName "Verna Lillian"@en ;
     foaf:name "Verna Lillian Summerton"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/348327948540013488> ;
     schema:familyName "Summerton"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Verna Lillian"@en ;
@@ -7249,10 +7186,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I353228453420013980> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4033551328190011154> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/352699551800013902> ;
     foaf:familyName "Summerton"@en ;
     foaf:givenName "Flossie Lela"@en ;
     foaf:name "Flossie Lela Summerton"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/352699551800013902> ;
     schema:birthDate "1910-01-30"@en ;
     schema:deathDate "1964"@en ;
     schema:familyName "Summerton"@en ;
@@ -7281,10 +7218,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I352709640870011936> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023530230030203> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/352709414950012989> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Brian"@en ;
     foaf:name "Brian Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/352709414950012989> ;
     schema:familyName "Chernipeski"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Brian"@en ;
@@ -7311,10 +7248,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I352709640870011936> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023530230030203> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/352709541320012980> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Karla"@en ;
     foaf:name "Karla Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/352709541320012980> ;
     schema:familyName "Chernipeski"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Karla"@en ;
@@ -7341,10 +7278,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I352709541320012980> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023530230030203> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/352709640870011936> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Janine"@en ;
     foaf:name "Janine Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/352709640870011936> ;
     schema:familyName "Chernipeski"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Janine"@en ;
@@ -7413,10 +7350,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I6000000003208662556> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023487710030288> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/353225966750011016> ;
     foaf:familyName "Evans"@en ;
     foaf:givenName "Ellen Susann"@en ;
     foaf:name "Ellen Susann Evans"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/353225966750011016> ;
     schema:familyName "Evans"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Ellen Susann"@en ;
@@ -7485,10 +7422,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I6000000012548261930> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023541260030205> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/6000000012548239711> ;
     foaf:familyName "Brown"@en ;
     foaf:givenName "James"@en ;
     foaf:name "James Brown"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/6000000012548239711> ;
     schema:birthDate "1886"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -7531,10 +7468,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I6000000012548261930> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023541260030205> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/6000000012548239714> ;
     foaf:familyName "Brown"@en ;
     foaf:givenName "Marion Templeton Burns"@en ;
     foaf:name "Marion Templeton Burns Brown"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/6000000012548239714> ;
     schema:birthDate "1888"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -7579,10 +7516,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I6000000012548239714> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023541260030205> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/6000000012548261930> ;
     foaf:familyName "Brown"@en ;
     foaf:givenName "Johanna"@en ;
     foaf:name "Johanna Brown"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/6000000012548261930> ;
     schema:birthDate "1892-04-16"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -7649,10 +7586,10 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023140400030219> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023213360030272> ;
-    owl:sameAs <https://www.geni.com/profile/index/345304542900005281> ;
     foaf:familyName "Audley"@en ;
     foaf:givenName "Sydney Harold"@en ;
     foaf:name "Sydney Harold Audley"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/345304542900005281> ;
     schema:birthDate "1919-10-14"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -7701,11 +7638,11 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023140400030219> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023218710030284> ;
-    owl:sameAs <https://www.geni.com/profile/index/345307359100006809> ;
     foaf:familyName "Audley"@en ;
     foaf:givenName "Kathella Mary"@en ;
     foaf:name "Kathella Mary Audley"@en ;
     foaf:nick "Kay"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/345307359100006809> ;
     schema:birthDate "1926-09-12"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -7745,11 +7682,11 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023140400030219> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023681470030284> ;
-    owl:sameAs <https://www.geni.com/profile/index/345337628930012912> ;
     foaf:familyName "Audley"@en ;
     foaf:givenName "Marion Maisie"@en ;
     foaf:name "Marion Maisie Audley"@en ;
     foaf:nick "Maisie"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/345337628930012912> ;
     schema:birthDate "1916-12-10"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -7816,11 +7753,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I347430756830003425> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023530230030203> ;
-    owl:sameAs <https://www.geni.com/profile/index/347533480540001295> ;
     foaf:familyName "Tataryn"@en ;
     foaf:givenName "Bernice"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347430756830003425> ;
     foaf:name "Bernice Tataryn"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347533480540001295> ;
     schema:children <https://patrickaudley.com/#fam-I347434139670007915>,
         <https://patrickaudley.com/#fam-I352709414950012989>,
         <https://patrickaudley.com/#fam-I352709541320012980>,
@@ -7869,11 +7806,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I359470978900004338> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4033551328190011154> ;
-    owl:sameAs <https://www.geni.com/profile/index/348323481990013510> ;
     foaf:familyName "Summerton"@en ;
     foaf:givenName "George Samuel"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I359470978900004338> ;
     foaf:name "George Samuel Summerton"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/348323481990013510> ;
     schema:birthDate "1870-01-17"@en ;
     schema:children <https://patrickaudley.com/#fam-I348322757210013497>,
         <https://patrickaudley.com/#fam-I348327948540013488>,
@@ -7904,11 +7841,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I348323481990013510> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4033551328190011154> ;
-    owl:sameAs <https://www.geni.com/profile/index/359470978900004338> ;
     foaf:familyName "Mott"@en ;
     foaf:givenName "Clara"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I348323481990013510> ;
     foaf:name "Clara Mott"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/359470978900004338> ;
     schema:birthDate "1879"@en ;
     schema:children <https://patrickaudley.com/#fam-I348322757210013497>,
         <https://patrickaudley.com/#fam-I348327948540013488>,
@@ -8001,12 +7938,12 @@ wd:Q483639 a skos:Concept ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023196760030254>,
         <https://patrickaudley.com/#fam-F4026023613310030232> ;
-    owl:sameAs <https://www.geni.com/profile/index/346260450790014791> ;
     foaf:familyName "Neudorf"@en ;
     foaf:givenName "Derek"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I346259355270013735>,
         <https://patrickaudley.com/#fam-I347557770710012647> ;
     foaf:name "Derek Neudorf"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/346260450790014791> ;
     schema:children <https://patrickaudley.com/#fam-I347557908000013531> ;
     schema:familyName "Neudorf"@en ;
     schema:gender "Male"@en ;
@@ -8033,10 +7970,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347513005790012644> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023383440030268> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347512349810011219> ;
     foaf:familyName "Manchur"@en ;
     foaf:givenName "Virginia"@en ;
     foaf:name "Virginia Manchur"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347512349810011219> ;
     schema:familyName "Manchur"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Virginia"@en ;
@@ -8065,10 +8002,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347513005790012644> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023383440030268> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347512531170013461> ;
     foaf:familyName "Laing"@en ;
     foaf:givenName "Bonnie"@en ;
     foaf:name "Bonnie Laing"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347512531170013461> ;
     schema:familyName "Laing"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Bonnie"@en ;
@@ -8097,10 +8034,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347513005790012644> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023383440030268> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347512681360011267> ;
     foaf:familyName "Klatt"@en ;
     foaf:givenName "Beverly"@en ;
     foaf:name "Beverly Klatt"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347512681360011267> ;
     schema:familyName "Klatt"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Beverly"@en ;
@@ -8129,10 +8066,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347513005790012644> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023383440030268> ;
     gedcom:sex "M"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347512934400011235> ;
     foaf:familyName "Manchur"@en ;
     foaf:givenName "Howard"@en ;
     foaf:name "Howard Manchur"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347512934400011235> ;
     schema:familyName "Manchur"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Howard"@en ;
@@ -8161,10 +8098,10 @@ wd:Q483639 a skos:Concept ;
         <https://patrickaudley.com/#fam-I347512934400011235> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023383440030268> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347513005790012644> ;
     foaf:familyName "Manchur"@en ;
     foaf:givenName "Cindy"@en ;
     foaf:name "Cindy Manchur"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347513005790012644> ;
     schema:familyName "Manchur"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Cindy"@en ;
@@ -8216,11 +8153,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I349225112600013506> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023327060030227> ;
-    owl:sameAs <https://www.geni.com/profile/index/343726990810011139> ;
     foaf:familyName "May"@en ;
     foaf:givenName "Godfrey Norman"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I349225112600013506> ;
     foaf:name "Godfrey Norman May"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/343726990810011139> ;
     schema:children <https://patrickaudley.com/#fam-I343715065440012354>,
         <https://patrickaudley.com/#fam-I343727190750011166>,
         <https://patrickaudley.com/#fam-I349243642860013519>,
@@ -8249,11 +8186,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I347431001070005471> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023383440030268> ;
-    owl:sameAs <https://www.geni.com/profile/index/347431171550012617> ;
     foaf:familyName "Manchur"@en ;
     foaf:givenName "Tony"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347431001070005471> ;
     foaf:name "Tony Manchur"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347431171550012617> ;
     schema:children <https://patrickaudley.com/#fam-I347512349810011219>,
         <https://patrickaudley.com/#fam-I347512531170013461>,
         <https://patrickaudley.com/#fam-I347512681360011267>,
@@ -8282,11 +8219,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I349198227800013537> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023247610030296> ;
-    owl:sameAs <https://www.geni.com/profile/index/349196540370012647> ;
     foaf:familyName "Fedoruk"@en ;
     foaf:givenName "William"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I349198227800013537> ;
     foaf:name "William Fedoruk"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349196540370012647> ;
     schema:birthDate "1888-03-21"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -8323,11 +8260,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I349196540370012647> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023247610030296> ;
-    owl:sameAs <https://www.geni.com/profile/index/349198227800013537> ;
     foaf:familyName "Esaryk"@en ;
     foaf:givenName "Pearl"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I349196540370012647> ;
     foaf:name "Pearl Esaryk"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349198227800013537> ;
     schema:birthDate "1894-04-03"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -8365,10 +8302,10 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023247610030296> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023217410030282> ;
-    owl:sameAs <https://www.geni.com/profile/index/349198986590011496> ;
     foaf:familyName "Fedoruk"@en ;
     foaf:givenName "Doreen"@en ;
     foaf:name "Doreen Fedoruk"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349198986590011496> ;
     schema:familyName "Fedoruk"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Doreen"@en ;
@@ -8398,10 +8335,10 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023247610030296> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023625890030250> ;
-    owl:sameAs <https://www.geni.com/profile/index/349201170120012656> ;
     foaf:familyName "Fedoruk"@en ;
     foaf:givenName "Mary Belle"@en ;
     foaf:name "Mary Belle Fedoruk"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349201170120012656> ;
     schema:familyName "Fedoruk"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Mary Belle"@en ;
@@ -8431,10 +8368,10 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023247610030296> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023167370030224> ;
-    owl:sameAs <https://www.geni.com/profile/index/349201658470011482> ;
     foaf:familyName "Fedoruk"@en ;
     foaf:givenName "William"@en ;
     foaf:name "William Fedoruk"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349201658470011482> ;
     schema:familyName "Fedoruk"@en ;
     schema:gender "Male"@en ;
     schema:givenName "William"@en ;
@@ -8464,10 +8401,10 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023247610030296> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023082480030270> ;
-    owl:sameAs <https://www.geni.com/profile/index/349201847070011509> ;
     foaf:familyName "Fedoruk"@en ;
     foaf:givenName "John James"@en ;
     foaf:name "John James Fedoruk"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349201847070011509> ;
     schema:birthDate "1927-08-31"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -8515,11 +8452,11 @@ wd:Q483639 a skos:Concept ;
     rel:spouseOf <https://patrickaudley.com/#fam-I343726990810011139> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023327060030227> ;
-    owl:sameAs <https://www.geni.com/profile/index/349225112600013506> ;
     foaf:familyName "Warnken"@en ;
     foaf:givenName "Gertrude Marguerite"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I343726990810011139> ;
     foaf:name "Gertrude Marguerite Warnken"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349225112600013506> ;
     schema:children <https://patrickaudley.com/#fam-I343715065440012354>,
         <https://patrickaudley.com/#fam-I343727190750011166>,
         <https://patrickaudley.com/#fam-I349243642860013519>,
@@ -8549,10 +8486,10 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023327060030227> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023708520030285> ;
-    owl:sameAs <https://www.geni.com/profile/index/349243642860013519> ;
     foaf:familyName "May"@en ;
     foaf:givenName "William "@en ;
     foaf:name "William  May"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349243642860013519> ;
     schema:familyName "May"@en ;
     schema:gender "Male"@en ;
     schema:givenName "William "@en ;
@@ -8582,10 +8519,10 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023327060030227> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023246170030295> ;
-    owl:sameAs <https://www.geni.com/profile/index/349327079160011586> ;
     foaf:familyName "May"@en ;
     foaf:givenName "Susan"@en ;
     foaf:name "Susan May"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349327079160011586> ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
                     schema:latitude 4.91667e+01 ;
@@ -8622,10 +8559,10 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-F6000000012926707394> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F6000000012926547739> ;
-    owl:sameAs <https://www.geni.com/profile/index/6000000012926547736> ;
     foaf:familyName "McPherson"@en ;
     foaf:givenName "Marie"@en ;
     foaf:name "Marie McPherson"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/6000000012926547736> ;
     schema:children <https://patrickaudley.com/#fam-I6000000012926526899>,
         <https://patrickaudley.com/#fam-I6000000012926614282>,
         <https://patrickaudley.com/#fam-I6000000012926738210> ;
@@ -8657,12 +8594,12 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023167080030223> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023206710030264> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/P63J-5GS>,
-        <https://www.geni.com/profile/index/343726644670011172> ;
     foaf:familyName "Bayrack"@en ;
     foaf:givenName "Stanley"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I343727611760011170> ;
     foaf:name "Stanley Bayrack"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/P63J-5GS>,
+        <https://www.geni.com/profile/index/343726644670011172> ;
     schema:birthDate "1921-07-12"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -8715,10 +8652,10 @@ wd:Q483639 a skos:Concept ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023267290030203>,
         <https://patrickaudley.com/#fam-F4026023267770030205> ;
-    owl:sameAs <https://www.geni.com/profile/index/343727190750011166> ;
     foaf:familyName "May"@en ;
     foaf:givenName "Douglas John"@en ;
     foaf:name "Douglas John May"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/343727190750011166> ;
     schema:familyName "May"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Douglas John"@en ;
@@ -8798,12 +8735,12 @@ wd:Q483639 a skos:Concept ;
     gedcom:childIn <https://patrickaudley.com/#fam-F6000000012555758491> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023140400030219> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/P63J-D9P>,
-        <https://www.geni.com/profile/index/345333199860006780> ;
     foaf:familyName "Audley"@en ;
     foaf:givenName "George Henry"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I345333291000004090> ;
     foaf:name "George Henry Audley"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/P63J-D9P>,
+        <https://www.geni.com/profile/index/345333199860006780> ;
     schema:birthDate "1886-02-08"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -8871,11 +8808,11 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023218500030283> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023613310030232> ;
-    owl:sameAs <https://www.geni.com/profile/index/346259355270013735> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Rhondalee (Rhonda) Mae"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I346260450790014791> ;
     foaf:name "Rhondalee (Rhonda) Mae Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/346259355270013735> ;
     schema:familyName "Chernipeski"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Rhondalee (Rhonda) Mae"@en ;
@@ -8930,11 +8867,11 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023194290030252> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023623790030246> ;
-    owl:sameAs <https://www.geni.com/profile/index/349208992390012641> ;
     foaf:familyName "Sturrock"@en ;
     foaf:givenName "Jane"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I349209344810013602> ;
     foaf:name "Jane Sturrock"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349208992390012641> ;
     schema:children <https://patrickaudley.com/#fam-I349209261440013536> ;
     schema:familyName "Sturrock"@en ;
     schema:gender "Female"@en ;
@@ -8965,10 +8902,10 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023338650030243>,
         <https://patrickaudley.com/#fam-F4026023608010030223> ;
-    owl:sameAs <https://www.geni.com/profile/index/349244346960013535> ;
     foaf:familyName "May"@en ;
     foaf:givenName "Fredrick Arthur"@en ;
     foaf:name "Fredrick Arthur May"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/349244346960013535> ;
     schema:familyName "May"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Fredrick Arthur"@en ;
@@ -9026,12 +8963,12 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-FSF11> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023541260030205> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/LQ5H-Y9B>,
-        <https://www.geni.com/profile/index/351679132940013806> ;
     foaf:familyName "Brown"@en ;
     foaf:givenName "Samuel"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I351679417750013785> ;
     foaf:name "Samuel Brown"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/LQ5H-Y9B>,
+        <https://www.geni.com/profile/index/351679132940013806> ;
     schema:birthDate "1863-07-28"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -9105,12 +9042,12 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-FSF9> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023541260030205> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/9335-WV1>,
-        <https://www.geni.com/profile/index/351679417750013785> ;
     foaf:familyName "Weir"@en ;
     foaf:givenName "Marion Templeton"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I351679132940013806> ;
     foaf:name "Marion Templeton Weir"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/9335-WV1>,
+        <https://www.geni.com/profile/index/351679417750013785> ;
     schema:birthDate "1864-05-12"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -9253,12 +9190,12 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023140400030219> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023752310030224> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/GWCN-B8Y>,
-        <https://www.geni.com/profile/index/343715446520012293> ;
     foaf:familyName "Audley"@en ;
     foaf:givenName "Samuel George"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I345302388540010663> ;
     foaf:name "Samuel George Audley"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/GWCN-B8Y>,
+        <https://www.geni.com/profile/index/343715446520012293> ;
     schema:birthDate "1915-08-18"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -9320,12 +9257,12 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023247610030296> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023206710030264> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/P63J-XGT>,
-        <https://www.geni.com/profile/index/343727611760011170> ;
     foaf:familyName "Fedoruk"@en ;
     foaf:givenName "Nellie Victoria"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I343726644670011172> ;
     foaf:name "Nellie Victoria Fedoruk"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/P63J-XGT>,
+        <https://www.geni.com/profile/index/343727611760011170> ;
     schema:birthDate "1924-04-19"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -9414,10 +9351,10 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
         <https://patrickaudley.com/#fam-I355818024810011414> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023109580030288> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/355817454510012353> ;
     foaf:familyName "Bojczuk (bohaychuck)"@en ;
     foaf:givenName "Marie"@en ;
     foaf:name "Marie Bojczuk (bohaychuck)"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/355817454510012353> ;
     schema:familyName "Bojczuk (bohaychuck)"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Marie"@en ;
@@ -9454,11 +9391,11 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     rel:spouseOf <https://patrickaudley.com/#fam-I345315884160007124> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023109580030288> ;
-    owl:sameAs <https://www.geni.com/profile/index/345315755980002523> ;
     foaf:familyName "Bojczuk"@en ;
     foaf:givenName "Fedor"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I345315884160007124> ;
     foaf:name "Fedor Bojczuk"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/345315755980002523> ;
     schema:children <https://patrickaudley.com/#fam-I345302388540010663>,
         <https://patrickaudley.com/#fam-I351280004140012857>,
         <https://patrickaudley.com/#fam-I351281199860012803>,
@@ -9503,10 +9440,10 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023109580030288> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023499030030290> ;
-    owl:sameAs <https://www.geni.com/profile/index/351280004140012857> ;
     foaf:familyName "Bohaychuk"@en ;
     foaf:givenName "Andrew"@en ;
     foaf:name "Andrew Bohaychuk"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/351280004140012857> ;
     schema:deathDate "1985"@en ;
     schema:familyName "Bohaychuk"@en ;
     schema:gender "Male"@en ;
@@ -9545,10 +9482,10 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023109580030288> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023633130030258> ;
-    owl:sameAs <https://www.geni.com/profile/index/351281199860012803> ;
     foaf:familyName "Bohaychuk"@en ;
     foaf:givenName "John"@en ;
     foaf:name "John Bohaychuk"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/351281199860012803> ;
     schema:familyName "Bohaychuk"@en ;
     schema:gender "Male"@en ;
     schema:givenName "John"@en ;
@@ -9586,10 +9523,10 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023109580030288> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023482070030287> ;
-    owl:sameAs <https://www.geni.com/profile/index/351281691520013776> ;
     foaf:familyName "Bohaychuk"@en ;
     foaf:givenName "Metro"@en ;
     foaf:name "Metro Bohaychuk"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/351281691520013776> ;
     schema:familyName "Bohaychuk"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Metro"@en ;
@@ -9627,10 +9564,10 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023109580030288> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023137930030217> ;
-    owl:sameAs <https://www.geni.com/profile/index/351281967260012811> ;
     foaf:familyName "Bohaychuk"@en ;
     foaf:givenName "Nick"@en ;
     foaf:name "Nick Bohaychuk"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/351281967260012811> ;
     schema:familyName "Bohaychuk"@en ;
     schema:gender "Male"@en ;
     schema:givenName "Nick"@en ;
@@ -9668,10 +9605,10 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023109580030288> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023624100030247> ;
-    owl:sameAs <https://www.geni.com/profile/index/351284123170012878> ;
     foaf:familyName "Bojczuk (Bohaychuck)"@en ;
     foaf:givenName "Jean"@en ;
     foaf:name "Jean Bojczuk (Bohaychuck)"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/351284123170012878> ;
     schema:familyName "Bojczuk (Bohaychuck)"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Jean"@en ;
@@ -9709,10 +9646,10 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023109580030288> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023172090030234> ;
-    owl:sameAs <https://www.geni.com/profile/index/351284647190012873> ;
     foaf:familyName "Bojczuk (Bohaychuck)"@en ;
     foaf:givenName "Anita"@en ;
     foaf:name "Anita Bojczuk (Bohaychuck)"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/351284647190012873> ;
     schema:familyName "Bojczuk (Bohaychuck)"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Anita"@en ;
@@ -9750,10 +9687,10 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023109580030288> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023329300030232> ;
-    owl:sameAs <https://www.geni.com/profile/index/355818024810011414> ;
     foaf:familyName "Bojczuk (Bohaychuck)"@en ;
     foaf:givenName "Irene"@en ;
     foaf:name "Irene Bojczuk (Bohaychuck)"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/355818024810011414> ;
     schema:deathDate "1964-08"@en ;
     schema:familyName "Bojczuk (Bohaychuck)"@en ;
     schema:gender "Female"@en ;
@@ -9792,12 +9729,12 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023541260030205> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023140400030219> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/LQ5H-B98>,
-        <https://www.geni.com/profile/index/345333291000004090> ;
     foaf:familyName "Brown"@en ;
     foaf:givenName "Mary Weir"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I345333199860006780> ;
     foaf:name "Mary Weir Brown"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/LQ5H-B98>,
+        <https://www.geni.com/profile/index/345333291000004090> ;
     schema:birthDate "1890-03-30"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -9900,10 +9837,10 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
         <https://patrickaudley.com/#fam-I347481454670011203> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023609580030225> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347430049500003212> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Mary"@en ;
     foaf:name "Mary Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347430049500003212> ;
     schema:familyName "Chernipeski"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Mary"@en ;
@@ -9944,10 +9881,10 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
         <https://patrickaudley.com/#fam-I347481454670011203> ;
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023609580030225> ;
     gedcom:sex "F"@en ;
-    owl:sameAs <https://www.geni.com/profile/index/347433632250007960> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Emily"@en ;
     foaf:name "Emily Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347433632250007960> ;
     schema:familyName "Chernipeski"@en ;
     schema:gender "Female"@en ;
     schema:givenName "Emily"@en ;
@@ -10023,11 +9960,11 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     rel:spouseOf <https://patrickaudley.com/#fam-I347429756110012568> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023609580030225> ;
-    owl:sameAs <https://www.geni.com/profile/index/347429226280001132> ;
     foaf:familyName "Ostapovich"@en ;
     foaf:givenName "Agolfia"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347429756110012568> ;
     foaf:name "Agolfia Ostapovich"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347429226280001132> ;
     schema:birthDate "1905"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -10077,11 +10014,11 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     rel:spouseOf <https://patrickaudley.com/#fam-I347429226280001132> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023609580030225> ;
-    owl:sameAs <https://www.geni.com/profile/index/347429756110012568> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Steven"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347429226280001132> ;
     foaf:name "Steven Chernipeski I"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347429756110012568> ;
     schema:children <https://patrickaudley.com/#fam-I346258182600013761>,
         <https://patrickaudley.com/#fam-I347430049500003212>,
         <https://patrickaudley.com/#fam-I347430384090003360>,
@@ -10197,12 +10134,12 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023624440030249>,
         <https://patrickaudley.com/#fam-F4033551325540011147> ;
-    owl:sameAs <https://www.geni.com/profile/index/353228349760001770> ;
     foaf:familyName "Brockman"@en ;
     foaf:givenName "Cedric Harry"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I353228453420013980>,
         <https://patrickaudley.com/#fam-I361178738540010076> ;
     foaf:name "Cedric Harry Brockman Sr."@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/353228349760001770> ;
     schema:birthDate "1905-09-07"@en ;
     schema:children <https://patrickaudley.com/#fam-I347441402770001020>,
         <https://patrickaudley.com/#fam-I347442261890003391>,
@@ -10252,11 +10189,11 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4033551328190011154> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4033551325540011147> ;
-    owl:sameAs <https://www.geni.com/profile/index/353228453420013980> ;
     foaf:familyName "Summerton"@en ;
     foaf:givenName "Ina Lorena"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I353228349760001770> ;
     foaf:name "Ina Lorena Summerton"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/353228453420013980> ;
     schema:birthDate "1912-03-08"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -10355,10 +10292,10 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023609580030225> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4530111458190033104> ;
-    owl:sameAs <https://www.geni.com/profile/index/347433177240005497> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Harvey"@en ;
     foaf:name "Harvey Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347433177240005497> ;
     schema:children <https://patrickaudley.com/#fam-I4530111435070112037> ;
     schema:familyName "Chernipeski"@en ;
     schema:gender "Male"@en ;
@@ -10444,13 +10381,13 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023109580030288>,
         <https://patrickaudley.com/#fam-FSF4> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/GWCN-Y4N>,
-        <https://www.geni.com/profile/index/345315884160007124> ;
     foaf:familyName "Hrynyk"@en ;
     foaf:givenName "Anna (Annausa)"@en ;
     foaf:knows <https://patrickaudley.com/#fam-FSI11>,
         <https://patrickaudley.com/#fam-I345315755980002523> ;
     foaf:name "Anna (Annausa) Hrynyk"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/GWCN-Y4N>,
+        <https://www.geni.com/profile/index/345315884160007124> ;
     schema:birthDate "1877-07-15"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -10517,11 +10454,11 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023609580030225> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023129740030207> ;
-    owl:sameAs <https://www.geni.com/profile/index/347432831780007900> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Nick"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347497262130013517> ;
     foaf:name "Nick Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347432831780007900> ;
     schema:children <https://patrickaudley.com/#fam-I347497365660013465> ;
     schema:familyName "Chernipeski"@en ;
     schema:gender "Male"@en ;
@@ -10583,12 +10520,12 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
         <https://patrickaudley.com/#fam-FSF4> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023752310030224> ;
-    owl:sameAs <https://www.familysearch.org/tree/person/details/GWCN-G8H>,
-        <https://www.geni.com/profile/index/345302388540010663> ;
     foaf:familyName "Bohaychuk"@en ;
     foaf:givenName "Katherine"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I343715446520012293> ;
     foaf:name "Katherine Bohaychuk"@en ;
+    gmeow:authorityLink <https://www.familysearch.org/tree/person/details/GWCN-G8H>,
+        <https://www.geni.com/profile/index/345302388540010663> ;
     schema:birthDate "1914-09-14"@en ;
     schema:birthPlace [ a schema:Place ;
             geo: [ a schema:GeoCoordinates ;
@@ -10661,11 +10598,11 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023609580030225> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023808490030274> ;
-    owl:sameAs <https://www.geni.com/profile/index/347430384090003360> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Ivon"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347453126470012444> ;
     foaf:name "Ivon Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347430384090003360> ;
     schema:children <https://patrickaudley.com/#fam-I347453487990012448>,
         <https://patrickaudley.com/#fam-I347453687450012449>,
         <https://patrickaudley.com/#fam-I347454185160013360> ;
@@ -10715,11 +10652,11 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023609580030225> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023224750030290> ;
-    owl:sameAs <https://www.geni.com/profile/index/347431417910005574> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Ann"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347432341770005580> ;
     foaf:name "Ann Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347431417910005574> ;
     schema:children <https://patrickaudley.com/#fam-I347525725570004929>,
         <https://patrickaudley.com/#fam-I347525973590010221>,
         <https://patrickaudley.com/#fam-I370438599880012326> ;
@@ -10769,11 +10706,11 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023609580030225> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023202770030257> ;
-    owl:sameAs <https://www.geni.com/profile/index/347432976740007947> ;
     foaf:familyName "Cherney"@en ;
     foaf:givenName "Ed"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347435102990007949> ;
     foaf:name "Ed Cherney"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347432976740007947> ;
     schema:children <https://patrickaudley.com/#fam-I347528779750007032>,
         <https://patrickaudley.com/#fam-I347528991970004892>,
         <https://patrickaudley.com/#fam-I347529194440001323> ;
@@ -10824,11 +10761,11 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023609580030225> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023218500030283> ;
-    owl:sameAs <https://www.geni.com/profile/index/346258182600013761> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Victor"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I353292603260013033> ;
     foaf:name "Victor Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/346258182600013761> ;
     schema:children <https://patrickaudley.com/#fam-I343727858090011205>,
         <https://patrickaudley.com/#fam-I346259121460012085>,
         <https://patrickaudley.com/#fam-I346259355270013735>,
@@ -10880,11 +10817,11 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023609580030225> ;
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023530230030203> ;
-    owl:sameAs <https://www.geni.com/profile/index/347430756830003425> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Mike"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347533480540001295> ;
     foaf:name "Mike Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347430756830003425> ;
     schema:children <https://patrickaudley.com/#fam-I347434139670007915>,
         <https://patrickaudley.com/#fam-I352709414950012989>,
         <https://patrickaudley.com/#fam-I352709541320012980>,
@@ -10937,11 +10874,11 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:childIn <https://patrickaudley.com/#fam-F4026023609580030225> ;
     gedcom:sex "F"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023383440030268> ;
-    owl:sameAs <https://www.geni.com/profile/index/347431001070005471> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Katrina (Kay)"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347431171550012617> ;
     foaf:name "Katrina (Kay) Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347431001070005471> ;
     schema:children <https://patrickaudley.com/#fam-I347512349810011219>,
         <https://patrickaudley.com/#fam-I347512531170013461>,
         <https://patrickaudley.com/#fam-I347512681360011267>,
@@ -10995,12 +10932,12 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:sex "M"@en ;
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023191390030249>,
         <https://patrickaudley.com/#fam-F4026023718110030293> ;
-    owl:sameAs <https://www.geni.com/profile/index/347481454670011203> ;
     foaf:familyName "Chernipeski"@en ;
     foaf:givenName "Aleck"@en ;
     foaf:knows <https://patrickaudley.com/#fam-I347516790770011254>,
         <https://patrickaudley.com/#fam-I347516997070011246> ;
     foaf:name "Aleck Chernipeski"@en ;
+    gmeow:authorityLink <https://www.geni.com/profile/index/347481454670011203> ;
     schema:children <https://patrickaudley.com/#fam-I347517875640013491>,
         <https://patrickaudley.com/#fam-I347518165240013527>,
         <https://patrickaudley.com/#fam-I347518403970013460> ;
@@ -11041,7 +10978,6 @@ On-line transcriptions for the 1891 & 1091 UK census can be found here http://ww
     gedcom:spouseIn <https://patrickaudley.com/#fam-F4026023247830030297>,
         <https://patrickaudley.com/#fam-F6000000001276589010>,
         <https://patrickaudley.com/#fam-F6000000018489235721> ;
-    owl:sameAs wd:Q139770478 ;
     skos:exactMatch wd:Q139770478 ;
     vcard:fn "Patrick Colm Audley"@en ;
     vcard:hasAddress <https://patrickaudley.com/#main-address> ;
