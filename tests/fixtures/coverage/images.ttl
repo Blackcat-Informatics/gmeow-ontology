@@ -1,0 +1,27 @@
+# Coverage + projection fixture for the image super-ontology (#22).
+# Exercises MediaObject technical metadata and ImageRegion encoding so that
+# EXIF, IIIF, and schema.org ImageObject projections produce non-empty output.
+
+@prefix ex:    <https://example.org/images/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- A photograph with technical metadata ----------------------------------- #
+ex:photo a gmeow:MediaObject ;
+    gmeow:pixelWidth      1920 ;
+    gmeow:pixelHeight     1080 ;
+    gmeow:imageOrientation 1 ;
+    gmeow:captureTime     "2024-01-15T09:30:00Z"^^xsd:dateTime ;
+    gmeow:depicts         ex:cat .
+
+ex:cat a gmeow:Entity .
+
+# --- A region with a Web Annotation fragment selector ----------------------- #
+ex:region a gmeow:ImageRegion ;
+    gmeow:regionOf        ex:photo ;
+    gmeow:regionLabel     "cat's face"@en ;
+    gmeow:regionSelector  ex:selector .
+
+ex:selector a gmeow:RegionSelector ;
+    gmeow:selectorType    gmeow:selectorTypeWebAnnotationFragment ;
+    gmeow:selectorValue   "xywh=100,200,300,400" .

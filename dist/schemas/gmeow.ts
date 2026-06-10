@@ -408,6 +408,22 @@ export enum DatingMethodEnum {
     uranium_lead_LEFT_PARENTHESISU_PbRIGHT_PARENTHESIS = "datingMethodUraniumLead",
 };
 
+export enum DepictionContextEnum {
+
+    action_shot = "depictionContextActionShot",
+    candid = "depictionContextCandid",
+    childhood = "depictionContextChildhood",
+    event = "depictionContextEvent",
+    family = "depictionContextFamily",
+    formal = "depictionContextFormal",
+    now_SOLIDUS_current = "depictionContextNow",
+    portrait = "depictionContextPortrait",
+    professional = "depictionContextProfessional",
+    self_portrait = "depictionContextSelfPortrait",
+    social = "depictionContextSocial",
+    work = "depictionContextWork",
+};
+
 export enum DerivationKindEnum {
 
     affixation = "derivationAffixation",
@@ -484,6 +500,10 @@ export enum EventTypeEnum {
     first_communion = "eventTypeFirstCommunion",
     funeral = "eventTypeFuneral",
     graduation = "eventTypeGraduation",
+    image_annotation = "eventTypeImageAnnotation",
+    image_capture = "eventTypeImageCapture",
+    image_processing = "eventTypeImageProcessing",
+    image_scanning = "eventTypeImageScanning",
     immigration = "eventTypeImmigration",
     lie_SOLIDUS_falsification = "eventTypeLie",
     manifestation_production = "eventTypeManifestationProduction",
@@ -1513,6 +1533,25 @@ export enum SLSALevelEnum {
     SLSA_Level_4 = "slsaLevel4",
 };
 
+export enum SceneRelationTypeEnum {
+
+    above = "sceneRelationAbove",
+    below = "sceneRelationBelow",
+    eating = "sceneRelationEating",
+    far_from = "sceneRelationFarFrom",
+    holding = "sceneRelationHolding",
+    inside = "sceneRelationInside",
+    left_of = "sceneRelationLeftOf",
+    near = "sceneRelationNear",
+    part_of = "sceneRelationPartOf",
+    playing = "sceneRelationPlaying",
+    riding = "sceneRelationRiding",
+    right_of = "sceneRelationRightOf",
+    same_as = "sceneRelationSameAs",
+    touching = "sceneRelationTouching",
+    wearing = "sceneRelationWearing",
+};
+
 export enum ScriptRoleEnum {
 
     decorative = "scriptRoleDecorative",
@@ -1523,6 +1562,19 @@ export enum ScriptRoleEnum {
     primary = "scriptRolePrimary",
     syllabic_grammar_SOLIDUS_inflection = "scriptRoleSyllabicGrammar",
     transliteration_SOLIDUS_romanization = "scriptRoleTransliteration",
+};
+
+export enum SelectorTypeEnum {
+
+    COCO_RLE_mask = "selectorTypeCocoRleMask",
+    DICOM_SEG_mask = "selectorTypeDicomSegMask",
+    fractional_rectangle = "selectorTypeFractionalRectangle",
+    pixel_mask = "selectorTypePixelMask",
+    pixel_rectangle = "selectorTypePixelRectangle",
+    polygon_path = "selectorTypePolygonPath",
+    run_length_encoded = "selectorTypeRunLengthEncoded",
+    SVG_path = "selectorTypeSvgPath",
+    Web_Annotation_fragment = "selectorTypeWebAnnotationFragment",
 };
 
 export enum SensitivityLevelEnum {
@@ -2458,6 +2510,22 @@ export interface DatingMethod {
 
 
 
+export interface DepictionContext {
+}
+
+
+
+export interface DepictionUsage {
+    depictionAudience?: Entity[],
+    depictionAuthority?: Agent[],
+    depictionContext?: DepictionContext,
+    depictionImage?: MediaObject,
+    depictionInterval?: TimeInterval[],
+    depictionSubject?: Entity,
+}
+
+
+
 export interface DerivationKind {
 }
 
@@ -2532,6 +2600,7 @@ export interface Entity {
     cites?: CreativeWork[],
     conditionsOfAccess?: string,
     counterpartOf?: Entity[],
+    depictedIn?: MediaObject[],
     description?: string,
     existenceInterval?: TimeInterval[],
     hasAccessibilityNeed?: AccessibilityFacet[],
@@ -2857,6 +2926,14 @@ export interface HonorificPosition {
 
 export interface IdentityFacet {
     selfAsserted?: boolean,
+}
+
+
+
+export interface ImageRegion extends InformationObject {
+    regionLabel?: string,
+    regionOf?: MediaObject,
+    regionSelector?: RegionSelector,
 }
 
 
@@ -3243,6 +3320,13 @@ export interface Measurement extends Observation {
 
 
 export interface MediaObject extends Manifestation {
+    captureDevice?: PhysicalObject[],
+    captureTime?: string,
+    depicts?: Entity[],
+    hasRegion?: ImageRegion[],
+    imageOrientation?: string,
+    pixelHeight?: string,
+    pixelWidth?: string,
 }
 
 
@@ -3894,6 +3978,13 @@ export interface ReferencePosition extends Entity {
 
 
 
+export interface RegionSelector extends InformationObject {
+    selectorType?: SelectorType,
+    selectorValue?: string,
+}
+
+
+
 export interface RegulatoryOverlay extends TimeScopedRelation {
     overlayAuthority?: Agent,
     overlayDesignator?: string,
@@ -4031,6 +4122,20 @@ export interface ScalarQuantity extends Entity {
 
 
 
+export interface SceneGraphEdge {
+    sceneConfidence?: string,
+    sceneObject?: ImageRegion,
+    sceneRelation?: SceneRelationType,
+    sceneSubject?: ImageRegion,
+}
+
+
+
+export interface SceneRelationType {
+}
+
+
+
 export interface ScriptLanguageAttribution extends Observation {
     attributedLanguage?: Language[],
     attributedNotation?: NotationSystem[],
@@ -4050,6 +4155,11 @@ export interface Selector extends EvidenceSpan {
     selectorPage?: string,
     selectorTextPosition?: string,
     selectorTextQuote?: string,
+}
+
+
+
+export interface SelectorType {
 }
 
 

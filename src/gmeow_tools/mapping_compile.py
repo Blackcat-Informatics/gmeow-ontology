@@ -99,6 +99,9 @@ _PROFILES = (
     "intoto",
     "sigstore",
     "mailmap",
+    # Image super-ontology (#22)
+    "iiif",
+    "exif",
     "doap",
     "codemeta",
 )

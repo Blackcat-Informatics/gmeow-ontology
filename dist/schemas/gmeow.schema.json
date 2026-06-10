@@ -1121,6 +1121,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -1726,6 +1735,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -2191,6 +2209,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -2737,6 +2764,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -3205,6 +3241,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -3630,6 +3675,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -4200,6 +4254,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -4751,6 +4814,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -5179,6 +5251,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -5580,6 +5661,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -5993,6 +6083,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -6397,6 +6496,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -6894,6 +7002,15 @@
                     "format": "date-time",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -7555,6 +7672,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -8503,6 +8629,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -9156,6 +9291,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -9828,6 +9972,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -10809,6 +10962,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -11410,6 +11572,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -12465,6 +12636,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -13456,6 +13636,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -14134,6 +14323,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -14593,6 +14791,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -15034,6 +15241,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -15497,6 +15713,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -15953,6 +16178,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -16528,6 +16762,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -17083,6 +17326,96 @@
             "title": "DatingMethodEnum",
             "type": "string"
         },
+        "DepictionContext": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "DepictionContext",
+            "type": "object"
+        },
+        "DepictionContextEnum": {
+            "description": "",
+            "enum": [
+                "depictionContextActionShot",
+                "depictionContextCandid",
+                "depictionContextChildhood",
+                "depictionContextEvent",
+                "depictionContextFamily",
+                "depictionContextFormal",
+                "depictionContextNow",
+                "depictionContextPortrait",
+                "depictionContextProfessional",
+                "depictionContextSelfPortrait",
+                "depictionContextSocial",
+                "depictionContextWork"
+            ],
+            "title": "DepictionContextEnum",
+            "type": "string"
+        },
+        "DepictionUsage": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "depictionAudience": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictionAuthority": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictionContext": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DepictionContext"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "depictionImage": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/MediaObject"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "depictionInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictionSubject": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                }
+            },
+            "title": "DepictionUsage",
+            "type": "object"
+        },
         "DerivationKind": {
             "additionalProperties": false,
             "description": "",
@@ -17188,6 +17521,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -17643,6 +17985,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -18140,6 +18491,15 @@
                     "format": "date-time",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -18732,6 +19092,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -19250,6 +19619,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -19833,6 +20211,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -20681,6 +21068,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -21084,6 +21480,10 @@
                 "eventTypeFirstCommunion",
                 "eventTypeFuneral",
                 "eventTypeGraduation",
+                "eventTypeImageAnnotation",
+                "eventTypeImageCapture",
+                "eventTypeImageProcessing",
+                "eventTypeImageScanning",
                 "eventTypeImmigration",
                 "eventTypeLie",
                 "eventTypeManifestationProduction",
@@ -21200,6 +21600,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -22091,6 +22500,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -22689,6 +23107,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -23220,6 +23647,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -24026,6 +24462,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -24436,6 +24881,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -25088,6 +25542,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -25501,6 +25964,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -25966,6 +26438,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -26490,6 +26971,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -27039,6 +27529,457 @@
             "title": "IdentityFacet",
             "type": "object"
         },
+        "ImageRegion": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "acquireLicensePage": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionText": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionUrl": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "authorityLink": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contributesToFrame": {
+                    "items": {
+                        "$ref": "#/$defs/NarrativeReferenceFrame"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "counterpartOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "detectedMediaType": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "existenceInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAccessibilityNeed": {
+                    "items": {
+                        "$ref": "#/$defs/AccessibilityFacet"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAppellation": {
+                    "items": {
+                        "$ref": "#/$defs/Appellation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAttestation": {
+                    "items": {
+                        "$ref": "#/$defs/Attestation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCopyright": {
+                    "items": {
+                        "$ref": "#/$defs/Copyright"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCreationEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDestructionEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDirectReply": {
+                    "items": {
+                        "$ref": "#/$defs/Comment"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLicense": {
+                    "items": {
+                        "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasPose": {
+                    "items": {
+                        "$ref": "#/$defs/Pose"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasReply": {
+                    "items": {
+                        "$ref": "#/$defs/Comment"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasRightsStatement": {
+                    "items": {
+                        "$ref": "#/$defs/RightsStatement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryObservation": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryObservation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryQuantity": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryQuantity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSpatialMeasurement": {
+                    "items": {
+                        "$ref": "#/$defs/SpatialMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasStream": {
+                    "items": {
+                        "$ref": "#/$defs/Stream"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTag": {
+                    "items": {
+                        "$ref": "#/$defs/Tag"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTrademark": {
+                    "items": {
+                        "$ref": "#/$defs/Trademark"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasVersion": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasWebPage": {
+                    "items": {
+                        "$ref": "#/$defs/WebPage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAccessibleForFree": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "isReferencedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isResultOf": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "locatedAt": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "mentionedIn": {
+                    "items": {
+                        "$ref": "#/$defs/Note"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "provenance": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "proximity": {
+                    "items": {
+                        "$ref": "#/$defs/ProximityMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "regionLabel": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "regionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/MediaObject"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "regionSelector": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/RegionSelector"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "storedIn": {
+                    "items": {
+                        "$ref": "#/$defs/StorageLocation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersededBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersedes": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "usageInfo": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionFingerprint": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionLabel": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "wasAttributedTo": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasGeneratedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Activity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "ImageRegion",
+            "type": "object"
+        },
         "ImportActivity": {
             "additionalProperties": false,
             "description": "",
@@ -27463,6 +28404,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -27873,6 +28823,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -28505,6 +29464,15 @@
                     "format": "date-time",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -29168,6 +30136,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -29653,6 +30630,15 @@
                     "format": "date-time",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -30767,6 +31753,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -32184,6 +33179,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -32713,6 +33717,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -33186,6 +34199,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -34020,6 +35042,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -34483,6 +35514,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -34953,6 +35993,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -35915,6 +36964,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -36522,6 +37580,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -37055,6 +38122,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -37542,6 +38618,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -38110,6 +39195,15 @@
                     "format": "date-time",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -38753,6 +39847,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -39177,6 +40280,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -39678,6 +40790,22 @@
                         "null"
                     ]
                 },
+                "captureDevice": {
+                    "items": {
+                        "$ref": "#/$defs/PhysicalObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "captureTime": {
+                    "format": "date-time",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "cites": {
                     "items": {
                         "$ref": "#/$defs/CreativeWork"
@@ -39759,6 +40887,24 @@
                     "format": "date-time",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depicts": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -39953,6 +41099,15 @@
                         "null"
                     ]
                 },
+                "hasRegion": {
+                    "items": {
+                        "$ref": "#/$defs/ImageRegion"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasReply": {
                     "items": {
                         "$ref": "#/$defs/Comment"
@@ -40067,6 +41222,12 @@
                         "null"
                     ]
                 },
+                "imageOrientation": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
                 "isAbout": {
                     "items": {
                         "$ref": "#/$defs/Entity"
@@ -40137,6 +41298,18 @@
                     ]
                 },
                 "name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "pixelHeight": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "pixelWidth": {
                     "type": [
                         "string",
                         "null"
@@ -40401,6 +41574,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -41324,6 +42506,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -41734,6 +42925,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -42275,6 +43475,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -42849,6 +44058,15 @@
                         }
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -43259,6 +44477,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -43694,6 +44921,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -44311,6 +45547,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -44820,6 +46065,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -45360,6 +46614,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -45809,6 +47072,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -46320,6 +47592,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -47421,6 +48702,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -47847,6 +49137,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -48600,6 +49899,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -49064,6 +50372,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -49520,6 +50837,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -50132,6 +51458,15 @@
                     "format": "date-time",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -51605,6 +52940,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -52036,6 +53380,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -52857,6 +54210,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -53426,6 +54788,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -53836,6 +55207,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -54335,6 +55715,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -54941,6 +56330,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -55391,6 +56789,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -55922,6 +57329,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -56398,6 +57814,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -57474,6 +58899,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -57869,6 +59303,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -58288,6 +59731,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -58716,6 +60168,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -59126,6 +60587,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -59712,6 +61182,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -60054,6 +61533,447 @@
                 }
             },
             "title": "ReferencePosition",
+            "type": "object"
+        },
+        "RegionSelector": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "acquireLicensePage": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionText": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "attributionUrl": {
+                    "format": "uri",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "authorityLink": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "cites": {
+                    "items": {
+                        "$ref": "#/$defs/CreativeWork"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "conditionsOfAccess": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "contributesToFrame": {
+                    "items": {
+                        "$ref": "#/$defs/NarrativeReferenceFrame"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "counterpartOf": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "detectedMediaType": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "existenceInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAccessibilityNeed": {
+                    "items": {
+                        "$ref": "#/$defs/AccessibilityFacet"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAppellation": {
+                    "items": {
+                        "$ref": "#/$defs/Appellation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasAttestation": {
+                    "items": {
+                        "$ref": "#/$defs/Attestation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCopyright": {
+                    "items": {
+                        "$ref": "#/$defs/Copyright"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCreationEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDestructionEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasDirectReply": {
+                    "items": {
+                        "$ref": "#/$defs/Comment"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasLicense": {
+                    "items": {
+                        "$ref": "#/$defs/License"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasPose": {
+                    "items": {
+                        "$ref": "#/$defs/Pose"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasReply": {
+                    "items": {
+                        "$ref": "#/$defs/Comment"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasRightsStatement": {
+                    "items": {
+                        "$ref": "#/$defs/RightsStatement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryObservation": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryObservation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSensoryQuantity": {
+                    "items": {
+                        "$ref": "#/$defs/SensoryQuantity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSpatialMeasurement": {
+                    "items": {
+                        "$ref": "#/$defs/SpatialMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasStream": {
+                    "items": {
+                        "$ref": "#/$defs/Stream"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTag": {
+                    "items": {
+                        "$ref": "#/$defs/Tag"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasTrademark": {
+                    "items": {
+                        "$ref": "#/$defs/Trademark"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasVersion": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasWebPage": {
+                    "items": {
+                        "$ref": "#/$defs/WebPage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAbout": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isAccessibleForFree": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "isReferencedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "isResultOf": {
+                    "items": {
+                        "$ref": "#/$defs/Observation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "locatedAt": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "mentionedIn": {
+                    "items": {
+                        "$ref": "#/$defs/Note"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "provenance": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "proximity": {
+                    "items": {
+                        "$ref": "#/$defs/ProximityMeasurement"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "references": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "selectorType": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/SelectorType"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "selectorValue": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "storedIn": {
+                    "items": {
+                        "$ref": "#/$defs/StorageLocation"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersededBy": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "supersedes": {
+                    "items": {
+                        "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "usageInfo": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionFingerprint": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionLabel": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "versionOf": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Entity"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "wasAttributedTo": {
+                    "items": {
+                        "$ref": "#/$defs/Agent"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "wasGeneratedBy": {
+                    "items": {
+                        "$ref": "#/$defs/Activity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "RegionSelector",
             "type": "object"
         },
         "RegulatoryOverlay": {
@@ -60665,6 +62585,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -61125,6 +63054,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -61833,6 +63771,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -62376,6 +64323,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -62829,6 +64785,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -63185,6 +65150,78 @@
             "title": "ScalarQuantity",
             "type": "object"
         },
+        "SceneGraphEdge": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "sceneConfidence": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "sceneObject": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ImageRegion"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "sceneRelation": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/SceneRelationType"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "sceneSubject": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ImageRegion"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                }
+            },
+            "title": "SceneGraphEdge",
+            "type": "object"
+        },
+        "SceneRelationType": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "SceneRelationType",
+            "type": "object"
+        },
+        "SceneRelationTypeEnum": {
+            "description": "",
+            "enum": [
+                "sceneRelationAbove",
+                "sceneRelationBelow",
+                "sceneRelationEating",
+                "sceneRelationFarFrom",
+                "sceneRelationHolding",
+                "sceneRelationInside",
+                "sceneRelationLeftOf",
+                "sceneRelationNear",
+                "sceneRelationPartOf",
+                "sceneRelationPlaying",
+                "sceneRelationRiding",
+                "sceneRelationRightOf",
+                "sceneRelationSameAs",
+                "sceneRelationTouching",
+                "sceneRelationWearing"
+            ],
+            "title": "SceneRelationTypeEnum",
+            "type": "string"
+        },
         "ScriptLanguageAttribution": {
             "additionalProperties": false,
             "description": "",
@@ -63400,6 +65437,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -63780,6 +65826,28 @@
             "title": "Selector",
             "type": "object"
         },
+        "SelectorType": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "SelectorType",
+            "type": "object"
+        },
+        "SelectorTypeEnum": {
+            "description": "",
+            "enum": [
+                "selectorTypeCocoRleMask",
+                "selectorTypeDicomSegMask",
+                "selectorTypeFractionalRectangle",
+                "selectorTypePixelMask",
+                "selectorTypePixelRectangle",
+                "selectorTypePolygonPath",
+                "selectorTypeRunLengthEncoded",
+                "selectorTypeSvgPath",
+                "selectorTypeWebAnnotationFragment"
+            ],
+            "title": "SelectorTypeEnum",
+            "type": "string"
+        },
         "SensitivityLevel": {
             "additionalProperties": false,
             "description": "",
@@ -63983,6 +66051,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -64393,6 +66470,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -65131,6 +67217,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -65526,6 +67621,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -65959,6 +68063,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -66481,6 +68594,15 @@
                     "format": "date-time",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -67173,6 +69295,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -67840,6 +69971,15 @@
                     "format": "date-time",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -68512,6 +70652,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -68919,6 +71068,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -69314,6 +71472,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -70008,6 +72175,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -70597,6 +72773,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -71067,6 +73252,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -71477,6 +73671,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -71908,6 +74111,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -72399,6 +74611,15 @@
                     "format": "date-time",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -73007,6 +75228,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -73566,6 +75796,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -74214,6 +76453,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -74715,6 +76963,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -75390,6 +77647,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -75989,6 +78255,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -76446,6 +78721,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -76856,6 +79140,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -77319,6 +79612,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -77766,6 +80068,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -78235,6 +80546,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -79066,6 +81386,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -79664,6 +81993,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -80245,6 +82583,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -80731,6 +83078,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -81238,6 +83594,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -81660,6 +84025,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -82761,6 +85135,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -83409,6 +85792,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -83835,6 +86227,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
@@ -84514,6 +86915,15 @@
                     "format": "date-time",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -85206,6 +87616,15 @@
                         "null"
                     ]
                 },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "type": [
                         "string",
@@ -85798,6 +88217,15 @@
                 "counterpartOf": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "depictedIn": {
+                    "items": {
+                        "$ref": "#/$defs/MediaObject"
                     },
                     "type": [
                         "array",
