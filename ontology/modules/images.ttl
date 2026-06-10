@@ -23,7 +23,8 @@ LAYERS.
      ImageRegions with a SceneRelationType value (leftOf, rightOf, inside,
      holding, wearing, etc.).
   5. Hardware / technical metadata — pixelWidth, pixelHeight, imageOrientation,
-     captureTime, captureDevice on MediaObject in documents.ttl.
+     captureTime, captureDevice, colourspace (gmeow:colourspace ⊑ gmeow:hasReferenceFrame)
+     on MediaObject in documents.ttl.
   6. Provenance / workflow — image-specific eventType values (capture, scanning,
      processing, annotation) in events.ttl; reuse wasGeneratedBy / wasDerivedFrom.
   7. Rights / IP — reuse #21 terms directly.

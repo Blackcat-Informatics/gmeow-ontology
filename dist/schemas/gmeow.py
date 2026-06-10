@@ -14529,6 +14529,9 @@ class MediaObject(Manifestation):
     captureTime: Optional[datetime ] = Field(default=None, title="capture time", json_schema_extra = { "linkml_meta": {'domain': 'MediaObject',
          'domain_of': ['MediaObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/captureTime'} })
+    colourspace: Optional[list[ReferenceFrame]] = Field(default=None, title="colourspace", json_schema_extra = { "linkml_meta": {'domain': 'MediaObject',
+         'domain_of': ['MediaObject'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/colourspace'} })
     depicts: Optional[list[Entity]] = Field(default=None, title="depicts", json_schema_extra = { "linkml_meta": {'domain': 'MediaObject',
          'domain_of': ['MediaObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/depicts'} })

@@ -3382,6 +3382,7 @@ export interface Measurement extends Observation {
 export interface MediaObject extends Manifestation {
     captureDevice?: PhysicalObject[],
     captureTime?: string,
+    colourspace?: ReferenceFrame[],
     depicts?: Entity[],
     hasRegion?: ImageRegion[],
     imageOrientation?: string,

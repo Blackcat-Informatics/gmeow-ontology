@@ -1299,6 +1299,7 @@ classes:
     slots:
     - captureDevice
     - captureTime
+    - colourspace
     - depicts
     - hasRegion
     - imageOrientation
@@ -3137,6 +3138,12 @@ slots:
     title: coincides with
     range: Event
     domain: Event
+    multivalued: true
+  colourspace:
+    slot_uri: https://blackcatinformatics.ca/gmeow/colourspace
+    title: colourspace
+    range: ReferenceFrame
+    domain: MediaObject
     multivalued: true
   commentParent:
     slot_uri: https://blackcatinformatics.ca/gmeow/commentParent

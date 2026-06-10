@@ -41036,6 +41036,15 @@
                   "null"
                 ]
               },
+              "colourspace": {
+                "items": {
+                  "$ref": "#/$defs/ReferenceFrame"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "conditionsOfAccess": {
                 "type": [
                   "string",

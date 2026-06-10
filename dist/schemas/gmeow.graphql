@@ -7364,6 +7364,7 @@ type MediaObject
     hasManifestationFormat: ManifestationFormat
     captureDevice: [PhysicalObject]
     captureTime: String
+    colourspace: [ReferenceFrame]
     depicts: [Entity]
     hasRegion: [ImageRegion]
     imageOrientation: Float
