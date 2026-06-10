@@ -233,7 +233,10 @@ def test_dsl_parses() -> None:
     # Issue #263 expertise depth: +10 (ESCO skill/occupation x2, CTDL credential x1,
     # schema.org hasSkill/skills/knowsAbout x2, schema.org hasCredential/
     # competencyRequired/recognizedBy/sourceOrganization x4, CTDL ownedBy x1).
-    assert len(dsl.equivalences) == 1544
+    # Issue #217 disinformation campaign: +5 (disinformation→Wikidata x1,
+    # misinformation→Wikidata x1, propaganda→Wikidata x1, rumor→Wikidata x1,
+    # fake news→Wikidata x1).
+    assert len(dsl.equivalences) == 1549
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
