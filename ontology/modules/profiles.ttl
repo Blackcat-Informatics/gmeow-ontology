@@ -8,6 +8,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/profiles>
     a owl:Ontology ;
     rdfs:label "GMEOW Profile Meta-pattern Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Profile Meta-pattern Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/profiles> ;
     rdfs:comment "Reusable Profile construct: closed descriptor schema + open values + self-description. Reference-frame, temporal-frame and four-clocks provenance profiles are seeded as worked examples."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 

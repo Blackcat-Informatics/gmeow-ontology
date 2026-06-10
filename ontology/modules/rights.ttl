@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/rights>
     a owl:Ontology ;
     rdfs:label "GMEOW Rights & IP Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Rights & IP Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> ;
     rdfs:comment """Cross-cutting, foundational, INSTANCE-level rights / IP / trademark / licensing facility (#21) — the machine-readable rights superset layer (ODRL, CC REL, dcterms, schema.org, RightsStatements.org, WIPO). Distinct from the ontology-ALIGNMENT license policy in src/gmeow_tools/config.py (LinkPolicy / policy_for_license), which governs whether an external vocabulary's AXIOMS may be copied INTO GMEOW; this module governs the rights of the INSTANCES GMEOW describes. It generalises the metadata-level dcterms:license / dc:rights on the root ontology to arbitrary works, images, brands, software and data. The Images super-ontology and the Employment / publication block build on it, so it ships first.
 
 DOCTRINE.
@@ -148,22 +150,34 @@ gmeow:RightsAction
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:actionReproduce     a gmeow:RightsAction ; rdfs:label "reproduce"@x-gmeow-english ;     skos:definition "Make copies of the asset (odrl:reproduce; cc:Reproduction)."@x-gmeow-english .
+gmeow:actionReproduce rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionDistribute    a gmeow:RightsAction ; rdfs:label "distribute"@x-gmeow-english ;    skos:definition "Distribute / publish copies of the asset (odrl:distribute; cc:Distribution)."@x-gmeow-english .
+gmeow:actionDistribute rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionDerive        a gmeow:RightsAction ; rdfs:label "derive / modify"@x-gmeow-english ; skos:definition "Create derivative / adapted works from the asset (odrl:derive; cc:DerivativeWorks)."@x-gmeow-english .
+gmeow:actionDerive rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionCommercialize a gmeow:RightsAction ; rdfs:label "commercialize"@x-gmeow-english ; skos:definition "Use the asset for commercial advantage (odrl:commercialize; cc:CommercialUse)."@x-gmeow-english .
+gmeow:actionCommercialize rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionPresent       a gmeow:RightsAction ; rdfs:label "present / display"@x-gmeow-english ; skos:definition "Publicly present, perform or display the asset (odrl:present)."@x-gmeow-english .
+gmeow:actionPresent rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionUse           a gmeow:RightsAction ; rdfs:label "use"@x-gmeow-english ;           skos:definition "Use the asset (the broad odrl:use action)."@x-gmeow-english .
+gmeow:actionUse rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionExtract       a gmeow:RightsAction ; rdfs:label "extract"@x-gmeow-english ;       skos:definition "Extract part of the asset (odrl:extract) — e.g. for text/data mining."@x-gmeow-english .
+gmeow:actionExtract rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionAttribute     a gmeow:RightsAction ; rdfs:label "attribute"@x-gmeow-english ;     skos:definition "Credit the rights holder (odrl:attribute; cc:Attribution) — typically the action of an attribution duty."@x-gmeow-english .
+gmeow:actionAttribute rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionShareAlike    a gmeow:RightsAction ; rdfs:label "share alike"@x-gmeow-english ;   skos:definition "Distribute derivatives under the same licence (odrl:shareAlike; cc:ShareAlike) — typically the action of a share-alike duty."@x-gmeow-english .
+gmeow:actionShareAlike rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionRetainNotice  a gmeow:RightsAction ; rdfs:label "retain notice"@x-gmeow-english ; skos:definition "Preserve copyright / licence notices (cc:Notice) — typically the action of a notice duty."@x-gmeow-english .
+gmeow:actionRetainNotice rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionObtainConsent a gmeow:RightsAction ; rdfs:label "obtain consent"@x-gmeow-english ; skos:definition "Obtain the holder's prior consent before exercising a permission (odrl:obtainConsent)."@x-gmeow-english .
+gmeow:actionObtainConsent rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionProcessPersonalData a gmeow:RightsAction ; rdfs:label "process personal data"@x-gmeow-english ; skos:definition "Process personal data about a data subject — the privacy-regulated action (aligned to dpv:Processing and odrl:use)."@x-gmeow-english .
 
 # =========================================================================== #
 # Copyright — a relator binding the work, its holder(s), year and notice.
 # Holder attribution specialises gmeow:wasAttributedTo (Principle: reuse).
 # =========================================================================== #
+gmeow:actionProcessPersonalData rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 
 gmeow:Copyright
     a owl:Class, gufo:Kind ;
@@ -229,14 +243,18 @@ gmeow:CopyrightStatus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:copyrightStatusInCopyright    a gmeow:CopyrightStatus ; rdfs:label "in copyright"@x-gmeow-english ;        skos:definition "The work is protected by copyright (RightsStatements.org InC)."@x-gmeow-english .
+gmeow:copyrightStatusInCopyright rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:copyrightStatusPublicDomain   a gmeow:CopyrightStatus ; rdfs:label "public domain"@x-gmeow-english ;       skos:definition "The work is in the public domain (the CC public-domain mark; RightsStatements.org NoC-related)."@x-gmeow-english .
+gmeow:copyrightStatusPublicDomain rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:copyrightStatusNoKnownCopyright a gmeow:CopyrightStatus ; rdfs:label "no known copyright"@x-gmeow-english ; skos:definition "No copyright is known to subsist, after evaluation (RightsStatements.org NKC)."@x-gmeow-english .
+gmeow:copyrightStatusNoKnownCopyright rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:copyrightStatusNotEvaluated   a gmeow:CopyrightStatus ; rdfs:label "copyright not evaluated"@x-gmeow-english ; skos:definition "The copyright status has not been evaluated (RightsStatements.org CNE)."@x-gmeow-english .
 
 # =========================================================================== #
 # Licence — a licence IS an agreement (⊑ gmeow:Agreement). Parties specialise
 # gmeow:hasParty; the licence family is an open value.
 # =========================================================================== #
+gmeow:copyrightStatusNotEvaluated rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 
 gmeow:License
     a owl:Class, gufo:SubKind ;
@@ -332,16 +350,22 @@ gmeow:LicenseFamily
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:licenseFamilyPublicDomain a gmeow:LicenseFamily ; rdfs:label "public domain"@x-gmeow-english ; skos:definition "A public-domain dedication / mark (CC0, the public-domain mark)."@x-gmeow-english .
+gmeow:licenseFamilyPublicDomain rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:licenseFamilyCC           a gmeow:LicenseFamily ; rdfs:label "Creative Commons"@x-gmeow-english ; skos:definition "A Creative Commons licence (CC BY, CC BY-SA, CC BY-NC, …)."@x-gmeow-english .
+gmeow:licenseFamilyCC rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:licenseFamilyPermissive   a gmeow:LicenseFamily ; rdfs:label "permissive"@x-gmeow-english ;    skos:definition "A permissive software/data licence (MIT, BSD, Apache-2.0, ODC-BY)."@x-gmeow-english .
+gmeow:licenseFamilyPermissive rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:licenseFamilyCopyleft     a gmeow:LicenseFamily ; rdfs:label "copyleft"@x-gmeow-english ;      skos:definition "A copyleft / share-alike licence (the GPL family, EUPL, CC BY-SA, ODbL)."@x-gmeow-english .
+gmeow:licenseFamilyCopyleft rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:licenseFamilyProprietary  a gmeow:LicenseFamily ; rdfs:label "proprietary"@x-gmeow-english ;   skos:definition "A proprietary / all-rights-reserved licence."@x-gmeow-english .
+gmeow:licenseFamilyProprietary rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:licenseFamilyDual         a gmeow:LicenseFamily ; rdfs:label "dual-licensed"@x-gmeow-english ;  skos:definition "Offered under more than one licence at the recipient's choice (e.g. open plus commercial)."@x-gmeow-english .
 
 # =========================================================================== #
 # Trademark — a relator binding the mark, its holder, registration and status.
 # The mark itself (a sign / name / logo) is a first-class gmeow:Mark.
 # =========================================================================== #
+gmeow:licenseFamilyDual rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 
 gmeow:Trademark
     a owl:Class, gufo:Kind ;
@@ -414,15 +438,20 @@ gmeow:TrademarkStatus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:trademarkStatusUnregistered a gmeow:TrademarkStatus ; rdfs:label "unregistered (™)"@x-gmeow-english ; skos:definition "An unregistered common-law trademark, asserted with the ™ symbol."@x-gmeow-english .
+gmeow:trademarkStatusUnregistered rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:trademarkStatusRegistered   a gmeow:TrademarkStatus ; rdfs:label "registered (®)"@x-gmeow-english ;   skos:definition "A registered trademark, asserted with the ® symbol."@x-gmeow-english .
+gmeow:trademarkStatusRegistered rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:trademarkStatusPending      a gmeow:TrademarkStatus ; rdfs:label "pending"@x-gmeow-english ;          skos:definition "A trademark application pending registration."@x-gmeow-english .
+gmeow:trademarkStatusPending rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:trademarkStatusExpired      a gmeow:TrademarkStatus ; rdfs:label "expired"@x-gmeow-english ;          skos:definition "A registration that has lapsed / expired (retained, not deleted — Principle 10; gmeow:validUntil records when)."@x-gmeow-english .
+gmeow:trademarkStatusExpired rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:trademarkStatusCancelled    a gmeow:TrademarkStatus ; rdfs:label "cancelled"@x-gmeow-english ;        skos:definition "A registration that has been cancelled / invalidated."@x-gmeow-english .
 
 # =========================================================================== #
 # Attribution / credit — the human-readable credit line. Holder attribution
 # itself reuses gmeow:wasAttributedTo (and its specialisations above).
 # =========================================================================== #
+gmeow:trademarkStatusCancelled rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 
 gmeow:attributionText
     a owl:DatatypeProperty ;
@@ -716,115 +745,222 @@ gmeow:LogicalConstraint rdfs:subClassOf
 # copyright statuses. Open vocabularies (Principle 9). ---
 
 gmeow:actionAcceptTracking a gmeow:RightsAction ; rdfs:label "accept tracking"@x-gmeow-english ; skos:definition "Accept that use of the asset may be tracked (odrl:acceptTracking)."@x-gmeow-english .
+gmeow:actionAcceptTracking rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionAggregate a gmeow:RightsAction ; rdfs:label "aggregate"@x-gmeow-english ; skos:definition "Use the asset within an aggregation with other assets (odrl:aggregate)."@x-gmeow-english .
+gmeow:actionAggregate rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionAnonymize a gmeow:RightsAction ; rdfs:label "anonymize"@x-gmeow-english ; skos:definition "Anonymise identifying information in the asset (odrl:anonymize)."@x-gmeow-english .
+gmeow:actionAnonymize rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionAnnotate a gmeow:RightsAction ; rdfs:label "annotate"@x-gmeow-english ; skos:definition "Add explanatory notations to the asset (odrl:annotate)."@x-gmeow-english .
+gmeow:actionAnnotate rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionArchive a gmeow:RightsAction ; rdfs:label "archive"@x-gmeow-english ; skos:definition "Store the asset for long-term preservation (odrl:archive)."@x-gmeow-english .
+gmeow:actionArchive rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionCompensate a gmeow:RightsAction ; rdfs:label "compensate"@x-gmeow-english ; skos:definition "Compensate the assigner by payment (odrl:compensate) — typically a duty."@x-gmeow-english .
+gmeow:actionCompensate rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionConcurrentUse a gmeow:RightsAction ; rdfs:label "concurrent use"@x-gmeow-english ; skos:definition "Permit a limited number of concurrent uses (odrl:concurrentUse)."@x-gmeow-english .
+gmeow:actionConcurrentUse rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionDelete a gmeow:RightsAction ; rdfs:label "delete"@x-gmeow-english ; skos:definition "Permanently remove all copies of the asset (odrl:delete)."@x-gmeow-english .
+gmeow:actionDelete rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionDigitize a gmeow:RightsAction ; rdfs:label "digitize"@x-gmeow-english ; skos:definition "Produce a digital copy of a physical asset (odrl:digitize)."@x-gmeow-english .
+gmeow:actionDigitize rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionDisplay a gmeow:RightsAction ; rdfs:label "display"@x-gmeow-english ; skos:definition "Display the asset, e.g. on screen (odrl:display)."@x-gmeow-english .
+gmeow:actionDisplay rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionEnsureExclusivity a gmeow:RightsAction ; rdfs:label "ensure exclusivity"@x-gmeow-english ; skos:definition "Guarantee exclusivity of the granted rights (odrl:ensureExclusivity) — a duty."@x-gmeow-english .
+gmeow:actionEnsureExclusivity rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionExecute a gmeow:RightsAction ; rdfs:label "execute"@x-gmeow-english ; skos:definition "Run / execute the asset (e.g. software) (odrl:execute)."@x-gmeow-english .
+gmeow:actionExecute rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionGive a gmeow:RightsAction ; rdfs:label "give"@x-gmeow-english ; skos:definition "Transfer ownership of the asset to another party without compensation (odrl:give)."@x-gmeow-english .
+gmeow:actionGive rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionGrantUse a gmeow:RightsAction ; rdfs:label "grant use"@x-gmeow-english ; skos:definition "Grant the use of the asset to third parties (odrl:grantUse)."@x-gmeow-english .
+gmeow:actionGrantUse rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionInclude a gmeow:RightsAction ; rdfs:label "include"@x-gmeow-english ; skos:definition "Include other related assets in the asset (odrl:include)."@x-gmeow-english .
+gmeow:actionInclude rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionIndex a gmeow:RightsAction ; rdfs:label "index"@x-gmeow-english ; skos:definition "Record the asset in an index (odrl:index)."@x-gmeow-english .
+gmeow:actionIndex rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionInform a gmeow:RightsAction ; rdfs:label "inform"@x-gmeow-english ; skos:definition "Inform a party that an action has occurred (odrl:inform) — a duty."@x-gmeow-english .
+gmeow:actionInform rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionInstall a gmeow:RightsAction ; rdfs:label "install"@x-gmeow-english ; skos:definition "Install the asset on a device (odrl:install)."@x-gmeow-english .
+gmeow:actionInstall rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionLease a gmeow:RightsAction ; rdfs:label "lease"@x-gmeow-english ; skos:definition "Make the asset available for use for a period in return for payment (odrl:lease)."@x-gmeow-english .
+gmeow:actionLease rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionLend a gmeow:RightsAction ; rdfs:label "lend"@x-gmeow-english ; skos:definition "Make the asset available for temporary use without transferring ownership (odrl:lend)."@x-gmeow-english .
+gmeow:actionLend rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionModify a gmeow:RightsAction ; rdfs:label "modify"@x-gmeow-english ; skos:definition "Change existing content of the asset (odrl:modify)."@x-gmeow-english .
+gmeow:actionModify rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionMove a gmeow:RightsAction ; rdfs:label "move"@x-gmeow-english ; skos:definition "Move the asset from one digital location to another, deleting the original (odrl:move)."@x-gmeow-english .
+gmeow:actionMove rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionNextPolicy a gmeow:RightsAction ; rdfs:label "next policy"@x-gmeow-english ; skos:definition "Apply a subsequent policy to a re-distributed asset (odrl:nextPolicy)."@x-gmeow-english .
+gmeow:actionNextPolicy rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionPlay a gmeow:RightsAction ; rdfs:label "play"@x-gmeow-english ; skos:definition "Render the asset as audio/video (odrl:play)."@x-gmeow-english .
+gmeow:actionPlay rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionPrint a gmeow:RightsAction ; rdfs:label "print"@x-gmeow-english ; skos:definition "Create a hard-copy rendition of the asset (odrl:print)."@x-gmeow-english .
+gmeow:actionPrint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionRead a gmeow:RightsAction ; rdfs:label "read"@x-gmeow-english ; skos:definition "Obtain data from the asset (odrl:read)."@x-gmeow-english .
+gmeow:actionRead rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionReviewPolicy a gmeow:RightsAction ; rdfs:label "review policy"@x-gmeow-english ; skos:definition "Review the policy applicable to the asset (odrl:reviewPolicy) — a duty."@x-gmeow-english .
+gmeow:actionReviewPolicy rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionSell a gmeow:RightsAction ; rdfs:label "sell"@x-gmeow-english ; skos:definition "Transfer ownership of the asset in return for payment (odrl:sell)."@x-gmeow-english .
+gmeow:actionSell rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionStream a gmeow:RightsAction ; rdfs:label "stream"@x-gmeow-english ; skos:definition "Deliver the asset as a real-time stream (odrl:stream)."@x-gmeow-english .
+gmeow:actionStream rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionSynchronize a gmeow:RightsAction ; rdfs:label "synchronize"@x-gmeow-english ; skos:definition "Use the asset in timed relation with another asset (odrl:synchronize)."@x-gmeow-english .
+gmeow:actionSynchronize rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionTextToSpeech a gmeow:RightsAction ; rdfs:label "text to speech"@x-gmeow-english ; skos:definition "Render text of the asset as synthesized speech (odrl:textToSpeech)."@x-gmeow-english .
+gmeow:actionTextToSpeech rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionTransfer a gmeow:RightsAction ; rdfs:label "transfer"@x-gmeow-english ; skos:definition "Transfer ownership of the asset to another party (odrl:transfer)."@x-gmeow-english .
+gmeow:actionTransfer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionTransform a gmeow:RightsAction ; rdfs:label "transform"@x-gmeow-english ; skos:definition "Convert the asset into a different format (odrl:transform)."@x-gmeow-english .
+gmeow:actionTransform rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionTranslate a gmeow:RightsAction ; rdfs:label "translate"@x-gmeow-english ; skos:definition "Translate the asset into another language (odrl:translate)."@x-gmeow-english .
+gmeow:actionTranslate rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionUninstall a gmeow:RightsAction ; rdfs:label "uninstall"@x-gmeow-english ; skos:definition "Remove an installed asset from a device (odrl:uninstall)."@x-gmeow-english .
+gmeow:actionUninstall rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:actionWatermark a gmeow:RightsAction ; rdfs:label "watermark"@x-gmeow-english ; skos:definition "Apply a watermark to the asset (odrl:watermark) — a duty."@x-gmeow-english .
+gmeow:actionWatermark rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 
 gmeow:leftOpDateTime a gmeow:LeftOperand ; rdfs:label "date/time"@x-gmeow-english ; skos:definition "The ODRL dateTime constraint dimension (odrl:dateTime)."@x-gmeow-english .
+gmeow:leftOpDateTime rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpSpatial a gmeow:LeftOperand ; rdfs:label "spatial region"@x-gmeow-english ; skos:definition "The ODRL spatial constraint dimension (odrl:spatial)."@x-gmeow-english .
+gmeow:leftOpSpatial rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpSpatialCoordinates a gmeow:LeftOperand ; rdfs:label "spatial coordinates"@x-gmeow-english ; skos:definition "The ODRL spatialCoordinates constraint dimension (odrl:spatialCoordinates)."@x-gmeow-english .
+gmeow:leftOpSpatialCoordinates rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpCount a gmeow:LeftOperand ; rdfs:label "use count"@x-gmeow-english ; skos:definition "The ODRL count constraint dimension (odrl:count)."@x-gmeow-english .
+gmeow:leftOpCount rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpUnitOfCount a gmeow:LeftOperand ; rdfs:label "unit of count"@x-gmeow-english ; skos:definition "The ODRL unitOfCount constraint dimension (odrl:unitOfCount)."@x-gmeow-english .
+gmeow:leftOpUnitOfCount rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpPurpose a gmeow:LeftOperand ; rdfs:label "purpose"@x-gmeow-english ; skos:definition "The ODRL purpose constraint dimension (odrl:purpose)."@x-gmeow-english .
+gmeow:leftOpPurpose rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpRecipient a gmeow:LeftOperand ; rdfs:label "recipient"@x-gmeow-english ; skos:definition "The ODRL recipient constraint dimension (odrl:recipient)."@x-gmeow-english .
+gmeow:leftOpRecipient rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpIndustry a gmeow:LeftOperand ; rdfs:label "industry"@x-gmeow-english ; skos:definition "The ODRL industry constraint dimension (odrl:industry)."@x-gmeow-english .
+gmeow:leftOpIndustry rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpEvent a gmeow:LeftOperand ; rdfs:label "event"@x-gmeow-english ; skos:definition "The ODRL event constraint dimension (odrl:event)."@x-gmeow-english .
+gmeow:leftOpEvent rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpElapsedTime a gmeow:LeftOperand ; rdfs:label "elapsed time"@x-gmeow-english ; skos:definition "The ODRL elapsedTime constraint dimension (odrl:elapsedTime)."@x-gmeow-english .
+gmeow:leftOpElapsedTime rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpMeteredTime a gmeow:LeftOperand ; rdfs:label "metered time"@x-gmeow-english ; skos:definition "The ODRL meteredTime constraint dimension (odrl:meteredTime)."@x-gmeow-english .
+gmeow:leftOpMeteredTime rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpTimeInterval a gmeow:LeftOperand ; rdfs:label "recurring time interval"@x-gmeow-english ; skos:definition "The ODRL timeInterval constraint dimension (odrl:timeInterval)."@x-gmeow-english .
+gmeow:leftOpTimeInterval rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpDelayPeriod a gmeow:LeftOperand ; rdfs:label "delay period"@x-gmeow-english ; skos:definition "The ODRL delayPeriod constraint dimension (odrl:delayPeriod)."@x-gmeow-english .
+gmeow:leftOpDelayPeriod rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpMedia a gmeow:LeftOperand ; rdfs:label "media context"@x-gmeow-english ; skos:definition "The ODRL media constraint dimension (odrl:media)."@x-gmeow-english .
+gmeow:leftOpMedia rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpFileFormat a gmeow:LeftOperand ; rdfs:label "file format"@x-gmeow-english ; skos:definition "The ODRL fileFormat constraint dimension (odrl:fileFormat)."@x-gmeow-english .
+gmeow:leftOpFileFormat rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpDeliveryChannel a gmeow:LeftOperand ; rdfs:label "delivery channel"@x-gmeow-english ; skos:definition "The ODRL deliveryChannel constraint dimension (odrl:deliveryChannel)."@x-gmeow-english .
+gmeow:leftOpDeliveryChannel rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpDevice a gmeow:LeftOperand ; rdfs:label "device"@x-gmeow-english ; skos:definition "The ODRL device constraint dimension (odrl:device)."@x-gmeow-english .
+gmeow:leftOpDevice rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpSystemDevice a gmeow:LeftOperand ; rdfs:label "system device"@x-gmeow-english ; skos:definition "The ODRL systemDevice constraint dimension (odrl:systemDevice)."@x-gmeow-english .
+gmeow:leftOpSystemDevice rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpSystem a gmeow:LeftOperand ; rdfs:label "system"@x-gmeow-english ; skos:definition "The ODRL system constraint dimension (odrl:system)."@x-gmeow-english .
+gmeow:leftOpSystem rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpLanguage a gmeow:LeftOperand ; rdfs:label "language"@x-gmeow-english ; skos:definition "The ODRL language constraint dimension (odrl:language)."@x-gmeow-english .
+gmeow:leftOpLanguage rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpProduct a gmeow:LeftOperand ; rdfs:label "product context"@x-gmeow-english ; skos:definition "The ODRL product constraint dimension (odrl:product)."@x-gmeow-english .
+gmeow:leftOpProduct rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpResolution a gmeow:LeftOperand ; rdfs:label "rendition resolution"@x-gmeow-english ; skos:definition "The ODRL resolution constraint dimension (odrl:resolution)."@x-gmeow-english .
+gmeow:leftOpResolution rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpVersion a gmeow:LeftOperand ; rdfs:label "asset version"@x-gmeow-english ; skos:definition "The ODRL version constraint dimension (odrl:version)."@x-gmeow-english .
+gmeow:leftOpVersion rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpPayAmount a gmeow:LeftOperand ; rdfs:label "pay amount"@x-gmeow-english ; skos:definition "The ODRL payAmount constraint dimension (odrl:payAmount)."@x-gmeow-english .
+gmeow:leftOpPayAmount rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpPercentage a gmeow:LeftOperand ; rdfs:label "percentage"@x-gmeow-english ; skos:definition "The ODRL percentage constraint dimension (odrl:percentage)."@x-gmeow-english .
+gmeow:leftOpPercentage rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpVirtualLocation a gmeow:LeftOperand ; rdfs:label "virtual location"@x-gmeow-english ; skos:definition "The ODRL virtualLocation constraint dimension (odrl:virtualLocation)."@x-gmeow-english .
+gmeow:leftOpVirtualLocation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpAbsolutePosition a gmeow:LeftOperand ; rdfs:label "absolute position"@x-gmeow-english ; skos:definition "The ODRL absolutePosition constraint dimension (odrl:absolutePosition)."@x-gmeow-english .
+gmeow:leftOpAbsolutePosition rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpAbsoluteSize a gmeow:LeftOperand ; rdfs:label "absolute size"@x-gmeow-english ; skos:definition "The ODRL absoluteSize constraint dimension (odrl:absoluteSize)."@x-gmeow-english .
+gmeow:leftOpAbsoluteSize rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpAbsoluteSpatialPosition a gmeow:LeftOperand ; rdfs:label "absolute spatial position"@x-gmeow-english ; skos:definition "The ODRL absoluteSpatialPosition constraint dimension (odrl:absoluteSpatialPosition)."@x-gmeow-english .
+gmeow:leftOpAbsoluteSpatialPosition rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpAbsoluteTemporalPosition a gmeow:LeftOperand ; rdfs:label "absolute temporal position"@x-gmeow-english ; skos:definition "The ODRL absoluteTemporalPosition constraint dimension (odrl:absoluteTemporalPosition)."@x-gmeow-english .
+gmeow:leftOpAbsoluteTemporalPosition rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpRelativePosition a gmeow:LeftOperand ; rdfs:label "relative position"@x-gmeow-english ; skos:definition "The ODRL relativePosition constraint dimension (odrl:relativePosition)."@x-gmeow-english .
+gmeow:leftOpRelativePosition rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpRelativeSize a gmeow:LeftOperand ; rdfs:label "relative size"@x-gmeow-english ; skos:definition "The ODRL relativeSize constraint dimension (odrl:relativeSize)."@x-gmeow-english .
+gmeow:leftOpRelativeSize rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpRelativeSpatialPosition a gmeow:LeftOperand ; rdfs:label "relative spatial position"@x-gmeow-english ; skos:definition "The ODRL relativeSpatialPosition constraint dimension (odrl:relativeSpatialPosition)."@x-gmeow-english .
+gmeow:leftOpRelativeSpatialPosition rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:leftOpRelativeTemporalPosition a gmeow:LeftOperand ; rdfs:label "relative temporal position"@x-gmeow-english ; skos:definition "The ODRL relativeTemporalPosition constraint dimension (odrl:relativeTemporalPosition)."@x-gmeow-english .
+gmeow:leftOpRelativeTemporalPosition rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 
 gmeow:operatorEq a gmeow:ConstraintOperator ; rdfs:label "equal to"@x-gmeow-english ; skos:definition "The ODRL eq comparison operator (odrl:eq)."@x-gmeow-english .
+gmeow:operatorEq rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:operatorNeq a gmeow:ConstraintOperator ; rdfs:label "not equal to"@x-gmeow-english ; skos:definition "The ODRL neq comparison operator (odrl:neq)."@x-gmeow-english .
+gmeow:operatorNeq rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:operatorLt a gmeow:ConstraintOperator ; rdfs:label "less than"@x-gmeow-english ; skos:definition "The ODRL lt comparison operator (odrl:lt)."@x-gmeow-english .
+gmeow:operatorLt rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:operatorLteq a gmeow:ConstraintOperator ; rdfs:label "less than or equal to"@x-gmeow-english ; skos:definition "The ODRL lteq comparison operator (odrl:lteq)."@x-gmeow-english .
+gmeow:operatorLteq rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:operatorGt a gmeow:ConstraintOperator ; rdfs:label "greater than"@x-gmeow-english ; skos:definition "The ODRL gt comparison operator (odrl:gt)."@x-gmeow-english .
+gmeow:operatorGt rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:operatorGteq a gmeow:ConstraintOperator ; rdfs:label "greater than or equal to"@x-gmeow-english ; skos:definition "The ODRL gteq comparison operator (odrl:gteq)."@x-gmeow-english .
+gmeow:operatorGteq rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:operatorIsA a gmeow:ConstraintOperator ; rdfs:label "is a"@x-gmeow-english ; skos:definition "The ODRL isA comparison operator (odrl:isA)."@x-gmeow-english .
+gmeow:operatorIsA rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:operatorHasPart a gmeow:ConstraintOperator ; rdfs:label "has part"@x-gmeow-english ; skos:definition "The ODRL hasPart comparison operator (odrl:hasPart)."@x-gmeow-english .
+gmeow:operatorHasPart rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:operatorIsPartOf a gmeow:ConstraintOperator ; rdfs:label "is part of"@x-gmeow-english ; skos:definition "The ODRL isPartOf comparison operator (odrl:isPartOf)."@x-gmeow-english .
+gmeow:operatorIsPartOf rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:operatorIsAllOf a gmeow:ConstraintOperator ; rdfs:label "is all of"@x-gmeow-english ; skos:definition "The ODRL isAllOf comparison operator (odrl:isAllOf)."@x-gmeow-english .
+gmeow:operatorIsAllOf rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:operatorIsAnyOf a gmeow:ConstraintOperator ; rdfs:label "is any of"@x-gmeow-english ; skos:definition "The ODRL isAnyOf comparison operator (odrl:isAnyOf)."@x-gmeow-english .
+gmeow:operatorIsAnyOf rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:operatorIsNoneOf a gmeow:ConstraintOperator ; rdfs:label "is none of"@x-gmeow-english ; skos:definition "The ODRL isNoneOf comparison operator (odrl:isNoneOf)."@x-gmeow-english .
+gmeow:operatorIsNoneOf rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 
 gmeow:logicAnd a gmeow:ConstraintLogic ; rdfs:label "and (all)"@x-gmeow-english ; skos:definition "The ODRL and logical-constraint operator (odrl:and)."@x-gmeow-english .
+gmeow:logicAnd rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:logicOr a gmeow:ConstraintLogic ; rdfs:label "or (any)"@x-gmeow-english ; skos:definition "The ODRL or logical-constraint operator (odrl:or)."@x-gmeow-english .
+gmeow:logicOr rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:logicXone a gmeow:ConstraintLogic ; rdfs:label "exactly one"@x-gmeow-english ; skos:definition "The ODRL xone logical-constraint operator (odrl:xone)."@x-gmeow-english .
+gmeow:logicXone rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:logicAndSequence a gmeow:ConstraintLogic ; rdfs:label "and (ordered)"@x-gmeow-english ; skos:definition "The ODRL andSequence logical-constraint operator (odrl:andSequence)."@x-gmeow-english .
+gmeow:logicAndSequence rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 
 gmeow:conflictPerm a gmeow:ConflictStrategy ; rdfs:label "permission wins"@x-gmeow-english ; skos:definition "The ODRL perm conflict-resolution strategy (odrl:perm)."@x-gmeow-english .
+gmeow:conflictPerm rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:conflictProhibit a gmeow:ConflictStrategy ; rdfs:label "prohibition wins"@x-gmeow-english ; skos:definition "The ODRL prohibit conflict-resolution strategy (odrl:prohibit)."@x-gmeow-english .
+gmeow:conflictProhibit rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:conflictInvalid a gmeow:ConflictStrategy ; rdfs:label "policy void on conflict"@x-gmeow-english ; skos:definition "The ODRL invalid conflict-resolution strategy (odrl:invalid)."@x-gmeow-english .
+gmeow:conflictInvalid rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 
 gmeow:rightsTypeCopyright a gmeow:RightsType ; rdfs:label "copyright"@x-gmeow-english ; skos:definition "The copyright kind of intellectual-property right (wd:Q1297822)."@x-gmeow-english .
+gmeow:rightsTypeCopyright rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:rightsTypeTrademark a gmeow:RightsType ; rdfs:label "trademark"@x-gmeow-english ; skos:definition "The trademark kind of intellectual-property right (wd:Q167270)."@x-gmeow-english .
+gmeow:rightsTypeTrademark rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:rightsTypePatent a gmeow:RightsType ; rdfs:label "patent"@x-gmeow-english ; skos:definition "The patent kind of intellectual-property right (wd:Q253623)."@x-gmeow-english .
+gmeow:rightsTypePatent rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:rightsTypeIndustrialDesign a gmeow:RightsType ; rdfs:label "industrial design right"@x-gmeow-english ; skos:definition "The industrial design right kind of intellectual-property right (wd:Q252799)."@x-gmeow-english .
+gmeow:rightsTypeIndustrialDesign rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:rightsTypeTradeSecret a gmeow:RightsType ; rdfs:label "trade secret"@x-gmeow-english ; skos:definition "The trade secret kind of intellectual-property right (wd:Q602938)."@x-gmeow-english .
+gmeow:rightsTypeTradeSecret rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:rightsTypeRelatedRights a gmeow:RightsType ; rdfs:label "related rights"@x-gmeow-english ; skos:definition "The related rights kind of intellectual-property right (wd:Q489344)."@x-gmeow-english .
+gmeow:rightsTypeRelatedRights rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:rightsTypeMoralRights a gmeow:RightsType ; rdfs:label "moral rights"@x-gmeow-english ; skos:definition "The moral rights kind of intellectual-property right (wd:Q1057599)."@x-gmeow-english .
+gmeow:rightsTypeMoralRights rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:rightsTypeDatabaseRight a gmeow:RightsType ; rdfs:label "database right"@x-gmeow-english ; skos:definition "The database right kind of intellectual-property right (wd:Q688416)."@x-gmeow-english .
+gmeow:rightsTypeDatabaseRight rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:rightsTypePlantBreedersRights a gmeow:RightsType ; rdfs:label "plant breeders' rights"@x-gmeow-english ; skos:definition "The plant breeders' rights kind of intellectual-property right (wd:Q695112)."@x-gmeow-english .
+gmeow:rightsTypePlantBreedersRights rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 
 gmeow:copyrightStatusInCopyrightEuOrphanWork a gmeow:CopyrightStatus ; rdfs:label "in copyright — EU orphan work"@x-gmeow-english ; skos:definition "In copyright, an EU orphan work (RightsStatements.org InC-OW-EU)."@x-gmeow-english .
+gmeow:copyrightStatusInCopyrightEuOrphanWork rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:copyrightStatusInCopyrightEducationalUse a gmeow:CopyrightStatus ; rdfs:label "in copyright — educational use permitted"@x-gmeow-english ; skos:definition "In copyright, educational use permitted (RightsStatements.org InC-EDU)."@x-gmeow-english .
+gmeow:copyrightStatusInCopyrightEducationalUse rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:copyrightStatusInCopyrightNonCommercialUse a gmeow:CopyrightStatus ; rdfs:label "in copyright — non-commercial use permitted"@x-gmeow-english ; skos:definition "In copyright, non-commercial use permitted (RightsStatements.org InC-NC)."@x-gmeow-english .
+gmeow:copyrightStatusInCopyrightNonCommercialUse rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:copyrightStatusInCopyrightRightsholderUnlocatable a gmeow:CopyrightStatus ; rdfs:label "in copyright — rights-holder unlocatable"@x-gmeow-english ; skos:definition "In copyright, rights-holder(s) unlocatable or unidentifiable (RightsStatements.org InC-RUU)."@x-gmeow-english .
+gmeow:copyrightStatusInCopyrightRightsholderUnlocatable rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:copyrightStatusNoCopyrightContractualRestrictions a gmeow:CopyrightStatus ; rdfs:label "no copyright — contractual restrictions"@x-gmeow-english ; skos:definition "No copyright, contractual restrictions apply (RightsStatements.org NoC-CR)."@x-gmeow-english .
+gmeow:copyrightStatusNoCopyrightContractualRestrictions rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:copyrightStatusNoCopyrightNonCommercialOnly a gmeow:CopyrightStatus ; rdfs:label "no copyright — non-commercial use only"@x-gmeow-english ; skos:definition "No copyright, non-commercial use only (RightsStatements.org NoC-NC)."@x-gmeow-english .
+gmeow:copyrightStatusNoCopyrightNonCommercialOnly rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:copyrightStatusNoCopyrightOtherLegalRestrictions a gmeow:CopyrightStatus ; rdfs:label "no copyright — other known legal restrictions"@x-gmeow-english ; skos:definition "No copyright, other known legal restrictions (RightsStatements.org NoC-OKLR)."@x-gmeow-english .
+gmeow:copyrightStatusNoCopyrightOtherLegalRestrictions rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:copyrightStatusNoCopyrightUnitedStates a gmeow:CopyrightStatus ; rdfs:label "no copyright — United States"@x-gmeow-english ; skos:definition "No copyright in the United States (RightsStatements.org NoC-US)."@x-gmeow-english .
+gmeow:copyrightStatusNoCopyrightUnitedStates rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .
 gmeow:copyrightStatusUndetermined a gmeow:CopyrightStatus ; rdfs:label "copyright undetermined"@x-gmeow-english ; skos:definition "Copyright undetermined (RightsStatements.org UND)."@x-gmeow-english .
+gmeow:copyrightStatusUndetermined rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/rights> .

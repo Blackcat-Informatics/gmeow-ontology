@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
-from rdflib import RDF, RDFS, Graph, Literal, URIRef
+from rdflib import RDF, RDFS, SKOS, Graph, Literal, URIRef
 from rdflib.collection import Collection
 from rdflib.namespace import Namespace
 from rdflib.term import Node
@@ -28,7 +28,6 @@ from gmeow_tools.config import MAPPING_DSL_DIR, PREFIXES
 from gmeow_tools.dsl_validate import validate_mapping_dsl
 
 GM = Namespace(PREFIXES["gmeow"])
-DCTERMS_DESCRIPTION = URIRef("http://purl.org/dc/terms/description")
 
 #: Reverse prefix map (longest namespace first) for CURIE shortening.
 _NS_TO_PREFIX: tuple[tuple[str, str], ...] = tuple(
@@ -513,7 +512,7 @@ def _functions(graph: Graph) -> dict[URIRef, ProjectionFunction]:
         out[fn] = ProjectionFunction(
             iri=fn,
             label=str(graph.value(fn, RDFS.label) or ""),
-            description=str(graph.value(fn, DCTERMS_DESCRIPTION) or ""),
+            description=str(graph.value(fn, SKOS.definition) or ""),
             inputs=tuple(
                 o for o in graph.objects(fn, GM.fnInput) if isinstance(o, URIRef)
             ),

@@ -9239,14 +9239,19 @@ enums:
     permissible_values:
       flowIngestion1:
         meaning: https://blackcatinformatics.ca/gmeow/flowIngestion1
+        title: ingestion 1
       flowIngestion2:
         meaning: https://blackcatinformatics.ca/gmeow/flowIngestion2
+        title: ingestion 2
       flowIngestion3:
         meaning: https://blackcatinformatics.ca/gmeow/flowIngestion3
+        title: ingestion 3
       flowIngestion4:
         meaning: https://blackcatinformatics.ca/gmeow/flowIngestion4
+        title: ingestion 4
       flowIngestion5:
         meaning: https://blackcatinformatics.ca/gmeow/flowIngestion5
+        title: ingestion 5
   CopyrightStatusEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CopyrightStatus
     permissible_values:

@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/deception>
     a owl:Ontology ;
     rdfs:label "GMEOW Deception Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Deception Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/deception> ;
     rdfs:comment """Cross-cutting deception, falsehood, and misinformation facility. Builds on the standpoint module (#43) and the event module (#41) to model deceptive acts as standpoint-indexed divergences between what a party holds true and what they project. Part of the Deception EPIC (#212).
 
 DOCTRINE.
@@ -33,6 +35,7 @@ gmeow:eventTypeDeception
 # =========================================================================== #
 # DIVERGENCE PROPERTIES — the core deception model.
 # =========================================================================== #
+gmeow:eventTypeDeception rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/deception> .
 
 gmeow:heldStandpoint
     a owl:ObjectProperty ;
@@ -98,6 +101,7 @@ gmeow:attestationTypeFactCheck
 # --------------------------------------------------------------------------- #
 # Veridicality property — links a claim to its veridicality status.
 # --------------------------------------------------------------------------- #
+gmeow:attestationTypeFactCheck rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/deception> .
 
 gmeow:claimVeridicality
     a owl:ObjectProperty ;
@@ -122,6 +126,7 @@ gmeow:veridicalityUntrue
     a gmeow:ClaimVeridicality ;
     rdfs:label "untrue"@x-gmeow-english ;
     skos:definition "The claim is not true — a statement that fails to correspond to fact. This is a frame-relative assessment (a claim may be refuted in one standpoint and unequivocal in another); it is NOT a global truth verdict (Principle 11)."@x-gmeow-english .
+gmeow:veridicalityUntrue rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/deception> .
 
 gmeow:veridicalityLicensedFalsehood
     a gmeow:ClaimVeridicality ;
@@ -131,21 +136,25 @@ gmeow:veridicalityLicensedFalsehood
 # =========================================================================== #
 # DECEPTION ROLES — ParticipantRole value vocabulary.
 # =========================================================================== #
+gmeow:veridicalityLicensedFalsehood rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/deception> .
 
 gmeow:roleDeceiver
     a gmeow:ParticipantRole ;
     rdfs:label "deceiver"@x-gmeow-english ;
     skos:definition "The participant in a deception event who projects a standpoint that diverges from what they hold true. In self-deception, this role is borne by the same entity as roleDeceived."@x-gmeow-english .
+gmeow:roleDeceiver rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/deception> .
 
 gmeow:roleDeceived
     a gmeow:ParticipantRole ;
     rdfs:label "deceived"@x-gmeow-english ;
     skos:definition "The participant in a deception event who is induced to hold a false belief by the divergence between the projected and held standpoints. In self-deception, this role is borne by the same entity as roleDeceiver."@x-gmeow-english .
+gmeow:roleDeceived rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/deception> .
 
 gmeow:roleBeneficiaryOfDeception
     a gmeow:ParticipantRole ;
     rdfs:label "beneficiary of deception"@x-gmeow-english ;
     skos:definition "An entity that benefits from a deception event, whether or not they are the deceiver — the third-party beneficiary who gains from the false belief induced in the deceived party."@x-gmeow-english .
+gmeow:roleBeneficiaryOfDeception rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/deception> .
 
 gmeow:roleDupe
     a gmeow:ParticipantRole ;
@@ -155,6 +164,7 @@ gmeow:roleDupe
 # =========================================================================== #
 # PROJECTION FUNCTION SUPPORT — properties with rdfs:range for FnO compilation.
 # =========================================================================== #
+gmeow:roleDupe rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/deception> .
 
 gmeow:MaximViolationType
     a owl:Class, gufo:AbstractIndividualType ;

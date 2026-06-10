@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/notes>
     a owl:Ontology ;
     rdfs:label "GMEOW Notes & Annotation Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Notes & Annotation Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/notes> ;
     rdfs:comment """First-class annotation and personal-knowledge-management layer — notes, highlights, bookmarks, comments, and the bidirectional backlink graph (the RDF gap GMEOW fills). Reuses, never duplicates: EvidenceSpan/Selector for anchored targets (#55), aboutness/Tagging for topics (#27), accordingTo for standpoint (#43), displayable for suppression (P10). Grounded in gUFO; aligned to W3C Web Annotation, schema.org, ActivityStreams, and SIOC by reference (P5)."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 

@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/quality>
     a owl:Ontology ;
     rdfs:label "GMEOW Data Quality Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Data Quality Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/quality> ;
     rdfs:comment """Cross-cutting data-quality layer refining confidence and provenance across every realm. Quality assessments are reified observations about ISO 19157 dimensions (positional accuracy, temporal accuracy, thematic accuracy, completeness, logical consistency, topological consistency) plus lineage. Aligns W3C DQV and GeoDCAT-AP by reference; quality-metric computation lives in the solver layer (Principle 12).
 
 QualityAssessment reuses the universal Observation stack: the assessed entity is the observedFeature, the quality result is the observationResult (typically a ScalarQuantity), and the assessment method is the observationMethod. This keeps the quality layer thin and consistent with every other GMEOW claim construct."""@x-gmeow-english ;

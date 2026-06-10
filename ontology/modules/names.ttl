@@ -11,6 +11,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/names>
     a owl:Ontology ;
     rdfs:label "GMEOW Names Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Names Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> ;
     rdfs:comment """A universal, multi-culture, inclusive naming model (the schema.org / vCard N / GEDCOM X NameForm / W3C pronouns superset layer). A name is never a bare attribute: it is a reified gmeow:Appellation (an information object with structured, typed parts) borne by an entity, and gmeow:NameUsage is the gufo:Relator binding {who is named} × {which appellation} × {by/among whom} × {register} × {period} — so 'Aunt Genny' (intimate, family audience) is distinct from 'Mrs Smith' (formal) without privileging either. Name-part kinds, purposes, registers, pronoun sets and honorifics are open VALUE vocabularies, so patronymic, Arabic ism/kunya/nasab/laqab/nisba, Spanish double surname, East-Asian family-first and courtesy names, Tamil initial-expansion and mononym are all expressible without forcing a Western given+family order. GOVERNING TENET — co-equality (anti-colonial naming): a person's names in different languages/scripts (e.g. Patrick Colm Audley and 欧德理) are CO-EQUAL full names; none is the other's alternateName or romanization, none is 'primary'. There is deliberately NO preferredForDisplay / primaryName term — display SELECTION is locale-relative and symmetric; only display SUPPRESSION (gmeow:displayable false, e.g. a deadname) is modelled. Pronouns and honorifics are sex/gender INDEPENDENT — ADDRESS (what you want to be called) is not IDENTITY (what you are): they are never inferred from, nor do they imply, gmeow:hasGenderIdentity / gmeow:hasGenderExpression / gmeow:sexAssignedAtBirth / orientation (modelled in the gender + sexuality modules). Follows the W3C 'Personal names around the world' guidance.
 
 STANDPOINT DOCTRINE (#51). Contested facts in the naming slice — endonym vs exonym per community, a name disputed by two authorities, a community-specific exonym that another standpoint refutes — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested name-usage is two gmeow:NameUsage instances each carrying gmeow:accordingTo, or two gmeow:accordingTo-annotated gmeow:hasName statements. CRITICAL DISTINCTION: gmeow:usageAudience is who the name is used TOWARD (the social scope); gmeow:usageAuthority / gmeow:accordingTo is who ASSERTS the name-usage claim (the standpoint frame). A community's endonym may be both audience and standpoint, but the axes are orthogonal and must not be conflated. There is NO naming-specific dispute mechanism, no preferredName, no primaryAppellation — only the cross-cutting #43 facility. Superseded names (deadnames, former legal names) set gmeow:displayable false, never deletion (Principle 10)."""@x-gmeow-english ;
@@ -452,44 +454,112 @@ gmeow:NamePartType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:namePartGiven              a gmeow:NamePartType ; rdfs:label "given name"@x-gmeow-english .
+gmeow:namePartGiven skos:definition "The given name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartSurname            a gmeow:NamePartType ; rdfs:label "surname / family name"@x-gmeow-english .
+gmeow:namePartSurname skos:definition "The surname name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartMiddle             a gmeow:NamePartType ; rdfs:label "middle / additional name"@x-gmeow-english .
+gmeow:namePartMiddle skos:definition "The middle name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartPatronymic         a gmeow:NamePartType ; rdfs:label "patronymic"@x-gmeow-english .
+gmeow:namePartPatronymic skos:definition "The patronymic name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartMatronymic         a gmeow:NamePartType ; rdfs:label "matronymic"@x-gmeow-english .
+gmeow:namePartMatronymic skos:definition "The matronymic name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartNickname           a gmeow:NamePartType ; rdfs:label "nickname / hypocorism"@x-gmeow-english .
+gmeow:namePartNickname skos:definition "The nickname name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartBirthSurname       a gmeow:NamePartType ; rdfs:label "birth surname / maiden name"@x-gmeow-english .
+gmeow:namePartBirthSurname skos:definition "The birth surname name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartParticle           a gmeow:NamePartType ; rdfs:label "nobiliary / nominal particle"@x-gmeow-english .
+gmeow:namePartParticle skos:definition "The particle name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartGenerationalSuffix a gmeow:NamePartType ; rdfs:label "generational suffix (Jr / Sr)"@x-gmeow-english .
+gmeow:namePartGenerationalSuffix skos:definition "The generational suffix name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartGenerationalOrdinal a gmeow:NamePartType ; rdfs:label "generational ordinal (III / 'the Third')"@x-gmeow-english .
+gmeow:namePartGenerationalOrdinal skos:definition "The generational ordinal name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartHonorificPrefix    a gmeow:NamePartType ; rdfs:label "honorific prefix"@x-gmeow-english .
+gmeow:namePartHonorificPrefix skos:definition "The honorific prefix name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartHonorificSuffix    a gmeow:NamePartType ; rdfs:label "honorific suffix"@x-gmeow-english .
+gmeow:namePartHonorificSuffix skos:definition "The honorific suffix name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartPaternalSurname    a gmeow:NamePartType ; rdfs:label "paternal surname"@x-gmeow-english .
+gmeow:namePartPaternalSurname skos:definition "The paternal surname name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartMaternalSurname    a gmeow:NamePartType ; rdfs:label "maternal surname"@x-gmeow-english .
+gmeow:namePartMaternalSurname skos:definition "The maternal surname name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartIsm                a gmeow:NamePartType ; rdfs:label "ism (Arabic personal name)"@x-gmeow-english .
+gmeow:namePartIsm skos:definition "The ism name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartKunya              a gmeow:NamePartType ; rdfs:label "kunya (Arabic teknonym)"@x-gmeow-english .
+gmeow:namePartKunya skos:definition "The kunya name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartNasab              a gmeow:NamePartType ; rdfs:label "nasab (Arabic patronymic lineage)"@x-gmeow-english .
+gmeow:namePartNasab skos:definition "The nasab name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartLaqab              a gmeow:NamePartType ; rdfs:label "laqab (Arabic epithet)"@x-gmeow-english .
+gmeow:namePartLaqab skos:definition "The laqab name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartNisba              a gmeow:NamePartType ; rdfs:label "nisba (Arabic origin / affiliation name)"@x-gmeow-english .
+gmeow:namePartNisba skos:definition "The nisba name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartInitial            a gmeow:NamePartType ; rdfs:label "expandable initial"@x-gmeow-english .
+gmeow:namePartInitial skos:definition "The initial name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartMononym            a gmeow:NamePartType ; rdfs:label "mononym"@x-gmeow-english .
+gmeow:namePartMononym skos:definition "The mononym name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartReligiousName      a gmeow:NamePartType ; rdfs:label "religious / regnal name"@x-gmeow-english .
+gmeow:namePartReligiousName skos:definition "The religious name name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartCourtesyName       a gmeow:NamePartType ; rdfs:label "courtesy / art name"@x-gmeow-english .
 # Lineage-coordinated and clan components — distinct from given/surname.
+gmeow:namePartCourtesyName skos:definition "The courtesy name name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartGenerationName     a gmeow:NamePartType ; rdfs:label "generation name (East-Asian lineage marker)"@x-gmeow-english .
+gmeow:namePartGenerationName skos:definition "The generation name name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartClanName           a gmeow:NamePartType ; rdfs:label "clan / lineage name"@x-gmeow-english .
+gmeow:namePartClanName skos:definition "The clan name name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartBirthOrderName     a gmeow:NamePartType ; rdfs:label "birth-order / day name"@x-gmeow-english .
+gmeow:namePartBirthOrderName skos:definition "The birth order name name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartTeknonym           a gmeow:NamePartType ; rdfs:label "teknonym (parent-of name)"@x-gmeow-english .
+gmeow:namePartTeknonym skos:definition "The teknonym name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartHouseName          a gmeow:NamePartType ; rdfs:label "house / estate name"@x-gmeow-english .
 # Roman tria/quattuor nomina (for historical genealogy).
+gmeow:namePartHouseName skos:definition "The house name name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartPraenomen          a gmeow:NamePartType ; rdfs:label "praenomen (Roman personal name)"@x-gmeow-english .
+gmeow:namePartPraenomen skos:definition "The praenomen name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartNomen              a gmeow:NamePartType ; rdfs:label "nomen (Roman gens / clan name)"@x-gmeow-english .
+gmeow:namePartNomen skos:definition "The nomen name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartCognomen           a gmeow:NamePartType ; rdfs:label "cognomen (Roman family branch)"@x-gmeow-english .
+gmeow:namePartCognomen skos:definition "The cognomen name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartAgnomen            a gmeow:NamePartType ; rdfs:label "agnomen (Roman earned epithet)"@x-gmeow-english .
 # Filename decomposition.
+gmeow:namePartAgnomen skos:definition "The agnomen name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartStem               a gmeow:NamePartType ; rdfs:label "filename stem"@x-gmeow-english .
+gmeow:namePartStem skos:definition "The stem name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePartExtension          a gmeow:NamePartType ; rdfs:label "filename extension"@x-gmeow-english .
 
 # --- Name purpose — the intrinsic kind of a whole appellation --------------- #
+gmeow:namePartExtension skos:definition "The extension name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 
 gmeow:NamePurpose
     a owl:Class, gufo:AbstractIndividualType ;
@@ -499,24 +569,54 @@ gmeow:NamePurpose
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:namePurposeLegal        a gmeow:NamePurpose ; rdfs:label "legal name"@x-gmeow-english .
+gmeow:namePurposeLegal skos:definition "The legal name purpose — a role that a particular appellation plays in the life of its bearer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePurposeBirth        a gmeow:NamePurpose ; rdfs:label "birth name"@x-gmeow-english .
+gmeow:namePurposeBirth skos:definition "The birth name purpose — a role that a particular appellation plays in the life of its bearer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePurposeChosen       a gmeow:NamePurpose ; rdfs:label "chosen / self-identified name"@x-gmeow-english .
+gmeow:namePurposeChosen skos:definition "The chosen name purpose — a role that a particular appellation plays in the life of its bearer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePurposeProfessional a gmeow:NamePurpose ; rdfs:label "professional name"@x-gmeow-english .
+gmeow:namePurposeProfessional skos:definition "The professional name purpose — a role that a particular appellation plays in the life of its bearer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePurposeReligious    a gmeow:NamePurpose ; rdfs:label "religious name"@x-gmeow-english .
+gmeow:namePurposeReligious skos:definition "The religious name purpose — a role that a particular appellation plays in the life of its bearer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePurposePenStage     a gmeow:NamePurpose ; rdfs:label "pen / stage name"@x-gmeow-english .
+gmeow:namePurposePenStage skos:definition "The pen stage name purpose — a role that a particular appellation plays in the life of its bearer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePurposeNickname     a gmeow:NamePurpose ; rdfs:label "nickname / familiar name"@x-gmeow-english .
+gmeow:namePurposeNickname skos:definition "The nickname name purpose — a role that a particular appellation plays in the life of its bearer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePurposeRegnal       a gmeow:NamePurpose ; rdfs:label "regnal name"@x-gmeow-english .
+gmeow:namePurposeRegnal skos:definition "The regnal name purpose — a role that a particular appellation plays in the life of its bearer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePurposeOnlineHandle a gmeow:NamePurpose ; rdfs:label "online handle / username"@x-gmeow-english .
+gmeow:namePurposeOnlineHandle skos:definition "The online handle name purpose — a role that a particular appellation plays in the life of its bearer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePurposeCeremonial   a gmeow:NamePurpose ; rdfs:label "ceremonial name"@x-gmeow-english .
+gmeow:namePurposeCeremonial skos:definition "The ceremonial name purpose — a role that a particular appellation plays in the life of its bearer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePurposeSuperseded   a gmeow:NamePurpose ; rdfs:label "superseded / former name"@x-gmeow-english .
+gmeow:namePurposeSuperseded skos:definition "The superseded name purpose — a role that a particular appellation plays in the life of its bearer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePurposeDeadname     a gmeow:NamePurpose ; rdfs:label "deadname (historical, do-not-display)"@x-gmeow-english .
 # Toponymic purposes — co-equal (no privileged claimant): a place's endonym and
 # exonym are different-purpose, equally-valid names, not a preferred-vs-alternate pair.
+gmeow:namePurposeDeadname skos:definition "The deadname name purpose — a role that a particular appellation plays in the life of its bearer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePurposeEndonym      a gmeow:NamePurpose ; rdfs:label "endonym (name used by a place's own inhabitants / a language's own speakers)"@x-gmeow-english .
+gmeow:namePurposeEndonym skos:definition "The endonym name purpose — a role that a particular appellation plays in the life of its bearer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePurposeExonym       a gmeow:NamePurpose ; rdfs:label "exonym (name used by outsiders / in another language)"@x-gmeow-english .
+gmeow:namePurposeExonym skos:definition "The exonym name purpose — a role that a particular appellation plays in the life of its bearer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:namePurposeGlossonym    a gmeow:NamePurpose ; rdfs:label "glossonym (name of a language)"@x-gmeow-english .
 
 # --- Name register — the social register of a USAGE ------------------------- #
+gmeow:namePurposeGlossonym skos:definition "The glossonym name purpose — a role that a particular appellation plays in the life of its bearer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 
 gmeow:NameRegister
     a owl:Class, gufo:AbstractIndividualType ;
@@ -526,11 +626,19 @@ gmeow:NameRegister
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:registerFormal       a gmeow:NameRegister ; rdfs:label "formal"@x-gmeow-english .
+gmeow:registerFormal skos:definition "The formal name register — a level of formality or social distance at which a name is used."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:registerIntimate     a gmeow:NameRegister ; rdfs:label "intimate / familial"@x-gmeow-english .
+gmeow:registerIntimate skos:definition "The intimate name register — a level of formality or social distance at which a name is used."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:registerProfessional a gmeow:NameRegister ; rdfs:label "professional"@x-gmeow-english .
+gmeow:registerProfessional skos:definition "The professional name register — a level of formality or social distance at which a name is used."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:registerCasual       a gmeow:NameRegister ; rdfs:label "casual"@x-gmeow-english .
 
 # --- Honorific position + class (value sub-vocabularies) -------------------- #
+gmeow:registerCasual skos:definition "The casual name register — a level of formality or social distance at which a name is used."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 
 gmeow:HonorificPosition
     a owl:Class, gufo:AbstractIndividualType ;
@@ -540,7 +648,11 @@ gmeow:HonorificPosition
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:honorificPositionPrefix a gmeow:HonorificPosition ; rdfs:label "prefix"@x-gmeow-english .
+gmeow:honorificPositionPrefix skos:definition "The prefix honorific position — a position in a name string where an honorific appears."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificPositionSuffix a gmeow:HonorificPosition ; rdfs:label "suffix"@x-gmeow-english .
+gmeow:honorificPositionSuffix skos:definition "The suffix honorific position — a position in a name string where an honorific appears."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 
 gmeow:HonorificClass
     a owl:Class, gufo:AbstractIndividualType ;
@@ -550,13 +662,25 @@ gmeow:HonorificClass
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:honorificClassAcademic a gmeow:HonorificClass ; rdfs:label "academic"@x-gmeow-english .
+gmeow:honorificClassAcademic skos:definition "The academic honorific class — a broad social or institutional domain from which honorifics are drawn."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificClassClerical a gmeow:HonorificClass ; rdfs:label "clerical"@x-gmeow-english .
+gmeow:honorificClassClerical skos:definition "The clerical honorific class — a broad social or institutional domain from which honorifics are drawn."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificClassNoble    a gmeow:HonorificClass ; rdfs:label "noble"@x-gmeow-english .
+gmeow:honorificClassNoble skos:definition "The noble honorific class — a broad social or institutional domain from which honorifics are drawn."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificClassMilitary a gmeow:HonorificClass ; rdfs:label "military"@x-gmeow-english .
+gmeow:honorificClassMilitary skos:definition "The military honorific class — a broad social or institutional domain from which honorifics are drawn."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificClassJudicial a gmeow:HonorificClass ; rdfs:label "judicial"@x-gmeow-english .
+gmeow:honorificClassJudicial skos:definition "The judicial honorific class — a broad social or institutional domain from which honorifics are drawn."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificClassSocial   a gmeow:HonorificClass ; rdfs:label "social"@x-gmeow-english .
 
 # --- Honorific — gender-neutral and non-Western titles first-class ---------- #
+gmeow:honorificClassSocial skos:definition "The social honorific class — a broad social or institutional domain from which honorifics are drawn."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 
 gmeow:Honorific
     a owl:Class, gufo:AbstractIndividualType ;
@@ -568,51 +692,83 @@ gmeow:Honorific
 gmeow:honorificMr a gmeow:Honorific ; rdfs:label "Mr"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionPrefix ;
     gmeow:honorificClass gmeow:honorificClassSocial .
+gmeow:honorificMr skos:definition "The mr honorific — a term of respect, rank, or courtesy used when addressing or naming a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificMrs a gmeow:Honorific ; rdfs:label "Mrs"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionPrefix ;
     gmeow:honorificClass gmeow:honorificClassSocial .
+gmeow:honorificMrs skos:definition "The mrs honorific — a term of respect, rank, or courtesy used when addressing or naming a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificMs a gmeow:Honorific ; rdfs:label "Ms"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionPrefix ;
     gmeow:honorificClass gmeow:honorificClassSocial .
+gmeow:honorificMs skos:definition "The ms honorific — a term of respect, rank, or courtesy used when addressing or naming a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificMx a gmeow:Honorific ; rdfs:label "Mx"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionPrefix ;
     gmeow:honorificClass gmeow:honorificClassSocial .
+gmeow:honorificMx skos:definition "The mx honorific — a term of respect, rank, or courtesy used when addressing or naming a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificDr a gmeow:Honorific ; rdfs:label "Dr"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionPrefix ;
     gmeow:honorificClass gmeow:honorificClassAcademic .
+gmeow:honorificDr skos:definition "The dr honorific — a term of respect, rank, or courtesy used when addressing or naming a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificProf a gmeow:Honorific ; rdfs:label "Prof"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionPrefix ;
     gmeow:honorificClass gmeow:honorificClassAcademic .
+gmeow:honorificProf skos:definition "The prof honorific — a term of respect, rank, or courtesy used when addressing or naming a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificRev a gmeow:Honorific ; rdfs:label "Rev"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionPrefix ;
     gmeow:honorificClass gmeow:honorificClassClerical .
+gmeow:honorificRev skos:definition "The rev honorific — a term of respect, rank, or courtesy used when addressing or naming a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificHon a gmeow:Honorific ; rdfs:label "Hon"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionPrefix ;
     gmeow:honorificClass gmeow:honorificClassJudicial .
+gmeow:honorificHon skos:definition "The hon honorific — a term of respect, rank, or courtesy used when addressing or naming a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificSir a gmeow:Honorific ; rdfs:label "Sir"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionPrefix ;
     gmeow:honorificClass gmeow:honorificClassNoble .
+gmeow:honorificSir skos:definition "The sir honorific — a term of respect, rank, or courtesy used when addressing or naming a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificDame a gmeow:Honorific ; rdfs:label "Dame"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionPrefix ;
     gmeow:honorificClass gmeow:honorificClassNoble .
+gmeow:honorificDame skos:definition "The dame honorific — a term of respect, rank, or courtesy used when addressing or naming a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificLord a gmeow:Honorific ; rdfs:label "Lord"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionPrefix ;
     gmeow:honorificClass gmeow:honorificClassNoble .
+gmeow:honorificLord skos:definition "The lord honorific — a term of respect, rank, or courtesy used when addressing or naming a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificLady a gmeow:Honorific ; rdfs:label "Lady"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionPrefix ;
     gmeow:honorificClass gmeow:honorificClassNoble .
+gmeow:honorificLady skos:definition "The lady honorific — a term of respect, rank, or courtesy used when addressing or naming a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificSri a gmeow:Honorific ; rdfs:label "Sri"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionPrefix ;
     gmeow:honorificClass gmeow:honorificClassSocial .
+gmeow:honorificSri skos:definition "The sri honorific — a term of respect, rank, or courtesy used when addressing or naming a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificSmt a gmeow:Honorific ; rdfs:label "Smt (Srimati)"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionPrefix ;
     gmeow:honorificClass gmeow:honorificClassSocial .
+gmeow:honorificSmt skos:definition "The smt honorific — a term of respect, rank, or courtesy used when addressing or naming a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificSayyid a gmeow:Honorific ; rdfs:label "Sayyid"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionPrefix ;
     gmeow:honorificClass gmeow:honorificClassSocial .
+gmeow:honorificSayyid skos:definition "The sayyid honorific — a term of respect, rank, or courtesy used when addressing or naming a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificSan a gmeow:Honorific ; rdfs:label "-san"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionSuffix ;
     gmeow:honorificClass gmeow:honorificClassSocial .
+gmeow:honorificSan skos:definition "The san honorific — a term of respect, rank, or courtesy used when addressing or naming a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:honorificSama a gmeow:Honorific ; rdfs:label "-sama"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionSuffix ;
     gmeow:honorificClass gmeow:honorificClassSocial .
@@ -627,97 +783,147 @@ gmeow:honorificSama a gmeow:Honorific ; rdfs:label "-sama"@x-gmeow-english ;
 # reflexive) and cross-checked with pronouns.within.lgbt; cf. docs/identity-mapping.md
 # for the full sourcing note. The set aligns (where a target exists) to Wikidata's
 # 'personal pronoun set' (wd:Q65067284) in mapping-dsl/equivalences/names.ttl.
+gmeow:honorificSama skos:definition "The sama honorific — a term of respect, rank, or courtesy used when addressing or naming a person."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 
 gmeow:pronounSheHer a gmeow:PronounSet ; rdfs:label "she/her"@x-gmeow-english ;
     gmeow:pronounSubject "she" ; gmeow:pronounObject "her" ;
     gmeow:pronounPossessiveDeterminer "her" ; gmeow:pronounPossessive "hers" ;
     gmeow:pronounReflexive "herself" .
+gmeow:pronounSheHer skos:definition "The she/her pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounHeHim a gmeow:PronounSet ; rdfs:label "he/him"@x-gmeow-english ;
     gmeow:pronounSubject "he" ; gmeow:pronounObject "him" ;
     gmeow:pronounPossessiveDeterminer "his" ; gmeow:pronounPossessive "his" ;
     gmeow:pronounReflexive "himself" .
+gmeow:pronounHeHim skos:definition "The he/him pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounTheyThem a gmeow:PronounSet ; rdfs:label "they/them (singular)"@x-gmeow-english ;
     gmeow:pronounSubject "they" ; gmeow:pronounObject "them" ;
     gmeow:pronounPossessiveDeterminer "their" ; gmeow:pronounPossessive "theirs" ;
     gmeow:pronounReflexive "themself" .
+gmeow:pronounTheyThem skos:definition "The they/them pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounItIts a gmeow:PronounSet ; rdfs:label "it/its"@x-gmeow-english ;
     gmeow:pronounSubject "it" ; gmeow:pronounObject "it" ;
     gmeow:pronounPossessiveDeterminer "its" ; gmeow:pronounPossessive "its" ;
     gmeow:pronounReflexive "itself" .
+gmeow:pronounItIts skos:definition "The it/its pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounXeXem a gmeow:PronounSet ; rdfs:label "xe/xem"@x-gmeow-english ;
     gmeow:pronounSubject "xe" ; gmeow:pronounObject "xem" ;
     gmeow:pronounPossessiveDeterminer "xyr" ; gmeow:pronounPossessive "xyrs" ;
     gmeow:pronounReflexive "xemself" .
+gmeow:pronounXeXem skos:definition "The xe/xem pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounZeHir a gmeow:PronounSet ; rdfs:label "ze/hir"@x-gmeow-english ;
     gmeow:pronounSubject "ze" ; gmeow:pronounObject "hir" ;
     gmeow:pronounPossessiveDeterminer "hir" ; gmeow:pronounPossessive "hirs" ;
     gmeow:pronounReflexive "hirself" .
+gmeow:pronounZeHir skos:definition "The ze/hir pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounEyEm a gmeow:PronounSet ; rdfs:label "ey/em (Elverson)"@x-gmeow-english ;
     gmeow:pronounSubject "ey" ; gmeow:pronounObject "em" ;
     gmeow:pronounPossessiveDeterminer "eir" ; gmeow:pronounPossessive "eirs" ;
     gmeow:pronounReflexive "emself" .
+gmeow:pronounEyEm skos:definition "The ey/em pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounEEm a gmeow:PronounSet ; rdfs:label "e/em (Spivak)"@x-gmeow-english ;
     gmeow:pronounSubject "e" ; gmeow:pronounObject "em" ;
     gmeow:pronounPossessiveDeterminer "eir" ; gmeow:pronounPossessive "eirs" ;
     gmeow:pronounReflexive "emself" .
+gmeow:pronounEEm skos:definition "The e/em pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounZeZir a gmeow:PronounSet ; rdfs:label "ze/zir"@x-gmeow-english ;
     gmeow:pronounSubject "ze" ; gmeow:pronounObject "zir" ;
     gmeow:pronounPossessiveDeterminer "zir" ; gmeow:pronounPossessive "zirs" ;
     gmeow:pronounReflexive "zirself" .
+gmeow:pronounZeZir skos:definition "The ze/zir pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounFaeFaer a gmeow:PronounSet ; rdfs:label "fae/faer"@x-gmeow-english ;
     gmeow:pronounSubject "fae" ; gmeow:pronounObject "faer" ;
     gmeow:pronounPossessiveDeterminer "faer" ; gmeow:pronounPossessive "faers" ;
     gmeow:pronounReflexive "faerself" .
+gmeow:pronounFaeFaer skos:definition "The fae/faer pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounAeAer a gmeow:PronounSet ; rdfs:label "ae/aer"@x-gmeow-english ;
     gmeow:pronounSubject "ae" ; gmeow:pronounObject "aer" ;
     gmeow:pronounPossessiveDeterminer "aer" ; gmeow:pronounPossessive "aers" ;
     gmeow:pronounReflexive "aerself" .
+gmeow:pronounAeAer skos:definition "The ae/aer pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounVeVer a gmeow:PronounSet ; rdfs:label "ve/ver"@x-gmeow-english ;
     gmeow:pronounSubject "ve" ; gmeow:pronounObject "ver" ;
     gmeow:pronounPossessiveDeterminer "vis" ; gmeow:pronounPossessive "vis" ;
     gmeow:pronounReflexive "verself" .
+gmeow:pronounVeVer skos:definition "The ve/ver pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounViVir a gmeow:PronounSet ; rdfs:label "vi/vir"@x-gmeow-english ;
     gmeow:pronounSubject "vi" ; gmeow:pronounObject "vir" ;
     gmeow:pronounPossessiveDeterminer "vis" ; gmeow:pronounPossessive "virs" ;
     gmeow:pronounReflexive "virself" .
+gmeow:pronounViVir skos:definition "The vi/vir pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounPerPer a gmeow:PronounSet ; rdfs:label "per/per"@x-gmeow-english ;
     gmeow:pronounSubject "per" ; gmeow:pronounObject "per" ;
     gmeow:pronounPossessiveDeterminer "per" ; gmeow:pronounPossessive "pers" ;
     gmeow:pronounReflexive "perself" .
+gmeow:pronounPerPer skos:definition "The per/per pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounNeNem a gmeow:PronounSet ; rdfs:label "ne/nem"@x-gmeow-english ;
     gmeow:pronounSubject "ne" ; gmeow:pronounObject "nem" ;
     gmeow:pronounPossessiveDeterminer "nir" ; gmeow:pronounPossessive "nirs" ;
     gmeow:pronounReflexive "nemself" .
+gmeow:pronounNeNem skos:definition "The ne/nem pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounThonThon a gmeow:PronounSet ; rdfs:label "thon/thon"@x-gmeow-english ;
     gmeow:pronounSubject "thon" ; gmeow:pronounObject "thon" ;
     gmeow:pronounPossessiveDeterminer "thons" ; gmeow:pronounPossessive "thon's" ;
     gmeow:pronounReflexive "thonself" .
+gmeow:pronounThonThon skos:definition "The thon/thon pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounCoCos a gmeow:PronounSet ; rdfs:label "co/cos"@x-gmeow-english ;
     gmeow:pronounSubject "co" ; gmeow:pronounObject "co" ;
     gmeow:pronounPossessiveDeterminer "cos" ; gmeow:pronounPossessive "co's" ;
     gmeow:pronounReflexive "coself" .
+gmeow:pronounCoCos skos:definition "The co/cos pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounHuHum a gmeow:PronounSet ; rdfs:label "hu/hum"@x-gmeow-english ;
     gmeow:pronounSubject "hu" ; gmeow:pronounObject "hum" ;
     gmeow:pronounPossessiveDeterminer "hus" ; gmeow:pronounPossessive "hus" ;
     gmeow:pronounReflexive "huself" .
+gmeow:pronounHuHum skos:definition "The hu/hum pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounKiKin a gmeow:PronounSet ; rdfs:label "ki/kin"@x-gmeow-english ;
     gmeow:pronounSubject "ki" ; gmeow:pronounObject "kin" ;
     gmeow:pronounPossessiveDeterminer "kins" ; gmeow:pronounPossessive "kins" ;
     gmeow:pronounReflexive "kinself" .
+gmeow:pronounKiKin skos:definition "The ki/kin pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounZheZher a gmeow:PronounSet ; rdfs:label "zhe/zher"@x-gmeow-english ;
     gmeow:pronounSubject "zhe" ; gmeow:pronounObject "zher" ;
     gmeow:pronounPossessiveDeterminer "zher" ; gmeow:pronounPossessive "zhers" ;
     gmeow:pronounReflexive "zherself" .
+gmeow:pronounZheZher skos:definition "The zhe/zher pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounOneOne a gmeow:PronounSet ; rdfs:label "one/one (generic)"@x-gmeow-english ;
     gmeow:pronounSubject "one" ; gmeow:pronounObject "one" ;
     gmeow:pronounPossessiveDeterminer "one's" ; gmeow:pronounPossessive "one's" ;
     gmeow:pronounReflexive "oneself" .
 # Non-specifying values — no five forms by design (they assert a stance, not a set).
+gmeow:pronounOneOne skos:definition "The one/one pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounAny a gmeow:PronounSet ; rdfs:label "any pronouns"@x-gmeow-english .
+gmeow:pronounAny skos:definition "A non-specifying pronoun stance indicating that any third-person pronoun set is acceptable when referring to the entity."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounAsk a gmeow:PronounSet ; rdfs:label "ask me"@x-gmeow-english .
+gmeow:pronounAsk skos:definition "A non-specifying pronoun stance indicating that the speaker or writer should ask the entity which pronouns to use."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounNameOnly a gmeow:PronounSet ; rdfs:label "use my name (no pronouns)"@x-gmeow-english ;
     skos:scopeNote "Nounself / name-in-place-of-pronoun: the person prefers their name be used rather than any third-person pronoun. Distinct from pronounAny (any set is acceptable) and pronounAsk (ask first). Carries no five forms by design — it asserts the ABSENCE of a pronoun set, not a particular one."@x-gmeow-english .
 
+gmeow:pronounNameOnly skos:definition "A non-specifying pronoun stance indicating that the entity prefers no third-person pronouns and requests that their name be used in place of any pronoun."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE (#38) — relator mediation for the NameUsage relator.
 #

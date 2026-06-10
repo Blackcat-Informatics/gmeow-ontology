@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/messaging-trust>
     a owl:Ontology ;
     rdfs:label "GMEOW Messaging Trust Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Messaging Trust Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/messaging-trust> ;
     rdfs:comment "Trust and authenticity indicators for messages: the relay/message path (Received hops with server timestamps), authentication results (DKIM/SPF/DMARC/ARC per RFC 8601/6376/7208/7489/8617), and cryptographic signatures (DKIM, S/MIME per RFC 8551, PGP per RFC 4880/3156). A distinct sub-vocabulary, included with the email slice."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 

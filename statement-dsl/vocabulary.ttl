@@ -85,3 +85,25 @@ gmeow:annProperty a owl:ObjectProperty, owl:FunctionalProperty ;
 gmeow:annValue a rdf:Property, owl:FunctionalProperty ;
     rdfs:label "annotation value"@x-gmeow-english ;
     skos:definition "The value of one annotation — an IRI/value individual or a literal (0.95, a date, an agent IRI). Authored as a single field for ergonomics; the compiler emits it verbatim into both forms. (A bare rdf:Property in this spec layer, never reasoned; the generated OWL form attaches it under the real owl:AnnotationProperty named by gmeow:annProperty.)"@x-gmeow-english .
+
+# Backfilled annotations for annotation-completeness gate (issue #221)
+gmeow:StatementMetadata rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> .
+
+gmeow:annProperty rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> .
+
+gmeow:annValue rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> .
+
+gmeow:annotation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> .
+
+gmeow:qObject rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> .
+
+gmeow:qObjectLiteral rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> .
+
+gmeow:qPredicate rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> .
+
+gmeow:qSubject rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> .
+
+gmeow:reifier rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> .
+
+gmeow:statement-dsl skos:definition "The GMEOW statement DSL vocabulary — terms used to author RDF 1.2 / RDF* statement-level metadata (provenance, confidence, temporal scope, standpoint) that compile to both native RDF 1.2 and OWL axiom-annotation forms (Principles 2–3)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> .

@@ -8,6 +8,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/sexuality>
     a owl:Ontology ;
     rdfs:label "GMEOW Sexuality Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Sexuality Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sexuality> ;
     rdfs:comment "A respectful, inclusive model of a person's orientation, reusing the gmeow:IdentityFacet base from the gender module (a reified, SELF-ASSERTED gufo:Relator). It applies the SPLIT-ATTRACTION model: sexual orientation and romantic orientation are SEPARATE, mutually independent axes — so asexual-biromantic, aromantic-bisexual and similar are directly expressible; neither is inferred from the other, nor from gender identity/expression, sex-assigned-at-birth, pronouns or honorifics. GOVERNING TENETS (shared with gender): self-assertion is the top authority; co-equality (no preferred/primary orientation; superseded labels kept with gmeow:displayable false, never deleted); INCLUSIVE WITHOUT OVERTYPING — gmeow:SexualOrientationValue and gmeow:RomanticOrientationValue are OPEN value vocabularies of individuals (never per-value subclasses, never a forced enum), an orientation not among the seeds being a FRESH value individual with rdfs:label. Aligns (lossily) to GSSO, Homosaurus and Wikidata; schema.org and FOAF have no orientation term, so orientation is a documented lossy drop at the projection layer. The machinery is otherwise canonical."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
@@ -81,13 +83,29 @@ gmeow:SexualOrientationValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:orientHeterosexual a gmeow:SexualOrientationValue ; rdfs:label "heterosexual"@x-gmeow-english .
+gmeow:orientHeterosexual skos:definition "The heterosexual sexual orientation value — a pattern of sexual attraction that an agent may experience."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sexuality> .
 gmeow:orientHomosexual   a gmeow:SexualOrientationValue ; rdfs:label "homosexual / gay / lesbian"@x-gmeow-english .
+gmeow:orientHomosexual skos:definition "The homosexual sexual orientation value — a pattern of sexual attraction that an agent may experience."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sexuality> .
 gmeow:orientBisexual     a gmeow:SexualOrientationValue ; rdfs:label "bisexual"@x-gmeow-english .
+gmeow:orientBisexual skos:definition "The bisexual sexual orientation value — a pattern of sexual attraction that an agent may experience."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sexuality> .
 gmeow:orientPansexual    a gmeow:SexualOrientationValue ; rdfs:label "pansexual"@x-gmeow-english .
+gmeow:orientPansexual skos:definition "The pansexual sexual orientation value — a pattern of sexual attraction that an agent may experience."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sexuality> .
 gmeow:orientAsexual      a gmeow:SexualOrientationValue ; rdfs:label "asexual"@x-gmeow-english .
+gmeow:orientAsexual skos:definition "The asexual sexual orientation value — a pattern of sexual attraction that an agent may experience."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sexuality> .
 gmeow:orientDemisexual   a gmeow:SexualOrientationValue ; rdfs:label "demisexual"@x-gmeow-english .
+gmeow:orientDemisexual skos:definition "The demisexual sexual orientation value — a pattern of sexual attraction that an agent may experience."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sexuality> .
 gmeow:orientQueer        a gmeow:SexualOrientationValue ; rdfs:label "queer"@x-gmeow-english .
+gmeow:orientQueer skos:definition "The queer sexual orientation value — a pattern of sexual attraction that an agent may experience."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sexuality> .
 gmeow:orientQuestioning  a gmeow:SexualOrientationValue ; rdfs:label "questioning"@x-gmeow-english .
+gmeow:orientQuestioning skos:definition "The questioning sexual orientation value — a pattern of sexual attraction that an agent may experience."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sexuality> .
 
 gmeow:RomanticOrientationValue
     a owl:Class, gufo:AbstractIndividualType ;
@@ -97,14 +115,30 @@ gmeow:RomanticOrientationValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:romanticHeteroromantic a gmeow:RomanticOrientationValue ; rdfs:label "heteroromantic"@x-gmeow-english .
+gmeow:romanticHeteroromantic skos:definition "The heteroromantic romantic orientation value — a pattern of romantic attraction that an agent may experience."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sexuality> .
 gmeow:romanticHomoromantic   a gmeow:RomanticOrientationValue ; rdfs:label "homoromantic"@x-gmeow-english .
+gmeow:romanticHomoromantic skos:definition "The homoromantic romantic orientation value — a pattern of romantic attraction that an agent may experience."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sexuality> .
 gmeow:romanticBiromantic     a gmeow:RomanticOrientationValue ; rdfs:label "biromantic"@x-gmeow-english .
+gmeow:romanticBiromantic skos:definition "The biromantic romantic orientation value — a pattern of romantic attraction that an agent may experience."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sexuality> .
 gmeow:romanticPanromantic    a gmeow:RomanticOrientationValue ; rdfs:label "panromantic"@x-gmeow-english .
+gmeow:romanticPanromantic skos:definition "The panromantic romantic orientation value — a pattern of romantic attraction that an agent may experience."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sexuality> .
 gmeow:romanticAromantic      a gmeow:RomanticOrientationValue ; rdfs:label "aromantic"@x-gmeow-english .
+gmeow:romanticAromantic skos:definition "The aromantic romantic orientation value — a pattern of romantic attraction that an agent may experience."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sexuality> .
 gmeow:romanticDemiromantic   a gmeow:RomanticOrientationValue ; rdfs:label "demiromantic"@x-gmeow-english .
+gmeow:romanticDemiromantic skos:definition "The demiromantic romantic orientation value — a pattern of romantic attraction that an agent may experience."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sexuality> .
 gmeow:romanticQueerromantic  a gmeow:RomanticOrientationValue ; rdfs:label "queerplatonic / queer-romantic"@x-gmeow-english .
+gmeow:romanticQueerromantic skos:definition "The queerromantic romantic orientation value — a pattern of romantic attraction that an agent may experience."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sexuality> .
 gmeow:romanticQuestioning    a gmeow:RomanticOrientationValue ; rdfs:label "questioning"@x-gmeow-english .
 
+gmeow:romanticQuestioning skos:definition "The questioning romantic orientation value — a pattern of romantic attraction that an agent may experience."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sexuality> .
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE (#38). The cross-module disjointness of the orientation
 # axes (SexualOrientation / RomanticOrientation) and their value spaces is

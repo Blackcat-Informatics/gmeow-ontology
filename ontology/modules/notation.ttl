@@ -10,6 +10,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/notation>
     a owl:Ontology ;
     rdfs:label "GMEOW Notation and Symbolic Systems Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Notation and Symbolic Systems Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/notation> ;
     rdfs:comment """Symbolic systems, notation systems, and their usage — the
     representational layer beneath and alongside natural/formal languages.
     Models mathematical notation, musical notation, emoji conventions, gesture

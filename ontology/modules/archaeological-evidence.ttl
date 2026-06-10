@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/archaeological-evidence>
     a owl:Ontology ;
     rdfs:label "GMEOW Archaeological Evidence Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Archaeological Evidence Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/archaeological-evidence> ;
     rdfs:comment """Language-facing hooks for archaeological and cultural-heritage evidence: inscriptions, physical carriers, readings, transliterations, translations, script/language attributions, and find context. Keeps the physical carrier, the sign-bearing inscription, the documentation event, the reading, the transliteration, the translation, the dating evidence, the stratigraphic/find context, and the linguistic interpretation as separable, standpoint-scoped claims (Principle 9). Reuses the universal Observation stack, TemporalMeasurement, Place, Event, and the lexicon/attestation layer. Defers general archaeological domain modeling to #129."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 

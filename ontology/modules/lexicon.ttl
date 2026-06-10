@@ -11,6 +11,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/lexicon>
     a owl:Ontology ;
     rdfs:label "GMEOW Lexicon Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Lexicon Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/lexicon> ;
     rdfs:comment """Lexical items, forms, usage attestations, and etymological
     derivations — the lexical and constructional layer of GMEOW. Models words,
     morphemes, phrases, idioms, symbols, and constructions as first-class

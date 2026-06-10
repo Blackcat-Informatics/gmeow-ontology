@@ -12,6 +12,8 @@
 <https://blackcatinformatics.ca/gmeow/imports/languages-reference>
     a owl:Ontology ;
     rdfs:label "GMEOW Languages Reference Catalog"@x-gmeow-english ;
+    skos:definition "Standard natural and programming languages for GMEOW reuse, pre-seeding internal tags, appellations, and alignments."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> ;
     rdfs:comment "Standard natural and programming languages for GMEOW reuse, pre-seeding internal tags, appellations, and alignments."@x-gmeow-english .
 
 # =========================================================================== #
@@ -260,3 +262,92 @@ gmeow:appJavaScriptGlossonym a gmeow:Appellation ;
     gmeow:nameLanguage gmeow:langEnglish ;
     gmeow:namePurpose gmeow:namePurposeGlossonym ;
     gmeow:displayable true .
+
+# Backfilled annotations for annotation-completeness gate (issue #221)
+gmeow:appChineseEndonym rdfs:label "中文"@x-gmeow-english ;
+    skos:definition "Appellation '中文' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appChineseExonym rdfs:label "Chinese"@x-gmeow-english ;
+    skos:definition "Appellation 'Chinese' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appEnglishGlossonym rdfs:label "English"@x-gmeow-english ;
+    skos:definition "Appellation 'English' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appFrenchEndonym rdfs:label "Français"@x-gmeow-english ;
+    skos:definition "Appellation 'Français' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appFrenchExonym rdfs:label "French"@x-gmeow-english ;
+    skos:definition "Appellation 'French' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appGermanEndonym rdfs:label "Deutsch"@x-gmeow-english ;
+    skos:definition "Appellation 'Deutsch' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appGermanExonym rdfs:label "German"@x-gmeow-english ;
+    skos:definition "Appellation 'German' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appJapaneseEndonym rdfs:label "日本語"@x-gmeow-english ;
+    skos:definition "Appellation '日本語' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appJapaneseExonym rdfs:label "Japanese"@x-gmeow-english ;
+    skos:definition "Appellation 'Japanese' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appJavaScriptGlossonym rdfs:label "JavaScript"@x-gmeow-english ;
+    skos:definition "Appellation 'JavaScript' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appPythonGlossonym rdfs:label "Python"@x-gmeow-english ;
+    skos:definition "Appellation 'Python' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appRustGlossonym rdfs:label "Rust"@x-gmeow-english ;
+    skos:definition "Appellation 'Rust' (namePurposeGlossonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appSpanishEndonym rdfs:label "Español"@x-gmeow-english ;
+    skos:definition "Appellation 'Español' (namePurposeEndonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:appSpanishExonym rdfs:label "Spanish"@x-gmeow-english ;
+    skos:definition "Appellation 'Spanish' (namePurposeExonym) in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+<https://blackcatinformatics.ca/gmeow/imports/languages-reference> skos:definition "Reference individual 'imports/languages-reference' in the GMEOW languages reference catalog."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:langChinese rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:langEnglish rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:langFrench rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:langGerman rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:langJapanese rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:langJavaScript rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:langPython rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:langRust rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:langSpanish rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:wsHan rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:wsHangul rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:wsHiragana rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:wsKatakana rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
+gmeow:wsLatin rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
+
