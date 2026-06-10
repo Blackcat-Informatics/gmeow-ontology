@@ -461,6 +461,17 @@ enum DisclosurePolicyEnum
     policySensitive
   }
 
+enum EmploymentTypeEnum
+  {
+    employmentTypeApprentice
+    employmentTypeContract
+    employmentTypeFreelance
+    employmentTypeFullTime
+    employmentTypeIntern
+    employmentTypePartTime
+    employmentTypeVolunteer
+  }
+
 enum EntityEnum
   {
     procedureIngestionRawRoot
@@ -500,6 +511,7 @@ enum EventTypeEnum
     eventTypeFirstCommunion
     eventTypeFuneral
     eventTypeGraduation
+    eventTypeHiring
     eventTypeImageAnnotation
     eventTypeImageCapture
     eventTypeImageProcessing
@@ -516,14 +528,18 @@ enum EventTypeEnum
     eventTypeOrdination
     eventTypePaltering
     eventTypeProbate
+    eventTypePromotion
     eventTypePush
     eventTypeRelease
     eventTypeResidence
+    eventTypeResignation
     eventTypeRetirement
     eventTypeSelfDeception
     eventTypeSeparation
     eventTypeSupersession
     eventTypeSurvey
+    eventTypeTermination
+    eventTypeTransfer
     eventTypeWill
     eventTypeWorkConception
   }
@@ -1148,6 +1164,8 @@ enum ParticipantRoleEnum
     roleDeceived
     roleDeceiver
     roleDupe
+    roleEmployee
+    roleEmployer
     roleIntermediary
     roleOfficiant
     roleOrganizer
@@ -1567,6 +1585,15 @@ enum SelectorTypeEnum
     selectorTypeRunLengthEncoded
     selectorTypeSvgPath
     selectorTypeWebAnnotationFragment
+  }
+
+enum SeniorityLevelEnum
+  {
+    seniorityEntry
+    seniorityExecutive
+    seniorityLead
+    seniorityMid
+    senioritySenior
   }
 
 enum SensitivityLevelEnum
@@ -4530,6 +4557,23 @@ type EmailMessage
     sender: [EmailAddress]
     subjectPrefix: String
     to: [EmailAddress]
+  }
+
+type Employment
+  {
+    hasRole: [Role]
+    membershipMember: Agent
+    membershipOrganization: Organization
+    employmentCompensation: [MonetaryAmount]
+    employmentInterval: [TimeInterval]
+    employmentOccupation: Occupation
+    employmentRole: Role
+    employmentSeniority: SeniorityLevel
+    employmentType: EmploymentType
+  }
+
+type EmploymentType
+  {
   }
 
 type Entity
@@ -10399,6 +10443,10 @@ type Selector
   }
 
 type SelectorType
+  {
+  }
+
+type SeniorityLevel
   {
   }
 

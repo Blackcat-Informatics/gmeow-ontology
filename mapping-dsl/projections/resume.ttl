@@ -1,0 +1,98 @@
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+
+# Projection mappings: GMEOW Employment → resume / CV vocabularies (schema.org,
+# ResumeRDF). Compiled to projections/resume.edoal.ttl + queries/projections/resume.rq
+# by `gmeow compile-mappings`.
+#
+# These are deliberate downcasts: a reified, time-scoped, standpoint-indexed,
+# compensation-bearing Employment relator collapses to flat resume fields.
+# The richness (contested claims, provenance, confidence, currency frame,
+# employment type, seniority) is lossy by design.
+
+# --------------------------------------------------------------------------- #
+# schema.org resume projections
+# --------------------------------------------------------------------------- #
+
+# Employment interval start → schema:startDate on the EmployeeRole.
+# The interval end (if present) is projected separately as schema:endDate.
+gmeow:mapResumeStartDate a gmeow:ProjectionMapping ;
+    rdfs:label "Employment interval start → schema:startDate"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "emp" ; gmeow:value "start" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "emp" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Employment ]
+            [ gmeow:subjectVar "emp" ; gmeow:predicate gmeow:employmentInterval ; gmeow:objectVar "iv" ]
+            [ gmeow:subjectVar "iv" ; gmeow:predicate gmeow:startedAtTime ; gmeow:objectVar "start" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "resume" ; gmeow:toPredicate schema:startDate ; gmeow:relation "<=" ;
+        gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the Employment relator (organization, role, compensation, standpoint) and the interval's temporal frame collapse to a flat schema:startDate on the projected EmployeeRole" ] .
+
+gmeow:mapResumeEndDate a gmeow:ProjectionMapping ;
+    rdfs:label "Employment interval end → schema:endDate"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "emp" ; gmeow:value "end" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "emp" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Employment ]
+            [ gmeow:subjectVar "emp" ; gmeow:predicate gmeow:employmentInterval ; gmeow:objectVar "iv" ]
+            [ gmeow:subjectVar "iv" ; gmeow:predicate gmeow:endedAtTime ; gmeow:objectVar "end" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "resume" ; gmeow:toPredicate schema:endDate ; gmeow:relation "<=" ;
+        gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the Employment relator and interval frame collapse to a flat schema:endDate; open-ended employments (no end) emit no endDate" ] .
+
+# Employment type value label → schema:employmentType string.
+gmeow:mapResumeEmploymentType a gmeow:ProjectionMapping ;
+    rdfs:label "Employment type → schema:employmentType"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "emp" ; gmeow:value "etypeLabel" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "emp" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Employment ]
+            [ gmeow:subjectVar "emp" ; gmeow:predicate gmeow:employmentType ; gmeow:objectVar "etype" ]
+            [ gmeow:subjectVar "etype" ; gmeow:predicate rdfs:label ; gmeow:objectVar "etypeLabel" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "resume" ; gmeow:toPredicate schema:employmentType ; gmeow:relation "<=" ;
+        gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the EmploymentType value vocabulary individual collapses to its rdfs:label string; the structural type distinction is lost" ] .
+
+# Employment-specific jobTitle projection. The general schema:jobTitle mapping in
+# schema-org.ttl already covers Membership→jobTitle; this branch is specific to
+# Employment and carries the "resume" profile so that CV consumers can opt into
+# the Employment-scoped projection explicitly.
+gmeow:mapResumeJobTitle a gmeow:ProjectionMapping ;
+    rdfs:label "Employment role → schema:jobTitle (resume profile)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "emp" ; gmeow:value "title" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "emp" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Employment ]
+            [ gmeow:subjectVar "emp" ; gmeow:predicate gmeow:membershipMember ; gmeow:objectVar "member" ]
+            [ gmeow:subjectVar "emp" ; gmeow:predicate gmeow:hasRole ; gmeow:objectVar "role" ]
+            [ gmeow:subjectVar "role" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( rdfs:label gmeow:name ) ] ;
+              gmeow:objectVar "title" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "resume" ; gmeow:toPredicate schema:jobTitle ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnMembershipToJobTitle ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the Employment relator (organization, period, compensation, type, standpoint) collapses to a flat schema:jobTitle literal; contested employment claims are not distinguished" ] .
+
+# Employment-specific worksFor projection.
+gmeow:mapResumeWorksFor a gmeow:ProjectionMapping ;
+    rdfs:label "Employment organization → schema:worksFor (resume profile)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "emp" ; gmeow:value "org" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "emp" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Employment ]
+            [ gmeow:subjectVar "emp" ; gmeow:predicate gmeow:membershipMember ; gmeow:objectVar "member" ]
+            [ gmeow:subjectVar "emp" ; gmeow:predicate gmeow:membershipOrganization ; gmeow:objectVar "org" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "resume" ; gmeow:toPredicate schema:worksFor ; gmeow:relation "<=" ;
+        gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the Employment relator and its contested claims collapse to a flat schema:worksFor edge" ] .

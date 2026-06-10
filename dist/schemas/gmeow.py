@@ -515,6 +515,16 @@ class DisclosurePolicyEnum(str, Enum):
     sensitive = "policySensitive"
 
 
+class EmploymentTypeEnum(str, Enum):
+    apprentice = "employmentTypeApprentice"
+    contract = "employmentTypeContract"
+    freelance = "employmentTypeFreelance"
+    full_time = "employmentTypeFullTime"
+    intern = "employmentTypeIntern"
+    part_time = "employmentTypePartTime"
+    volunteer = "employmentTypeVolunteer"
+
+
 class EntityEnum(str, Enum):
     raw_root_data_source = "procedureIngestionRawRoot"
 
@@ -552,6 +562,7 @@ class EventTypeEnum(str, Enum):
     first_communion = "eventTypeFirstCommunion"
     funeral = "eventTypeFuneral"
     graduation = "eventTypeGraduation"
+    hiring = "eventTypeHiring"
     image_annotation = "eventTypeImageAnnotation"
     image_capture = "eventTypeImageCapture"
     image_processing = "eventTypeImageProcessing"
@@ -568,14 +579,18 @@ class EventTypeEnum(str, Enum):
     ordination = "eventTypeOrdination"
     paltering = "eventTypePaltering"
     probate = "eventTypeProbate"
+    promotion = "eventTypePromotion"
     push = "eventTypePush"
     release = "eventTypeRelease"
     residence = "eventTypeResidence"
+    resignation = "eventTypeResignation"
     retirement = "eventTypeRetirement"
     self_deception = "eventTypeSelfDeception"
     separation = "eventTypeSeparation"
     supersession = "eventTypeSupersession"
     survey = "eventTypeSurvey"
+    termination = "eventTypeTermination"
+    transfer = "eventTypeTransfer"
     will = "eventTypeWill"
     work_conception = "eventTypeWorkConception"
 
@@ -1152,6 +1167,8 @@ class ParticipantRoleEnum(str, Enum):
     deceived = "roleDeceived"
     deceiver = "roleDeceiver"
     dupe = "roleDupe"
+    employee = "roleEmployee"
+    employer = "roleEmployer"
     intermediary = "roleIntermediary"
     officiant = "roleOfficiant"
     organizer = "roleOrganizer"
@@ -1553,6 +1570,14 @@ class SelectorTypeEnum(str, Enum):
     run_length_encoded = "selectorTypeRunLengthEncoded"
     SVG_path = "selectorTypeSvgPath"
     Web_Annotation_fragment = "selectorTypeWebAnnotationFragment"
+
+
+class SeniorityLevelEnum(str, Enum):
+    entry_level = "seniorityEntry"
+    executive = "seniorityExecutive"
+    lead = "seniorityLead"
+    mid_level = "seniorityMid"
+    senior = "senioritySenior"
 
 
 class SensitivityLevelEnum(str, Enum):
@@ -2604,6 +2629,14 @@ class EmailAddress(ContactPoint):
     localPart: Optional[str] = Field(default=None, title="local part", json_schema_extra = { "linkml_meta": {'domain': 'EmailAddress',
          'domain_of': ['EmailAddress'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/localPart'} })
+
+
+class EmploymentType(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/EmploymentType',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Employment Type'})
+
+    pass
 
 
 class Entity(ConfiguredBaseModel):
@@ -14773,6 +14806,40 @@ class Membership(ConfiguredBaseModel):
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/membershipOrganization'} })
 
 
+class Employment(Membership):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Employment',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Employment'})
+
+    employmentCompensation: Optional[list[MonetaryAmount]] = Field(default=None, title="employment compensation", json_schema_extra = { "linkml_meta": {'domain': 'Employment',
+         'domain_of': ['Employment'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/employmentCompensation'} })
+    employmentInterval: Optional[list[TimeInterval]] = Field(default=None, title="employment interval", json_schema_extra = { "linkml_meta": {'domain': 'Employment',
+         'domain_of': ['Employment'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/employmentInterval'} })
+    employmentOccupation: Optional[Occupation] = Field(default=None, title="employment occupation", json_schema_extra = { "linkml_meta": {'domain': 'Employment',
+         'domain_of': ['Employment'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/employmentOccupation'} })
+    employmentRole: Optional[Role] = Field(default=None, title="employment role", json_schema_extra = { "linkml_meta": {'domain': 'Employment',
+         'domain_of': ['Employment'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/employmentRole'} })
+    employmentSeniority: Optional[SeniorityLevel] = Field(default=None, title="employment seniority", json_schema_extra = { "linkml_meta": {'domain': 'Employment',
+         'domain_of': ['Employment'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/employmentSeniority'} })
+    employmentType: Optional[EmploymentType] = Field(default=None, title="employment type", json_schema_extra = { "linkml_meta": {'domain': 'Employment',
+         'domain_of': ['Employment'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/employmentType'} })
+    hasRole: Optional[list[Role]] = Field(default=None, title="has role", json_schema_extra = { "linkml_meta": {'domain': 'Membership',
+         'domain_of': ['Membership'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRole'} })
+    membershipMember: Optional[Agent] = Field(default=None, title="membership member", json_schema_extra = { "linkml_meta": {'domain': 'Membership',
+         'domain_of': ['Membership'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/membershipMember'} })
+    membershipOrganization: Optional[Organization] = Field(default=None, title="membership organization", json_schema_extra = { "linkml_meta": {'domain': 'Membership',
+         'domain_of': ['Membership'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/membershipOrganization'} })
+
+
 class Merge(Activity):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Merge',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -23477,6 +23544,14 @@ class SelectorType(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SelectorType',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Selector Type'})
+
+    pass
+
+
+class SeniorityLevel(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SeniorityLevel',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Seniority Level'})
 
     pass
 
@@ -34662,6 +34737,7 @@ DerivationKind.model_rebuild()
 Determinacy.model_rebuild()
 DisclosurePolicy.model_rebuild()
 EmailAddress.model_rebuild()
+EmploymentType.model_rebuild()
 Entity.model_rebuild()
 Asset.model_rebuild()
 BlockchainAccount.model_rebuild()
@@ -34783,6 +34859,7 @@ MaximViolationType.model_rebuild()
 MeasuredValue.model_rebuild()
 MediaObject.model_rebuild()
 Membership.model_rebuild()
+Employment.model_rebuild()
 Merge.model_rebuild()
 MergeRequest.model_rebuild()
 Message.model_rebuild()
@@ -34897,6 +34974,7 @@ ScriptLanguageAttribution.model_rebuild()
 ScriptRole.model_rebuild()
 Selector.model_rebuild()
 SelectorType.model_rebuild()
+SeniorityLevel.model_rebuild()
 SensitivityLevel.model_rebuild()
 Sensor.model_rebuild()
 SensorPlatform.model_rebuild()

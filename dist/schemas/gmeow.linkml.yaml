@@ -633,6 +633,20 @@ classes:
     - sender
     - subjectPrefix
     - to
+  Employment:
+    class_uri: https://blackcatinformatics.ca/gmeow/Employment
+    title: Employment
+    is_a: Membership
+    slots:
+    - employmentCompensation
+    - employmentInterval
+    - employmentOccupation
+    - employmentRole
+    - employmentSeniority
+    - employmentType
+  EmploymentType:
+    class_uri: https://blackcatinformatics.ca/gmeow/EmploymentType
+    title: Employment Type
   Entity:
     class_uri: https://blackcatinformatics.ca/gmeow/Entity
     title: Entity
@@ -2014,6 +2028,9 @@ classes:
   SelectorType:
     class_uri: https://blackcatinformatics.ca/gmeow/SelectorType
     title: Selector Type
+  SeniorityLevel:
+    class_uri: https://blackcatinformatics.ca/gmeow/SeniorityLevel
+    title: Seniority Level
   SensitivityLevel:
     class_uri: https://blackcatinformatics.ca/gmeow/SensitivityLevel
     title: Sensitivity Level
@@ -3638,6 +3655,42 @@ slots:
     range: Expression
     domain: Manifestation
     multivalued: true
+  employmentCompensation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/employmentCompensation
+    title: employment compensation
+    range: MonetaryAmount
+    domain: Employment
+    multivalued: true
+  employmentInterval:
+    slot_uri: https://blackcatinformatics.ca/gmeow/employmentInterval
+    title: employment interval
+    range: TimeInterval
+    domain: Employment
+    multivalued: true
+  employmentOccupation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/employmentOccupation
+    title: employment occupation
+    range: Occupation
+    domain: Employment
+    multivalued: false
+  employmentRole:
+    slot_uri: https://blackcatinformatics.ca/gmeow/employmentRole
+    title: employment role
+    range: Role
+    domain: Employment
+    multivalued: false
+  employmentSeniority:
+    slot_uri: https://blackcatinformatics.ca/gmeow/employmentSeniority
+    title: employment seniority
+    range: SeniorityLevel
+    domain: Employment
+    multivalued: false
+  employmentType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/employmentType
+    title: employment type
+    range: EmploymentType
+    domain: Employment
+    multivalued: false
   endedAtTime:
     slot_uri: https://blackcatinformatics.ca/gmeow/endedAtTime
     title: ended at time
@@ -3924,6 +3977,11 @@ slots:
     title: form type
     range: LexicalFormType
     domain: LexicalForm
+    multivalued: true
+  foundedOn:
+    slot_uri: https://blackcatinformatics.ca/gmeow/foundedOn
+    title: founded on
+    range: Agreement
     multivalued: true
   frameCalendarSystem:
     slot_uri: https://blackcatinformatics.ca/gmeow/frameCalendarSystem
@@ -8818,6 +8876,30 @@ enums:
       policySensitive:
         meaning: https://blackcatinformatics.ca/gmeow/policySensitive
         title: sensitive
+  EmploymentTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/EmploymentType
+    permissible_values:
+      employmentTypeApprentice:
+        meaning: https://blackcatinformatics.ca/gmeow/employmentTypeApprentice
+        title: apprentice
+      employmentTypeContract:
+        meaning: https://blackcatinformatics.ca/gmeow/employmentTypeContract
+        title: contract
+      employmentTypeFreelance:
+        meaning: https://blackcatinformatics.ca/gmeow/employmentTypeFreelance
+        title: freelance
+      employmentTypeFullTime:
+        meaning: https://blackcatinformatics.ca/gmeow/employmentTypeFullTime
+        title: full-time
+      employmentTypeIntern:
+        meaning: https://blackcatinformatics.ca/gmeow/employmentTypeIntern
+        title: intern
+      employmentTypePartTime:
+        meaning: https://blackcatinformatics.ca/gmeow/employmentTypePartTime
+        title: part-time
+      employmentTypeVolunteer:
+        meaning: https://blackcatinformatics.ca/gmeow/employmentTypeVolunteer
+        title: volunteer
   EntityEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Entity
     permissible_values:
@@ -8923,6 +9005,9 @@ enums:
       eventTypeGraduation:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeGraduation
         title: graduation
+      eventTypeHiring:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeHiring
+        title: hiring
       eventTypeImageAnnotation:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeImageAnnotation
         title: image annotation
@@ -8971,6 +9056,9 @@ enums:
       eventTypeProbate:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeProbate
         title: probate
+      eventTypePromotion:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypePromotion
+        title: promotion
       eventTypePush:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypePush
         title: push
@@ -8980,6 +9068,9 @@ enums:
       eventTypeResidence:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeResidence
         title: residence
+      eventTypeResignation:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeResignation
+        title: resignation
       eventTypeRetirement:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeRetirement
         title: retirement
@@ -8995,6 +9086,12 @@ enums:
       eventTypeSurvey:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeSurvey
         title: survey
+      eventTypeTermination:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeTermination
+        title: termination
+      eventTypeTransfer:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeTransfer
+        title: transfer
       eventTypeWill:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeWill
         title: will
@@ -10436,6 +10533,12 @@ enums:
       roleDupe:
         meaning: https://blackcatinformatics.ca/gmeow/roleDupe
         title: dupe
+      roleEmployee:
+        meaning: https://blackcatinformatics.ca/gmeow/roleEmployee
+        title: employee
+      roleEmployer:
+        meaning: https://blackcatinformatics.ca/gmeow/roleEmployer
+        title: employer
       roleIntermediary:
         meaning: https://blackcatinformatics.ca/gmeow/roleIntermediary
         title: intermediary
@@ -11483,6 +11586,24 @@ enums:
       selectorTypeWebAnnotationFragment:
         meaning: https://blackcatinformatics.ca/gmeow/selectorTypeWebAnnotationFragment
         title: Web Annotation fragment
+  SeniorityLevelEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/SeniorityLevel
+    permissible_values:
+      seniorityEntry:
+        meaning: https://blackcatinformatics.ca/gmeow/seniorityEntry
+        title: entry-level
+      seniorityExecutive:
+        meaning: https://blackcatinformatics.ca/gmeow/seniorityExecutive
+        title: executive
+      seniorityLead:
+        meaning: https://blackcatinformatics.ca/gmeow/seniorityLead
+        title: lead
+      seniorityMid:
+        meaning: https://blackcatinformatics.ca/gmeow/seniorityMid
+        title: mid-level
+      senioritySenior:
+        meaning: https://blackcatinformatics.ca/gmeow/senioritySenior
+        title: senior
   SensitivityLevelEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/SensitivityLevel
     permissible_values:

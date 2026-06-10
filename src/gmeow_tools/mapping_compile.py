@@ -104,6 +104,7 @@ _PROFILES = (
     "exif",
     "doap",
     "codemeta",
+    "resume",
 )
 _FNO_FILE = "functions.fno.ttl"
 #: Hand-authored FnO file the compiler reads (for the lint) but never writes.
