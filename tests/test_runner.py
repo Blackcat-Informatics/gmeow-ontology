@@ -34,18 +34,24 @@ class FakeTimeoutExpired(subprocess.TimeoutExpired):
 
 
 def test_docker_available_returns_false_on_timeout() -> None:
-    with patch(
-        "gmeow_tools.runner.subprocess.run",
-        side_effect=subprocess.TimeoutExpired(["docker", "info"], 15.0),
+    with (
+        patch("gmeow_tools.runner.shutil.which", return_value="/bin/docker"),
+        patch(
+            "gmeow_tools.runner.subprocess.run",
+            side_effect=subprocess.TimeoutExpired(["docker", "info"], 15.0),
+        ),
     ):
         assert docker_available() is False
 
 
 def test_image_available_returns_false_on_timeout() -> None:
-    with patch(
-        "gmeow_tools.runner.subprocess.run",
-        side_effect=subprocess.TimeoutExpired(
-            ["docker", "image", "inspect", "x"], 15.0
+    with (
+        patch("gmeow_tools.runner.shutil.which", return_value="/bin/docker"),
+        patch(
+            "gmeow_tools.runner.subprocess.run",
+            side_effect=subprocess.TimeoutExpired(
+                ["docker", "image", "inspect", "x"], 15.0
+            ),
         ),
     ):
         assert image_available("x") is False
@@ -89,6 +95,9 @@ def test_run_container_kills_and_raises_on_timeout() -> None:
     assert docker_calls[2][1] == "run"
     assert docker_calls[3][1] == "kill"
     assert docker_calls[4][1:3] == ["rm", "-f"]
+    run_name = docker_calls[2][docker_calls[2].index("--name") + 1]
+    assert docker_calls[3][2] == run_name
+    assert docker_calls[4][3] == run_name
 
 
 def test_run_container_kills_and_raises_on_timeout_bytes_output() -> None:
@@ -113,3 +122,6 @@ def test_run_container_kills_and_raises_on_timeout_bytes_output() -> None:
     assert docker_calls[2][1] == "run"
     assert docker_calls[3][1] == "kill"
     assert docker_calls[4][1:3] == ["rm", "-f"]
+    run_name = docker_calls[2][docker_calls[2].index("--name") + 1]
+    assert docker_calls[3][2] == run_name
+    assert docker_calls[4][3] == run_name

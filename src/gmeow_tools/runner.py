@@ -80,7 +80,7 @@ def image_available(image: str, timeout: float = 15.0) -> bool:
 
 def pull_image(image: str, timeout: float = 300.0) -> None:
     """Pull a Docker image, raising :class:`ToolUnavailableError` on failure."""
-    if not docker_available():
+    if not docker_available(timeout=timeout):
         raise ToolUnavailableError("Docker is not available")
     try:
         result = subprocess.run(
@@ -143,9 +143,10 @@ def run_container(
         ToolExecutionError: If ``check`` is set and the command exits non-zero,
             or if the container times out.
     """
-    if not docker_available():
+    preflight_timeout = 15.0 if timeout is None else timeout
+    if not docker_available(timeout=preflight_timeout):
         raise ToolUnavailableError("Docker is not available")
-    if not image_available(image):
+    if not image_available(image, timeout=preflight_timeout):
         raise ToolUnavailableError(f"Docker image not present locally: {image}")
 
     name = _container_name()

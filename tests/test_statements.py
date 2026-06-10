@@ -216,7 +216,7 @@ def test_no_preview_language_remains() -> None:
 def test_rdf12_hard_fails_without_jena(monkeypatch: pytest.MonkeyPatch) -> None:
     import gmeow_tools.runner as runner
 
-    monkeypatch.setattr(runner, "image_available", lambda _image: False)
+    monkeypatch.setattr(runner, "image_available", lambda _image, **_kw: False)
     from gmeow_tools.cli import app
 
     result = CliRunner().invoke(app, ["compile-statements"])

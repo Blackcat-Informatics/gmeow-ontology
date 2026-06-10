@@ -187,12 +187,28 @@ make regenerate
 
 ### Pull review feedback
 
-Use the GitHub CLI to inspect all comments and reviews:
+Use the GitHub CLI to inspect all comments and reviews. **Important distinction:**
+
+* `gh pr view --json comments` only returns **top-level PR comments** (not inline review threads).
+* `gh api repos/<owner>/<repo>/pulls/<PR_NUMBER>/comments` returns **inline review comments** — this is where most actionable feedback lives.
+
+Recommended inspection sequence:
 
 ```bash
+# 1. Top-level review summaries (human + bot overview)
 gh pr view <PR_NUMBER> --json reviews
+
+# 2. Inline review comments with file/line context (the actionable items)
 gh api repos/<owner>/<repo>/pulls/<PR_NUMBER>/comments \
     | jq -r '.[] | "File: \(.path)\nLine: \(.line)\nBody: \(.body)\n---"'
+
+# 3. Compact scan: sort by recency to spot new feedback quickly
+gh api repos/<owner>/<repo>/pulls/<PR_NUMBER>/comments \
+    | jq -r '.[] | "\(.user.login) | \(.path):\(.line) | \(.body[:200])"'
+
+# 4. Filter to a specific file/line when chasing a known issue
+gh api repos/<owner>/<repo>/pulls/<PR_NUMBER>/comments \
+    | jq -r '.[] | select(.path == "src/gmeow_tools/runner.py" and .line == 98) | .body'
 ```
 
 Read both automated (CodeRabbit, Gemini) and human reviews. Treat actionable automated feedback as binding unless it contradicts the ontology design principles in [CONSTITUTION.md](./CONSTITUTION.md).

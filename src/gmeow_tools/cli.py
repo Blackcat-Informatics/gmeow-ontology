@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import httpx
 import typer
 from rich.console import Console
 
@@ -508,7 +509,7 @@ def wikidata(
     if existence:
         try:
             statuses = check_existence(syntax.valid)
-        except Exception as exc:  # network failure → visible, non-fatal skip
+        except httpx.HTTPError as exc:  # network failure → visible, non-fatal skip
             err_console.print(f"[yellow]existence check skipped: {exc}[/yellow]")
             return
         bad = {k: v for k, v in statuses.items() if v is not ExistenceStatus.OK}
@@ -915,7 +916,9 @@ def quality(
     try:
         report = run_oops(merged.read_text(encoding="utf-8"))
         console.print(f"[green]✓ OOPS! returned {len(report)} bytes[/green]")
-    except Exception as exc:  # network/service failure → visible skip
+    except (
+        httpx.HTTPError
+    ) as exc:  # network/service failure → raise if --strict, else skip
         if strict:
             raise _fail(f"OOPS! failed: {exc}") from exc
         err_console.print(f"[yellow]OOPS! skipped: {exc}[/yellow]")
@@ -927,7 +930,7 @@ def quality(
                 f"[green]✓ FOOPS! score {result.score:.2f} "
                 f"({result.checks_passed}/{result.checks_total})[/green]"
             )
-        except Exception as exc:
+        except httpx.HTTPError as exc:
             if strict:
                 raise _fail(f"FOOPS! failed: {exc}") from exc
             err_console.print(f"[yellow]FOOPS! skipped: {exc}[/yellow]")
