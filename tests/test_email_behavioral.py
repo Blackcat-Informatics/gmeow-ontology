@@ -145,6 +145,7 @@ def test_fixture_dsn_has_overlapping_kinds() -> None:
     for r in results:
         assert isinstance(r, ResultRow)
         kinds.add(str(r[0]))
+    assert len(kinds) == 3, f"Expected exactly 3 kinds, found {len(kinds)}"
     assert str(kind_dsn) in kinds
     assert str(kind_bounce) in kinds
     assert str(kind_auto) in kinds
