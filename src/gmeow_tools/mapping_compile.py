@@ -79,6 +79,9 @@ _PROFILES = (
     "geosparql",
     "qb",
     "ical",
+    # Calendar / scheduling slice (#62)
+    "jcal",
+    "schema-org-schedule",
     "owl-time",
     "odrl",
     "cc",

@@ -80,6 +80,14 @@ enum AttestationTypeEnum
     attestationTypeVerifiableCredential
   }
 
+enum AvailabilityStatusEnum
+  {
+    availabilityStatusBusy
+    availabilityStatusFree
+    availabilityStatusOutOfOffice
+    availabilityStatusTentative
+  }
+
 enum AxisEnum
   {
     axisAddressLocality
@@ -573,6 +581,12 @@ enum EvidenceClassEnum
     evidenceVERIFIED
   }
 
+enum ExceptionTypeEnum
+  {
+    exceptionTypeCancellation
+    exceptionTypeRescheduling
+  }
+
 enum ExecutionStatusEnum
   {
     executionStatusCancelled
@@ -739,6 +753,14 @@ enum HonorificPositionEnum
   {
     honorificPositionPrefix
     honorificPositionSuffix
+  }
+
+enum InvitationStatusEnum
+  {
+    invitationStatusAccepted
+    invitationStatusDeclined
+    invitationStatusNeedsAction
+    invitationStatusTentative
   }
 
 enum InvoiceStatusEnum
@@ -1471,6 +1493,13 @@ enum RegulatoryOverlayTypeEnum
     overlayTypeZoning
   }
 
+enum ReminderActionEnum
+  {
+    reminderActionAudio
+    reminderActionDisplay
+    reminderActionEmail
+  }
+
 enum RepositoryTypeEnum
   {
     repoTypeFossil
@@ -1568,6 +1597,14 @@ enum RouteKindEnum
     routeKindSocial
     routeKindTransit
     routeKindWalking
+  }
+
+enum RsvpStatusEnum
+  {
+    rsvpStatusAccepted
+    rsvpStatusDeclined
+    rsvpStatusNeedsAction
+    rsvpStatusTentative
   }
 
 enum SceneRelationTypeEnum
@@ -1772,6 +1809,14 @@ enum TagEnum
     tagUrgent
   }
 
+enum TaskStatusEnum
+  {
+    taskStatusCancelled
+    taskStatusCompleted
+    taskStatusInProgress
+    taskStatusNotStarted
+  }
+
 enum TemporalFrameEnum
   {
     temporalFrameTAI
@@ -1969,6 +2014,7 @@ type Activity
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -2484,6 +2530,17 @@ type AuthorIdentity
     detectedMediaType: String
     authorIdentityString: String
     canonicalizedIdentity: [Agent]
+  }
+
+type Availability
+  {
+    availabilityAgent: [Agent]
+    availabilitySlot: TimeInterval
+    availabilityStatus: [AvailabilityStatus]
+  }
+
+type AvailabilityStatus
+  {
   }
 
 type Axis
@@ -3009,6 +3066,7 @@ type BuildActivity
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -3118,6 +3176,12 @@ type CadastralReference
 
 type CadastralReferenceType
   {
+  }
+
+type Calendar
+  {
+    calendarMember: [Event]
+    calendarTimeZone: TimeZone
   }
 
 type CalendarSystem
@@ -3335,6 +3399,7 @@ type CodeReview
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -3529,6 +3594,7 @@ type Commit
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -4716,6 +4782,7 @@ type Event
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -4740,6 +4807,24 @@ type Event
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+  }
+
+type EventInvitation
+  {
+    hasAgreementName: [AgreementName]
+    hasParty: [Agent]
+    invitationEvent: Event
+    invitationInvitee: [Agent]
+    invitationStatus: [InvitationStatus]
+    rsvpStatus: [RsvpStatus]
+  }
+
+type EventSchedule
+  {
+    scheduleOccurrence: [Event]
+    scheduleRecurrenceRule: [RecurrenceRule]
+    scheduleTemplateEvent: Event
+    scheduleTimeZone: TimeZone
   }
 
 type EventSeries
@@ -4858,6 +4943,10 @@ type EvidenceSpan
     detectedMediaType: String
   }
 
+type ExceptionType
+  {
+  }
+
 type Execution
   {
     after: [Event]
@@ -4876,6 +4965,7 @@ type Execution
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -5145,6 +5235,7 @@ type FinancialTransaction
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -5685,6 +5776,7 @@ type ImportActivity
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -5850,6 +5942,10 @@ type InterpersonalRelationship
   {
     relationshipInterval: [TimeInterval]
     relationshipParty: [Agent]
+  }
+
+type InvitationStatus
+  {
   }
 
 type Invoice
@@ -6106,6 +6202,7 @@ type JournalEntry
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -6244,6 +6341,7 @@ type LanguageChangeEvent
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -6295,6 +6393,7 @@ type LanguageCreation
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -6563,6 +6662,7 @@ type LedgerEvent
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -6807,6 +6907,7 @@ type LifeEvent
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -7525,6 +7626,7 @@ type Merge
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -8316,6 +8418,7 @@ type ObservationalActivity
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -8776,6 +8879,7 @@ type Payment
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -9669,6 +9773,7 @@ type Push
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -10149,6 +10254,7 @@ type Release
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]
@@ -10177,6 +10283,65 @@ type Release
     releaseOf: Project
     releaseTag: [Tag]
     releaseVersion: String
+  }
+
+type Reminder
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    reminderAction: ReminderAction
+    reminderTarget: Event
+    reminderTrigger: String
+  }
+
+type ReminderAction
+  {
   }
 
 type Repository
@@ -10400,6 +10565,10 @@ type RouteKind
   {
   }
 
+type RsvpStatus
+  {
+  }
+
 type Rule
   {
     ruleAction: RightsAction
@@ -10473,6 +10642,14 @@ type SceneGraphEdge
 
 type SceneRelationType
   {
+  }
+
+type ScheduleException
+  {
+    exceptionOriginalDate: String
+    exceptionReplacementEvent: Event
+    exceptionSchedule: EventSchedule
+    exceptionType: ExceptionType
   }
 
 type ScriptLanguageAttribution
@@ -12523,6 +12700,59 @@ type TagScheme
     detectedMediaType: String
   }
 
+type Task
+  {
+    after: [Event]
+    before: [Event]
+    coincidesWith: [Event]
+    contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
+    during: [Event]
+    earliestStart: String
+    eventAspect: [GrammaticalAspect]
+    eventInterval: [TimeInterval]
+    eventLocation: [Location]
+    eventObservation: [Observation]
+    eventSpacetime: [LocationState]
+    eventTemporalFrame: TemporalFrame
+    eventTense: [GrammaticalTense]
+    eventTime: String
+    eventTimeZone: TimeZone
+    eventTrajectory: [Trajectory]
+    eventType: [EventType]
+    finishedBy: [Event]
+    finishes: [Event]
+    hasDuration: [Duration]
+    hasParticipant: [Agent]
+    hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
+    latestEnd: String
+    maximViolationType: [MaximViolationType]
+    meets: [Event]
+    metBy: [Event]
+    occurrenceOfSeries: [EventSeries]
+    overlappedBy: [Event]
+    overlaps: [Event]
+    predecessorOrganization: [Organization]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
+    startedBy: [Event]
+    starts: [Event]
+    subEventOf: [Event]
+    successorOrganization: [Organization]
+    temporalPrecision: [TemporalPrecision]
+    taskDueDate: String
+    taskPriority: Int
+    taskRecurrenceUntilDone: Boolean
+    taskStatus: [TaskStatus]
+  }
+
+type TaskStatus
+  {
+  }
+
 type TelephoneNumber
   {
   }
@@ -12842,6 +13072,59 @@ type TimeScopedRelation
     duringInterval: [TimeInterval]
   }
 
+type TimeZone
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    timeZoneIanaId: String
+  }
+
 type Trademark
   {
     registrationNumber: String
@@ -13096,6 +13379,7 @@ type VerificationActivity
     eventTemporalFrame: TemporalFrame
     eventTense: [GrammaticalTense]
     eventTime: String
+    eventTimeZone: TimeZone
     eventTrajectory: [Trajectory]
     eventType: [EventType]
     finishedBy: [Event]

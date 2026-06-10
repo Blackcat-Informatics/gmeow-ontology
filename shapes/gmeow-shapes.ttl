@@ -2919,7 +2919,6 @@ gmeow:SceneGraphEdgeShape
         sh:severity sh:Violation ;
         sh:message "When present, gmeow:sceneConfidence must be a decimal in [0.0, 1.0]." ;
     ] .
-
 # =========================================================================== #
 # MediaObject colourspace warning (issue #22 follow-up)
 # =========================================================================== #
@@ -2939,4 +2938,164 @@ gmeow:MediaObjectColourspaceShape
         sh:maxCount 1 ;
         sh:severity sh:Violation ;
         sh:message "A MediaObject must have at most one colourspace per graph/source." ;
+    ] .
+
+
+
+# =========================================================================== #
+# Calendar / Scheduling module (#62)
+# =========================================================================== #
+
+# An EventSchedule must anchor at least a template event or a recurrence rule.
+gmeow:ScheduleHasRuleShape
+    a sh:NodeShape ;
+    rdfs:label "Schedule has rule or template shape" ;
+    sh:targetClass gmeow:EventSchedule ;
+    sh:or (
+        [ sh:path gmeow:scheduleTemplateEvent ; sh:minCount 1 ; sh:class gmeow:Event ]
+        [ sh:path gmeow:scheduleRecurrenceRule ; sh:minCount 1 ; sh:class gmeow:RecurrenceRule ]
+    ) ;
+    sh:severity sh:Violation ;
+    sh:message "An EventSchedule must have at least one scheduleTemplateEvent or scheduleRecurrenceRule." .
+
+# An EventInvitation must have at least one invitee and exactly one invitationStatus.
+gmeow:InvitationHasInviteeAndStatusShape
+    a sh:NodeShape ;
+    rdfs:label "Invitation has invitee and status shape" ;
+    sh:targetClass gmeow:EventInvitation ;
+    sh:property [
+        sh:path gmeow:invitationEvent ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:Event ;
+        sh:severity sh:Violation ;
+        sh:message "An EventInvitation must have exactly one invitationEvent (Event)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:invitationInvitee ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An EventInvitation must have at least one invitee (gmeow:invitationInvitee)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:invitationStatus ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:InvitationStatus ;
+        sh:severity sh:Violation ;
+        sh:message "An EventInvitation must have exactly one invitationStatus." ;
+    ] .
+
+# A Task must have exactly one taskStatus.
+gmeow:TaskHasStatusShape
+    a sh:NodeShape ;
+    rdfs:label "Task has status shape" ;
+    sh:targetClass gmeow:Task ;
+    sh:property [
+        sh:path gmeow:taskStatus ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:TaskStatus ;
+        sh:severity sh:Violation ;
+        sh:message "A Task must have exactly one taskStatus." ;
+    ] .
+
+# Suppression, never erasure (Principle 10): a cancelled occurrence should be
+# suppressed rather than deleted. Warning — a source may lag on setting the flag.
+gmeow:CancelledOccurrenceSuppressionShape
+    a sh:NodeShape ;
+    rdfs:label "Cancelled occurrence suppression shape" ;
+    sh:targetClass gmeow:Event ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        sh:message "A cancelled occurrence (one with a ScheduleException of type exceptionTypeCancellation) should set gmeow:displayable false — suppressed from display, never deleted." ;
+        sh:select """
+            SELECT $this WHERE {
+                ?exception <https://blackcatinformatics.ca/gmeow/exceptionType> <https://blackcatinformatics.ca/gmeow/exceptionTypeCancellation> .
+                ?exception <https://blackcatinformatics.ca/gmeow/exceptionSchedule> ?schedule .
+                ?exception <https://blackcatinformatics.ca/gmeow/exceptionOriginalDate> ?date .
+                ?schedule <https://blackcatinformatics.ca/gmeow/scheduleOccurrence> $this .
+                $this <https://blackcatinformatics.ca/gmeow/eventTime> ?date .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/displayable> false
+                }
+            }
+        """ ;
+    ] .
+
+# An Availability must have exactly one slot and one status.
+gmeow:AvailabilityHasIntervalAndStatusShape
+    a sh:NodeShape ;
+    rdfs:label "Availability has interval and status shape" ;
+    sh:targetClass gmeow:Availability ;
+    sh:property [
+        sh:path gmeow:availabilityAgent ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:Agent ;
+        sh:severity sh:Violation ;
+        sh:message "An Availability must have exactly one availabilityAgent (Agent)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:availabilitySlot ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:TimeInterval ;
+        sh:severity sh:Violation ;
+        sh:message "An Availability must have exactly one availabilitySlot (TimeInterval)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:availabilityStatus ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:AvailabilityStatus ;
+        sh:severity sh:Violation ;
+        sh:message "An Availability must have exactly one availabilityStatus." ;
+    ] .
+
+# A Reminder must have exactly one trigger and one action.
+gmeow:ReminderHasTriggerAndActionShape
+    a sh:NodeShape ;
+    rdfs:label "Reminder has trigger and action shape" ;
+    sh:targetClass gmeow:Reminder ;
+    sh:property [
+        sh:path gmeow:reminderTarget ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:Event ;
+        sh:severity sh:Violation ;
+        sh:message "A Reminder must have exactly one reminderTarget (Event)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:reminderTrigger ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:or (
+            [ sh:datatype xsd:duration ]
+            [ sh:datatype xsd:dateTime ]
+        ) ;
+        sh:severity sh:Violation ;
+        sh:message "A Reminder must have exactly one reminderTrigger (xsd:duration or xsd:dateTime)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:reminderAction ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:ReminderAction ;
+        sh:severity sh:Violation ;
+        sh:message "A Reminder must have exactly one reminderAction." ;
+    ] .
+
+# A TimeZone must have exactly one IANA id.
+gmeow:TimeZoneHasIanaIdShape
+    a sh:NodeShape ;
+    rdfs:label "Time zone has IANA id shape" ;
+    sh:targetClass gmeow:TimeZone ;
+    sh:property [
+        sh:path gmeow:timeZoneIanaId ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A TimeZone must have exactly one timeZoneIanaId." ;
     ] .
