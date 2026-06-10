@@ -149,13 +149,15 @@ gmeow:tagInScheme
 # Seed tag individuals (illustrative anchors, not a fence)
 # --------------------------------------------------------------------------- #
 
-gmeow:tagUrgent  a gmeow:Tag ; rdfs:label "urgent"@x-gmeow-english .
-gmeow:tagUrgent skos:definition "The urgent tag — a keyword or marker attached to an entity for categorization or workflow."@x-gmeow-english ;
+gmeow:tagUrgent  a gmeow:Tag ; rdfs:label "urgent"@x-gmeow-english ;
+    skos:definition "A tag indicating that the tagged entity requires prompt attention or has high priority relative to other items."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/tags> .
-gmeow:tagTodo    a gmeow:Tag ; rdfs:label "todo"@x-gmeow-english .
-gmeow:tagTodo skos:definition "The todo tag — a keyword or marker attached to an entity for categorization or workflow."@x-gmeow-english ;
+gmeow:tagTodo    a gmeow:Tag ; rdfs:label "todo"@x-gmeow-english ;
+    skos:definition "A tag marking the tagged entity as an action item or task yet to be completed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/tags> .
-gmeow:tagReview  a gmeow:Tag ; rdfs:label "review"@x-gmeow-english .
+gmeow:tagReview  a gmeow:Tag ; rdfs:label "review"@x-gmeow-english ;
+    skos:definition "A tag indicating that the tagged entity should be examined, evaluated, or reassessed by a person or process."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/tags> .
 
 # --------------------------------------------------------------------------- #
 # AXIOMATIZED DOCTRINE — relator mediation for ELK visibility
@@ -165,5 +167,3 @@ gmeow:Tagging rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:taggingTagged ; owl:someValuesFrom gmeow:Entity ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:taggingTag ; owl:someValuesFrom gmeow:Tag ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:taggingTagger ; owl:someValuesFrom gmeow:Agent ] .
-gmeow:tagReview skos:definition "The review tag — a keyword or marker attached to an entity for categorization or workflow."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/tags> .

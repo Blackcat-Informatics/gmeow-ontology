@@ -21,32 +21,17 @@ from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.validate import structural_lint
 
 
-def _gmeow_terms(graph: Graph) -> set[URIRef]:
-    """Return every GMEOW-namespaced term that has an rdf:type."""
-    terms: set[URIRef] = set()
-    for term in set(graph.subjects()):
-        if not isinstance(term, URIRef):
-            continue
-        s = str(term)
-        if not (s.startswith(NAMESPACE) or s == ONTOLOGY_IRI):
-            continue
-        if any(graph.objects(term, RDF.type)):
-            terms.add(term)
-    return terms
+def _assert_lint_ok(graph: Graph, message: str) -> None:
+    """Run structural_lint on *graph* and assert it passes with a readable msg."""
+    result = structural_lint(graph)
+    assert result.ok, (
+        f"{message}\nErrors:\n" + "\n".join(result.errors) if result.errors else message
+    )
 
 
 def test_merged_ontology_has_no_missing_annotations() -> None:
     """Every GMEOW term in the merged ontology carries the required triple."""
-    graph = load_merged_graph()
-    missing: list[str] = []
-    for term in _gmeow_terms(graph):
-        if (term, RDFS.label, None) not in graph:
-            missing.append(f"{term} missing rdfs:label")
-        if (term, SKOS.definition, None) not in graph:
-            missing.append(f"{term} missing skos:definition")
-        if (term, RDFS.isDefinedBy, None) not in graph:
-            missing.append(f"{term} missing rdfs:isDefinedBy")
-    assert not missing, "Missing annotations:\n" + "\n".join(missing)
+    _assert_lint_ok(load_merged_graph(), "Merged ontology has missing annotations")
 
 
 def test_structural_lint_flags_missing_label_definition_and_isdefinedby() -> None:
@@ -98,18 +83,7 @@ def test_mapping_dsl_vocabulary_has_no_missing_annotations() -> None:
     """
     graph = Graph()
     graph.parse(MAPPING_DSL_DIR / "vocabulary.ttl", format="turtle")
-
-    missing: list[str] = []
-    for term in _gmeow_terms(graph):
-        if (term, RDFS.label, None) not in graph:
-            missing.append(f"{term} missing rdfs:label")
-        if (term, SKOS.definition, None) not in graph:
-            missing.append(f"{term} missing skos:definition")
-        if (term, RDFS.isDefinedBy, None) not in graph:
-            missing.append(f"{term} missing rdfs:isDefinedBy")
-    assert not missing, "Missing annotations in mapping DSL vocabulary:\n" + "\n".join(
-        missing
-    )
+    _assert_lint_ok(graph, "Mapping DSL vocabulary has missing annotations")
 
 
 def test_statement_dsl_vocabulary_has_no_missing_annotations() -> None:
@@ -120,15 +94,4 @@ def test_statement_dsl_vocabulary_has_no_missing_annotations() -> None:
     """
     graph = Graph()
     graph.parse(STATEMENT_DSL_DIR / "vocabulary.ttl", format="turtle")
-
-    missing: list[str] = []
-    for term in _gmeow_terms(graph):
-        if (term, RDFS.label, None) not in graph:
-            missing.append(f"{term} missing rdfs:label")
-        if (term, SKOS.definition, None) not in graph:
-            missing.append(f"{term} missing skos:definition")
-        if (term, RDFS.isDefinedBy, None) not in graph:
-            missing.append(f"{term} missing rdfs:isDefinedBy")
-    assert not missing, (
-        "Missing annotations in statement DSL vocabulary:\n" + "\n".join(missing)
-    )
+    _assert_lint_ok(graph, "Statement DSL vocabulary has missing annotations")

@@ -914,15 +914,15 @@ gmeow:pronounOneOne a gmeow:PronounSet ; rdfs:label "one/one (generic)"@x-gmeow-
 gmeow:pronounOneOne skos:definition "The one/one pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounAny a gmeow:PronounSet ; rdfs:label "any pronouns"@x-gmeow-english .
-gmeow:pronounAny skos:definition "The any pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+gmeow:pronounAny skos:definition "A non-specifying pronoun stance indicating that any third-person pronoun set is acceptable when referring to the entity."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounAsk a gmeow:PronounSet ; rdfs:label "ask me"@x-gmeow-english .
-gmeow:pronounAsk skos:definition "The ask pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+gmeow:pronounAsk skos:definition "A non-specifying pronoun stance indicating that the speaker or writer should ask the entity which pronouns to use."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 gmeow:pronounNameOnly a gmeow:PronounSet ; rdfs:label "use my name (no pronouns)"@x-gmeow-english ;
     skos:scopeNote "Nounself / name-in-place-of-pronoun: the person prefers their name be used rather than any third-person pronoun. Distinct from pronounAny (any set is acceptable) and pronounAsk (ask first). Carries no five forms by design — it asserts the ABSENCE of a pronoun set, not a particular one."@x-gmeow-english .
 
-gmeow:pronounNameOnly skos:definition "The name/only pronoun set — a third-person pronoun paradigm used to refer to an entity in discourse."@x-gmeow-english ;
+gmeow:pronounNameOnly skos:definition "A non-specifying pronoun stance indicating that the entity prefers no third-person pronouns and requests that their name be used in place of any pronoun."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/names> .
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE (#38) — relator mediation for the NameUsage relator.

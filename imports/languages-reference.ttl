@@ -12,6 +12,8 @@
 <https://blackcatinformatics.ca/gmeow/imports/languages-reference>
     a owl:Ontology ;
     rdfs:label "GMEOW Languages Reference Catalog"@x-gmeow-english ;
+    skos:definition "Standard natural and programming languages for GMEOW reuse, pre-seeding internal tags, appellations, and alignments."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> ;
     rdfs:comment "Standard natural and programming languages for GMEOW reuse, pre-seeding internal tags, appellations, and alignments."@x-gmeow-english .
 
 # =========================================================================== #
@@ -348,8 +350,4 @@ gmeow:wsHiragana rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/
 gmeow:wsKatakana rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 
 gmeow:wsLatin rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
-
-<https://blackcatinformatics.ca/gmeow/imports/languages-reference> a owl:Ontology ;
-    skos:definition "Standard natural and programming languages for GMEOW reuse, pre-seeding internal tags, appellations, and alignments."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/imports/languages-reference> .
 

@@ -362,46 +362,46 @@ gmeow:AttestationType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:attestationTypeSLSAProvenance      a gmeow:AttestationType ; rdfs:label "SLSA provenance"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeSLSAProvenance skos:definition "The slsa provenance attestation type — a mechanism or format for producing verifiable evidence about a claim, artifact, or process."@x-gmeow-english ;
+gmeow:attestationTypeSLSAProvenance skos:definition "SLSA provenance attestation describing how a software artifact was produced, per the Supply-chain Levels for Software Artifacts framework."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:attestationTypeInToto              a gmeow:AttestationType ; rdfs:label "in-toto attestation"@x-gmeow-english ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeInToto skos:definition "The in toto attestation type — a mechanism or format for producing verifiable evidence about a claim, artifact, or process."@x-gmeow-english ;
+gmeow:attestationTypeInToto skos:definition "in-toto attestation about a step in a software supply chain, used to verify the integrity of a build or distribution pipeline."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:attestationTypeDSSE                a gmeow:AttestationType ; rdfs:label "DSSE envelope"@x-gmeow-english ;           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeDSSE skos:definition "The dsse attestation type — a mechanism or format for producing verifiable evidence about a claim, artifact, or process."@x-gmeow-english ;
+gmeow:attestationTypeDSSE skos:definition "Dead Simple Signing Envelope (DSSE) — a lightweight, payload-agnostic envelope for authenticated messages."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:attestationTypeVerifiableCredential a gmeow:AttestationType ; rdfs:label "verifiable credential"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeVerifiableCredential skos:definition "The verifiable credential attestation type — a mechanism or format for producing verifiable evidence about a claim, artifact, or process."@x-gmeow-english ;
+gmeow:attestationTypeVerifiableCredential skos:definition "W3C Verifiable Credential — a cryptographically verifiable claim about a subject, typically issued by a trusted entity."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:attestationTypeC2PA                a gmeow:AttestationType ; rdfs:label "C2PA manifest"@x-gmeow-english ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeC2PA skos:definition "The c 2 pa attestation type — a mechanism or format for producing verifiable evidence about a claim, artifact, or process."@x-gmeow-english ;
+gmeow:attestationTypeC2PA skos:definition "C2PA manifest attestation for media content provenance and authenticity, per the Coalition for Content Provenance and Authenticity."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:attestationTypeEAT                 a gmeow:AttestationType ; rdfs:label "EAT token"@x-gmeow-english ;               rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeEAT skos:definition "The eat attestation type — a mechanism or format for producing verifiable evidence about a claim, artifact, or process."@x-gmeow-english ;
+gmeow:attestationTypeEAT skos:definition "Entity Attestation Token (EAT) — a claim about device or hardware state, typically encoded as a CBOR Web Token."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:attestationTypeSignedRDF           a gmeow:AttestationType ; rdfs:label "signed RDF graph"@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeSignedRDF skos:definition "The signed rdf attestation type — a mechanism or format for producing verifiable evidence about a claim, artifact, or process."@x-gmeow-english ;
+gmeow:attestationTypeSignedRDF skos:definition "An RDF graph or dataset signed as a whole, often using RDF Dataset Canonicalization and detached signatures."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:attestationTypeSCITT               a gmeow:AttestationType ; rdfs:label "SCITT signed statement"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeSCITT skos:definition "The scitt attestation type — a mechanism or format for producing verifiable evidence about a claim, artifact, or process."@x-gmeow-english ;
+gmeow:attestationTypeSCITT skos:definition "SCITT signed statement — a transparency-service-registered attestation for supply-chain integrity."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:attestationTypeNanopublication     a gmeow:AttestationType ; rdfs:label "nanopublication"@x-gmeow-english ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeNanopublication skos:definition "The nanopublication attestation type — a mechanism or format for producing verifiable evidence about a claim, artifact, or process."@x-gmeow-english ;
+gmeow:attestationTypeNanopublication skos:definition "A nanopublication — a small, citable, signed RDF publication with assertion, provenance, and publication-info graphs."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:attestationTypeBlockchainClaim     a gmeow:AttestationType ; rdfs:label "blockchain claim"@x-gmeow-english ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeBlockchainClaim skos:definition "The blockchain claim attestation type — a mechanism or format for producing verifiable evidence about a claim, artifact, or process."@x-gmeow-english ;
+gmeow:attestationTypeBlockchainClaim skos:definition "A claim recorded on a distributed ledger or blockchain, whose existence and ordering are verifiable by network consensus."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:attestationTypeGitSignedTag        a gmeow:AttestationType ; rdfs:label "git signed tag"@x-gmeow-english ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeGitSignedTag skos:definition "The git signed tag attestation type — a mechanism or format for producing verifiable evidence about a claim, artifact, or process."@x-gmeow-english ;
+gmeow:attestationTypeGitSignedTag skos:definition "A Git tag signed with OpenPGP, SSH, or X.509 to assert source-code integrity."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:attestationTypeReleaseManifest     a gmeow:AttestationType ; rdfs:label "release manifest"@x-gmeow-english ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeReleaseManifest skos:definition "The release manifest attestation type — a mechanism or format for producing verifiable evidence about a claim, artifact, or process."@x-gmeow-english ;
+gmeow:attestationTypeReleaseManifest skos:definition "A software-release manifest listing the artifacts, checksums, and metadata that constitute a release."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:attestationTypeQualityReport       a gmeow:AttestationType ; rdfs:label "quality report attestation"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeQualityReport skos:definition "The quality report attestation type — a mechanism or format for producing verifiable evidence about a claim, artifact, or process."@x-gmeow-english ;
+gmeow:attestationTypeQualityReport skos:definition "An attestation about quality-assessment results, test outcomes, or conformance metrics for an artifact or process."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:attestationTypeAIOutput            a gmeow:AttestationType ; rdfs:label "AI output attestation"@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeAIOutput skos:definition "The ai output attestation type — a mechanism or format for producing verifiable evidence about a claim, artifact, or process."@x-gmeow-english ;
+gmeow:attestationTypeAIOutput skos:definition "An attestation about the provenance, generation parameters, or content characteristics of an AI-generated output."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 
 gmeow:AttestationPolicy
@@ -419,19 +419,19 @@ gmeow:SignatureScheme
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:signatureSchemeRSASHA256    a gmeow:SignatureScheme ; rdfs:label "RSA-SHA256"@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:signatureSchemeRSASHA256 skos:definition "The rsa-sha 256 signature scheme — a cryptographic algorithm and parameters used to sign and verify messages."@x-gmeow-english ;
+gmeow:signatureSchemeRSASHA256 skos:definition "RSA signature with SHA-256 — widely used in X.509 certificates, JWTs, and S/MIME."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:signatureSchemeEd25519      a gmeow:SignatureScheme ; rdfs:label "Ed25519"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:signatureSchemeEd25519 skos:definition "The ed 25519 signature scheme — a cryptographic algorithm and parameters used to sign and verify messages."@x-gmeow-english ;
+gmeow:signatureSchemeEd25519 skos:definition "Ed25519 — Edwards-curve Digital Signature Algorithm over Curve25519, compact and fast."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:signatureSchemeECDSASecp256k1 a gmeow:SignatureScheme ; rdfs:label "ECDSA-secp256k1"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:signatureSchemeECDSASecp256k1 skos:definition "The ecdsa secp 256 k 1 signature scheme — a cryptographic algorithm and parameters used to sign and verify messages."@x-gmeow-english ;
+gmeow:signatureSchemeECDSASecp256k1 skos:definition "ECDSA over the secp256k1 curve — common in Bitcoin, Ethereum, and other blockchain systems."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:signatureSchemeECDSAP256    a gmeow:SignatureScheme ; rdfs:label "ECDSA-P256"@x-gmeow-english ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:signatureSchemeECDSAP256 skos:definition "The ecdsap 256 signature scheme — a cryptographic algorithm and parameters used to sign and verify messages."@x-gmeow-english ;
+gmeow:signatureSchemeECDSAP256 skos:definition "ECDSA over the NIST P-256 curve — widely used in TLS, government, and enterprise identity systems."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:signatureSchemeBLS12-381    a gmeow:SignatureScheme ; rdfs:label "BLS12-381"@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:signatureSchemeBLS12-381 skos:definition "The bls 12-381 signature scheme — a cryptographic algorithm and parameters used to sign and verify messages."@x-gmeow-english ;
+gmeow:signatureSchemeBLS12-381 skos:definition "BLS signature over the pairing-friendly BLS12-381 curve, supporting signature aggregation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 
 gmeow:VerificationStatus
@@ -442,25 +442,25 @@ gmeow:VerificationStatus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:verificationStatusVerified      a gmeow:VerificationStatus ; rdfs:label "verified"@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:verificationStatusVerified skos:definition "The verified verification status — a stage in the lifecycle of a claim's evidentiary check."@x-gmeow-english ;
+gmeow:verificationStatusVerified skos:definition "The claim has successfully passed verification against the required policy and signature checks."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:verificationStatusFailed        a gmeow:VerificationStatus ; rdfs:label "failed"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:verificationStatusFailed skos:definition "The failed verification status — a stage in the lifecycle of a claim's evidentiary check."@x-gmeow-english ;
+gmeow:verificationStatusFailed skos:definition "The claim failed verification — signature invalid, evidence insufficient, or assertion contradicted."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:verificationStatusUnverified    a gmeow:VerificationStatus ; rdfs:label "unverified"@x-gmeow-english ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:verificationStatusUnverified skos:definition "The unverified verification status — a stage in the lifecycle of a claim's evidentiary check."@x-gmeow-english ;
+gmeow:verificationStatusUnverified skos:definition "The claim has not yet been verified; no verification result is available."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:verificationStatusExpired       a gmeow:VerificationStatus ; rdfs:label "expired"@x-gmeow-english ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:verificationStatusExpired skos:definition "The expired verification status — a stage in the lifecycle of a claim's evidentiary check."@x-gmeow-english ;
+gmeow:verificationStatusExpired skos:definition "The claim's declared validity period has ended, regardless of whether it was previously verified."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:verificationStatusRevoked       a gmeow:VerificationStatus ; rdfs:label "revoked"@x-gmeow-english ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:verificationStatusRevoked skos:definition "The revoked verification status — a stage in the lifecycle of a claim's evidentiary check."@x-gmeow-english ;
+gmeow:verificationStatusRevoked skos:definition "The claim has been explicitly revoked by its issuer or an authorized revoking party."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:verificationStatusPolicyFailed  a gmeow:VerificationStatus ; rdfs:label "policy failed"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:verificationStatusPolicyFailed skos:definition "The policy failed verification status — a stage in the lifecycle of a claim's evidentiary check."@x-gmeow-english ;
+gmeow:verificationStatusPolicyFailed skos:definition "The claim did not satisfy one or more policy requirements, even if cryptographically valid."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:verificationStatusFinalityPending a gmeow:VerificationStatus ; rdfs:label "finality pending"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:verificationStatusFinalityPending skos:definition "The finality pending verification status — a stage in the lifecycle of a claim's evidentiary check."@x-gmeow-english ;
+gmeow:verificationStatusFinalityPending skos:definition "Awaiting distributed-ledger finality before the claim can be considered settled."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 
 gmeow:LedgerFinalityStatus
@@ -471,18 +471,20 @@ gmeow:LedgerFinalityStatus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:finalityStatusPending   a gmeow:LedgerFinalityStatus ; rdfs:label "pending"@x-gmeow-english ;   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:finalityStatusPending skos:definition "The pending ledger finality status — a stage in the confirmation lifecycle of a distributed-ledger record."@x-gmeow-english ;
+gmeow:finalityStatusPending skos:definition "The ledger transaction has been submitted but not yet included in a block or confirmed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:finalityStatusConfirmed a gmeow:LedgerFinalityStatus ; rdfs:label "confirmed"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:finalityStatusConfirmed skos:definition "The confirmed ledger finality status — a stage in the confirmation lifecycle of a distributed-ledger record."@x-gmeow-english ;
+gmeow:finalityStatusConfirmed skos:definition "The transaction has been included in a block and seen by the network, but may still be reorged."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:finalityStatusFinalized a gmeow:LedgerFinalityStatus ; rdfs:label "finalized"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:finalityStatusFinalized skos:definition "The finalized ledger finality status — a stage in the confirmation lifecycle of a distributed-ledger record."@x-gmeow-english ;
+gmeow:finalityStatusFinalized skos:definition "The transaction has reached ledger-specific finality and is considered irreversible under consensus rules."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 gmeow:finalityStatusOrphaned  a gmeow:LedgerFinalityStatus ; rdfs:label "orphaned"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:finalityStatusOrphaned skos:definition "The orphaned ledger finality status — a stage in the confirmation lifecycle of a distributed-ledger record."@x-gmeow-english ;
+gmeow:finalityStatusOrphaned skos:definition "The block containing the transaction was abandoned by the canonical chain."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
-gmeow:finalityStatusReorged   a gmeow:LedgerFinalityStatus ; rdfs:label "reorged"@x-gmeow-english ;   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:finalityStatusReorged   a gmeow:LedgerFinalityStatus ; rdfs:label "reorged"@x-gmeow-english ;
+    skos:definition "The transaction was affected by a chain reorganization and is no longer in the canonical chain."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
 # CROSS-CUTTING REUSE DECLARATION
@@ -512,7 +514,7 @@ gmeow:finalityStatusReorged   a gmeow:LedgerFinalityStatus ; rdfs:label "reorged
 # the existing cross-cutting vocabulary (Principle 4: one canonical source).
 # --------------------------------------------------------------------------- #
 
-gmeow:finalityStatusReorged skos:definition "The reorged ledger finality status — a stage in the confirmation lifecycle of a distributed-ledger record."@x-gmeow-english ;
+gmeow:finalityStatusReorged skos:definition "The transaction was affected by a chain reorganization and is no longer in the canonical chain."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE — EL someValuesFrom for reasoner visibility

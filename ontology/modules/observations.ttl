@@ -222,10 +222,10 @@ gmeow:observationTypeRights       a gmeow:ObservationType ; rdfs:label "rights c
 gmeow:observationTypeRights rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:observationTypeKinship      a gmeow:ObservationType ; rdfs:label "kinship claim"@x-gmeow-english ;        skos:definition "A claim about a kinship or genealogical relationship between persons."@x-gmeow-english .
 gmeow:observationTypeKinship rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
-gmeow:observationTypeStreaming    a gmeow:ObservationType ; rdfs:label "streaming"@x-gmeow-english ;            skos:definition "A streaming observation — a member of a time-ordered sequence produced by a sensor or platform."@x-gmeow-english .
+gmeow:observationTypeStreaming    a gmeow:ObservationType ; rdfs:label "streaming"@x-gmeow-english ;            skos:definition "A streaming observation — a member of a time-ordered sequence produced by a sensor or platform."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 
 # Seeds — ObservationMethod (generic; domain-specific methods live in their modules)
-gmeow:observationTypeStreaming rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:methodDirectObservation     a gmeow:ObservationMethod ; rdfs:label "direct observation"@x-gmeow-english ;   skos:definition "Observation by unaided human perception."@x-gmeow-english .
 gmeow:methodDirectObservation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:methodInstrumentalReading   a gmeow:ObservationMethod ; rdfs:label "instrumental reading"@x-gmeow-english ; skos:definition "Observation by a calibrated instrument or sensor."@x-gmeow-english .
@@ -238,7 +238,8 @@ gmeow:methodComputationalModel   a gmeow:ObservationMethod ; rdfs:label "computa
 gmeow:methodComputationalModel rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:methodExpertJudgement      a gmeow:ObservationMethod ; rdfs:label "expert judgement"@x-gmeow-english ;     skos:definition "Observation based on expert assessment or consensus."@x-gmeow-english .
 gmeow:methodExpertJudgement rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
-gmeow:methodStreaming            a gmeow:ObservationMethod ; rdfs:label "streaming"@x-gmeow-english ;            skos:definition "Collection via a continuous or periodic streaming protocol."@x-gmeow-english .
+gmeow:methodStreaming            a gmeow:ObservationMethod ; rdfs:label "streaming"@x-gmeow-english ;            skos:definition "Collection via a continuous or periodic streaming protocol."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 
 # =========================================================================== #
 # SPECIALISATIONS — the stack unification
@@ -247,7 +248,6 @@ gmeow:methodStreaming            a gmeow:ObservationMethod ; rdfs:label "streami
 # sensory, standpoint, events) shares the same parent.  Each module DEEPENS
 # its specialisation with domain-specific properties and seeds.
 # =========================================================================== #
-gmeow:methodStreaming rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 
 gmeow:Measurement
     a owl:Class, gufo:SubKind ;

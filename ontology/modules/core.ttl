@@ -220,18 +220,15 @@ gmeow:hasSensitivity
 
 # Seeds
 gmeow:sensitivityPublic            a gmeow:SensitivityLevel ; rdfs:label "public"@x-gmeow-english ;            rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:sensitivityPublic skos:definition "The public sensitivity level — a classification of information by the risk associated with its disclosure."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/core> .
+gmeow:sensitivityPublic skos:definition "The public sensitivity level — information that may be disclosed without restriction."@x-gmeow-english .
 gmeow:sensitivityInternal          a gmeow:SensitivityLevel ; rdfs:label "internal"@x-gmeow-english ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:sensitivityInternal skos:definition "The internal sensitivity level — a classification of information by the risk associated with its disclosure."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/core> .
+gmeow:sensitivityInternal skos:definition "The internal sensitivity level — information intended for use within an organization or trusted circle."@x-gmeow-english .
 gmeow:sensitivityConfidential      a gmeow:SensitivityLevel ; rdfs:label "confidential"@x-gmeow-english ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:sensitivityConfidential skos:definition "The confidential sensitivity level — a classification of information by the risk associated with its disclosure."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/core> .
+gmeow:sensitivityConfidential skos:definition "The confidential sensitivity level — information whose unauthorized disclosure could harm an organization or individual."@x-gmeow-english .
 gmeow:sensitivityRestricted        a gmeow:SensitivityLevel ; rdfs:label "restricted"@x-gmeow-english ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:sensitivityRestricted skos:definition "The restricted sensitivity level — a classification of information by the risk associated with its disclosure."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/core> .
+gmeow:sensitivityRestricted skos:definition "The restricted sensitivity level — information whose access is limited to named individuals or roles under explicit authorization."@x-gmeow-english .
 gmeow:sensitivitySensitivePersonal a gmeow:SensitivityLevel ; rdfs:label "sensitive personal"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:sensitivitySensitivePersonal skos:definition "The sensitive personal sensitivity level — information about a person whose disclosure carries elevated risk and may be subject to legal protection or consent guards."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Consumer Projection Context — the audience / consumer axis (#225).
@@ -243,8 +240,6 @@ gmeow:sensitivitySensitivePersonal a gmeow:SensitivityLevel ; rdfs:label "sensit
 # granularity (Principle 9). The eligibility decision (k-anonymity, source
 # independence) stays in the solver layer (P12).
 # --------------------------------------------------------------------------- #
-gmeow:sensitivitySensitivePersonal skos:definition "The sensitive personal sensitivity level — a classification of information by the risk associated with its disclosure."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/core> .
 
 gmeow:ProjectionContext
     a owl:Class, gufo:AbstractIndividualType ;

@@ -174,17 +174,34 @@ def _term_kind(graph: Graph, term: URIRef) -> str:
 
 
 def _collect_typed_terms(graph: Graph) -> dict[URIRef, str]:
-    """Map every GMEOW-namespaced term with an rdf:type to its primary kind."""
+    """Map every GMEOW-namespaced term with an rdf:type to its primary kind.
+
+    Queries by type rather than scanning every subject, then resolves
+    multi-typed terms to the most specific kind using the canonical priority.
+    """
     terms: dict[URIRef, str] = {}
-    for term in set(graph.subjects()):
-        if isinstance(term, URIRef) and _is_gmeow_term(term):
+    typed_queries = (
+        OWL.Ontology,
+        OWL.Class,
+        OWL.ObjectProperty,
+        OWL.DatatypeProperty,
+        OWL.AnnotationProperty,
+        RDFS.Datatype,
+    )
+    for rdf_type in typed_queries:
+        for term in graph.subjects(RDF.type, rdf_type):
+            if not isinstance(term, URIRef) or not _is_gmeow_term(term):
+                continue
+            current = terms.get(term)
             kind = _term_kind(graph, term)
-            # A term may have already been classified; keep the most specific
-            # kind by the order above.
-            if term not in terms or _TERM_KIND_ORDER.index(
-                kind
-            ) < _TERM_KIND_ORDER.index(terms[term]):
+            if current is None or _TERM_KIND_ORDER.index(kind) < _TERM_KIND_ORDER.index(
+                current
+            ):
                 terms[term] = kind
+    # Any remaining typed GMEOW subjects are treated as individuals.
+    for term in set(graph.subjects()):
+        if isinstance(term, URIRef) and _is_gmeow_term(term) and term not in terms:
+            terms[term] = "individual"
     return terms
 
 
@@ -232,11 +249,13 @@ def structural_lint(graph: Graph) -> ValidationResult:
     # Comprehensiveness heuristic: if a GMEOW class has ≥3 direct subclasses
     # in the GMEOW namespace and ≥3 of them lack skos:definition, warn about
     # the parent being under-documented. This surfaces systematic gaps even
-    # when the basic per-term check catches each individually.
+    # when the basic per-term check catches each individually. Blank-node
+    # restrictions and non-GMEOW children are filtered out.
     parent_to_children: dict[URIRef, list[URIRef]] = {}
     for child, _, parent in graph.triples((None, RDFS.subClassOf, None)):
         if (
             isinstance(child, URIRef)
+            and _is_gmeow_term(child)
             and isinstance(parent, URIRef)
             and _is_gmeow_term(parent)
         ):

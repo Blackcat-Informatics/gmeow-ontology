@@ -114,7 +114,10 @@ gmeow:GmeowOntologyShape
         sh:select """
             SELECT ?this WHERE {
                 ?this a <http://www.w3.org/2002/07/owl#Ontology> .
-                FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
+                FILTER(
+                    STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/")
+                    || STR(?this) = "https://blackcatinformatics.ca/gmeow"
+                )
             }
         """ ;
     ] ;
