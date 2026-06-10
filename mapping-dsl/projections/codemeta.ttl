@@ -21,7 +21,7 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:mapCodeMetaSoftware a gmeow:ProjectionMapping ;
-    rdfs:label "SoftwareProduct → codemeta:SoftwareSourceCode"@en ;
+    rdfs:label "SoftwareProduct → codemeta:SoftwareSourceCode"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "prod" ;
         gmeow:atom (
@@ -38,7 +38,7 @@ gmeow:mapCodeMetaSoftware a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapCodeMetaPackage a gmeow:ProjectionMapping ;
-    rdfs:label "Package → codemeta:SoftwareSourceCode (package-as-product)"@en ;
+    rdfs:label "Package → codemeta:SoftwareSourceCode (package-as-product)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "pkg" ;
         gmeow:atom (
@@ -55,7 +55,7 @@ gmeow:mapCodeMetaPackage a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapCodeMetaRepo a gmeow:ProjectionMapping ;
-    rdfs:label "hasRepository → codemeta:codeRepository"@en ;
+    rdfs:label "hasRepository → codemeta:codeRepository"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proj" ; gmeow:value "repo" ;
         gmeow:atom (
@@ -70,7 +70,7 @@ gmeow:mapCodeMetaRepo a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapCodeMetaVersion a gmeow:ProjectionMapping ;
-    rdfs:label "releaseVersion → codemeta:softwareVersion"@en ;
+    rdfs:label "releaseVersion → codemeta:softwareVersion"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "rel" ; gmeow:value "ver" ;
         gmeow:atom (
@@ -85,7 +85,7 @@ gmeow:mapCodeMetaVersion a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapCodeMetaLicense a gmeow:ProjectionMapping ;
-    rdfs:label "projectLicense → codemeta:license"@en ;
+    rdfs:label "projectLicense → codemeta:license"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proj" ; gmeow:value "lic" ;
         gmeow:atom (
@@ -100,7 +100,7 @@ gmeow:mapCodeMetaLicense a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapCodeMetaIdentifier a gmeow:ProjectionMapping ;
-    rdfs:label "contentDigest → codemeta:identifier"@en ;
+    rdfs:label "contentDigest → codemeta:identifier"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "entity" ; gmeow:value "digest" ;
         gmeow:atom (
@@ -116,7 +116,7 @@ gmeow:mapCodeMetaIdentifier a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapCodeMetaAuthor a gmeow:ProjectionMapping ;
-    rdfs:label "Contribution(role=SoftwareMaintainer) → codemeta:author"@en ;
+    rdfs:label "Contribution(role=SoftwareMaintainer) → codemeta:author"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proj" ; gmeow:value "authorAgent" ;
         gmeow:atom (
@@ -137,7 +137,7 @@ gmeow:mapCodeMetaAuthor a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapCodeMetaContributorDeveloper a gmeow:ProjectionMapping ;
-    rdfs:label "Contribution(role=SoftwareDeveloper) → codemeta:contributor"@en ;
+    rdfs:label "Contribution(role=SoftwareDeveloper) → codemeta:contributor"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proj" ; gmeow:value "devAgent" ;
         gmeow:atom (
@@ -152,7 +152,7 @@ gmeow:mapCodeMetaContributorDeveloper a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "contribution period, provenance, confidence, degree; reified relator flattened to property" ] .
 
 gmeow:mapCodeMetaContributorReviewer a gmeow:ProjectionMapping ;
-    rdfs:label "Contribution(role=CodeReviewer) → codemeta:contributor"@en ;
+    rdfs:label "Contribution(role=CodeReviewer) → codemeta:contributor"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proj" ; gmeow:value "revAgent" ;
         gmeow:atom (
@@ -167,7 +167,7 @@ gmeow:mapCodeMetaContributorReviewer a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "reviewer role collapsed to contributor; contribution period, provenance, confidence, degree" ] .
 
 gmeow:mapCodeMetaContributorReleaser a gmeow:ProjectionMapping ;
-    rdfs:label "Contribution(role=Releaser) → codemeta:contributor"@en ;
+    rdfs:label "Contribution(role=Releaser) → codemeta:contributor"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proj" ; gmeow:value "relAgent" ;
         gmeow:atom (
@@ -182,7 +182,7 @@ gmeow:mapCodeMetaContributorReleaser a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "releaser role collapsed to contributor; contribution period, provenance, confidence, degree" ] .
 
 gmeow:mapCodeMetaContributorSecurity a gmeow:ProjectionMapping ;
-    rdfs:label "Contribution(role=SecurityContact) → codemeta:contributor"@en ;
+    rdfs:label "Contribution(role=SecurityContact) → codemeta:contributor"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proj" ; gmeow:value "secAgent" ;
         gmeow:atom (
@@ -197,7 +197,7 @@ gmeow:mapCodeMetaContributorSecurity a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "security-contact role collapsed to contributor; contribution period, provenance, confidence, degree" ] .
 
 gmeow:mapCodeMetaContributorBot a gmeow:ProjectionMapping ;
-    rdfs:label "Contribution(role=BotContributor) → codemeta:contributor"@en ;
+    rdfs:label "Contribution(role=BotContributor) → codemeta:contributor"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proj" ; gmeow:value "botAgent" ;
         gmeow:atom (
@@ -212,7 +212,7 @@ gmeow:mapCodeMetaContributorBot a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "bot role collapsed to contributor; contribution period, provenance, confidence, degree" ] .
 
 gmeow:mapCodeMetaContributorAI a gmeow:ProjectionMapping ;
-    rdfs:label "Contribution(role=AIAssistant) → codemeta:contributor"@en ;
+    rdfs:label "Contribution(role=AIAssistant) → codemeta:contributor"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proj" ; gmeow:value "aiAgent" ;
         gmeow:atom (

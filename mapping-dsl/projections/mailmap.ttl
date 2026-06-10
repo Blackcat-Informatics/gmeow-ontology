@@ -12,7 +12,7 @@
 # remapping lines, never deleted (Principle 10).
 
 gmeow:mapMailmapCanonical a gmeow:ProjectionMapping ;
-    rdfs:label "Agent mailmapEntry → canonical .mailmap line"@en ;
+    rdfs:label "Agent mailmapEntry → canonical .mailmap line"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "agent" ;
         gmeow:value "line" ;
@@ -30,7 +30,7 @@ gmeow:mapMailmapCanonical a gmeow:ProjectionMapping ;
     ] .
 
 gmeow:mapMailmapSuppressed a gmeow:ProjectionMapping ;
-    rdfs:label "suppressed AuthorIdentity → .mailmap remapping line"@en ;
+    rdfs:label "suppressed AuthorIdentity → .mailmap remapping line"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "oldId" ;
         gmeow:value "mapping" ;

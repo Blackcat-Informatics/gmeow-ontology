@@ -8,7 +8,7 @@
 # generating SPARQL CONSTRUCT queries and EDOAL cells (Principle 5).
 
 gmeow:mapInTotoStatement a gmeow:ProjectionMapping ;
-    rdfs:label "Attestation → intoto:Statement"@en ;
+    rdfs:label "Attestation → intoto:Statement"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "att" ;
         gmeow:atom (
@@ -26,7 +26,7 @@ gmeow:mapInTotoStatement a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "attestation artifact, attester, policy, verification result, transparency log, temporal scope" ] .
 
 gmeow:mapInTotoSignature a gmeow:ProjectionMapping ;
-    rdfs:label "CryptographicSignature → intoto:signature"@en ;
+    rdfs:label "CryptographicSignature → intoto:signature"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "sig" ; gmeow:value "keyid" ;
         gmeow:atom (

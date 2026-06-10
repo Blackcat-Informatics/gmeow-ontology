@@ -8,14 +8,14 @@
 # queries/projections/geosparql.rq by `gmeow compile-mappings`.
 
 gmeow:mapGeoFeature a gmeow:ProjectionMapping ;
-    rdfs:label "Place → geo:Feature"@en ;
+    rdfs:label "Place → geo:Feature"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ;
         gmeow:atom ( [ gmeow:subjectVar "place" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Place ] ) ] ;
     gmeow:hasBinding [ gmeow:profile "geosparql" ; gmeow:toClass geo:Feature ; gmeow:relation "=" ] .
 
 gmeow:mapGeoWktRetag a gmeow:ProjectionMapping ;
-    rdfs:label "asWKT literal → geo:asWKT retagged geo:wktLiteral"@en ;
+    rdfs:label "asWKT literal → geo:asWKT retagged geo:wktLiteral"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ;
         gmeow:atom (
@@ -38,7 +38,7 @@ gmeow:mapGeoWktRetag a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "g" ; gmeow:tPred geo:asWKT ; gmeow:tObj "wktTagged" ] ) ] .
 
 gmeow:mapGeoWktCoarsened a gmeow:ProjectionMapping ;
-    rdfs:label "coarsenTo → enclosing-region WKT geometry (privacy generalization)"@en ;
+    rdfs:label "coarsenTo → enclosing-region WKT geometry (privacy generalization)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ;
         gmeow:atom (
@@ -69,7 +69,7 @@ gmeow:mapGeoWktCoarsened a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "coarseGeom" ; gmeow:tPred geo:asWKT ; gmeow:tObj "wktTagged" ] ) ] .
 
 gmeow:mapGeoPoint a gmeow:ProjectionMapping ;
-    rdfs:label "latitude + longitude → geo:Geometry with WKT POINT"@en ;
+    rdfs:label "latitude + longitude → geo:Geometry with WKT POINT"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ;
         gmeow:atom (
@@ -108,7 +108,7 @@ gmeow:mapGeoPoint a gmeow:ProjectionMapping ;
 # complementary branch to mapGeoPoint (which is suppressed under the same trigger).
 # A coarser region rather than exact coordinates, never deletion.
 gmeow:mapGeoPointCoarsened a gmeow:ProjectionMapping ;
-    rdfs:label "coarsenTo → enclosing-region WKT POINT (privacy generalization)"@en ;
+    rdfs:label "coarsenTo → enclosing-region WKT POINT (privacy generalization)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ;
         gmeow:atom (
@@ -145,7 +145,7 @@ gmeow:mapGeoPointCoarsened a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "ptGeom" ; gmeow:tPred geo:asWKT ; gmeow:tObj "pointWkt" ] ) ] .
 
 gmeow:mapGeoPosePoint a gmeow:ProjectionMapping ;
-    rdfs:label "pose position (lat/long) → geo:Geometry with WKT POINT"@en ;
+    rdfs:label "pose position (lat/long) → geo:Geometry with WKT POINT"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "entity" ;
         gmeow:atom (
@@ -180,7 +180,7 @@ gmeow:mapGeoPosePoint a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "ptGeom" ; gmeow:tPred geo:asWKT ; gmeow:tObj "pointWkt" ] ) ] .
 
 gmeow:mapGeoWithin a gmeow:ProjectionMapping ;
-    rdfs:label "containedInPlace → geo:sfWithin"@en ;
+    rdfs:label "containedInPlace → geo:sfWithin"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ; gmeow:value "parent" ;
         gmeow:atom (
@@ -189,7 +189,7 @@ gmeow:mapGeoWithin a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "geosparql" ; gmeow:toPredicate geo:sfWithin ; gmeow:relation "=" ] .
 
 gmeow:mapGeoContains a gmeow:ProjectionMapping ;
-    rdfs:label "containsPlace → geo:sfContains"@en ;
+    rdfs:label "containsPlace → geo:sfContains"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "parent" ; gmeow:value "place" ;
         gmeow:atom (
@@ -200,7 +200,7 @@ gmeow:mapGeoContains a gmeow:ProjectionMapping ;
 # GeoJSON projections (#82) — mirror the WKT retag + coarsened branches.
 
 gmeow:mapGeoJson a gmeow:ProjectionMapping ;
-    rdfs:label "asGeoJSON literal → geo:asGeoJSON retagged geo:geoJSONLiteral"@en ;
+    rdfs:label "asGeoJSON literal → geo:asGeoJSON retagged geo:geoJSONLiteral"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ;
         gmeow:atom (
@@ -223,7 +223,7 @@ gmeow:mapGeoJson a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "g" ; gmeow:tPred geo:asGeoJSON ; gmeow:tObj "gjTagged" ] ) ] .
 
 gmeow:mapGeoJsonCoarsened a gmeow:ProjectionMapping ;
-    rdfs:label "coarsenTo → enclosing-region GeoJSON (privacy generalization)"@en ;
+    rdfs:label "coarsenTo → enclosing-region GeoJSON (privacy generalization)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ;
         gmeow:atom (
@@ -257,7 +257,7 @@ gmeow:mapGeoJsonCoarsened a gmeow:ProjectionMapping ;
 # project via mapGeoPosePositionToWktPoint). Continuous LineString interpolation
 # is a solver-layer concern (Principle 12).
 gmeow:mapGeoTrajectory a gmeow:ProjectionMapping ;
-    rdfs:label "Trajectory → geo:Feature"@en ;
+    rdfs:label "Trajectory → geo:Feature"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "traj" ;
         gmeow:atom (
@@ -270,7 +270,7 @@ gmeow:mapGeoTrajectory a gmeow:ProjectionMapping ;
 
 # Centroid projection (#101) — gmeow:hasCentroid → geo:hasCentroid
 gmeow:mapGeoCentroid a gmeow:ProjectionMapping ;
-    rdfs:label "hasCentroid geometry → geo:hasCentroid with WKT"@en ;
+    rdfs:label "hasCentroid geometry → geo:hasCentroid with WKT"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ;
         gmeow:atom (
@@ -303,7 +303,7 @@ gmeow:mapGeoCentroid a gmeow:ProjectionMapping ;
 
 # CoordinateObservation with coordinateResult (GeoCoordinates) → WKT POINT
 gmeow:mapGeoCoordinateObservation a gmeow:ProjectionMapping ;
-    rdfs:label "CoordinateObservation coordinateResult → geo:Geometry with WKT POINT"@en ;
+    rdfs:label "CoordinateObservation coordinateResult → geo:Geometry with WKT POINT"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ;
         gmeow:atom (
@@ -341,7 +341,7 @@ gmeow:mapGeoCoordinateObservation a gmeow:ProjectionMapping ;
 
 # CoordinateObservation with geometryResult (Geometry) → WKT retag
 gmeow:mapGeoGeometryObservation a gmeow:ProjectionMapping ;
-    rdfs:label "CoordinateObservation geometryResult → geo:hasGeometry with WKT"@en ;
+    rdfs:label "CoordinateObservation geometryResult → geo:hasGeometry with WKT"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ;
         gmeow:atom (

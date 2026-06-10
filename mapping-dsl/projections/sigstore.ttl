@@ -8,7 +8,7 @@
 # generating SPARQL CONSTRUCT queries and EDOAL cells (Principle 5).
 
 gmeow:mapSigstoreLogEntry a gmeow:ProjectionMapping ;
-    rdfs:label "TransparencyLogEntry → sigstore:logEntry"@en ;
+    rdfs:label "TransparencyLogEntry → sigstore:logEntry"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "entry" ;
         gmeow:atom (

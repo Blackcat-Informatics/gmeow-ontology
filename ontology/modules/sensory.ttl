@@ -7,8 +7,8 @@
 
 <https://blackcatinformatics.ca/gmeow/modules/sensory>
     a owl:Ontology ;
-    rdfs:label "GMEOW Sensory Module"@en ;
-    rdfs:comment "Sensor, sensor platform, observable property, and sensory observation stack. Deepens the SensoryObservation stub from observations.ttl with sensor-specific properties and bridges to SOSA/SSN by reference."@en ;
+    rdfs:label "GMEOW Sensory Module"@x-gmeow-english ;
+    rdfs:comment "Sensor, sensor platform, observable property, and sensory observation stack. Deepens the SensoryObservation stub from observations.ttl with sensor-specific properties and bridges to SOSA/SSN by reference."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -23,8 +23,8 @@
 gmeow:Sensor
     a owl:Class, gufo:RoleMixin ;
     rdfs:subClassOf gmeow:Agent, gufo:FunctionalComplex ;
-    rdfs:label "Sensor"@en ;
-    skos:definition "An agent that produces observations by responding to a stimulus — a physical device, a software process, or a biological perceiver. The observer in a sensory observation; the vantage of a SensoryObservation may be a Sensor, a person, or an organization. Co-equal: no sensor is privileged as the 'primary' observer (Principle 9)."@en ;
+    rdfs:label "Sensor"@x-gmeow-english ;
+    skos:definition "An agent that produces observations by responding to a stimulus — a physical device, a software process, or a biological perceiver. The observer in a sensory observation; the vantage of a SensoryObservation may be a Sensor, a person, or an organization. Co-equal: no sensor is privileged as the 'primary' observer (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -38,16 +38,16 @@ gmeow:Sensor
 gmeow:SensorPlatform
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
-    rdfs:label "Sensor Platform"@en ;
-    skos:definition "A physical entity that hosts one or more sensors — a weather station, a satellite, a buoy, a drone, a vehicle, or a building-mounted instrument. The platform is situated at a place and carries sensors that observe properties of the environment. Distinct from the Sensor itself (the observing agent) and from the Place (the location)."@en ;
+    rdfs:label "Sensor Platform"@x-gmeow-english ;
+    skos:definition "A physical entity that hosts one or more sensors — a weather station, a satellite, a buoy, a drone, a vehicle, or a building-mounted instrument. The platform is situated at a place and carries sensors that observe properties of the environment. Distinct from the Sensor itself (the observing agent) and from the Place (the location)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:platformLocation
     a owl:ObjectProperty ;
     rdfs:domain gmeow:SensorPlatform ;
     rdfs:range gmeow:Place ;
-    rdfs:label "platform location"@en ;
-    skos:definition "The geographic place where a sensor platform is situated. A platform typically has one location at a time; historical locations are modelled as past SensoryObservations or LocationStates, not by changing this property (Principle 9)."@en ;
+    rdfs:label "platform location"@x-gmeow-english ;
+    skos:definition "The geographic place where a sensor platform is situated. A platform typically has one location at a time; historical locations are modelled as past SensoryObservations or LocationStates, not by changing this property (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -61,18 +61,18 @@ gmeow:platformLocation
 gmeow:ObservableProperty
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Observable Property"@en ;
-    skos:definition "A physical, chemical, biological, or environmental property that can be observed or measured by a sensor. A value vocabulary (individuals, never subclasses) so any new property — from temperature to neural activation to social sentiment — is a new individual, not a new class (Principle 9)."@en ;
+    rdfs:label "Observable Property"@x-gmeow-english ;
+    skos:definition "A physical, chemical, biological, or environmental property that can be observed or measured by a sensor. A value vocabulary (individuals, never subclasses) so any new property — from temperature to neural activation to social sentiment — is a new individual, not a new class (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # Seeds — common environmental and physical observable properties.
-gmeow:observablePropertyTemperature           a gmeow:ObservableProperty ; rdfs:label "temperature"@en ;           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:observablePropertyHumidity              a gmeow:ObservableProperty ; rdfs:label "humidity"@en ;              rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:observablePropertyLightIntensity        a gmeow:ObservableProperty ; rdfs:label "light intensity"@en ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:observablePropertySoundPressureLevel    a gmeow:ObservableProperty ; rdfs:label "sound pressure level"@en ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:observablePropertyAtmosphericPressure   a gmeow:ObservableProperty ; rdfs:label "atmospheric pressure"@en ;   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:observablePropertyAirQualityIndex       a gmeow:ObservableProperty ; rdfs:label "air quality index"@en ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:observablePropertyRadiationLevel        a gmeow:ObservableProperty ; rdfs:label "radiation level"@en ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:observablePropertyTemperature           a gmeow:ObservableProperty ; rdfs:label "temperature"@x-gmeow-english ;           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:observablePropertyHumidity              a gmeow:ObservableProperty ; rdfs:label "humidity"@x-gmeow-english ;              rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:observablePropertyLightIntensity        a gmeow:ObservableProperty ; rdfs:label "light intensity"@x-gmeow-english ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:observablePropertySoundPressureLevel    a gmeow:ObservableProperty ; rdfs:label "sound pressure level"@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:observablePropertyAtmosphericPressure   a gmeow:ObservableProperty ; rdfs:label "atmospheric pressure"@x-gmeow-english ;   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:observablePropertyAirQualityIndex       a gmeow:ObservableProperty ; rdfs:label "air quality index"@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:observablePropertyRadiationLevel        a gmeow:ObservableProperty ; rdfs:label "radiation level"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
 # SENSORY QUANTITY — the result of a sensory observation (#126)
@@ -86,8 +86,8 @@ gmeow:SensoryQuantity
     a owl:Class, gufo:Kind ;
     owl:equivalentClass gmeow:ScalarQuantity ;
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
-    rdfs:label "Sensory Quantity"@en ;
-    skos:definition "The scalar numeric result of a sensory observation — a value with unit, determinacy, and granularity. Equivalent to gmeow:ScalarQuantity (following the #77 alias precedent); the name 'SensoryQuantity' is the domain-specific label for the same construct in the sensor/observation stack."@en ;
+    rdfs:label "Sensory Quantity"@x-gmeow-english ;
+    skos:definition "The scalar numeric result of a sensory observation — a value with unit, determinacy, and granularity. Equivalent to gmeow:ScalarQuantity (following the #77 alias precedent); the name 'SensoryQuantity' is the domain-specific label for the same construct in the sensor/observation stack."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -102,8 +102,8 @@ gmeow:sensoryProperty
     a owl:ObjectProperty ;
     rdfs:domain gmeow:SensoryObservation ;
     rdfs:range gmeow:ObservableProperty ;
-    rdfs:label "sensory property"@en ;
-    skos:definition "The observable property that a sensory observation measures — temperature, humidity, light intensity, etc. Distinct from gmeow:observationMethod (the procedure or protocol used); this names the property itself. A sensory observation concerns exactly one observable property per observation; multiple properties require multiple observations (Principle 9)."@en ;
+    rdfs:label "sensory property"@x-gmeow-english ;
+    skos:definition "The observable property that a sensory observation measures — temperature, humidity, light intensity, etc. Distinct from gmeow:observationMethod (the procedure or protocol used); this names the property itself. A sensory observation concerns exactly one observable property per observation; multiple properties require multiple observations (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # Domain-specific subproperty of observationResult for the sensory result.
@@ -112,8 +112,8 @@ gmeow:sensoryResult
     rdfs:subPropertyOf gmeow:observationResult ;
     rdfs:domain gmeow:SensoryObservation ;
     rdfs:range gmeow:SensoryQuantity ;
-    rdfs:label "sensory result"@en ;
-    skos:definition "The scalar quantity result of a sensory observation — a value with unit, determinacy, and granularity. Subproperty of gmeow:observationResult so generic consumers can query all observation results without knowing the domain. The reference frame in which the quantity is expressed is carried on the observation via gmeow:hasReferenceFrame and propagates to the result via the existing isResultOf ∘ hasReferenceFrame chain."@en ;
+    rdfs:label "sensory result"@x-gmeow-english ;
+    skos:definition "The scalar quantity result of a sensory observation — a value with unit, determinacy, and granularity. Subproperty of gmeow:observationResult so generic consumers can query all observation results without knowing the domain. The reference frame in which the quantity is expressed is carried on the observation via gmeow:hasReferenceFrame and propagates to the result via the existing isResultOf ∘ hasReferenceFrame chain."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # Domain-specific subproperty of observedFeature for the entity being observed.
@@ -122,8 +122,8 @@ gmeow:sensoryObservationOf
     rdfs:subPropertyOf gmeow:observedFeature ;
     rdfs:domain gmeow:SensoryObservation ;
     rdfs:range gmeow:Entity ;
-    rdfs:label "sensory observation of"@en ;
-    skos:definition "The entity whose property is being observed — the observedFeature of a sensory observation. Subproperty of gmeow:observedFeature so generic consumers can query all observations without knowing the domain."@en ;
+    rdfs:label "sensory observation of"@x-gmeow-english ;
+    skos:definition "The entity whose property is being observed — the observedFeature of a sensory observation. Subproperty of gmeow:observedFeature so generic consumers can query all observations without knowing the domain."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasSensoryObservation
@@ -131,8 +131,8 @@ gmeow:hasSensoryObservation
     owl:inverseOf gmeow:sensoryObservationOf ;
     rdfs:domain gmeow:Entity ;
     rdfs:range gmeow:SensoryObservation ;
-    rdfs:label "has sensory observation"@en ;
-    skos:definition "Links an entity to a sensory observation that measured one of its properties. Non-functional: multiple sensors may observe the same property of the same entity, and those readings coexist without collapse (Principle 9)."@en ;
+    rdfs:label "has sensory observation"@x-gmeow-english ;
+    skos:definition "Links an entity to a sensory observation that measured one of its properties. Non-functional: multiple sensors may observe the same property of the same entity, and those readings coexist without collapse (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # EL axiomatisation: every SensoryObservation mediates at least one vantage,
@@ -160,8 +160,8 @@ gmeow:hasSensoryQuantity
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:range gmeow:SensoryQuantity ;
-    rdfs:label "has sensory quantity"@en ;
-    skos:definition "Flat shortcut linking an entity to the scalar quantity result of a sensory observation of its property. Derived via property chain from the reified observation path (hasSensoryObservation ∘ sensoryResult). Non-simple: kept out of cardinality axioms."@en ;
+    rdfs:label "has sensory quantity"@x-gmeow-english ;
+    skos:definition "Flat shortcut linking an entity to the scalar quantity result of a sensory observation of its property. Derived via property chain from the reified observation path (hasSensoryObservation ∘ sensoryResult). Non-simple: kept out of cardinality axioms."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasSensoryQuantity owl:propertyChainAxiom ( gmeow:hasSensoryObservation gmeow:sensoryResult ) .

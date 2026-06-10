@@ -7,11 +7,11 @@
 
 <https://blackcatinformatics.ca/gmeow/modules/citations>
     a owl:Ontology ;
-    rdfs:label "GMEOW Citations Module"@en ;
+    rdfs:label "GMEOW Citations Module"@x-gmeow-english ;
     rdfs:comment """Citation, credit, and attribution — the universal CitationAct relator,
 Contribution degree, and selector vocabulary. Replaces the old sources.ttl evidence link
 with a typed, reified citation relator and an anti-rigid SourceRole. Bridges to CiTO,
-CRediT, PROV-O, and PAV by reference (Principle 5)."""@en ;
+CRediT, PROV-O, and PAV by reference (Principle 5)."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -21,48 +21,48 @@ CRediT, PROV-O, and PAV by reference (Principle 5)."""@en ;
 gmeow:CitationAct
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
-    rdfs:label "Citation Act"@en ;
-    skos:definition "A reified citation: a citing entity cites a cited entity with a typed intent, optionally via a selector (a pinpoint into the cited work), carrying provenance, confidence, and standpoint. Replaces the old hasSource/citesSource: genealogical evidence is a CitationAct with intent intentCitesAsDataSource toward a creative work, via a selector."@en ;
+    rdfs:label "Citation Act"@x-gmeow-english ;
+    skos:definition "A reified citation: a citing entity cites a cited entity with a typed intent, optionally via a selector (a pinpoint into the cited work), carrying provenance, confidence, and standpoint. Replaces the old hasSource/citesSource: genealogical evidence is a CitationAct with intent intentCitesAsDataSource toward a creative work, via a selector."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:citingEntity
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:CitationAct ;
     rdfs:range gmeow:Entity ;
-    rdfs:label "citing entity"@en ;
-    skos:definition "The entity that makes the citation — a claim, a work, a module, a dataset. Functional per relator: one citing entity per CitationAct."@en ;
+    rdfs:label "citing entity"@x-gmeow-english ;
+    skos:definition "The entity that makes the citation — a claim, a work, a module, a dataset. Functional per relator: one citing entity per CitationAct."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:citedEntity
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:CitationAct ;
     rdfs:range gmeow:CreativeWork ;
-    rdfs:label "cited entity"@en ;
-    skos:definition "The creative work that is cited — a Work, Expression, Manifestation, or Item. Functional per relator: one cited entity per CitationAct."@en ;
+    rdfs:label "cited entity"@x-gmeow-english ;
+    skos:definition "The creative work that is cited — a Work, Expression, Manifestation, or Item. Functional per relator: one cited entity per CitationAct."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:citationIntent
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:CitationAct ;
     rdfs:range gmeow:CitationIntent ;
-    rdfs:label "citation intent"@en ;
-    skos:definition "The intent with which the citation is made — a value from the open gmeow:CitationIntent vocabulary. Functional per relator: one intent per CitationAct."@en ;
+    rdfs:label "citation intent"@x-gmeow-english ;
+    skos:definition "The intent with which the citation is made — a value from the open gmeow:CitationIntent vocabulary. Functional per relator: one intent per CitationAct."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:viaSelector
     a owl:ObjectProperty ;
     rdfs:domain gmeow:CitationAct ;
     rdfs:range gmeow:Selector ;
-    rdfs:label "via selector"@en ;
-    skos:definition "An optional pinpoint selector into the cited work — a page, text position, text quote, or locator. Non-functional: a citation may reference multiple selectors (e.g. several pages)."@en ;
+    rdfs:label "via selector"@x-gmeow-english ;
+    skos:definition "An optional pinpoint selector into the cited work — a page, text position, text quote, or locator. Non-functional: a citation may reference multiple selectors (e.g. several pages)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:cites
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:range gmeow:CreativeWork ;
-    rdfs:label "cites"@en ;
-    skos:definition "Relates an entity to a creative work it cites — the flat 80%-case shortcut. Non-functional: an entity may cite many works. Promote to a gmeow:CitationAct node when the intent, selector, provenance, or standpoint of the citation must be recorded."@en ;
+    rdfs:label "cites"@x-gmeow-english ;
+    skos:definition "Relates an entity to a creative work it cites — the flat 80%-case shortcut. Non-functional: an entity may cite many works. Promote to a gmeow:CitationAct node when the intent, selector, provenance, or standpoint of the citation must be recorded."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # Axiom: CitationAct mediates exactly one citingEntity, citedEntity, and citationIntent
@@ -78,40 +78,40 @@ gmeow:CitationAct rdfs:subClassOf
 gmeow:Selector
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:EvidenceSpan ;
-    rdfs:label "Selector"@en ;
-    skos:definition "A pinpoint reference into a cited creative work — a page number, text position, text quote, or generic locator. Replaces the retired gmeow:Citation (which collided with scholarly citation). A specialization of gmeow:EvidenceSpan: a citation selector is an anchored target within a cited work. Coordinated with #55's EvidenceSpan mechanism and reused by #63's annotation target span."@en ;
+    rdfs:label "Selector"@x-gmeow-english ;
+    skos:definition "A pinpoint reference into a cited creative work — a page number, text position, text quote, or generic locator. Replaces the retired gmeow:Citation (which collided with scholarly citation). A specialization of gmeow:EvidenceSpan: a citation selector is an anchored target within a cited work. Coordinated with #55's EvidenceSpan mechanism and reused by #63's annotation target span."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:selectorPage
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Selector ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "selector page"@en ;
-    skos:definition "A page number or page range expressed as a literal within a selector."@en ;
+    rdfs:label "selector page"@x-gmeow-english ;
+    skos:definition "A page number or page range expressed as a literal within a selector."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:selectorTextPosition
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Selector ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "selector text position"@en ;
-    skos:definition "A character offset or text position within a cited work, expressed as a literal within a selector."@en ;
+    rdfs:label "selector text position"@x-gmeow-english ;
+    skos:definition "A character offset or text position within a cited work, expressed as a literal within a selector."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:selectorTextQuote
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Selector ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "selector text quote"@en ;
-    skos:definition "A verbatim text quote from the cited work, expressed as a literal within a selector."@en ;
+    rdfs:label "selector text quote"@x-gmeow-english ;
+    skos:definition "A verbatim text quote from the cited work, expressed as a literal within a selector."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:selectorLocator
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Selector ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "selector locator"@en ;
-    skos:definition "A generic locator string within a cited work (e.g. 'section 3.2', 'image 4', 'entry 17'), expressed as a literal within a selector."@en ;
+    rdfs:label "selector locator"@x-gmeow-english ;
+    skos:definition "A generic locator string within a cited work (e.g. 'section 3.2', 'image 4', 'entry 17'), expressed as a literal within a selector."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -121,20 +121,20 @@ gmeow:selectorLocator
 gmeow:CitationIntent
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Citation Intent"@en ;
-    skos:definition "The intent with which one entity cites another — a VALUE vocabulary (individuals, never subclasses) characterizing a gmeow:CitationAct. Bridged by reference to CiTO sub-properties (e.g. cito:citesAsDataSource). The set is open."@en ;
+    rdfs:label "Citation Intent"@x-gmeow-english ;
+    skos:definition "The intent with which one entity cites another — a VALUE vocabulary (individuals, never subclasses) characterizing a gmeow:CitationAct. Bridged by reference to CiTO sub-properties (e.g. cito:citesAsDataSource). The set is open."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:intentCitesAsDataSource   a gmeow:CitationIntent ; rdfs:label "cites as data source"@en ;   skos:definition "The cited work is used as a data source."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:intentUsesMethodIn        a gmeow:CitationIntent ; rdfs:label "uses method in"@en ;         skos:definition "The cited work provides a method used by the citing entity."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:intentExtends             a gmeow:CitationIntent ; rdfs:label "extends"@en ;                skos:definition "The citing entity extends the cited work."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:intentIsInspiredBy        a gmeow:CitationIntent ; rdfs:label "is inspired by"@en ;         skos:definition "The citing entity is inspired by the cited work."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:intentConformsTo          a gmeow:CitationIntent ; rdfs:label "conforms to"@en ;            skos:definition "The citing entity conforms to the cited work (a standard, schema, or specification)."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:intentDerivedFrom         a gmeow:CitationIntent ; rdfs:label "derived from"@en ;           skos:definition "The citing entity is derived from the cited work."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:intentDocuments           a gmeow:CitationIntent ; rdfs:label "documents"@en ;              skos:definition "The citing entity documents the cited work."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:intentSupports            a gmeow:CitationIntent ; rdfs:label "supports"@en ;               skos:definition "The cited work supports the citing entity."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:intentDisagreesWith       a gmeow:CitationIntent ; rdfs:label "disagrees with"@en ;         skos:definition "The citing entity disagrees with the cited work."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:intentBridgedByReference  a gmeow:CitationIntent ; rdfs:label "bridged by reference"@en ;  skos:definition "The cited work is bridged by reference — aligned to but not imported as axioms (Principle 5)."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:intentCitesAsDataSource   a gmeow:CitationIntent ; rdfs:label "cites as data source"@x-gmeow-english ;   skos:definition "The cited work is used as a data source."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:intentUsesMethodIn        a gmeow:CitationIntent ; rdfs:label "uses method in"@x-gmeow-english ;         skos:definition "The cited work provides a method used by the citing entity."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:intentExtends             a gmeow:CitationIntent ; rdfs:label "extends"@x-gmeow-english ;                skos:definition "The citing entity extends the cited work."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:intentIsInspiredBy        a gmeow:CitationIntent ; rdfs:label "is inspired by"@x-gmeow-english ;         skos:definition "The citing entity is inspired by the cited work."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:intentConformsTo          a gmeow:CitationIntent ; rdfs:label "conforms to"@x-gmeow-english ;            skos:definition "The citing entity conforms to the cited work (a standard, schema, or specification)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:intentDerivedFrom         a gmeow:CitationIntent ; rdfs:label "derived from"@x-gmeow-english ;           skos:definition "The citing entity is derived from the cited work."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:intentDocuments           a gmeow:CitationIntent ; rdfs:label "documents"@x-gmeow-english ;              skos:definition "The citing entity documents the cited work."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:intentSupports            a gmeow:CitationIntent ; rdfs:label "supports"@x-gmeow-english ;               skos:definition "The cited work supports the citing entity."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:intentDisagreesWith       a gmeow:CitationIntent ; rdfs:label "disagrees with"@x-gmeow-english ;         skos:definition "The citing entity disagrees with the cited work."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:intentBridgedByReference  a gmeow:CitationIntent ; rdfs:label "bridged by reference"@x-gmeow-english ;  skos:definition "The cited work is bridged by reference — aligned to but not imported as axioms (Principle 5)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
 # CONTRIBUTION DEGREE — open value vocabulary (individuals, Principle 9)
@@ -143,13 +143,13 @@ gmeow:intentBridgedByReference  a gmeow:CitationIntent ; rdfs:label "bridged by 
 gmeow:ContributionDegree
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Contribution Degree"@en ;
-    skos:definition "The degree or weight of a contribution — a VALUE vocabulary (individuals, never subclasses) characterizing a gmeow:Contribution. Lead, equal, and supporting are the canonical seeds; the set is open."@en ;
+    rdfs:label "Contribution Degree"@x-gmeow-english ;
+    skos:definition "The degree or weight of a contribution — a VALUE vocabulary (individuals, never subclasses) characterizing a gmeow:Contribution. Lead, equal, and supporting are the canonical seeds; the set is open."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:degreeLead       a gmeow:ContributionDegree ; rdfs:label "lead"@en ;       skos:definition "The contributor led the effort."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:degreeEqual      a gmeow:ContributionDegree ; rdfs:label "equal"@en ;      skos:definition "The contributor contributed equally."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:degreeSupporting a gmeow:ContributionDegree ; rdfs:label "supporting"@en ; skos:definition "The contributor supported the effort in a secondary capacity."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:degreeLead       a gmeow:ContributionDegree ; rdfs:label "lead"@x-gmeow-english ;       skos:definition "The contributor led the effort."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:degreeEqual      a gmeow:ContributionDegree ; rdfs:label "equal"@x-gmeow-english ;      skos:definition "The contributor contributed equally."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:degreeSupporting a gmeow:ContributionDegree ; rdfs:label "supporting"@x-gmeow-english ; skos:definition "The contributor supported the effort in a secondary capacity."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
 # SOURCE ROLE — anti-rigid role for source-hood
@@ -158,6 +158,6 @@ gmeow:degreeSupporting a gmeow:ContributionDegree ; rdfs:label "supporting"@en ;
 gmeow:SourceRole
     a owl:Class, gufo:RoleMixin ;
     rdfs:subClassOf gmeow:CreativeWork, gufo:FunctionalComplex ;
-    rdfs:label "Source Role"@en ;
-    skos:definition "The anti-rigid role of being a source — borne by a gmeow:CreativeWork when it is used as evidence for a claim. A thing is only contingently a source; the same work may be evidence for one claim, the subject of another, and a work in its own right. Source-hood is primarily relator-mediated (via CitationAct), but SourceRole provides a named handle when needed."@en ;
+    rdfs:label "Source Role"@x-gmeow-english ;
+    skos:definition "The anti-rigid role of being a source — borne by a gmeow:CreativeWork when it is used as evidence for a claim. A thing is only contingently a source; the same work may be evidence for one claim, the subject of another, and a work in its own right. Source-hood is primarily relator-mediated (via CitationAct), but SourceRole provides a named handle when needed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

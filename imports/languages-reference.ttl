@@ -11,41 +11,41 @@
 
 <https://blackcatinformatics.ca/gmeow/imports/languages-reference>
     a owl:Ontology ;
-    rdfs:label "GMEOW Languages Reference Catalog"@en ;
-    rdfs:comment "Standard natural and programming languages for GMEOW reuse, pre-seeding internal tags, appellations, and alignments."@en .
+    rdfs:label "GMEOW Languages Reference Catalog"@x-gmeow-english ;
+    rdfs:comment "Standard natural and programming languages for GMEOW reuse, pre-seeding internal tags, appellations, and alignments."@x-gmeow-english .
 
 # =========================================================================== #
 # Writing Systems (Scripts)
 # =========================================================================== #
 
 gmeow:wsLatin a gmeow:WritingSystem ;
-    rdfs:label "Latin writing system"@en ;
-    skos:definition "The Latin alphabet script used for English, German, Spanish, French, and romanizations."@en ;
+    rdfs:label "Latin writing system"@x-gmeow-english ;
+    skos:definition "The Latin alphabet script used for English, German, Spanish, French, and romanizations."@x-gmeow-english ;
     gmeow:scriptCode "Latn" ;
     gmeow:writingSystemType gmeow:wsTypeAlphabet ;
     gmeow:textDirection gmeow:directionLtr .
 
 gmeow:wsHan a gmeow:WritingSystem ;
-    rdfs:label "Han writing system"@en ;
-    skos:definition "The logographic Chinese character writing system used for Chinese and Japanese Kanji."@en ;
+    rdfs:label "Han writing system"@x-gmeow-english ;
+    skos:definition "The logographic Chinese character writing system used for Chinese and Japanese Kanji."@x-gmeow-english ;
     gmeow:scriptCode "Hani" ;
     gmeow:writingSystemType gmeow:wsTypeLogographic .
 
 gmeow:wsHiragana a gmeow:WritingSystem ;
-    rdfs:label "Hiragana writing system"@en ;
-    skos:definition "The Japanese hiragana syllabary."@en ;
+    rdfs:label "Hiragana writing system"@x-gmeow-english ;
+    skos:definition "The Japanese hiragana syllabary."@x-gmeow-english ;
     gmeow:scriptCode "Hira" ;
     gmeow:writingSystemType gmeow:wsTypeSyllabary .
 
 gmeow:wsKatakana a gmeow:WritingSystem ;
-    rdfs:label "Katakana writing system"@en ;
-    skos:definition "The Japanese katakana syllabary."@en ;
+    rdfs:label "Katakana writing system"@x-gmeow-english ;
+    skos:definition "The Japanese katakana syllabary."@x-gmeow-english ;
     gmeow:scriptCode "Kana" ;
     gmeow:writingSystemType gmeow:wsTypeSyllabary .
 
 gmeow:wsHangul a gmeow:WritingSystem ;
-    rdfs:label "Hangul writing system"@en ;
-    skos:definition "The Korean featural alphabet script."@en ;
+    rdfs:label "Hangul writing system"@x-gmeow-english ;
+    skos:definition "The Korean featural alphabet script."@x-gmeow-english ;
     gmeow:scriptCode "Hang" ;
     gmeow:writingSystemType gmeow:wsTypeFeatural .
 
@@ -54,8 +54,8 @@ gmeow:wsHangul a gmeow:WritingSystem ;
 # =========================================================================== #
 
 gmeow:langEnglish a gmeow:Language ;
-    rdfs:label "English"@en ;
-    skos:definition "A West Germanic language originating in England, now a global lingua franca."@en ;
+    rdfs:label "English"@x-gmeow-english ;
+    skos:definition "A West Germanic language originating in England, now a global lingua franca."@x-gmeow-english ;
     gmeow:languageTag "x-gmeow-english" ;
     gmeow:bcp47Tag "en"^^xsd:language ;
     gmeow:languageCode "en" ;
@@ -74,8 +74,8 @@ gmeow:appEnglishGlossonym a gmeow:Appellation ;
     gmeow:displayable true .
 
 gmeow:langGerman a gmeow:Language ;
-    rdfs:label "German"@en ;
-    skos:definition "A West Germanic language mainly spoken in Central Europe."@en ;
+    rdfs:label "German"@x-gmeow-english ;
+    skos:definition "A West Germanic language mainly spoken in Central Europe."@x-gmeow-english ;
     gmeow:languageTag "x-gmeow-german" ;
     gmeow:bcp47Tag "de"^^xsd:language ;
     gmeow:languageCode "de" ;
@@ -100,8 +100,8 @@ gmeow:appGermanExonym a gmeow:Appellation ;
     gmeow:displayable true .
 
 gmeow:langSpanish a gmeow:Language ;
-    rdfs:label "Spanish"@en ;
-    skos:definition "A Romance language originating in the Iberian Peninsula, now spoken globally."@en ;
+    rdfs:label "Spanish"@x-gmeow-english ;
+    skos:definition "A Romance language originating in the Iberian Peninsula, now spoken globally."@x-gmeow-english ;
     gmeow:languageTag "x-gmeow-spanish" ;
     gmeow:bcp47Tag "es"^^xsd:language ;
     gmeow:languageCode "es" ;
@@ -126,8 +126,8 @@ gmeow:appSpanishExonym a gmeow:Appellation ;
     gmeow:displayable true .
 
 gmeow:langJapanese a gmeow:Language ;
-    rdfs:label "Japanese"@en ;
-    skos:definition "A Japonic language spoken primarily in Japan."@en ;
+    rdfs:label "Japanese"@x-gmeow-english ;
+    skos:definition "A Japonic language spoken primarily in Japan."@x-gmeow-english ;
     gmeow:languageTag "x-gmeow-japanese" ;
     gmeow:bcp47Tag "ja"^^xsd:language ;
     gmeow:languageCode "ja" ;
@@ -152,8 +152,8 @@ gmeow:appJapaneseExonym a gmeow:Appellation ;
     gmeow:displayable true .
 
 gmeow:langChinese a gmeow:Language ;
-    rdfs:label "Chinese"@en ;
-    skos:definition "A branch of Sino-Tibetan languages spoken primarily in China."@en ;
+    rdfs:label "Chinese"@x-gmeow-english ;
+    skos:definition "A branch of Sino-Tibetan languages spoken primarily in China."@x-gmeow-english ;
     gmeow:languageTag "x-gmeow-chinese" ;
     gmeow:bcp47Tag "zh"^^xsd:language ;
     gmeow:languageCode "zh" ;
@@ -178,8 +178,8 @@ gmeow:appChineseExonym a gmeow:Appellation ;
     gmeow:displayable true .
 
 gmeow:langFrench a gmeow:Language ;
-    rdfs:label "French"@en ;
-    skos:definition "A Romance language spoken primarily in France and parts of Europe, Africa, and North America."@en ;
+    rdfs:label "French"@x-gmeow-english ;
+    skos:definition "A Romance language spoken primarily in France and parts of Europe, Africa, and North America."@x-gmeow-english ;
     gmeow:languageTag "x-gmeow-french" ;
     gmeow:bcp47Tag "fr"^^xsd:language ;
     gmeow:languageCode "fr" ;
@@ -208,8 +208,8 @@ gmeow:appFrenchExonym a gmeow:Appellation ;
 # =========================================================================== #
 
 gmeow:langPython a gmeow:ProgrammingLanguage ;
-    rdfs:label "Python"@en ;
-    skos:definition "An interpreted, high-level, general-purpose programming language."@en ;
+    rdfs:label "Python"@x-gmeow-english ;
+    skos:definition "An interpreted, high-level, general-purpose programming language."@x-gmeow-english ;
     gmeow:languageTag "x-gmeow-python" ;
     gmeow:languageCode "py" ;
     gmeow:languageOrigin gmeow:originProgramming ;
@@ -226,8 +226,8 @@ gmeow:appPythonGlossonym a gmeow:Appellation ;
     gmeow:displayable true .
 
 gmeow:langRust a gmeow:ProgrammingLanguage ;
-    rdfs:label "Rust"@en ;
-    skos:definition "A multi-paradigm, systems programming language designed for performance and safety."@en ;
+    rdfs:label "Rust"@x-gmeow-english ;
+    skos:definition "A multi-paradigm, systems programming language designed for performance and safety."@x-gmeow-english ;
     gmeow:languageTag "x-gmeow-rust" ;
     gmeow:languageCode "rs" ;
     gmeow:languageOrigin gmeow:originProgramming ;
@@ -244,8 +244,8 @@ gmeow:appRustGlossonym a gmeow:Appellation ;
     gmeow:displayable true .
 
 gmeow:langJavaScript a gmeow:ProgrammingLanguage ;
-    rdfs:label "JavaScript"@en ;
-    skos:definition "A high-level, interpreted programming language conforming to ECMAScript."@en ;
+    rdfs:label "JavaScript"@x-gmeow-english ;
+    skos:definition "A high-level, interpreted programming language conforming to ECMAScript."@x-gmeow-english ;
     gmeow:languageTag "x-gmeow-javascript" ;
     gmeow:languageCode "js" ;
     gmeow:languageOrigin gmeow:originProgramming ;

@@ -14,7 +14,7 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaHasTag a gmeow:ProjectionMapping ;
-    rdfs:label "hasTag → schema:keywords (label text, suppress displayable false)"@en ;
+    rdfs:label "hasTag → schema:keywords (label text, suppress displayable false)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "kw" ;
         gmeow:atom (
@@ -32,7 +32,7 @@ gmeow:mapSchemaHasTag a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaTaggingKeyword a gmeow:ProjectionMapping ;
-    rdfs:label "Tagging relator → schema:keywords (lossy flatten)"@en ;
+    rdfs:label "Tagging relator → schema:keywords (lossy flatten)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "kw" ;
         gmeow:atom (
@@ -53,7 +53,7 @@ gmeow:mapSchemaTaggingKeyword a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapWebAnnotationTagging a gmeow:ProjectionMapping ;
-    rdfs:label "Tagging relator → oa:Annotation (body/target/motivatedBy)"@en ;
+    rdfs:label "Tagging relator → oa:Annotation (body/target/motivatedBy)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "tagging" ; gmeow:value "tagging" ;
         gmeow:atom (

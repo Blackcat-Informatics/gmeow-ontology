@@ -8,7 +8,7 @@
 # generating SPARQL CONSTRUCT queries and EDOAL cells (Principle 5).
 
 gmeow:mapSlsaProvenance a gmeow:ProjectionMapping ;
-    rdfs:label "BuildActivity → slsa:Provenance"@en ;
+    rdfs:label "BuildActivity → slsa:Provenance"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "build" ;
         gmeow:atom (
@@ -28,7 +28,7 @@ gmeow:mapSlsaProvenance a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "builder identity, temporal scope, event type, multiple artifacts" ] .
 
 gmeow:mapSlsaLevel a gmeow:ProjectionMapping ;
-    rdfs:label "hasSLSALevel → slsa:buildLevel"@en ;
+    rdfs:label "hasSLSALevel → slsa:buildLevel"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "att" ; gmeow:value "lvl" ;
         gmeow:atom (

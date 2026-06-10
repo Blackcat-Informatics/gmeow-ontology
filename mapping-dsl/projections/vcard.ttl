@@ -12,7 +12,7 @@
 # vcard.rq by `gmeow compile-mappings`.
 
 gmeow:mapVcardAddress a gmeow:ProjectionMapping ;
-    rdfs:label "PostalAddress → vcard:Address (component rename + composed vcard:label)"@en ;
+    rdfs:label "PostalAddress → vcard:Address (component rename + composed vcard:label)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "holder" ;
         gmeow:atom (
@@ -47,7 +47,7 @@ gmeow:mapVcardAddress a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "addr" ; gmeow:tPred vcard:label ; gmeow:tObj "label" ] ) ] .
 
 gmeow:mapVcardFn a gmeow:ProjectionMapping ;
-    rdfs:label "displayable fullName → vcard:fn"@en ;
+    rdfs:label "displayable fullName → vcard:fn"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "dispName" ;
         gmeow:atom (
@@ -63,7 +63,7 @@ gmeow:mapVcardFn a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "non-displayable names (deadnames) dropped" ] .
 
 gmeow:mapVcardGivenName a gmeow:ProjectionMapping ;
-    rdfs:label "given-name part → vcard:Name node"@en ;
+    rdfs:label "given-name part → vcard:Name node"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "given" ;
         gmeow:atom (
@@ -87,7 +87,7 @@ gmeow:mapVcardGivenName a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "vname" ; gmeow:tPred vcard:given-name ; gmeow:tObj "given" ] ) ] .
 
 gmeow:mapVcardFamilyName a gmeow:ProjectionMapping ;
-    rdfs:label "family-name part → vcard:Name node"@en ;
+    rdfs:label "family-name part → vcard:Name node"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "family" ;
         gmeow:atom (
@@ -111,7 +111,7 @@ gmeow:mapVcardFamilyName a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "vname" ; gmeow:tPred vcard:family-name ; gmeow:tObj "family" ] ) ] .
 
 gmeow:mapVcardNickname a gmeow:ProjectionMapping ;
-    rdfs:label "nickname-purpose PersonName → vcard:nickname"@en ;
+    rdfs:label "nickname-purpose PersonName → vcard:nickname"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "nick" ;
         gmeow:atom (
@@ -125,7 +125,7 @@ gmeow:mapVcardNickname a gmeow:ProjectionMapping ;
         gmeow:transform gmeow:fnNicknameName ; gmeow:confidence 0.9 ] .
 
 gmeow:mapVcardBday a gmeow:ProjectionMapping ;
-    rdfs:label "Birth life-event date → vcard:bday"@en ;
+    rdfs:label "Birth life-event date → vcard:bday"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "bdate" ;
         gmeow:atom (
@@ -141,7 +141,7 @@ gmeow:mapVcardBday a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the birth Participation (role, period, confidence, standpoint) and fuzzy-date bounds are dropped; only the principal's birth instant survives as vcard:bday" ] .
 
 gmeow:mapVcardTitle a gmeow:ProjectionMapping ;
-    rdfs:label "Membership Role → vcard:title"@en ;
+    rdfs:label "Membership Role → vcard:title"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "title" ;
         gmeow:atom (
@@ -158,7 +158,7 @@ gmeow:mapVcardTitle a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the Membership relator (organization, period, role, confidence, standpoint) collapses to a flat vcard:title literal; contested membership claims are not distinguished" ] .
 
 gmeow:mapVcardNote a gmeow:ProjectionMapping ;
-    rdfs:label "gmeow:description → vcard:note"@en ;
+    rdfs:label "gmeow:description → vcard:note"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "desc" ;
         gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:description ; gmeow:objectVar "desc" ] ) ;
@@ -167,7 +167,7 @@ gmeow:mapVcardNote a gmeow:ProjectionMapping ;
         gmeow:profile "vcard" ; gmeow:toPredicate vcard:note ; gmeow:relation "<=" ; gmeow:confidence 0.8 ] .
 
 gmeow:mapVcardPronouns a gmeow:ProjectionMapping ;
-    rdfs:label "PronounSet five forms → vCard PRONOUNS display text (RFC 9554 extension)"@en ;
+    rdfs:label "PronounSet five forms → vCard PRONOUNS display text (RFC 9554 extension)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "pronouns" ;
         gmeow:atom (
@@ -191,7 +191,7 @@ gmeow:mapVcardPronouns a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the five declined forms are preserved in full (lossless for the declension); only the non-specifying values (any/ask/name-only, which carry no forms) and any period or standpoint are not represented" ] .
 
 gmeow:mapVcardUrl a gmeow:ProjectionMapping ;
-    rdfs:label "hasWebPage → vcard:hasURL (the WebPage IRI)"@en ;
+    rdfs:label "hasWebPage → vcard:hasURL (the WebPage IRI)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "wp" ;
         gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:hasWebPage ; gmeow:objectVar "wp" ] ) ;
@@ -205,7 +205,7 @@ gmeow:mapVcardUrl a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapVcardGeo a gmeow:ProjectionMapping ;
-    rdfs:label "Place coordinates → vcard:hasGeo (vcard:Geo node with geo: URI)"@en ;
+    rdfs:label "Place coordinates → vcard:hasGeo (vcard:Geo node with geo: URI)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ;
         gmeow:atom (

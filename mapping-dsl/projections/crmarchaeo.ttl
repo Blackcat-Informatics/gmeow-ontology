@@ -13,7 +13,7 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:mapCrmarcExcavationActivity a gmeow:ProjectionMapping ;
-    rdfs:label "ObservationalActivity (excavation) → crmarc:A1_Excavation_Process_Unit"@en ;
+    rdfs:label "ObservationalActivity (excavation) → crmarc:A1_Excavation_Process_Unit"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "act" ;
         gmeow:atom (
@@ -26,7 +26,7 @@ gmeow:mapCrmarcExcavationActivity a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the generic observational-activity semantics are narrowed to destructive excavation; non-excavation observational activities are filtered out" ] .
 
 gmeow:mapCrmarcStratigraphicObservation a gmeow:ProjectionMapping ;
-    rdfs:label "Observation → crmarc:S4_Observation"@en ;
+    rdfs:label "Observation → crmarc:S4_Observation"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "obs" ;
         gmeow:atom ( [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Observation ] ) ;
@@ -41,7 +41,7 @@ gmeow:mapCrmarcStratigraphicObservation a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapCrmarcObservedFeature a gmeow:ProjectionMapping ;
-    rdfs:label "observedFeature → crmarc:A2_Stratigraphic_Volume_Unit"@en ;
+    rdfs:label "observedFeature → crmarc:A2_Stratigraphic_Volume_Unit"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "obs" ; gmeow:value "feature" ;
         gmeow:atom (
@@ -56,7 +56,7 @@ gmeow:mapCrmarcObservedFeature a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "feature" ; gmeow:tPred rdf:type ; gmeow:tObjValue crmarc:A2_Stratigraphic_Volume_Unit ] ) ] .
 
 gmeow:mapCrmarcPhysicalRelation a gmeow:ProjectionMapping ;
-    rdfs:label "connectsTo between Observations → crmarc:AP11_has_physical_relation"@en ;
+    rdfs:label "connectsTo between Observations → crmarc:AP11_has_physical_relation"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "obs1" ; gmeow:value "obs2" ;
         gmeow:atom (

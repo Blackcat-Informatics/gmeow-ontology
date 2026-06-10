@@ -11,7 +11,7 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:mapBotPlaceType a gmeow:ProjectionMapping ;
-    rdfs:label "Place placeType value → BOT target class"@en ;
+    rdfs:label "Place placeType value → BOT target class"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ; gmeow:value "pt" ;
         gmeow:atom ( [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:placeType ; gmeow:objectVar "pt" ] ) ;
@@ -30,7 +30,7 @@ gmeow:mapBotPlaceType a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapBotHasStorey a gmeow:ProjectionMapping ;
-    rdfs:label "building contains floor → bot:hasStorey"@en ;
+    rdfs:label "building contains floor → bot:hasStorey"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "building" ; gmeow:value "storey" ;
         gmeow:atom (
@@ -45,7 +45,7 @@ gmeow:mapBotHasStorey a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the GMEOW containedInPlace subproperty and any standpoint/contestation on the containment are collapsed to a flat bot:hasStorey edge" ] .
 
 gmeow:mapBotHasSpace a gmeow:ProjectionMapping ;
-    rdfs:label "floor contains room → bot:hasSpace"@en ;
+    rdfs:label "floor contains room → bot:hasSpace"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "storey" ; gmeow:value "space" ;
         gmeow:atom (
@@ -61,7 +61,7 @@ gmeow:mapBotHasSpace a gmeow:ProjectionMapping ;
 
 # Building contains room directly (skipping floor) — also valid in BOT.
 gmeow:mapBotHasSpaceDirect a gmeow:ProjectionMapping ;
-    rdfs:label "building contains room directly → bot:hasSpace"@en ;
+    rdfs:label "building contains room directly → bot:hasSpace"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "building" ; gmeow:value "space" ;
         gmeow:atom (
@@ -80,7 +80,7 @@ gmeow:mapBotHasSpaceDirect a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapBotContainsZone a gmeow:ProjectionMapping ;
-    rdfs:label "containsPlace → bot:containsZone (indoor topology)"@en ;
+    rdfs:label "containsPlace → bot:containsZone (indoor topology)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "parent" ; gmeow:value "child" ;
         gmeow:atom (
@@ -105,7 +105,7 @@ gmeow:mapBotContainsZone a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapBotAdjacentTo a gmeow:ProjectionMapping ;
-    rdfs:label "adjacentTo → bot:adjacentZone (indoor topology)"@en ;
+    rdfs:label "adjacentTo → bot:adjacentZone (indoor topology)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "x" ; gmeow:value "y" ;
         gmeow:atom (

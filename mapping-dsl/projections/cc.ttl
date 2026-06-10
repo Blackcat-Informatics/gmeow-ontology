@@ -11,7 +11,7 @@
 # than rewriting — Principle 5; the full deontic detail projects to ODRL instead).
 
 gmeow:mapCcLicenseLink a gmeow:ProjectionMapping ;
-    rdfs:label "hasLicense → cc:license"@en ;
+    rdfs:label "hasLicense → cc:license"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "lic" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasLicense ; gmeow:objectVar "lic" ] ) ;
@@ -19,7 +19,7 @@ gmeow:mapCcLicenseLink a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "cc" ; gmeow:toPredicate cc:license ; gmeow:relation "<=" ; gmeow:confidence 0.8 ] .
 
 gmeow:mapCcLicenseType a gmeow:ProjectionMapping ;
-    rdfs:label "License → cc:License"@en ;
+    rdfs:label "License → cc:License"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "lic" ;
         gmeow:atom ( [ gmeow:subjectVar "lic" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:License ] ) ;
@@ -27,7 +27,7 @@ gmeow:mapCcLicenseType a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "cc" ; gmeow:toClass cc:License ; gmeow:relation "<=" ; gmeow:confidence 0.8 ] .
 
 gmeow:mapCcAttributionName a gmeow:ProjectionMapping ;
-    rdfs:label "attributionText → cc:attributionName"@en ;
+    rdfs:label "attributionText → cc:attributionName"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "credit" ;
         gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:attributionText ; gmeow:objectVar "credit" ] ) ;
@@ -35,7 +35,7 @@ gmeow:mapCcAttributionName a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "cc" ; gmeow:toPredicate cc:attributionName ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .
 
 gmeow:mapCcAttributionUrl a gmeow:ProjectionMapping ;
-    rdfs:label "attributionUrl → cc:attributionURL"@en ;
+    rdfs:label "attributionUrl → cc:attributionURL"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "au" ;
         gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:attributionUrl ; gmeow:objectVar "au" ] ) ;

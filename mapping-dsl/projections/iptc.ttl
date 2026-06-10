@@ -16,7 +16,7 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:mapIptcNewsEvent a gmeow:ProjectionMapping ;
-    rdfs:label "StandpointClaim → bbc:NewsEvent"@en ;
+    rdfs:label "StandpointClaim → bbc:NewsEvent"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "claim" ;
         gmeow:atom ( [ gmeow:subjectVar "claim" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:StandpointClaim ] ) ;
@@ -27,7 +27,7 @@ gmeow:mapIptcNewsEvent a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "confidence, determinacy, temporal scope, and standpoint metadata are dropped; only the reported event class survives" ] .
 
 gmeow:mapIptcNewsMessage a gmeow:ProjectionMapping ;
-    rdfs:label "ObservationalActivity → iptc:NewsMessage"@en ;
+    rdfs:label "ObservationalActivity → iptc:NewsMessage"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "act" ;
         gmeow:atom ( [ gmeow:subjectVar "act" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ObservationalActivity ] ) ;
@@ -42,7 +42,7 @@ gmeow:mapIptcNewsMessage a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapIptcAssertor a gmeow:ProjectionMapping ;
-    rdfs:label "vantage (journalist/org) → iptc:Assertor"@en ;
+    rdfs:label "vantage (journalist/org) → iptc:Assertor"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "claim" ; gmeow:value "source" ;
         gmeow:atom (
@@ -57,7 +57,7 @@ gmeow:mapIptcAssertor a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "source" ; gmeow:tPred rdf:type ; gmeow:tObjValue iptc:Assertor ] ) ] .
 
 gmeow:mapIptcOpenAnnotation a gmeow:ProjectionMapping ;
-    rdfs:label "StandpointClaim → oa:Annotation with target"@en ;
+    rdfs:label "StandpointClaim → oa:Annotation with target"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "claim" ;
         gmeow:atom (

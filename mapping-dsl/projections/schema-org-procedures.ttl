@@ -13,7 +13,7 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaHowTo a gmeow:ProjectionMapping ;
-    rdfs:label "Procedure → schema:HowTo"@en ;
+    rdfs:label "Procedure → schema:HowTo"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proc" ;
         gmeow:atom (
@@ -25,7 +25,7 @@ gmeow:mapSchemaHowTo a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "proc" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:HowTo ] ) ] .
 
 gmeow:mapSchemaRecipe a gmeow:ProjectionMapping ;
-    rdfs:label "Procedure (type=recipe) → schema:Recipe"@en ;
+    rdfs:label "Procedure (type=recipe) → schema:Recipe"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "recipe" ;
         gmeow:atom (
@@ -41,7 +41,7 @@ gmeow:mapSchemaRecipe a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaHowToStep a gmeow:ProjectionMapping ;
-    rdfs:label "ProcedureStep → schema:HowToStep"@en ;
+    rdfs:label "ProcedureStep → schema:HowToStep"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "step" ;
         gmeow:atom (
@@ -56,7 +56,7 @@ gmeow:mapSchemaHowToStep a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaStep a gmeow:ProjectionMapping ;
-    rdfs:label "hasProcedureStep → schema:step"@en ;
+    rdfs:label "hasProcedureStep → schema:step"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proc" ; gmeow:value "step" ;
         gmeow:atom ( [ gmeow:subjectVar "proc" ; gmeow:predicate gmeow:hasProcedureStep ; gmeow:objectVar "step" ] ) ;
@@ -69,7 +69,7 @@ gmeow:mapSchemaStep a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaSupply a gmeow:ProjectionMapping ;
-    rdfs:label "stepInput → schema:supply"@en ;
+    rdfs:label "stepInput → schema:supply"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "step" ; gmeow:value "inp" ;
         gmeow:atom ( [ gmeow:subjectVar "step" ; gmeow:predicate gmeow:stepInput ; gmeow:objectVar "inp" ] ) ;
@@ -79,7 +79,7 @@ gmeow:mapSchemaSupply a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the typed stepInput collapses to a flat schema:supply edge" ] .
 
 gmeow:mapSchemaTool a gmeow:ProjectionMapping ;
-    rdfs:label "stepInput (tool) → schema:tool"@en ;
+    rdfs:label "stepInput (tool) → schema:tool"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "step" ; gmeow:value "tool" ;
         gmeow:atom (
@@ -95,7 +95,7 @@ gmeow:mapSchemaTool a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaResult a gmeow:ProjectionMapping ;
-    rdfs:label "stepOutput → schema:result"@en ;
+    rdfs:label "stepOutput → schema:result"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "step" ; gmeow:value "out" ;
         gmeow:atom ( [ gmeow:subjectVar "step" ; gmeow:predicate gmeow:stepOutput ; gmeow:objectVar "out" ] ) ;
@@ -109,7 +109,7 @@ gmeow:mapSchemaResult a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaAction a gmeow:ProjectionMapping ;
-    rdfs:label "Execution → schema:Action"@en ;
+    rdfs:label "Execution → schema:Action"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "exec" ;
         gmeow:atom (

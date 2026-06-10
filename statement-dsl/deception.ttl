@@ -17,7 +17,7 @@
 #    projected standpoint (what they communicate) is unequivocal. Both are
 #    coexisting, standpoint-indexed claims — neither is privileged.
 ex:claim-deception-event-001 a gmeow:StatementMetadata ;
-    rdfs:label "Deception event — held standpoint refuted, projected standpoint unequivocal"@en ;
+    rdfs:label "Deception event — held standpoint refuted, projected standpoint unequivocal"@x-gmeow-english ;
     gmeow:reifier    ex:claim-deception-event-001 ;
     gmeow:qSubject   ex:event-deception-001 ;
     gmeow:qPredicate gmeow:eventType ;
@@ -29,7 +29,7 @@ ex:claim-deception-event-001 a gmeow:StatementMetadata ;
 
 # 2. The held standpoint of the deception — what the deceiver actually believes.
 ex:claim-held-001 a gmeow:StatementMetadata ;
-    rdfs:label "Held standpoint — the deceiver's private belief (refuted per universal standpoint)"@en ;
+    rdfs:label "Held standpoint — the deceiver's private belief (refuted per universal standpoint)"@x-gmeow-english ;
     gmeow:reifier    ex:claim-held-001 ;
     gmeow:qSubject   ex:event-deception-001 ;
     gmeow:qPredicate gmeow:heldStandpoint ;
@@ -40,7 +40,7 @@ ex:claim-held-001 a gmeow:StatementMetadata ;
 
 # 3. The projected standpoint of the deception — what the deceiver communicates.
 ex:claim-projected-001 a gmeow:StatementMetadata ;
-    rdfs:label "Projected standpoint — the deceiver's communicated position (unequivocal per deceiver's standpoint)"@en ;
+    rdfs:label "Projected standpoint — the deceiver's communicated position (unequivocal per deceiver's standpoint)"@x-gmeow-english ;
     gmeow:reifier    ex:claim-projected-001 ;
     gmeow:qSubject   ex:event-deception-001 ;
     gmeow:qPredicate gmeow:projectedStandpoint ;
@@ -52,7 +52,7 @@ ex:claim-projected-001 a gmeow:StatementMetadata ;
 # 4. A fact-check attestation — an attester vouches for a claim under the
 #    fact-check policy. The result is a VerificationResult, not a global truth.
 ex:claim-factcheck-001 a gmeow:StatementMetadata ;
-    rdfs:label "Fact-check attestation — ClaimReview as Attestation + VerificationResult"@en ;
+    rdfs:label "Fact-check attestation — ClaimReview as Attestation + VerificationResult"@x-gmeow-english ;
     gmeow:reifier    ex:claim-factcheck-001 ;
     gmeow:qSubject   ex:attestation-factcheck-001 ;
     gmeow:qPredicate gmeow:attestationType ;
@@ -66,7 +66,7 @@ ex:claim-factcheck-001 a gmeow:StatementMetadata ;
 #    understands the non-truth-asserting frame. The veridicality makes this
 #    safety property explicit.
 ex:claim-fiction-001 a gmeow:StatementMetadata ;
-    rdfs:label "Licensed falsehood — fiction claim with explicit safety property"@en ;
+    rdfs:label "Licensed falsehood — fiction claim with explicit safety property"@x-gmeow-english ;
     gmeow:reifier    ex:claim-fiction-001 ;
     gmeow:qSubject   ex:claim-hogwarts-exists ;
     gmeow:qPredicate gmeow:claimVeridicality ;
@@ -78,7 +78,7 @@ ex:claim-fiction-001 a gmeow:StatementMetadata ;
 
 # 6. A bullshit standpoint claim — indifference to truth, neither true nor false.
 ex:claim-bullshit-001 a gmeow:StatementMetadata ;
-    rdfs:label "Bullshit claim — standpoint modality = bullshit (indifference to truth)"@en ;
+    rdfs:label "Bullshit claim — standpoint modality = bullshit (indifference to truth)"@x-gmeow-english ;
     gmeow:reifier    ex:claim-bullshit-001 ;
     gmeow:qSubject   ex:standpointclaim-bullshit-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -92,7 +92,7 @@ ex:claim-bullshit-001 a gmeow:StatementMetadata ;
 #    scoped with confidence and a standpoint (issue #214, Deception EPIC #212).
 #    The propagation agent may bear roleDupe (unwitting) or roleDeceiver (knowing).
 ex:claim-myth-propagation-001 a gmeow:StatementMetadata ;
-    rdfs:label "Myth telling propagation — social-post telling derived from article telling"@en ;
+    rdfs:label "Myth telling propagation — social-post telling derived from article telling"@x-gmeow-english ;
     gmeow:reifier    ex:claim-myth-propagation-001 ;
     gmeow:qSubject   ex:telling-social-post-001 ;
     gmeow:qPredicate gmeow:propagatesFrom ;
@@ -111,7 +111,7 @@ ex:claim-myth-propagation-001 a gmeow:StatementMetadata ;
 
 # 8. A LIE — held refutes P, projects P as unequivocal.
 ex:claim-event-lie-001 a gmeow:StatementMetadata ;
-    rdfs:label "Lie event — held refutes P, projects P as unequivocal"@en ;
+    rdfs:label "Lie event — held refutes P, projects P as unequivocal"@x-gmeow-english ;
     gmeow:reifier    ex:claim-event-lie-001 ;
     gmeow:qSubject   ex:event-lie-001 ;
     gmeow:qPredicate gmeow:eventType ;
@@ -122,7 +122,7 @@ ex:claim-event-lie-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-lie-held-001 a gmeow:StatementMetadata ;
-    rdfs:label "Lie held standpoint — P is refuted per universal standpoint"@en ;
+    rdfs:label "Lie held standpoint — P is refuted per universal standpoint"@x-gmeow-english ;
     gmeow:reifier    ex:claim-lie-held-001 ;
     gmeow:qSubject   ex:event-lie-001 ;
     gmeow:qPredicate gmeow:heldStandpoint ;
@@ -132,7 +132,7 @@ ex:claim-lie-held-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-01T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-lie-projected-001 a gmeow:StatementMetadata ;
-    rdfs:label "Lie projected standpoint — P asserted unequivocal by deceiver"@en ;
+    rdfs:label "Lie projected standpoint — P asserted unequivocal by deceiver"@x-gmeow-english ;
     gmeow:reifier    ex:claim-lie-projected-001 ;
     gmeow:qSubject   ex:event-lie-001 ;
     gmeow:qPredicate gmeow:projectedStandpoint ;
@@ -142,7 +142,7 @@ ex:claim-lie-projected-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-01T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-lie-held-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Lie held claim modality — refuted"@en ;
+    rdfs:label "Lie held claim modality — refuted"@x-gmeow-english ;
     gmeow:reifier    ex:claim-lie-held-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-lie-held-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -153,7 +153,7 @@ ex:claim-lie-held-modality-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-lie-projected-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Lie projected claim modality — unequivocal"@en ;
+    rdfs:label "Lie projected claim modality — unequivocal"@x-gmeow-english ;
     gmeow:reifier    ex:claim-lie-projected-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-lie-projected-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -165,7 +165,7 @@ ex:claim-lie-projected-modality-001 a gmeow:StatementMetadata ;
 
 # 9. PALTERING — literally true projected claim implicates false P′.
 ex:claim-event-paltering-001 a gmeow:StatementMetadata ;
-    rdfs:label "Paltering event — literally true claim implicating false P′"@en ;
+    rdfs:label "Paltering event — literally true claim implicating false P′"@x-gmeow-english ;
     gmeow:reifier    ex:claim-event-paltering-001 ;
     gmeow:qSubject   ex:event-paltering-001 ;
     gmeow:qPredicate gmeow:eventType ;
@@ -176,7 +176,7 @@ ex:claim-event-paltering-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-paltering-implicates-001 a gmeow:StatementMetadata ;
-    rdfs:label "Paltering implicature — event implicates false proposition P′"@en ;
+    rdfs:label "Paltering implicature — event implicates false proposition P′"@x-gmeow-english ;
     gmeow:reifier    ex:claim-paltering-implicates-001 ;
     gmeow:qSubject   ex:event-paltering-001 ;
     gmeow:qPredicate gmeow:implicates ;
@@ -186,7 +186,7 @@ ex:claim-paltering-implicates-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-02T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-paltering-held-refutes-implicated-001 a gmeow:StatementMetadata ;
-    rdfs:label "Paltering held standpoint — deceiver refutes the implicated P′"@en ;
+    rdfs:label "Paltering held standpoint — deceiver refutes the implicated P′"@x-gmeow-english ;
     gmeow:reifier    ex:claim-paltering-held-refutes-implicated-001 ;
     gmeow:qSubject   ex:event-paltering-001 ;
     gmeow:qPredicate gmeow:heldStandpoint ;
@@ -196,7 +196,7 @@ ex:claim-paltering-held-refutes-implicated-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-02T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-paltering-held-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Paltering held claim modality — refutes implicated P′"@en ;
+    rdfs:label "Paltering held claim modality — refutes implicated P′"@x-gmeow-english ;
     gmeow:reifier    ex:claim-paltering-held-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-paltering-held-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -207,7 +207,7 @@ ex:claim-paltering-held-modality-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-paltering-projected-001 a gmeow:StatementMetadata ;
-    rdfs:label "Paltering projected standpoint — literally true, non-refuted"@en ;
+    rdfs:label "Paltering projected standpoint — literally true, non-refuted"@x-gmeow-english ;
     gmeow:reifier    ex:claim-paltering-projected-001 ;
     gmeow:qSubject   ex:event-paltering-001 ;
     gmeow:qPredicate gmeow:projectedStandpoint ;
@@ -218,7 +218,7 @@ ex:claim-paltering-projected-001 a gmeow:StatementMetadata ;
 
 # 10. OMISSION — held standpoint present, no projected standpoint.
 ex:claim-event-omission-001 a gmeow:StatementMetadata ;
-    rdfs:label "Omission event — held standpoint present, no projected standpoint"@en ;
+    rdfs:label "Omission event — held standpoint present, no projected standpoint"@x-gmeow-english ;
     gmeow:reifier    ex:claim-event-omission-001 ;
     gmeow:qSubject   ex:event-omission-001 ;
     gmeow:qPredicate gmeow:eventType ;
@@ -229,7 +229,7 @@ ex:claim-event-omission-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-omission-held-001 a gmeow:StatementMetadata ;
-    rdfs:label "Omission held standpoint — the suppressed truth"@en ;
+    rdfs:label "Omission held standpoint — the suppressed truth"@x-gmeow-english ;
     gmeow:reifier    ex:claim-omission-held-001 ;
     gmeow:qSubject   ex:event-omission-001 ;
     gmeow:qPredicate gmeow:heldStandpoint ;
@@ -239,7 +239,7 @@ ex:claim-omission-held-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-03T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-omission-held-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Omission held claim modality — unequivocal (the deceiver knows it)"@en ;
+    rdfs:label "Omission held claim modality — unequivocal (the deceiver knows it)"@x-gmeow-english ;
     gmeow:reifier    ex:claim-omission-held-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-omission-held-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -251,7 +251,7 @@ ex:claim-omission-held-modality-001 a gmeow:StatementMetadata ;
 
 # 11. DISTORTION / SPIN — projected sharpens or re-frames held.
 ex:claim-event-distortion-001 a gmeow:StatementMetadata ;
-    rdfs:label "Distortion event — projected sharpens/re-frames held"@en ;
+    rdfs:label "Distortion event — projected sharpens/re-frames held"@x-gmeow-english ;
     gmeow:reifier    ex:claim-event-distortion-001 ;
     gmeow:qSubject   ex:event-distortion-001 ;
     gmeow:qPredicate gmeow:eventType ;
@@ -262,7 +262,7 @@ ex:claim-event-distortion-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-distortion-held-001 a gmeow:StatementMetadata ;
-    rdfs:label "Distortion held standpoint — probable, cautious"@en ;
+    rdfs:label "Distortion held standpoint — probable, cautious"@x-gmeow-english ;
     gmeow:reifier    ex:claim-distortion-held-001 ;
     gmeow:qSubject   ex:event-distortion-001 ;
     gmeow:qPredicate gmeow:heldStandpoint ;
@@ -272,7 +272,7 @@ ex:claim-distortion-held-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-04T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-distortion-held-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Distortion held claim modality — probable"@en ;
+    rdfs:label "Distortion held claim modality — probable"@x-gmeow-english ;
     gmeow:reifier    ex:claim-distortion-held-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-distortion-held-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -283,7 +283,7 @@ ex:claim-distortion-held-modality-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-deceiver ] .
 
 ex:claim-distortion-projected-001 a gmeow:StatementMetadata ;
-    rdfs:label "Distortion projected standpoint — sharpened to unequivocal"@en ;
+    rdfs:label "Distortion projected standpoint — sharpened to unequivocal"@x-gmeow-english ;
     gmeow:reifier    ex:claim-distortion-projected-001 ;
     gmeow:qSubject   ex:event-distortion-001 ;
     gmeow:qPredicate gmeow:projectedStandpoint ;
@@ -293,7 +293,7 @@ ex:claim-distortion-projected-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-04T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-distortion-projected-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Distortion projected claim modality — unequivocal (the spin)"@en ;
+    rdfs:label "Distortion projected claim modality — unequivocal (the spin)"@x-gmeow-english ;
     gmeow:reifier    ex:claim-distortion-projected-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-distortion-projected-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -305,7 +305,7 @@ ex:claim-distortion-projected-modality-001 a gmeow:StatementMetadata ;
 
 # 11b. DISTORTION participant — the spin doctor bears roleSpinDoctor on the event.
 ex:claim-distortion-participant-001 a gmeow:StatementMetadata ;
-    rdfs:label "Distortion participant — spin doctor bears roleSpinDoctor"@en ;
+    rdfs:label "Distortion participant — spin doctor bears roleSpinDoctor"@x-gmeow-english ;
     gmeow:reifier    ex:claim-distortion-participant-001 ;
     gmeow:qSubject   ex:event-distortion-001 ;
     gmeow:qPredicate gmeow:hasParticipant ;
@@ -317,7 +317,7 @@ ex:claim-distortion-participant-001 a gmeow:StatementMetadata ;
 
 # 12. BULLSHIT — held modality = bullshit, projected unequivocal.
 ex:claim-event-bullshit-001 a gmeow:StatementMetadata ;
-    rdfs:label "Bullshit event — held indifference, projected conviction"@en ;
+    rdfs:label "Bullshit event — held indifference, projected conviction"@x-gmeow-english ;
     gmeow:reifier    ex:claim-event-bullshit-001 ;
     gmeow:qSubject   ex:event-bullshit-001 ;
     gmeow:qPredicate gmeow:eventType ;
@@ -328,7 +328,7 @@ ex:claim-event-bullshit-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-analyst ] .
 
 ex:claim-bullshit-held-001 a gmeow:StatementMetadata ;
-    rdfs:label "Bullshit held standpoint — indifference to truth"@en ;
+    rdfs:label "Bullshit held standpoint — indifference to truth"@x-gmeow-english ;
     gmeow:reifier    ex:claim-bullshit-held-001 ;
     gmeow:qSubject   ex:event-bullshit-001 ;
     gmeow:qPredicate gmeow:heldStandpoint ;
@@ -338,7 +338,7 @@ ex:claim-bullshit-held-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-05T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-bullshit-held-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Bullshit held claim modality — bullshit (indifference)"@en ;
+    rdfs:label "Bullshit held claim modality — bullshit (indifference)"@x-gmeow-english ;
     gmeow:reifier    ex:claim-bullshit-held-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-bullshit-held-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -349,7 +349,7 @@ ex:claim-bullshit-held-modality-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-analyst ] .
 
 ex:claim-bullshit-projected-001 a gmeow:StatementMetadata ;
-    rdfs:label "Bullshit projected standpoint — asserted with false confidence"@en ;
+    rdfs:label "Bullshit projected standpoint — asserted with false confidence"@x-gmeow-english ;
     gmeow:reifier    ex:claim-bullshit-projected-001 ;
     gmeow:qSubject   ex:event-bullshit-001 ;
     gmeow:qPredicate gmeow:projectedStandpoint ;
@@ -359,7 +359,7 @@ ex:claim-bullshit-projected-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-05T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-bullshit-projected-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Bullshit projected claim modality — unequivocal"@en ;
+    rdfs:label "Bullshit projected claim modality — unequivocal"@x-gmeow-english ;
     gmeow:reifier    ex:claim-bullshit-projected-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-bullshit-projected-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -371,7 +371,7 @@ ex:claim-bullshit-projected-modality-001 a gmeow:StatementMetadata ;
 
 # 13. SELF-DECEPTION — same agent fills deceiver and deceived roles.
 ex:claim-event-self-deception-001 a gmeow:StatementMetadata ;
-    rdfs:label "Self-deception event — same agent as deceiver and deceived"@en ;
+    rdfs:label "Self-deception event — same agent as deceiver and deceived"@x-gmeow-english ;
     gmeow:reifier    ex:claim-event-self-deception-001 ;
     gmeow:qSubject   ex:event-self-deception-001 ;
     gmeow:qPredicate gmeow:eventType ;
@@ -382,7 +382,7 @@ ex:claim-event-self-deception-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-therapist ] .
 
 ex:claim-self-deception-held-001 a gmeow:StatementMetadata ;
-    rdfs:label "Self-deception held standpoint — tacit, refuted by avowed self"@en ;
+    rdfs:label "Self-deception held standpoint — tacit, refuted by avowed self"@x-gmeow-english ;
     gmeow:reifier    ex:claim-self-deception-held-001 ;
     gmeow:qSubject   ex:event-self-deception-001 ;
     gmeow:qPredicate gmeow:heldStandpoint ;
@@ -392,7 +392,7 @@ ex:claim-self-deception-held-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-06T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-self-deception-held-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Self-deception held claim modality — refuted (tacit belief)"@en ;
+    rdfs:label "Self-deception held claim modality — refuted (tacit belief)"@x-gmeow-english ;
     gmeow:reifier    ex:claim-self-deception-held-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-self-deception-held-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -403,7 +403,7 @@ ex:claim-self-deception-held-modality-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-tacit-self ] .
 
 ex:claim-self-deception-projected-001 a gmeow:StatementMetadata ;
-    rdfs:label "Self-deception projected standpoint — avowed, unequivocal"@en ;
+    rdfs:label "Self-deception projected standpoint — avowed, unequivocal"@x-gmeow-english ;
     gmeow:reifier    ex:claim-self-deception-projected-001 ;
     gmeow:qSubject   ex:event-self-deception-001 ;
     gmeow:qPredicate gmeow:projectedStandpoint ;
@@ -413,7 +413,7 @@ ex:claim-self-deception-projected-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-06T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-self-deception-projected-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Self-deception projected claim modality — unequivocal (avowed belief)"@en ;
+    rdfs:label "Self-deception projected claim modality — unequivocal (avowed belief)"@x-gmeow-english ;
     gmeow:reifier    ex:claim-self-deception-projected-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-self-deception-projected-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -425,7 +425,7 @@ ex:claim-self-deception-projected-modality-001 a gmeow:StatementMetadata ;
 
 # 13b. SELF-DECEPTION role binding — same agent occupies both deceiver and deceived.
 ex:claim-self-deception-roles-001 a gmeow:StatementMetadata ;
-    rdfs:label "Self-deception role binding — same agent as deceiver and deceived"@en ;
+    rdfs:label "Self-deception role binding — same agent as deceiver and deceived"@x-gmeow-english ;
     gmeow:reifier    ex:claim-self-deception-roles-001 ;
     gmeow:qSubject   ex:event-self-deception-001 ;
     gmeow:qPredicate gmeow:hasParticipant ;
@@ -440,7 +440,7 @@ ex:claim-self-deception-roles-001 a gmeow:StatementMetadata ;
 #     falsehood veridicality. It is NOT a deception event because held ≈ projected
 #     (both are frame-scoped, non-deceptive assertions).
 ex:claim-fiction-narrative-frame-001 a gmeow:StatementMetadata ;
-    rdfs:label "Fiction negative case — Hogwarts exists per Harry Potter canon, NOT a lie"@en ;
+    rdfs:label "Fiction negative case — Hogwarts exists per Harry Potter canon, NOT a lie"@x-gmeow-english ;
     gmeow:reifier    ex:claim-fiction-narrative-frame-001 ;
     gmeow:qSubject   ex:claim-hogwarts-in-canon ;
     gmeow:qPredicate gmeow:accordingTo ;
@@ -451,7 +451,7 @@ ex:claim-fiction-narrative-frame-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-publisher ] .
 
 ex:claim-fiction-veridicality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Fiction veridicality — explicitly licensed falsehood"@en ;
+    rdfs:label "Fiction veridicality — explicitly licensed falsehood"@x-gmeow-english ;
     gmeow:reifier    ex:claim-fiction-veridicality-001 ;
     gmeow:qSubject   ex:claim-hogwarts-in-canon ;
     gmeow:qPredicate gmeow:claimVeridicality ;
@@ -469,7 +469,7 @@ ex:claim-fiction-veridicality-001 a gmeow:StatementMetadata ;
 # 15. FABRICATION — a false CreativeWork whose attested provenance is refuted.
 #     The artifact is invented, not mimicking a specific genuine work.
 ex:claim-event-fabrication-001 a gmeow:StatementMetadata ;
-    rdfs:label "Fabrication event — false artifact with refuted provenance"@en ;
+    rdfs:label "Fabrication event — false artifact with refuted provenance"@x-gmeow-english ;
     gmeow:reifier    ex:claim-event-fabrication-001 ;
     gmeow:qSubject   ex:event-fabrication-001 ;
     gmeow:qPredicate gmeow:eventType ;
@@ -480,7 +480,7 @@ ex:claim-event-fabrication-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-fabrication-held-001 a gmeow:StatementMetadata ;
-    rdfs:label "Fabrication held standpoint — the artifact's provenance is refuted"@en ;
+    rdfs:label "Fabrication held standpoint — the artifact's provenance is refuted"@x-gmeow-english ;
     gmeow:reifier    ex:claim-fabrication-held-001 ;
     gmeow:qSubject   ex:event-fabrication-001 ;
     gmeow:qPredicate gmeow:heldStandpoint ;
@@ -490,7 +490,7 @@ ex:claim-fabrication-held-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-08T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-fabrication-held-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Fabrication held claim modality — refuted"@en ;
+    rdfs:label "Fabrication held claim modality — refuted"@x-gmeow-english ;
     gmeow:reifier    ex:claim-fabrication-held-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-fabrication-held-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -501,7 +501,7 @@ ex:claim-fabrication-held-modality-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-fabrication-projected-001 a gmeow:StatementMetadata ;
-    rdfs:label "Fabrication projected standpoint — the artifact is presented as genuine"@en ;
+    rdfs:label "Fabrication projected standpoint — the artifact is presented as genuine"@x-gmeow-english ;
     gmeow:reifier    ex:claim-fabrication-projected-001 ;
     gmeow:qSubject   ex:event-fabrication-001 ;
     gmeow:qPredicate gmeow:projectedStandpoint ;
@@ -511,7 +511,7 @@ ex:claim-fabrication-projected-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-08T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-fabrication-projected-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Fabrication projected claim modality — unequivocal (presented as genuine)"@en ;
+    rdfs:label "Fabrication projected claim modality — unequivocal (presented as genuine)"@x-gmeow-english ;
     gmeow:reifier    ex:claim-fabrication-projected-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-fabrication-projected-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -522,7 +522,7 @@ ex:claim-fabrication-projected-modality-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-forger ] .
 
 ex:claim-fabrication-verification-001 a gmeow:StatementMetadata ;
-    rdfs:label "Fabrication verification result — provenance check failed"@en ;
+    rdfs:label "Fabrication verification result — provenance check failed"@x-gmeow-english ;
     gmeow:reifier    ex:claim-fabrication-verification-001 ;
     gmeow:qSubject   ex:verificationresult-fabrication-001 ;
     gmeow:qPredicate gmeow:hasVerificationStatus ;
@@ -533,7 +533,7 @@ ex:claim-fabrication-verification-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-verifier ] .
 
 ex:claim-fabrication-implicates-001 a gmeow:StatementMetadata ;
-    rdfs:label "Fabrication event implicates failed verification result"@en ;
+    rdfs:label "Fabrication event implicates failed verification result"@x-gmeow-english ;
     gmeow:reifier    ex:claim-fabrication-implicates-001 ;
     gmeow:qSubject   ex:event-fabrication-001 ;
     gmeow:qPredicate gmeow:implicates ;
@@ -547,7 +547,7 @@ ex:claim-fabrication-implicates-001 a gmeow:StatementMetadata ;
 #     The forged work bears counterpartOf to the genuine work;
 #     a CryptographicSignature verification returns failed.
 ex:claim-event-forgery-001 a gmeow:StatementMetadata ;
-    rdfs:label "Forgery event — forged artifact mimicking a genuine work"@en ;
+    rdfs:label "Forgery event — forged artifact mimicking a genuine work"@x-gmeow-english ;
     gmeow:reifier    ex:claim-event-forgery-001 ;
     gmeow:qSubject   ex:event-forgery-001 ;
     gmeow:qPredicate gmeow:eventType ;
@@ -558,7 +558,7 @@ ex:claim-event-forgery-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-forgery-held-001 a gmeow:StatementMetadata ;
-    rdfs:label "Forgery held standpoint — the work is not genuine"@en ;
+    rdfs:label "Forgery held standpoint — the work is not genuine"@x-gmeow-english ;
     gmeow:reifier    ex:claim-forgery-held-001 ;
     gmeow:qSubject   ex:event-forgery-001 ;
     gmeow:qPredicate gmeow:heldStandpoint ;
@@ -568,7 +568,7 @@ ex:claim-forgery-held-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-09T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-forgery-held-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Forgery held claim modality — refuted"@en ;
+    rdfs:label "Forgery held claim modality — refuted"@x-gmeow-english ;
     gmeow:reifier    ex:claim-forgery-held-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-forgery-held-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -579,7 +579,7 @@ ex:claim-forgery-held-modality-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-forgery-projected-001 a gmeow:StatementMetadata ;
-    rdfs:label "Forgery projected standpoint — presented as genuine"@en ;
+    rdfs:label "Forgery projected standpoint — presented as genuine"@x-gmeow-english ;
     gmeow:reifier    ex:claim-forgery-projected-001 ;
     gmeow:qSubject   ex:event-forgery-001 ;
     gmeow:qPredicate gmeow:projectedStandpoint ;
@@ -589,7 +589,7 @@ ex:claim-forgery-projected-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-09T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-forgery-projected-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Forgery projected claim modality — unequivocal (genuine)"@en ;
+    rdfs:label "Forgery projected claim modality — unequivocal (genuine)"@x-gmeow-english ;
     gmeow:reifier    ex:claim-forgery-projected-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-forgery-projected-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -600,7 +600,7 @@ ex:claim-forgery-projected-modality-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-forger ] .
 
 ex:claim-forgery-counterpart-001 a gmeow:StatementMetadata ;
-    rdfs:label "Forgery counterpartOf — forged work linked to genuine work it imitates"@en ;
+    rdfs:label "Forgery counterpartOf — forged work linked to genuine work it imitates"@x-gmeow-english ;
     gmeow:reifier    ex:claim-forgery-counterpart-001 ;
     gmeow:qSubject   ex:creativework-forged-001 ;
     gmeow:qPredicate gmeow:counterpartOf ;
@@ -611,7 +611,7 @@ ex:claim-forgery-counterpart-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-forgery-signature-fail-001 a gmeow:StatementMetadata ;
-    rdfs:label "Forgery signature verification — cryptographic signature check failed"@en ;
+    rdfs:label "Forgery signature verification — cryptographic signature check failed"@x-gmeow-english ;
     gmeow:reifier    ex:claim-forgery-signature-fail-001 ;
     gmeow:qSubject   ex:cryptographicsignature-forgery-001 ;
     gmeow:qPredicate gmeow:hasVerificationStatus ;
@@ -622,7 +622,7 @@ ex:claim-forgery-signature-fail-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-verifier ] .
 
 ex:claim-forgery-signature-of-001 a gmeow:StatementMetadata ;
-    rdfs:label "Forgery signatureOf — signature is of the forged work"@en ;
+    rdfs:label "Forgery signatureOf — signature is of the forged work"@x-gmeow-english ;
     gmeow:reifier    ex:claim-forgery-signature-of-001 ;
     gmeow:qSubject   ex:cryptographicsignature-forgery-001 ;
     gmeow:qPredicate gmeow:signatureOf ;
@@ -633,7 +633,7 @@ ex:claim-forgery-signature-of-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-forgery-implicates-work-001 a gmeow:StatementMetadata ;
-    rdfs:label "Forgery event implicates forged work"@en ;
+    rdfs:label "Forgery event implicates forged work"@x-gmeow-english ;
     gmeow:reifier    ex:claim-forgery-implicates-work-001 ;
     gmeow:qSubject   ex:event-forgery-001 ;
     gmeow:qPredicate gmeow:implicates ;
@@ -644,7 +644,7 @@ ex:claim-forgery-implicates-work-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-forgery-implicates-signature-001 a gmeow:StatementMetadata ;
-    rdfs:label "Forgery event implicates failed signature"@en ;
+    rdfs:label "Forgery event implicates failed signature"@x-gmeow-english ;
     gmeow:reifier    ex:claim-forgery-implicates-signature-001 ;
     gmeow:qSubject   ex:event-forgery-001 ;
     gmeow:qPredicate gmeow:implicates ;
@@ -658,7 +658,7 @@ ex:claim-forgery-implicates-signature-001 a gmeow:StatementMetadata ;
 #     Email spoofing is an instance (failed auth result);
 #     sockpuppet is an instance (counterpartOf identity denied by controller).
 ex:claim-event-impersonation-001 a gmeow:StatementMetadata ;
-    rdfs:label "Impersonation event — projected identity claim with mismatched subject"@en ;
+    rdfs:label "Impersonation event — projected identity claim with mismatched subject"@x-gmeow-english ;
     gmeow:reifier    ex:claim-event-impersonation-001 ;
     gmeow:qSubject   ex:event-impersonation-001 ;
     gmeow:qPredicate gmeow:eventType ;
@@ -669,7 +669,7 @@ ex:claim-event-impersonation-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-impersonation-held-001 a gmeow:StatementMetadata ;
-    rdfs:label "Impersonation held standpoint — the identity claim is false"@en ;
+    rdfs:label "Impersonation held standpoint — the identity claim is false"@x-gmeow-english ;
     gmeow:reifier    ex:claim-impersonation-held-001 ;
     gmeow:qSubject   ex:event-impersonation-001 ;
     gmeow:qPredicate gmeow:heldStandpoint ;
@@ -679,7 +679,7 @@ ex:claim-impersonation-held-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-10T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-impersonation-held-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Impersonation held claim modality — refuted"@en ;
+    rdfs:label "Impersonation held claim modality — refuted"@x-gmeow-english ;
     gmeow:reifier    ex:claim-impersonation-held-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-impersonation-held-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -690,7 +690,7 @@ ex:claim-impersonation-held-modality-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-impersonation-projected-001 a gmeow:StatementMetadata ;
-    rdfs:label "Impersonation projected standpoint — identity presented as genuine"@en ;
+    rdfs:label "Impersonation projected standpoint — identity presented as genuine"@x-gmeow-english ;
     gmeow:reifier    ex:claim-impersonation-projected-001 ;
     gmeow:qSubject   ex:event-impersonation-001 ;
     gmeow:qPredicate gmeow:projectedStandpoint ;
@@ -700,7 +700,7 @@ ex:claim-impersonation-projected-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-10T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-impersonation-projected-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Impersonation projected claim modality — unequivocal (identity is genuine)"@en ;
+    rdfs:label "Impersonation projected claim modality — unequivocal (identity is genuine)"@x-gmeow-english ;
     gmeow:reifier    ex:claim-impersonation-projected-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-impersonation-projected-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -711,7 +711,7 @@ ex:claim-impersonation-projected-modality-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-deceiver ] .
 
 ex:claim-impersonation-facet-subject-001 a gmeow:StatementMetadata ;
-    rdfs:label "Impersonation identity facet — projected facet subject is the victim"@en ;
+    rdfs:label "Impersonation identity facet — projected facet subject is the victim"@x-gmeow-english ;
     gmeow:reifier    ex:claim-impersonation-facet-subject-001 ;
     gmeow:qSubject   ex:identityfacet-impersonation-001 ;
     gmeow:qPredicate gmeow:facetSubject ;
@@ -722,7 +722,7 @@ ex:claim-impersonation-facet-subject-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-impersonation-observedfeature-001 a gmeow:StatementMetadata ;
-    rdfs:label "Impersonation identity facet — facet observes the impersonation event"@en ;
+    rdfs:label "Impersonation identity facet — facet observes the impersonation event"@x-gmeow-english ;
     gmeow:reifier    ex:claim-impersonation-observedfeature-001 ;
     gmeow:qSubject   ex:identityfacet-impersonation-001 ;
     gmeow:qPredicate gmeow:observedFeature ;
@@ -733,7 +733,7 @@ ex:claim-impersonation-observedfeature-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-impersonation-implicates-001 a gmeow:StatementMetadata ;
-    rdfs:label "Impersonation event implicates identity facet"@en ;
+    rdfs:label "Impersonation event implicates identity facet"@x-gmeow-english ;
     gmeow:reifier    ex:claim-impersonation-implicates-001 ;
     gmeow:qSubject   ex:event-impersonation-001 ;
     gmeow:qPredicate gmeow:implicates ;
@@ -746,7 +746,7 @@ ex:claim-impersonation-implicates-001 a gmeow:StatementMetadata ;
 # 17b. SOCKPUPPET — an instance of impersonation where the deceiver controls a
 #     counterpartOf identity they deny controlling.
 ex:claim-sockpuppet-counterpart-001 a gmeow:StatementMetadata ;
-    rdfs:label "Sockpuppet — deceiver controls a counterpart identity they deny"@en ;
+    rdfs:label "Sockpuppet — deceiver controls a counterpart identity they deny"@x-gmeow-english ;
     gmeow:reifier    ex:claim-sockpuppet-counterpart-001 ;
     gmeow:qSubject   ex:identity-sockpuppet-001 ;
     gmeow:qPredicate gmeow:counterpartOf ;
@@ -772,7 +772,7 @@ ex:claim-sockpuppet-counterpart-001 a gmeow:StatementMetadata ;
 
 # 18. DISINFORMATION CAMPAIGN — the campaign event itself.
 ex:claim-event-disinformation-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation campaign event — coordinated propagated deception"@en ;
+    rdfs:label "Disinformation campaign event — coordinated propagated deception"@x-gmeow-english ;
     gmeow:reifier    ex:claim-event-disinformation-001 ;
     gmeow:qSubject   ex:event-disinformation-001 ;
     gmeow:qPredicate gmeow:eventType ;
@@ -784,7 +784,7 @@ ex:claim-event-disinformation-001 a gmeow:StatementMetadata ;
 
 # 18a. Origin node — the deceiver's original deceptive act (held ≠ projected).
 ex:claim-disinformation-origin-held-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation origin held — deceiver knows the claim is false"@en ;
+    rdfs:label "Disinformation origin held — deceiver knows the claim is false"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-origin-held-001 ;
     gmeow:qSubject   ex:event-disinformation-001 ;
     gmeow:qPredicate gmeow:heldStandpoint ;
@@ -794,7 +794,7 @@ ex:claim-disinformation-origin-held-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-disinformation-origin-held-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation origin held modality — refuted"@en ;
+    rdfs:label "Disinformation origin held modality — refuted"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-origin-held-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-disinformation-origin-held-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -805,7 +805,7 @@ ex:claim-disinformation-origin-held-modality-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-disinformation-origin-projected-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation origin projected — false claim presented as true"@en ;
+    rdfs:label "Disinformation origin projected — false claim presented as true"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-origin-projected-001 ;
     gmeow:qSubject   ex:event-disinformation-001 ;
     gmeow:qPredicate gmeow:projectedStandpoint ;
@@ -815,7 +815,7 @@ ex:claim-disinformation-origin-projected-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-disinformation-origin-projected-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation origin projected modality — unequivocal"@en ;
+    rdfs:label "Disinformation origin projected modality — unequivocal"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-origin-projected-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-disinformation-origin-projected-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -826,7 +826,7 @@ ex:claim-disinformation-origin-projected-modality-001 a gmeow:StatementMetadata 
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-deceiver ] .
 
 ex:claim-disinformation-origin-intent-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation origin intent — deceptive intent attributed to originator"@en ;
+    rdfs:label "Disinformation origin intent — deceptive intent attributed to originator"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-origin-intent-001 ;
     gmeow:qSubject   ex:event-disinformation-001 ;
     gmeow:qPredicate gmeow:deceptiveIntentClaim ;
@@ -838,7 +838,7 @@ ex:claim-disinformation-origin-intent-001 a gmeow:StatementMetadata ;
 
 # 18b. Origin participant — deceiver bears roleDeceiver.
 ex:claim-disinformation-origin-deceiver-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation origin deceiver — roleDeceiver on the campaign event"@en ;
+    rdfs:label "Disinformation origin deceiver — roleDeceiver on the campaign event"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-origin-deceiver-001 ;
     gmeow:qSubject   ex:event-disinformation-001 ;
     gmeow:qPredicate gmeow:hasParticipant ;
@@ -849,7 +849,7 @@ ex:claim-disinformation-origin-deceiver-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-disinformation-origin-deceiver-role-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation origin deceiver role — roleDeceiver"@en ;
+    rdfs:label "Disinformation origin deceiver role — roleDeceiver"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-origin-deceiver-role-001 ;
     gmeow:qSubject   ex:participation-disinformation-origin-deceiver-001 ;
     gmeow:qPredicate gmeow:participationRole ;
@@ -859,7 +859,7 @@ ex:claim-disinformation-origin-deceiver-role-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-disinformation-origin-deceiver-participant-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation origin deceiver participation binding"@en ;
+    rdfs:label "Disinformation origin deceiver participation binding"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-origin-deceiver-participant-001 ;
     gmeow:qSubject   ex:participation-disinformation-origin-deceiver-001 ;
     gmeow:qPredicate gmeow:participationParticipant ;
@@ -869,7 +869,7 @@ ex:claim-disinformation-origin-deceiver-participant-001 a gmeow:StatementMetadat
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-disinformation-origin-deceiver-event-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation origin deceiver participation event binding"@en ;
+    rdfs:label "Disinformation origin deceiver participation event binding"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-origin-deceiver-event-001 ;
     gmeow:qSubject   ex:participation-disinformation-origin-deceiver-001 ;
     gmeow:qPredicate gmeow:participationEvent ;
@@ -881,7 +881,7 @@ ex:claim-disinformation-origin-deceiver-event-001 a gmeow:StatementMetadata ;
 # 18c. First propagation — dupe sincerely reshares (held ≈ projected, untrue, no intent).
 # The dupe's telling propagates from the deceiver's telling.
 ex:claim-disinformation-dupe-telling-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation dupe telling — social post derived from origin article"@en ;
+    rdfs:label "Disinformation dupe telling — social post derived from origin article"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-dupe-telling-001 ;
     gmeow:qSubject   ex:telling-dupe-post-001 ;
     gmeow:qPredicate gmeow:propagatesFrom ;
@@ -892,7 +892,7 @@ ex:claim-disinformation-dupe-telling-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-disinformation-dupe-event-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation dupe event — sincere resharing, no deceptive intent"@en ;
+    rdfs:label "Disinformation dupe event — sincere resharing, no deceptive intent"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-dupe-event-001 ;
     gmeow:qSubject   ex:event-dupe-reshare-001 ;
     gmeow:qPredicate gmeow:eventType ;
@@ -904,7 +904,7 @@ ex:claim-disinformation-dupe-event-001 a gmeow:StatementMetadata ;
 
 # Dupe's held and projected are the SAME claim (sincere belief).
 ex:claim-disinformation-dupe-held-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation dupe held — sincerely believes the false claim"@en ;
+    rdfs:label "Disinformation dupe held — sincerely believes the false claim"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-dupe-held-001 ;
     gmeow:qSubject   ex:event-dupe-reshare-001 ;
     gmeow:qPredicate gmeow:heldStandpoint ;
@@ -914,7 +914,7 @@ ex:claim-disinformation-dupe-held-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-disinformation-dupe-projected-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation dupe projected — same sincere belief reshared"@en ;
+    rdfs:label "Disinformation dupe projected — same sincere belief reshared"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-dupe-projected-001 ;
     gmeow:qSubject   ex:event-dupe-reshare-001 ;
     gmeow:qPredicate gmeow:projectedStandpoint ;
@@ -924,7 +924,7 @@ ex:claim-disinformation-dupe-projected-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-disinformation-dupe-belief-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation dupe belief modality — unequivocal (sincere)"@en ;
+    rdfs:label "Disinformation dupe belief modality — unequivocal (sincere)"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-dupe-belief-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-dupe-belief-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -935,7 +935,7 @@ ex:claim-disinformation-dupe-belief-modality-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-dupe ] .
 
 ex:claim-disinformation-dupe-belief-veridicality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation dupe belief veridicality — untrue per universal frame"@en ;
+    rdfs:label "Disinformation dupe belief veridicality — untrue per universal frame"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-dupe-belief-veridicality-001 ;
     gmeow:qSubject   ex:standpointclaim-dupe-belief-001 ;
     gmeow:qPredicate gmeow:claimVeridicality ;
@@ -947,7 +947,7 @@ ex:claim-disinformation-dupe-belief-veridicality-001 a gmeow:StatementMetadata ;
 
 # Dupe bears roleDupe (unwitting intermediary).
 ex:claim-disinformation-dupe-role-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation dupe role — roleDupe participation"@en ;
+    rdfs:label "Disinformation dupe role — roleDupe participation"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-dupe-role-001 ;
     gmeow:qSubject   ex:participation-disinformation-dupe-001 ;
     gmeow:qPredicate gmeow:participationRole ;
@@ -957,7 +957,7 @@ ex:claim-disinformation-dupe-role-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-disinformation-dupe-participant-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation dupe participant binding"@en ;
+    rdfs:label "Disinformation dupe participant binding"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-dupe-participant-001 ;
     gmeow:qSubject   ex:participation-disinformation-dupe-001 ;
     gmeow:qPredicate gmeow:participationParticipant ;
@@ -967,7 +967,7 @@ ex:claim-disinformation-dupe-participant-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-disinformation-dupe-event-binding-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation dupe event binding"@en ;
+    rdfs:label "Disinformation dupe event binding"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-dupe-event-binding-001 ;
     gmeow:qSubject   ex:participation-disinformation-dupe-001 ;
     gmeow:qPredicate gmeow:participationEvent ;
@@ -978,7 +978,7 @@ ex:claim-disinformation-dupe-event-binding-001 a gmeow:StatementMetadata ;
 
 # 18d. Second propagation — downstream resharing from dupe (also misinformation).
 ex:claim-disinformation-downstream-telling-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation downstream telling — blog post derived from dupe social post"@en ;
+    rdfs:label "Disinformation downstream telling — blog post derived from dupe social post"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-downstream-telling-001 ;
     gmeow:qSubject   ex:telling-downstream-blog-001 ;
     gmeow:qPredicate gmeow:propagatesFrom ;
@@ -989,7 +989,7 @@ ex:claim-disinformation-downstream-telling-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-disinformation-downstream-event-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation downstream event — another sincere resharing"@en ;
+    rdfs:label "Disinformation downstream event — another sincere resharing"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-downstream-event-001 ;
     gmeow:qSubject   ex:event-downstream-reshare-001 ;
     gmeow:qPredicate gmeow:eventType ;
@@ -1000,7 +1000,7 @@ ex:claim-disinformation-downstream-event-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
 
 ex:claim-disinformation-downstream-held-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation downstream held — sincerely believes the false claim"@en ;
+    rdfs:label "Disinformation downstream held — sincerely believes the false claim"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-downstream-held-001 ;
     gmeow:qSubject   ex:event-downstream-reshare-001 ;
     gmeow:qPredicate gmeow:heldStandpoint ;
@@ -1010,7 +1010,7 @@ ex:claim-disinformation-downstream-held-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-disinformation-downstream-projected-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation downstream projected — same sincere belief reshared"@en ;
+    rdfs:label "Disinformation downstream projected — same sincere belief reshared"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-downstream-projected-001 ;
     gmeow:qSubject   ex:event-downstream-reshare-001 ;
     gmeow:qPredicate gmeow:projectedStandpoint ;
@@ -1020,7 +1020,7 @@ ex:claim-disinformation-downstream-projected-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
 
 ex:claim-disinformation-downstream-belief-modality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation downstream belief modality — unequivocal (sincere)"@en ;
+    rdfs:label "Disinformation downstream belief modality — unequivocal (sincere)"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-downstream-belief-modality-001 ;
     gmeow:qSubject   ex:standpointclaim-downstream-belief-001 ;
     gmeow:qPredicate gmeow:claimModality ;
@@ -1031,7 +1031,7 @@ ex:claim-disinformation-downstream-belief-modality-001 a gmeow:StatementMetadata
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-downstream ] .
 
 ex:claim-disinformation-downstream-belief-veridicality-001 a gmeow:StatementMetadata ;
-    rdfs:label "Disinformation downstream belief veridicality — untrue per universal frame"@en ;
+    rdfs:label "Disinformation downstream belief veridicality — untrue per universal frame"@x-gmeow-english ;
     gmeow:reifier    ex:claim-disinformation-downstream-belief-veridicality-001 ;
     gmeow:qSubject   ex:standpointclaim-downstream-belief-001 ;
     gmeow:qPredicate gmeow:claimVeridicality ;

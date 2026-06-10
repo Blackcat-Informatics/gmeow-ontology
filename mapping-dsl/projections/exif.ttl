@@ -12,7 +12,7 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:mapExifWidth a gmeow:ProjectionMapping ;
-    rdfs:label "pixelWidth → exif:width"@en ;
+    rdfs:label "pixelWidth → exif:width"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "img" ; gmeow:value "w" ;
         gmeow:atom (
@@ -29,7 +29,7 @@ gmeow:mapExifWidth a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapExifHeight a gmeow:ProjectionMapping ;
-    rdfs:label "pixelHeight → exif:height"@en ;
+    rdfs:label "pixelHeight → exif:height"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "img" ; gmeow:value "h" ;
         gmeow:atom (
@@ -46,7 +46,7 @@ gmeow:mapExifHeight a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapExifOrientation a gmeow:ProjectionMapping ;
-    rdfs:label "imageOrientation → exif:orientation"@en ;
+    rdfs:label "imageOrientation → exif:orientation"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "img" ; gmeow:value "o" ;
         gmeow:atom (
@@ -63,7 +63,7 @@ gmeow:mapExifOrientation a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapExifDateTime a gmeow:ProjectionMapping ;
-    rdfs:label "captureTime → exif:dateTime"@en ;
+    rdfs:label "captureTime → exif:dateTime"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "img" ; gmeow:value "dt" ;
         gmeow:atom (

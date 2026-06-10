@@ -12,12 +12,13 @@ import json
 from pathlib import Path
 
 import pytest
+from rdflib import OWL, RDF, RDFS, Graph, Literal, URIRef
+from rdflib.namespace import SKOS
 
+from gmeow_tools.config import NAMESPACE
 from gmeow_tools.export import collect_terms, curie, export_all
 
 pytestmark = pytest.mark.ci_only
-
-NAMESPACE = "https://blackcatinformatics.ca/gmeow/"
 
 
 def test_curie_compacts_known_namespaces() -> None:
@@ -136,3 +137,76 @@ def test_llms_txt_has_no_blank_nodes(tmp_path: Path) -> None:
     assert "_:" not in fresh_content, (
         "Found raw blank node ID in freshly generated llms.txt"
     )
+
+
+# --------------------------------------------------------------------------- #
+# Language-tag retagging tests (#164)
+# --------------------------------------------------------------------------- #
+
+
+def test_export_retags_internal_to_bcp47() -> None:
+    """A canonical @x-gmeow-english literal is retagged to @en for public export."""
+    graph = Graph()
+    lang = URIRef(NAMESPACE + "langEnglish")
+    term = URIRef(NAMESPACE + "TestConcept")
+
+    graph.add((lang, RDF.type, URIRef(NAMESPACE + "Language")))
+    graph.add((lang, URIRef(NAMESPACE + "languageTag"), Literal("x-gmeow-english")))
+    graph.add((lang, URIRef(NAMESPACE + "bcp47Tag"), Literal("en")))
+
+    graph.add((term, RDF.type, OWL.Class))
+    graph.add((term, RDFS.label, Literal("Test Concept", lang="x-gmeow-english")))
+    graph.add(
+        (
+            term,
+            SKOS.definition,
+            Literal("A concept for testing.", lang="x-gmeow-english"),
+        )
+    )
+
+    terms = collect_terms(graph=graph)
+    by_curie = {t.curie: t for t in terms}
+    assert by_curie["gmeow:TestConcept"].label == "Test Concept"
+    assert by_curie["gmeow:TestConcept"].definition == "A concept for testing."
+
+
+def test_export_deterministic_when_both_tags_present() -> None:
+    """When both internal and external-tagged literals exist, selection is
+    deterministic."""
+    graph = Graph()
+    lang = URIRef(NAMESPACE + "langEnglish")
+    term = URIRef(NAMESPACE + "TestConcept")
+
+    graph.add((lang, RDF.type, URIRef(NAMESPACE + "Language")))
+    graph.add((lang, URIRef(NAMESPACE + "languageTag"), Literal("x-gmeow-english")))
+    graph.add((lang, URIRef(NAMESPACE + "bcp47Tag"), Literal("en")))
+
+    graph.add((term, RDF.type, OWL.Class))
+    # Canonical internal tag (should win because it has a mapping).
+    graph.add((term, RDFS.label, Literal("Internal Name", lang="x-gmeow-english")))
+    # External tag co-existing (should be ignored in favour of the mapped internal one).
+    graph.add((term, RDFS.label, Literal("External Name", lang="en")))
+
+    terms = collect_terms(graph=graph)
+    by_curie = {t.curie: t for t in terms}
+    # public_text prefers the internal-tagged literal when a mapping exists.
+    assert by_curie["gmeow:TestConcept"].label == "Internal Name"
+
+
+def test_export_does_not_invent_en_when_bcp47_missing() -> None:
+    """If a language has languageTag but no bcp47Tag, the raw internal tag is kept."""
+    graph = Graph()
+    lang = URIRef(NAMESPACE + "langConlang")
+    term = URIRef(NAMESPACE + "TestConcept")
+
+    graph.add((lang, RDF.type, URIRef(NAMESPACE + "Language")))
+    graph.add((lang, URIRef(NAMESPACE + "languageTag"), Literal("x-gmeow-conlang")))
+    # deliberately NO bcp47Tag
+
+    graph.add((term, RDF.type, OWL.Class))
+    graph.add((term, RDFS.label, Literal("Conlang Name", lang="x-gmeow-conlang")))
+
+    terms = collect_terms(graph=graph)
+    by_curie = {t.curie: t for t in terms}
+    # No BCP-47 mapping → raw internal tag returned as-is.
+    assert by_curie["gmeow:TestConcept"].label == "Conlang Name"

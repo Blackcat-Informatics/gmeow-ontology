@@ -8,8 +8,8 @@
 
 <https://blackcatinformatics.ca/gmeow/modules/archaeological-evidence>
     a owl:Ontology ;
-    rdfs:label "GMEOW Archaeological Evidence Module"@en ;
-    rdfs:comment """Language-facing hooks for archaeological and cultural-heritage evidence: inscriptions, physical carriers, readings, transliterations, translations, script/language attributions, and find context. Keeps the physical carrier, the sign-bearing inscription, the documentation event, the reading, the transliteration, the translation, the dating evidence, the stratigraphic/find context, and the linguistic interpretation as separable, standpoint-scoped claims (Principle 9). Reuses the universal Observation stack, TemporalMeasurement, Place, Event, and the lexicon/attestation layer. Defers general archaeological domain modeling to #129."""@en ;
+    rdfs:label "GMEOW Archaeological Evidence Module"@x-gmeow-english ;
+    rdfs:comment """Language-facing hooks for archaeological and cultural-heritage evidence: inscriptions, physical carriers, readings, transliterations, translations, script/language attributions, and find context. Keeps the physical carrier, the sign-bearing inscription, the documentation event, the reading, the transliteration, the translation, the dating evidence, the stratigraphic/find context, and the linguistic interpretation as separable, standpoint-scoped claims (Principle 9). Reuses the universal Observation stack, TemporalMeasurement, Place, Event, and the lexicon/attestation layer. Defers general archaeological domain modeling to #129."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -19,43 +19,43 @@
 gmeow:Inscription
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Inscription"@en ;
-    skos:definition "The sign-bearing content or mark on a physical carrier — a text, sequence of signs, or symbolic marking that is informationally distinct from the material object that bears it. An inscription is an InformationObject; its carrier is a PhysicalObject. Multiple inscriptions may coexist on one carrier, and competing readings of the same inscription coexist without privilege (Principle 9)."@en ;
+    rdfs:label "Inscription"@x-gmeow-english ;
+    skos:definition "The sign-bearing content or mark on a physical carrier — a text, sequence of signs, or symbolic marking that is informationally distinct from the material object that bears it. An inscription is an InformationObject; its carrier is a PhysicalObject. Multiple inscriptions may coexist on one carrier, and competing readings of the same inscription coexist without privilege (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:InscriptionReading
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
-    rdfs:label "Inscription Reading"@en ;
-    skos:definition "A scholarly reading of an inscription — the Observation that produces a LexicalForm from a sign-bearing feature. The reading is a standpoint-scoped claim, not ground truth: two scholars may read the same marks differently, and both readings coexist (Principle 9). Follows the universal Observation + Relator pattern."@en ;
+    rdfs:label "Inscription Reading"@x-gmeow-english ;
+    skos:definition "A scholarly reading of an inscription — the Observation that produces a LexicalForm from a sign-bearing feature. The reading is a standpoint-scoped claim, not ground truth: two scholars may read the same marks differently, and both readings coexist (Principle 9). Follows the universal Observation + Relator pattern."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:InscriptionTransliteration
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
-    rdfs:label "Inscription Transliteration"@en ;
-    skos:definition "A transliteration of an inscription into another script — an Observation that maps sign sequences from one writing system to another, producing a LexicalForm. Standpoint-scoped: competing transliteration schemes (e.g. Hepburn vs Kunrei-shiki) coexist without a single winner (Principle 9)."@en ;
+    rdfs:label "Inscription Transliteration"@x-gmeow-english ;
+    skos:definition "A transliteration of an inscription into another script — an Observation that maps sign sequences from one writing system to another, producing a LexicalForm. Standpoint-scoped: competing transliteration schemes (e.g. Hepburn vs Kunrei-shiki) coexist without a single winner (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:InscriptionTranslation
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
-    rdfs:label "Inscription Translation"@en ;
-    skos:definition "A translation of an inscription into another language — an Observation that produces a LexicalForm representing the meaning of the source inscription in a target language. Standpoint-scoped: competing translations coexist without privilege (Principle 9)."@en ;
+    rdfs:label "Inscription Translation"@x-gmeow-english ;
+    skos:definition "A translation of an inscription into another language — an Observation that produces a LexicalForm representing the meaning of the source inscription in a target language. Standpoint-scoped: competing translations coexist without privilege (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:ScriptLanguageAttribution
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
-    rdfs:label "Script Language Attribution"@en ;
-    skos:definition "A standpoint-scoped claim assigning a language, writing system, or notation system to an inscription. Handles disputed, uncertain, and undeciphered cases: an undeciphered inscription may carry an attribution to a NotationSystem with low confidence and determinacy = disputed, while competing palaeographic classifications coexist as separate attributions (Principle 9). Follows the universal Observation + Relator pattern."@en ;
+    rdfs:label "Script Language Attribution"@x-gmeow-english ;
+    skos:definition "A standpoint-scoped claim assigning a language, writing system, or notation system to an inscription. Handles disputed, uncertain, and undeciphered cases: an undeciphered inscription may carry an attribution to a NotationSystem with low confidence and determinacy = disputed, while competing palaeographic classifications coexist as separate attributions (Principle 9). Follows the universal Observation + Relator pattern."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:ArchaeologicalFindContext
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
-    rdfs:label "Archaeological Find Context"@en ;
-    skos:definition "A reified find context binding a physical carrier to its stratigraphic unit, find-spot, excavation or documentation event, and dating evidence. A single carrier may have multiple coexisting context claims from different excavation campaigns or analytical standpoints (Principle 9). Follows the universal Observation + Relator pattern."@en ;
+    rdfs:label "Archaeological Find Context"@x-gmeow-english ;
+    skos:definition "A reified find context binding a physical carrier to its stratigraphic unit, find-spot, excavation or documentation event, and dating evidence. A single carrier may have multiple coexisting context claims from different excavation campaigns or analytical standpoints (Principle 9). Follows the universal Observation + Relator pattern."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # EL axiomatisation: relators mediate their constitutive roles.
@@ -87,8 +87,8 @@ gmeow:inscriptionCarrier
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Inscription ;
     rdfs:range gmeow:PhysicalObject ;
-    rdfs:label "inscription carrier"@en ;
-    skos:definition "The physical object that bears an inscription. Functional: an inscription is borne by exactly one carrier (if a copy exists on another carrier, it is a distinct Inscription instance)."@en ;
+    rdfs:label "inscription carrier"@x-gmeow-english ;
+    skos:definition "The physical object that bears an inscription. Functional: an inscription is borne by exactly one carrier (if a copy exists on another carrier, it is a distinct Inscription instance)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:carrierInscription
@@ -96,16 +96,16 @@ gmeow:carrierInscription
     owl:inverseOf gmeow:inscriptionCarrier ;
     rdfs:domain gmeow:PhysicalObject ;
     rdfs:range gmeow:Inscription ;
-    rdfs:label "carrier inscription"@en ;
-    skos:definition "The inscription(s) borne by a physical carrier. Non-functional: a carrier may bear multiple inscriptions (e.g. a tablet with text on both sides, or a wall with successive layers of graffiti)."@en ;
+    rdfs:label "carrier inscription"@x-gmeow-english ;
+    skos:definition "The inscription(s) borne by a physical carrier. Non-functional: a carrier may bear multiple inscriptions (e.g. a tablet with text on both sides, or a wall with successive layers of graffiti)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:carrierType
     a owl:ObjectProperty ;
     rdfs:domain gmeow:PhysicalObject ;
     rdfs:range gmeow:PhysicalCarrierType ;
-    rdfs:label "carrier type"@en ;
-    skos:definition "The archaeological or cultural-heritage classification of a physical carrier — a value vocabulary individual from gmeow:PhysicalCarrierType. Non-functional: a carrier may be classified plurally by different standpoints (Principle 9)."@en ;
+    rdfs:label "carrier type"@x-gmeow-english ;
+    skos:definition "The archaeological or cultural-heritage classification of a physical carrier — a value vocabulary individual from gmeow:PhysicalCarrierType. Non-functional: a carrier may be classified plurally by different standpoints (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -116,16 +116,16 @@ gmeow:readingOf
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:InscriptionReading ;
     rdfs:range gmeow:Inscription ;
-    rdfs:label "reading of"@en ;
-    skos:definition "The inscription that a reading observes. Functional per relator: one source inscription per InscriptionReading."@en ;
+    rdfs:label "reading of"@x-gmeow-english ;
+    skos:definition "The inscription that a reading observes. Functional per relator: one source inscription per InscriptionReading."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:readingResult
     a owl:ObjectProperty ;
     rdfs:domain gmeow:InscriptionReading ;
     rdfs:range gmeow:LexicalForm ;
-    rdfs:label "reading result"@en ;
-    skos:definition "The lexical form(s) produced by a reading. Non-functional: a single reading may yield multiple coexisting forms (e.g. ambiguous or damaged signs interpreted differently within the same analytical frame), and competing result claims from different readings coexist (Principle 9)."@en ;
+    rdfs:label "reading result"@x-gmeow-english ;
+    skos:definition "The lexical form(s) produced by a reading. Non-functional: a single reading may yield multiple coexisting forms (e.g. ambiguous or damaged signs interpreted differently within the same analytical frame), and competing result claims from different readings coexist (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -136,16 +136,16 @@ gmeow:transliterationOf
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:InscriptionTransliteration ;
     rdfs:range gmeow:Inscription ;
-    rdfs:label "transliteration of"@en ;
-    skos:definition "The inscription that a transliteration maps into another script. Functional per relator: one source inscription per InscriptionTransliteration."@en ;
+    rdfs:label "transliteration of"@x-gmeow-english ;
+    skos:definition "The inscription that a transliteration maps into another script. Functional per relator: one source inscription per InscriptionTransliteration."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:transliterationResult
     a owl:ObjectProperty ;
     rdfs:domain gmeow:InscriptionTransliteration ;
     rdfs:range gmeow:LexicalForm ;
-    rdfs:label "transliteration result"@en ;
-    skos:definition "The lexical form(s) produced by a transliteration. Non-functional: competing transliteration schemes may produce different forms for the same inscription, and those claims coexist (Principle 9)."@en ;
+    rdfs:label "transliteration result"@x-gmeow-english ;
+    skos:definition "The lexical form(s) produced by a transliteration. Non-functional: competing transliteration schemes may produce different forms for the same inscription, and those claims coexist (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -156,16 +156,16 @@ gmeow:translationOf
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:InscriptionTranslation ;
     rdfs:range gmeow:Inscription ;
-    rdfs:label "translation of"@en ;
-    skos:definition "The inscription that a translation renders into another language. Functional per relator: one source inscription per InscriptionTranslation."@en ;
+    rdfs:label "translation of"@x-gmeow-english ;
+    skos:definition "The inscription that a translation renders into another language. Functional per relator: one source inscription per InscriptionTranslation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:translationResult
     a owl:ObjectProperty ;
     rdfs:domain gmeow:InscriptionTranslation ;
     rdfs:range gmeow:LexicalForm ;
-    rdfs:label "translation result"@en ;
-    skos:definition "The lexical form(s) produced by a translation. Non-functional: competing translations of the same inscription coexist without privilege (Principle 9)."@en ;
+    rdfs:label "translation result"@x-gmeow-english ;
+    skos:definition "The lexical form(s) produced by a translation. Non-functional: competing translations of the same inscription coexist without privilege (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -176,32 +176,32 @@ gmeow:attributionTarget
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:ScriptLanguageAttribution ;
     rdfs:range gmeow:Inscription ;
-    rdfs:label "attribution target"@en ;
-    skos:definition "The inscription being classified by a script/language attribution. Functional per relator: one target inscription per ScriptLanguageAttribution."@en ;
+    rdfs:label "attribution target"@x-gmeow-english ;
+    skos:definition "The inscription being classified by a script/language attribution. Functional per relator: one target inscription per ScriptLanguageAttribution."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:attributedLanguage
     a owl:ObjectProperty ;
     rdfs:domain gmeow:ScriptLanguageAttribution ;
     rdfs:range gmeow:Language ;
-    rdfs:label "attributed language"@en ;
-    skos:definition "The language assigned to an inscription by a script/language attribution. Non-functional: competing language assignments from different standpoints coexist (Principle 9), and an attribution may assign multiple languages (bilingual inscription)."@en ;
+    rdfs:label "attributed language"@x-gmeow-english ;
+    skos:definition "The language assigned to an inscription by a script/language attribution. Non-functional: competing language assignments from different standpoints coexist (Principle 9), and an attribution may assign multiple languages (bilingual inscription)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:attributedScript
     a owl:ObjectProperty ;
     rdfs:domain gmeow:ScriptLanguageAttribution ;
     rdfs:range gmeow:WritingSystem ;
-    rdfs:label "attributed script"@en ;
-    skos:definition "The writing system assigned to an inscription by a script/language attribution. Non-functional: competing script assignments coexist (Principle 9)."@en ;
+    rdfs:label "attributed script"@x-gmeow-english ;
+    skos:definition "The writing system assigned to an inscription by a script/language attribution. Non-functional: competing script assignments coexist (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:attributedNotation
     a owl:ObjectProperty ;
     rdfs:domain gmeow:ScriptLanguageAttribution ;
     rdfs:range gmeow:NotationSystem ;
-    rdfs:label "attributed notation"@en ;
-    skos:definition "The notation system assigned to an undeciphered or symbol-classified inscription. Non-functional: used when the inscription is not yet linked to a known language or writing system (e.g. Linear A, Rongorongo, proto-cuneiform)."@en ;
+    rdfs:label "attributed notation"@x-gmeow-english ;
+    skos:definition "The notation system assigned to an undeciphered or symbol-classified inscription. Non-functional: used when the inscription is not yet linked to a known language or writing system (e.g. Linear A, Rongorongo, proto-cuneiform)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -212,40 +212,40 @@ gmeow:findContextTarget
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:ArchaeologicalFindContext ;
     rdfs:range gmeow:PhysicalObject ;
-    rdfs:label "find context target"@en ;
-    skos:definition "The physical carrier whose find context is being described. Functional per relator: one target carrier per ArchaeologicalFindContext."@en ;
+    rdfs:label "find context target"@x-gmeow-english ;
+    skos:definition "The physical carrier whose find context is being described. Functional per relator: one target carrier per ArchaeologicalFindContext."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:findContextPlace
     a owl:ObjectProperty ;
     rdfs:domain gmeow:ArchaeologicalFindContext ;
     rdfs:range gmeow:Place ;
-    rdfs:label "find context place"@en ;
-    skos:definition "The find-spot or locus where a carrier was discovered. Non-functional: a carrier may be associated with multiple place claims (e.g. ancient find-spot vs modern museum location), and competing place attributions coexist (Principle 9)."@en ;
+    rdfs:label "find context place"@x-gmeow-english ;
+    skos:definition "The find-spot or locus where a carrier was discovered. Non-functional: a carrier may be associated with multiple place claims (e.g. ancient find-spot vs modern museum location), and competing place attributions coexist (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:findContextStratigraphy
     a owl:ObjectProperty ;
     rdfs:domain gmeow:ArchaeologicalFindContext ;
     rdfs:range gmeow:Entity ;
-    rdfs:label "find context stratigraphy"@en ;
-    skos:definition "The stratigraphic unit or layer associated with a carrier's find context. Range is gmeow:Entity (opaque reference) because general stratigraphic domain modeling is deferred to #129; this property provides the language-facing hook. Non-functional: competing stratigraphic interpretations coexist."@en ;
+    rdfs:label "find context stratigraphy"@x-gmeow-english ;
+    skos:definition "The stratigraphic unit or layer associated with a carrier's find context. Range is gmeow:Entity (opaque reference) because general stratigraphic domain modeling is deferred to #129; this property provides the language-facing hook. Non-functional: competing stratigraphic interpretations coexist."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:findContextDating
     a owl:ObjectProperty ;
     rdfs:domain gmeow:ArchaeologicalFindContext ;
     rdfs:range gmeow:TemporalMeasurement ;
-    rdfs:label "find context dating"@en ;
-    skos:definition "The temporal measurement(s) assigned to a carrier's find context — radiocarbon, stratigraphic correlation, terminus post quem, etc. Non-functional: multiple dating methods and competing date claims coexist (Principle 9)."@en ;
+    rdfs:label "find context dating"@x-gmeow-english ;
+    skos:definition "The temporal measurement(s) assigned to a carrier's find context — radiocarbon, stratigraphic correlation, terminus post quem, etc. Non-functional: multiple dating methods and competing date claims coexist (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:findContextEvent
     a owl:ObjectProperty ;
     rdfs:domain gmeow:ArchaeologicalFindContext ;
     rdfs:range gmeow:Event ;
-    rdfs:label "find context event"@en ;
-    skos:definition "The excavation, survey, or documentation event during which a carrier was discovered or recorded. Non-functional: a carrier may be rediscovered or re-documented multiple times."@en ;
+    rdfs:label "find context event"@x-gmeow-english ;
+    skos:definition "The excavation, survey, or documentation event during which a carrier was discovered or recorded. Non-functional: a carrier may be rediscovered or re-documented multiple times."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -255,22 +255,22 @@ gmeow:findContextEvent
 gmeow:PhysicalCarrierType
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Physical Carrier Type"@en ;
-    skos:definition "The archaeological or cultural-heritage classification of a physical object that bears inscriptions, marks, or signs — a value vocabulary (individuals, never subclasses). Open-ended: new carrier kinds are minted as needed without ontology modification."@en ;
+    rdfs:label "Physical Carrier Type"@x-gmeow-english ;
+    skos:definition "The archaeological or cultural-heritage classification of a physical object that bears inscriptions, marks, or signs — a value vocabulary (individuals, never subclasses). Open-ended: new carrier kinds are minted as needed without ontology modification."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:carrierTablet          a gmeow:PhysicalCarrierType ; rdfs:label "tablet"@en ;          skos:definition "A flat slab of clay, stone, or wax bearing inscribed text."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:carrierOstracon        a gmeow:PhysicalCarrierType ; rdfs:label "ostracon"@en ;        skos:definition "A potsherd or stone flake bearing ink or incised writing."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:carrierSeal            a gmeow:PhysicalCarrierType ; rdfs:label "seal"@en ;            skos:definition "A stamped or engraved object used to impress a design or text into clay or wax."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:carrierCoin            a gmeow:PhysicalCarrierType ; rdfs:label "coin"@en ;            skos:definition "A metallic disc bearing stamped legends, symbols, or portraits."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:carrierManuscript      a gmeow:PhysicalCarrierType ; rdfs:label "manuscript"@en ;      skos:definition "A handwritten document on parchment, papyrus, paper, or other flexible support."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:carrierWallInscription a gmeow:PhysicalCarrierType ; rdfs:label "wall inscription"@en ; skos:definition "Text or signs carved, painted, or affixed to a wall or other architectural surface."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:carrierStela           a gmeow:PhysicalCarrierType ; rdfs:label "stela"@en ;           skos:definition "An upright stone slab or pillar bearing inscribed text or relief."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:carrierPapyrus         a gmeow:PhysicalCarrierType ; rdfs:label "papyrus"@en ;         skos:definition "A sheet of papyrus bearing written or drawn content."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:carrierPotterySherd    a gmeow:PhysicalCarrierType ; rdfs:label "pottery sherd"@en ;   skos:definition "A fragment of ceramic vessel, often bearing painted or incised marks."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:carrierBone            a gmeow:PhysicalCarrierType ; rdfs:label "bone"@en ;            skos:definition "A bone object or fragment bearing carved or inked signs."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:carrierMetal           a gmeow:PhysicalCarrierType ; rdfs:label "metal"@en ;           skos:definition "A metal object or fragment bearing inscribed, cast, or stamped text."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:carrierWood            a gmeow:PhysicalCarrierType ; rdfs:label "wood"@en ;            skos:definition "A wooden object or fragment bearing inscribed, painted, or burned text."@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:carrierTablet          a gmeow:PhysicalCarrierType ; rdfs:label "tablet"@x-gmeow-english ;          skos:definition "A flat slab of clay, stone, or wax bearing inscribed text."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:carrierOstracon        a gmeow:PhysicalCarrierType ; rdfs:label "ostracon"@x-gmeow-english ;        skos:definition "A potsherd or stone flake bearing ink or incised writing."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:carrierSeal            a gmeow:PhysicalCarrierType ; rdfs:label "seal"@x-gmeow-english ;            skos:definition "A stamped or engraved object used to impress a design or text into clay or wax."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:carrierCoin            a gmeow:PhysicalCarrierType ; rdfs:label "coin"@x-gmeow-english ;            skos:definition "A metallic disc bearing stamped legends, symbols, or portraits."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:carrierManuscript      a gmeow:PhysicalCarrierType ; rdfs:label "manuscript"@x-gmeow-english ;      skos:definition "A handwritten document on parchment, papyrus, paper, or other flexible support."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:carrierWallInscription a gmeow:PhysicalCarrierType ; rdfs:label "wall inscription"@x-gmeow-english ; skos:definition "Text or signs carved, painted, or affixed to a wall or other architectural surface."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:carrierStela           a gmeow:PhysicalCarrierType ; rdfs:label "stela"@x-gmeow-english ;           skos:definition "An upright stone slab or pillar bearing inscribed text or relief."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:carrierPapyrus         a gmeow:PhysicalCarrierType ; rdfs:label "papyrus"@x-gmeow-english ;         skos:definition "A sheet of papyrus bearing written or drawn content."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:carrierPotterySherd    a gmeow:PhysicalCarrierType ; rdfs:label "pottery sherd"@x-gmeow-english ;   skos:definition "A fragment of ceramic vessel, often bearing painted or incised marks."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:carrierBone            a gmeow:PhysicalCarrierType ; rdfs:label "bone"@x-gmeow-english ;            skos:definition "A bone object or fragment bearing carved or inked signs."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:carrierMetal           a gmeow:PhysicalCarrierType ; rdfs:label "metal"@x-gmeow-english ;           skos:definition "A metal object or fragment bearing inscribed, cast, or stamped text."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:carrierWood            a gmeow:PhysicalCarrierType ; rdfs:label "wood"@x-gmeow-english ;            skos:definition "A wooden object or fragment bearing inscribed, painted, or burned text."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
 # CROSS-CUTTING REUSE DECLARATION
