@@ -261,3 +261,73 @@ def test_snapshot_fold() -> None:
     assert _diag_codes(g) == []
     assert g.quads == [(0, 1, 2, None)]
     assert to_nquads(g) == f'<{CAT}> <{LABEL}> "Cat"@en .\n'
+
+
+# -- robustness: the reader is TOTAL (never raises on adversarial bytes) ------
+
+
+def test_robust_corrupt_compressed_payload() -> None:
+    """A frame claiming zstd but carrying garbage folds to a damaged opaque node."""
+    w = Writer()
+    frame = {"t": "quads", "x": [2], "d": b"not zstd at all", "prev": w.head}
+    frame["id"] = content_id(frame)
+    g = read(w.to_bytes() + canonical(frame))
+    assert "DamagedFrame" in _diag_codes(g)
+    assert g.opaque and g.opaque[0].reason == "damaged"
+
+
+def test_robust_out_of_bounds_quad() -> None:
+    """A quad referencing a non-existent term id is rejected, and to_nquads is safe."""
+    w = Writer()
+    w.add_terms([Term(TermKind.IRI, "https://example.org/s")])  # only id 0 exists
+    w.add_quads([(0, 5, 9, None)])  # 5 and 9 out of bounds
+    g = read(w.to_bytes())
+    assert "PositionConstraint" in _diag_codes(g)
+    assert g.quads == []
+    assert to_nquads(g) == ""  # no IndexError
+
+
+def test_robust_non_integer_ids() -> None:
+    """Non-integer term ids in a quad row are diagnosed, not crashed."""
+    w = Writer()
+    w.add_terms([Term(TermKind.IRI, "https://example.org/s")])
+    w.add_frame("quads", payload=[["a", "b", "c"]])
+    g = read(w.to_bytes())
+    assert "DamagedFrame" in _diag_codes(g)
+    assert g.quads == []
+
+
+def test_robust_forward_datatype_ref() -> None:
+    """A literal whose datatype ref is a forward/out-of-range id is dropped safely."""
+    w = Writer()
+    w.add_terms([Term(TermKind.LITERAL, "42", datatype=99)])  # 99 does not exist
+    g = read(w.to_bytes())
+    assert "ForwardReference" in _diag_codes(g)
+    # ref dropped -> defaults to xsd:string, and rendering never IndexErrors
+    assert g.datatype_iri(g.term(0)) == XSD_STRING
+
+
+def test_robust_unknown_term_kind() -> None:
+    """An out-of-range term-kind int defaults to IRI rather than raising."""
+    w = Writer()
+    w.add_frame("terms", payload=[{"k": 99, "v": "https://example.org/x"}])
+    g = read(w.to_bytes())
+    assert g.term(0).kind is TermKind.IRI
+
+
+def test_robust_invalid_header() -> None:
+    """A non-map header yields a diagnostic and an (empty) graph, never a crash."""
+    g = read(canonical([1, 2, 3]))  # first item is an array, not a header map
+    assert "DamagedFrame" in _diag_codes(g)
+    assert g.quads == []
+
+
+def test_robust_out_of_bounds_snapshot() -> None:
+    """A snapshot with an out-of-range term id folds to damaged, not a crash."""
+    w = Writer(profile="dist")
+    w.add_frame(
+        "snapshot",
+        payload={"terms": [{"k": 0, "v": "https://ex/a"}], "quads": [[0, 7, 0]]},
+    )
+    g = read(w.to_bytes())
+    assert "DamagedFrame" in _diag_codes(g)

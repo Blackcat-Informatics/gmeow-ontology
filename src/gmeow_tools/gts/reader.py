@@ -34,12 +34,22 @@ from gmeow_tools.gts.wire import (
 )
 
 _IRI = TermKind.IRI
+_KINDS = {int(k) for k in TermKind}
+
+
+def _as_int(x: object) -> int | None:
+    """Coerce a value to a non-negative ``int`` (rejecting ``bool``), else ``None``."""
+    return x if isinstance(x, int) and not isinstance(x, bool) and x >= 0 else None
 
 
 def term_from_wire(d: Mapping[str, object]) -> Term:
-    """Parse a wire term map into a :class:`Term`."""
+    """Parse a wire term map into a :class:`Term` (unknown kind defaults to IRI)."""
     raw_kind = d.get("k")
-    kind = TermKind(raw_kind) if isinstance(raw_kind, int) else TermKind.IRI
+    kind = (
+        TermKind(raw_kind)
+        if isinstance(raw_kind, int) and raw_kind in _KINDS
+        else TermKind.IRI
+    )
     value = d.get("v")
     datatype = d.get("dt")
     lang = d.get("l")
@@ -97,7 +107,12 @@ class _Folder:
         return d
 
     def fold_frame(self, frame: Mapping[str, object], index: int) -> None:
-        """Fold one already-verified frame into the graph."""
+        """Fold one already-verified frame into the graph.
+
+        Total: a missing capability degrades to an opaque node, and any other failure
+        (corrupt compression/CBOR payload, or a handler error on malformed data) is
+        caught and degraded to a ``damaged`` opaque node — the reader never raises.
+        """
         ftype = str(frame.get("t", ""))
         try:
             payload = self.payload(frame, blob=ftype == "blob")
@@ -107,10 +122,22 @@ class _Folder:
                 Diagnostic(_REASON_DIAG[exc.reason], str(exc), index)
             )
             return
+        except Exception as exc:  # corrupt compression / CBOR payload
+            self._opaque(frame, ftype, "damaged")
+            self.g.diagnostics.append(
+                Diagnostic("DamagedFrame", f"payload decode failed: {exc}", index)
+            )
+            return
         handler = _HANDLERS.get(ftype)
         if handler is None:
             return  # index / unknown structural frames are ignored by the baseline
-        handler(self, payload, frame, index)
+        try:
+            handler(self, payload, frame, index)
+        except Exception as exc:  # malformed payload structure
+            self._opaque(frame, ftype, "damaged")
+            self.g.diagnostics.append(
+                Diagnostic("DamagedFrame", f"fold failed: {exc}", index)
+            )
 
     # -- per-type handlers ----------------------------------------------------
 
@@ -122,14 +149,36 @@ class _Folder:
                 continue
             term = term_from_wire(raw)
             tid = len(self.g.terms)
-            for ref in (term.datatype, term.reifier):
-                if ref is not None and ref >= tid:
-                    self.g.diagnostics.append(
-                        Diagnostic(
-                            "ForwardReference", f"term {tid} references {ref}", index
-                        )
+            # Sanitise refs: dt/rf MUST name an already-introduced term (§7.5). A
+            # forward/out-of-bounds ref is diagnosed and dropped, so resolution and
+            # serialisation can never IndexError.
+            dt = (
+                term.datatype
+                if term.datatype is not None and term.datatype < tid
+                else None
+            )
+            rf = (
+                term.reifier
+                if term.reifier is not None and term.reifier < tid
+                else None
+            )
+            if (term.datatype is not None and dt is None) or (
+                term.reifier is not None and rf is None
+            ):
+                self.g.diagnostics.append(
+                    Diagnostic(
+                        "ForwardReference", f"term {tid} has an out-of-range ref", index
                     )
-            self.g.terms.append(term)
+                )
+            self.g.terms.append(
+                Term(
+                    kind=term.kind,
+                    value=term.value,
+                    datatype=dt,
+                    lang=term.lang,
+                    reifier=rf,
+                )
+            )
 
     def _h_quads(self, payload: object, _f: Mapping[str, object], index: int) -> None:
         if not isinstance(payload, list):
@@ -137,8 +186,13 @@ class _Folder:
         for row in payload:
             if not isinstance(row, list) or len(row) < 3:
                 continue
-            s, p, o = int(row[0]), int(row[1]), int(row[2])
-            g = int(row[3]) if len(row) >= 4 else None
+            s, p, o = _as_int(row[0]), _as_int(row[1]), _as_int(row[2])
+            g = _as_int(row[3]) if len(row) >= 4 else None
+            if s is None or p is None or o is None or (len(row) >= 4 and g is None):
+                self.g.diagnostics.append(
+                    Diagnostic("DamagedFrame", "quad has non-integer term ids", index)
+                )
+                continue
             if not self._check_positions(s, p, o, g, index):
                 continue
             self.g.quads.append((s, p, o, g))
@@ -149,7 +203,15 @@ class _Folder:
         for rid, spo in payload.items():
             if not isinstance(rid, int) or not isinstance(spo, list) or len(spo) != 3:
                 continue
-            triple: Triple = (int(spo[0]), int(spo[1]), int(spo[2]))
+            s, p, o = _as_int(spo[0]), _as_int(spo[1]), _as_int(spo[2])
+            if s is None or p is None or o is None or not self._in_bounds(rid, s, p, o):
+                self.g.diagnostics.append(
+                    Diagnostic(
+                        "DamagedFrame", f"reifier {rid} has bad/out-of-range ids", index
+                    )
+                )
+                continue
+            triple: Triple = (s, p, o)
             existing = self.g.reifiers.get(rid)
             if existing is not None and existing != triple:
                 self.g.diagnostics.append(
@@ -164,7 +226,14 @@ class _Folder:
         for row in payload:
             if not isinstance(row, list) or len(row) != 3:
                 continue
-            r, p, v = int(row[0]), int(row[1]), int(row[2])
+            r, p, v = _as_int(row[0]), _as_int(row[1]), _as_int(row[2])
+            if r is None or p is None or v is None or not self._in_bounds(r, p, v):
+                self.g.diagnostics.append(
+                    Diagnostic(
+                        "DamagedFrame", "annot row has bad/out-of-range ids", index
+                    )
+                )
+                continue
             if self._kind(p) is not _IRI:
                 self.g.diagnostics.append(
                     Diagnostic(
@@ -211,42 +280,48 @@ class _Folder:
         if not isinstance(payload, Mapping):
             return
         base = len(self.g.terms)
+        snap_terms = payload.get("terms", []) or []
+        n_snap = len(snap_terms) if isinstance(snap_terms, list) else 0
 
-        def shift(tid: int) -> int:
+        def shift(value: object) -> int:
+            """Offset a snapshot-local term id into the outer space (bounds-checked)."""
+            tid = _as_int(value)
+            if tid is None or tid >= n_snap:
+                msg = f"snapshot term id {value!r} out of range"
+                raise ValueError(msg)
             return tid + base
 
-        for raw in payload.get("terms", []) or []:
-            if isinstance(raw, Mapping):
-                t = term_from_wire(raw)
-                self.g.terms.append(
-                    Term(
-                        kind=t.kind,
-                        value=t.value,
-                        datatype=shift(t.datatype) if t.datatype is not None else None,
-                        lang=t.lang,
-                        reifier=shift(t.reifier) if t.reifier is not None else None,
+        if isinstance(snap_terms, list):
+            for raw in snap_terms:
+                if isinstance(raw, Mapping):
+                    t = term_from_wire(raw)
+                    self.g.terms.append(
+                        Term(
+                            kind=t.kind,
+                            value=t.value,
+                            datatype=shift(t.datatype)
+                            if t.datatype is not None
+                            else None,
+                            lang=t.lang,
+                            reifier=shift(t.reifier) if t.reifier is not None else None,
+                        )
                     )
-                )
         for row in payload.get("quads", []) or []:
             if isinstance(row, list) and len(row) >= 3:
-                g = shift(int(row[3])) if len(row) >= 4 else None
-                self.g.quads.append(
-                    (shift(int(row[0])), shift(int(row[1])), shift(int(row[2])), g)
-                )
+                g = shift(row[3]) if len(row) >= 4 else None
+                self.g.quads.append((shift(row[0]), shift(row[1]), shift(row[2]), g))
         reifies = payload.get("reifies")
         if isinstance(reifies, Mapping):
             for rid, spo in reifies.items():
-                if isinstance(rid, int) and isinstance(spo, list) and len(spo) == 3:
+                if isinstance(spo, list) and len(spo) == 3:
                     self.g.reifiers[shift(rid)] = (
-                        shift(int(spo[0])),
-                        shift(int(spo[1])),
-                        shift(int(spo[2])),
+                        shift(spo[0]),
+                        shift(spo[1]),
+                        shift(spo[2]),
                     )
         for row in payload.get("annot", []) or []:
             if isinstance(row, list) and len(row) == 3:
-                self.g.annotations.append(
-                    (shift(int(row[0])), shift(int(row[1])), shift(int(row[2])))
-                )
+                self.g.annotations.append((shift(row[0]), shift(row[1]), shift(row[2])))
         blobs = payload.get("blobs")
         if isinstance(blobs, Mapping):
             for b in blobs.values():
@@ -276,10 +351,25 @@ class _Folder:
     def _kind(self, tid: int) -> TermKind | None:
         return self.g.terms[tid].kind if 0 <= tid < len(self.g.terms) else None
 
+    def _in_bounds(self, *ids: int) -> bool:
+        """True iff every id names an already-introduced term (prevents IndexError)."""
+        n = len(self.g.terms)
+        return all(0 <= i < n for i in ids)
+
     def _check_positions(
         self, s: int, p: int, o: int, g: int | None, index: int
     ) -> bool:
-        """Enforce the §7.4 position constraints; diagnose and reject on violation."""
+        """Bounds-check, then enforce §7.4 positions; diagnose + reject on violation."""
+        refs = (s, p, o) if g is None else (s, p, o, g)
+        if not self._in_bounds(*refs):
+            self.g.diagnostics.append(
+                Diagnostic(
+                    "PositionConstraint",
+                    f"quad ({s},{p},{o},{g}) has out-of-range term ids",
+                    index,
+                )
+            )
+            return False
         ok = True
         if self._kind(p) is not _IRI:
             ok = False
@@ -343,7 +433,11 @@ def read(data: bytes) -> Graph:
         return g
 
     _, raw_header = items[0]
-    header = unwrap_header(raw_header)
+    try:
+        header = unwrap_header(raw_header)
+    except ValueError as exc:
+        g.diagnostics.append(Diagnostic("DamagedFrame", f"invalid header: {exc}", 0))
+        return g
     stored_hid = header.get("id")
     if blake3_256_header(header) != stored_hid:
         g.diagnostics.append(Diagnostic("DamagedFrame", "header self-hash mismatch", 0))
