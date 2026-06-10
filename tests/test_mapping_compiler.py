@@ -214,13 +214,6 @@ def test_dsl_parses() -> None:
     # Issue #63 first-class annotation & PKM layer: +16 (oa:Annotation x3,
     # schema:NoteDigitalDocument, schema:Comment, as:Note, sioc:Post,
     # sioc:reply_of, sioc:has_reply, AnnotationMotivation x7).
-    # Issue #63 first-class annotation & PKM layer: +16 (oa:Annotation x3,
-    # schema:NoteDigitalDocument, schema:Comment, as:Note, sioc:Post,
-    # sioc:reply_of, sioc:has_reply, AnnotationMotivation x7).
-    # Issue #22 image super-ontology: +21 (schema.org ImageObject/about/width/
-    # height/dateCreated x5, Web Annotation selector types x4, EXIF width/height/
-    # orientation/dateTime x4, IIIF Canvas/Annotation/width/height x4,
-    # CIDOC-CRM production x1, CRMdig area x1, Wikidata region/spatial-relation x2).
     # Issue #22 image super-ontology: +21 (schema.org ImageObject/about/width/
     # height/dateCreated x5, Web Annotation selector types x4, EXIF width/height/
     # orientation/dateTime x4, IIIF Canvas/Annotation/width/height x4,

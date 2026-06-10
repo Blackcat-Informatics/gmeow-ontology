@@ -257,11 +257,6 @@ ex:hdrTo3
     gmeow:headerName "To" ;
     gmeow:headerValue "\"Bob Jones\" <bob@example.com>" .
 
-ex:hdrDisposition
-    a gmeow:MessageHeader ;
-    gmeow:headerName "Disposition-Notification-To" ;
-    gmeow:headerValue "alice@example.org" .
-
 # MessageParticipant occurrences for msg3.
 ex:mpAliceFrom3
     a gmeow:MessageParticipant ;
