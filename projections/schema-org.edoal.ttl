@@ -77,6 +77,14 @@
             align:relation "<=" ;
             edoal:measure 8e-01 ],
         [ a align:Cell ;
+            rdfs:label "captureTime → schema:dateCreated"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:captureTime ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:dateCreated ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
             rdfs:label "conditionsOfAccess → schema:conditionsOfAccess"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:conditionsOfAccess ] ;
@@ -126,6 +134,14 @@
             align:relation "<=" ;
             edoal:measure 1e+00 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnSubOrgToDepartment ] ],
+        [ a align:Cell ;
+            rdfs:label "depicts → schema:about (lossy aboutness)"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:depicts ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:about ] ;
+            align:relation "<=" ;
+            edoal:measure 8.5e-01 ],
         [ a align:Cell ;
             rdfs:label "gmeow:description → schema:description (public-site consumer only)"@en ;
             align:entity1 [ a edoal:Relation ;
@@ -235,6 +251,30 @@
                     edoal:uri schema:honorificSuffix ] ;
             align:relation "<=" ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnHonorificToAffix ] ],
+        [ a align:Cell ;
+            rdfs:label "pixelHeight → schema:height"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:pixelHeight ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:height ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "MediaObject → schema:ImageObject"@en ;
+            align:entity1 [ a edoal:Class ;
+                    edoal:uri gmeow:MediaObject ] ;
+            align:entity2 [ a edoal:Class ;
+                    edoal:uri schema:ImageObject ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
+        [ a align:Cell ;
+            rdfs:label "pixelWidth → schema:width"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:pixelWidth ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri schema:width ] ;
+            align:relation "<=" ;
+            edoal:measure 9e-01 ],
         [ a align:Cell ;
             rdfs:label "industryClassification → schema:isicV4"@en ;
             align:entity1 [ a edoal:Relation ;

@@ -787,11 +787,11 @@
     void:triples 5 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gmeow-32d720-rdfs_subClassOf> a void:Linkset ;
-    rdfs:label "GMEOW rdfs:subClassOf links to https://blackcatinformatics.ca/gmeow/ (12)" ;
+    rdfs:label "GMEOW rdfs:subClassOf links to https://blackcatinformatics.ca/gmeow/ (13)" ;
     void:linkPredicate rdfs:subClassOf ;
     void:objectsTarget gmeow: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 12 .
+    void:triples 13 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-gmeow-32d720-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to https://blackcatinformatics.ca/gmeow/ (11)" ;
@@ -1186,25 +1186,25 @@
     void:triples 4 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-org-836cec-owl_equivalentClass> a void:Linkset ;
-    rdfs:label "GMEOW owl:equivalentClass links to http://www.w3.org/ns/org# (2)" ;
+    rdfs:label "GMEOW owl:equivalentClass links to http://www.w3.org/ns/org# (3)" ;
     void:linkPredicate owl:equivalentClass ;
     void:objectsTarget org: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 2 .
+    void:triples 3 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-org-836cec-owl_equivalentProperty> a void:Linkset ;
-    rdfs:label "GMEOW owl:equivalentProperty links to http://www.w3.org/ns/org# (1)" ;
+    rdfs:label "GMEOW owl:equivalentProperty links to http://www.w3.org/ns/org# (3)" ;
     void:linkPredicate owl:equivalentProperty ;
     void:objectsTarget org: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 1 .
+    void:triples 3 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-org-836cec-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://www.w3.org/ns/org# (3)" ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.w3.org/ns/org# (10)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget org: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 3 .
+    void:triples 10 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-p-plan-19bb56-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to http://purl.org/net/p-plan# (5)" ;

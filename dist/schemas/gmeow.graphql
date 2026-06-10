@@ -479,6 +479,7 @@ enum EntityEnum
 
 enum EventTypeEnum
   {
+    eventTypeAcquisition
     eventTypeAdoption
     eventTypeAnnulment
     eventTypeAudit
@@ -521,6 +522,7 @@ enum EventTypeEnum
     eventTypeManifestationProduction
     eventTypeMarriage
     eventTypeMerge
+    eventTypeMerger
     eventTypeMilitaryService
     eventTypeNameChange
     eventTypeNaturalization
@@ -531,11 +533,14 @@ enum EventTypeEnum
     eventTypePromotion
     eventTypePush
     eventTypeRelease
+    eventTypeRename
     eventTypeResidence
     eventTypeResignation
     eventTypeRetirement
     eventTypeSelfDeception
     eventTypeSeparation
+    eventTypeSpinOff
+    eventTypeSplit
     eventTypeSupersession
     eventTypeSurvey
     eventTypeTermination
@@ -1164,6 +1169,16 @@ enum OrganizationEnum
     agentInternationalCommissionOnStratigraphy
   }
 
+enum OrganizationTypeEnum
+  {
+    organizationTypeAssociation
+    organizationTypeCollaboration
+    organizationTypeCompany
+    organizationTypeEducationalInstitution
+    organizationTypeGovernmentBody
+    organizationTypeNonprofit
+  }
+
 enum ParticipantRoleEnum
   {
     roleAgent
@@ -1664,6 +1679,13 @@ enum SignatureSchemeEnum
     signatureSchemeRSASHA256
   }
 
+enum SiteTypeEnum
+  {
+    siteTypeBranch
+    siteTypeHeadquarters
+    siteTypeRegistered
+  }
+
 enum SLSALevelEnum
   {
     slsaLevel1
@@ -1960,11 +1982,13 @@ type Activity
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
     wasAssociatedWith: [Agent]
   }
@@ -2534,6 +2558,7 @@ type BiologicalSequenceLocation
     rcc8po: [Location]
     rcc8tpp: [Location]
     rcc8tppi: [Location]
+    siteType: [SiteType]
     spatiallyConnectsTo: [Location]
     timezone: String
     hasSequenceFeature: [SequenceFeature]
@@ -2997,11 +3022,13 @@ type BuildActivity
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
     wasAssociatedWith: [Agent]
     buildConfigUri: String
@@ -3185,6 +3212,7 @@ type CelestialLocation
     rcc8po: [Location]
     rcc8tpp: [Location]
     rcc8tppi: [Location]
+    siteType: [SiteType]
     spatiallyConnectsTo: [Location]
     timezone: String
     celestialObjectType: [CelestialObjectType]
@@ -3320,11 +3348,13 @@ type CodeReview
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
     reviewCommit: [Commit]
     reviewOf: [MergeRequest]
@@ -3512,11 +3542,13 @@ type Commit
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
     wasAssociatedWith: [Agent]
     authorTime: String
@@ -4579,6 +4611,7 @@ type EmailMessage
 
 type Employment
   {
+    fillsPost: [Post]
     hasRole: [Role]
     membershipMember: Agent
     membershipOrganization: Organization
@@ -4696,11 +4729,13 @@ type Event
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
   }
 
@@ -4854,11 +4889,13 @@ type Execution
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
     executesProcedure: [Procedure]
     executesStep: [ProcedureStep]
@@ -5121,11 +5158,13 @@ type FinancialTransaction
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
     transactionAmount: MonetaryAmount
     transactionStatus: [TransactionStatus]
@@ -5556,6 +5595,13 @@ type HonorificPosition
   {
   }
 
+type Identifier
+  {
+    identifierScheme: String
+    identifierValue: String
+    jurisdiction: [Location]
+  }
+
 type IdentityFacet
   {
     selfAsserted: Boolean
@@ -5652,11 +5698,13 @@ type ImportActivity
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
     wasAssociatedWith: [Agent]
     ingestedAt: String
@@ -6071,11 +6119,13 @@ type JournalEntry
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
     journalEntryPostings: [Posting]
   }
@@ -6207,11 +6257,13 @@ type LanguageChangeEvent
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
     wasAssociatedWith: [Agent]
     affectedLanguage: [Language]
@@ -6256,11 +6308,13 @@ type LanguageCreation
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
     wasAssociatedWith: [Agent]
   }
@@ -6522,11 +6576,13 @@ type LedgerEvent
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
     logIndex: Int
   }
@@ -6764,11 +6820,13 @@ type LifeEvent
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
   }
 
@@ -6923,6 +6981,7 @@ type Location
     rcc8po: [Location]
     rcc8tpp: [Location]
     rcc8tppi: [Location]
+    siteType: [SiteType]
     spatiallyConnectsTo: [Location]
     timezone: String
   }
@@ -7374,6 +7433,7 @@ type MediaObject
 
 type Membership
   {
+    fillsPost: [Post]
     hasRole: [Role]
     membershipMember: Agent
     membershipOrganization: Organization
@@ -7478,11 +7538,13 @@ type Merge
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
     wasAssociatedWith: [Agent]
     mergeBase: [Commit]
@@ -8267,11 +8329,13 @@ type ObservationalActivity
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
     wasAssociatedWith: [Agent]
     generatedObservation: [Observation]
@@ -8442,8 +8506,14 @@ type Organization
     memberOf: [Organization]
     nativeLanguage: [Language]
     telephone: String
+    hasIdentifier: [Identifier]
     hasMember: [Agent]
     hasOrganizationName: [OrganizationName]
+    hasSite: [Location]
+    industryClassification: [Identifier]
+    legalIdentifier: [Identifier]
+    organizationPurpose: String
+    organizationType: [OrganizationType]
     subOrganizationOf: [Organization]
   }
 
@@ -8457,6 +8527,10 @@ type OrganizationName
     nameScript: String
     romanization: String
     transliterationScheme: [TransliterationScheme]
+  }
+
+type OrganizationType
+  {
   }
 
 type Orientation
@@ -8715,11 +8789,13 @@ type Payment
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
     transactionAmount: MonetaryAmount
     transactionStatus: [TransactionStatus]
@@ -8976,6 +9052,7 @@ type Place
     rcc8po: [Location]
     rcc8tpp: [Location]
     rcc8tppi: [Location]
+    siteType: [SiteType]
     spatiallyConnectsTo: [Location]
     timezone: String
     containedInPlace: [Place]
@@ -9074,6 +9151,11 @@ type Pose
     hasPoseOrientation: [Orientation]
     hasPosePosition: [SpatialCoordinates]
     poseFrame: [ReferenceFrame]
+  }
+
+type Post
+  {
+    postIn: Organization
   }
 
 type PostalAddress
@@ -9600,11 +9682,13 @@ type Push
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
     wasAssociatedWith: [Agent]
     pushTarget: [String]
@@ -10078,11 +10162,13 @@ type Release
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
     releaseDoi: String
     releaseOf: Project
@@ -11091,6 +11177,10 @@ type SignatureScheme
   {
   }
 
+type SiteType
+  {
+  }
+
 type Skill
   {
     acquireLicensePage: String
@@ -11879,6 +11969,7 @@ type SpatialBin
     rcc8po: [Location]
     rcc8tpp: [Location]
     rcc8tppi: [Location]
+    siteType: [SiteType]
     spatiallyConnectsTo: [Location]
     timezone: String
     containedInPlace: [Place]
@@ -12121,6 +12212,7 @@ type StorageLocation
     rcc8po: [Location]
     rcc8tpp: [Location]
     rcc8tppi: [Location]
+    siteType: [SiteType]
     spatiallyConnectsTo: [Location]
     timezone: String
     physicalPlace: [Place]
@@ -13017,11 +13109,13 @@ type VerificationActivity
     occurrenceOfSeries: [EventSeries]
     overlappedBy: [Event]
     overlaps: [Event]
+    predecessorOrganization: [Organization]
     projectedStandpoint: [StandpointClaim]
     propagationMutationDistance: Int
     startedBy: [Event]
     starts: [Event]
     subEventOf: [Event]
+    successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
     wasAssociatedWith: [Agent]
   }
@@ -13233,6 +13327,7 @@ type VirtualLocation
     rcc8po: [Location]
     rcc8tpp: [Location]
     rcc8tppi: [Location]
+    siteType: [SiteType]
     spatiallyConnectsTo: [Location]
     timezone: String
     accessUrl: String

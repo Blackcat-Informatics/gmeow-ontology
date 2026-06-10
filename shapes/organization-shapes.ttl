@@ -62,12 +62,14 @@ gmeow:MergerAcquisitionEventShape
                 ))
                 {
                     SELECT $this (COUNT(?pred) AS ?predCount) WHERE {
-                        $this <https://blackcatinformatics.ca/gmeow/predecessorOrganization> ?pred .
+                        $this a <https://blackcatinformatics.ca/gmeow/Event> .
+                        OPTIONAL { $this <https://blackcatinformatics.ca/gmeow/predecessorOrganization> ?pred . }
                     } GROUP BY $this
                     HAVING (?predCount < 2)
                 } UNION {
                     SELECT $this (COUNT(?succ) AS ?succCount) WHERE {
-                        $this <https://blackcatinformatics.ca/gmeow/successorOrganization> ?succ .
+                        $this a <https://blackcatinformatics.ca/gmeow/Event> .
+                        OPTIONAL { $this <https://blackcatinformatics.ca/gmeow/successorOrganization> ?succ . }
                     } GROUP BY $this
                     HAVING (?succCount < 1)
                 }
@@ -91,12 +93,14 @@ gmeow:SplitSpinOffEventShape
                 ))
                 {
                     SELECT $this (COUNT(?pred) AS ?predCount) WHERE {
-                        $this <https://blackcatinformatics.ca/gmeow/predecessorOrganization> ?pred .
+                        $this a <https://blackcatinformatics.ca/gmeow/Event> .
+                        OPTIONAL { $this <https://blackcatinformatics.ca/gmeow/predecessorOrganization> ?pred . }
                     } GROUP BY $this
                     HAVING (?predCount < 1)
                 } UNION {
                     SELECT $this (COUNT(?succ) AS ?succCount) WHERE {
-                        $this <https://blackcatinformatics.ca/gmeow/successorOrganization> ?succ .
+                        $this a <https://blackcatinformatics.ca/gmeow/Event> .
+                        OPTIONAL { $this <https://blackcatinformatics.ca/gmeow/successorOrganization> ?succ . }
                     } GROUP BY $this
                     HAVING (?succCount < 2)
                 }
@@ -105,22 +109,16 @@ gmeow:SplitSpinOffEventShape
     ] .
 
 # --------------------------------------------------------------------------- #
-# Legal identifier well-formedness
+# Identifier well-formedness — reified Identifier nodes must carry a scheme.
 # --------------------------------------------------------------------------- #
 
-gmeow:LegalIdentifierHasSchemeShape
+gmeow:IdentifierMustHaveSchemeShape
     a sh:NodeShape ;
-    rdfs:label "Legal identifier must carry a scheme" ;
-    sh:targetClass gmeow:Organization ;
-    sh:severity sh:Violation ;   # NodeShape-level so pyshacl honors it
-    sh:sparql [
-        sh:message "An organization with a gmeow:legalIdentifier must also declare a gmeow:identifierScheme." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this <https://blackcatinformatics.ca/gmeow/legalIdentifier> ?id .
-                FILTER NOT EXISTS {
-                    $this <https://blackcatinformatics.ca/gmeow/identifierScheme> ?scheme
-                }
-            }
-        """ ;
+    rdfs:label "Identifier must declare its scheme" ;
+    sh:targetClass gmeow:Identifier ;
+    sh:property [
+        sh:path gmeow:identifierScheme ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:Identifier must declare a gmeow:identifierScheme (e.g. 'lei', 'ror', 'naics', 'isicV4')." ;
     ] .

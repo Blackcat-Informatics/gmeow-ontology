@@ -530,6 +530,7 @@ class EntityEnum(str, Enum):
 
 
 class EventTypeEnum(str, Enum):
+    acquisition = "eventTypeAcquisition"
     adoption = "eventTypeAdoption"
     annulment = "eventTypeAnnulment"
     audit = "eventTypeAudit"
@@ -572,6 +573,7 @@ class EventTypeEnum(str, Enum):
     manifestation_production = "eventTypeManifestationProduction"
     marriage = "eventTypeMarriage"
     merge = "eventTypeMerge"
+    merger = "eventTypeMerger"
     military_service = "eventTypeMilitaryService"
     name_change = "eventTypeNameChange"
     naturalization = "eventTypeNaturalization"
@@ -582,11 +584,14 @@ class EventTypeEnum(str, Enum):
     promotion = "eventTypePromotion"
     push = "eventTypePush"
     release = "eventTypeRelease"
+    rename = "eventTypeRename"
     residence = "eventTypeResidence"
     resignation = "eventTypeResignation"
     retirement = "eventTypeRetirement"
     self_deception = "eventTypeSelfDeception"
     separation = "eventTypeSeparation"
+    spin_off = "eventTypeSpinOff"
+    split = "eventTypeSplit"
     supersession = "eventTypeSupersession"
     survey = "eventTypeSurvey"
     termination = "eventTypeTermination"
@@ -1167,6 +1172,15 @@ class OrganizationEnum(str, Enum):
     International_Commission_on_Stratigraphy = "agentInternationalCommissionOnStratigraphy"
 
 
+class OrganizationTypeEnum(str, Enum):
+    association = "organizationTypeAssociation"
+    collaboration = "organizationTypeCollaboration"
+    company = "organizationTypeCompany"
+    educational_institution = "organizationTypeEducationalInstitution"
+    government_body = "organizationTypeGovernmentBody"
+    nonprofit = "organizationTypeNonprofit"
+
+
 class ParticipantRoleEnum(str, Enum):
     agent = "roleAgent"
     attendee = "roleAttendee"
@@ -1639,6 +1653,12 @@ class SignatureSchemeEnum(str, Enum):
     ECDSA_secp256k1 = "signatureSchemeECDSASecp256k1"
     Ed25519 = "signatureSchemeEd25519"
     RSA_SHA256 = "signatureSchemeRSASHA256"
+
+
+class SiteTypeEnum(str, Enum):
+    branch = "siteTypeBranch"
+    headquarters = "siteTypeHeadquarters"
+    registered = "siteTypeRegistered"
 
 
 class SourceIndependenceEnum(str, Enum):
@@ -3685,6 +3705,9 @@ class Event(ConfiguredBaseModel):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -3700,6 +3723,9 @@ class Event(ConfiguredBaseModel):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -3809,6 +3835,9 @@ class Activity(Event):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -3824,6 +3853,9 @@ class Activity(Event):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -3942,6 +3974,9 @@ class BuildActivity(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -3957,6 +3992,9 @@ class BuildActivity(Activity):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -4069,6 +4107,9 @@ class CodeReview(Event):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -4084,6 +4125,9 @@ class CodeReview(Event):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -4226,6 +4270,9 @@ class Commit(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -4241,6 +4288,9 @@ class Commit(Activity):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -4532,6 +4582,9 @@ class Execution(Event):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -4547,6 +4600,9 @@ class Execution(Event):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -4712,6 +4768,9 @@ class FinancialTransaction(Event):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -4727,6 +4786,9 @@ class FinancialTransaction(Event):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -5827,6 +5889,22 @@ class HonorificPosition(ConfiguredBaseModel):
     pass
 
 
+class Identifier(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Identifier',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Identifier'})
+
+    identifierScheme: Optional[str] = Field(default=None, title="identifier scheme", json_schema_extra = { "linkml_meta": {'domain': 'Identifier',
+         'domain_of': ['Identifier'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/identifierScheme'} })
+    identifierValue: Optional[str] = Field(default=None, title="identifier value", json_schema_extra = { "linkml_meta": {'domain': 'Identifier',
+         'domain_of': ['Identifier'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/identifierValue'} })
+    jurisdiction: Optional[list[Location]] = Field(default=None, title="jurisdiction", json_schema_extra = { "linkml_meta": {'domain': 'Identifier',
+         'domain_of': ['Identifier'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/jurisdiction'} })
+
+
 class IdentityFacet(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/IdentityFacet',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -5970,6 +6048,9 @@ class ImportActivity(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -5985,6 +6066,9 @@ class ImportActivity(Activity):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -10588,6 +10672,9 @@ class JournalEntry(Event):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -10603,6 +10690,9 @@ class JournalEntry(Event):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -11120,6 +11210,9 @@ class LanguageChangeEvent(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -11135,6 +11228,9 @@ class LanguageChangeEvent(Activity):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -11252,6 +11348,9 @@ class LanguageCreation(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -11267,6 +11366,9 @@ class LanguageCreation(Activity):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -12000,6 +12102,9 @@ class LedgerEvent(Event):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -12015,6 +12120,9 @@ class LedgerEvent(Event):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -12682,6 +12790,9 @@ class LifeEvent(Event):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -12697,6 +12808,9 @@ class LifeEvent(Event):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -12752,6 +12866,9 @@ class Location(Entity):
     rcc8tppi: Optional[list[Location]] = Field(default=None, title="rcc8 tppi", json_schema_extra = { "linkml_meta": {'domain': 'Location',
          'domain_of': ['Location'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/rcc8tppi'} })
+    siteType: Optional[list[SiteType]] = Field(default=None, title="site type", json_schema_extra = { "linkml_meta": {'domain': 'Location',
+         'domain_of': ['Location'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/siteType'} })
     spatiallyConnectsTo: Optional[list[Location]] = Field(default=None, title="spatially connects to", json_schema_extra = { "linkml_meta": {'domain': 'Location',
          'domain_of': ['Location'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/spatiallyConnectsTo'} })
@@ -12957,6 +13074,9 @@ class BiologicalSequenceLocation(Location):
     rcc8tppi: Optional[list[Location]] = Field(default=None, title="rcc8 tppi", json_schema_extra = { "linkml_meta": {'domain': 'Location',
          'domain_of': ['Location'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/rcc8tppi'} })
+    siteType: Optional[list[SiteType]] = Field(default=None, title="site type", json_schema_extra = { "linkml_meta": {'domain': 'Location',
+         'domain_of': ['Location'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/siteType'} })
     spatiallyConnectsTo: Optional[list[Location]] = Field(default=None, title="spatially connects to", json_schema_extra = { "linkml_meta": {'domain': 'Location',
          'domain_of': ['Location'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/spatiallyConnectsTo'} })
@@ -13165,6 +13285,9 @@ class CelestialLocation(Location):
     rcc8tppi: Optional[list[Location]] = Field(default=None, title="rcc8 tppi", json_schema_extra = { "linkml_meta": {'domain': 'Location',
          'domain_of': ['Location'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/rcc8tppi'} })
+    siteType: Optional[list[SiteType]] = Field(default=None, title="site type", json_schema_extra = { "linkml_meta": {'domain': 'Location',
+         'domain_of': ['Location'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/siteType'} })
     spatiallyConnectsTo: Optional[list[Location]] = Field(default=None, title="spatially connects to", json_schema_extra = { "linkml_meta": {'domain': 'Location',
          'domain_of': ['Location'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/spatiallyConnectsTo'} })
@@ -14806,6 +14929,9 @@ class Membership(ConfiguredBaseModel):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Membership'})
 
+    fillsPost: Optional[list[Post]] = Field(default=None, title="fills post", json_schema_extra = { "linkml_meta": {'domain': 'Membership',
+         'domain_of': ['Membership'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/fillsPost'} })
     hasRole: Optional[list[Role]] = Field(default=None, title="has role", json_schema_extra = { "linkml_meta": {'domain': 'Membership',
          'domain_of': ['Membership'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRole'} })
@@ -14840,6 +14966,9 @@ class Employment(Membership):
     employmentType: Optional[EmploymentType] = Field(default=None, title="employment type", json_schema_extra = { "linkml_meta": {'domain': 'Employment',
          'domain_of': ['Employment'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/employmentType'} })
+    fillsPost: Optional[list[Post]] = Field(default=None, title="fills post", json_schema_extra = { "linkml_meta": {'domain': 'Membership',
+         'domain_of': ['Membership'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/fillsPost'} })
     hasRole: Optional[list[Role]] = Field(default=None, title="has role", json_schema_extra = { "linkml_meta": {'domain': 'Membership',
          'domain_of': ['Membership'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasRole'} })
@@ -14964,6 +15093,9 @@ class Merge(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -14979,6 +15111,9 @@ class Merge(Activity):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -17201,6 +17336,9 @@ class ObservationalActivity(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -17216,6 +17354,9 @@ class ObservationalActivity(Activity):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -17622,12 +17763,30 @@ class Organization(Agent):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Organization'})
 
+    hasIdentifier: Optional[list[Identifier]] = Field(default=None, title="has identifier", json_schema_extra = { "linkml_meta": {'domain': 'Organization',
+         'domain_of': ['Organization'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasIdentifier'} })
     hasMember: Optional[list[Agent]] = Field(default=None, title="has member", json_schema_extra = { "linkml_meta": {'domain': 'Organization',
          'domain_of': ['Organization'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasMember'} })
     hasOrganizationName: Optional[list[OrganizationName]] = Field(default=None, title="has organization name", json_schema_extra = { "linkml_meta": {'domain': 'Organization',
          'domain_of': ['Organization'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasOrganizationName'} })
+    hasSite: Optional[list[Location]] = Field(default=None, title="has site", json_schema_extra = { "linkml_meta": {'domain': 'Organization',
+         'domain_of': ['Organization'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasSite'} })
+    industryClassification: Optional[list[Identifier]] = Field(default=None, title="industry classification", json_schema_extra = { "linkml_meta": {'domain': 'Organization',
+         'domain_of': ['Organization'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/industryClassification'} })
+    legalIdentifier: Optional[list[Identifier]] = Field(default=None, title="legal identifier", json_schema_extra = { "linkml_meta": {'domain': 'Organization',
+         'domain_of': ['Organization'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/legalIdentifier'} })
+    organizationPurpose: Optional[str] = Field(default=None, title="organization purpose", json_schema_extra = { "linkml_meta": {'domain': 'Organization',
+         'domain_of': ['Organization'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/organizationPurpose'} })
+    organizationType: Optional[list[OrganizationType]] = Field(default=None, title="organization type", json_schema_extra = { "linkml_meta": {'domain': 'Organization',
+         'domain_of': ['Organization'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/organizationType'} })
     subOrganizationOf: Optional[list[Organization]] = Field(default=None, title="sub-organization of", json_schema_extra = { "linkml_meta": {'domain': 'Organization',
          'domain_of': ['Organization'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subOrganizationOf'} })
@@ -17707,6 +17866,14 @@ class OrganizationName(Appellation):
     transliterationScheme: Optional[list[TransliterationScheme]] = Field(default=None, title="transliteration scheme", json_schema_extra = { "linkml_meta": {'domain': 'Appellation',
          'domain_of': ['Appellation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/transliterationScheme'} })
+
+
+class OrganizationType(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/OrganizationType',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Organization Type'})
+
+    pass
 
 
 class Orientation(Entity):
@@ -18420,6 +18587,9 @@ class Payment(FinancialTransaction):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -18435,6 +18605,9 @@ class Payment(FinancialTransaction):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -18847,6 +19020,9 @@ class Place(Location):
     rcc8tppi: Optional[list[Location]] = Field(default=None, title="rcc8 tppi", json_schema_extra = { "linkml_meta": {'domain': 'Location',
          'domain_of': ['Location'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/rcc8tppi'} })
+    siteType: Optional[list[SiteType]] = Field(default=None, title="site type", json_schema_extra = { "linkml_meta": {'domain': 'Location',
+         'domain_of': ['Location'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/siteType'} })
     spatiallyConnectsTo: Optional[list[Location]] = Field(default=None, title="spatially connects to", json_schema_extra = { "linkml_meta": {'domain': 'Location',
          'domain_of': ['Location'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/spatiallyConnectsTo'} })
@@ -19227,6 +19403,16 @@ class Pose(Entity):
     wasGeneratedBy: Optional[list[Activity]] = Field(default=None, title="was generated by", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
+
+
+class Post(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Post',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Post'})
+
+    postIn: Optional[Organization] = Field(default=None, title="post in", json_schema_extra = { "linkml_meta": {'domain': 'Post',
+         'domain_of': ['Post'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/postIn'} })
 
 
 class PostalAddress(ContactPoint):
@@ -20699,6 +20885,9 @@ class Push(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -20714,6 +20903,9 @@ class Push(Activity):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -22274,6 +22466,9 @@ class Release(Event):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -22289,6 +22484,9 @@ class Release(Event):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -24817,6 +25015,14 @@ class SignatureScheme(ConfiguredBaseModel):
     pass
 
 
+class SiteType(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SiteType',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Site Type'})
+
+    pass
+
+
 class Skill(Entity):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Skill',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -26929,6 +27135,9 @@ class SpatialBin(Place):
     rcc8tppi: Optional[list[Location]] = Field(default=None, title="rcc8 tppi", json_schema_extra = { "linkml_meta": {'domain': 'Location',
          'domain_of': ['Location'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/rcc8tppi'} })
+    siteType: Optional[list[SiteType]] = Field(default=None, title="site type", json_schema_extra = { "linkml_meta": {'domain': 'Location',
+         'domain_of': ['Location'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/siteType'} })
     spatiallyConnectsTo: Optional[list[Location]] = Field(default=None, title="spatially connects to", json_schema_extra = { "linkml_meta": {'domain': 'Location',
          'domain_of': ['Location'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/spatiallyConnectsTo'} })
@@ -27818,6 +28027,9 @@ class StorageLocation(Location):
     rcc8tppi: Optional[list[Location]] = Field(default=None, title="rcc8 tppi", json_schema_extra = { "linkml_meta": {'domain': 'Location',
          'domain_of': ['Location'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/rcc8tppi'} })
+    siteType: Optional[list[SiteType]] = Field(default=None, title="site type", json_schema_extra = { "linkml_meta": {'domain': 'Location',
+         'domain_of': ['Location'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/siteType'} })
     spatiallyConnectsTo: Optional[list[Location]] = Field(default=None, title="spatially connects to", json_schema_extra = { "linkml_meta": {'domain': 'Location',
          'domain_of': ['Location'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/spatiallyConnectsTo'} })
@@ -30573,6 +30785,9 @@ class VerificationActivity(Activity):
     overlaps: Optional[list[Event]] = Field(default=None, title="overlaps", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overlaps'} })
+    predecessorOrganization: Optional[list[Organization]] = Field(default=None, title="predecessor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/predecessorOrganization'} })
     projectedStandpoint: Optional[list[StandpointClaim]] = Field(default=None, title="projected standpoint", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/projectedStandpoint'} })
@@ -30588,6 +30803,9 @@ class VerificationActivity(Activity):
     subEventOf: Optional[list[Event]] = Field(default=None, title="sub-event of", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/subEventOf'} })
+    successorOrganization: Optional[list[Organization]] = Field(default=None, title="successor organization", json_schema_extra = { "linkml_meta": {'domain': 'Event',
+         'domain_of': ['Event'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/successorOrganization'} })
     temporalPrecision: Optional[list[TemporalPrecision]] = Field(default=None, title="temporal precision", json_schema_extra = { "linkml_meta": {'domain': 'Event',
          'domain_of': ['Event'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/temporalPrecision'} })
@@ -31054,6 +31272,9 @@ class VirtualLocation(Location):
     rcc8tppi: Optional[list[Location]] = Field(default=None, title="rcc8 tppi", json_schema_extra = { "linkml_meta": {'domain': 'Location',
          'domain_of': ['Location'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/rcc8tppi'} })
+    siteType: Optional[list[SiteType]] = Field(default=None, title="site type", json_schema_extra = { "linkml_meta": {'domain': 'Location',
+         'domain_of': ['Location'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/siteType'} })
     spatiallyConnectsTo: Optional[list[Location]] = Field(default=None, title="spatially connects to", json_schema_extra = { "linkml_meta": {'domain': 'Location',
          'domain_of': ['Location'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/spatiallyConnectsTo'} })
@@ -34827,6 +35048,7 @@ Holding.model_rebuild()
 Honorific.model_rebuild()
 HonorificClass.model_rebuild()
 HonorificPosition.model_rebuild()
+Identifier.model_rebuild()
 IdentityFacet.model_rebuild()
 GenderExpression.model_rebuild()
 GenderIdentity.model_rebuild()
@@ -34948,6 +35170,7 @@ Order.model_rebuild()
 OrderStatus.model_rebuild()
 Organization.model_rebuild()
 OrganizationName.model_rebuild()
+OrganizationType.model_rebuild()
 Orientation.model_rebuild()
 PGPSignature.model_rebuild()
 Package.model_rebuild()
@@ -34969,6 +35192,7 @@ PlaceName.model_rebuild()
 PlaceNaming.model_rebuild()
 PlaceType.model_rebuild()
 Pose.model_rebuild()
+Post.model_rebuild()
 PostalAddress.model_rebuild()
 Posting.model_rebuild()
 PostingDirection.model_rebuild()
@@ -35040,6 +35264,7 @@ SexAssignedAtBirth.model_rebuild()
 SexualOrientation.model_rebuild()
 SexualOrientationValue.model_rebuild()
 SignatureScheme.model_rebuild()
+SiteType.model_rebuild()
 Skill.model_rebuild()
 SmartContract.model_rebuild()
 SocialObject.model_rebuild()

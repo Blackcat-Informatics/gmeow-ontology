@@ -196,37 +196,71 @@ gmeow:successorOrganization
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
-# Legal identity — open identifier scheme, not one property per scheme.
+# Identifier — reified to avoid conflation when an organization carries
+# multiple codes (e.g. LEI + ROR + NAICS). The scheme binds to the Identifier
+# node, not the Organization, so SPARQL projections pair the correct value with
+# its scheme (Principle 4, review feedback).
 # =========================================================================== #
 
-gmeow:legalIdentifier
-    a owl:DatatypeProperty ;
+gmeow:Identifier
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:FunctionalComplex ;
+    rdfs:label "Identifier"@en ;
+    skos:definition "A reified identifier bundling a value with its scheme — a LEI, ROR ID, NAICS code, ISIC code, company-registration number, etc. Reification ensures that when an organization carries multiple identifiers, each value is paired with its correct scheme in SPARQL projections."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasIdentifier
+    a owl:ObjectProperty ;
     rdfs:domain gmeow:Organization ;
-    rdfs:range rdfs:Literal ;
+    rdfs:range gmeow:Identifier ;
+    rdfs:label "has identifier"@en ;
+    skos:definition "Relates an organization to a formal identifier (legal ID, industry code, etc.). Non-functional: an organization may have several identifiers, and competing standpoint-indexed identifiers coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:legalIdentifier
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasIdentifier ;
+    rdfs:domain gmeow:Organization ;
+    rdfs:range gmeow:Identifier ;
     rdfs:label "legal identifier"@en ;
-    skos:definition "A formal legal identifier for an organization — a LEI, ROR ID, company-registration number, or other scheme-specific code. The scheme is declared via gmeow:identifierScheme on the same subject. Non-functional: an organization may have several identifiers, and competing standpoint-indexed identifiers coexist."@en ;
+    skos:definition "Relates an organization to a legal identifier — a LEI, ROR ID, company-registration number, or other scheme-specific code. The scheme is declared via gmeow:identifierScheme on the Identifier node. Non-functional: an organization may have several legal identifiers."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:industryClassification
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasIdentifier ;
+    rdfs:domain gmeow:Organization ;
+    rdfs:range gmeow:Identifier ;
+    rdfs:label "industry classification"@en ;
+    skos:definition "Relates an organization to an industry-classification identifier — a NAICS, ISIC, or schema.org industry code. The scheme is declared via gmeow:identifierScheme on the Identifier node. Non-functional: multiple classifications may coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:identifierValue
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Identifier ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "identifier value"@en ;
+    skos:definition "The literal value of an identifier — e.g. '529900T8BM49AURSDO55' or '541511'."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:identifierScheme
     a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Organization ;
+    rdfs:domain gmeow:Identifier ;
     rdfs:range rdfs:Literal ;
     rdfs:label "identifier scheme"@en ;
-    skos:definition "The scheme of a gmeow:legalIdentifier — e.g. 'lei', 'ror', 'companyRegistration', 'wikidata'. Paired with gmeow:legalIdentifier on the same subject. Non-functional: an organization may use several schemes."@en ;
+    skos:definition "The scheme of an identifier — e.g. 'lei', 'ror', 'naics', 'isicV4', 'companyRegistration', 'wikidata'. Declared on the Identifier node, not the Organization, to avoid cross-product pairing bugs when multiple identifiers coexist."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:jurisdiction
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:Organization ;
+    rdfs:domain gmeow:Identifier ;
     rdfs:range gmeow:Location ;
     rdfs:label "jurisdiction"@en ;
-    skos:definition "The legal or regulatory jurisdiction under which an organization is registered or operates — a country, state, province, or other gmeow:Location. Non-functional: an organization may operate under several jurisdictions, and competing standpoint-indexed jurisdiction claims coexist."@en ;
+    skos:definition "The legal or regulatory jurisdiction of a specific identifier (e.g., company registration jurisdiction) — a country, state, province, or other gmeow:Location. Non-functional: different identifiers may carry different jurisdictions."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
-# Purpose / industry classification — free text + open codes (solver-side,
-# Principle 12). The logical core carries the assertion; NAICS / ISIC / schema.org
-# resolution is a projection concern.
+# Purpose — free text (solver-side, Principle 12).
 # =========================================================================== #
 
 gmeow:organizationPurpose
@@ -235,12 +269,4 @@ gmeow:organizationPurpose
     rdfs:range rdfs:Literal ;
     rdfs:label "organization purpose"@en ;
     skos:definition "A free-text statement of an organization's purpose, mission, or objective."@en ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:industryClassification
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Organization ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "industry classification"@en ;
-    skos:definition "An industry or sector classification code for an organization — NAICS, ISIC, or schema.org industry values. The code is carried as a literal; resolution to a hierarchical taxonomy and cross-scheme mapping are solver-side computations (Principle 12). Non-functional: multiple classifications may coexist."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

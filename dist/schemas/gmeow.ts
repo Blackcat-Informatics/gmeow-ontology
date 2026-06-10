@@ -479,6 +479,7 @@ export enum EntityEnum {
 
 export enum EventTypeEnum {
 
+    acquisition = "eventTypeAcquisition",
     adoption = "eventTypeAdoption",
     annulment = "eventTypeAnnulment",
     audit = "eventTypeAudit",
@@ -521,6 +522,7 @@ export enum EventTypeEnum {
     manifestation_production = "eventTypeManifestationProduction",
     marriage = "eventTypeMarriage",
     merge = "eventTypeMerge",
+    merger = "eventTypeMerger",
     military_service = "eventTypeMilitaryService",
     name_change = "eventTypeNameChange",
     naturalization = "eventTypeNaturalization",
@@ -531,11 +533,14 @@ export enum EventTypeEnum {
     promotion = "eventTypePromotion",
     push = "eventTypePush",
     release = "eventTypeRelease",
+    rename = "eventTypeRename",
     residence = "eventTypeResidence",
     resignation = "eventTypeResignation",
     retirement = "eventTypeRetirement",
     self_deception = "eventTypeSelfDeception",
     separation = "eventTypeSeparation",
+    spin_off = "eventTypeSpinOff",
+    split = "eventTypeSplit",
     supersession = "eventTypeSupersession",
     survey = "eventTypeSurvey",
     termination = "eventTypeTermination",
@@ -1164,6 +1169,16 @@ export enum OrganizationEnum {
     International_Commission_on_Stratigraphy = "agentInternationalCommissionOnStratigraphy",
 };
 
+export enum OrganizationTypeEnum {
+
+    association = "organizationTypeAssociation",
+    collaboration = "organizationTypeCollaboration",
+    company = "organizationTypeCompany",
+    educational_institution = "organizationTypeEducationalInstitution",
+    government_body = "organizationTypeGovernmentBody",
+    nonprofit = "organizationTypeNonprofit",
+};
+
 export enum ParticipantRoleEnum {
 
     agent = "roleAgent",
@@ -1670,6 +1685,13 @@ export enum SignatureSchemeEnum {
     ECDSA_secp256k1 = "signatureSchemeECDSASecp256k1",
     Ed25519 = "signatureSchemeEd25519",
     RSA_SHA256 = "signatureSchemeRSASHA256",
+};
+
+export enum SiteTypeEnum {
+
+    branch = "siteTypeBranch",
+    headquarters = "siteTypeHeadquarters",
+    registered = "siteTypeRegistered",
 };
 
 export enum SourceIndependenceEnum {
@@ -2755,11 +2777,13 @@ export interface Event {
     occurrenceOfSeries?: EventSeries[],
     overlappedBy?: Event[],
     overlaps?: Event[],
+    predecessorOrganization?: Organization[],
     projectedStandpoint?: StandpointClaim[],
     propagationMutationDistance?: number,
     startedBy?: Event[],
     starts?: Event[],
     subEventOf?: Event[],
+    successorOrganization?: Organization[],
     temporalPrecision?: TemporalPrecision[],
 }
 
@@ -2980,6 +3004,14 @@ export interface HonorificClass {
 
 
 export interface HonorificPosition {
+}
+
+
+
+export interface Identifier {
+    identifierScheme?: string,
+    identifierValue?: string,
+    jurisdiction?: Location[],
 }
 
 
@@ -3301,6 +3333,7 @@ export interface Location extends Entity {
     rcc8po?: Location[],
     rcc8tpp?: Location[],
     rcc8tppi?: Location[],
+    siteType?: SiteType[],
     spatiallyConnectsTo?: Location[],
     timezone?: string,
 }
@@ -3393,6 +3426,7 @@ export interface MediaObject extends Manifestation {
 
 
 export interface Membership {
+    fillsPost?: Post[],
     hasRole?: Role[],
     membershipMember?: Agent,
     membershipOrganization?: Organization,
@@ -3681,14 +3715,25 @@ export interface OrderStatus {
 
 
 export interface Organization extends Agent {
+    hasIdentifier?: Identifier[],
     hasMember?: Agent[],
     hasOrganizationName?: OrganizationName[],
+    hasSite?: Location[],
+    industryClassification?: Identifier[],
+    legalIdentifier?: Identifier[],
+    organizationPurpose?: string,
+    organizationType?: OrganizationType[],
     subOrganizationOf?: Organization[],
 }
 
 
 
 export interface OrganizationName extends Appellation {
+}
+
+
+
+export interface OrganizationType {
 }
 
 
@@ -3844,6 +3889,12 @@ export interface Pose extends Entity {
     hasPoseOrientation?: Orientation[],
     hasPosePosition?: SpatialCoordinates[],
     poseFrame?: ReferenceFrame[],
+}
+
+
+
+export interface Post {
+    postIn?: Organization,
 }
 
 
@@ -4340,6 +4391,11 @@ export interface SexualOrientationValue {
 
 
 export interface SignatureScheme {
+}
+
+
+
+export interface SiteType {
 }
 
 

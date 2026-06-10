@@ -88,17 +88,18 @@ Withdrawn claims stay with `displayable false`, never deletion (Principle 10).
 
 ## Legal identity
 
-`gmeow:legalIdentifier` carries the identifier string; `gmeow:identifierScheme`
-carries the scheme (`lei`, `ror`, `companyRegistration`, `wikidata`). This is a
-**single open pair**, not one property per scheme. Optional `gmeow:jurisdiction`
-links to a `gmeow:Location`.
+`gmeow:legalIdentifier` and `gmeow:industryClassification` are **reified** via the
+`gmeow:Identifier` class to avoid conflation when an organization carries multiple
+codes (e.g. LEI + ROR + NAICS). Each Identifier node bundles `gmeow:identifierValue`
+(the string) and `gmeow:identifierScheme` (`lei`, `ror`, `naics`, `isicV4`, etc.).
+Reification ensures SPARQL projections pair the correct value with its scheme.
+Optional `gmeow:jurisdiction` links to a `gmeow:Location`.
 
-## Purpose and industry classification
+## Purpose
 
-`gmeow:organizationPurpose` is free text. `gmeow:industryClassification` carries
-NAICS, ISIC, or schema.org codes as literal values. Hierarchical resolution and
-cross-scheme mapping are **solver-side** computations (Principle 12); the logical
-core stays OWL 2 DL.
+`gmeow:organizationPurpose` is free text. Hierarchical resolution and cross-scheme
+mapping are **solver-side** computations (Principle 12); the logical core stays
+OWL 2 DL.
 
 ## Alignment by reference
 
@@ -116,6 +117,7 @@ The mapping layer extends the existing shared alignment files:
 | `organizationPurpose` | `≡ org:purpose` | — |
 | `industryClassification` | `≈ org:classification` | `→ schema:naics` / `schema:isicV4` |
 | `legalIdentifier` (lei) | — | `→ schema:leiCode` |
+| `hasIdentifier` (generic) | — | scheme-dependent |
 
 All alignments are by reference (SSSOM / EDOAL / SPARQL projection) — never
 axiom copying (Principle 5).

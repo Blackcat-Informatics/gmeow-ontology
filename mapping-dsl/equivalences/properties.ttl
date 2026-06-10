@@ -550,10 +550,11 @@ gmeow:eqProperties062 a gmeow:TermEquivalence ;
 
 gmeow:eqProperties063 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:hasSite ;
-    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject org:hasSite ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "gmeow:hasSite has range gmeow:Location, while org:hasSite has range org:Site; no alignment of gmeow:Location to org:Site exists, so owl:equivalentProperty is too strong." ;
     gmeow:sssomFile "gmeow-properties.sssom.tsv" .
 
 gmeow:eqProperties064 a gmeow:TermEquivalence ;

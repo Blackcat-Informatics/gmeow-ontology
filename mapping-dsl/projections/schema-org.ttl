@@ -850,8 +850,9 @@ gmeow:mapSchemaLeiCode a gmeow:ProjectionMapping ;
     gmeow:hasMappingPattern [
         gmeow:anchor "org" ; gmeow:value "lei" ;
         gmeow:atom (
-            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:legalIdentifier ; gmeow:objectVar "lei" ]
-            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:identifierScheme ; gmeow:objectLiteral "lei" ] ) ;
+            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:legalIdentifier ; gmeow:objectVar "id" ]
+            [ gmeow:subjectVar "id" ; gmeow:predicate gmeow:identifierValue ; gmeow:objectVar "lei" ]
+            [ gmeow:subjectVar "id" ; gmeow:predicate gmeow:identifierScheme ; gmeow:objectLiteral "lei" ] ) ;
         gmeow:edoalSource gmeow:legalIdentifier ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:leiCode ; gmeow:relation "<=" ; gmeow:confidence 0.95 ;
@@ -862,8 +863,9 @@ gmeow:mapSchemaIndustryNaics a gmeow:ProjectionMapping ;
     gmeow:hasMappingPattern [
         gmeow:anchor "org" ; gmeow:value "naics" ;
         gmeow:atom (
-            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:industryClassification ; gmeow:objectVar "naics" ]
-            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:identifierScheme ; gmeow:objectLiteral "naics" ] ) ;
+            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:industryClassification ; gmeow:objectVar "id" ]
+            [ gmeow:subjectVar "id" ; gmeow:predicate gmeow:identifierValue ; gmeow:objectVar "naics" ]
+            [ gmeow:subjectVar "id" ; gmeow:predicate gmeow:identifierScheme ; gmeow:objectLiteral "naics" ] ) ;
         gmeow:edoalSource gmeow:industryClassification ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:naics ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
@@ -874,8 +876,9 @@ gmeow:mapSchemaIndustryIsic a gmeow:ProjectionMapping ;
     gmeow:hasMappingPattern [
         gmeow:anchor "org" ; gmeow:value "isic" ;
         gmeow:atom (
-            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:industryClassification ; gmeow:objectVar "isic" ]
-            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:identifierScheme ; gmeow:objectLiteral "isicV4" ] ) ;
+            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:industryClassification ; gmeow:objectVar "id" ]
+            [ gmeow:subjectVar "id" ; gmeow:predicate gmeow:identifierValue ; gmeow:objectVar "isic" ]
+            [ gmeow:subjectVar "id" ; gmeow:predicate gmeow:identifierScheme ; gmeow:objectLiteral "isicV4" ] ) ;
         gmeow:edoalSource gmeow:industryClassification ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:isicV4 ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;

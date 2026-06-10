@@ -308,8 +308,6 @@ def test_emitted_fno_satisfies_type_invariant(tmp_path: Path) -> None:
 
 
 def test_sparql_executors_are_valid_queries() -> None:
-    import sys
-
     dsl = load_dsl()
     for profile in _PROFILES:
         query = emit_sparql(dsl, profile)

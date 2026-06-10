@@ -1,14 +1,20 @@
 # Coverage slice (#258): legal identity.
-# Exercises legalIdentifier, identifierScheme, and the scheme-required shape.
+# Exercises reified Identifier, identifierScheme, and the scheme-required shape.
 
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/organizations/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 
-# Well-formed: identifier + scheme.
+# Well-formed: identifier node carries both value and scheme.
 ex:acme a gmeow:Organization ;
-    gmeow:legalIdentifier "ROR-ABCDE" ;
+    gmeow:legalIdentifier ex:acmeRor .
+
+ex:acmeRor a gmeow:Identifier ;
+    gmeow:identifierValue "ROR-ABCDE" ;
     gmeow:identifierScheme "ror" .
 
-# Malformed: identifier without scheme (should trigger violation).
+# Malformed: identifier node without scheme (should trigger violation).
 ex:badCo a gmeow:Organization ;
-    gmeow:legalIdentifier "MY-COMPANY-123" .
+    gmeow:legalIdentifier ex:badCoId .
+
+ex:badCoId a gmeow:Identifier ;
+    gmeow:identifierValue "MY-COMPANY-123" .

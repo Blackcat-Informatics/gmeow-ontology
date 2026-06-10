@@ -56,7 +56,7 @@ gmeow:hasPart	skos:closeMatch	schema:hasPart		semapv:ManualMappingCuration	0.8
 gmeow:hasRepository	skos:closeMatch	doap:repository		semapv:ManualMappingCuration	0.9	
 gmeow:hasSibling	owl:equivalentProperty	rel:siblingOf		semapv:ManualMappingCuration	1.0	
 gmeow:hasSibling	owl:equivalentProperty	schema:sibling		semapv:ManualMappingCuration	1.0	
-gmeow:hasSite	owl:equivalentProperty	org:hasSite		semapv:ManualMappingCuration	1.0	
+gmeow:hasSite	skos:closeMatch	org:hasSite		semapv:ManualMappingCuration	0.9	gmeow:hasSite has range gmeow:Location, while org:hasSite has range org:Site; no alignment of gmeow:Location to org:Site exists, so owl:equivalentProperty is too strong.
 gmeow:hasSpouse	owl:equivalentProperty	rel:spouseOf		semapv:ManualMappingCuration	1.0	
 gmeow:hasSpouse	owl:equivalentProperty	schema:spouse		semapv:ManualMappingCuration	1.0	
 gmeow:hasWebPage	skos:closeMatch	foaf:homepage		semapv:ManualMappingCuration	0.8	

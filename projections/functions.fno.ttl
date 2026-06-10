@@ -668,11 +668,6 @@ gmeow:paramHasPlaceName a fno:Parameter ;
     fno:required true ;
     fno:type gmeow:PlaceName .
 
-gmeow:paramHasRole a fno:Parameter ;
-    fno:predicate gmeow:hasRole ;
-    fno:required true ;
-    fno:type gmeow:Role .
-
 gmeow:paramHasWebPage a fno:Parameter ;
     fno:predicate gmeow:hasWebPage ;
     fno:required true ;
@@ -686,11 +681,6 @@ gmeow:outSelectDisplayName a fno:Output ;
     fno:predicate gmeow:projectedName ;
     fno:type rdfs:Literal .
 
-gmeow:paramHasRole a fno:Parameter ;
-    fno:predicate gmeow:hasRole ;
-    fno:required true ;
-    fno:type gmeow:Role .
-
 gmeow:paramParticipationParticipant a fno:Parameter ;
     fno:predicate gmeow:participationParticipant ;
     fno:required true ;
@@ -699,6 +689,11 @@ gmeow:paramParticipationParticipant a fno:Parameter ;
 gmeow:implGeosparql a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> .
+
+gmeow:paramHasRole a fno:Parameter ;
+    fno:predicate gmeow:hasRole ;
+    fno:required true ;
+    fno:type gmeow:Role .
 
 gmeow:implVcard a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
