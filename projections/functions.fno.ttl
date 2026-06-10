@@ -133,6 +133,13 @@ gmeow:fnLatLongToWktPoint a fno:Function ;
     fno:expects ( gmeow:paramLatitude gmeow:paramLongitude ) ;
     fno:returns ( gmeow:outLatLongToWktPoint ) .
 
+gmeow:fnOrganizationTypeToClass a fno:Function ;
+    rdfs:label "organization-type value → target class"@en ;
+    dcterms:description "Maps a gmeow:organizationType value individual (e.g. organizationTypeCompany) to the target vocabulary class to assert via rdf:type (e.g. schema:Corporation). The conditional retyping; organization types without a target class are dropped."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    fno:expects ( gmeow:paramOrganizationType ) ;
+    fno:returns ( gmeow:outOrganizationTypeToClass ) .
+
 gmeow:fnParticipantToAttendee a fno:Function ;
     rdfs:label "hasParticipant → iCalendar ATTENDEE"@en ;
     dcterms:description "Downcasts the flat gmeow:hasParticipant shortcut to a bare iCalendar ATTENDEE edge: the participant agent is emitted as ical:attendee on the event. Any reified Participation's role, period, confidence and standpoint are dropped — iCal's ATTENDEE carries none of them."@en ;
@@ -146,6 +153,13 @@ gmeow:fnPosePositionToWktPoint a fno:Function ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> ;
     fno:expects ( gmeow:paramLatitude gmeow:paramLongitude ) ;
     fno:returns ( gmeow:outPosePositionToWktPoint ) .
+
+gmeow:fnPostToOrganizationRole a fno:Function ;
+    rdfs:label "Post + Role → schema:roleName (lossy)"@en ;
+    dcterms:description "Extracts a role name by traversing the Post: a gmeow:Post (gmeow:postIn ?org, filled by gmeow:Membership gmeow:hasRole ?role) yields the role's label as schema:roleName. GMEOW models a post as a seat independent of its holder; this downcasts the role label to the flat schema:roleName field, collapsing the seat/holder distinction."@en ;
+    rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/schema-org.rq> ;
+    fno:expects ( gmeow:paramHasRole ) ;
+    fno:returns ( gmeow:outPostToOrganizationRole ) .
 
 gmeow:fnProficiencyToKnownLanguage a fno:Function ;
     rdfs:label "flatten LanguageProficiency → schema:knowsLanguage"@en ;
@@ -359,6 +373,10 @@ gmeow:outLatLongToWktPoint a fno:Output ;
     fno:predicate geo:asWKT ;
     fno:type geo:wktLiteral .
 
+gmeow:outOrganizationTypeToClass a fno:Output ;
+    fno:predicate gmeow:projectedType ;
+    fno:type rdfs:Class .
+
 gmeow:outParticipantToAttendee a fno:Output ;
     fno:predicate gmeow:projectedAttendee ;
     fno:type gmeow:Agent .
@@ -366,6 +384,10 @@ gmeow:outParticipantToAttendee a fno:Output ;
 gmeow:outPosePositionToWktPoint a fno:Output ;
     fno:predicate geo:asWKT ;
     fno:type geo:wktLiteral .
+
+gmeow:outPostToOrganizationRole a fno:Output ;
+    fno:predicate gmeow:projectedRoleName ;
+    fno:type rdfs:Literal .
 
 gmeow:outProficiencyToKnownLanguage a fno:Output ;
     fno:predicate gmeow:projectedKnownLanguage ;
@@ -458,6 +480,11 @@ gmeow:paramMailmapEntry a fno:Parameter ;
     fno:predicate gmeow:mailmapEntry ;
     fno:required true ;
     fno:type rdfs:Literal .
+
+gmeow:paramOrganizationType a fno:Parameter ;
+    fno:predicate gmeow:organizationType ;
+    fno:required true ;
+    fno:type gmeow:OrganizationType .
 
 gmeow:paramPostalCode a fno:Parameter ;
     fno:predicate gmeow:postalCode ;
@@ -641,11 +668,6 @@ gmeow:paramHasPlaceName a fno:Parameter ;
     fno:required true ;
     fno:type gmeow:PlaceName .
 
-gmeow:paramHasRole a fno:Parameter ;
-    fno:predicate gmeow:hasRole ;
-    fno:required true ;
-    fno:type gmeow:Role .
-
 gmeow:paramHasWebPage a fno:Parameter ;
     fno:predicate gmeow:hasWebPage ;
     fno:required true ;
@@ -667,6 +689,11 @@ gmeow:paramParticipationParticipant a fno:Parameter ;
 gmeow:implGeosparql a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> .
+
+gmeow:paramHasRole a fno:Parameter ;
+    fno:predicate gmeow:hasRole ;
+    fno:required true ;
+    fno:type gmeow:Role .
 
 gmeow:implVcard a fno:Implementation ;
     dcterms:format "application/sparql-query" ;
@@ -973,6 +1000,19 @@ gmeow:implSchemaOrg a fno:Implementation ;
             fnom:implementationProperty "nick" ] .
 
 [] a fno:Mapping ;
+    rdfs:label "fnOrganizationTypeToClass → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnOrganizationTypeToClass ;
+    fno:implementation gmeow:implSchemaOrg ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramOrganizationType ↦ ?otype"@en ;
+            fnom:functionParameter gmeow:paramOrganizationType ;
+            fnom:implementationProperty "otype" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnOrganizationTypeToClass output ↦ ?otype"@en ;
+            fnom:functionOutput gmeow:outOrganizationTypeToClass ;
+            fnom:implementationProperty "otype" ] .
+
+[] a fno:Mapping ;
     rdfs:label "fnParticipantToAttendee → ical (FnO mapping)"@en ;
     fno:function gmeow:fnParticipantToAttendee ;
     fno:implementation gmeow:implIcal ;
@@ -1069,6 +1109,19 @@ gmeow:implSchemaOrg a fno:Implementation ;
             rdfs:label "fnPosePositionToWktPoint output ↦ ?pointWkt"@en ;
             fnom:functionOutput gmeow:outPosePositionToWktPoint ;
             fnom:implementationProperty "pointWkt" ] .
+
+[] a fno:Mapping ;
+    rdfs:label "fnPostToOrganizationRole → schema-org (FnO mapping)"@en ;
+    fno:function gmeow:fnPostToOrganizationRole ;
+    fno:implementation gmeow:implSchemaOrg ;
+    fno:parameterMapping [ a fnom:PropertyParameterMapping ;
+            rdfs:label "paramHasRole ↦ ?role"@en ;
+            fnom:functionParameter gmeow:paramHasRole ;
+            fnom:implementationProperty "role" ] ;
+    fno:returnMapping [ a fnom:DefaultReturnMapping ;
+            rdfs:label "fnPostToOrganizationRole output ↦ ?roleName"@en ;
+            fnom:functionOutput gmeow:outPostToOrganizationRole ;
+            fnom:implementationProperty "roleName" ] .
 
 [] a fno:Mapping ;
     rdfs:label "fnProficiencyToKnownLanguage → schema-org (FnO mapping)"@en ;

@@ -759,11 +759,13 @@ classes:
     - occurrenceOfSeries
     - overlappedBy
     - overlaps
+    - predecessorOrganization
     - projectedStandpoint
     - propagationMutationDistance
     - startedBy
     - starts
     - subEventOf
+    - successorOrganization
     - temporalPrecision
   EventSeries:
     class_uri: https://blackcatinformatics.ca/gmeow/EventSeries
@@ -946,6 +948,13 @@ classes:
   HonorificPosition:
     class_uri: https://blackcatinformatics.ca/gmeow/HonorificPosition
     title: Honorific Position
+  Identifier:
+    class_uri: https://blackcatinformatics.ca/gmeow/Identifier
+    title: Identifier
+    slots:
+    - identifierScheme
+    - identifierValue
+    - jurisdiction
   IdentityFacet:
     class_uri: https://blackcatinformatics.ca/gmeow/IdentityFacet
     title: Identity Facet
@@ -1226,6 +1235,7 @@ classes:
     - rcc8po
     - rcc8tpp
     - rcc8tppi
+    - siteType
     - spatiallyConnectsTo
     - timezone
   LocationState:
@@ -1309,6 +1319,7 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Membership
     title: Membership
     slots:
+    - fillsPost
     - hasRole
     - membershipMember
     - membershipOrganization
@@ -1561,13 +1572,22 @@ classes:
     title: Organization
     is_a: Agent
     slots:
+    - hasIdentifier
     - hasMember
     - hasOrganizationName
+    - hasSite
+    - industryClassification
+    - legalIdentifier
+    - organizationPurpose
+    - organizationType
     - subOrganizationOf
   OrganizationName:
     class_uri: https://blackcatinformatics.ca/gmeow/OrganizationName
     title: Organization Name
     is_a: Appellation
+  OrganizationType:
+    class_uri: https://blackcatinformatics.ca/gmeow/OrganizationType
+    title: Organization Type
   Orientation:
     class_uri: https://blackcatinformatics.ca/gmeow/Orientation
     title: Orientation
@@ -1706,6 +1726,11 @@ classes:
     - hasPoseOrientation
     - hasPosePosition
     - poseFrame
+  Post:
+    class_uri: https://blackcatinformatics.ca/gmeow/Post
+    title: Post
+    slots:
+    - postIn
   PostalAddress:
     class_uri: https://blackcatinformatics.ca/gmeow/PostalAddress
     title: Postal Address
@@ -2135,6 +2160,9 @@ classes:
   SignatureScheme:
     class_uri: https://blackcatinformatics.ca/gmeow/SignatureScheme
     title: Signature Scheme
+  SiteType:
+    class_uri: https://blackcatinformatics.ca/gmeow/SiteType
+    title: Site Type
   Skill:
     class_uri: https://blackcatinformatics.ca/gmeow/Skill
     title: Skill
@@ -3909,6 +3937,12 @@ slots:
     range: string
     domain: Attachment
     multivalued: false
+  fillsPost:
+    slot_uri: https://blackcatinformatics.ca/gmeow/fillsPost
+    title: fills post
+    range: Post
+    domain: Membership
+    multivalued: true
   finalityStatus:
     slot_uri: https://blackcatinformatics.ca/gmeow/finalityStatus
     title: finality status
@@ -4393,6 +4427,12 @@ slots:
     range: MessageHeader
     domain: Message
     multivalued: true
+  hasIdentifier:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasIdentifier
+    title: has identifier
+    range: Identifier
+    domain: Organization
+    multivalued: true
   hasIllustrator:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasIllustrator
     title: has illustrator
@@ -4751,6 +4791,12 @@ slots:
     title: has signature
     range: CryptographicSignature
     multivalued: true
+  hasSite:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasSite
+    title: has site
+    range: Location
+    domain: Organization
+    multivalued: true
   hasSkill:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasSkill
     title: has skill
@@ -4997,6 +5043,16 @@ slots:
     title: identifier
     range: string
     domain: CreativeWork
+  identifierScheme:
+    slot_uri: https://blackcatinformatics.ca/gmeow/identifierScheme
+    title: identifier scheme
+    range: string
+    domain: Identifier
+  identifierValue:
+    slot_uri: https://blackcatinformatics.ca/gmeow/identifierValue
+    title: identifier value
+    range: string
+    domain: Identifier
   imageOrientation:
     slot_uri: https://blackcatinformatics.ca/gmeow/imageOrientation
     title: image orientation
@@ -5035,6 +5091,12 @@ slots:
     title: in temporal frame
     range: TemporalFrame
     domain: Instant
+    multivalued: true
+  industryClassification:
+    slot_uri: https://blackcatinformatics.ca/gmeow/industryClassification
+    title: industry classification
+    range: Identifier
+    domain: Organization
     multivalued: true
   ingestedAt:
     slot_uri: https://blackcatinformatics.ca/gmeow/ingestedAt
@@ -5252,6 +5314,12 @@ slots:
     range: Posting
     domain: JournalEntry
     multivalued: true
+  jurisdiction:
+    slot_uri: https://blackcatinformatics.ca/gmeow/jurisdiction
+    title: jurisdiction
+    range: Location
+    domain: Identifier
+    multivalued: true
   jurisdictionDeterminacy:
     slot_uri: https://blackcatinformatics.ca/gmeow/jurisdictionDeterminacy
     title: jurisdiction determinacy
@@ -5369,6 +5437,12 @@ slots:
     range: LeftOperand
     domain: AtomicConstraint
     multivalued: false
+  legalIdentifier:
+    slot_uri: https://blackcatinformatics.ca/gmeow/legalIdentifier
+    title: legal identifier
+    range: Identifier
+    domain: Organization
+    multivalued: true
   levelScale:
     slot_uri: https://blackcatinformatics.ca/gmeow/levelScale
     title: level scale
@@ -5870,6 +5944,17 @@ slots:
     range: OrderStatus
     domain: Order
     multivalued: true
+  organizationPurpose:
+    slot_uri: https://blackcatinformatics.ca/gmeow/organizationPurpose
+    title: organization purpose
+    range: string
+    domain: Organization
+  organizationType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/organizationType
+    title: organization type
+    range: OrganizationType
+    domain: Organization
+    multivalued: true
   overlappedBy:
     slot_uri: https://blackcatinformatics.ca/gmeow/overlappedBy
     title: overlapped by
@@ -6153,6 +6238,12 @@ slots:
     range: ReferenceFrame
     domain: Pose
     multivalued: true
+  postIn:
+    slot_uri: https://blackcatinformatics.ca/gmeow/postIn
+    title: post in
+    range: Organization
+    domain: Post
+    multivalued: false
   postOfficeBox:
     slot_uri: https://blackcatinformatics.ca/gmeow/postOfficeBox
     title: post office box
@@ -6198,6 +6289,12 @@ slots:
     title: precedence
     range: string
     domain: EmailMessage
+  predecessorOrganization:
+    slot_uri: https://blackcatinformatics.ca/gmeow/predecessorOrganization
+    title: predecessor organization
+    range: Organization
+    domain: Event
+    multivalued: true
   preview:
     slot_uri: https://blackcatinformatics.ca/gmeow/preview
     title: preview
@@ -7018,6 +7115,12 @@ slots:
     range: CryptographicKey
     domain: CryptographicSignature
     multivalued: false
+  siteType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/siteType
+    title: site type
+    range: SiteType
+    domain: Location
+    multivalued: true
   sizeEstimate:
     slot_uri: https://blackcatinformatics.ca/gmeow/sizeEstimate
     title: size estimate
@@ -7283,6 +7386,12 @@ slots:
     title: subject prefix
     range: string
     domain: EmailMessage
+  successorOrganization:
+    slot_uri: https://blackcatinformatics.ca/gmeow/successorOrganization
+    title: successor organization
+    range: Organization
+    domain: Event
+    multivalued: true
   supersededBy:
     slot_uri: https://blackcatinformatics.ca/gmeow/supersededBy
     title: superseded by
@@ -8976,6 +9085,9 @@ enums:
   EventTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/EventType
     permissible_values:
+      eventTypeAcquisition:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeAcquisition
+        title: acquisition
       eventTypeAdoption:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeAdoption
         title: adoption
@@ -9102,6 +9214,9 @@ enums:
       eventTypeMerge:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeMerge
         title: merge
+      eventTypeMerger:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeMerger
+        title: merger
       eventTypeMilitaryService:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeMilitaryService
         title: military service
@@ -9132,6 +9247,9 @@ enums:
       eventTypeRelease:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeRelease
         title: release
+      eventTypeRename:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeRename
+        title: rename
       eventTypeResidence:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeResidence
         title: residence
@@ -9147,6 +9265,12 @@ enums:
       eventTypeSeparation:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeSeparation
         title: separation
+      eventTypeSpinOff:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeSpinOff
+        title: spin-off
+      eventTypeSplit:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeSplit
+        title: split
       eventTypeSupersession:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeSupersession
         title: supersession
@@ -10594,6 +10718,27 @@ enums:
       agentInternationalCommissionOnStratigraphy:
         meaning: https://blackcatinformatics.ca/gmeow/agentInternationalCommissionOnStratigraphy
         title: International Commission on Stratigraphy
+  OrganizationTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/OrganizationType
+    permissible_values:
+      organizationTypeAssociation:
+        meaning: https://blackcatinformatics.ca/gmeow/organizationTypeAssociation
+        title: association
+      organizationTypeCollaboration:
+        meaning: https://blackcatinformatics.ca/gmeow/organizationTypeCollaboration
+        title: collaboration
+      organizationTypeCompany:
+        meaning: https://blackcatinformatics.ca/gmeow/organizationTypeCompany
+        title: company
+      organizationTypeEducationalInstitution:
+        meaning: https://blackcatinformatics.ca/gmeow/organizationTypeEducationalInstitution
+        title: educational institution
+      organizationTypeGovernmentBody:
+        meaning: https://blackcatinformatics.ca/gmeow/organizationTypeGovernmentBody
+        title: government body
+      organizationTypeNonprofit:
+        meaning: https://blackcatinformatics.ca/gmeow/organizationTypeNonprofit
+        title: nonprofit
   ParticipantRoleEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ParticipantRole
     permissible_values:
@@ -11812,6 +11957,18 @@ enums:
       signatureSchemeRSASHA256:
         meaning: https://blackcatinformatics.ca/gmeow/signatureSchemeRSASHA256
         title: RSA-SHA256
+  SiteTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/SiteType
+    permissible_values:
+      siteTypeBranch:
+        meaning: https://blackcatinformatics.ca/gmeow/siteTypeBranch
+        title: branch
+      siteTypeHeadquarters:
+        meaning: https://blackcatinformatics.ca/gmeow/siteTypeHeadquarters
+        title: headquarters
+      siteTypeRegistered:
+        meaning: https://blackcatinformatics.ca/gmeow/siteTypeRegistered
+        title: registered
   SourceIndependenceEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/SourceIndependence
     permissible_values:

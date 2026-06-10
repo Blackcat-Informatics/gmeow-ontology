@@ -193,6 +193,11 @@ def crosscheck_query(
 def _run_rdflib(
     form: str, query_text: str, data_graph: Graph
 ) -> tuple[bool, object, str]:
+    # rdflib's pyparsing-based SPARQL parser can RecursionError on very large
+    # UNION chains (e.g. the schema-org projection query). The query is valid
+    # SPARQL — pyoxigraph parses it fine — so we temporarily raise the limit.
+    old_limit = sys.getrecursionlimit()
+    sys.setrecursionlimit(max(old_limit, 2000))
     try:
         if form == "CONSTRUCT":
             return True, _triple_keys(data_graph.query(query_text).graph or Graph()), ""
@@ -202,6 +207,8 @@ def _run_rdflib(
         return True, _row_keys(tuple(r) for r in rows), ""
     except Exception as exc:
         return False, None, type(exc).__name__
+    finally:
+        sys.setrecursionlimit(old_limit)
 
 
 def _run_pyox(

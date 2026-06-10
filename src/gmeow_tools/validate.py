@@ -17,6 +17,7 @@ from rdflib.term import Node
 from gmeow_tools.config import (
     MAPPING_DSL_DIR,
     NAMESPACE,
+    ORGANIZATION_SHAPES_FILE,
     SHAPES_FILE,
     SOFTWARE_SHAPES_FILE,
     STATEMENT_DSL_DIR,
@@ -38,6 +39,8 @@ def _shapes_graph(shapes_path: Path) -> Graph:
     graph = Graph().parse(shapes_path, format="turtle")
     if SOFTWARE_SHAPES_FILE.exists():
         graph.parse(SOFTWARE_SHAPES_FILE, format="turtle")
+    if ORGANIZATION_SHAPES_FILE.exists():
+        graph.parse(ORGANIZATION_SHAPES_FILE, format="turtle")
     return graph
 
 
