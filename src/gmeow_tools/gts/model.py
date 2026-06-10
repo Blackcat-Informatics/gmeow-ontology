@@ -83,6 +83,15 @@ class Diagnostic:
 
 
 @dataclass
+class Signature:
+    """The verification outcome for a signed frame (§9.2)."""
+
+    frame_id: bytes
+    kid: str | None
+    status: str  # "valid" | "invalid" | "unverified"
+
+
+@dataclass
 class Graph:
     """The folded result of a GTS log.
 
@@ -98,6 +107,7 @@ class Graph:
     meta: dict[str, object] = field(default_factory=dict)
     suppressions: list[Suppression] = field(default_factory=list)
     opaque: list[OpaqueNode] = field(default_factory=list)
+    signatures: list[Signature] = field(default_factory=list)
     diagnostics: list[Diagnostic] = field(default_factory=list)
 
     def term(self, term_id: int) -> Term:

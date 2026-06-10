@@ -4,9 +4,9 @@
 
 Implements the Baseline Reader contract (§2.1): chain verification (§9.1), the
 four-table fold (§7.5), opaque/damaged degradation (§7.6), torn-append detection
-(§3), and the canonical diagnostics (§2.3). Signatures and encryption are not
-verified here (baseline); an ``encrypt`` codec degrades to a ``missing-key`` opaque
-node.
+(§3), and the canonical diagnostics (§2.3). When a ``keys`` provider is supplied,
+``sig`` frames are verified (§9.2) and ``encrypt``-class frames are decrypted (§9.3);
+without it, an ``encrypt`` codec degrades to a ``missing-key`` opaque node.
 """
 
 from __future__ import annotations
@@ -16,10 +16,12 @@ from collections.abc import Mapping
 import cbor2
 
 from gmeow_tools.gts.codec import Codec, CodecUnavailableError, decode_chain
+from gmeow_tools.gts.crypto import KeyProvider, decrypt0, verify_sig
 from gmeow_tools.gts.model import (
     Diagnostic,
     Graph,
     OpaqueNode,
+    Signature,
     Suppression,
     Term,
     TermKind,
@@ -79,9 +81,14 @@ def _catalog(header: Mapping[str, object]) -> dict[int, Codec]:
 class _Folder:
     """Mutable fold state; one per :func:`read` call (and per nested snapshot)."""
 
-    def __init__(self, graph: Graph, catalog: dict[int, Codec]) -> None:
+    def __init__(
+        self, graph: Graph, catalog: dict[int, Codec], keys: KeyProvider | None = None
+    ) -> None:
         self.g = graph
         self.catalog = catalog
+        self.keys = keys
+        # A key-bound decryptor for encrypt-class codecs; None ⇒ encrypt → missing-key.
+        self._decryptor = (lambda b: decrypt0(b, keys)) if keys is not None else None
 
     def _resolve_codecs(self, ids: list[object]) -> list[Codec]:
         chain: list[Codec] = []
@@ -102,7 +109,7 @@ class _Folder:
             if not isinstance(d, bytes):
                 msg = "transformed frame 'd' must be a byte string"
                 raise ValueError(msg)
-            decoded = decode_chain(self._resolve_codecs(x), d)
+            decoded = decode_chain(self._resolve_codecs(x), d, decrypt=self._decryptor)
             return decoded if blob else cbor2.loads(decoded)
         return d
 
@@ -430,12 +437,24 @@ _HANDLERS = {
 _REASON_DIAG = {"unknown-codec": "UnknownCodec", "missing-key": "MissingKey"}
 
 
-def read(data: bytes) -> Graph:
+def read(
+    data: bytes,
+    *,
+    keys: KeyProvider | None = None,
+    expected_head: bytes | None = None,
+) -> Graph:
     """Read and fold a GTS file into a :class:`Graph`.
 
     Verifies the header genesis hash, every frame's self-``id``, and the ``prev``
     chain, recording diagnostics; damaged frames and undecodable frames fold to
     opaque nodes (§7.6) rather than aborting the read.
+
+    Args:
+        data: the GTS file bytes.
+        keys: optional :class:`~gmeow_tools.gts.crypto.KeyProvider` — when given,
+            ``sig`` frames are verified (§9.2) and recorded in ``Graph.signatures``.
+        expected_head: optional head commitment — if the observed head id differs,
+            a ``TruncatedLog`` diagnostic is raised (§9, §17).
     """
     g = Graph()
     items, torn = iter_items(data)
@@ -452,7 +471,7 @@ def read(data: bytes) -> Graph:
     stored_hid = header.get("id")
     if blake3_256_header(header) != stored_hid:
         g.diagnostics.append(Diagnostic("DamagedFrame", "header self-hash mismatch", 0))
-    folder = _Folder(g, _catalog(header))
+    folder = _Folder(g, _catalog(header), keys)
     expected_prev = stored_hid if isinstance(stored_hid, bytes) else b""
 
     for index, (_, raw) in enumerate(items[1:], start=1):
@@ -476,7 +495,24 @@ def read(data: bytes) -> Graph:
                 Diagnostic("BrokenChain", "prev does not match", index)
             )
         expected_prev = stored_id if isinstance(stored_id, bytes) else computed
+        if "sig" in frame:
+            sig = frame.get("sig")
+            if not isinstance(sig, bytes):
+                # present but malformed — record as invalid, never silently drop
+                g.signatures.append(Signature(computed, None, "invalid"))
+            elif keys is not None:
+                status, kid = verify_sig(sig, computed, keys)
+                g.signatures.append(Signature(computed, kid, status))
+            else:
+                g.signatures.append(Signature(computed, None, "unverified"))
         folder.fold_frame(frame, index)
+
+    if expected_head is not None and expected_prev != expected_head:
+        g.diagnostics.append(
+            Diagnostic(
+                "TruncatedLog", "observed head does not match expected head", None
+            )
+        )
 
     if torn is not None:
         g.diagnostics.append(
