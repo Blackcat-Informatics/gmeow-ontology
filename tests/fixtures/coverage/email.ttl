@@ -56,6 +56,32 @@ ex:msg2
     gmeow:hasMessageParticipant ex:mpBobFrom2 ;
     gmeow:hasMessageParticipant ex:mpAliceTo2 .
 
+# A message in a nested mailbox (issue #132 hierarchy demonstration).
+ex:msg4
+    a schema:EmailMessage, gmeow:EmailMessage ;
+    gmeow:rfcMessageId "<msg4@example.org>" ;
+    gmeow:subject "Project update" ;
+    schema:sender ex:addrAlice ;
+    schema:toRecipient ex:addrBob ;
+    schema:dateSent "2026-06-03T11:00:00Z"^^xsd:dateTime ;
+    gmeow:receivedAt "2026-06-03T11:00:02Z"^^xsd:dateTime ;
+    gmeow:partOfThread ex:thread1 ;
+    gmeow:residesIn ex:projectsFolder ;
+    gmeow:hasKeyword gmeow:keywordSeen .
+
+# An unread message in a nested mailbox (for unread-count derivation demo).
+ex:msg5
+    a schema:EmailMessage, gmeow:EmailMessage ;
+    gmeow:rfcMessageId "<msg5@example.org>" ;
+    gmeow:subject "Urgent: project deadline" ;
+    schema:sender ex:addrBob ;
+    schema:toRecipient ex:addrAlice ;
+    schema:dateSent "2026-06-03T12:00:00Z"^^xsd:dateTime ;
+    gmeow:receivedAt "2026-06-03T12:00:01Z"^^xsd:dateTime ;
+    gmeow:partOfThread ex:thread1 ;
+    gmeow:residesIn ex:projectsFolder .
+    # No keywordSeen — demonstrates unread count derivation.
+
 ex:att1
     a gmeow:Attachment ;
     gmeow:filename "q2-report.pdf" ;
@@ -75,7 +101,37 @@ ex:inbox
     a gmeow:Mailbox ;
     gmeow:mailboxRole "inbox" ;
     gmeow:mailboxName "Inbox" ;
-    gmeow:mailboxOfAccount ex:aliceAccount .
+    gmeow:mailboxOfAccount ex:aliceAccount ;
+    gmeow:childMailbox ex:workFolder .
+
+ex:workFolder
+    a gmeow:Mailbox ;
+    gmeow:mailboxName "Work" ;
+    gmeow:mailboxOfAccount ex:aliceAccount ;
+    gmeow:parentMailbox ex:inbox ;
+    gmeow:childMailbox ex:projectsFolder ;
+    gmeow:mailboxSortOrder 1 ;
+    gmeow:mailboxPath "INBOX/Work" .
+
+ex:projectsFolder
+    a gmeow:Mailbox ;
+    gmeow:mailboxName "Projects" ;
+    gmeow:mailboxOfAccount ex:aliceAccount ;
+    gmeow:parentMailbox ex:workFolder ;
+    gmeow:mailboxSortOrder 0 ;
+    gmeow:mailboxPath "INBOX/Work/Projects" .
+
+# A destroyed mailbox — retained with lifecycle pattern, not a boolean flag.
+ex:oldFolder
+    a gmeow:Mailbox ;
+    gmeow:mailboxName "Old Folder" ;
+    gmeow:mailboxOfAccount ex:aliceAccount ;
+    gmeow:hasDestructionEvent ex:oldFolderDestroyed ;
+    gmeow:displayable false .
+
+ex:oldFolderDestroyed
+    a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeDestruction .
 
 ex:aliceAccount a gmeow:OnlineAccount .
 

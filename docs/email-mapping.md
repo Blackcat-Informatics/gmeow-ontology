@@ -211,3 +211,52 @@ from the presence of `Disposition-Notification-To`. It is intentionally
 header (Principle 9). The canonical underlying fact is the
 `gmeow:dispositionNotificationTo` address (or addresses). The raw header is
 also preserved in `rfc822_headers`.
+
+## Mailbox hierarchy (issue #132)
+
+Mailboxes form a tree within an account. The canonical hierarchy spine is
+`gmeow:parentMailbox` / `gmeow:childMailbox`, which specialize the universal
+`gmeow:partOf` / `gmeow:hasPart` relations. All other hierarchy-derived values
+are projection-layer conveniences (Principle 12).
+
+### Hierarchy spine
+
+| Source | GMEOW term | Notes |
+|---|---|---|
+| JMAP `parentId` | `gmeow:parentMailbox` | Direct parent in folder tree |
+| JMAP `parentId` (inverse) | `gmeow:childMailbox` | Inverse of `parentMailbox` |
+
+### Provider-derived UI state
+
+| Source | GMEOW term | Range | Notes |
+|---|---|---|---|
+| JMAP `sortOrder` | `gmeow:mailboxSortOrder` | `xsd:integer` | Sibling ordering; mutable provider state |
+| Derived path string | `gmeow:mailboxPath` | `rdfs:Literal` | Display path (e.g. `INBOX/Work/Projects`); computed from transitive `parentMailbox` |
+| Derived count | `gmeow:mailboxTotalMessages` | `xsd:integer` | Rollup over `MailboxResidence` / `residesIn` |
+| Derived count | `gmeow:mailboxUnreadMessages` | `xsd:integer` | Rollup over residence + absence of `keywordSeen` |
+
+These are **not asserted as canonical facts** in the ontology; they are computed
+by the importer/projection layer and may carry provenance or standpoint
+annotations when needed (Principles 2–3).
+
+### Lifecycle and destruction
+
+A destroyed mailbox is **retained, not erased** (Principle 10). Use the lifecycle
+module rather than a boolean flag:
+
+| JMAP concept | GMEOW pattern |
+|---|---|
+| `isDestroyed` | `gmeow:hasDestructionEvent` → `gmeow:Event` + `gmeow:displayable false` |
+
+### System vs user classification
+
+JMAP `isSystem` is a provider classification, not an ontic identity distinction.
+GMEOW does **not** model this as subclasses (`SystemMailbox` / `UserMailbox`)
+because there is no identity difference — a user-created folder may later be
+promoted to a special-use role, and a provider may auto-create folders with no
+standard role (Principle 9).
+
+System/user origin is a **projection concern**; the canonical signal is
+`gmeow:mailboxRole` for JMAP special-use roles (`inbox`, `archive`, `drafts`,
+`sent`, `trash`, `junk`, `templates`). A mailbox without a role is treated as
+user-created by convention.

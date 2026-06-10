@@ -3522,9 +3522,15 @@ export interface LogicalConstraint extends Constraint {
 
 
 export interface Mailbox extends InformationObject {
+    childMailbox?: Mailbox[],
     mailboxName?: string,
     mailboxOfAccount?: OnlineAccount,
+    mailboxPath?: string,
     mailboxRole?: string,
+    mailboxSortOrder?: number,
+    mailboxTotalMessages?: number,
+    mailboxUnreadMessages?: number,
+    parentMailbox?: Mailbox[],
 }
 
 
