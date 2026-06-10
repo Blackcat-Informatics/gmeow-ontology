@@ -450,3 +450,65 @@ def test_depiction_usage_multiple_subjects_fails_shacl() -> None:
     result = run_shacl(g)
     assert not result.ok
     assert any("depictionSubject" in e for e in result.errors)
+
+
+# =========================================================================== #
+# Colourspace (issue #22 follow-up)
+# =========================================================================== #
+
+
+def test_colourspace_property_exists() -> None:
+    """colourspace is an ObjectProperty, subPropertyOf hasReferenceFrame,
+    with domain MediaObject and range ReferenceFrame. NOT FunctionalProperty
+    in the logical core (Principle 9: standpoint-indexed claims may coexist)."""
+    graph = _graph()
+    assert (GMEOW.colourspace, RDF.type, OWL.ObjectProperty) in graph
+    assert (GMEOW.colourspace, RDF.type, OWL.FunctionalProperty) not in graph
+    assert (GMEOW.colourspace, RDFS.subPropertyOf, GMEOW.hasReferenceFrame) in graph
+    assert (GMEOW.colourspace, RDFS.domain, GMEOW.MediaObject) in graph
+    assert (GMEOW.colourspace, RDFS.range, GMEOW.ReferenceFrame) in graph
+
+
+def test_media_object_colourspace_shacl_passes() -> None:
+    """A MediaObject with a colourspace passes SHACL."""
+    g = Graph()
+    g.add((EX.img, RDF.type, GMEOW.MediaObject))
+    g.add((EX.img, RDFS.label, Literal("Test Image")))
+    g.add((EX.img, GMEOW.colourspace, EX.srgbFrame))
+    g.add((EX.srgbFrame, RDF.type, GMEOW.ReferenceFrame))
+    g.add((EX.srgbFrame, GMEOW.frameRealm, GMEOW.frameRealmColourspace))
+    g.add((EX.srgbFrame, GMEOW.hasAxis, EX.axisRed))
+    g.add((EX.srgbFrame, GMEOW.hasAxis, EX.axisGreen))
+    g.add((EX.srgbFrame, GMEOW.hasAxis, EX.axisBlue))
+    g.add(
+        (
+            EX.srgbFrame,
+            GMEOW.dimensionCount,
+            Literal(3, datatype=XSD.nonNegativeInteger),
+        )
+    )
+    g.add((EX.srgbFrame, GMEOW.frameKind, GMEOW.frameKindCartesian))
+    g.add((EX.srgbFrame, GMEOW.requiresHost, Literal(False)))
+    g.add((EX.srgbFrame, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
+    g.add((GMEOW.frameRealmColourspace, RDF.type, GMEOW.FrameRealm))
+    for axis in [EX.axisRed, EX.axisGreen, EX.axisBlue]:
+        g.add((axis, RDF.type, GMEOW.Axis))
+    g.add((GMEOW.frameKindCartesian, RDF.type, GMEOW.FrameKind))
+    g.add((GMEOW.determinacyCrisp, RDF.type, GMEOW.Determinacy))
+
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+
+
+def test_media_object_missing_colourspace_warns_shacl() -> None:
+    """A MediaObject without a colourspace triggers a SHACL warning."""
+    g = Graph()
+    g.add((EX.img, RDF.type, GMEOW.MediaObject))
+    g.add((EX.img, RDFS.label, Literal("Test Image")))
+
+    result = run_shacl(g)
+    # Warnings do not cause result.ok to be False in our SHACL runner.
+    assert result.ok, f"warning-only graph must pass; errors: {result.errors}"
+    assert any("colourspace" in w.lower() for w in result.warnings), (
+        f"Expected colourspace warning, got: {result.warnings}"
+    )

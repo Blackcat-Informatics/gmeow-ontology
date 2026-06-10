@@ -27,6 +27,7 @@
 @prefix dqv: <http://www.w3.org/ns/dqv#> .
 @prefix dul: <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#> .
 @prefix edtf: <http://id.loc.gov/datatypes/edtf/> .
+@prefix esco: <http://data.europa.eu/esco/model#> .
 @prefix exif: <http://www.w3.org/2003/12/exif/ns#> .
 @prefix fabio: <http://purl.org/spar/fabio/> .
 @prefix faldo: <http://biohackathon.org/resource/faldo#> .
@@ -639,11 +640,18 @@
     void:triples 3 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-direct-91cb7b-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://www.wikidata.org/prop/direct/ (30)" ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.wikidata.org/prop/direct/ (31)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget wdt: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 30 .
+    void:triples 31 .
+
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-direct-91cb7b-skos_relatedMatch> a void:Linkset ;
+    rdfs:label "GMEOW skos:relatedMatch links to http://www.wikidata.org/prop/direct/ (1)" ;
+    void:linkPredicate skos:relatedMatch ;
+    void:objectsTarget wdt: ;
+    void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
+    void:triples 1 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-doap-4bf89e-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to http://usefulinc.com/ns/doap# (8)" ;
@@ -925,6 +933,13 @@
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
     void:triples 1 .
 
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-model-a8af08-skos_closeMatch> a void:Linkset ;
+    rdfs:label "GMEOW skos:closeMatch links to http://data.europa.eu/esco/model# (1)" ;
+    void:linkPredicate skos:closeMatch ;
+    void:objectsTarget esco: ;
+    void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
+    void:triples 1 .
+
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-movingfeatures-6146af-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to http://www.opengis.net/ont/movingfeatures# (2)" ;
     void:linkPredicate skos:closeMatch ;
@@ -1185,11 +1200,11 @@
     void:triples 1 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-org-836cec-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://www.w3.org/ns/org# (2)" ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.w3.org/ns/org# (3)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget org: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 2 .
+    void:triples 3 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-p-plan-19bb56-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to http://purl.org/net/p-plan# (5)" ;
@@ -1332,11 +1347,11 @@
     void:triples 10 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-schema.org-5d26ac-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to https://schema.org/ (105)" ;
+    rdfs:label "GMEOW skos:closeMatch links to https://schema.org/ (109)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget schema: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 105 .
+    void:triples 109 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-schema.org-5d26ac-skos_exactMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:exactMatch links to https://schema.org/ (7)" ;
@@ -1353,11 +1368,11 @@
     void:triples 1 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-schema.org-5d26ac-skos_relatedMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:relatedMatch links to https://schema.org/ (15)" ;
+    rdfs:label "GMEOW skos:relatedMatch links to https://schema.org/ (16)" ;
     void:linkPredicate skos:relatedMatch ;
     void:objectsTarget schema: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 15 .
+    void:triples 16 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-sem-b5d94e-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to http://semanticweb.cs.vu.nl/2009/11/sem/ (4)" ;
@@ -1624,6 +1639,7 @@
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-dcmitype-273018-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-dcmitype-273018-skos_relatedMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-direct-91cb7b-skos_closeMatch>,
+        <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-direct-91cb7b-skos_relatedMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-doap-4bf89e-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-dpv-2bec88-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-dpv-2bec88-skos_relatedMatch>,
@@ -1664,6 +1680,7 @@
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ma-ont-b91ec6-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-ma-ont-b91ec6-skos_relatedMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-mls-516a3f-skos_closeMatch>,
+        <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-model-a8af08-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-movingfeatures-6146af-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-news-5f7afb-skos_relatedMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-nmo-5f3142-skos_closeMatch>,

@@ -321,6 +321,15 @@ gmeow:captureDevice
     skos:definition "The physical device (camera, scanner, screen-capture hardware) that captured the media. Non-functional: multiple devices may be asserted (e.g. a composite image)."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
+gmeow:colourspace
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+    rdfs:domain gmeow:MediaObject ;
+    rdfs:range gmeow:ReferenceFrame ;
+    rdfs:label "colourspace"@en ;
+    skos:definition "The colourspace reference frame in which this media object's pixel values are expressed — sRGB, Adobe RGB, CMYK, CIE XYZ, etc. A subproperty of gmeow:hasReferenceFrame (Principle 11). Multiple colourspace claims for the same image coexist as separate standpoint-indexed assertions (Principle 9), each attributable and confidence-weighted. Not declared FunctionalProperty in the logical core to avoid incorrect owl:sameAs inferences when merging standpoints; single-valued constraint is enforced by SHACL (sh:maxCount 1)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
 gmeow:Collection
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Work ;

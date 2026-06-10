@@ -2919,3 +2919,24 @@ gmeow:SceneGraphEdgeShape
         sh:severity sh:Violation ;
         sh:message "When present, gmeow:sceneConfidence must be a decimal in [0.0, 1.0]." ;
     ] .
+
+# =========================================================================== #
+# MediaObject colourspace warning (issue #22 follow-up)
+# =========================================================================== #
+
+gmeow:MediaObjectColourspaceShape
+    a sh:NodeShape ;
+    rdfs:label "Media Object colourspace shape" ;
+    sh:targetClass gmeow:MediaObject ;
+    sh:property [
+        sh:path gmeow:colourspace ;
+        sh:minCount 1 ;
+        sh:severity sh:Warning ;
+        sh:message "A MediaObject (image, video) should carry a colourspace (gmeow:colourspace) — pixel values are meaningless without their reference frame (Principle 11)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:colourspace ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A MediaObject must have at most one colourspace per graph/source." ;
+    ] .
