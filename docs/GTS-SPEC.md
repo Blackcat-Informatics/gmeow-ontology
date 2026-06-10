@@ -25,7 +25,7 @@ GTS encodes a graph as an **append-only log of CBOR frames**. The logical graph 
 physical removal; optimisation is a separate, explicitly **lossy** compaction that rewrites
 the log into a snapshot.
 
-Three properties define the format:
+Four properties define the format:
 
 1. **CBOR all the way down** (RFC 8949). One ubiquitous, IETF-standardised binary encoding
    with native byte strings (no base64 tax), deterministic encoding (clean content hashes),
@@ -110,7 +110,10 @@ GTS-file = [self-describe-tag] header *frame
   never rewrites earlier bytes.
 
 A reader streams items until end of input. Trailing partial bytes (a torn append) MUST be
-detected and the last incomplete item ignored with a diagnostic. In particular, if a crash
+detected and ignored with a diagnostic: a reader attempts to decode each successive CBOR item,
+and if the decoder signals an incomplete item or unexpected EOF at end-of-file, it MUST treat
+the trailing bytes as a torn append, ignore that incomplete item, and surface a
+machine-observable diagnostic (e.g. a `TornAppendError` warning). In particular, if a crash
 occurred while writing an `index` frame (§6.2) the trailing index is torn: a reader MUST ignore
 it and fall back to an earlier intact `index` or to a plain **sequential scan**, so every
 surviving frame remains recoverable. The optional index is an accelerator, never a dependency.
@@ -156,7 +159,9 @@ The catalog is **closed within a file** (a frame may only reference codec-ids th
 declares) but **open across the ecosystem** (new codecs may be registered by name). The
 Header carries its own `"id"` (self-hash of its content) and no `"prev"` — it is the genesis,
 and the first frame's `"prev"` is the Header's `"id"`. Dictionaries are stored **uncompressed
-and in-band** — there is no external-dictionary dependency.
+and in-band** — there is no external-dictionary dependency. A codec's `"dct"` value MUST match
+a key in the header `"dct"` map, and the codec MUST use the corresponding byte string as its
+compression/encoding dictionary.
 
 ## 6. Frames
 
@@ -175,7 +180,7 @@ frame = {
 }
 
 frame-type = "terms" / "quads" / "reifies" / "annot" / "blob" / "suppress"
-           / "snapshot" / "meta" / "index" / "sig" / "opaque"
+           / "snapshot" / "meta" / "index" / "opaque"
 
 recipient = { "kid": tstr, ? "alg": tstr, * tstr => any }   ; key identifier; never the key
 ```
@@ -235,12 +240,17 @@ term = {
 }
 ```
 
+**Literal datatype defaulting (normative).** For a `k:1` (literal) term: if `"l"` (language
+tag) is present and `"dt"` is absent, the datatype is `rdf:langString`; if both `"l"` and
+`"dt"` are absent, the datatype is `xsd:string`.
+
 ### 7.2 Term-id assignment (normative)
 
 Term ids are unsigned integers assigned **in append order**, starting at `0`, and are
 **frozen**: a term minted while folding frame *N* keeps its id forever. A `quads`, `annot`,
 or `reifies` frame at position *N* MUST only reference term-ids introduced at positions
-`0..N`. This makes writing pure-append and reading single-pass.
+`0..N-1` (such frames introduce no terms of their own). This makes writing pure-append and
+reading single-pass.
 
 ### 7.3 Quoted triples and reifiers (`reifies` frame)
 
@@ -273,19 +283,23 @@ terms := []   graph := {}   reif := {}   meta := {}   blobs := {}   suppressed :
 for frame in log order:
     P := resolve payload (§6.1); if undecodable -> add opaque node (§7.6); continue
     switch frame.t:
-      "terms"    : append each term (assign next id); resolve "dt"/"rf" lazily
+      "terms"    : append each term (assign next id); each "dt"/"rf" MUST name an
+                   already-introduced term-id (no forward references)
       "quads"    : add each (s,p,o,g) to graph
       "reifies"  : reif[reifier] := (s,p,o)
       "annot"    : record (reifier, predicate, value)
-      "blob"     : blobs[digest] := payload bytes
+      "blob"     : if "d" present -> blobs[BLAKE3(decoded "d")] := bytes (inline);
+                   else -> register external blob by "pub".digest
       "suppress" : mark referenced subgraph/frame in `suppressed` (display contract; §11)
       "snapshot" : load a self-contained fold wholesale (§10)
-      "meta"     : merge into meta
+      "meta"     : shallow-merge map into global meta (later keys overwrite earlier)
       "opaque"   : add explicit opaque node
 result := (terms, graph, reif, annot, blobs, meta, suppressed, opaque[])
 ```
 
 The fold is deterministic: the same log yields the same graph in every conformant reader.
+`meta` accumulates as a shallow union over one global map — a later frame's keys replace earlier
+ones; values are not concatenated.
 
 ### 7.6 Opaque nodes
 
@@ -304,8 +318,11 @@ opaque-node = {
 }
 ```
 
-A `damaged` frame (failed self-hash, or absent) is isolated and folded as an opaque node too
-(§9.1). The frame still participates in the id/prev chain, so it cannot be silently stripped.
+Most opaque nodes are produced by a reader at decode time; a writer MAY also emit an explicit
+`opaque` frame (e.g. a redaction placeholder) whose payload is the structure above, in which
+case `"sigstat"` is omitted (a reader determines it). A `damaged` frame (failed self-hash, or
+absent) is isolated and folded as an opaque node too (§9.1). The frame still participates in the
+id/prev chain, so it cannot be silently stripped.
 
 ### 7.7 Streaming fold and bounded memory
 
@@ -414,7 +431,8 @@ scope; a payload encrypted to a retired key MAY become permanently opaque.
 
 > Opacity hides **content** — never **existence**, **provenance**, or **position**.
 
-For every frame, `{"id", "prev", "t", "to", "pub", "sig"}` MUST remain in cleartext. A reader without
+For every frame, `{"id", "prev", "t", "x", "to", "pub", "sig"}` MUST remain in cleartext (the
+transform chain `"x"` is cleartext so a reader knows which codecs to reverse). A reader without
 the relevant key therefore still learns *that* the frame exists, *what kind* it is, *who* it is
 sealed for, *who* signed it, and *where* it sits in the chain. This is what makes selective
 disclosure safe: a holder can carry — and a verifier can authenticate the position of — data
@@ -443,16 +461,20 @@ and hash-linked; suppression is a **display/precedence contract**, interpreted b
 not an erasure. This preserves a complete, tamper-evident history.
 
 ```cddl
-suppress-payload = { "targets": [+ digest / term-id], ? "reason": tstr, ? "by": term-id }
+suppress-payload = { "targets": [+ (digest / term-id)], ? "reason": tstr, ? "by": term-id }
 ```
 
 ## 12. Binary and content-addressing
 
 ```cddl
-blob-payload = { "digest": digest, ? "mt": tstr, ? "rep": tstr }  ; bytes carried in frame "d"
+; a `blob` frame carries raw bytes in "d" (subject to "x"); its metadata lives in cleartext "pub":
+blob-pub = { ? "mt": tstr, ? "rep": tstr, ? "digest": digest }
+; INLINE blob  -> "d" present; digest = BLAKE3(decoded "d").
+; EXTERNAL blob -> "d" absent;  "pub".digest names bytes held elsewhere.
 ```
 
-- A `blob` frame's bytes are addressed by their **BLAKE3-256 digest**; the graph references the
+- A `blob` frame's bytes are addressed by their **BLAKE3-256 digest** — for an inline blob the
+  `BLAKE3` of the decoded `"d"`, for an external blob `"pub".digest`; the graph references the
   blob by that digest. Identical bytes appearing twice are stored once by convention.
 - A blob MAY be **inline** (bytes present, a self-contained package) or **external** (only the
   digest appears in the graph; bytes live elsewhere).
@@ -465,7 +487,7 @@ blob-payload = { "digest": digest, ? "mt": tstr, ? "rep": tstr }  ; bytes carrie
 A blob whose media type is `application/gts` is itself a complete GTS file. Because a payload
 after transform reversal is opaque bytes, **any** frame payload MAY carry a nested GTS, wrapped
 in any transform chain — `[zstd]`, `[cose-encrypt]`, or both. The normative carrier is a `blob`
-with `"mt": "application/gts"`.
+whose `"pub".mt` is `application/gts`.
 
 - **Fold semantics.** A Full Reader MAY recurse: decode the blob (subject to §6.1 capability
   rules), then fold the inner bytes as an independent GTS, exposing its result as a **subgraph**
@@ -513,8 +535,10 @@ no RDF text parser is involved.
   `annot`) plus a `blobs` table; create the indexes appropriate to the engine. This is a
   near-mechanical load because the GTS tables already match the relational shape.
 
-Each transform SHOULD be verifiable by **round-trip equivalence**: `gts → nq → gts` MUST yield
-the same folded graph (modulo blank-node labelling and deterministic CBOR re-encoding).
+Each transform SHOULD be verifiable by **round-trip equivalence**: for **fully-decodable**
+frames, `gts → nq → gts` MUST yield the same folded graph (modulo blank-node labelling and
+deterministic CBOR re-encoding). Opaque nodes are excluded — they serialise as opaque-node
+descriptions and re-import as ordinary quads, not as opaque frames.
 
 ## 15. Worked examples
 
@@ -536,6 +560,9 @@ CBOR is shown in **diagnostic notation** (RFC 8949 §8). Hashes/signatures are e
 { "t": "quads", "prev": h'…terms.id…', "id": h'…', "x": [4],
   "d": h'…zstd([[0,1,2]])…' }                            / Cat rdfs:label "Cat"@en /
 ```
+
+Term 2 is a literal with a language tag and no `"dt"`, so its datatype is `rdf:langString`
+(§7.1).
 
 ### 15.2 Evidence: image + signed accrual (`evidence`)
 
@@ -583,8 +610,7 @@ fallback — both are present, both are hash-linked.
 
 ```text
 { "t": "blob", "prev": h'…', "id": h'…',
-  "pub": { "rep": "sealed-evidence-graph" },
-  "mt": "application/gts",                                / the payload is itself a GTS /
+  "pub": { "rep": "sealed-evidence-graph", "mt": "application/gts" },  / payload is itself a GTS /
   "x": [4, 7],                                            / zstd then cose-encrypt /
   "to": [ {"kid":"did:court:registry"} ],
   "d": h'COSE_Encrypt( zstd( <a complete, independently-signed GTS file> ) )' }
