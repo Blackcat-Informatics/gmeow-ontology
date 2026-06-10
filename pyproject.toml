@@ -18,6 +18,9 @@ dependencies = [
     "fastmcp>=3.4",
     "linkml>=1.11",
     "PyYAML>=6.0",
+    "cbor2>=6.1.2",
+    "blake3>=1.0.8",
+    "zstandard>=0.25.0",
 ]
 
 [project.scripts]
