@@ -16,10 +16,12 @@ from collections.abc import Mapping
 import cbor2
 
 from gmeow_tools.gts.codec import Codec, CodecUnavailableError, decode_chain
+from gmeow_tools.gts.crypto import KeyProvider, verify_sig
 from gmeow_tools.gts.model import (
     Diagnostic,
     Graph,
     OpaqueNode,
+    Signature,
     Suppression,
     Term,
     TermKind,
@@ -430,12 +432,24 @@ _HANDLERS = {
 _REASON_DIAG = {"unknown-codec": "UnknownCodec", "missing-key": "MissingKey"}
 
 
-def read(data: bytes) -> Graph:
+def read(
+    data: bytes,
+    *,
+    keys: KeyProvider | None = None,
+    expected_head: bytes | None = None,
+) -> Graph:
     """Read and fold a GTS file into a :class:`Graph`.
 
     Verifies the header genesis hash, every frame's self-``id``, and the ``prev``
     chain, recording diagnostics; damaged frames and undecodable frames fold to
     opaque nodes (§7.6) rather than aborting the read.
+
+    Args:
+        data: the GTS file bytes.
+        keys: optional :class:`~gmeow_tools.gts.crypto.KeyProvider` — when given,
+            ``sig`` frames are verified (§9.2) and recorded in ``Graph.signatures``.
+        expected_head: optional head commitment — if the observed head id differs,
+            a ``TruncatedLog`` diagnostic is raised (§9, §17).
     """
     g = Graph()
     items, torn = iter_items(data)
@@ -476,7 +490,21 @@ def read(data: bytes) -> Graph:
                 Diagnostic("BrokenChain", "prev does not match", index)
             )
         expected_prev = stored_id if isinstance(stored_id, bytes) else computed
+        sig = frame.get("sig")
+        if isinstance(sig, bytes):
+            if keys is not None:
+                status, kid = verify_sig(sig, computed, keys)
+            else:
+                status, kid = "unverified", None
+            g.signatures.append(Signature(computed, kid, status))
         folder.fold_frame(frame, index)
+
+    if expected_head is not None and expected_prev != expected_head:
+        g.diagnostics.append(
+            Diagnostic(
+                "TruncatedLog", "observed head does not match expected head", None
+            )
+        )
 
     if torn is not None:
         g.diagnostics.append(

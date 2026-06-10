@@ -11,6 +11,7 @@ from __future__ import annotations
 import cbor2
 
 from gmeow_tools.gts.codec import DEFAULT_CATALOG, Codec, encode_chain
+from gmeow_tools.gts.crypto import Signer, sign_id
 from gmeow_tools.gts.model import Quad, Term, Triple
 from gmeow_tools.gts.wire import (
     MAGIC,
@@ -53,8 +54,14 @@ class Writer:
         meta: dict[str, object] | None = None,
         *,
         magic_tag: bool = True,
+        signer: Signer | None = None,
     ) -> None:
-        """Initialise the writer and emit the Header (the chain genesis)."""
+        """Initialise the writer and emit the Header (the chain genesis).
+
+        If ``signer`` is given, every appended frame is COSE_Sign1-signed over its
+        ``id`` (§9.2) — the basis of the ``evidence`` profile's chain of custody.
+        """
+        self._signer = signer
         self.catalog = catalog or dict(DEFAULT_CATALOG)
         self._name_to_id = {c.name: i for i, c in self.catalog.items()}
         header: dict[str, object] = {
@@ -120,11 +127,14 @@ class Writer:
         if to is not None:
             frame["to"] = to
         frame["prev"] = self._prev
-        frame["id"] = content_id(frame)
+        fid = content_id(frame)
+        frame["id"] = fid
+        if sig is None and self._signer is not None:
+            sig = sign_id(fid, self._signer)
         if sig is not None:
             frame["sig"] = sig
         self._buf += canonical(frame)
-        self._prev = frame["id"]  # type: ignore[assignment]
+        self._prev = fid
         return self._prev
 
     # -- convenience builders -------------------------------------------------
