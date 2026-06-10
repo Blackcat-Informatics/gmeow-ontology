@@ -21,6 +21,7 @@ dependencies = [
     "cbor2>=6.1.2",
     "blake3>=1.0.8",
     "zstandard>=0.25.0",
+    "duckdb>=1.5.3",
 ]
 
 [project.scripts]

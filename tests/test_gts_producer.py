@@ -1,0 +1,114 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+"""Tests for the RDF → GTS producer and the gts → {sqlite,duckdb} shims (#271)."""
+
+from __future__ import annotations
+
+import sqlite3
+from pathlib import Path
+
+from rdflib import BNode, Dataset, Graph, Literal, URIRef
+from rdflib.namespace import RDFS, XSD
+
+from gmeow_tools.gts import (
+    gts_from_graph,
+    read,
+    to_duckdb,
+    to_nquads,
+    to_sqlite,
+)
+
+EX = "https://example.org/"
+
+
+def _sample_graph() -> Graph:
+    g = Graph()
+    cat = URIRef(EX + "Cat")
+    g.add((cat, RDFS.label, Literal("Cat", lang="en")))
+    g.add((cat, URIRef(EX + "legs"), Literal("4", datatype=XSD.integer)))
+    g.add((cat, RDFS.comment, Literal("a plain comment")))
+    b = BNode()
+    g.add((cat, URIRef(EX + "sample"), b))
+    g.add((b, RDFS.label, Literal("a sample", lang="en")))
+    return g
+
+
+def _reparse(nq: str, *, dataset: bool = False) -> Graph:
+    fmt = "nquads" if dataset else "nt"
+    target: Graph = Dataset() if dataset else Graph()
+    target.parse(data=nq, format=fmt)
+    return target
+
+
+def test_producer_round_trip_isomorphic() -> None:
+    """RDF → GTS → fold → N-Quads → RDF reproduces an isomorphic graph."""
+    source = _sample_graph()
+    data = gts_from_graph(source)
+    folded = read(data)
+    assert [d.code for d in folded.diagnostics] == []
+    back = _reparse(to_nquads(folded))
+    assert source.isomorphic(back)
+
+
+def test_producer_default_compresses() -> None:
+    """The default snapshot uses zstd (a transformed frame) and still folds clean."""
+    data = gts_from_graph(_sample_graph())
+    # the self-describe magic + a snapshot frame; folds without diagnostics
+    assert read(data).diagnostics == []
+
+
+def test_producer_named_graphs() -> None:
+    """A Dataset round-trips its named-graph quads."""
+    ds = Dataset()
+    g1 = ds.graph(URIRef(EX + "g1"))
+    g1.add((URIRef(EX + "s"), URIRef(EX + "p"), URIRef(EX + "o")))
+    data = gts_from_graph(ds)
+    folded = read(data)
+    assert len(folded.quads) == 1
+    gname = folded.quads[0][3]
+    assert gname is not None
+    assert folded.term(gname).value == EX + "g1"
+
+
+def test_to_sqlite(tmp_path: Path) -> None:
+    """gts → sqlite loads the dictionary-encoded tables with the right cardinalities."""
+    folded = read(gts_from_graph(_sample_graph()))
+    db = to_sqlite(folded, tmp_path / "out.db")
+    conn = sqlite3.connect(db)
+    try:
+        n_terms = (conn.execute("SELECT count(*) FROM terms").fetchone() or (0,))[0]
+        n_quads = (conn.execute("SELECT count(*) FROM quads").fetchone() or (0,))[0]
+        # a resolving join works: every quad subject resolves to a term row
+        joined = (
+            conn.execute(
+                "SELECT count(*) FROM quads q JOIN terms t ON q.s = t.id"
+            ).fetchone()
+            or (0,)
+        )[0]
+    finally:
+        conn.close()
+    assert n_terms == len(folded.terms)
+    assert n_quads == len(folded.quads)
+    assert joined == len(folded.quads)
+
+
+def test_to_duckdb(tmp_path: Path) -> None:
+    """gts → duckdb loads and a resolving join returns the source labels."""
+    import duckdb
+
+    folded = read(gts_from_graph(_sample_graph()))
+    db = to_duckdb(folded, tmp_path / "out.duckdb")
+    conn = duckdb.connect(str(db))
+    try:
+        n_quads = (conn.execute("SELECT count(*) FROM quads").fetchone() or (0,))[0]
+        labels = conn.execute(
+            "SELECT t.lex FROM quads q "
+            "JOIN terms p ON q.p = p.id "
+            "JOIN terms t ON q.o = t.id "
+            "WHERE p.lex = ? AND t.lang = 'en'",
+            [str(RDFS.label)],
+        ).fetchall()
+    finally:
+        conn.close()
+    assert n_quads == len(folded.quads)
+    assert ("Cat",) in labels

@@ -20,13 +20,18 @@ narrow-waist `RDF 1.2 → GTS → *` toolchain.
 - **Robustness** — torn-append detection (§3), damaged-frame isolation, and the
   canonical diagnostics (§2.3): `TornAppendError`, `DamagedFrame`, `BrokenChain`,
   `UnknownCodec`, `MissingKey`, `ConflictingReifier`, `PositionConstraint`, …
-- **`gts → nquads`** transform (§14).
+- **`RDF → GTS` producer** — interns an rdflib `Graph`/`Dataset` into the term
+  dictionary and emits a `dist` snapshot; `gmeow gts compile` builds `dist/gmeow.gts`
+  from the merged ontology (#271).
+- **Transforms out** — `gts → nquads` (§14) and `gts → {sqlite,duckdb}` (the
+  integer-id, dictionary-encoded relational load; the engine resolves ids via join).
 
 ## Not yet (follow-ups under #267)
 
-COSE signing/encryption and the crypto opaque paths (§9.2–9.3); nested-GTS recursion
-(§12.1); the `index`/MMR acceleration (§6.2); the `RDF 1.2 → GTS` producer and the
-`gts → {duckdb,sqlite}` shims; the transport/packaging ontology vocabulary.
+COSE signing/encryption and the crypto opaque paths (§9.2–9.3, #272); nested-GTS
+recursion (§12.1); the `index`/MMR acceleration (§6.2); RDF 1.2 triple-term /
+statement-metadata ingestion in the producer (needs the RDF-star source); the
+transport/packaging ontology vocabulary.
 
 ## Use
 
@@ -49,8 +54,12 @@ print(to_nquads(graph))                  # <…/Cat> <…/label> "Cat"@en .
 CLI:
 
 ```bash
-gmeow gts info  file.gts          # frame/term/quad/blob counts + diagnostics
-gmeow gts to-nq file.gts -o out.nq
+gmeow gts compile -o dist/gmeow.gts   # RDF 1.1 merged ontology -> GTS dist snapshot
+gmeow gts from-rdf data.ttl -o data.gts
+gmeow gts info     file.gts           # frame/term/quad/blob counts + diagnostics
+gmeow gts to-nq    file.gts -o out.nq
+gmeow gts to-sqlite file.gts -o out.sqlite
+gmeow gts to-duckdb file.gts -o out.duckdb
 ```
 
 ## Conformance
