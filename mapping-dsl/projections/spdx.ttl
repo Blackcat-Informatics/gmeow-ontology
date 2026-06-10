@@ -10,7 +10,7 @@
 # spdx:isOsiApproved flag — the bridge to SPDX tooling.
 
 gmeow:mapSpdxLicense a gmeow:ProjectionMapping ;
-    rdfs:label "License → spdx:License"@en ;
+    rdfs:label "License → spdx:License"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "lic" ;
         gmeow:atom ( [ gmeow:subjectVar "lic" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:License ] ) ;
@@ -18,7 +18,7 @@ gmeow:mapSpdxLicense a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "spdx" ; gmeow:toClass spdx:License ; gmeow:relation "<=" ; gmeow:confidence 0.8 ] .
 
 gmeow:mapSpdxLicenseId a gmeow:ProjectionMapping ;
-    rdfs:label "spdxLicenseId → spdx:licenseId"@en ;
+    rdfs:label "spdxLicenseId → spdx:licenseId"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "lic" ; gmeow:value "id" ;
         gmeow:atom ( [ gmeow:subjectVar "lic" ; gmeow:predicate gmeow:spdxLicenseId ; gmeow:objectVar "id" ] ) ;
@@ -26,7 +26,7 @@ gmeow:mapSpdxLicenseId a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "spdx" ; gmeow:toPredicate spdx:licenseId ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
 
 gmeow:mapSpdxLicenseName a gmeow:ProjectionMapping ;
-    rdfs:label "spdxLicenseName → spdx:name"@en ;
+    rdfs:label "spdxLicenseName → spdx:name"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "lic" ; gmeow:value "nm" ;
         gmeow:atom ( [ gmeow:subjectVar "lic" ; gmeow:predicate gmeow:spdxLicenseName ; gmeow:objectVar "nm" ] ) ;
@@ -34,7 +34,7 @@ gmeow:mapSpdxLicenseName a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "spdx" ; gmeow:toPredicate spdx:name ; gmeow:relation "=" ; gmeow:confidence 0.85 ] .
 
 gmeow:mapSpdxLicenseText a gmeow:ProjectionMapping ;
-    rdfs:label "licenseText → spdx:licenseText"@en ;
+    rdfs:label "licenseText → spdx:licenseText"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "lic" ; gmeow:value "txt" ;
         gmeow:atom ( [ gmeow:subjectVar "lic" ; gmeow:predicate gmeow:licenseText ; gmeow:objectVar "txt" ] ) ;
@@ -42,7 +42,7 @@ gmeow:mapSpdxLicenseText a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "spdx" ; gmeow:toPredicate spdx:licenseText ; gmeow:relation "=" ; gmeow:confidence 0.85 ] .
 
 gmeow:mapSpdxOsiApproved a gmeow:ProjectionMapping ;
-    rdfs:label "isOsiApproved → spdx:isOsiApproved"@en ;
+    rdfs:label "isOsiApproved → spdx:isOsiApproved"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "lic" ; gmeow:value "osi" ;
         gmeow:atom ( [ gmeow:subjectVar "lic" ; gmeow:predicate gmeow:isOsiApproved ; gmeow:objectVar "osi" ] ) ;

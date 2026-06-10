@@ -16,7 +16,7 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:mapOaAnnotation a gmeow:ProjectionMapping ;
-    rdfs:label "Annotation relator → oa:Annotation (body/target/motivatedBy)"@en ;
+    rdfs:label "Annotation relator → oa:Annotation (body/target/motivatedBy)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ann" ; gmeow:value "ann" ;
         gmeow:atom (
@@ -43,7 +43,7 @@ gmeow:mapOaAnnotation a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapOaHighlight a gmeow:ProjectionMapping ;
-    rdfs:label "Highlight → oa:Annotation (SpecificResource + selector, no body)"@en ;
+    rdfs:label "Highlight → oa:Annotation (SpecificResource + selector, no body)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "hl" ; gmeow:value "hl" ;
         gmeow:atom (
@@ -76,7 +76,7 @@ gmeow:mapOaHighlight a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapOaBookmark a gmeow:ProjectionMapping ;
-    rdfs:label "Bookmark → oa:Annotation (target only, motivatedBy bookmarking)"@en ;
+    rdfs:label "Bookmark → oa:Annotation (target only, motivatedBy bookmarking)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "bm" ; gmeow:value "bm" ;
         gmeow:atom (
@@ -100,7 +100,7 @@ gmeow:mapOaBookmark a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapOaComment a gmeow:ProjectionMapping ;
-    rdfs:label "Comment → oa:Annotation (body = comment, target = parent, motivatedBy replying)"@en ;
+    rdfs:label "Comment → oa:Annotation (body = comment, target = parent, motivatedBy replying)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "cmt" ; gmeow:value "cmt" ;
         gmeow:atom (
@@ -126,7 +126,7 @@ gmeow:mapOaComment a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaNote a gmeow:ProjectionMapping ;
-    rdfs:label "Note → schema:NoteDigitalDocument"@en ;
+    rdfs:label "Note → schema:NoteDigitalDocument"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "note" ; gmeow:value "note" ;
         gmeow:atom (
@@ -153,7 +153,7 @@ gmeow:mapSchemaNote a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapAsNote a gmeow:ProjectionMapping ;
-    rdfs:label "Note → as:Note"@en ;
+    rdfs:label "Note → as:Note"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "note" ; gmeow:value "note" ;
         gmeow:atom (
@@ -177,7 +177,7 @@ gmeow:mapAsNote a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapMarkdownMentions a gmeow:ProjectionMapping ;
-    rdfs:label "mentions → gmeow:hasWikilink (markdown round-trip)"@en ;
+    rdfs:label "mentions → gmeow:hasWikilink (markdown round-trip)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "src" ; gmeow:value "tgt" ;
         gmeow:atom (
@@ -192,7 +192,7 @@ gmeow:mapMarkdownMentions a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "mentions → directed wikilink edge only" ] .
 
 gmeow:mapMarkdownRelatedNote a gmeow:ProjectionMapping ;
-    rdfs:label "relatedNote → gmeow:hasWikilink (symmetric, markdown round-trip)"@en ;
+    rdfs:label "relatedNote → gmeow:hasWikilink (symmetric, markdown round-trip)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "a" ; gmeow:value "b" ;
         gmeow:atom (

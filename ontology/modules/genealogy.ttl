@@ -7,10 +7,10 @@
 
 <https://blackcatinformatics.ca/gmeow/modules/genealogy>
     a owl:Ontology ;
-    rdfs:label "GMEOW Genealogy Module"@en ;
+    rdfs:label "GMEOW Genealogy Module"@x-gmeow-english ;
     rdfs:comment """A comprehensive, evidence-centric genealogy model: reified, typed kinship relationships and kinship convenience properties. Life events themselves are modelled by the universal events module (gmeow:Event + gmeow:eventType value vocabulary + the gmeow:Participation relator); a person's life events are gmeow:LifeEvent occurrences carrying gmeow:eventTypeBirth / …Marriage / …NameChange etc. Structured naming terms (gmeow:PersonName et al.) live in the names module and link to the event that confers them via gmeow:conferredByEvent. Supersedes the unmaintained W3C SWAP gedcom vocabulary; aligned to BIO, GEDCOM X, schema.org, Wikidata, REL and GeoNames.
 
-STANDPOINT DOCTRINE (#51). Contested facts in genealogy — disputed parentage, conflicting birth/death dates, competing civil vs parish records — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested birth date is two standpoint-indexed gmeow:eventTime claims on the same gmeow:LifeEvent (the events module's mechanism). A contested parentage is two gmeow:accordingTo-annotated gmeow:hasParent claims, or two reified gmeow:ParentChildRelationship instances each carrying gmeow:accordingTo. There is NO genealogy-specific dispute mechanism, no preferredParent, no primaryKinship — only the cross-cutting #43 facility. A withdrawn parentage claim (an opened-then-closed StandpointTenure, or a superseded claim) sets gmeow:displayable false, never deletion (Principle 10)."""@en ;
+STANDPOINT DOCTRINE (#51). Contested facts in genealogy — disputed parentage, conflicting birth/death dates, competing civil vs parish records — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested birth date is two standpoint-indexed gmeow:eventTime claims on the same gmeow:LifeEvent (the events module's mechanism). A contested parentage is two gmeow:accordingTo-annotated gmeow:hasParent claims, or two reified gmeow:ParentChildRelationship instances each carrying gmeow:accordingTo. There is NO genealogy-specific dispute mechanism, no preferredParent, no primaryKinship — only the cross-cutting #43 facility. A withdrawn parentage claim (an opened-then-closed StandpointTenure, or a superseded claim) sets gmeow:displayable false, never deletion (Principle 10)."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # Classes
@@ -18,8 +18,8 @@ STANDPOINT DOCTRINE (#51). Contested facts in genealogy — disputed parentage, 
 gmeow:Family
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Group ;
-    rdfs:label "Family"@en ;
-    skos:definition "A kinship group of persons related by descent, marriage, or adoption."@en ;
+    rdfs:label "Family"@x-gmeow-english ;
+    skos:definition "A kinship group of persons related by descent, marriage, or adoption."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # Life events are modelled by the universal events module: gmeow:LifeEvent
@@ -32,50 +32,50 @@ gmeow:Family
 gmeow:KinRelationship
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
-    rdfs:label "Kin Relationship"@en ;
-    skos:definition "A reified kinship relationship between persons, modelled as an observation (a claim-from-a-vantage) in the universal stack (#69). Able to bear its own events, dates, sources, and standpoint-indexed claims. A disputed kinship is several coexisting gmeow:accordingTo-annotated relators, none privileged (Principle 9). The relationshipParent and relationshipChild are co-observed features of the observation."@en ;
+    rdfs:label "Kin Relationship"@x-gmeow-english ;
+    skos:definition "A reified kinship relationship between persons, modelled as an observation (a claim-from-a-vantage) in the universal stack (#69). Able to bear its own events, dates, sources, and standpoint-indexed claims. A disputed kinship is several coexisting gmeow:accordingTo-annotated relators, none privileged (Principle 9). The relationshipParent and relationshipChild are co-observed features of the observation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:CoupleRelationship
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:KinRelationship ;
-    rdfs:label "Couple Relationship"@en ;
-    skos:definition "A reified couple relationship (marriage, civil union, or partnership) between two persons; bears marriage, divorce and related events."@en ;
+    rdfs:label "Couple Relationship"@x-gmeow-english ;
+    skos:definition "A reified couple relationship (marriage, civil union, or partnership) between two persons; bears marriage, divorce and related events."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:ParentChildRelationship
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:KinRelationship ;
-    rdfs:label "Parent-Child Relationship"@en ;
-    skos:definition "A reified parent-child relationship, typed by its nature (biological, adoptive, step, or foster)."@en ;
+    rdfs:label "Parent-Child Relationship"@x-gmeow-english ;
+    skos:definition "A reified parent-child relationship, typed by its nature (biological, adoptive, step, or foster)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:BiologicalParentChild
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:ParentChildRelationship ;
-    rdfs:label "Biological Parent-Child"@en ;
-    skos:definition "A parent-child relationship by biological descent."@en ;
+    rdfs:label "Biological Parent-Child"@x-gmeow-english ;
+    skos:definition "A parent-child relationship by biological descent."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:AdoptiveParentChild
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:ParentChildRelationship ;
-    rdfs:label "Adoptive Parent-Child"@en ;
-    skos:definition "A parent-child relationship established by adoption."@en ;
+    rdfs:label "Adoptive Parent-Child"@x-gmeow-english ;
+    skos:definition "A parent-child relationship established by adoption."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:StepParentChild
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:ParentChildRelationship ;
-    rdfs:label "Step Parent-Child"@en ;
-    skos:definition "A parent-child relationship through marriage to a biological/adoptive parent."@en ;
+    rdfs:label "Step Parent-Child"@x-gmeow-english ;
+    skos:definition "A parent-child relationship through marriage to a biological/adoptive parent."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:FosterParentChild
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:ParentChildRelationship ;
-    rdfs:label "Foster Parent-Child"@en ;
-    skos:definition "A parent-child relationship through fostering."@en ;
+    rdfs:label "Foster Parent-Child"@x-gmeow-english ;
+    skos:definition "A parent-child relationship through fostering."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # Names live in the dedicated names module: a person bears a gmeow:PersonName
@@ -89,8 +89,8 @@ gmeow:hasParent
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:range gmeow:Person ;
-    rdfs:label "has parent"@en ;
-    skos:definition "Relates a person to a parent (any kind: biological, adoptive, step, or foster). Non-functional: contested parentage claims from multiple sources coexist as standpoint-indexed statements (gmeow:accordingTo), never collapsing to a single winner (Principle 9)."@en ;
+    rdfs:label "has parent"@x-gmeow-english ;
+    skos:definition "Relates a person to a parent (any kind: biological, adoptive, step, or foster). Non-functional: contested parentage claims from multiple sources coexist as standpoint-indexed statements (gmeow:accordingTo), never collapsing to a single winner (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasChild
@@ -98,8 +98,8 @@ gmeow:hasChild
     owl:inverseOf gmeow:hasParent ;
     rdfs:domain gmeow:Person ;
     rdfs:range gmeow:Person ;
-    rdfs:label "has child"@en ;
-    skos:definition "Relates a person to a child; the inverse of hasParent."@en ;
+    rdfs:label "has child"@x-gmeow-english ;
+    skos:definition "Relates a person to a child; the inverse of hasParent."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasMother
@@ -107,8 +107,8 @@ gmeow:hasMother
     rdfs:subPropertyOf gmeow:hasParent ;
     rdfs:domain gmeow:Person ;
     rdfs:range gmeow:Person ;
-    rdfs:label "has mother"@en ;
-    skos:definition "Relates a person to a female parent."@en ;
+    rdfs:label "has mother"@x-gmeow-english ;
+    skos:definition "Relates a person to a female parent."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasFather
@@ -116,48 +116,48 @@ gmeow:hasFather
     rdfs:subPropertyOf gmeow:hasParent ;
     rdfs:domain gmeow:Person ;
     rdfs:range gmeow:Person ;
-    rdfs:label "has father"@en ;
-    skos:definition "Relates a person to a male parent."@en ;
+    rdfs:label "has father"@x-gmeow-english ;
+    skos:definition "Relates a person to a male parent."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasSpouse
     a owl:ObjectProperty, owl:SymmetricProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:range gmeow:Person ;
-    rdfs:label "has spouse"@en ;
-    skos:definition "Relates a person to a spouse; symmetric."@en ;
+    rdfs:label "has spouse"@x-gmeow-english ;
+    skos:definition "Relates a person to a spouse; symmetric."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasSibling
     a owl:ObjectProperty, owl:SymmetricProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:range gmeow:Person ;
-    rdfs:label "has sibling"@en ;
-    skos:definition "Relates a person to a sibling; symmetric."@en ;
+    rdfs:label "has sibling"@x-gmeow-english ;
+    skos:definition "Relates a person to a sibling; symmetric."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasPartner
     a owl:ObjectProperty ;
     rdfs:domain gmeow:CoupleRelationship ;
     rdfs:range gmeow:Person ;
-    rdfs:label "has partner"@en ;
-    skos:definition "Relates a couple relationship to one of its two partners."@en ;
+    rdfs:label "has partner"@x-gmeow-english ;
+    skos:definition "Relates a couple relationship to one of its two partners."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:relationshipParent
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:ParentChildRelationship ;
     rdfs:range gmeow:Person ;
-    rdfs:label "relationship parent"@en ;
-    skos:definition "The parent in a reified parent-child relationship."@en ;
+    rdfs:label "relationship parent"@x-gmeow-english ;
+    skos:definition "The parent in a reified parent-child relationship."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:relationshipChild
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:ParentChildRelationship ;
     rdfs:range gmeow:Person ;
-    rdfs:label "relationship child"@en ;
-    skos:definition "The child in a reified parent-child relationship."@en ;
+    rdfs:label "relationship child"@x-gmeow-english ;
+    skos:definition "The child in a reified parent-child relationship."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # A person's sex/gender is modelled in the dedicated gender + sexuality modules:
@@ -182,8 +182,8 @@ gmeow:hasAncestor
     a owl:ObjectProperty, owl:TransitiveProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:range gmeow:Person ;
-    rdfs:label "has ancestor"@en ;
-    skos:definition "Relates a person to an ancestor — a parent, a parent's parent, and so on. Transitive: an ancestor of an ancestor is an ancestor. gmeow:hasParent (hence gmeow:hasMother / hasFather) is a sub-property, so ancestry is DERIVED from parentage by the reasoner and is never asserted directly."@en ;
+    rdfs:label "has ancestor"@x-gmeow-english ;
+    skos:definition "Relates a person to an ancestor — a parent, a parent's parent, and so on. Transitive: an ancestor of an ancestor is an ancestor. gmeow:hasParent (hence gmeow:hasMother / hasFather) is a sub-property, so ancestry is DERIVED from parentage by the reasoner and is never asserted directly."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasDescendant
@@ -191,8 +191,8 @@ gmeow:hasDescendant
     owl:inverseOf gmeow:hasAncestor ;
     rdfs:domain gmeow:Person ;
     rdfs:range gmeow:Person ;
-    rdfs:label "has descendant"@en ;
-    skos:definition "Relates a person to a descendant — a child, a child's child, and so on; the transitive inverse of gmeow:hasAncestor. Derived by the reasoner (gmeow:hasChild is a sub-property), never asserted directly."@en ;
+    rdfs:label "has descendant"@x-gmeow-english ;
+    skos:definition "Relates a person to a descendant — a child, a child's child, and so on; the transitive inverse of gmeow:hasAncestor. Derived by the reasoner (gmeow:hasChild is a sub-property), never asserted directly."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasParent rdfs:subPropertyOf gmeow:hasAncestor, gmeow:connectsTo .

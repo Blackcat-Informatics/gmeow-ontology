@@ -12,7 +12,7 @@
 
 # A crisp interval event → VEVENT with DTSTART/DTEND from the interval endpoints.
 gmeow:mapIcalVeventInterval a gmeow:ProjectionMapping ;
-    rdfs:label "Event + interval → iCalendar VEVENT (DTSTART/DTEND)"@en ;
+    rdfs:label "Event + interval → iCalendar VEVENT (DTSTART/DTEND)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "event" ;
         gmeow:atom (
@@ -33,7 +33,7 @@ gmeow:mapIcalVeventInterval a gmeow:ProjectionMapping ;
 # fuzzy bounds, so exactly one VEVENT time branch fires per event (a valid VEVENT
 # has one DTSTART/DTEND).
 gmeow:mapIcalVeventPoint a gmeow:ProjectionMapping ;
-    rdfs:label "Event + point time → iCalendar VEVENT (DTSTART)"@en ;
+    rdfs:label "Event + point time → iCalendar VEVENT (DTSTART)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "event" ;
         gmeow:atom (
@@ -52,7 +52,7 @@ gmeow:mapIcalVeventPoint a gmeow:ProjectionMapping ;
 # gmeow:temporalPrecision qualifier is dropped (iCal cannot carry it). Excluded when
 # the event also carries a crisp interval or point time (lowest precedence).
 gmeow:mapIcalVeventFuzzy a gmeow:ProjectionMapping ;
-    rdfs:label "Fuzzy event bounds → iCalendar VEVENT (DTSTART/DTEND)"@en ;
+    rdfs:label "Fuzzy event bounds → iCalendar VEVENT (DTSTART/DTEND)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "event" ;
         gmeow:atom (
@@ -72,7 +72,7 @@ gmeow:mapIcalVeventFuzzy a gmeow:ProjectionMapping ;
 # Event type label → SUMMARY (the human-readable title; the open type vocab
 # collapses to one label).
 gmeow:mapIcalSummary a gmeow:ProjectionMapping ;
-    rdfs:label "Event type label → iCalendar SUMMARY"@en ;
+    rdfs:label "Event type label → iCalendar SUMMARY"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "event" ; gmeow:value "summary" ;
         gmeow:atom (
@@ -87,7 +87,7 @@ gmeow:mapIcalSummary a gmeow:ProjectionMapping ;
 # Flat participant → ATTENDEE (the reified Participation's role/period/confidence
 # are dropped; iCal ATTENDEE is a bare edge).
 gmeow:mapIcalAttendee a gmeow:ProjectionMapping ;
-    rdfs:label "hasParticipant → iCalendar ATTENDEE"@en ;
+    rdfs:label "hasParticipant → iCalendar ATTENDEE"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "event" ; gmeow:value "att" ;
         gmeow:atom ( [ gmeow:subjectVar "event" ; gmeow:predicate gmeow:hasParticipant ; gmeow:objectVar "att" ] ) ;
@@ -102,7 +102,7 @@ gmeow:mapIcalAttendee a gmeow:ProjectionMapping ;
 # role/period/confidence/standpoint collapse; a superseded (displayable false)
 # participation is suppressed (Principle 10).
 gmeow:mapIcalAttendeeReified a gmeow:ProjectionMapping ;
-    rdfs:label "Participation participant → iCalendar ATTENDEE"@en ;
+    rdfs:label "Participation participant → iCalendar ATTENDEE"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "event" ; gmeow:value "att" ;
         gmeow:atom (
@@ -122,7 +122,7 @@ gmeow:mapIcalAttendeeReified a gmeow:ProjectionMapping ;
 # Task → VTODO (inherits VEVENT time/location via the Event superclass, adds
 # DUE, PRIORITY, and STATUS).
 gmeow:mapIcalVtodo a gmeow:ProjectionMapping ;
-    rdfs:label "Task → iCalendar VTODO (DUE/PRIORITY/STATUS)"@en ;
+    rdfs:label "Task → iCalendar VTODO (DUE/PRIORITY/STATUS)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "task" ;
         gmeow:atom (
@@ -141,7 +141,7 @@ gmeow:mapIcalVtodo a gmeow:ProjectionMapping ;
 # Reminder → VALARM (trigger + action). The action value vocabulary is projected
 # to iCalendar ACTION text; standpoint/confidence are dropped.
 gmeow:mapIcalValarm a gmeow:ProjectionMapping ;
-    rdfs:label "Reminder → iCalendar VALARM (TRIGGER/ACTION)"@en ;
+    rdfs:label "Reminder → iCalendar VALARM (TRIGGER/ACTION)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "reminder" ;
         gmeow:atom (
@@ -157,7 +157,7 @@ gmeow:mapIcalValarm a gmeow:ProjectionMapping ;
 # Availability slot → VFREEBUSY (start/end + FBTYPE). The agent and interval
 # semantics collapse to a free-busy period.
 gmeow:mapIcalVfreebusy a gmeow:ProjectionMapping ;
-    rdfs:label "Availability → iCalendar VFREEBUSY (FBTYPE)"@en ;
+    rdfs:label "Availability → iCalendar VFREEBUSY (FBTYPE)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "avail" ;
         gmeow:atom (
@@ -176,7 +176,7 @@ gmeow:mapIcalVfreebusy a gmeow:ProjectionMapping ;
 # TimeZone → VTIMEZONE (tzid). The full VTIMEZONE expansion (daylight/standard
 # components) is a solver/projection concern; the ontology carries only the IRI.
 gmeow:mapIcalVtimezone a gmeow:ProjectionMapping ;
-    rdfs:label "TimeZone → iCalendar VTIMEZONE (TZID)"@en ;
+    rdfs:label "TimeZone → iCalendar VTIMEZONE (TZID)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "tz" ;
         gmeow:atom (
@@ -192,7 +192,7 @@ gmeow:mapIcalVtimezone a gmeow:ProjectionMapping ;
 # view and invitee view (invitationStatus vs rsvpStatus) may differ — the
 # projection emits both as separate ATTENDEE lines or merges at the consumer.
 gmeow:mapIcalInvitationPartstat a gmeow:ProjectionMapping ;
-    rdfs:label "EventInvitation status → iCalendar ATTENDEE PARTSTAT"@en ;
+    rdfs:label "EventInvitation status → iCalendar ATTENDEE PARTSTAT"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "event" ; gmeow:value "att" ;
         gmeow:atom (
@@ -210,7 +210,7 @@ gmeow:mapIcalInvitationPartstat a gmeow:ProjectionMapping ;
 # Schedule recurrence rule → RRULE text. The structured rule is projected to the
 # RFC 5545 RRULE string; any additional structured metadata is dropped.
 gmeow:mapIcalRrule a gmeow:ProjectionMapping ;
-    rdfs:label "RecurrenceRule text → iCalendar RRULE"@en ;
+    rdfs:label "RecurrenceRule text → iCalendar RRULE"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "rule" ; gmeow:value "rrule" ;
         gmeow:atom (
@@ -225,7 +225,7 @@ gmeow:mapIcalRrule a gmeow:ProjectionMapping ;
 # VCALENDAR with a PRODID and VERSION; members are projected as separate
 # VEVENT/VTODO/VALARM components.
 gmeow:mapIcalVcalendar a gmeow:ProjectionMapping ;
-    rdfs:label "Calendar → iCalendar VCALENDAR (TZID)"@en ;
+    rdfs:label "Calendar → iCalendar VCALENDAR (TZID)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "cal" ;
         gmeow:atom (

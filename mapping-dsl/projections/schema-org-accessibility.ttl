@@ -15,7 +15,7 @@
 # flat shortcut triple when retracting an assertion.
 
 gmeow:mapSchemaAccessibilityFeature a gmeow:ProjectionMapping ;
-    rdfs:label "hasAccessibilityFeature → schema:accessibilityFeature (lossy)"@en ;
+    rdfs:label "hasAccessibilityFeature → schema:accessibilityFeature (lossy)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ; gmeow:value "featureFacet" ;
         gmeow:atom (
@@ -27,7 +27,7 @@ gmeow:mapSchemaAccessibilityFeature a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "GMEOW AccessibilityFacet individuals are emitted as IRIs; schema.org expects specific text tokens (wheelchairAccessible, stepFreeAccess, etc.). The consumer must map IRIs to tokens." ] .
 
 gmeow:mapSchemaAccessibilityHazard a gmeow:ProjectionMapping ;
-    rdfs:label "hasBarrier → schema:accessibilityHazard (lossy)"@en ;
+    rdfs:label "hasBarrier → schema:accessibilityHazard (lossy)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ; gmeow:value "hazardFacet" ;
         gmeow:atom (

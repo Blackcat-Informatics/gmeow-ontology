@@ -12,7 +12,7 @@
 # Note: dc:type is reserved — GMEOW has no direct workType property.
 
 gmeow:mapOaiDcTitle a gmeow:ProjectionMapping ;
-    rdfs:label "title → dc:title"@en ;
+    rdfs:label "title → dc:title"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "title" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:title ; gmeow:objectVar "title" ] ) ;
@@ -20,7 +20,7 @@ gmeow:mapOaiDcTitle a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "oai_dc" ; gmeow:toPredicate dc:title ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
 
 gmeow:mapOaiDcCreator a gmeow:ProjectionMapping ;
-    rdfs:label "hasAuthor → dc:creator"@en ;
+    rdfs:label "hasAuthor → dc:creator"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "author" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasAuthor ; gmeow:objectVar "author" ] ) ;
@@ -28,7 +28,7 @@ gmeow:mapOaiDcCreator a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "oai_dc" ; gmeow:toPredicate dc:creator ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
 
 gmeow:mapOaiDcContributor a gmeow:ProjectionMapping ;
-    rdfs:label "hasContributor → dc:contributor"@en ;
+    rdfs:label "hasContributor → dc:contributor"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "contrib" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasContributor ; gmeow:objectVar "contrib" ] ) ;
@@ -36,7 +36,7 @@ gmeow:mapOaiDcContributor a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "oai_dc" ; gmeow:toPredicate dc:contributor ; gmeow:relation "=" ; gmeow:confidence 0.85 ] .
 
 gmeow:mapOaiDcSubject a gmeow:ProjectionMapping ;
-    rdfs:label "isAbout → dc:subject"@en ;
+    rdfs:label "isAbout → dc:subject"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "topic" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:isAbout ; gmeow:objectVar "topic" ] ) ;
@@ -44,7 +44,7 @@ gmeow:mapOaiDcSubject a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "oai_dc" ; gmeow:toPredicate dc:subject ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
 
 gmeow:mapOaiDcDescription a gmeow:ProjectionMapping ;
-    rdfs:label "description → dc:description"@en ;
+    rdfs:label "description → dc:description"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "desc" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:description ; gmeow:objectVar "desc" ] ) ;
@@ -52,7 +52,7 @@ gmeow:mapOaiDcDescription a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "oai_dc" ; gmeow:toPredicate dc:description ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
 
 gmeow:mapOaiDcDate a gmeow:ProjectionMapping ;
-    rdfs:label "datePublished → dc:date (dumb-down: all date refinements collapse)"@en ;
+    rdfs:label "datePublished → dc:date (dumb-down: all date refinements collapse)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "date" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:datePublished ; gmeow:objectVar "date" ] ) ;
@@ -62,7 +62,7 @@ gmeow:mapOaiDcDate a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "dcterms:created / modified / issued / valid / available / dateAccepted / dateCopyrighted / dateSubmitted all collapse to dc:date" ] .
 
 gmeow:mapOaiDcIdentifier a gmeow:ProjectionMapping ;
-    rdfs:label "identifier → dc:identifier"@en ;
+    rdfs:label "identifier → dc:identifier"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "id" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:identifier ; gmeow:objectVar "id" ] ) ;
@@ -70,7 +70,7 @@ gmeow:mapOaiDcIdentifier a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "oai_dc" ; gmeow:toPredicate dc:identifier ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
 
 gmeow:mapOaiDcSource a gmeow:ProjectionMapping ;
-    rdfs:label "sourceLocation → dc:source"@en ;
+    rdfs:label "sourceLocation → dc:source"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "src" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:sourceLocation ; gmeow:objectVar "src" ] ) ;
@@ -78,7 +78,7 @@ gmeow:mapOaiDcSource a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "oai_dc" ; gmeow:toPredicate dc:source ; gmeow:relation "=" ; gmeow:confidence 0.8 ] .
 
 gmeow:mapOaiDcLanguage a gmeow:ProjectionMapping ;
-    rdfs:label "nameLanguage → dc:language (anchored on work)"@en ;
+    rdfs:label "nameLanguage → dc:language (anchored on work)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "lang" ;
         gmeow:atom (
@@ -91,7 +91,7 @@ gmeow:mapOaiDcLanguage a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "oai_dc" ; gmeow:toPredicate dc:language ; gmeow:relation "=" ; gmeow:confidence 0.8 ] .
 
 gmeow:mapOaiDcRelation a gmeow:ProjectionMapping ;
-    rdfs:label "hasPart / partOf → dc:relation (dumb-down: all relation refinements collapse)"@en ;
+    rdfs:label "hasPart / partOf → dc:relation (dumb-down: all relation refinements collapse)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "rel" ;
         gmeow:atom (
@@ -103,7 +103,7 @@ gmeow:mapOaiDcRelation a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "dcterms:hasPart / isPartOf / references / isReferencedBy / requires / isRequiredBy / replaces / isReplacedBy / hasVersion / isVersionOf / conformsTo all collapse to dc:relation" ] .
 
 gmeow:mapOaiDcRelation2 a gmeow:ProjectionMapping ;
-    rdfs:label "partOf → dc:relation (dumb-down)"@en ;
+    rdfs:label "partOf → dc:relation (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "rel" ;
         gmeow:atom (
@@ -115,7 +115,7 @@ gmeow:mapOaiDcRelation2 a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "dcterms:hasPart / isPartOf / references / isReferencedBy / requires / isRequiredBy / replaces / isReplacedBy / hasVersion / isVersionOf / conformsTo all collapse to dc:relation" ] .
 
 gmeow:mapOaiDcRights a gmeow:ProjectionMapping ;
-    rdfs:label "hasLicense / rightsHolder → dc:rights (dumb-down: all rights refinements collapse)"@en ;
+    rdfs:label "hasLicense / rightsHolder → dc:rights (dumb-down: all rights refinements collapse)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "lic" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasLicense ; gmeow:objectVar "lic" ] ) ;
@@ -125,7 +125,7 @@ gmeow:mapOaiDcRights a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "dcterms:license / rightsHolder / accessRights all collapse to dc:rights" ] .
 
 gmeow:mapOaiDcCoverage a gmeow:ProjectionMapping ;
-    rdfs:label "containedInPlace → dc:coverage (spatial coverage dumb-down)"@en ;
+    rdfs:label "containedInPlace → dc:coverage (spatial coverage dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "cov" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:containedInPlace ; gmeow:objectVar "cov" ] ) ;
@@ -135,7 +135,7 @@ gmeow:mapOaiDcCoverage a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "dcterms:spatial / temporal collapse to dc:coverage; GMEOW containedInPlace is the nearest flat spatial hook" ] .
 
 gmeow:mapOaiDcFormat a gmeow:ProjectionMapping ;
-    rdfs:label "dc:format (projected from Manifestation via embodies)"@en ;
+    rdfs:label "dc:format (projected from Manifestation via embodies)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "fmt" ;
         gmeow:atom (
@@ -147,7 +147,7 @@ gmeow:mapOaiDcFormat a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "GMEOW hasFormat lives on Manifestation, not Work; the projection traverses embodies" ] .
 
 gmeow:mapOaiDcPublisher a gmeow:ProjectionMapping ;
-    rdfs:label "dc:publisher (projected from production activity agent)"@en ;
+    rdfs:label "dc:publisher (projected from production activity agent)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "pub" ;
         gmeow:atom (
@@ -161,7 +161,7 @@ gmeow:mapOaiDcPublisher a gmeow:ProjectionMapping ;
 # --- OAI-DC dumb-down projections for DC refinements (issue #60) ----------- #
 
 gmeow:mapOaiDcDateCreated a gmeow:ProjectionMapping ;
-    rdfs:label "dateCreated → dc:date (dumb-down)"@en ;
+    rdfs:label "dateCreated → dc:date (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "date" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:dateCreated ; gmeow:objectVar "date" ] ) ;
@@ -171,7 +171,7 @@ gmeow:mapOaiDcDateCreated a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "all date refinements (created/modified/issued/available/accepted/submitted) collapse to dc:date" ] .
 
 gmeow:mapOaiDcDateModified a gmeow:ProjectionMapping ;
-    rdfs:label "dateModified → dc:date (dumb-down)"@en ;
+    rdfs:label "dateModified → dc:date (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "date" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:dateModified ; gmeow:objectVar "date" ] ) ;
@@ -181,7 +181,7 @@ gmeow:mapOaiDcDateModified a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "all date refinements collapse to dc:date" ] .
 
 gmeow:mapOaiDcDateAvailable a gmeow:ProjectionMapping ;
-    rdfs:label "dateAvailable → dc:date (dumb-down)"@en ;
+    rdfs:label "dateAvailable → dc:date (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "date" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:dateAvailable ; gmeow:objectVar "date" ] ) ;
@@ -191,7 +191,7 @@ gmeow:mapOaiDcDateAvailable a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "all date refinements collapse to dc:date" ] .
 
 gmeow:mapOaiDcDateAccepted a gmeow:ProjectionMapping ;
-    rdfs:label "dateAccepted → dc:date (dumb-down)"@en ;
+    rdfs:label "dateAccepted → dc:date (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "date" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:dateAccepted ; gmeow:objectVar "date" ] ) ;
@@ -201,7 +201,7 @@ gmeow:mapOaiDcDateAccepted a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "all date refinements collapse to dc:date" ] .
 
 gmeow:mapOaiDcDateSubmitted a gmeow:ProjectionMapping ;
-    rdfs:label "dateSubmitted → dc:date (dumb-down)"@en ;
+    rdfs:label "dateSubmitted → dc:date (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "date" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:dateSubmitted ; gmeow:objectVar "date" ] ) ;
@@ -211,7 +211,7 @@ gmeow:mapOaiDcDateSubmitted a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "all date refinements collapse to dc:date" ] .
 
 gmeow:mapOaiDcAbstract a gmeow:ProjectionMapping ;
-    rdfs:label "abstract → dc:description (dumb-down)"@en ;
+    rdfs:label "abstract → dc:description (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "val" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:abstract ; gmeow:objectVar "val" ] ) ;
@@ -221,7 +221,7 @@ gmeow:mapOaiDcAbstract a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "abstract/tableOfContents collapse to dc:description" ] .
 
 gmeow:mapOaiDcTableOfContents a gmeow:ProjectionMapping ;
-    rdfs:label "tableOfContents → dc:description (dumb-down)"@en ;
+    rdfs:label "tableOfContents → dc:description (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "val" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:tableOfContents ; gmeow:objectVar "val" ] ) ;
@@ -231,7 +231,7 @@ gmeow:mapOaiDcTableOfContents a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "abstract/tableOfContents collapse to dc:description" ] .
 
 gmeow:mapOaiDcReferences a gmeow:ProjectionMapping ;
-    rdfs:label "references → dc:relation (dumb-down)"@en ;
+    rdfs:label "references → dc:relation (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "rel" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:references ; gmeow:objectVar "rel" ] ) ;
@@ -241,7 +241,7 @@ gmeow:mapOaiDcReferences a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
 
 gmeow:mapOaiDcIsReferencedBy a gmeow:ProjectionMapping ;
-    rdfs:label "isReferencedBy → dc:relation (dumb-down)"@en ;
+    rdfs:label "isReferencedBy → dc:relation (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "rel" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:isReferencedBy ; gmeow:objectVar "rel" ] ) ;
@@ -251,7 +251,7 @@ gmeow:mapOaiDcIsReferencedBy a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
 
 gmeow:mapOaiDcRequires a gmeow:ProjectionMapping ;
-    rdfs:label "requires → dc:relation (dumb-down)"@en ;
+    rdfs:label "requires → dc:relation (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "rel" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:requires ; gmeow:objectVar "rel" ] ) ;
@@ -261,7 +261,7 @@ gmeow:mapOaiDcRequires a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
 
 gmeow:mapOaiDcIsRequiredBy a gmeow:ProjectionMapping ;
-    rdfs:label "isRequiredBy → dc:relation (dumb-down)"@en ;
+    rdfs:label "isRequiredBy → dc:relation (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "rel" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:isRequiredBy ; gmeow:objectVar "rel" ] ) ;
@@ -271,7 +271,7 @@ gmeow:mapOaiDcIsRequiredBy a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
 
 gmeow:mapOaiDcReplaces a gmeow:ProjectionMapping ;
-    rdfs:label "supersedes → dc:relation (dumb-down)"@en ;
+    rdfs:label "supersedes → dc:relation (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "rel" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:supersedes ; gmeow:objectVar "rel" ] ) ;
@@ -281,7 +281,7 @@ gmeow:mapOaiDcReplaces a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
 
 gmeow:mapOaiDcIsReplacedBy a gmeow:ProjectionMapping ;
-    rdfs:label "supersededBy → dc:relation (dumb-down)"@en ;
+    rdfs:label "supersededBy → dc:relation (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "rel" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:supersededBy ; gmeow:objectVar "rel" ] ) ;
@@ -291,7 +291,7 @@ gmeow:mapOaiDcIsReplacedBy a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
 
 gmeow:mapOaiDcHasVersion a gmeow:ProjectionMapping ;
-    rdfs:label "hasVersion → dc:relation (dumb-down)"@en ;
+    rdfs:label "hasVersion → dc:relation (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "rel" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasVersion ; gmeow:objectVar "rel" ] ) ;
@@ -301,7 +301,7 @@ gmeow:mapOaiDcHasVersion a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
 
 gmeow:mapOaiDcIsVersionOf a gmeow:ProjectionMapping ;
-    rdfs:label "versionOf → dc:relation (dumb-down)"@en ;
+    rdfs:label "versionOf → dc:relation (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "rel" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:versionOf ; gmeow:objectVar "rel" ] ) ;
@@ -311,7 +311,7 @@ gmeow:mapOaiDcIsVersionOf a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
 
 gmeow:mapOaiDcConformsTo a gmeow:ProjectionMapping ;
-    rdfs:label "conformsTo → dc:relation (dumb-down)"@en ;
+    rdfs:label "conformsTo → dc:relation (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "rel" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:conformsTo ; gmeow:objectVar "rel" ] ) ;
@@ -321,7 +321,7 @@ gmeow:mapOaiDcConformsTo a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "all relation refinements collapse to dc:relation" ] .
 
 gmeow:mapOaiDcSpatial a gmeow:ProjectionMapping ;
-    rdfs:label "spatialCoverage → dc:coverage (dumb-down)"@en ;
+    rdfs:label "spatialCoverage → dc:coverage (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "cov" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:spatialCoverage ; gmeow:objectVar "cov" ] ) ;
@@ -331,7 +331,7 @@ gmeow:mapOaiDcSpatial a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "spatial/temporal coverage refinements collapse to dc:coverage" ] .
 
 gmeow:mapOaiDcTemporal a gmeow:ProjectionMapping ;
-    rdfs:label "temporalCoverage → dc:coverage (dumb-down)"@en ;
+    rdfs:label "temporalCoverage → dc:coverage (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "cov" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:temporalCoverage ; gmeow:objectVar "cov" ] ) ;
@@ -341,7 +341,7 @@ gmeow:mapOaiDcTemporal a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "spatial/temporal coverage refinements collapse to dc:coverage" ] .
 
 gmeow:mapOaiDcBibliographicCitation a gmeow:ProjectionMapping ;
-    rdfs:label "bibliographicCitation → dc:relation (dumb-down)"@en ;
+    rdfs:label "bibliographicCitation → dc:relation (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "rel" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:bibliographicCitation ; gmeow:objectVar "rel" ] ) ;
@@ -351,7 +351,7 @@ gmeow:mapOaiDcBibliographicCitation a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "bibliographicCitation has no direct 15-element mapping; falls to dc:relation" ] .
 
 gmeow:mapOaiDcExtent a gmeow:ProjectionMapping ;
-    rdfs:label "extent → dc:format (dumb-down)"@en ;
+    rdfs:label "extent → dc:format (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "fmt" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:extent ; gmeow:objectVar "fmt" ] ) ;
@@ -361,7 +361,7 @@ gmeow:mapOaiDcExtent a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "extent/medium collapse to dc:format" ] .
 
 gmeow:mapOaiDcMedium a gmeow:ProjectionMapping ;
-    rdfs:label "medium → dc:format (dumb-down)"@en ;
+    rdfs:label "medium → dc:format (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "fmt" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:medium ; gmeow:objectVar "fmt" ] ) ;
@@ -371,7 +371,7 @@ gmeow:mapOaiDcMedium a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "extent/medium collapse to dc:format" ] .
 
 gmeow:mapOaiDcAudience a gmeow:ProjectionMapping ;
-    rdfs:label "audience → dc:description (no direct 15-element mapping)"@en ;
+    rdfs:label "audience → dc:description (no direct 15-element mapping)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "desc" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:audience ; gmeow:objectVar "desc" ] ) ;
@@ -381,7 +381,7 @@ gmeow:mapOaiDcAudience a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "audience has no direct 15-element mapping; falls to dc:description" ] .
 
 gmeow:mapOaiDcProvenance a gmeow:ProjectionMapping ;
-    rdfs:label "provenance → dc:source (dumb-down)"@en ;
+    rdfs:label "provenance → dc:source (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "src" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:provenance ; gmeow:objectVar "src" ] ) ;
@@ -391,7 +391,7 @@ gmeow:mapOaiDcProvenance a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "provenance falls to dc:source in the 15-element dumb-down" ] .
 
 gmeow:mapOaiDcAccessRights a gmeow:ProjectionMapping ;
-    rdfs:label "conditionsOfAccess → dc:rights (dumb-down)"@en ;
+    rdfs:label "conditionsOfAccess → dc:rights (dumb-down)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "rights" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:conditionsOfAccess ; gmeow:objectVar "rights" ] ) ;

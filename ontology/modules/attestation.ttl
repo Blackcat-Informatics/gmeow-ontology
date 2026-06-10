@@ -9,7 +9,7 @@
 
 <https://blackcatinformatics.ca/gmeow/modules/attestation>
     a owl:Ontology ;
-    rdfs:label "GMEOW Attestation Module"@en ;
+    rdfs:label "GMEOW Attestation Module"@x-gmeow-english ;
     rdfs:comment """Cross-cutting certified attestation layer: signed claims, signed artifacts, verification results, transparency-log evidence, and ledger/blockchain evidence. Separates the claim/observation (what is asserted) from the attestation (who vouches for it under which policy) from the cryptographic evidence (signature) from the verification result (an observed outcome, not truth itself). Aligns to PROV-O, in-toto, SLSA, DSSE, Sigstore, Rekor, SCITT, W3C Verifiable Credentials, C2PA, RATS/EAT, and nanopublications by reference (Principle 5).
 
 MODEL BOUNDARIES (Principles 1, 9, 12).
@@ -22,7 +22,7 @@ MODEL BOUNDARIES (Principles 1, 9, 12).
 REUSE.
 - Statement-level metadata (confidence, standpoint, temporal scope) reuses the cross-cutting annotation properties (provenance, standpoint, temporal modules).
 - Content identity reuses gmeow:contentDigest and gmeow:versionFingerprint.
-- The universal claim stack (Observation) is the target of attestedClaim, NOT the parent of Attestation."""@en ;
+- The universal claim stack (Observation) is the target of attestedClaim, NOT the parent of Attestation."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -32,40 +32,40 @@ REUSE.
 gmeow:Attestation
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
-    rdfs:label "Attestation"@en ;
-    skos:definition "A reified assertion envelope that an attester vouches for a claim, artifact, identity binding, process, quality report, or ledger claim under a specific policy. Mediates between an attester, an attested subject, and optionally an attested claim or artifact. Distinct from Observation: an attestation is a vouching act, not a measurement or sensory reading. Its validity window is carried with gmeow:validFrom/validUntil; revocation sets validUntil (Principle 10)."@en ;
+    rdfs:label "Attestation"@x-gmeow-english ;
+    skos:definition "A reified assertion envelope that an attester vouches for a claim, artifact, identity binding, process, quality report, or ledger claim under a specific policy. Mediates between an attester, an attested subject, and optionally an attested claim or artifact. Distinct from Observation: an attestation is a vouching act, not a measurement or sensory reading. Its validity window is carried with gmeow:validFrom/validUntil; revocation sets validUntil (Principle 10)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:attestationType
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:range gmeow:AttestationType ;
-    rdfs:label "attestation type"@en ;
-    skos:definition "The type of attestation being made — a value vocabulary individual from gmeow:AttestationType. Non-functional: an attestation may carry multiple type tags (e.g. both SLSA provenance and DSSE envelope)."@en ;
+    rdfs:label "attestation type"@x-gmeow-english ;
+    skos:definition "The type of attestation being made — a value vocabulary individual from gmeow:AttestationType. Non-functional: an attestation may carry multiple type tags (e.g. both SLSA provenance and DSSE envelope)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:attester
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:range gmeow:Agent ;
-    rdfs:label "attester"@en ;
-    skos:definition "The agent that issued an attestation — the vouching party. Functional within the relator: one attester per Attestation (co-authorship is modelled as multiple Attestations)."@en ;
+    rdfs:label "attester"@x-gmeow-english ;
+    skos:definition "The agent that issued an attestation — the vouching party. Functional within the relator: one attester per Attestation (co-authorship is modelled as multiple Attestations)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:attestedSubject
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:range gmeow:Entity ;
-    rdfs:label "attested subject"@en ;
-    skos:definition "The entity that an attestation is about — the thing being vouched for. Non-functional: an attestation may concern multiple subjects (e.g. a key↔identity binding certifies both a key and an identity), and competing subject claims coexist (Principle 9)."@en ;
+    rdfs:label "attested subject"@x-gmeow-english ;
+    skos:definition "The entity that an attestation is about — the thing being vouched for. Non-functional: an attestation may concern multiple subjects (e.g. a key↔identity binding certifies both a key and an identity), and competing subject claims coexist (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:attestedClaim
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:range gmeow:Observation ;
-    rdfs:label "attested claim"@en ;
-    skos:definition "The observation or claim that an attestation vouches for, when the subject of the attestation is itself a claim rather than a bare entity. Non-functional: an attestation may vouch for several related claims simultaneously."@en ;
+    rdfs:label "attested claim"@x-gmeow-english ;
+    skos:definition "The observation or claim that an attestation vouches for, when the subject of the attestation is itself a claim rather than a bare entity. Non-functional: an attestation may vouch for several related claims simultaneously."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasAttestation
@@ -73,32 +73,32 @@ gmeow:hasAttestation
     owl:inverseOf gmeow:attestedSubject ;
     rdfs:domain gmeow:Entity ;
     rdfs:range gmeow:Attestation ;
-    rdfs:label "has attestation"@en ;
-    skos:definition "Relates an entity to an attestation about it — the inverse of gmeow:attestedSubject. Non-functional: an entity may have many co-existing attestations from different attesters (Principle 9)."@en ;
+    rdfs:label "has attestation"@x-gmeow-english ;
+    skos:definition "Relates an entity to an attestation about it — the inverse of gmeow:attestedSubject. Non-functional: an entity may have many co-existing attestations from different attesters (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:attestationArtifact
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:range gmeow:AttestationArtifact ;
-    rdfs:label "attestation artifact"@en ;
-    skos:definition "The concrete carrier (in-toto JSON, VC, DSSE envelope, C2PA manifest, etc.) that embodies an attestation. Non-functional: an attestation may be carried by multiple equivalent artifacts under different formats."@en ;
+    rdfs:label "attestation artifact"@x-gmeow-english ;
+    skos:definition "The concrete carrier (in-toto JSON, VC, DSSE envelope, C2PA manifest, etc.) that embodies an attestation. Non-functional: an attestation may be carried by multiple equivalent artifacts under different formats."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:attestationPolicy
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:range gmeow:AttestationPolicy ;
-    rdfs:label "attestation policy"@en ;
-    skos:definition "The policy under which an attestation was issued — a value vocabulary individual naming the rules or framework the attester followed. Non-functional: competing policy interpretations coexist (Principle 9)."@en ;
+    rdfs:label "attestation policy"@x-gmeow-english ;
+    skos:definition "The policy under which an attestation was issued — a value vocabulary individual naming the rules or framework the attester followed. Non-functional: competing policy interpretations coexist (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:issuedAt
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:range xsd:dateTime ;
-    rdfs:label "issued at"@en ;
-    skos:definition "The instant an attestation was issued. Functional: the issue time is constitutive of the attestation's identity."@en ;
+    rdfs:label "issued at"@x-gmeow-english ;
+    skos:definition "The instant an attestation was issued. Functional: the issue time is constitutive of the attestation's identity."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -108,16 +108,16 @@ gmeow:issuedAt
 gmeow:AttestationArtifact
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Attestation Artifact"@en ;
-    skos:definition "A concrete carrier of an attestation — in-toto JSON, SLSA provenance, W3C Verifiable Credential, DSSE envelope, C2PA manifest, EAT token, signed RDF graph, SCITT signed statement, nanopublication, signed git tag, release manifest, or signed blockchain payload. The artifact is the serialization; the Attestation is the logical vouching act that the artifact carries."@en ;
+    rdfs:label "Attestation Artifact"@x-gmeow-english ;
+    skos:definition "A concrete carrier of an attestation — in-toto JSON, SLSA provenance, W3C Verifiable Credential, DSSE envelope, C2PA manifest, EAT token, signed RDF graph, SCITT signed statement, nanopublication, signed git tag, release manifest, or signed blockchain payload. The artifact is the serialization; the Attestation is the logical vouching act that the artifact carries."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:artifactMediaType
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:AttestationArtifact ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "artifact media type"@en ;
-    skos:definition "The media type of the attestation artifact's serialization (e.g. application/vnd.in-toto+json, application/vc+ld+json)."@en ;
+    rdfs:label "artifact media type"@x-gmeow-english ;
+    skos:definition "The media type of the attestation artifact's serialization (e.g. application/vnd.in-toto+json, application/vc+ld+json)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -127,16 +127,16 @@ gmeow:artifactMediaType
 gmeow:hasSignature
     a owl:ObjectProperty ;
     rdfs:range gmeow:CryptographicSignature ;
-    rdfs:label "has signature"@en ;
-    skos:definition "Relates an entity, attestation, or artifact to a cryptographic signature over it. Domain-free (universal spine): anything may carry a signature. The message-specific convenience property with domain gmeow:Message lives in the messaging-trust module as a historical subproperty."@en ;
+    rdfs:label "has signature"@x-gmeow-english ;
+    skos:definition "Relates an entity, attestation, or artifact to a cryptographic signature over it. Domain-free (universal spine): anything may carry a signature. The message-specific convenience property with domain gmeow:Message lives in the messaging-trust module as a historical subproperty."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:signatureOf
     a owl:ObjectProperty ;
     owl:inverseOf gmeow:hasSignature ;
     rdfs:domain gmeow:CryptographicSignature ;
-    rdfs:label "signature of"@en ;
-    skos:definition "The entity, attestation, or artifact that a cryptographic signature is over — the inverse of gmeow:hasSignature."@en ;
+    rdfs:label "signature of"@x-gmeow-english ;
+    skos:definition "The entity, attestation, or artifact that a cryptographic signature is over — the inverse of gmeow:hasSignature."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -146,47 +146,47 @@ gmeow:signatureOf
 gmeow:VerificationActivity
     a owl:Class, gufo:EventType ;
     rdfs:subClassOf gmeow:Activity ;
-    rdfs:label "Verification Activity"@en ;
-    skos:definition "An activity that checks a signature, attestation, artifact, or ledger inclusion proof — performed by a verifier agent or software. The outcome is a gmeow:VerificationResult, not a global truth assertion."@en ;
+    rdfs:label "Verification Activity"@x-gmeow-english ;
+    skos:definition "An activity that checks a signature, attestation, artifact, or ledger inclusion proof — performed by a verifier agent or software. The outcome is a gmeow:VerificationResult, not a global truth assertion."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:VerificationResult
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Verification Result"@en ;
-    skos:definition "An information object recording the outcome of a verification activity — verified, failed, unverified, expired, revoked, policy-failed, finality-pending, etc. A verification result is an observation output, not an axiom of correctness (Principle 12)."@en ;
+    rdfs:label "Verification Result"@x-gmeow-english ;
+    skos:definition "An information object recording the outcome of a verification activity — verified, failed, unverified, expired, revoked, policy-failed, finality-pending, etc. A verification result is an observation output, not an axiom of correctness (Principle 12)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:verificationActivity
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:range gmeow:VerificationActivity ;
-    rdfs:label "verification activity"@en ;
-    skos:definition "The verification activity performed on an attestation. Non-functional: an attestation may be verified multiple times by different verifiers."@en ;
+    rdfs:label "verification activity"@x-gmeow-english ;
+    skos:definition "The verification activity performed on an attestation. Non-functional: an attestation may be verified multiple times by different verifiers."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:verificationResult
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:range gmeow:VerificationResult ;
-    rdfs:label "verification result"@en ;
-    skos:definition "The result of a verification activity applied to an attestation. Non-functional: multiple verification results may coexist from different verifiers or at different times."@en ;
+    rdfs:label "verification result"@x-gmeow-english ;
+    skos:definition "The result of a verification activity applied to an attestation. Non-functional: multiple verification results may coexist from different verifiers or at different times."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:verifiedBy
     a owl:ObjectProperty ;
     rdfs:domain gmeow:VerificationResult ;
     rdfs:range gmeow:Agent ;
-    rdfs:label "verified by"@en ;
-    skos:definition "The agent that produced a verification result. Non-functional: joint verification by multiple agents is valid."@en ;
+    rdfs:label "verified by"@x-gmeow-english ;
+    skos:definition "The agent that produced a verification result. Non-functional: joint verification by multiple agents is valid."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasVerificationStatus
     a owl:ObjectProperty ;
     rdfs:domain gmeow:VerificationResult ;
     rdfs:range gmeow:VerificationStatus ;
-    rdfs:label "has verification status"@en ;
-    skos:definition "The categorical outcome of a verification result. Non-functional: a single result may carry multiple status interpretations (e.g. 'verified but expired')."@en ;
+    rdfs:label "has verification status"@x-gmeow-english ;
+    skos:definition "The categorical outcome of a verification result. Non-functional: a single result may carry multiple status interpretations (e.g. 'verified but expired')."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -196,32 +196,32 @@ gmeow:hasVerificationStatus
 gmeow:TransparencyLogEntry
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Transparency Log Entry"@en ;
-    skos:definition "An append-only registry evidence record such as a Rekor entry, SCITT receipt, certificate-transparency log entry, or timestamp/notary log entry. Proves inclusion at a point in time, not correctness (Principle 1)."@en ;
+    rdfs:label "Transparency Log Entry"@x-gmeow-english ;
+    skos:definition "An append-only registry evidence record such as a Rekor entry, SCITT receipt, certificate-transparency log entry, or timestamp/notary log entry. Proves inclusion at a point in time, not correctness (Principle 1)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:transparencyLogEntry
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:range gmeow:TransparencyLogEntry ;
-    rdfs:label "transparency log entry"@en ;
-    skos:definition "A transparency log entry associated with an attestation. Non-functional: an attestation may have entries in multiple logs."@en ;
+    rdfs:label "transparency log entry"@x-gmeow-english ;
+    skos:definition "A transparency log entry associated with an attestation. Non-functional: an attestation may have entries in multiple logs."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:logEntryUrl
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:TransparencyLogEntry ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "log entry URL"@en ;
-    skos:definition "A URL at which the transparency log entry can be retrieved. Non-functional: multiple mirrors may exist."@en ;
+    rdfs:label "log entry URL"@x-gmeow-english ;
+    skos:definition "A URL at which the transparency log entry can be retrieved. Non-functional: multiple mirrors may exist."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:logEntryIndex
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:TransparencyLogEntry ;
     rdfs:range xsd:integer ;
-    rdfs:label "log entry index"@en ;
-    skos:definition "The sequential index of the entry within its transparency log."@en ;
+    rdfs:label "log entry index"@x-gmeow-english ;
+    skos:definition "The sequential index of the entry within its transparency log."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -231,43 +231,43 @@ gmeow:logEntryIndex
 gmeow:LedgerTransaction
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Ledger Transaction"@en ;
-    skos:definition "A transaction recorded on a distributed ledger or blockchain — the information-object representation of the payload, not the on-chain bytes themselves."@en ;
+    rdfs:label "Ledger Transaction"@x-gmeow-english ;
+    skos:definition "A transaction recorded on a distributed ledger or blockchain — the information-object representation of the payload, not the on-chain bytes themselves."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:LedgerEvent
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Event ;
-    rdfs:label "Ledger Event"@en ;
-    skos:definition "An event emitted by a smart contract or recorded on a ledger — a log entry, oracle callback, or bridge message."@en ;
+    rdfs:label "Ledger Event"@x-gmeow-english ;
+    skos:definition "An event emitted by a smart contract or recorded on a ledger — a log entry, oracle callback, or bridge message."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Block
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Block"@en ;
-    skos:definition "A block of transactions on a distributed ledger or blockchain."@en ;
+    rdfs:label "Block"@x-gmeow-english ;
+    skos:definition "A block of transactions on a distributed ledger or blockchain."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:BlockchainNetwork
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity ;
-    rdfs:label "Blockchain Network"@en ;
-    skos:definition "A blockchain network identified by a chain identifier (e.g. CAIP-2 chainId)."@en ;
+    rdfs:label "Blockchain Network"@x-gmeow-english ;
+    skos:definition "A blockchain network identified by a chain identifier (e.g. CAIP-2 chainId)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:SmartContract
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity ;
-    rdfs:label "Smart Contract"@en ;
-    skos:definition "A deployed program on a blockchain or distributed ledger, identified by a contract address."@en ;
+    rdfs:label "Smart Contract"@x-gmeow-english ;
+    skos:definition "A deployed program on a blockchain or distributed ledger, identified by a contract address."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:BlockchainAccount
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity ;
-    rdfs:label "Blockchain Account"@en ;
-    skos:definition "An address-controlled account on a blockchain or distributed ledger — the entity that holds assets, signs transactions, or controls a smart contract. Aligns to CAIP-10 account identifiers and did:pkh."@en ;
+    rdfs:label "Blockchain Account"@x-gmeow-english ;
+    skos:definition "An address-controlled account on a blockchain or distributed ledger — the entity that holds assets, signs transactions, or controls a smart contract. Aligns to CAIP-10 account identifiers and did:pkh."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # Ledger properties (domain-free where the property spans multiple ledger types)
@@ -276,76 +276,76 @@ gmeow:chainId
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:BlockchainNetwork ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "chain id"@en ;
-    skos:definition "The chain identifier of a blockchain network (e.g. CAIP-2 chainId, eip155:1)."@en ;
+    rdfs:label "chain id"@x-gmeow-english ;
+    skos:definition "The chain identifier of a blockchain network (e.g. CAIP-2 chainId, eip155:1)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:transactionHash
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:LedgerTransaction ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "transaction hash"@en ;
-    skos:definition "The hash of a ledger transaction."@en ;
+    rdfs:label "transaction hash"@x-gmeow-english ;
+    skos:definition "The hash of a ledger transaction."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:blockHash
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Block ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "block hash"@en ;
-    skos:definition "The hash of a ledger block."@en ;
+    rdfs:label "block hash"@x-gmeow-english ;
+    skos:definition "The hash of a ledger block."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:blockNumber
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Block ;
     rdfs:range xsd:integer ;
-    rdfs:label "block number"@en ;
-    skos:definition "The sequential number of a ledger block."@en ;
+    rdfs:label "block number"@x-gmeow-english ;
+    skos:definition "The sequential number of a ledger block."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:logIndex
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:LedgerEvent ;
     rdfs:range xsd:integer ;
-    rdfs:label "log index"@en ;
-    skos:definition "The index of a ledger event within its containing block or transaction."@en ;
+    rdfs:label "log index"@x-gmeow-english ;
+    skos:definition "The index of a ledger event within its containing block or transaction."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:contractAddress
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:SmartContract ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "contract address"@en ;
-    skos:definition "The address at which a smart contract is deployed."@en ;
+    rdfs:label "contract address"@x-gmeow-english ;
+    skos:definition "The address at which a smart contract is deployed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:ledgerInclusionProof
     a owl:DatatypeProperty ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "ledger inclusion proof"@en ;
-    skos:definition "A cryptographic inclusion proof for a transaction, event, or transparency log entry. Domain-free: applies to LedgerTransaction, LedgerEvent, TransparencyLogEntry, and Block."@en ;
+    rdfs:label "ledger inclusion proof"@x-gmeow-english ;
+    skos:definition "A cryptographic inclusion proof for a transaction, event, or transparency log entry. Domain-free: applies to LedgerTransaction, LedgerEvent, TransparencyLogEntry, and Block."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:confirmationDepth
     a owl:DatatypeProperty ;
     rdfs:range xsd:integer ;
-    rdfs:label "confirmation depth"@en ;
-    skos:definition "The number of blocks confirming a transaction or log entry since its inclusion. Domain-free."@en ;
+    rdfs:label "confirmation depth"@x-gmeow-english ;
+    skos:definition "The number of blocks confirming a transaction or log entry since its inclusion. Domain-free."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:finalityStatus
     a owl:ObjectProperty ;
     rdfs:range gmeow:LedgerFinalityStatus ;
-    rdfs:label "finality status"@en ;
-    skos:definition "The finality status of a ledger transaction or block. Domain-free."@en ;
+    rdfs:label "finality status"@x-gmeow-english ;
+    skos:definition "The finality status of a ledger transaction or block. Domain-free."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:signatureRecoveryAddress
     a owl:DatatypeProperty ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "signature recovery address"@en ;
-    skos:definition "The blockchain address recovered from a signature's recovery data. Domain-free: may apply to CryptographicSignature or BlockchainAccount."@en ;
+    rdfs:label "signature recovery address"@x-gmeow-english ;
+    skos:definition "The blockchain address recovered from a signature's recovery data. Domain-free: may apply to CryptographicSignature or BlockchainAccount."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -355,72 +355,72 @@ gmeow:signatureRecoveryAddress
 gmeow:AttestationType
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Attestation Type"@en ;
-    skos:definition "The kind of attestation being made — a value vocabulary (individuals, never subclasses). Distinguishes SLSA provenance, in-toto attestation, VC, DSSE envelope, C2PA manifest, EAT token, signed RDF, SCITT statement, nanopublication, blockchain claim, git signed tag, release manifest, quality report attestation, and AI output attestation."@en ;
+    rdfs:label "Attestation Type"@x-gmeow-english ;
+    skos:definition "The kind of attestation being made — a value vocabulary (individuals, never subclasses). Distinguishes SLSA provenance, in-toto attestation, VC, DSSE envelope, C2PA manifest, EAT token, signed RDF, SCITT statement, nanopublication, blockchain claim, git signed tag, release manifest, quality report attestation, and AI output attestation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:attestationTypeSLSAProvenance      a gmeow:AttestationType ; rdfs:label "SLSA provenance"@en ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeInToto              a gmeow:AttestationType ; rdfs:label "in-toto attestation"@en ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeDSSE                a gmeow:AttestationType ; rdfs:label "DSSE envelope"@en ;           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeVerifiableCredential a gmeow:AttestationType ; rdfs:label "verifiable credential"@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeC2PA                a gmeow:AttestationType ; rdfs:label "C2PA manifest"@en ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeEAT                 a gmeow:AttestationType ; rdfs:label "EAT token"@en ;               rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeSignedRDF           a gmeow:AttestationType ; rdfs:label "signed RDF graph"@en ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeSCITT               a gmeow:AttestationType ; rdfs:label "SCITT signed statement"@en ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeNanopublication     a gmeow:AttestationType ; rdfs:label "nanopublication"@en ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeBlockchainClaim     a gmeow:AttestationType ; rdfs:label "blockchain claim"@en ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeGitSignedTag        a gmeow:AttestationType ; rdfs:label "git signed tag"@en ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeReleaseManifest     a gmeow:AttestationType ; rdfs:label "release manifest"@en ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeQualityReport       a gmeow:AttestationType ; rdfs:label "quality report attestation"@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:attestationTypeAIOutput            a gmeow:AttestationType ; rdfs:label "AI output attestation"@en ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:attestationTypeSLSAProvenance      a gmeow:AttestationType ; rdfs:label "SLSA provenance"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:attestationTypeInToto              a gmeow:AttestationType ; rdfs:label "in-toto attestation"@x-gmeow-english ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:attestationTypeDSSE                a gmeow:AttestationType ; rdfs:label "DSSE envelope"@x-gmeow-english ;           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:attestationTypeVerifiableCredential a gmeow:AttestationType ; rdfs:label "verifiable credential"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:attestationTypeC2PA                a gmeow:AttestationType ; rdfs:label "C2PA manifest"@x-gmeow-english ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:attestationTypeEAT                 a gmeow:AttestationType ; rdfs:label "EAT token"@x-gmeow-english ;               rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:attestationTypeSignedRDF           a gmeow:AttestationType ; rdfs:label "signed RDF graph"@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:attestationTypeSCITT               a gmeow:AttestationType ; rdfs:label "SCITT signed statement"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:attestationTypeNanopublication     a gmeow:AttestationType ; rdfs:label "nanopublication"@x-gmeow-english ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:attestationTypeBlockchainClaim     a gmeow:AttestationType ; rdfs:label "blockchain claim"@x-gmeow-english ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:attestationTypeGitSignedTag        a gmeow:AttestationType ; rdfs:label "git signed tag"@x-gmeow-english ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:attestationTypeReleaseManifest     a gmeow:AttestationType ; rdfs:label "release manifest"@x-gmeow-english ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:attestationTypeQualityReport       a gmeow:AttestationType ; rdfs:label "quality report attestation"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:attestationTypeAIOutput            a gmeow:AttestationType ; rdfs:label "AI output attestation"@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:AttestationPolicy
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Attestation Policy"@en ;
-    skos:definition "The policy or framework under which an attestation was issued — a value vocabulary (individuals, never subclasses). Open-ended; specific policies are minted as needed."@en ;
+    rdfs:label "Attestation Policy"@x-gmeow-english ;
+    skos:definition "The policy or framework under which an attestation was issued — a value vocabulary (individuals, never subclasses). Open-ended; specific policies are minted as needed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:SignatureScheme
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Signature Scheme"@en ;
-    skos:definition "The cryptographic signature scheme used — a value vocabulary (individuals, never subclasses). Distinct from gmeow:KeyScheme: a key scheme names the key format (OpenPGP, X.509), while a signature scheme names the algorithm (RSA-SHA256, Ed25519)."@en ;
+    rdfs:label "Signature Scheme"@x-gmeow-english ;
+    skos:definition "The cryptographic signature scheme used — a value vocabulary (individuals, never subclasses). Distinct from gmeow:KeyScheme: a key scheme names the key format (OpenPGP, X.509), while a signature scheme names the algorithm (RSA-SHA256, Ed25519)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:signatureSchemeRSASHA256    a gmeow:SignatureScheme ; rdfs:label "RSA-SHA256"@en ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:signatureSchemeEd25519      a gmeow:SignatureScheme ; rdfs:label "Ed25519"@en ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:signatureSchemeECDSASecp256k1 a gmeow:SignatureScheme ; rdfs:label "ECDSA-secp256k1"@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:signatureSchemeECDSAP256    a gmeow:SignatureScheme ; rdfs:label "ECDSA-P256"@en ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:signatureSchemeBLS12-381    a gmeow:SignatureScheme ; rdfs:label "BLS12-381"@en ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:signatureSchemeRSASHA256    a gmeow:SignatureScheme ; rdfs:label "RSA-SHA256"@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:signatureSchemeEd25519      a gmeow:SignatureScheme ; rdfs:label "Ed25519"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:signatureSchemeECDSASecp256k1 a gmeow:SignatureScheme ; rdfs:label "ECDSA-secp256k1"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:signatureSchemeECDSAP256    a gmeow:SignatureScheme ; rdfs:label "ECDSA-P256"@x-gmeow-english ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:signatureSchemeBLS12-381    a gmeow:SignatureScheme ; rdfs:label "BLS12-381"@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:VerificationStatus
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Verification Status"@en ;
-    skos:definition "The outcome status of a verification result — a value vocabulary (individuals, never subclasses)."@en ;
+    rdfs:label "Verification Status"@x-gmeow-english ;
+    skos:definition "The outcome status of a verification result — a value vocabulary (individuals, never subclasses)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:verificationStatusVerified      a gmeow:VerificationStatus ; rdfs:label "verified"@en ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:verificationStatusFailed        a gmeow:VerificationStatus ; rdfs:label "failed"@en ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:verificationStatusUnverified    a gmeow:VerificationStatus ; rdfs:label "unverified"@en ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:verificationStatusExpired       a gmeow:VerificationStatus ; rdfs:label "expired"@en ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:verificationStatusRevoked       a gmeow:VerificationStatus ; rdfs:label "revoked"@en ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:verificationStatusPolicyFailed  a gmeow:VerificationStatus ; rdfs:label "policy failed"@en ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:verificationStatusFinalityPending a gmeow:VerificationStatus ; rdfs:label "finality pending"@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:verificationStatusVerified      a gmeow:VerificationStatus ; rdfs:label "verified"@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:verificationStatusFailed        a gmeow:VerificationStatus ; rdfs:label "failed"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:verificationStatusUnverified    a gmeow:VerificationStatus ; rdfs:label "unverified"@x-gmeow-english ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:verificationStatusExpired       a gmeow:VerificationStatus ; rdfs:label "expired"@x-gmeow-english ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:verificationStatusRevoked       a gmeow:VerificationStatus ; rdfs:label "revoked"@x-gmeow-english ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:verificationStatusPolicyFailed  a gmeow:VerificationStatus ; rdfs:label "policy failed"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:verificationStatusFinalityPending a gmeow:VerificationStatus ; rdfs:label "finality pending"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:LedgerFinalityStatus
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Ledger Finality Status"@en ;
-    skos:definition "The finality state of a ledger transaction or block — a value vocabulary (individuals, never subclasses)."@en ;
+    rdfs:label "Ledger Finality Status"@x-gmeow-english ;
+    skos:definition "The finality state of a ledger transaction or block — a value vocabulary (individuals, never subclasses)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:finalityStatusPending   a gmeow:LedgerFinalityStatus ; rdfs:label "pending"@en ;   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:finalityStatusConfirmed a gmeow:LedgerFinalityStatus ; rdfs:label "confirmed"@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:finalityStatusFinalized a gmeow:LedgerFinalityStatus ; rdfs:label "finalized"@en ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:finalityStatusOrphaned  a gmeow:LedgerFinalityStatus ; rdfs:label "orphaned"@en ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:finalityStatusReorged   a gmeow:LedgerFinalityStatus ; rdfs:label "reorged"@en ;   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:finalityStatusPending   a gmeow:LedgerFinalityStatus ; rdfs:label "pending"@x-gmeow-english ;   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:finalityStatusConfirmed a gmeow:LedgerFinalityStatus ; rdfs:label "confirmed"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:finalityStatusFinalized a gmeow:LedgerFinalityStatus ; rdfs:label "finalized"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:finalityStatusOrphaned  a gmeow:LedgerFinalityStatus ; rdfs:label "orphaned"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:finalityStatusReorged   a gmeow:LedgerFinalityStatus ; rdfs:label "reorged"@x-gmeow-english ;   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
 # CROSS-CUTTING REUSE DECLARATION

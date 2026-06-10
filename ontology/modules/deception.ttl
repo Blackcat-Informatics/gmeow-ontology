@@ -8,7 +8,7 @@
 
 <https://blackcatinformatics.ca/gmeow/modules/deception>
     a owl:Ontology ;
-    rdfs:label "GMEOW Deception Module"@en ;
+    rdfs:label "GMEOW Deception Module"@x-gmeow-english ;
     rdfs:comment """Cross-cutting deception, falsehood, and misinformation facility. Builds on the standpoint module (#43) and the event module (#41) to model deceptive acts as standpoint-indexed divergences between what a party holds true and what they project. Part of the Deception EPIC (#212).
 
 DOCTRINE.
@@ -18,7 +18,7 @@ DOCTRINE.
   * Intent is kept OUT of the logic: gmeow:deceptiveIntentClaim is a StandpointClaim (attributed/defeasible — vantage = assessor, wasAttributedTo, confidence).
   * Self-deception is a structural configuration: roleDeceiver = roleDeceived, avowed vs tacit sub-vantage.
   * The licensed-falsehood safety property (fiction, satire, sarcasm) is modelled via gmeow:veridicalityLicensedFalsehood, keeping these forms distinct from deception.
-  * DL-clean by construction (Principle 3): all new properties are simple ObjectProperties, no transitivity/chain/inverse axioms."""@en ;
+  * DL-clean by construction (Principle 3): all new properties are simple ObjectProperties, no transitivity/chain/inverse axioms."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -27,8 +27,8 @@ DOCTRINE.
 
 gmeow:eventTypeDeception
     a gmeow:EventType ;
-    rdfs:label "deception"@en ;
-    skos:definition "An event in which one or more participants intentionally or knowingly project a standpoint that diverges from the standpoint they actually hold, causing another party to form a false belief. The kind of a deception event is a value, not a class (events.ttl doctrine)."@en .
+    rdfs:label "deception"@x-gmeow-english ;
+    skos:definition "An event in which one or more participants intentionally or knowingly project a standpoint that diverges from the standpoint they actually hold, causing another party to form a false belief. The kind of a deception event is a value, not a class (events.ttl doctrine)."@x-gmeow-english .
 
 # =========================================================================== #
 # DIVERGENCE PROPERTIES — the core deception model.
@@ -38,16 +38,16 @@ gmeow:heldStandpoint
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:range gmeow:StandpointClaim ;
-    rdfs:label "held standpoint"@en ;
-    skos:definition "The standpoint claim that the deceiver actually holds to be true — the private belief or position that contrasts with the projected standpoint in a deception event. Non-functional: a complex deception may involve multiple held standpoints."@en ;
+    rdfs:label "held standpoint"@x-gmeow-english ;
+    skos:definition "The standpoint claim that the deceiver actually holds to be true — the private belief or position that contrasts with the projected standpoint in a deception event. Non-functional: a complex deception may involve multiple held standpoints."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:projectedStandpoint
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:range gmeow:StandpointClaim ;
-    rdfs:label "projected standpoint"@en ;
-    skos:definition "The standpoint claim that the deceiver projects to the deceived party — the public or communicated position that diverges from the held standpoint in a deception event. Non-functional: a complex deception may project several standpoints to different audiences."@en ;
+    rdfs:label "projected standpoint"@x-gmeow-english ;
+    skos:definition "The standpoint claim that the deceiver projects to the deceived party — the public or communicated position that diverges from the held standpoint in a deception event. Non-functional: a complex deception may project several standpoints to different audiences."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -58,8 +58,8 @@ gmeow:deceptiveIntentClaim
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:range gmeow:StandpointClaim ;
-    rdfs:label "deceptive intent claim"@en ;
-    skos:definition "An attributed, defeasible standpoint claim that the event was carried out with deceptive intent. The vantage is the assessor (who attributes the intent), not the deceiver; the claim carries gmeow:confidence and gmeow:wasAttributedTo. Intent is NEVER entailed by the reasoner — it is a contestable attribution that coexists with its denial (Principle 9)."@en ;
+    rdfs:label "deceptive intent claim"@x-gmeow-english ;
+    skos:definition "An attributed, defeasible standpoint claim that the event was carried out with deceptive intent. The vantage is the assessor (who attributes the intent), not the deceiver; the claim carries gmeow:confidence and gmeow:wasAttributedTo. Intent is NEVER entailed by the reasoner — it is a contestable attribution that coexists with its denial (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -70,8 +70,8 @@ gmeow:implicates
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:range gmeow:Entity ;
-    rdfs:label "implicates"@en ;
-    skos:definition "Relates a deceptive event to a proposition or entity that it conversationally or contextually implicates — the paltering mechanism, where a literally true statement misleadingly implies a false conclusion. No reasoner semantics: implicature is a solver-layer computation (Principle 12), not an OWL entailment."@en ;
+    rdfs:label "implicates"@x-gmeow-english ;
+    skos:definition "Relates a deceptive event to a proposition or entity that it conversationally or contextually implicates — the paltering mechanism, where a literally true statement misleadingly implies a false conclusion. No reasoner semantics: implicature is a solver-layer computation (Principle 12), not an OWL entailment."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -82,8 +82,8 @@ gmeow:deceptionCue
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:range gmeow:Observation ;
-    rdfs:label "deception cue"@en ;
-    skos:definition "An observation that serves as a cue or indicator of deception in the event — a behavioural, linguistic, or evidential signal. Non-functional: a deception event may have many cues, and competing standpoint-indexed cue claims coexist (Principle 9). The scoring and weighting of cues is solver-layer (Principle 12)."@en ;
+    rdfs:label "deception cue"@x-gmeow-english ;
+    skos:definition "An observation that serves as a cue or indicator of deception in the event — a behavioural, linguistic, or evidential signal. Non-functional: a deception event may have many cues, and competing standpoint-indexed cue claims coexist (Principle 9). The scoring and weighting of cues is solver-layer (Principle 12)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -92,8 +92,8 @@ gmeow:deceptionCue
 
 gmeow:attestationTypeFactCheck
     a gmeow:AttestationType ;
-    rdfs:label "fact check"@en ;
-    skos:definition "An attestation whose purpose is to verify or refute a claim — the schema.org ClaimReview act, modelled as an attestation with type fact-check. The result is a VerificationResult, not a global truth assertion (Principle 12)."@en .
+    rdfs:label "fact check"@x-gmeow-english ;
+    skos:definition "An attestation whose purpose is to verify or refute a claim — the schema.org ClaimReview act, modelled as an attestation with type fact-check. The result is a VerificationResult, not a global truth assertion (Principle 12)."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Veridicality property — links a claim to its veridicality status.
@@ -103,8 +103,8 @@ gmeow:claimVeridicality
     a owl:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:range gmeow:ClaimVeridicality ;
-    rdfs:label "claim veridicality"@en ;
-    skos:definition "The veridicality status of a claim — whether it is untrue, licensed-false (fiction, satire, sarcasm), or true. Non-functional: a claim may carry multiple veridicality assessments from different standpoints (Principle 9)."@en ;
+    rdfs:label "claim veridicality"@x-gmeow-english ;
+    skos:definition "The veridicality status of a claim — whether it is untrue, licensed-false (fiction, satire, sarcasm), or true. Non-functional: a claim may carry multiple veridicality assessments from different standpoints (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -114,19 +114,19 @@ gmeow:claimVeridicality
 gmeow:ClaimVeridicality
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Claim Veridicality"@en ;
-    skos:definition "The veridicality status of a claim — whether it is untrue, licensed-false (fiction, satire, sarcasm), or true. A closed value vocabulary (individuals, never subclasses) that makes the licensed-falsehood safety property explicit, separating intentional deception from harmless fictional assertion."@en ;
+    rdfs:label "Claim Veridicality"@x-gmeow-english ;
+    skos:definition "The veridicality status of a claim — whether it is untrue, licensed-false (fiction, satire, sarcasm), or true. A closed value vocabulary (individuals, never subclasses) that makes the licensed-falsehood safety property explicit, separating intentional deception from harmless fictional assertion."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:veridicalityUntrue
     a gmeow:ClaimVeridicality ;
-    rdfs:label "untrue"@en ;
-    skos:definition "The claim is not true — a statement that fails to correspond to fact. This is a frame-relative assessment (a claim may be refuted in one standpoint and unequivocal in another); it is NOT a global truth verdict (Principle 11)."@en .
+    rdfs:label "untrue"@x-gmeow-english ;
+    skos:definition "The claim is not true — a statement that fails to correspond to fact. This is a frame-relative assessment (a claim may be refuted in one standpoint and unequivocal in another); it is NOT a global truth verdict (Principle 11)."@x-gmeow-english .
 
 gmeow:veridicalityLicensedFalsehood
     a gmeow:ClaimVeridicality ;
-    rdfs:label "licensed falsehood"@en ;
-    skos:definition "The claim is fiction, satire, sarcasm, or another form of falsehood that is socially licensed and not deceptive — the audience understands the non-truth-asserting frame. This safety property separates harmless fictional assertion from deception (Principle 1: model what should have been written)."@en .
+    rdfs:label "licensed falsehood"@x-gmeow-english ;
+    skos:definition "The claim is fiction, satire, sarcasm, or another form of falsehood that is socially licensed and not deceptive — the audience understands the non-truth-asserting frame. This safety property separates harmless fictional assertion from deception (Principle 1: model what should have been written)."@x-gmeow-english .
 
 # =========================================================================== #
 # DECEPTION ROLES — ParticipantRole value vocabulary.
@@ -134,23 +134,23 @@ gmeow:veridicalityLicensedFalsehood
 
 gmeow:roleDeceiver
     a gmeow:ParticipantRole ;
-    rdfs:label "deceiver"@en ;
-    skos:definition "The participant in a deception event who projects a standpoint that diverges from what they hold true. In self-deception, this role is borne by the same entity as roleDeceived."@en .
+    rdfs:label "deceiver"@x-gmeow-english ;
+    skos:definition "The participant in a deception event who projects a standpoint that diverges from what they hold true. In self-deception, this role is borne by the same entity as roleDeceived."@x-gmeow-english .
 
 gmeow:roleDeceived
     a gmeow:ParticipantRole ;
-    rdfs:label "deceived"@en ;
-    skos:definition "The participant in a deception event who is induced to hold a false belief by the divergence between the projected and held standpoints. In self-deception, this role is borne by the same entity as roleDeceiver."@en .
+    rdfs:label "deceived"@x-gmeow-english ;
+    skos:definition "The participant in a deception event who is induced to hold a false belief by the divergence between the projected and held standpoints. In self-deception, this role is borne by the same entity as roleDeceiver."@x-gmeow-english .
 
 gmeow:roleBeneficiaryOfDeception
     a gmeow:ParticipantRole ;
-    rdfs:label "beneficiary of deception"@en ;
-    skos:definition "An entity that benefits from a deception event, whether or not they are the deceiver — the third-party beneficiary who gains from the false belief induced in the deceived party."@en .
+    rdfs:label "beneficiary of deception"@x-gmeow-english ;
+    skos:definition "An entity that benefits from a deception event, whether or not they are the deceiver — the third-party beneficiary who gains from the false belief induced in the deceived party."@x-gmeow-english .
 
 gmeow:roleDupe
     a gmeow:ParticipantRole ;
-    rdfs:label "dupe"@en ;
-    skos:definition "An unwitting intermediary in a deception — a participant who forwards the projected standpoint without knowing it is deceptive, acting as a conduit rather than the primary deceiver."@en .
+    rdfs:label "dupe"@x-gmeow-english ;
+    skos:definition "An unwitting intermediary in a deception — a participant who forwards the projected standpoint without knowing it is deceptive, acting as a conduit rather than the primary deceiver."@x-gmeow-english .
 
 # =========================================================================== #
 # PROJECTION FUNCTION SUPPORT — properties with rdfs:range for FnO compilation.
@@ -159,40 +159,40 @@ gmeow:roleDupe
 gmeow:MaximViolationType
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Maxim Violation Type"@en ;
-    skos:definition "A value vocabulary for conversational maxim violations (Gricean maxims: quality, quantity, relation, manner)."@en ;
+    rdfs:label "Maxim Violation Type"@x-gmeow-english ;
+    skos:definition "A value vocabulary for conversational maxim violations (Gricean maxims: quality, quantity, relation, manner)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:maximViolationType
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:range gmeow:MaximViolationType ;
-    rdfs:label "maxim violation type"@en ;
-    skos:definition "The type of conversational maxim violated in a deceptive event (quality, quantity, relation, manner). Solver-layer classification (Principle 12)."@en ;
+    rdfs:label "maxim violation type"@x-gmeow-english ;
+    skos:definition "The type of conversational maxim violated in a deceptive event (quality, quantity, relation, manner). Solver-layer classification (Principle 12)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:credibilityScore
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:range xsd:decimal ;
-    rdfs:label "credibility score"@en ;
-    skos:definition "A numerical credibility score assigned to an observation or claim. Solver-layer computation (Principle 12)."@en ;
+    rdfs:label "credibility score"@x-gmeow-english ;
+    skos:definition "A numerical credibility score assigned to an observation or claim. Solver-layer computation (Principle 12)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:propagationMutationDistance
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:range xsd:integer ;
-    rdfs:label "propagation mutation distance"@en ;
-    skos:definition "The number of transmission hops before a propagated deceptive claim mutates. Solver-layer computation (Principle 12)."@en ;
+    rdfs:label "propagation mutation distance"@x-gmeow-english ;
+    skos:definition "The number of transmission hops before a propagated deceptive claim mutates. Solver-layer computation (Principle 12)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:argumentAcceptability
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:range xsd:decimal ;
-    rdfs:label "argument acceptability"@en ;
-    skos:definition "A numerical acceptability score for an argument or standpoint claim. Solver-layer computation (Principle 12), referencing AIF (Argument Interchange Format)."@en ;
+    rdfs:label "argument acceptability"@x-gmeow-english ;
+    skos:definition "A numerical acceptability score for an argument or standpoint claim. Solver-layer computation (Principle 12), referencing AIF (Argument Interchange Format)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -203,38 +203,38 @@ gmeow:argumentAcceptability
 
 gmeow:eventTypeLie
     a gmeow:EventType ;
-    rdfs:label "lie / falsification"@en ;
-    skos:definition "A deception event in which the projected standpoint negates the held standpoint — the deceiver communicates a proposition they believe to be false. The projected claim is held unequivocal by the deceiver's standpoint; the held claim is refuted by the universal standpoint or the assessor's frame. Violates the Gricean maxim of Quality."@en ;
+    rdfs:label "lie / falsification"@x-gmeow-english ;
+    skos:definition "A deception event in which the projected standpoint negates the held standpoint — the deceiver communicates a proposition they believe to be false. The projected claim is held unequivocal by the deceiver's standpoint; the held claim is refuted by the universal standpoint or the assessor's frame. Violates the Gricean maxim of Quality."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:eventTypePaltering
     a gmeow:EventType ;
-    rdfs:label "paltering"@en ;
-    skos:definition "A deception event in which the projected literal claim is technically true but conversationally implicates a false conclusion P′ that the held standpoint refutes. The palterer exploits the gap between literal content and pragmatic implicature (Rogers et al., JPSP 112(3), 2017). Violates the Gricean maxims of Quantity and Relation. Solver-layer: the implicature relation is carried by gmeow:implicates (Principle 12)."@en ;
+    rdfs:label "paltering"@x-gmeow-english ;
+    skos:definition "A deception event in which the projected literal claim is technically true but conversationally implicates a false conclusion P′ that the held standpoint refutes. The palterer exploits the gap between literal content and pragmatic implicature (Rogers et al., JPSP 112(3), 2017). Violates the Gricean maxims of Quantity and Relation. Solver-layer: the implicature relation is carried by gmeow:implicates (Principle 12)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:eventTypeOmission
     a gmeow:EventType ;
-    rdfs:label "omission / concealment"@en ;
-    skos:definition "A deception event in which the held standpoint is present but no projected standpoint is offered — the deceiver suppresses a truth they hold rather than asserting its opposite. The absence of projection is the mechanism; the gap is informational, not propositional. Violates the Gricean maxim of Quantity."@en ;
+    rdfs:label "omission / concealment"@x-gmeow-english ;
+    skos:definition "A deception event in which the held standpoint is present but no projected standpoint is offered — the deceiver suppresses a truth they hold rather than asserting its opposite. The absence of projection is the mechanism; the gap is informational, not propositional. Violates the Gricean maxim of Quantity."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:eventTypeDistortion
     a gmeow:EventType ;
-    rdfs:label "distortion / spin"@en ;
-    skos:definition "A deception event in which the projected standpoint sharpens, re-frames, or selectively emphasises the held standpoint — a modality shift (e.g. probable→unequivocal) or a re-contextualisation that changes the inferential landscape without literally falsifying the source. The spin doctor (gmeow:roleSpinDoctor) is a participant role specific to this type. Violates the Gricean maxim of Manner."@en ;
+    rdfs:label "distortion / spin"@x-gmeow-english ;
+    skos:definition "A deception event in which the projected standpoint sharpens, re-frames, or selectively emphasises the held standpoint — a modality shift (e.g. probable→unequivocal) or a re-contextualisation that changes the inferential landscape without literally falsifying the source. The spin doctor (gmeow:roleSpinDoctor) is a participant role specific to this type. Violates the Gricean maxim of Manner."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:eventTypeBullshit
     a gmeow:EventType ;
-    rdfs:label "bullshit"@en ;
-    skos:definition "A deception event in which the deceiver projects an unequivocal standpoint while holding the bullshit modality — indifference to the truth-value of the proposition (Frankfurt, On Bullshit, 2005). Distinct from lying (which cares about truth and asserts the opposite) and from error (which cares and gets it wrong). Violates the Gricean maxim of Quality by unconcern rather than by inversion."@en ;
+    rdfs:label "bullshit"@x-gmeow-english ;
+    skos:definition "A deception event in which the deceiver projects an unequivocal standpoint while holding the bullshit modality — indifference to the truth-value of the proposition (Frankfurt, On Bullshit, 2005). Distinct from lying (which cares about truth and asserts the opposite) and from error (which cares and gets it wrong). Violates the Gricean maxim of Quality by unconcern rather than by inversion."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:eventTypeSelfDeception
     a gmeow:EventType ;
-    rdfs:label "self-deception"@en ;
-    skos:definition "A deception event in which the same agent fills both the deceiver and deceived roles — an avowed (conscious, articulated) standpoint diverges from a tacit (implicit, behavioural) standpoint within a single subject. The structural configuration is what distinguishes self-deception from ordinary deception; intent is a defeasible attribution (gmeow:deceptiveIntentClaim), never entailed (Principle 9: co-equal conflicting claims coexist)."@en ;
+    rdfs:label "self-deception"@x-gmeow-english ;
+    skos:definition "A deception event in which the same agent fills both the deceiver and deceived roles — an avowed (conscious, articulated) standpoint diverges from a tacit (implicit, behavioural) standpoint within a single subject. The structural configuration is what distinguishes self-deception from ordinary deception; intent is a defeasible attribution (gmeow:deceptiveIntentClaim), never entailed (Principle 9: co-equal conflicting claims coexist)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -243,8 +243,8 @@ gmeow:eventTypeSelfDeception
 
 gmeow:roleSpinDoctor
     a gmeow:ParticipantRole ;
-    rdfs:label "spin doctor"@en ;
-    skos:definition "The participant in a distortion or spin event who reframes, sharpens, or selectively presents information to alter the inferential landscape without literally falsifying the source material. A specific role borne in gmeow:eventTypeDistortion events."@en ;
+    rdfs:label "spin doctor"@x-gmeow-english ;
+    skos:definition "The participant in a distortion or spin event who reframes, sharpens, or selectively presents information to alter the inferential landscape without literally falsifying the source material. A specific role borne in gmeow:eventTypeDistortion events."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -254,26 +254,26 @@ gmeow:roleSpinDoctor
 
 gmeow:maximViolationQuality
     a gmeow:MaximViolationType ;
-    rdfs:label "maxim violation — quality"@en ;
-    skos:definition "Violation of the Gricean maxim of Quality: do not say what you believe to be false or for which you lack adequate evidence. Lies, falsifications, and bullshit violate this maxim."@en ;
+    rdfs:label "maxim violation — quality"@x-gmeow-english ;
+    skos:definition "Violation of the Gricean maxim of Quality: do not say what you believe to be false or for which you lack adequate evidence. Lies, falsifications, and bullshit violate this maxim."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:maximViolationQuantity
     a gmeow:MaximViolationType ;
-    rdfs:label "maxim violation — quantity"@en ;
-    skos:definition "Violation of the Gricean maxim of Quantity: make your contribution as informative as required, but not more so. Omissions, concealment, and paltering violate this maxim."@en ;
+    rdfs:label "maxim violation — quantity"@x-gmeow-english ;
+    skos:definition "Violation of the Gricean maxim of Quantity: make your contribution as informative as required, but not more so. Omissions, concealment, and paltering violate this maxim."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:maximViolationRelation
     a gmeow:MaximViolationType ;
-    rdfs:label "maxim violation — relation"@en ;
-    skos:definition "Violation of the Gricean maxim of Relation (Relevance): be relevant. Paltering and certain forms of distraction or red-herring deception violate this maxim."@en ;
+    rdfs:label "maxim violation — relation"@x-gmeow-english ;
+    skos:definition "Violation of the Gricean maxim of Relation (Relevance): be relevant. Paltering and certain forms of distraction or red-herring deception violate this maxim."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:maximViolationManner
     a gmeow:MaximViolationType ;
-    rdfs:label "maxim violation — manner"@en ;
-    skos:definition "Violation of the Gricean maxim of Manner: avoid obscurity, ambiguity, prolixity, and disorder. Distortion, spin, and deliberate obfuscation violate this maxim."@en ;
+    rdfs:label "maxim violation — manner"@x-gmeow-english ;
+    skos:definition "Violation of the Gricean maxim of Manner: avoid obscurity, ambiguity, prolixity, and disorder. Distortion, spin, and deliberate obfuscation violate this maxim."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -283,20 +283,20 @@ gmeow:maximViolationManner
 
 gmeow:eventTypeFabrication
     a gmeow:EventType ;
-    rdfs:label "fabrication"@en ;
-    skos:definition "A deception event in which a false artifact (a gmeow:CreativeWork) is produced and its attested provenance is projected as genuine while the deceiver's held standpoint refutes that provenance. The artifact's falsity is evidenced by a gmeow:VerificationResult with status gmeow:verificationStatusFailed, not by a global truth axiom (Principle 12). Distinct from forgery: fabrication invents a false artifact without mimicking a specific genuine one."@en ;
+    rdfs:label "fabrication"@x-gmeow-english ;
+    skos:definition "A deception event in which a false artifact (a gmeow:CreativeWork) is produced and its attested provenance is projected as genuine while the deceiver's held standpoint refutes that provenance. The artifact's falsity is evidenced by a gmeow:VerificationResult with status gmeow:verificationStatusFailed, not by a global truth axiom (Principle 12). Distinct from forgery: fabrication invents a false artifact without mimicking a specific genuine one."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:eventTypeForgery
     a gmeow:EventType ;
-    rdfs:label "forgery"@en ;
-    skos:definition "A fabrication that mimics a specific genuine artifact — the forged work bears a gmeow:counterpartOf link to the genuine work it imitates, and when a cryptographic signature is present its verification returns gmeow:verificationStatusFailed. A special case of fabrication distinguished by the specificity of the imitation target and the presence of failed signature evidence when applicable (Principle 12). Document forgery, art forgery, and counterfeit goods are all instances."@en ;
+    rdfs:label "forgery"@x-gmeow-english ;
+    skos:definition "A fabrication that mimics a specific genuine artifact — the forged work bears a gmeow:counterpartOf link to the genuine work it imitates, and when a cryptographic signature is present its verification returns gmeow:verificationStatusFailed. A special case of fabrication distinguished by the specificity of the imitation target and the presence of failed signature evidence when applicable (Principle 12). Document forgery, art forgery, and counterfeit goods are all instances."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:eventTypeImpersonation
     a gmeow:EventType ;
-    rdfs:label "impersonation"@en ;
-    skos:definition "A deception event in which a projected identity claim is presented as belonging to a subject other than the deceiver. Reuses gmeow:IdentityFacet machinery: the projected facet's gmeow:facetSubject differs from the deceiver's identity. Email spoofing is modelled as impersonation with a failed gmeow:AuthenticationResult (DKIM/SPF/DMARC fail). A sockpuppet is an impersonation where the deceiver controls a gmeow:counterpartOf identity they deny controlling. Phishing is an instance (impersonation + fraudulent solicitation), never a taxonomy primitive."@en ;
+    rdfs:label "impersonation"@x-gmeow-english ;
+    skos:definition "A deception event in which a projected identity claim is presented as belonging to a subject other than the deceiver. Reuses gmeow:IdentityFacet machinery: the projected facet's gmeow:facetSubject differs from the deceiver's identity. Email spoofing is modelled as impersonation with a failed gmeow:AuthenticationResult (DKIM/SPF/DMARC fail). A sockpuppet is an impersonation where the deceiver controls a gmeow:counterpartOf identity they deny controlling. Phishing is an instance (impersonation + fraudulent solicitation), never a taxonomy primitive."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -307,8 +307,8 @@ gmeow:eventTypeImpersonation
 
 gmeow:eventTypeDisinformation
     a gmeow:EventType ;
-    rdfs:label "disinformation campaign"@en ;
-    skos:definition "A coordinated, propagated deception that aggregates many constituent deception events along a prov:wasDerivedFrom / gmeow:propagatesFrom propagation chain. At the originating node the held standpoint diverges from the projected standpoint (held ≠ projected) and deceptive intent is attributed; at unwitting intermediary nodes the projected standpoint is sincerely held (held ≈ projected) and the claim is merely untrue — the misinformation↔disinformation boundary is therefore per-node, not a global label. Unwitting propagators bear gmeow:roleDupe; originating deceivers bear gmeow:roleDeceiver."@en ;
+    rdfs:label "disinformation campaign"@x-gmeow-english ;
+    skos:definition "A coordinated, propagated deception that aggregates many constituent deception events along a prov:wasDerivedFrom / gmeow:propagatesFrom propagation chain. At the originating node the held standpoint diverges from the projected standpoint (held ≠ projected) and deceptive intent is attributed; at unwitting intermediary nodes the projected standpoint is sincerely held (held ≈ projected) and the claim is merely untrue — the misinformation↔disinformation boundary is therefore per-node, not a global label. Unwitting propagators bear gmeow:roleDupe; originating deceivers bear gmeow:roleDeceiver."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #

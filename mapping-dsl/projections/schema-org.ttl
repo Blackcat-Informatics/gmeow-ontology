@@ -9,7 +9,7 @@
 # `gmeow compile-mappings`.
 
 gmeow:mapSchemaPlace a gmeow:ProjectionMapping ;
-    rdfs:label "Place → schema:Place (+ containment)"@en ;
+    rdfs:label "Place → schema:Place (+ containment)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ;
         gmeow:atom (
@@ -26,7 +26,7 @@ gmeow:mapSchemaPlace a gmeow:ProjectionMapping ;
 # carries gmeow:coarsenTo, and mapSchemaPlaceCoordsCoarsened emits the enclosing
 # region's coordinates instead. For a place without the marker, output is unchanged.
 gmeow:mapSchemaPlaceCoords a gmeow:ProjectionMapping ;
-    rdfs:label "Place coordinates → schema:geo (suppressed under coarsenTo)"@en ;
+    rdfs:label "Place coordinates → schema:geo (suppressed under coarsenTo)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ;
         gmeow:atom (
@@ -46,7 +46,7 @@ gmeow:mapSchemaPlaceCoords a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "coords" ; gmeow:tPred schema:elevation ; gmeow:tObj "elev" ] ) ] .
 
 gmeow:mapSchemaPlaceCoordsCoarsened a gmeow:ProjectionMapping ;
-    rdfs:label "coarsenTo → enclosing-region schema:geo (privacy generalization)"@en ;
+    rdfs:label "coarsenTo → enclosing-region schema:geo (privacy generalization)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ;
         gmeow:atom (
@@ -77,7 +77,7 @@ gmeow:mapSchemaPlaceCoordsCoarsened a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "coarseGeo" ; gmeow:tPred schema:longitude ; gmeow:tObj "lon" ] ) ] .
 
 gmeow:mapSchemaPartOf a gmeow:ProjectionMapping ;
-    rdfs:label "generic partOf → schema:isPartOf"@en ;
+    rdfs:label "generic partOf → schema:isPartOf"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "part" ; gmeow:value "whole" ;
         gmeow:atom (
@@ -91,7 +91,7 @@ gmeow:mapSchemaPartOf a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the specialized GMEOW parthood subproperty, if any, is collapsed to generic schema:isPartOf" ] .
 
 gmeow:mapSchemaHasPart a gmeow:ProjectionMapping ;
-    rdfs:label "generic hasPart → schema:hasPart"@en ;
+    rdfs:label "generic hasPart → schema:hasPart"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "whole" ; gmeow:value "part" ;
         gmeow:atom (
@@ -105,7 +105,7 @@ gmeow:mapSchemaHasPart a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the specialized GMEOW whole-to-part subproperty, if any, is collapsed to generic schema:hasPart" ] .
 
 gmeow:mapSchemaExactAuthorityLink a gmeow:ProjectionMapping ;
-    rdfs:label "exact authority coreference → schema:sameAs"@en ;
+    rdfs:label "exact authority coreference → schema:sameAs"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "auth" ;
         gmeow:atom (
@@ -118,7 +118,7 @@ gmeow:mapSchemaExactAuthorityLink a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "authority provenance, confidence, standpoint, and exact-vs-close match distinction collapse to a schema.org identity URL; skos:closeMatch authority links are not emitted" ] .
 
 gmeow:mapSchemaPlaceType a gmeow:ProjectionMapping ;
-    rdfs:label "Place placeType value → schema target class"@en ;
+    rdfs:label "Place placeType value → schema target class"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ; gmeow:value "pt" ;
         gmeow:atom ( [ gmeow:subjectVar "place" ; gmeow:predicate gmeow:placeType ; gmeow:objectVar "pt" ] ) ;
@@ -133,7 +133,7 @@ gmeow:mapSchemaPlaceType a gmeow:ProjectionMapping ;
             [ gmeow:whenValue gmeow:placeTypeRegion ; gmeow:toClass schema:AdministrativeArea ] ) ] .
 
 gmeow:mapSchemaPlaceName a gmeow:ProjectionMapping ;
-    rdfs:label "displayable endonym PlaceName → schema:name"@en ;
+    rdfs:label "displayable endonym PlaceName → schema:name"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ; gmeow:value "endo" ;
         gmeow:atom (
@@ -148,7 +148,7 @@ gmeow:mapSchemaPlaceName a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "projection frame = endonym-preferred; co-equal exonyms projected as schema:alternateName; non-displayable/superseded and competing-standpoint names dropped" ] .
 
 gmeow:mapSchemaPlaceAltName a gmeow:ProjectionMapping ;
-    rdfs:label "displayable exonym PlaceName → schema:alternateName"@en ;
+    rdfs:label "displayable exonym PlaceName → schema:alternateName"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ; gmeow:value "exo" ;
         gmeow:atom (
@@ -163,7 +163,7 @@ gmeow:mapSchemaPlaceAltName a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "exonym selection is locale-relative" ] .
 
 gmeow:mapSchemaPlaceGenericName a gmeow:ProjectionMapping ;
-    rdfs:label "displayable PlaceName without purpose → schema:name"@en ;
+    rdfs:label "displayable PlaceName without purpose → schema:name"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ; gmeow:value "name" ;
         gmeow:atom (
@@ -178,7 +178,7 @@ gmeow:mapSchemaPlaceGenericName a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "competing-standpoint names and names with specific purposes dropped" ] .
 
 gmeow:mapSchemaVirtualLocation a gmeow:ProjectionMapping ;
-    rdfs:label "VirtualLocation → schema:VirtualLocation"@en ;
+    rdfs:label "VirtualLocation → schema:VirtualLocation"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "vl" ;
         gmeow:atom (
@@ -191,7 +191,7 @@ gmeow:mapSchemaVirtualLocation a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "vl" ; gmeow:tPred schema:url ; gmeow:tObj "vurl" ] ) ] .
 
 gmeow:mapSchemaNetworkAddress a gmeow:ProjectionMapping ;
-    rdfs:label "NetworkAddress (URL type) → schema:url"@en ;
+    rdfs:label "NetworkAddress (URL type) → schema:url"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "vl" ; gmeow:value "nval" ;
         gmeow:atom (
@@ -206,7 +206,7 @@ gmeow:mapSchemaNetworkAddress a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the NetworkAddress frame, type, provenance, and standpoint are dropped; only the URL string survives" ] .
 
 gmeow:mapSchemaAddress a gmeow:ProjectionMapping ;
-    rdfs:label "PostalAddress → schema:PostalAddress"@en ;
+    rdfs:label "PostalAddress → schema:PostalAddress"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "holder" ;
         gmeow:atom (
@@ -230,7 +230,7 @@ gmeow:mapSchemaAddress a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "addr" ; gmeow:tPred schema:addressCountry ; gmeow:tObj "ccode" ] ) ] .
 
 gmeow:mapSchemaName a gmeow:ProjectionMapping ;
-    rdfs:label "displayable fullName → schema:name"@en ;
+    rdfs:label "displayable fullName → schema:name"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "dispName" ;
         gmeow:atom (
@@ -246,7 +246,7 @@ gmeow:mapSchemaName a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "non-displayable names (deadnames) dropped" ] .
 
 gmeow:mapSchemaGivenName a gmeow:ProjectionMapping ;
-    rdfs:label "given-name part → schema:givenName"@en ;
+    rdfs:label "given-name part → schema:givenName"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "given" ;
         gmeow:atom (
@@ -262,7 +262,7 @@ gmeow:mapSchemaGivenName a gmeow:ProjectionMapping ;
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:givenName ; gmeow:relation "<=" ] .
 
 gmeow:mapSchemaFamilyName a gmeow:ProjectionMapping ;
-    rdfs:label "family-name part → schema:familyName"@en ;
+    rdfs:label "family-name part → schema:familyName"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "family" ;
         gmeow:atom (
@@ -278,7 +278,7 @@ gmeow:mapSchemaFamilyName a gmeow:ProjectionMapping ;
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:familyName ; gmeow:relation "<=" ] .
 
 gmeow:mapSchemaGender a gmeow:ProjectionMapping ;
-    rdfs:label "displayable GenderIdentity value → schema:gender (lossy)"@en ;
+    rdfs:label "displayable GenderIdentity value → schema:gender (lossy)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "genderLabel" ;
         gmeow:atom (
@@ -293,7 +293,7 @@ gmeow:mapSchemaGender a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "orientation + sexAssignedAtBirth dropped; sex/gender conflated" ] .
 
 gmeow:mapSchemaHonorificPrefix a gmeow:ProjectionMapping ;
-    rdfs:label "Honorific (prefix position) → schema:honorificPrefix"@en ;
+    rdfs:label "Honorific (prefix position) → schema:honorificPrefix"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "honPrefix" ;
         gmeow:atom (
@@ -306,7 +306,7 @@ gmeow:mapSchemaHonorificPrefix a gmeow:ProjectionMapping ;
         gmeow:transform gmeow:fnHonorificToAffix ] .
 
 gmeow:mapSchemaHonorificSuffix a gmeow:ProjectionMapping ;
-    rdfs:label "Honorific (suffix position) → schema:honorificSuffix"@en ;
+    rdfs:label "Honorific (suffix position) → schema:honorificSuffix"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "honSuffix" ;
         gmeow:atom (
@@ -319,7 +319,7 @@ gmeow:mapSchemaHonorificSuffix a gmeow:ProjectionMapping ;
         gmeow:transform gmeow:fnHonorificToAffix ] .
 
 gmeow:mapSchemaLanguage a gmeow:ProjectionMapping ;
-    rdfs:label "gmeow:Language → schema:Language"@en ;
+    rdfs:label "gmeow:Language → schema:Language"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "lang" ;
         gmeow:atom ( [ gmeow:subjectVar "lang" ;
@@ -330,7 +330,7 @@ gmeow:mapSchemaLanguage a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toClass schema:Language ; gmeow:relation "=" ] .
 
 gmeow:mapSchemaProgrammingLanguage a gmeow:ProjectionMapping ;
-    rdfs:label "gmeow:ProgrammingLanguage → schema:ComputerLanguage"@en ;
+    rdfs:label "gmeow:ProgrammingLanguage → schema:ComputerLanguage"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "prog" ;
         gmeow:atom ( [ gmeow:subjectVar "prog" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ProgrammingLanguage ] ) ;
@@ -338,7 +338,7 @@ gmeow:mapSchemaProgrammingLanguage a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toClass schema:ComputerLanguage ; gmeow:relation "=" ] .
 
 gmeow:mapSchemaBcp47 a gmeow:ProjectionMapping ;
-    rdfs:label "languageCode (+ co-mingled scriptCode) → schema:alternateName (BCP-47)"@en ;
+    rdfs:label "languageCode (+ co-mingled scriptCode) → schema:alternateName (BCP-47)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "lang" ; gmeow:value "bcp47" ;
         gmeow:atom (
@@ -371,14 +371,14 @@ gmeow:mapSchemaBcp47 a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "Glottocodes excluded; only 2-3 letter primary subtags" ] .
 
 gmeow:mapSchemaKnowsLanguageFlat a gmeow:ProjectionMapping ;
-    rdfs:label "knowsLanguage → schema:knowsLanguage (flat)"@en ;
+    rdfs:label "knowsLanguage → schema:knowsLanguage (flat)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "knower" ; gmeow:value "known" ;
         gmeow:atom ( [ gmeow:subjectVar "knower" ; gmeow:predicate gmeow:knowsLanguage ; gmeow:objectVar "known" ] ) ] ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:knowsLanguage ; gmeow:relation "<=" ] .
 
 gmeow:mapSchemaKnowsLanguageProficiency a gmeow:ProjectionMapping ;
-    rdfs:label "LanguageProficiency relator → schema:knowsLanguage (flatten, lossy)"@en ;
+    rdfs:label "LanguageProficiency relator → schema:knowsLanguage (flatten, lossy)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "knower" ; gmeow:value "known" ;
         gmeow:atom (
@@ -396,7 +396,7 @@ gmeow:mapSchemaKnowsLanguageProficiency a gmeow:ProjectionMapping ;
 # projection to the public-site consumer. The old ungated mapping is removed
 # per Principle 6 (greenfield — get it right, not compatible).
 gmeow:mapSchemaUrl a gmeow:ProjectionMapping ;
-    rdfs:label "hasWebPage → schema:url (the WebPage IRI)"@en ;
+    rdfs:label "hasWebPage → schema:url (the WebPage IRI)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "wp" ;
         gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:hasWebPage ; gmeow:objectVar "wp" ] ) ;
@@ -406,7 +406,7 @@ gmeow:mapSchemaUrl a gmeow:ProjectionMapping ;
         gmeow:transform gmeow:fnWebPageToUrl ; gmeow:confidence 0.8 ] .
 
 gmeow:mapSchemaNickname a gmeow:ProjectionMapping ;
-    rdfs:label "nickname-purpose PersonName → schema:alternateName (downcast)"@en ;
+    rdfs:label "nickname-purpose PersonName → schema:alternateName (downcast)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "nick" ;
         gmeow:atom (
@@ -420,7 +420,7 @@ gmeow:mapSchemaNickname a gmeow:ProjectionMapping ;
         gmeow:transform gmeow:fnNicknameName ; gmeow:confidence 0.9 ] .
 
 gmeow:mapSchemaBirthDate a gmeow:ProjectionMapping ;
-    rdfs:label "Birth life-event date → schema:birthDate"@en ;
+    rdfs:label "Birth life-event date → schema:birthDate"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "person" ; gmeow:value "bdate" ;
         gmeow:atom (
@@ -436,7 +436,7 @@ gmeow:mapSchemaBirthDate a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the birth Participation (role, period, confidence, standpoint) and fuzzy-date bounds are dropped; only the principal's birth instant survives as schema:birthDate" ] .
 
 gmeow:mapSchemaJobTitle a gmeow:ProjectionMapping ;
-    rdfs:label "Membership Role → schema:jobTitle"@en ;
+    rdfs:label "Membership Role → schema:jobTitle"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "member" ; gmeow:value "title" ;
         gmeow:atom (
@@ -453,7 +453,7 @@ gmeow:mapSchemaJobTitle a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the Membership relator (organization, period, role, confidence, standpoint) collapses to a flat schema:jobTitle literal; contested membership claims are not distinguished" ] .
 
 gmeow:mapSchemaDepartment a gmeow:ProjectionMapping ;
-    rdfs:label "subOrganizationOf → schema:department (inverse, parent→child)"@en ;
+    rdfs:label "subOrganizationOf → schema:department (inverse, parent→child)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "parent" ; gmeow:value "dept" ;
         gmeow:atom ( [ gmeow:subjectVar "dept" ; gmeow:predicate gmeow:subOrganizationOf ; gmeow:objectVar "parent" ] ) ;
@@ -472,7 +472,7 @@ gmeow:mapSchemaDepartment a gmeow:ProjectionMapping ;
 # one match emit all three role predicates).
 
 gmeow:mapSchemaAttendee a gmeow:ProjectionMapping ;
-    rdfs:label "Participation (attendee role) → schema:attendee"@en ;
+    rdfs:label "Participation (attendee role) → schema:attendee"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "attEvent" ; gmeow:value "attendee" ;
         gmeow:atom (
@@ -487,7 +487,7 @@ gmeow:mapSchemaAttendee a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the Participation's period / confidence / evidence / standpoint collapse to a flat schema:attendee edge" ] .
 
 gmeow:mapSchemaPerformer a gmeow:ProjectionMapping ;
-    rdfs:label "Participation (performer role) → schema:performer"@en ;
+    rdfs:label "Participation (performer role) → schema:performer"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "perfEvent" ; gmeow:value "performer" ;
         gmeow:atom (
@@ -502,7 +502,7 @@ gmeow:mapSchemaPerformer a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the Participation's period / confidence / evidence / standpoint collapse to a flat schema:performer edge" ] .
 
 gmeow:mapSchemaOrganizer a gmeow:ProjectionMapping ;
-    rdfs:label "Participation (organizer role) → schema:organizer"@en ;
+    rdfs:label "Participation (organizer role) → schema:organizer"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "orgEvent" ; gmeow:value "organizer" ;
         gmeow:atom (
@@ -519,7 +519,7 @@ gmeow:mapSchemaOrganizer a gmeow:ProjectionMapping ;
 # An approximate (circa) event date → a single schema:startDate. The latestEnd
 # upper bound and the temporalPrecision qualifier are dropped (the band collapses).
 gmeow:mapSchemaFuzzyStart a gmeow:ProjectionMapping ;
-    rdfs:label "Fuzzy event bounds → schema:startDate"@en ;
+    rdfs:label "Fuzzy event bounds → schema:startDate"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "event" ; gmeow:value "start" ;
         gmeow:atom ( [ gmeow:subjectVar "event" ; gmeow:predicate gmeow:earliestStart ; gmeow:objectVar "start" ] ) ;
@@ -534,7 +534,7 @@ gmeow:mapSchemaFuzzyStart a gmeow:ProjectionMapping ;
 # Mark → schema:Brand; plus the access/licence-page/usage flags.
 
 gmeow:mapSchemaLicense a gmeow:ProjectionMapping ;
-    rdfs:label "hasLicense → schema:license"@en ;
+    rdfs:label "hasLicense → schema:license"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "work" ; gmeow:value "lic" ;
         gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasLicense ; gmeow:objectVar "lic" ] ) ;
@@ -542,7 +542,7 @@ gmeow:mapSchemaLicense a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:license ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .
 
 gmeow:mapSchemaCopyrightHolder a gmeow:ProjectionMapping ;
-    rdfs:label "Copyright relator holder → schema:copyrightHolder (flatten)"@en ;
+    rdfs:label "Copyright relator holder → schema:copyrightHolder (flatten)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "cw" ; gmeow:value "holder" ;
         gmeow:atom (
@@ -554,7 +554,7 @@ gmeow:mapSchemaCopyrightHolder a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the Copyright relator (year, notice, status) collapses to a flat schema:copyrightHolder edge" ] .
 
 gmeow:mapSchemaCopyrightYear a gmeow:ProjectionMapping ;
-    rdfs:label "Copyright relator year → schema:copyrightYear (flatten)"@en ;
+    rdfs:label "Copyright relator year → schema:copyrightYear (flatten)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "cw" ; gmeow:value "yr" ;
         gmeow:atom (
@@ -565,7 +565,7 @@ gmeow:mapSchemaCopyrightYear a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the Copyright relator (holder, notice, status) collapses to a flat schema:copyrightYear edge" ] .
 
 gmeow:mapSchemaCopyrightNotice a gmeow:ProjectionMapping ;
-    rdfs:label "Copyright relator notice → schema:copyrightNotice (flatten)"@en ;
+    rdfs:label "Copyright relator notice → schema:copyrightNotice (flatten)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "cw" ; gmeow:value "notice" ;
         gmeow:atom (
@@ -576,7 +576,7 @@ gmeow:mapSchemaCopyrightNotice a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the structured Copyright relator (holder, year, status) collapses to a flat schema:copyrightNotice edge" ] .
 
 gmeow:mapSchemaCreditText a gmeow:ProjectionMapping ;
-    rdfs:label "attributionText → schema:creditText"@en ;
+    rdfs:label "attributionText → schema:creditText"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "credit" ;
         gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:attributionText ; gmeow:objectVar "credit" ] ) ;
@@ -584,7 +584,7 @@ gmeow:mapSchemaCreditText a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:creditText ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .
 
 gmeow:mapSchemaBrand a gmeow:ProjectionMapping ;
-    rdfs:label "Mark → schema:Brand"@en ;
+    rdfs:label "Mark → schema:Brand"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "mark" ;
         gmeow:atom ( [ gmeow:subjectVar "mark" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Mark ] ) ;
@@ -592,7 +592,7 @@ gmeow:mapSchemaBrand a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toClass schema:Brand ; gmeow:relation "<=" ; gmeow:confidence 0.8 ] .
 
 gmeow:mapSchemaIsAccessibleForFree a gmeow:ProjectionMapping ;
-    rdfs:label "isAccessibleForFree → schema:isAccessibleForFree"@en ;
+    rdfs:label "isAccessibleForFree → schema:isAccessibleForFree"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "free" ;
         gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:isAccessibleForFree ; gmeow:objectVar "free" ] ) ;
@@ -600,7 +600,7 @@ gmeow:mapSchemaIsAccessibleForFree a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:isAccessibleForFree ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
 
 gmeow:mapSchemaAcquireLicensePage a gmeow:ProjectionMapping ;
-    rdfs:label "acquireLicensePage → schema:acquireLicensePage"@en ;
+    rdfs:label "acquireLicensePage → schema:acquireLicensePage"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "alp" ;
         gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:acquireLicensePage ; gmeow:objectVar "alp" ] ) ;
@@ -608,7 +608,7 @@ gmeow:mapSchemaAcquireLicensePage a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:acquireLicensePage ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
 
 gmeow:mapSchemaUsageInfo a gmeow:ProjectionMapping ;
-    rdfs:label "usageInfo → schema:usageInfo"@en ;
+    rdfs:label "usageInfo → schema:usageInfo"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "ui" ;
         gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:usageInfo ; gmeow:objectVar "ui" ] ) ;
@@ -616,7 +616,7 @@ gmeow:mapSchemaUsageInfo a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:usageInfo ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
 
 gmeow:mapSchemaConditionsOfAccess a gmeow:ProjectionMapping ;
-    rdfs:label "conditionsOfAccess → schema:conditionsOfAccess"@en ;
+    rdfs:label "conditionsOfAccess → schema:conditionsOfAccess"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "coa" ;
         gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:conditionsOfAccess ; gmeow:objectVar "coa" ] ) ;
@@ -626,7 +626,7 @@ gmeow:mapSchemaConditionsOfAccess a gmeow:ProjectionMapping ;
 # Connectivity / Routing projections (#80, CONN-GEN)
 
 gmeow:mapSchemaRoute a gmeow:ProjectionMapping ;
-    rdfs:label "Route → schema:Trip (lossy)"@en ;
+    rdfs:label "Route → schema:Trip (lossy)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "route" ;
         gmeow:atom ( [ gmeow:subjectVar "route" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Route ] ) ] ;
@@ -642,7 +642,7 @@ gmeow:mapSchemaRoute a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaFoundingDate a gmeow:ProjectionMapping ;
-    rdfs:label "Organization creation event → schema:foundingDate"@en ;
+    rdfs:label "Organization creation event → schema:foundingDate"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "org" ; gmeow:value "fdate" ;
         gmeow:atom (
@@ -656,7 +656,7 @@ gmeow:mapSchemaFoundingDate a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the creation event's place, participants, and standpoint are dropped; only the instant survives as schema:foundingDate" ] .
 
 gmeow:mapSchemaDissolutionDate a gmeow:ProjectionMapping ;
-    rdfs:label "Organization destruction event → schema:dissolutionDate"@en ;
+    rdfs:label "Organization destruction event → schema:dissolutionDate"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "org" ; gmeow:value "ddate" ;
         gmeow:atom (
@@ -676,7 +676,7 @@ gmeow:mapSchemaDissolutionDate a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaMaximumAttendeeCapacity a gmeow:ProjectionMapping ;
-    rdfs:label "Capacity Measurement → schema:maximumAttendeeCapacity (lossy)"@en ;
+    rdfs:label "Capacity Measurement → schema:maximumAttendeeCapacity (lossy)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ; gmeow:value "capVal" ;
         gmeow:atom (
@@ -692,7 +692,7 @@ gmeow:mapSchemaMaximumAttendeeCapacity a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the Capacity relator (provenance, unit, temporal scope, standpoint) collapses to a flat schema:maximumAttendeeCapacity integer; non-displayable/superseded capacities are suppressed; restricted to gmeow:Place to avoid projecting byte capacities from StorageLocation" ] .
 
 gmeow:mapSchemaOccupancy a gmeow:ProjectionMapping ;
-    rdfs:label "Occupancy Measurement → schema:occupancy (lossy)"@en ;
+    rdfs:label "Occupancy Measurement → schema:occupancy (lossy)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ; gmeow:value "occVal" ;
         gmeow:atom (
@@ -712,7 +712,7 @@ gmeow:mapSchemaOccupancy a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaLocation a gmeow:ProjectionMapping ;
-    rdfs:label "locatedAt → schema:location"@en ;
+    rdfs:label "locatedAt → schema:location"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "loc" ;
         gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:locatedAt ; gmeow:objectVar "loc" ] ) ;
@@ -725,7 +725,7 @@ gmeow:mapSchemaLocation a gmeow:ProjectionMapping ;
 # with no endonym/exonym categorisation (Principle 9). Coexists with the
 # endonym-preferred frame; this is a maximal, no-privilege projection choice.
 gmeow:mapSchemaPlaceAllNames a gmeow:ProjectionMapping ;
-    rdfs:label "ALL displayable PlaceNames → schema:name (no privilege)"@en ;
+    rdfs:label "ALL displayable PlaceNames → schema:name (no privilege)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ; gmeow:value "allName" ;
         gmeow:atom (
@@ -748,7 +748,7 @@ gmeow:mapSchemaPlaceAllNames a gmeow:ProjectionMapping ;
 
 # CoordinateObservation with coordinateResult → schema:geo / schema:GeoCoordinates
 gmeow:mapSchemaCoordinateObservation a gmeow:ProjectionMapping ;
-    rdfs:label "CoordinateObservation coordinateResult → schema:geo (suppressed under coarsenTo)"@en ;
+    rdfs:label "CoordinateObservation coordinateResult → schema:geo (suppressed under coarsenTo)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ;
         gmeow:atom (
@@ -786,7 +786,7 @@ gmeow:mapSchemaCoordinateObservation a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaDescriptionPublicOnly a gmeow:ProjectionMapping ;
-    rdfs:label "gmeow:description → schema:description (public-site consumer only)"@en ;
+    rdfs:label "gmeow:description → schema:description (public-site consumer only)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "desc" ;
         gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:description ; gmeow:objectVar "desc" ] ) ;
@@ -801,7 +801,7 @@ gmeow:mapSchemaDescriptionPublicOnly a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaOrganizationType a gmeow:ProjectionMapping ;
-    rdfs:label "OrganizationType value → schema target class"@en ;
+    rdfs:label "OrganizationType value → schema target class"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "org" ; gmeow:value "otype" ;
         gmeow:atom ( [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:organizationType ; gmeow:objectVar "otype" ] ) ;
@@ -818,7 +818,7 @@ gmeow:mapSchemaOrganizationType a gmeow:ProjectionMapping ;
             [ gmeow:whenValue gmeow:organizationTypeCollaboration ; gmeow:toClass schema:Project ] ) ] .
 
 gmeow:mapSchemaPostRole a gmeow:ProjectionMapping ;
-    rdfs:label "Post → schema:OrganizationRole (lossy)"@en ;
+    rdfs:label "Post → schema:OrganizationRole (lossy)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "post" ; gmeow:value "roleName" ;
         gmeow:atom (
@@ -836,7 +836,7 @@ gmeow:mapSchemaPostRole a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the Post (seat ⟂ holder) and Membership relator collapse to a flat schema:roleName; contested membership claims are not distinguished" ] .
 
 gmeow:mapSchemaHasSite a gmeow:ProjectionMapping ;
-    rdfs:label "hasSite → schema:location"@en ;
+    rdfs:label "hasSite → schema:location"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "org" ; gmeow:value "site" ;
         gmeow:atom ( [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:hasSite ; gmeow:objectVar "site" ] ) ;
@@ -846,7 +846,7 @@ gmeow:mapSchemaHasSite a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the siteType distinction (headquarters/branch/registered) is dropped; the target node's own Place projection preserves geographic detail" ] .
 
 gmeow:mapSchemaLeiCode a gmeow:ProjectionMapping ;
-    rdfs:label "legalIdentifier (LEI scheme) → schema:leiCode"@en ;
+    rdfs:label "legalIdentifier (LEI scheme) → schema:leiCode"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "org" ; gmeow:value "lei" ;
         gmeow:atom (
@@ -859,7 +859,7 @@ gmeow:mapSchemaLeiCode a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "only LEI-scheme identifiers are emitted; other schemes (ROR, company registration, Wikidata) are dropped in this projection" ] .
 
 gmeow:mapSchemaIndustryNaics a gmeow:ProjectionMapping ;
-    rdfs:label "industryClassification → schema:naics"@en ;
+    rdfs:label "industryClassification → schema:naics"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "org" ; gmeow:value "naics" ;
         gmeow:atom (
@@ -872,7 +872,7 @@ gmeow:mapSchemaIndustryNaics a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "only NAICS-scheme classifications are emitted; ISIC and other schemes are dropped; the code is emitted as a plain literal" ] .
 
 gmeow:mapSchemaIndustryIsic a gmeow:ProjectionMapping ;
-    rdfs:label "industryClassification → schema:isicV4"@en ;
+    rdfs:label "industryClassification → schema:isicV4"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "org" ; gmeow:value "isic" ;
         gmeow:atom (
@@ -889,7 +889,7 @@ gmeow:mapSchemaIndustryIsic a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaSkillProficiency a gmeow:ProjectionMapping ;
-    rdfs:label "SkillProficiency relator → schema:knowsAbout / schema:skills (flatten)"@en ;
+    rdfs:label "SkillProficiency relator → schema:knowsAbout / schema:skills (flatten)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "agent" ; gmeow:value "skill" ;
         gmeow:atom (
@@ -903,7 +903,7 @@ gmeow:mapSchemaSkillProficiency a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the SkillProficiency relator (level, scale, interval, standpoint, confidence) collapses to a flat schema:knowsAbout edge" ] .
 
 gmeow:mapSchemaHasCredential a gmeow:ProjectionMapping ;
-    rdfs:label "holdsCredential → schema:hasCredential"@en ;
+    rdfs:label "holdsCredential → schema:hasCredential"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "agent" ; gmeow:value "cred" ;
         gmeow:atom ( [ gmeow:subjectVar "agent" ; gmeow:predicate gmeow:holdsCredential ; gmeow:objectVar "cred" ] ) ;
@@ -912,7 +912,7 @@ gmeow:mapSchemaHasCredential a gmeow:ProjectionMapping ;
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:hasCredential ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
 
 gmeow:mapSchemaCredentialIssuer a gmeow:ProjectionMapping ;
-    rdfs:label "credentialIssuer → schema:recognizedBy"@en ;
+    rdfs:label "credentialIssuer → schema:recognizedBy"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "cred" ; gmeow:value "issuer" ;
         gmeow:atom (
@@ -924,7 +924,7 @@ gmeow:mapSchemaCredentialIssuer a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the issuer organization relator collapses to a flat schema:recognizedBy edge" ] .
 
 gmeow:mapSchemaCredentialFor a gmeow:ProjectionMapping ;
-    rdfs:label "credentialFor → schema:competencyRequired"@en ;
+    rdfs:label "credentialFor → schema:competencyRequired"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "cred" ; gmeow:value "target" ;
         gmeow:atom (

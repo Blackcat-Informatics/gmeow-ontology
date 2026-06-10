@@ -8,7 +8,7 @@
 # projections/foaf.edoal.ttl + queries/projections/foaf.rq by `gmeow compile-mappings`.
 
 gmeow:mapFoafSpatialThing a gmeow:ProjectionMapping ;
-    rdfs:label "Place with coordinates → wgs84:SpatialThing (lat/long, no WKT)"@en ;
+    rdfs:label "Place with coordinates → wgs84:SpatialThing (lat/long, no WKT)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "place" ;
         gmeow:atom (
@@ -27,7 +27,7 @@ gmeow:mapFoafSpatialThing a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "address structure, place types, hierarchy, geometry/WKT" ] .
 
 gmeow:mapFoafName a gmeow:ProjectionMapping ;
-    rdfs:label "displayable fullName → foaf:name"@en ;
+    rdfs:label "displayable fullName → foaf:name"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "dispName" ;
         gmeow:atom (
@@ -43,7 +43,7 @@ gmeow:mapFoafName a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "non-displayable names (deadnames) dropped" ] .
 
 gmeow:mapFoafGender a gmeow:ProjectionMapping ;
-    rdfs:label "displayable GenderIdentity value → foaf:gender (lossy; suppressed labels dropped)"@en ;
+    rdfs:label "displayable GenderIdentity value → foaf:gender (lossy; suppressed labels dropped)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "genderLabel" ;
         gmeow:atom (
@@ -58,7 +58,7 @@ gmeow:mapFoafGender a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "orientation + sexAssignedAtBirth dropped; sex/gender conflated" ] .
 
 gmeow:mapFoafNick a gmeow:ProjectionMapping ;
-    rdfs:label "nickname-purpose PersonName → foaf:nick"@en ;
+    rdfs:label "nickname-purpose PersonName → foaf:nick"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "nick" ;
         gmeow:atom (
@@ -72,7 +72,7 @@ gmeow:mapFoafNick a gmeow:ProjectionMapping ;
         gmeow:transform gmeow:fnNicknameName ; gmeow:confidence 0.9 ] .
 
 gmeow:mapFoafHomepage a gmeow:ProjectionMapping ;
-    rdfs:label "hasWebPage → foaf:homepage (the WebPage IRI)"@en ;
+    rdfs:label "hasWebPage → foaf:homepage (the WebPage IRI)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "ent" ; gmeow:value "wp" ;
         gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:hasWebPage ; gmeow:objectVar "wp" ] ) ;
@@ -82,7 +82,7 @@ gmeow:mapFoafHomepage a gmeow:ProjectionMapping ;
         gmeow:transform gmeow:fnWebPageToUrl ; gmeow:confidence 0.8 ] .
 
 gmeow:mapFoafBasedNear a gmeow:ProjectionMapping ;
-    rdfs:label "locatedAt a Place → foaf:based_near"@en ;
+    rdfs:label "locatedAt a Place → foaf:based_near"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "agent" ; gmeow:value "place" ;
         gmeow:atom ( [ gmeow:subjectVar "agent" ; gmeow:predicate gmeow:locatedAt ; gmeow:objectVar "place" ] ) ;
@@ -96,7 +96,7 @@ gmeow:mapFoafBasedNear a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapFoafNetworkAddress a gmeow:ProjectionMapping ;
-    rdfs:label "NetworkAddress (URL type) → foaf:page"@en ;
+    rdfs:label "NetworkAddress (URL type) → foaf:page"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "vl" ; gmeow:value "nval" ;
         gmeow:atom (

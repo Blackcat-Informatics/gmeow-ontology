@@ -28,7 +28,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import sssom
-from rdflib import RDF, RDFS, BNode, Graph, Literal, URIRef
+from rdflib import RDF, RDFS, SKOS, BNode, Graph, Literal, URIRef
 from rdflib.collection import Collection
 from rdflib.compare import isomorphic
 from rdflib.namespace import Namespace
@@ -148,9 +148,15 @@ def emit_fno(dsl: Dsl, onto: Graph) -> Graph:
     onto_iri = URIRef(ONTOLOGY_IRI)
     doc = URIRef(ONTOLOGY_IRI + "/projections/functions")
     graph.add((doc, RDF.type, URIRef(PREFIXES["owl"] + "Ontology")))
-    graph.add((doc, RDFS.label, Literal("GMEOW projection functions (FnO)", lang="en")))
+    graph.add(
+        (
+            doc,
+            RDFS.label,
+            Literal("GMEOW projection functions (FnO)", lang="x-gmeow-english"),
+        )
+    )
     graph.add((doc, DCTERMS.isPartOf, onto_iri))
-    graph.add((doc, RDFS.comment, Literal(_GENERATED_BANNER, lang="en")))
+    graph.add((doc, RDFS.comment, Literal(_GENERATED_BANNER, lang="x-gmeow-english")))
 
     # Which profiles use each transform (+ ALL cells per (transform, profile) — a
     # transform can fan out to several cells, e.g. fnHonorificToAffix → prefix and
@@ -169,9 +175,15 @@ def emit_fno(dsl: Dsl, onto: Graph) -> Graph:
     for fn_iri in sorted(dsl.functions, key=str):
         fn = dsl.functions[fn_iri]
         graph.add((fn_iri, RDF.type, FNO.Function))
-        graph.add((fn_iri, RDFS.label, Literal(fn.label, lang="en")))
+        graph.add((fn_iri, RDFS.label, Literal(fn.label, lang="x-gmeow-english")))
         if fn.description:
-            graph.add((fn_iri, DCTERMS.description, Literal(fn.description, lang="en")))
+            graph.add(
+                (
+                    fn_iri,
+                    DCTERMS.description,
+                    Literal(fn.description, lang="x-gmeow-english"),
+                )
+            )
         profiles = used_by.get(fn_iri) or ["schema-org"]
         graph.add(
             (
@@ -329,7 +341,9 @@ def _emit_fnom(
                 (
                     mapping,
                     RDFS.label,
-                    Literal(f"{fn_local} → {profile} (FnO mapping)", lang="en"),
+                    Literal(
+                        f"{fn_local} → {profile} (FnO mapping)", lang="x-gmeow-english"
+                    ),
                 )
             )
             graph.add((mapping, FNO.function, fn_iri))
@@ -344,7 +358,9 @@ def _emit_fnom(
                         (
                             pmap,
                             RDFS.label,
-                            Literal(f"{_local(param)} ↦ ?{var}", lang="en"),
+                            Literal(
+                                f"{_local(param)} ↦ ?{var}", lang="x-gmeow-english"
+                            ),
                         )
                     )
                     graph.add((pmap, FNOM.functionParameter, param))
@@ -357,7 +373,7 @@ def _emit_fnom(
                     (
                         rmap,
                         RDFS.label,
-                        Literal(f"{fn_local} output ↦ ?{var}", lang="en"),
+                        Literal(f"{fn_local} output ↦ ?{var}", lang="x-gmeow-english"),
                     )
                 )
                 graph.add((rmap, FNOM.functionOutput, out_node))
@@ -515,9 +531,15 @@ def emit_edoal(dsl: Dsl, profile: str) -> Graph:
     bind_prefixes(graph)
     align = URIRef(f"{ONTOLOGY_IRI}/projections/{profile}")
     graph.add((align, RDF.type, ALIGN.Alignment))
-    graph.add((align, RDFS.label, Literal(f"GMEOW → {profile} (EDOAL)", lang="en")))
+    graph.add(
+        (
+            align,
+            RDFS.label,
+            Literal(f"GMEOW → {profile} (EDOAL)", lang="x-gmeow-english"),
+        )
+    )
     graph.add((align, DCTERMS.isPartOf, URIRef(ONTOLOGY_IRI)))
-    graph.add((align, RDFS.comment, Literal(_GENERATED_BANNER, lang="en")))
+    graph.add((align, RDFS.comment, Literal(_GENERATED_BANNER, lang="x-gmeow-english")))
     graph.add((align, ALIGN.level, Literal("2EDOAL")))
     for n, name in ((ALIGN.onto1, "GMEOW"), (ALIGN.onto2, profile)):
         onto = BNode()
@@ -546,7 +568,7 @@ def _edoal_cells(graph: Graph, cell: ProjectionCell, b: ProfileBinding) -> list[
         # projection cell, the profile, and a fan-out key so it is unique and stable.
         node = _stable_bnode(f"cell-{b.profile}-{_local(cell.iri)}-{key}")
         graph.add((node, RDF.type, ALIGN.Cell))
-        graph.add((node, RDFS.label, Literal(label, lang="en")))
+        graph.add((node, RDFS.label, Literal(label, lang="x-gmeow-english")))
         graph.add((node, ALIGN.entity1, entity1))
         graph.add((node, ALIGN.entity2, entity2))
         graph.add((node, ALIGN.relation, Literal(b.relation)))
@@ -995,6 +1017,24 @@ def _branch(cell: ProjectionCell, b: ProfileBinding) -> str:
             ]
         )
         bind_expr = f"IF(BOUND(?_extTag), STRLANG(STR(?{val}), STR(?_extTag)), ?{val})"
+    elif any(
+        a.predicate in (RDFS.label, SKOS.definition, RDFS.comment)
+        and a.object_var == val
+        for a in flat_atoms
+    ):
+        # Generic fallback for standard annotation predicates that carry
+        # language-tagged literals but have no explicit language link in the
+        # pattern (e.g. genderValue rdfs:label, honorific rdfs:label).
+        retag_lines.extend(
+            [
+                "OPTIONAL {",
+                "    ?_lang gmeow:languageTag ?_intTag .",
+                f"    FILTER(isLiteral(?{val}) && LANG(?{val}) = ?_intTag)",
+                "    ?_lang gmeow:bcp47Tag ?_extTag .",
+                "}",
+            ]
+        )
+        bind_expr = f"IF(BOUND(?_extTag), STRLANG(STR(?{val}), STR(?_extTag)), ?{val})"
 
     if retag_lines and bind_expr:
         lines.extend(retag_lines)
@@ -1019,6 +1059,15 @@ def _templates(cell: ProjectionCell, b: ProfileBinding) -> list[str]:
         )
         and p.value is not None
     ):
+        var_map[p.value] = f"_final_{p.value}"
+    elif p.value is not None and any(
+        a.predicate in (RDFS.label, SKOS.definition, RDFS.comment)
+        and a.object_var == p.value
+        for a in _flatten_atoms(p.atoms)
+    ):
+        # Generic fallback for standard annotation predicates that carry
+        # language-tagged literals (e.g. genderValue rdfs:label,
+        # honorific rdfs:label).
         var_map[p.value] = f"_final_{p.value}"
 
     if b.template_atoms:

@@ -14,7 +14,7 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaImageObject a gmeow:ProjectionMapping ;
-    rdfs:label "MediaObject → schema:ImageObject"@en ;
+    rdfs:label "MediaObject → schema:ImageObject"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "img" ;
         gmeow:atom (
@@ -33,7 +33,7 @@ gmeow:mapSchemaImageObject a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaDepicts a gmeow:ProjectionMapping ;
-    rdfs:label "depicts → schema:about (lossy aboutness)"@en ;
+    rdfs:label "depicts → schema:about (lossy aboutness)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "img" ; gmeow:value "subj" ;
         gmeow:atom (
@@ -52,7 +52,7 @@ gmeow:mapSchemaDepicts a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaImageWidth a gmeow:ProjectionMapping ;
-    rdfs:label "pixelWidth → schema:width"@en ;
+    rdfs:label "pixelWidth → schema:width"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "img" ; gmeow:value "w" ;
         gmeow:atom (
@@ -67,7 +67,7 @@ gmeow:mapSchemaImageWidth a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "img" ; gmeow:tPred schema:width ; gmeow:tObj "w" ] ) ] .
 
 gmeow:mapSchemaImageHeight a gmeow:ProjectionMapping ;
-    rdfs:label "pixelHeight → schema:height"@en ;
+    rdfs:label "pixelHeight → schema:height"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "img" ; gmeow:value "h" ;
         gmeow:atom (
@@ -86,7 +86,7 @@ gmeow:mapSchemaImageHeight a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaCaptureTime a gmeow:ProjectionMapping ;
-    rdfs:label "captureTime → schema:dateCreated"@en ;
+    rdfs:label "captureTime → schema:dateCreated"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "img" ; gmeow:value "ct" ;
         gmeow:atom (

@@ -8,7 +8,7 @@
 
 <https://blackcatinformatics.ca/gmeow/modules/expertise>
     a owl:Ontology ;
-    rdfs:label "GMEOW Expertise Module"@en ;
+    rdfs:label "GMEOW Expertise Module"@x-gmeow-english ;
     rdfs:comment """Skills, occupations and credentials (the schema.org / ESCO / CTDL / O*NET / SOC superset layer). SKOS concepts are reused as recommended value vocabularies rather than re-grounded.
 
 DOCTRINE.
@@ -16,7 +16,7 @@ DOCTRINE.
   * Flat-first: gmeow:hasSkill is the 80 % shortcut; promote to SkillProficiency when level, scale, temporal scope, or standpoint matters.
   * Credential verification is routed through gmeow:Attestation (attestation.ttl), already aligned to vc:VerifiableCredential; expertise supplies the credential content, attestation the signed envelope (Principle 4).
   * Endorsement of a skill claim is an attestation over a SkillProficiency; contested levels coexist as standpoint-indexed claims (Principle 9).
-  * Occupation classification codes (ESCO, SOC, O*NET) are open literal values on gmeow:occupationClassification; resolution is solver-side (Principle 12)."""@en ;
+  * Occupation classification codes (ESCO, SOC, O*NET) are open literal values on gmeow:occupationClassification; resolution is solver-side (Principle 12)."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -26,29 +26,29 @@ DOCTRINE.
 gmeow:Skill
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity ;
-    rdfs:label "Skill"@en ;
-    skos:definition "A competency or ability an agent possesses — a knowledge, ability, or expertise that can be applied to perform a task. Occupation-independent; aligned to esco:Skill by reference."@en ;
+    rdfs:label "Skill"@x-gmeow-english ;
+    skos:definition "A competency or ability an agent possesses — a knowledge, ability, or expertise that can be applied to perform a task. Occupation-independent; aligned to esco:Skill by reference."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Occupation
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity ;
-    rdfs:label "Occupation"@en ;
-    skos:definition "A kind of work or profession, such as those classified by ESCO, SOC, or O*NET. Classifications are carried as open code values (gmeow:occupationClassification), never as OWL subclasses (Principle 9)."@en ;
+    rdfs:label "Occupation"@x-gmeow-english ;
+    skos:definition "A kind of work or profession, such as those classified by ESCO, SOC, or O*NET. Classifications are carried as open code values (gmeow:occupationClassification), never as OWL subclasses (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Credential
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity ;
-    rdfs:label "Credential"@en ;
-    skos:definition "An educational or occupational credential held by an agent — a degree, certification, badge, license, or other attestation of qualification. Its issuer is gmeow:credentialIssuer, its subject matter is gmeow:credentialFor, and its verification is borne by a gmeow:Attestation (Principle 4)."@en ;
+    rdfs:label "Credential"@x-gmeow-english ;
+    skos:definition "An educational or occupational credential held by an agent — a degree, certification, badge, license, or other attestation of qualification. Its issuer is gmeow:credentialIssuer, its subject matter is gmeow:credentialFor, and its verification is borne by a gmeow:Attestation (Principle 4)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:SkillProficiency
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
-    rdfs:label "Skill Proficiency"@en ;
-    skos:definition "A reified, leveled proficiency of an agent in a skill — the gufo:Relator binding {agent} × {skill} × {level on a scale} × {interval}, mirroring languages' gmeow:LanguageProficiency. Mint one per (agent, skill) so per-skill levels coexist; the flat gmeow:hasSkill relation states that an agent has a skill, this relator adds the level and the scale."@en ;
+    rdfs:label "Skill Proficiency"@x-gmeow-english ;
+    skos:definition "A reified, leveled proficiency of an agent in a skill — the gufo:Relator binding {agent} × {skill} × {level on a scale} × {interval}, mirroring languages' gmeow:LanguageProficiency. Mint one per (agent, skill) so per-skill levels coexist; the flat gmeow:hasSkill relation states that an agent has a skill, this relator adds the level and the scale."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -59,16 +59,16 @@ gmeow:hasSkill
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:range gmeow:Skill ;
-    rdfs:label "has skill"@en ;
-    skos:definition "Relates an agent to a skill it possesses. Non-functional — an agent may have many skills. The leveled, scaled detail is carried by the reified gmeow:SkillProficiency."@en ;
+    rdfs:label "has skill"@x-gmeow-english ;
+    skos:definition "Relates an agent to a skill it possesses. Non-functional — an agent may have many skills. The leveled, scaled detail is carried by the reified gmeow:SkillProficiency."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasOccupation
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:range gmeow:Occupation ;
-    rdfs:label "has occupation"@en ;
-    skos:definition "Relates a person to an occupation they hold or have held. Non-functional — a person may have several occupations over time."@en ;
+    rdfs:label "has occupation"@x-gmeow-english ;
+    skos:definition "Relates a person to an occupation they hold or have held. Non-functional — a person may have several occupations over time."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -79,40 +79,40 @@ gmeow:skillProficiencyAgent
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:SkillProficiency ;
     rdfs:range gmeow:Agent ;
-    rdfs:label "skill proficiency agent"@en ;
-    skos:definition "The agent whose proficiency a skill-proficiency expresses. Functional — constitutive of the proficiency."@en ;
+    rdfs:label "skill proficiency agent"@x-gmeow-english ;
+    skos:definition "The agent whose proficiency a skill-proficiency expresses. Functional — constitutive of the proficiency."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:skillProficiencyOf
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:SkillProficiency ;
     rdfs:range gmeow:Skill ;
-    rdfs:label "skill proficiency of"@en ;
-    skos:definition "The skill a skill-proficiency concerns. Functional — constitutive."@en ;
+    rdfs:label "skill proficiency of"@x-gmeow-english ;
+    skos:definition "The skill a skill-proficiency concerns. Functional — constitutive."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:skillProficiencyLevel
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:SkillProficiency ;
     rdfs:range gmeow:ProficiencyLevel ;
-    rdfs:label "skill proficiency level"@en ;
-    skos:definition "The attained level of a skill-proficiency (a gmeow:ProficiencyLevel value, e.g. dreyfusExpert, assessedCompetent). Functional."@en ;
+    rdfs:label "skill proficiency level"@x-gmeow-english ;
+    skos:definition "The attained level of a skill-proficiency (a gmeow:ProficiencyLevel value, e.g. dreyfusExpert, assessedCompetent). Functional."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:skillProficiencyScale
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:SkillProficiency ;
     rdfs:range gmeow:ProficiencyScale ;
-    rdfs:label "skill proficiency scale"@en ;
-    skos:definition "The framework/scale a skill-proficiency level is measured on (Dreyfus, NIH, assessed, self-reported) — a gmeow:ProficiencyScale value. Functional."@en ;
+    rdfs:label "skill proficiency scale"@x-gmeow-english ;
+    skos:definition "The framework/scale a skill-proficiency level is measured on (Dreyfus, NIH, assessed, self-reported) — a gmeow:ProficiencyScale value. Functional."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:skillProficiencyInterval
     a owl:ObjectProperty ;
     rdfs:domain gmeow:SkillProficiency ;
     rdfs:range gmeow:TimeInterval ;
-    rdfs:label "skill proficiency interval"@en ;
-    skos:definition "The interval over which a skill-proficiency held (proficiency changes over a life). Lighter cases use gmeow:validFrom/validUntil on the statement."@en ;
+    rdfs:label "skill proficiency interval"@x-gmeow-english ;
+    skos:definition "The interval over which a skill-proficiency held (proficiency changes over a life). Lighter cases use gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -123,31 +123,31 @@ gmeow:holdsCredential
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:range gmeow:Credential ;
-    rdfs:label "holds credential"@en ;
-    skos:definition "Relates an agent to a credential it holds. Non-functional — an agent may hold many credentials, and a single credential may be held by many agents (shared license, group certification)."@en ;
+    rdfs:label "holds credential"@x-gmeow-english ;
+    skos:definition "Relates an agent to a credential it holds. Non-functional — an agent may hold many credentials, and a single credential may be held by many agents (shared license, group certification)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:credentialIssuer
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Credential ;
     rdfs:range gmeow:Organization ;
-    rdfs:label "credential issuer"@en ;
-    skos:definition "The organization that issued a credential. Functional per credential: one issuer is constitutive of the credential's identity (a different issuer is a different credential, even for the same subject matter)."@en ;
+    rdfs:label "credential issuer"@x-gmeow-english ;
+    skos:definition "The organization that issued a credential. Functional per credential: one issuer is constitutive of the credential's identity (a different issuer is a different credential, even for the same subject matter)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:credentialFor
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Credential ;
-    rdfs:label "credential for"@en ;
-    skos:definition "The skill or occupation that a credential certifies. Non-functional — a credential may certify several skills or both a skill and an occupation. Profile compliance: the union range (Skill|Occupation) is enforced by SHACL (shapes/expertise-shapes.ttl), not OWL, because owl:unionOf in rdfs:range violates OWL 2 RL/EL."@en ;
+    rdfs:label "credential for"@x-gmeow-english ;
+    skos:definition "The skill or occupation that a credential certifies. Non-functional — a credential may certify several skills or both a skill and an occupation. Profile compliance: the union range (Skill|Occupation) is enforced by SHACL (shapes/expertise-shapes.ttl), not OWL, because owl:unionOf in rdfs:range violates OWL 2 RL/EL."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:occupationClassification
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Occupation ;
     rdfs:range xsd:string ;
-    rdfs:label "occupation classification"@en ;
-    skos:definition "An external classification code for an occupation (ESCO, SOC, O*NET, ISCO, NOC). Non-functional — an occupation may carry codes from several schemes. The scheme is solver-side; the literal is the raw code value (Principle 12)."@en ;
+    rdfs:label "occupation classification"@x-gmeow-english ;
+    skos:definition "An external classification code for an occupation (ESCO, SOC, O*NET, ISCO, NOC). Non-functional — an occupation may carry codes from several schemes. The scheme is solver-side; the literal is the raw code value (Principle 12)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #

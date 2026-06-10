@@ -13,7 +13,7 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:mapIiifCanvas a gmeow:ProjectionMapping ;
-    rdfs:label "MediaObject → iiif:Canvas (with width/height)"@en ;
+    rdfs:label "MediaObject → iiif:Canvas (with width/height)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "img" ;
         gmeow:atom (
@@ -36,7 +36,7 @@ gmeow:mapIiifCanvas a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapIiifRegionAnnotation a gmeow:ProjectionMapping ;
-    rdfs:label "ImageRegion → iiif:Annotation (with selector)"@en ;
+    rdfs:label "ImageRegion → iiif:Annotation (with selector)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "region" ;
         gmeow:atom (

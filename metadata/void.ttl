@@ -1573,11 +1573,11 @@
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> a void:Dataset ;
     dcterms:creator <https://blackcatinformatics.ca/#bii> ;
-    dcterms:description "A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary for entity, document, agreement and person-centric data."@en ;
+    dcterms:description "A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary for entity, document, agreement and person-centric data."@x-gmeow-english ;
     dcterms:hasVersion "0.1.0" ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
     dcterms:publisher <https://blackcatinformatics.ca/#bii> ;
-    dcterms:title "GMEOW — Global Metadata and Entity Ontology for the Web"@en ;
+    dcterms:title "GMEOW — Global Metadata and Entity Ontology for the Web"@x-gmeow-english ;
     void:dataDump <https://blackcatinformatics.ca/gmeow.jsonld>,
         <https://blackcatinformatics.ca/gmeow.nt>,
         <https://blackcatinformatics.ca/gmeow.rdf>,

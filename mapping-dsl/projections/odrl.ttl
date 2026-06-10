@@ -14,7 +14,7 @@
 # mapping-dsl/equivalences/rights.ttl, so the no-drift gate verifies the projection.
 
 gmeow:mapOdrlPolicy a gmeow:ProjectionMapping ;
-    rdfs:label "RightsStatement → odrl:Set"@en ;
+    rdfs:label "RightsStatement → odrl:Set"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "rs" ;
         gmeow:atom ( [ gmeow:subjectVar "rs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ] ) ] ;
@@ -23,7 +23,7 @@ gmeow:mapOdrlPolicy a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "rs" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Set ] ) ] .
 
 gmeow:mapOdrlPermission a gmeow:ProjectionMapping ;
-    rdfs:label "RightsStatement permission rule → odrl:permission"@en ;
+    rdfs:label "RightsStatement permission rule → odrl:permission"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "rs" ;
         gmeow:atom (
@@ -42,7 +42,7 @@ gmeow:mapOdrlPermission a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "perm" ; gmeow:tPred odrl:assignee ; gmeow:tObj "permAssignee" ] ) ] .
 
 gmeow:mapOdrlProhibition a gmeow:ProjectionMapping ;
-    rdfs:label "RightsStatement prohibition rule → odrl:prohibition"@en ;
+    rdfs:label "RightsStatement prohibition rule → odrl:prohibition"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "rs" ;
         gmeow:atom (
@@ -61,7 +61,7 @@ gmeow:mapOdrlProhibition a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "proh" ; gmeow:tPred odrl:assignee ; gmeow:tObj "prohAssignee" ] ) ] .
 
 gmeow:mapOdrlDuty a gmeow:ProjectionMapping ;
-    rdfs:label "RightsStatement duty rule → odrl:obligation"@en ;
+    rdfs:label "RightsStatement duty rule → odrl:obligation"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "rs" ;
         gmeow:atom (
@@ -80,7 +80,7 @@ gmeow:mapOdrlDuty a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "dutyR" ; gmeow:tPred odrl:assignee ; gmeow:tObj "dutyAssignee" ] ) ] .
 
 gmeow:mapOdrlOffer a gmeow:ProjectionMapping ;
-    rdfs:label "License → odrl:Offer (+ assigner, target)"@en ;
+    rdfs:label "License → odrl:Offer (+ assigner, target)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "lic" ;
         gmeow:atom (
@@ -98,7 +98,7 @@ gmeow:mapOdrlOffer a gmeow:ProjectionMapping ;
 # --- ODRL constraint algebra + deontic logic (#21) -------------------------- #
 
 gmeow:mapOdrlConstraint a gmeow:ProjectionMapping ;
-    rdfs:label "Atomic constraint on a rule → odrl:constraint"@en ;
+    rdfs:label "Atomic constraint on a rule → odrl:constraint"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "r" ;
         gmeow:atom (
@@ -119,7 +119,7 @@ gmeow:mapOdrlConstraint a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "c" ; gmeow:tPred odrl:rightOperandReference ; gmeow:tObj "rr" ] ) ] .
 
 gmeow:mapOdrlConflict a gmeow:ProjectionMapping ;
-    rdfs:label "conflictStrategy → odrl:conflict"@en ;
+    rdfs:label "conflictStrategy → odrl:conflict"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "rs" ; gmeow:value "cs" ;
         gmeow:atom ( [ gmeow:subjectVar "rs" ; gmeow:predicate gmeow:conflictStrategy ; gmeow:objectVar "cs" ] ) ;
@@ -129,7 +129,7 @@ gmeow:mapOdrlConflict a gmeow:ProjectionMapping ;
 # ODRL distinguishes a duty's consequence (odrl:consequence) from a prohibition's
 # remedy (odrl:remedy); the projection keys on the rule type to emit the right one.
 gmeow:mapOdrlConsequence a gmeow:ProjectionMapping ;
-    rdfs:label "Duty consequence → odrl:consequence"@en ;
+    rdfs:label "Duty consequence → odrl:consequence"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "r" ; gmeow:value "d" ;
         gmeow:atom (
@@ -139,7 +139,7 @@ gmeow:mapOdrlConsequence a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "odrl" ; gmeow:toPredicate odrl:consequence ; gmeow:relation "<=" ; gmeow:confidence 0.7 ] .
 
 gmeow:mapOdrlRemedy a gmeow:ProjectionMapping ;
-    rdfs:label "Prohibition consequence → odrl:remedy"@en ;
+    rdfs:label "Prohibition consequence → odrl:remedy"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "r" ; gmeow:value "d" ;
         gmeow:atom (
@@ -149,7 +149,7 @@ gmeow:mapOdrlRemedy a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "odrl" ; gmeow:toPredicate odrl:remedy ; gmeow:relation "<=" ; gmeow:confidence 0.65 ] .
 
 gmeow:mapOdrlAsset a gmeow:ProjectionMapping ;
-    rdfs:label "governed asset → odrl:Asset"@en ;
+    rdfs:label "governed asset → odrl:Asset"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "asset" ;
         gmeow:atom (
@@ -160,7 +160,7 @@ gmeow:mapOdrlAsset a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "asset" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Asset ] ) ] .
 
 gmeow:mapOdrlParty a gmeow:ProjectionMapping ;
-    rdfs:label "rule assignee → odrl:Party"@en ;
+    rdfs:label "rule assignee → odrl:Party"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "p" ;
         gmeow:atom ( [ gmeow:subjectVar "anyrule" ; gmeow:predicate gmeow:ruleAssignee ; gmeow:objectVar "p" ] ) ] ;
@@ -169,7 +169,7 @@ gmeow:mapOdrlParty a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "p" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Party ] ) ] .
 
 gmeow:mapOdrlAssignerParty a gmeow:ProjectionMapping ;
-    rdfs:label "licensor (assigner) → odrl:Party"@en ;
+    rdfs:label "licensor (assigner) → odrl:Party"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "lp" ;
         gmeow:atom ( [ gmeow:subjectVar "anylic" ; gmeow:predicate gmeow:licensor ; gmeow:objectVar "lp" ] ) ] ;

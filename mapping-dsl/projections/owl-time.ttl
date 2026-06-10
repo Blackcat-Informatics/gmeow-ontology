@@ -14,7 +14,7 @@
 # so its CONSTRUCT template fires only for its own WHERE branch.
 
 gmeow:mapTimeBefore a gmeow:ProjectionMapping ;
-    rdfs:label "before → time:intervalBefore"@en ;
+    rdfs:label "before → time:intervalBefore"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "beforeA" ;
         gmeow:atom ( [ gmeow:subjectVar "beforeA" ; gmeow:predicate gmeow:before ; gmeow:objectVar "beforeB" ] ) ] ;
@@ -23,7 +23,7 @@ gmeow:mapTimeBefore a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "beforeA" ; gmeow:tPred time:intervalBefore ; gmeow:tObj "beforeB" ] ) ] .
 
 gmeow:mapTimeAfter a gmeow:ProjectionMapping ;
-    rdfs:label "after → time:intervalAfter"@en ;
+    rdfs:label "after → time:intervalAfter"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "afterA" ;
         gmeow:atom ( [ gmeow:subjectVar "afterA" ; gmeow:predicate gmeow:after ; gmeow:objectVar "afterB" ] ) ] ;
@@ -32,7 +32,7 @@ gmeow:mapTimeAfter a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "afterA" ; gmeow:tPred time:intervalAfter ; gmeow:tObj "afterB" ] ) ] .
 
 gmeow:mapTimeMeets a gmeow:ProjectionMapping ;
-    rdfs:label "meets → time:intervalMeets"@en ;
+    rdfs:label "meets → time:intervalMeets"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "meetsA" ;
         gmeow:atom ( [ gmeow:subjectVar "meetsA" ; gmeow:predicate gmeow:meets ; gmeow:objectVar "meetsB" ] ) ] ;
@@ -41,7 +41,7 @@ gmeow:mapTimeMeets a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "meetsA" ; gmeow:tPred time:intervalMeets ; gmeow:tObj "meetsB" ] ) ] .
 
 gmeow:mapTimeMetBy a gmeow:ProjectionMapping ;
-    rdfs:label "metBy → time:intervalMetBy"@en ;
+    rdfs:label "metBy → time:intervalMetBy"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "metByA" ;
         gmeow:atom ( [ gmeow:subjectVar "metByA" ; gmeow:predicate gmeow:metBy ; gmeow:objectVar "metByB" ] ) ] ;
@@ -50,7 +50,7 @@ gmeow:mapTimeMetBy a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "metByA" ; gmeow:tPred time:intervalMetBy ; gmeow:tObj "metByB" ] ) ] .
 
 gmeow:mapTimeOverlaps a gmeow:ProjectionMapping ;
-    rdfs:label "overlaps → time:intervalOverlaps"@en ;
+    rdfs:label "overlaps → time:intervalOverlaps"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "overlapsA" ;
         gmeow:atom ( [ gmeow:subjectVar "overlapsA" ; gmeow:predicate gmeow:overlaps ; gmeow:objectVar "overlapsB" ] ) ] ;
@@ -59,7 +59,7 @@ gmeow:mapTimeOverlaps a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "overlapsA" ; gmeow:tPred time:intervalOverlaps ; gmeow:tObj "overlapsB" ] ) ] .
 
 gmeow:mapTimeOverlappedBy a gmeow:ProjectionMapping ;
-    rdfs:label "overlappedBy → time:intervalOverlappedBy"@en ;
+    rdfs:label "overlappedBy → time:intervalOverlappedBy"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "overlappedByA" ;
         gmeow:atom ( [ gmeow:subjectVar "overlappedByA" ; gmeow:predicate gmeow:overlappedBy ; gmeow:objectVar "overlappedByB" ] ) ] ;
@@ -68,7 +68,7 @@ gmeow:mapTimeOverlappedBy a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "overlappedByA" ; gmeow:tPred time:intervalOverlappedBy ; gmeow:tObj "overlappedByB" ] ) ] .
 
 gmeow:mapTimeStarts a gmeow:ProjectionMapping ;
-    rdfs:label "starts → time:intervalStarts"@en ;
+    rdfs:label "starts → time:intervalStarts"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "startsA" ;
         gmeow:atom ( [ gmeow:subjectVar "startsA" ; gmeow:predicate gmeow:starts ; gmeow:objectVar "startsB" ] ) ] ;
@@ -77,7 +77,7 @@ gmeow:mapTimeStarts a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "startsA" ; gmeow:tPred time:intervalStarts ; gmeow:tObj "startsB" ] ) ] .
 
 gmeow:mapTimeStartedBy a gmeow:ProjectionMapping ;
-    rdfs:label "startedBy → time:intervalStartedBy"@en ;
+    rdfs:label "startedBy → time:intervalStartedBy"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "startedByA" ;
         gmeow:atom ( [ gmeow:subjectVar "startedByA" ; gmeow:predicate gmeow:startedBy ; gmeow:objectVar "startedByB" ] ) ] ;
@@ -86,7 +86,7 @@ gmeow:mapTimeStartedBy a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "startedByA" ; gmeow:tPred time:intervalStartedBy ; gmeow:tObj "startedByB" ] ) ] .
 
 gmeow:mapTimeDuring a gmeow:ProjectionMapping ;
-    rdfs:label "during → time:intervalDuring"@en ;
+    rdfs:label "during → time:intervalDuring"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "duringA" ;
         gmeow:atom ( [ gmeow:subjectVar "duringA" ; gmeow:predicate gmeow:during ; gmeow:objectVar "duringB" ] ) ] ;
@@ -95,7 +95,7 @@ gmeow:mapTimeDuring a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "duringA" ; gmeow:tPred time:intervalDuring ; gmeow:tObj "duringB" ] ) ] .
 
 gmeow:mapTimeContains a gmeow:ProjectionMapping ;
-    rdfs:label "contains → time:intervalContains"@en ;
+    rdfs:label "contains → time:intervalContains"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "containsA" ;
         gmeow:atom ( [ gmeow:subjectVar "containsA" ; gmeow:predicate gmeow:contains ; gmeow:objectVar "containsB" ] ) ] ;
@@ -104,7 +104,7 @@ gmeow:mapTimeContains a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "containsA" ; gmeow:tPred time:intervalContains ; gmeow:tObj "containsB" ] ) ] .
 
 gmeow:mapTimeFinishes a gmeow:ProjectionMapping ;
-    rdfs:label "finishes → time:intervalFinishes"@en ;
+    rdfs:label "finishes → time:intervalFinishes"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "finishesA" ;
         gmeow:atom ( [ gmeow:subjectVar "finishesA" ; gmeow:predicate gmeow:finishes ; gmeow:objectVar "finishesB" ] ) ] ;
@@ -113,7 +113,7 @@ gmeow:mapTimeFinishes a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "finishesA" ; gmeow:tPred time:intervalFinishes ; gmeow:tObj "finishesB" ] ) ] .
 
 gmeow:mapTimeFinishedBy a gmeow:ProjectionMapping ;
-    rdfs:label "finishedBy → time:intervalFinishedBy"@en ;
+    rdfs:label "finishedBy → time:intervalFinishedBy"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "finishedByA" ;
         gmeow:atom ( [ gmeow:subjectVar "finishedByA" ; gmeow:predicate gmeow:finishedBy ; gmeow:objectVar "finishedByB" ] ) ] ;
@@ -122,7 +122,7 @@ gmeow:mapTimeFinishedBy a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "finishedByA" ; gmeow:tPred time:intervalFinishedBy ; gmeow:tObj "finishedByB" ] ) ] .
 
 gmeow:mapTimeCoincidesWith a gmeow:ProjectionMapping ;
-    rdfs:label "coincidesWith → time:intervalEquals"@en ;
+    rdfs:label "coincidesWith → time:intervalEquals"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "coincidesWithA" ;
         gmeow:atom ( [ gmeow:subjectVar "coincidesWithA" ; gmeow:predicate gmeow:coincidesWith ; gmeow:objectVar "coincidesWithB" ] ) ] ;
@@ -135,7 +135,7 @@ gmeow:mapTimeCoincidesWith a gmeow:ProjectionMapping ;
 # =========================================================================== #
 
 gmeow:mapIntervalBefore a gmeow:ProjectionMapping ;
-    rdfs:label "intervalBefore → time:intervalBefore"@en ;
+    rdfs:label "intervalBefore → time:intervalBefore"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "intBeforeA" ;
         gmeow:atom ( [ gmeow:subjectVar "intBeforeA" ; gmeow:predicate gmeow:intervalBefore ; gmeow:objectVar "intBeforeB" ] ) ] ;
@@ -144,7 +144,7 @@ gmeow:mapIntervalBefore a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "intBeforeA" ; gmeow:tPred time:intervalBefore ; gmeow:tObj "intBeforeB" ] ) ] .
 
 gmeow:mapIntervalAfter a gmeow:ProjectionMapping ;
-    rdfs:label "intervalAfter → time:intervalAfter"@en ;
+    rdfs:label "intervalAfter → time:intervalAfter"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "intAfterA" ;
         gmeow:atom ( [ gmeow:subjectVar "intAfterA" ; gmeow:predicate gmeow:intervalAfter ; gmeow:objectVar "intAfterB" ] ) ] ;
@@ -153,7 +153,7 @@ gmeow:mapIntervalAfter a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "intAfterA" ; gmeow:tPred time:intervalAfter ; gmeow:tObj "intAfterB" ] ) ] .
 
 gmeow:mapIntervalMeets a gmeow:ProjectionMapping ;
-    rdfs:label "intervalMeets → time:intervalMeets"@en ;
+    rdfs:label "intervalMeets → time:intervalMeets"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "intMeetsA" ;
         gmeow:atom ( [ gmeow:subjectVar "intMeetsA" ; gmeow:predicate gmeow:intervalMeets ; gmeow:objectVar "intMeetsB" ] ) ] ;
@@ -162,7 +162,7 @@ gmeow:mapIntervalMeets a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "intMeetsA" ; gmeow:tPred time:intervalMeets ; gmeow:tObj "intMeetsB" ] ) ] .
 
 gmeow:mapIntervalMetBy a gmeow:ProjectionMapping ;
-    rdfs:label "intervalMetBy → time:intervalMetBy"@en ;
+    rdfs:label "intervalMetBy → time:intervalMetBy"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "intMetByA" ;
         gmeow:atom ( [ gmeow:subjectVar "intMetByA" ; gmeow:predicate gmeow:intervalMetBy ; gmeow:objectVar "intMetByB" ] ) ] ;
@@ -171,7 +171,7 @@ gmeow:mapIntervalMetBy a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "intMetByA" ; gmeow:tPred time:intervalMetBy ; gmeow:tObj "intMetByB" ] ) ] .
 
 gmeow:mapIntervalOverlaps a gmeow:ProjectionMapping ;
-    rdfs:label "intervalOverlaps → time:intervalOverlaps"@en ;
+    rdfs:label "intervalOverlaps → time:intervalOverlaps"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "intOverlapsA" ;
         gmeow:atom ( [ gmeow:subjectVar "intOverlapsA" ; gmeow:predicate gmeow:intervalOverlaps ; gmeow:objectVar "intOverlapsB" ] ) ] ;
@@ -180,7 +180,7 @@ gmeow:mapIntervalOverlaps a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "intOverlapsA" ; gmeow:tPred time:intervalOverlaps ; gmeow:tObj "intOverlapsB" ] ) ] .
 
 gmeow:mapIntervalOverlappedBy a gmeow:ProjectionMapping ;
-    rdfs:label "intervalOverlappedBy → time:intervalOverlappedBy"@en ;
+    rdfs:label "intervalOverlappedBy → time:intervalOverlappedBy"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "intOverlappedByA" ;
         gmeow:atom ( [ gmeow:subjectVar "intOverlappedByA" ; gmeow:predicate gmeow:intervalOverlappedBy ; gmeow:objectVar "intOverlappedByB" ] ) ] ;
@@ -189,7 +189,7 @@ gmeow:mapIntervalOverlappedBy a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "intOverlappedByA" ; gmeow:tPred time:intervalOverlappedBy ; gmeow:tObj "intOverlappedByB" ] ) ] .
 
 gmeow:mapIntervalStarts a gmeow:ProjectionMapping ;
-    rdfs:label "intervalStarts → time:intervalStarts"@en ;
+    rdfs:label "intervalStarts → time:intervalStarts"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "intStartsA" ;
         gmeow:atom ( [ gmeow:subjectVar "intStartsA" ; gmeow:predicate gmeow:intervalStarts ; gmeow:objectVar "intStartsB" ] ) ] ;
@@ -198,7 +198,7 @@ gmeow:mapIntervalStarts a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "intStartsA" ; gmeow:tPred time:intervalStarts ; gmeow:tObj "intStartsB" ] ) ] .
 
 gmeow:mapIntervalStartedBy a gmeow:ProjectionMapping ;
-    rdfs:label "intervalStartedBy → time:intervalStartedBy"@en ;
+    rdfs:label "intervalStartedBy → time:intervalStartedBy"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "intStartedByA" ;
         gmeow:atom ( [ gmeow:subjectVar "intStartedByA" ; gmeow:predicate gmeow:intervalStartedBy ; gmeow:objectVar "intStartedByB" ] ) ] ;
@@ -207,7 +207,7 @@ gmeow:mapIntervalStartedBy a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "intStartedByA" ; gmeow:tPred time:intervalStartedBy ; gmeow:tObj "intStartedByB" ] ) ] .
 
 gmeow:mapIntervalDuring a gmeow:ProjectionMapping ;
-    rdfs:label "intervalDuring → time:intervalDuring"@en ;
+    rdfs:label "intervalDuring → time:intervalDuring"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "intDuringA" ;
         gmeow:atom ( [ gmeow:subjectVar "intDuringA" ; gmeow:predicate gmeow:intervalDuring ; gmeow:objectVar "intDuringB" ] ) ] ;
@@ -216,7 +216,7 @@ gmeow:mapIntervalDuring a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "intDuringA" ; gmeow:tPred time:intervalDuring ; gmeow:tObj "intDuringB" ] ) ] .
 
 gmeow:mapIntervalContains a gmeow:ProjectionMapping ;
-    rdfs:label "intervalContains → time:intervalContains"@en ;
+    rdfs:label "intervalContains → time:intervalContains"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "intContainsA" ;
         gmeow:atom ( [ gmeow:subjectVar "intContainsA" ; gmeow:predicate gmeow:intervalContains ; gmeow:objectVar "intContainsB" ] ) ] ;
@@ -225,7 +225,7 @@ gmeow:mapIntervalContains a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "intContainsA" ; gmeow:tPred time:intervalContains ; gmeow:tObj "intContainsB" ] ) ] .
 
 gmeow:mapIntervalFinishes a gmeow:ProjectionMapping ;
-    rdfs:label "intervalFinishes → time:intervalFinishes"@en ;
+    rdfs:label "intervalFinishes → time:intervalFinishes"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "intFinishesA" ;
         gmeow:atom ( [ gmeow:subjectVar "intFinishesA" ; gmeow:predicate gmeow:intervalFinishes ; gmeow:objectVar "intFinishesB" ] ) ] ;
@@ -234,7 +234,7 @@ gmeow:mapIntervalFinishes a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "intFinishesA" ; gmeow:tPred time:intervalFinishes ; gmeow:tObj "intFinishesB" ] ) ] .
 
 gmeow:mapIntervalFinishedBy a gmeow:ProjectionMapping ;
-    rdfs:label "intervalFinishedBy → time:intervalFinishedBy"@en ;
+    rdfs:label "intervalFinishedBy → time:intervalFinishedBy"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "intFinishedByA" ;
         gmeow:atom ( [ gmeow:subjectVar "intFinishedByA" ; gmeow:predicate gmeow:intervalFinishedBy ; gmeow:objectVar "intFinishedByB" ] ) ] ;
@@ -243,7 +243,7 @@ gmeow:mapIntervalFinishedBy a gmeow:ProjectionMapping ;
         gmeow:templateAtoms ( [ gmeow:tSubj "intFinishedByA" ; gmeow:tPred time:intervalFinishedBy ; gmeow:tObj "intFinishedByB" ] ) ] .
 
 gmeow:mapIntervalCoincidesWith a gmeow:ProjectionMapping ;
-    rdfs:label "intervalCoincidesWith → time:intervalEquals"@en ;
+    rdfs:label "intervalCoincidesWith → time:intervalEquals"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "intCoincidesA" ;
         gmeow:atom ( [ gmeow:subjectVar "intCoincidesA" ; gmeow:predicate gmeow:intervalCoincidesWith ; gmeow:objectVar "intCoincidesB" ] ) ] ;

@@ -8,53 +8,53 @@
 
 <https://blackcatinformatics.ca/gmeow/modules/accounts>
     a owl:Ontology ;
-    rdfs:label "GMEOW Accounts Module"@en ;
-    rdfs:comment "Online accounts and decentralized identity (the FOAF OnlineAccount + decentralized-identity layer)."@en ;
+    rdfs:label "GMEOW Accounts Module"@x-gmeow-english ;
+    rdfs:comment "Online accounts and decentralized identity (the FOAF OnlineAccount + decentralized-identity layer)."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:OnlineAccount
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Online Account"@en ;
-    skos:definition "An account an agent holds with an online service — a social profile, code-forge account, or decentralized identity."@en ;
+    rdfs:label "Online Account"@x-gmeow-english ;
+    skos:definition "An account an agent holds with an online service — a social profile, code-forge account, or decentralized identity."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:holdsAccount
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:range gmeow:OnlineAccount ;
-    rdfs:label "holds account"@en ;
-    skos:definition "Relates an agent to an online account it holds."@en ;
+    rdfs:label "holds account"@x-gmeow-english ;
+    skos:definition "Relates an agent to an online account it holds."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:accountName
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:OnlineAccount ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "account name"@en ;
-    skos:definition "The handle or user name identifying the account on its service."@en ;
+    rdfs:label "account name"@x-gmeow-english ;
+    skos:definition "The handle or user name identifying the account on its service."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:nostrPubkey
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:OnlineAccount ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "Nostr public key"@en ;
-    skos:definition "The Nostr public key (npub / hex) identifying a decentralized-identity account."@en ;
+    rdfs:label "Nostr public key"@x-gmeow-english ;
+    skos:definition "The Nostr public key (npub / hex) identifying a decentralized-identity account."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:activityPubActor
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:OnlineAccount ;
     rdfs:range xsd:anyURI ;
-    rdfs:label "ActivityPub actor"@en ;
-    skos:definition "The ActivityPub actor IRI of a federated-social account."@en ;
+    rdfs:label "ActivityPub actor"@x-gmeow-english ;
+    skos:definition "The ActivityPub actor IRI of a federated-social account."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:nip05
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:OnlineAccount ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "NIP-05 identifier"@en ;
-    skos:definition "A Nostr NIP-05 identifier (user@domain) verifying a Nostr account against a domain."@en ;
+    rdfs:label "NIP-05 identifier"@x-gmeow-english ;
+    skos:definition "A Nostr NIP-05 identifier (user@domain) verifying a Nostr account against a domain."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

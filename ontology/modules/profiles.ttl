@@ -7,8 +7,8 @@
 
 <https://blackcatinformatics.ca/gmeow/modules/profiles>
     a owl:Ontology ;
-    rdfs:label "GMEOW Profile Meta-pattern Module"@en ;
-    rdfs:comment "Reusable Profile construct: closed descriptor schema + open values + self-description. Reference-frame, temporal-frame and four-clocks provenance profiles are seeded as worked examples."@en ;
+    rdfs:label "GMEOW Profile Meta-pattern Module"@x-gmeow-english ;
+    rdfs:comment "Reusable Profile construct: closed descriptor schema + open values + self-description. Reference-frame, temporal-frame and four-clocks provenance profiles are seeded as worked examples."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -18,36 +18,36 @@
 gmeow:Profile
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject, gufo:Object ;
-    rdfs:label "Profile"@en ;
-    skos:definition "A closed descriptor schema for an open-but-structured facet. A Profile self-describes the properties that constitute the facet and the open value vocabularies from which their values are drawn, enabling extensibility-by-construction."@en ;
+    rdfs:label "Profile"@x-gmeow-english ;
+    skos:definition "A closed descriptor schema for an open-but-structured facet. A Profile self-describes the properties that constitute the facet and the open value vocabularies from which their values are drawn, enabling extensibility-by-construction."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasProfile
     a owl:ObjectProperty ;
     rdfs:range gmeow:Profile ;
-    rdfs:label "has profile"@en ;
-    skos:definition "Links an entity, value or frame to the Profile that governs its structure."@en ;
+    rdfs:label "has profile"@x-gmeow-english ;
+    skos:definition "Links an entity, value or frame to the Profile that governs its structure."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:profileAppliesTo
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Profile ;
-    rdfs:label "profile applies to"@en ;
-    skos:definition "The class of entities to which this Profile applies."@en ;
+    rdfs:label "profile applies to"@x-gmeow-english ;
+    skos:definition "The class of entities to which this Profile applies."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:profileDescriptor
     a owl:AnnotationProperty ;
     rdfs:domain gmeow:Profile ;
-    rdfs:label "profile descriptor"@en ;
-    skos:definition "A property that is part of this Profile's closed descriptor schema."@en ;
+    rdfs:label "profile descriptor"@x-gmeow-english ;
+    skos:definition "A property that is part of this Profile's closed descriptor schema."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:profileOpenValue
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Profile ;
-    rdfs:label "profile open value"@en ;
-    skos:definition "An open value-vocabulary class (instances are individuals, never subclasses) used by this Profile."@en ;
+    rdfs:label "profile open value"@x-gmeow-english ;
+    skos:definition "An open value-vocabulary class (instances are individuals, never subclasses) used by this Profile."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -56,8 +56,8 @@ gmeow:profileOpenValue
 
 gmeow:profileReferenceFrame
     a gmeow:Profile ;
-    rdfs:label "Reference Frame Profile"@en ;
-    skos:definition "The closed descriptor schema for gmeow:ReferenceFrame instances: realm, axes, dimensionality, kind, host-dependence, determinacy, metric, and transform descriptors."@en ;
+    rdfs:label "Reference Frame Profile"@x-gmeow-english ;
+    skos:definition "The closed descriptor schema for gmeow:ReferenceFrame instances: realm, axes, dimensionality, kind, host-dependence, determinacy, metric, and transform descriptors."@x-gmeow-english ;
     gmeow:profileAppliesTo gmeow:ReferenceFrame ;
     gmeow:profileDescriptor
         gmeow:frameRealm ,
@@ -80,8 +80,8 @@ gmeow:profileReferenceFrame
 
 gmeow:profileTemporalFrame
     a gmeow:Profile ;
-    rdfs:label "Temporal Frame Profile"@en ;
-    skos:definition "The closed descriptor schema for gmeow:TemporalFrame instances: the reference-frame spine plus time scale, calendar system, and reference position."@en ;
+    rdfs:label "Temporal Frame Profile"@x-gmeow-english ;
+    skos:definition "The closed descriptor schema for gmeow:TemporalFrame instances: the reference-frame spine plus time scale, calendar system, and reference position."@x-gmeow-english ;
     gmeow:profileAppliesTo gmeow:TemporalFrame ;
     gmeow:profileDescriptor
         gmeow:frameRealm ,
@@ -105,8 +105,8 @@ gmeow:profileTemporalFrame
 
 gmeow:profileTemporalProvenance
     a gmeow:Profile ;
-    rdfs:label "Temporal Provenance Profile (four clocks)"@en ;
-    skos:definition "The closed descriptor schema for statement-level temporal provenance: valid-from, valid-until, asserted-at, and recorded-no-later-than. Applies to statements, observations, and any resource whose metadata carries these annotation properties."@en ;
+    rdfs:label "Temporal Provenance Profile (four clocks)"@x-gmeow-english ;
+    skos:definition "The closed descriptor schema for statement-level temporal provenance: valid-from, valid-until, asserted-at, and recorded-no-later-than. Applies to statements, observations, and any resource whose metadata carries these annotation properties."@x-gmeow-english ;
     gmeow:profileDescriptor
         gmeow:validFrom ,
         gmeow:validUntil ,

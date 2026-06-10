@@ -13,7 +13,7 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:mapIvoaObsDataset a gmeow:ProjectionMapping ;
-    rdfs:label "SensoryObservation → obscore:ObsDataset"@en ;
+    rdfs:label "SensoryObservation → obscore:ObsDataset"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "obs" ;
         gmeow:atom ( [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensoryObservation ] ) ;
@@ -28,7 +28,7 @@ gmeow:mapIvoaObsDataset a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapIvoaReferenceFrame a gmeow:ProjectionMapping ;
-    rdfs:label "hasReferenceFrame → obscore:coordsys"@en ;
+    rdfs:label "hasReferenceFrame → obscore:coordsys"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "obs" ; gmeow:value "frame" ;
         gmeow:atom (
@@ -41,7 +41,7 @@ gmeow:mapIvoaReferenceFrame a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the full GMEOW reference-frame profile is flattened to a coordinate-system string or IRI" ] .
 
 gmeow:mapIvoaFacility a gmeow:ProjectionMapping ;
-    rdfs:label "Sensor (telescope) → obscore:facility"@en ;
+    rdfs:label "Sensor (telescope) → obscore:facility"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "obs" ; gmeow:value "sensor" ;
         gmeow:atom (
@@ -55,7 +55,7 @@ gmeow:mapIvoaFacility a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the telescope/facility node is preserved, but agent roles and platform location are dropped" ] .
 
 gmeow:mapIvoaInstrument a gmeow:ProjectionMapping ;
-    rdfs:label "Sensor (instrument) → obscore:instrument"@en ;
+    rdfs:label "Sensor (instrument) → obscore:instrument"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "obs" ; gmeow:value "sensor" ;
         gmeow:atom (
@@ -69,7 +69,7 @@ gmeow:mapIvoaInstrument a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the instrument node is preserved, but agent roles and platform location are dropped" ] .
 
 gmeow:mapIvoaObservable a gmeow:ProjectionMapping ;
-    rdfs:label "ScalarQuantity → obscore:observable"@en ;
+    rdfs:label "ScalarQuantity → obscore:observable"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "obs" ; gmeow:value "qty" ;
         gmeow:atom (
@@ -89,7 +89,7 @@ gmeow:mapIvoaObservable a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapIvoaObsCoreAxes a gmeow:ProjectionMapping ;
-    rdfs:label "observationResult → ObsCore spectral/spatial/time/observable axes"@en ;
+    rdfs:label "observationResult → ObsCore spectral/spatial/time/observable axes"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "obs" ; gmeow:value "result" ;
         gmeow:atom (

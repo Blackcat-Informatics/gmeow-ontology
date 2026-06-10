@@ -10,7 +10,7 @@ CONSTRUCT {
     ?place wgs84:lat ?lat .
     ?place wgs84:long ?lon .
     ?ent foaf:name ?_final_dispName .
-    ?ent foaf:gender ?genderLabel .
+    ?ent foaf:gender ?_final_genderLabel .
     ?ent foaf:nick ?nick .
     ?ent foaf:homepage ?wp .
     ?agent foaf:based_near ?place .
@@ -41,6 +41,12 @@ WHERE {
         ?gi gmeow:genderValue ?gv .
         ?gv rdfs:label ?genderLabel .
         FILTER NOT EXISTS { ?gi gmeow:displayable false . }
+        OPTIONAL {
+            ?_lang gmeow:languageTag ?_intTag .
+            FILTER(isLiteral(?genderLabel) && LANG(?genderLabel) = ?_intTag)
+            ?_lang gmeow:bcp47Tag ?_extTag .
+        }
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?genderLabel), STR(?_extTag)), ?genderLabel) AS ?_final_genderLabel )
     }
     UNION {
         ?ent gmeow:hasName ?nn .

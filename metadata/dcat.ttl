@@ -6,7 +6,7 @@
     dcterms:hasVersion "0.1.0" ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
     dcterms:publisher <https://blackcatinformatics.ca/#bii> ;
-    dcterms:title "GMEOW"@en ;
+    dcterms:title "GMEOW"@x-gmeow-english ;
     dcat:distribution <https://blackcatinformatics.ca/gmeow#dist-jsonld>,
         <https://blackcatinformatics.ca/gmeow#dist-nt>,
         <https://blackcatinformatics.ca/gmeow#dist-rdf>,
