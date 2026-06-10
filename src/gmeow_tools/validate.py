@@ -198,8 +198,8 @@ def _collect_typed_terms(graph: Graph) -> dict[URIRef, str]:
                 current
             ):
                 terms[term] = kind
-    # Any remaining typed GMEOW subjects are treated as individuals.
-    for term in set(graph.subjects()):
+    # Any remaining GMEOW subjects with an explicit rdf:type are treated as individuals.
+    for term in set(graph.subjects(RDF.type, None)):
         if isinstance(term, URIRef) and _is_gmeow_term(term) and term not in terms:
             terms[term] = "individual"
     return terms

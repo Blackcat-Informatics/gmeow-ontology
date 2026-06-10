@@ -514,8 +514,6 @@ gmeow:finalityStatusReorged   a gmeow:LedgerFinalityStatus ; rdfs:label "reorged
 # the existing cross-cutting vocabulary (Principle 4: one canonical source).
 # --------------------------------------------------------------------------- #
 
-gmeow:finalityStatusReorged skos:definition "The transaction was affected by a chain reorganization and is no longer in the canonical chain."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/attestation> .
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE — EL someValuesFrom for reasoner visibility
 # =========================================================================== #
