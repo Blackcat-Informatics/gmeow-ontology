@@ -20,6 +20,7 @@ engine equivalence, not entailment, so reasoning is intentionally absent.
 from __future__ import annotations
 
 import re
+import sys
 from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -238,20 +239,28 @@ def _projection_data() -> tuple[Graph, pyoxigraph.Store]:
 
 def crosscheck_all() -> list[CrosscheckResult]:
     """Cross-check every query under the committed query directories."""
-    base_graph = shared_merged_graph(include_imports=False)
-    base_store = sparql.merged_store(include_imports=False)
-    proj_graph, proj_store = _projection_data()
+    # Large projection CONSTRUCT queries push pyparsing past the default
+    # 1000-frame limit; 3000 gives ample headroom without risk of C stack
+    # overflow on 64-bit Linux (Principle 7 — engine-crosscheck gate must run).
+    old_limit = sys.getrecursionlimit()
+    sys.setrecursionlimit(3000)
+    try:
+        base_graph = shared_merged_graph(include_imports=False)
+        base_store = sparql.merged_store(include_imports=False)
+        proj_graph, proj_store = _projection_data()
 
-    plan: list[tuple[Path, Graph, pyoxigraph.Store]] = []
-    for directory in (COMPETENCY_DIR, QC_DIR, VERIFY_DIR, TEMPORAL_QUERY_DIR):
-        for rq in sorted(directory.glob("*.rq")):
-            plan.append((rq, base_graph, base_store))
-    for rq in sorted(PROJECTION_QUERY_DIR.glob("*.rq")):
-        plan.append((rq, proj_graph, proj_store))
+        plan: list[tuple[Path, Graph, pyoxigraph.Store]] = []
+        for directory in (COMPETENCY_DIR, QC_DIR, VERIFY_DIR, TEMPORAL_QUERY_DIR):
+            for rq in sorted(directory.glob("*.rq")):
+                plan.append((rq, base_graph, base_store))
+        for rq in sorted(PROJECTION_QUERY_DIR.glob("*.rq")):
+            plan.append((rq, proj_graph, proj_store))
 
-    results: list[CrosscheckResult] = []
-    for rq, graph, store in plan:
-        text = rq.read_text(encoding="utf-8")
-        name = f"{rq.parent.name}/{rq.name}"
-        results.append(crosscheck_query(name, text, graph, store))
-    return results
+        results: list[CrosscheckResult] = []
+        for rq, graph, store in plan:
+            text = rq.read_text(encoding="utf-8")
+            name = f"{rq.parent.name}/{rq.name}"
+            results.append(crosscheck_query(name, text, graph, store))
+        return results
+    finally:
+        sys.setrecursionlimit(old_limit)

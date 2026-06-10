@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import pytest
@@ -35,8 +36,8 @@ def test_dsl_parses() -> None:
     Validate that the mapping DSL loads correctly and contains the expected
     counts and profiles.
 
-    Asserts that the loaded DSL has 1449 term equivalences, 36 functions,
-    45 mapping sets, more than 30 projection cells, and that the set of
+    Asserts that the loaded DSL has 1487 term equivalences, 36 functions,
+    47 mapping sets, more than 30 projection cells, and that the set of
     profiles used in projection bindings equals the module-level `_PROFILES`.
     """
     dsl = load_dsl()
@@ -213,7 +214,11 @@ def test_dsl_parses() -> None:
     # Issue #63 first-class annotation & PKM layer: +16 (oa:Annotation x3,
     # schema:NoteDigitalDocument, schema:Comment, as:Note, sioc:Post,
     # sioc:reply_of, sioc:has_reply, AnnotationMotivation x7).
-    assert len(dsl.equivalences) == 1466
+    # Issue #22 image super-ontology: +21 (schema.org ImageObject/about/width/
+    # height/dateCreated x5, Web Annotation selector types x4, EXIF width/height/
+    # orientation/dateTime x4, IIIF Canvas/Annotation/width/height x4,
+    # CIDOC-CRM production x1, CRMdig area x1, Wikidata region/spatial-relation x2).
+    assert len(dsl.equivalences) == 1487
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -252,7 +257,8 @@ def test_dsl_parses() -> None:
     # Issue #169 lexicon: +1 (gmeow-lexicon.sssom.tsv).
     # Issue #226 procedure / execution / step: +1 (gmeow-procedures.sssom.tsv).
     # Issue #63 first-class annotation & PKM layer: +1 (gmeow-notes.sssom.tsv).
-    assert len(dsl.mapping_sets) == 46
+    # Issue #22 image super-ontology: +1 (gmeow-images.sssom.tsv).
+    assert len(dsl.mapping_sets) == 47
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}
@@ -295,7 +301,14 @@ def test_sparql_executors_are_valid_queries() -> None:
     dsl = load_dsl()
     for profile in _PROFILES:
         query = emit_sparql(dsl, profile)
-        prepareQuery(query)  # raises on a malformed query
+        # Large projection CONSTRUCT queries (schema.org, etc.) push pyparsing
+        # past the default 1000-frame limit.
+        old = sys.getrecursionlimit()
+        sys.setrecursionlimit(3000)
+        try:
+            prepareQuery(query)  # raises on a malformed query
+        finally:
+            sys.setrecursionlimit(old)
 
 
 def test_per_profile_fanout() -> None:

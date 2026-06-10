@@ -1,0 +1,101 @@
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+
+# Projection mappings: GMEOW images → schema.org ImageObject.
+# These bind to gmeow:profile "schema-org" and compile into the unified
+# projections/schema-org.edoal.ttl + queries/projections/schema-org.rq
+# artifacts (alongside all other schema-org-profile mappings) by
+# `gmeow compile-mappings`.
+
+# --------------------------------------------------------------------------- #
+# MediaObject → schema:ImageObject (type projection)
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaImageObject a gmeow:ProjectionMapping ;
+    rdfs:label "MediaObject → schema:ImageObject"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "img" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "img" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MediaObject ] ) ;
+        gmeow:edoalSource gmeow:MediaObject ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "<=" ;
+        gmeow:edoalTarget schema:ImageObject ; gmeow:edoalTargetKind "class" ;
+        gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "MediaObject also covers audio and video; the ImageObject projection is lossy for non-image media" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "img" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:ImageObject ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# depicts → schema:about (flat aboutness projection)
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaDepicts a gmeow:ProjectionMapping ;
+    rdfs:label "depicts → schema:about (lossy aboutness)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "img" ; gmeow:value "subj" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "img" ; gmeow:predicate gmeow:depicts ; gmeow:objectVar "subj" ] ) ;
+        gmeow:suppressWhen [ gmeow:subjectVar "img" ; gmeow:predicate gmeow:displayable ; gmeow:objectLiteral false ] ;
+        gmeow:edoalSource gmeow:depicts ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:about ; gmeow:relation "<=" ;
+        gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "depiction context, audience, period, and authority dropped; only the depicted entity survives" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "img" ; gmeow:tPred schema:about ; gmeow:tObj "subj" ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# pixelWidth / pixelHeight → schema:width / schema:height
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaImageWidth a gmeow:ProjectionMapping ;
+    rdfs:label "pixelWidth → schema:width"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "img" ; gmeow:value "w" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "img" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MediaObject ]
+            [ gmeow:subjectVar "img" ; gmeow:predicate gmeow:pixelWidth ; gmeow:objectVar "w" ] ) ;
+        gmeow:edoalSource gmeow:pixelWidth ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:width ; gmeow:relation "<=" ;
+        gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "unit (pixels) is implicit in schema:width when emitted as integer" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "img" ; gmeow:tPred schema:width ; gmeow:tObj "w" ] ) ] .
+
+gmeow:mapSchemaImageHeight a gmeow:ProjectionMapping ;
+    rdfs:label "pixelHeight → schema:height"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "img" ; gmeow:value "h" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "img" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MediaObject ]
+            [ gmeow:subjectVar "img" ; gmeow:predicate gmeow:pixelHeight ; gmeow:objectVar "h" ] ) ;
+        gmeow:edoalSource gmeow:pixelHeight ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:height ; gmeow:relation "<=" ;
+        gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "unit (pixels) is implicit in schema:height when emitted as integer" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "img" ; gmeow:tPred schema:height ; gmeow:tObj "h" ] ) ] .
+
+# --------------------------------------------------------------------------- #
+# captureTime → schema:dateCreated
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaCaptureTime a gmeow:ProjectionMapping ;
+    rdfs:label "captureTime → schema:dateCreated"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "img" ; gmeow:value "ct" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "img" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:MediaObject ]
+            [ gmeow:subjectVar "img" ; gmeow:predicate gmeow:captureTime ; gmeow:objectVar "ct" ] ) ;
+        gmeow:edoalSource gmeow:captureTime ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:dateCreated ; gmeow:relation "<=" ;
+        gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "provenance and confidence of the capture-time claim are dropped" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "img" ; gmeow:tPred schema:dateCreated ; gmeow:tObj "ct" ] ) ] .

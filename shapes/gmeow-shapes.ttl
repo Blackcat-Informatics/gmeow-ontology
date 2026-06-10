@@ -2788,3 +2788,134 @@ gmeow:RetractedNoteSuppressionShape
             }
         """ ;
     ] .
+
+# =========================================================================== #
+# Images module (issue #22) — DepictionUsage, ImageRegion, SceneGraphEdge
+# =========================================================================== #
+
+gmeow:DepictionUsageShape
+    a sh:NodeShape ;
+    rdfs:label "Depiction Usage Shape" ;
+    sh:targetClass gmeow:DepictionUsage ;
+    sh:property [
+        sh:path gmeow:depictionSubject ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:Entity ;
+        sh:severity sh:Violation ;
+        sh:message "A DepictionUsage must specify exactly one depicted entity (gmeow:depictionSubject)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:depictionImage ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:MediaObject ;
+        sh:severity sh:Violation ;
+        sh:message "A DepictionUsage must specify exactly one image (gmeow:depictionImage)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:depictionContext ;
+        sh:minCount 1 ;
+        sh:class gmeow:DepictionContext ;
+        sh:severity sh:Violation ;
+        sh:message "A DepictionUsage must specify exactly one depiction context (gmeow:depictionContext)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:depictionContext ;
+        sh:maxCount 1 ;
+        sh:class gmeow:DepictionContext ;
+        sh:severity sh:Violation ;
+        sh:message "A DepictionUsage must have at most one depiction context." ;
+    ] .
+
+gmeow:ImageRegionShape
+    a sh:NodeShape ;
+    rdfs:label "Image Region Shape" ;
+    sh:targetClass gmeow:ImageRegion ;
+    sh:property [
+        sh:path gmeow:regionOf ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:MediaObject ;
+        sh:severity sh:Violation ;
+        sh:message "An ImageRegion must be a region of exactly one MediaObject (gmeow:regionOf)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:regionSelector ;
+        sh:minCount 1 ;
+        sh:class gmeow:RegionSelector ;
+        sh:severity sh:Violation ;
+        sh:message "An ImageRegion must have at least one selector (gmeow:regionSelector)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:regionSelector ;
+        sh:maxCount 1 ;
+        sh:class gmeow:RegionSelector ;
+        sh:severity sh:Violation ;
+        sh:message "An ImageRegion must have at most one selector." ;
+    ] .
+
+gmeow:RegionSelectorShape
+    a sh:NodeShape ;
+    rdfs:label "Region Selector Shape" ;
+    sh:targetClass gmeow:RegionSelector ;
+    sh:property [
+        sh:path gmeow:selectorType ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:SelectorType ;
+        sh:severity sh:Violation ;
+        sh:message "A RegionSelector must specify exactly one selector type (gmeow:selectorType)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:selectorValue ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:Literal ;
+        sh:severity sh:Violation ;
+        sh:message "A RegionSelector must specify exactly one literal selector value (gmeow:selectorValue)." ;
+    ] .
+
+gmeow:SceneGraphEdgeShape
+    a sh:NodeShape ;
+    rdfs:label "Scene Graph Edge Shape" ;
+    sh:targetClass gmeow:SceneGraphEdge ;
+    sh:property [
+        sh:path gmeow:sceneSubject ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:ImageRegion ;
+        sh:severity sh:Violation ;
+        sh:message "A SceneGraphEdge must have exactly one subject region (gmeow:sceneSubject)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:sceneObject ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:ImageRegion ;
+        sh:severity sh:Violation ;
+        sh:message "A SceneGraphEdge must have exactly one object region (gmeow:sceneObject)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:sceneRelation ;
+        sh:minCount 1 ;
+        sh:class gmeow:SceneRelationType ;
+        sh:severity sh:Violation ;
+        sh:message "A SceneGraphEdge must specify a relation (gmeow:sceneRelation)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:sceneRelation ;
+        sh:maxCount 1 ;
+        sh:class gmeow:SceneRelationType ;
+        sh:severity sh:Violation ;
+        sh:message "A SceneGraphEdge must have at most one relation." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:sceneConfidence ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        sh:maxInclusive 1.0 ;
+        sh:severity sh:Violation ;
+        sh:message "When present, gmeow:sceneConfidence must be a decimal in [0.0, 1.0]." ;
+    ] .

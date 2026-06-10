@@ -62,6 +62,9 @@ _PROFILE_TARGETS: dict[str, tuple[str, ...]] = {
     "oai_dc": ("dc",),
     "spdx": ("spdx",),
     "sosa": ("sosa", "geo"),
+    # Image super-ontology (#22)
+    "iiif": ("iiif", "oa"),
+    "exif": ("exif",),
 }
 
 #: Target terms a compose/decompose transform legitimately MINTS — intermediate

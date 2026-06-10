@@ -46,8 +46,12 @@ def test_membership_relator_completed() -> None:
 
 
 def test_no_flat_contact_terms() -> None:
-    """nickname / birthDate / jobTitle / url / image are downcasts or deferred —
-    never canonical flat terms."""
+    """nickname / birthDate / jobTitle / url / image / depiction are downcasts or
+    deferred — never canonical flat terms.
+
+    NOTE: `depicts` was removed from this list by issue #22. It is no longer a
+    deferred contact field; it is a formally defined image ontology property
+    (subproperty of isAbout, domain MediaObject) in ontology/modules/images.ttl."""
     graph = _graph()
     property_types = (OWL.ObjectProperty, OWL.DatatypeProperty, OWL.AnnotationProperty)
     for banned in (
@@ -58,7 +62,6 @@ def test_no_flat_contact_terms() -> None:
         "url",
         "image",
         "depiction",
-        "depicts",
     ):
         node = URIRef(GMEOW + banned)
         for pt in property_types:
