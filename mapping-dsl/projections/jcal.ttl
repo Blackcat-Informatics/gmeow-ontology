@@ -1,0 +1,58 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix jcal:  <https://tools.ietf.org/rfc/rfc7265#> .
+
+# Projection mappings: GMEOW calendar layer → jCal (RFC 7265 JSON calendaring).
+# Compiled to projections/jcal.edoal.ttl + queries/projections/jcal.rq by `gmeow
+# compile-mappings`. jCal is a direct JSON serialization of iCalendar semantics;
+# the projection loss is identical to the ical projection (standpoint/confidence
+# dropped, reified participation flattened, fuzzy precision lost).
+
+# A calendar collection → jCal vcalendar object.
+gmeow:mapJcalVcalendar a gmeow:ProjectionMapping ;
+    rdfs:label "Calendar → jCal vcalendar"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cal" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "cal" ; gmeow:predicate rdf:type ; gmeow:objectVar "type" ]
+            [ gmeow:subjectVar "cal" ; gmeow:predicate gmeow:calendarTimeZone ; gmeow:objectVar "tz" ; gmeow:optional true ]
+            [ gmeow:subjectVar "tz" ; gmeow:predicate gmeow:timeZoneIanaId ; gmeow:objectVar "tzid" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "jcal" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "cal" ; gmeow:tPred rdf:type ; gmeow:tObjValue jcal:vcalendar ]
+            [ gmeow:tSubj "cal" ; gmeow:tPred jcal:tzid ; gmeow:tObj "tzid" ] ) ] .
+
+# Task → jCal vtodo object (DUE, PRIORITY, STATUS).
+gmeow:mapJcalVtodo a gmeow:ProjectionMapping ;
+    rdfs:label "Task → jCal vtodo"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "task" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "task" ; gmeow:predicate rdf:type ; gmeow:objectVar "type" ]
+            [ gmeow:subjectVar "task" ; gmeow:predicate gmeow:taskDueDate ; gmeow:objectVar "due" ; gmeow:optional true ]
+            [ gmeow:subjectVar "task" ; gmeow:predicate gmeow:taskPriority ; gmeow:objectVar "prio" ; gmeow:optional true ]
+            [ gmeow:subjectVar "task" ; gmeow:predicate gmeow:taskStatus ; gmeow:objectVar "ts" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "jcal" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "task" ; gmeow:tPred rdf:type ; gmeow:tObjValue jcal:vtodo ]
+            [ gmeow:tSubj "task" ; gmeow:tPred jcal:due ; gmeow:tObj "due" ]
+            [ gmeow:tSubj "task" ; gmeow:tPred jcal:priority ; gmeow:tObj "prio" ]
+            [ gmeow:tSubj "task" ; gmeow:tPred jcal:status ; gmeow:tObj "ts" ] ) ] .
+
+# Reminder → jCal valarm object.
+gmeow:mapJcalValarm a gmeow:ProjectionMapping ;
+    rdfs:label "Reminder → jCal valarm"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "reminder" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "reminder" ; gmeow:predicate gmeow:reminderTrigger ; gmeow:objectVar "trig" ]
+            [ gmeow:subjectVar "reminder" ; gmeow:predicate gmeow:reminderAction ; gmeow:objectVar "act" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "jcal" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "reminder" ; gmeow:tPred rdf:type ; gmeow:tObjValue jcal:valarm ]
+            [ gmeow:tSubj "reminder" ; gmeow:tPred jcal:trigger ; gmeow:tObj "trig" ]
+            [ gmeow:tSubj "reminder" ; gmeow:tPred jcal:action ; gmeow:tObj "act" ] ) ] .

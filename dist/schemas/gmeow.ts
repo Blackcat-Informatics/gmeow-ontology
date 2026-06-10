@@ -80,6 +80,14 @@ export enum AttestationTypeEnum {
     verifiable_credential = "attestationTypeVerifiableCredential",
 };
 
+export enum AvailabilityStatusEnum {
+
+    busy = "availabilityStatusBusy",
+    free = "availabilityStatusFree",
+    out_of_office = "availabilityStatusOutOfOffice",
+    tentative = "availabilityStatusTentative",
+};
+
 export enum AxisEnum {
 
     address_locality_axis = "axisAddressLocality",
@@ -573,6 +581,12 @@ export enum EvidenceClassEnum {
     verified_evidence = "evidenceVERIFIED",
 };
 
+export enum ExceptionTypeEnum {
+
+    cancellation = "exceptionTypeCancellation",
+    rescheduling = "exceptionTypeRescheduling",
+};
+
 export enum ExecutionStatusEnum {
 
     cancelled = "executionStatusCancelled",
@@ -739,6 +753,14 @@ export enum HonorificPositionEnum {
 
     prefix = "honorificPositionPrefix",
     suffix = "honorificPositionSuffix",
+};
+
+export enum InvitationStatusEnum {
+
+    accepted = "invitationStatusAccepted",
+    declined = "invitationStatusDeclined",
+    needs_action = "invitationStatusNeedsAction",
+    tentative = "invitationStatusTentative",
 };
 
 export enum InvoiceStatusEnum {
@@ -1471,6 +1493,13 @@ export enum RegulatoryOverlayTypeEnum {
     zoning_SOLIDUS_land_use_regulation = "overlayTypeZoning",
 };
 
+export enum ReminderActionEnum {
+
+    audio = "reminderActionAudio",
+    display = "reminderActionDisplay",
+    email = "reminderActionEmail",
+};
+
 export enum RepositoryTypeEnum {
 
     fossil = "repoTypeFossil",
@@ -1568,6 +1597,14 @@ export enum RouteKindEnum {
     social_path = "routeKindSocial",
     transit_route = "routeKindTransit",
     walking_route = "routeKindWalking",
+};
+
+export enum RsvpStatusEnum {
+
+    accepted = "rsvpStatusAccepted",
+    declined = "rsvpStatusDeclined",
+    needs_action = "rsvpStatusNeedsAction",
+    tentative = "rsvpStatusTentative",
 };
 
 export enum SLSALevelEnum {
@@ -1770,6 +1807,14 @@ export enum TagEnum {
     review = "tagReview",
     todo = "tagTodo",
     urgent = "tagUrgent",
+};
+
+export enum TaskStatusEnum {
+
+    cancelled = "taskStatusCancelled",
+    completed = "taskStatusCompleted",
+    in_progress = "taskStatusInProgress",
+    not_started = "taskStatusNotStarted",
 };
 
 export enum TemporalFrameEnum {
@@ -2131,6 +2176,19 @@ export interface AuthorIdentity extends InformationObject {
 
 
 
+export interface Availability {
+    availabilityAgent?: Agent[],
+    availabilitySlot?: TimeInterval,
+    availabilityStatus?: AvailabilityStatus[],
+}
+
+
+
+export interface AvailabilityStatus {
+}
+
+
+
 export interface Axis {
 }
 
@@ -2219,6 +2277,13 @@ export interface CadastralReference extends InformationObject {
 
 
 export interface CadastralReferenceType {
+}
+
+
+
+export interface Calendar {
+    calendarMember?: Event[],
+    calendarTimeZone?: TimeZone,
 }
 
 
@@ -2764,6 +2829,7 @@ export interface Event {
     eventTemporalFrame?: TemporalFrame,
     eventTense?: GrammaticalTense[],
     eventTime?: string,
+    eventTimeZone?: TimeZone,
     eventTrajectory?: Trajectory[],
     eventType?: EventType[],
     finishedBy?: Event[],
@@ -2792,6 +2858,24 @@ export interface Event {
 
 
 
+export interface EventInvitation extends Agreement {
+    invitationEvent?: Event,
+    invitationInvitee?: Agent[],
+    invitationStatus?: InvitationStatus[],
+    rsvpStatus?: RsvpStatus[],
+}
+
+
+
+export interface EventSchedule {
+    scheduleOccurrence?: Event[],
+    scheduleRecurrenceRule?: RecurrenceRule[],
+    scheduleTemplateEvent?: Event,
+    scheduleTimeZone?: TimeZone,
+}
+
+
+
 export interface EventSeries extends Entity {
     hasRecurrenceRule?: RecurrenceRule[],
     seriesOccurrence?: Event[],
@@ -2810,6 +2894,11 @@ export interface EvidenceClass {
 
 
 export interface EvidenceSpan extends InformationObject {
+}
+
+
+
+export interface ExceptionType {
 }
 
 
@@ -3083,6 +3172,11 @@ export interface Instant {
 export interface InterpersonalRelationship {
     relationshipInterval?: TimeInterval[],
     relationshipParty?: Agent[],
+}
+
+
+
+export interface InvitationStatus {
 }
 
 
@@ -4143,6 +4237,19 @@ export interface Release extends Event {
 
 
 
+export interface Reminder extends Entity {
+    reminderAction?: ReminderAction,
+    reminderTarget?: Event,
+    reminderTrigger?: string,
+}
+
+
+
+export interface ReminderAction {
+}
+
+
+
 export interface Repository extends InformationObject {
     cloneUrl?: string,
     hostedAt?: ForgePlatform[],
@@ -4216,6 +4323,11 @@ export interface RouteKind {
 
 
 
+export interface RsvpStatus {
+}
+
+
+
 export interface Rule {
     ruleAction?: RightsAction,
     ruleAssignee?: Agent[],
@@ -4253,6 +4365,15 @@ export interface SceneGraphEdge {
 
 
 export interface SceneRelationType {
+}
+
+
+
+export interface ScheduleException {
+    exceptionOriginalDate?: string,
+    exceptionReplacementEvent?: Event,
+    exceptionSchedule?: EventSchedule,
+    exceptionType?: ExceptionType,
 }
 
 
@@ -4606,6 +4727,20 @@ export interface Tagging {
 
 
 
+export interface Task extends Event {
+    taskDueDate?: string,
+    taskPriority?: number,
+    taskRecurrenceUntilDone?: boolean,
+    taskStatus?: TaskStatus[],
+}
+
+
+
+export interface TaskStatus {
+}
+
+
+
 export interface TelephoneNumber extends ContactPoint {
 }
 
@@ -4680,6 +4815,12 @@ export interface TimeScale extends Entity {
 
 export interface TimeScopedRelation {
     duringInterval?: TimeInterval[],
+}
+
+
+
+export interface TimeZone extends Entity {
+    timeZoneIanaId?: string,
 }
 
 

@@ -114,3 +114,126 @@ gmeow:mapIcalAttendeeReified a gmeow:ProjectionMapping ;
         gmeow:profile "ical" ; gmeow:toPredicate ical:attendee ; gmeow:relation "<=" ;
         gmeow:transform gmeow:fnParticipationToEventRole ; gmeow:confidence 0.8 ;
         gmeow:lossyDrop "role / period / confidence / standpoint of the participation are dropped; the participant becomes a bare ATTENDEE" ] .
+
+# =========================================================================== #
+# Calendar / scheduling slice projections (#62)
+# =========================================================================== #
+
+# Task → VTODO (inherits VEVENT time/location via the Event superclass, adds
+# DUE, PRIORITY, and STATUS).
+gmeow:mapIcalVtodo a gmeow:ProjectionMapping ;
+    rdfs:label "Task → iCalendar VTODO (DUE/PRIORITY/STATUS)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "task" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "task" ; gmeow:predicate rdf:type ; gmeow:objectVar "type" ]
+            [ gmeow:subjectVar "task" ; gmeow:predicate gmeow:taskDueDate ; gmeow:objectVar "due" ; gmeow:optional true ]
+            [ gmeow:subjectVar "task" ; gmeow:predicate gmeow:taskPriority ; gmeow:objectVar "prio" ; gmeow:optional true ]
+            [ gmeow:subjectVar "task" ; gmeow:predicate gmeow:taskStatus ; gmeow:objectVar "ts" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ical" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "task" ; gmeow:tPred rdf:type ; gmeow:tObjValue ical:Vtodo ]
+            [ gmeow:tSubj "task" ; gmeow:tPred ical:due ; gmeow:tObj "due" ]
+            [ gmeow:tSubj "task" ; gmeow:tPred ical:priority ; gmeow:tObj "prio" ]
+            [ gmeow:tSubj "task" ; gmeow:tPred ical:status ; gmeow:tObj "ts" ] ) ] .
+
+# Reminder → VALARM (trigger + action). The action value vocabulary is projected
+# to iCalendar ACTION text; standpoint/confidence are dropped.
+gmeow:mapIcalValarm a gmeow:ProjectionMapping ;
+    rdfs:label "Reminder → iCalendar VALARM (TRIGGER/ACTION)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "reminder" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "reminder" ; gmeow:predicate gmeow:reminderTrigger ; gmeow:objectVar "trig" ]
+            [ gmeow:subjectVar "reminder" ; gmeow:predicate gmeow:reminderAction ; gmeow:objectVar "act" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ical" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "reminder" ; gmeow:tPred rdf:type ; gmeow:tObjValue ical:Valarm ]
+            [ gmeow:tSubj "reminder" ; gmeow:tPred ical:trigger ; gmeow:tObj "trig" ]
+            [ gmeow:tSubj "reminder" ; gmeow:tPred ical:action ; gmeow:tObj "act" ] ) ] .
+
+# Availability slot → VFREEBUSY (start/end + FBTYPE). The agent and interval
+# semantics collapse to a free-busy period.
+gmeow:mapIcalVfreebusy a gmeow:ProjectionMapping ;
+    rdfs:label "Availability → iCalendar VFREEBUSY (FBTYPE)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "avail" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "avail" ; gmeow:predicate gmeow:availabilitySlot ; gmeow:objectVar "slot" ]
+            [ gmeow:subjectVar "slot" ; gmeow:predicate gmeow:startedAtTime ; gmeow:objectVar "start" ]
+            [ gmeow:subjectVar "slot" ; gmeow:predicate gmeow:endedAtTime ; gmeow:objectVar "end" ; gmeow:optional true ]
+            [ gmeow:subjectVar "avail" ; gmeow:predicate gmeow:availabilityStatus ; gmeow:objectVar "fbtype" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ical" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "avail" ; gmeow:tPred rdf:type ; gmeow:tObjValue ical:Vfreebusy ]
+            [ gmeow:tSubj "avail" ; gmeow:tPred ical:dtstart ; gmeow:tObj "start" ]
+            [ gmeow:tSubj "avail" ; gmeow:tPred ical:dtend ; gmeow:tObj "end" ]
+            [ gmeow:tSubj "avail" ; gmeow:tPred ical:fbtype ; gmeow:tObj "fbtype" ] ) ] .
+
+# TimeZone → VTIMEZONE (tzid). The full VTIMEZONE expansion (daylight/standard
+# components) is a solver/projection concern; the ontology carries only the IRI.
+gmeow:mapIcalVtimezone a gmeow:ProjectionMapping ;
+    rdfs:label "TimeZone → iCalendar VTIMEZONE (TZID)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "tz" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "tz" ; gmeow:predicate gmeow:timeZoneIanaId ; gmeow:objectVar "tzid" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ical" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "tz" ; gmeow:tPred rdf:type ; gmeow:tObjValue ical:Vtimezone ]
+            [ gmeow:tSubj "tz" ; gmeow:tPred ical:tzid ; gmeow:tObj "tzid" ] ) ] .
+
+# EventInvitation PARTSTAT → iCalendar ATTENDEE with PARTSTAT parameter. The
+# invitee and status are projected to a parameterized ATTENDEE; the organizer
+# view and invitee view (invitationStatus vs rsvpStatus) may differ — the
+# projection emits both as separate ATTENDEE lines or merges at the consumer.
+gmeow:mapIcalInvitationPartstat a gmeow:ProjectionMapping ;
+    rdfs:label "EventInvitation status → iCalendar ATTENDEE PARTSTAT"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "event" ; gmeow:value "att" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "inv" ; gmeow:predicate gmeow:invitationEvent ; gmeow:objectVar "event" ]
+            [ gmeow:subjectVar "inv" ; gmeow:predicate gmeow:invitationInvitee ; gmeow:objectVar "att" ]
+            [ gmeow:subjectVar "inv" ; gmeow:predicate gmeow:invitationStatus ; gmeow:objectVar "st" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ical" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "event" ; gmeow:tPred ical:attendee ; gmeow:tObj "att" ] ) ;
+        gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "the reified invitation (agreement/period/confidence/standpoint) collapses to a bare ATTENDEE with PARTSTAT" ] .
+
+# Schedule recurrence rule → RRULE text. The structured rule is projected to the
+# RFC 5545 RRULE string; any additional structured metadata is dropped.
+gmeow:mapIcalRrule a gmeow:ProjectionMapping ;
+    rdfs:label "RecurrenceRule text → iCalendar RRULE"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "rule" ; gmeow:value "rrule" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "rule" ; gmeow:predicate gmeow:recurrenceRuleText ; gmeow:objectVar "rrule" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ical" ; gmeow:toPredicate ical:rrule ; gmeow:relation "<=" ;
+        gmeow:confidence 0.95 ;
+        gmeow:lossyDrop "any structured metadata beyond the RFC 5545 text is dropped" ] .
+
+# Calendar collection → VCALENDAR (tzid + members). The container projects to
+# VCALENDAR with a PRODID and VERSION; members are projected as separate
+# VEVENT/VTODO/VALARM components.
+gmeow:mapIcalVcalendar a gmeow:ProjectionMapping ;
+    rdfs:label "Calendar → iCalendar VCALENDAR (TZID)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cal" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "cal" ; gmeow:predicate rdf:type ; gmeow:objectVar "type" ]
+            [ gmeow:subjectVar "cal" ; gmeow:predicate gmeow:calendarTimeZone ; gmeow:objectVar "tz" ; gmeow:optional true ]
+            [ gmeow:subjectVar "tz" ; gmeow:predicate gmeow:timeZoneIanaId ; gmeow:objectVar "tzid" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "ical" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "cal" ; gmeow:tPred rdf:type ; gmeow:tObjValue ical:Vcalendar ]
+            [ gmeow:tSubj "cal" ; gmeow:tPred ical:tzid ; gmeow:tObj "tzid" ] ) ] .
