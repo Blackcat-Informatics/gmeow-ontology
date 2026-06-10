@@ -495,13 +495,16 @@ def read(
                 Diagnostic("BrokenChain", "prev does not match", index)
             )
         expected_prev = stored_id if isinstance(stored_id, bytes) else computed
-        sig = frame.get("sig")
-        if isinstance(sig, bytes):
-            if keys is not None:
+        if "sig" in frame:
+            sig = frame.get("sig")
+            if not isinstance(sig, bytes):
+                # present but malformed — record as invalid, never silently drop
+                g.signatures.append(Signature(computed, None, "invalid"))
+            elif keys is not None:
                 status, kid = verify_sig(sig, computed, keys)
+                g.signatures.append(Signature(computed, kid, status))
             else:
-                status, kid = "unverified", None
-            g.signatures.append(Signature(computed, kid, status))
+                g.signatures.append(Signature(computed, None, "unverified"))
         folder.fold_frame(frame, index)
 
     if expected_head is not None and expected_prev != expected_head:

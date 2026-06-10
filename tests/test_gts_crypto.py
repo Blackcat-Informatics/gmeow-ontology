@@ -137,7 +137,8 @@ def test_encrypted_frame_opaque_without_key() -> None:
     w.add_frame("meta", payload={"sealed": "value"}, encrypt=("did:court", key))
     g = read(w.to_bytes())  # no keys
     assert "MissingKey" in [d.code for d in g.diagnostics]
-    assert g.opaque and g.opaque[0].reason == "missing-key"
+    assert g.opaque
+    assert g.opaque[0].reason == "missing-key"
     assert g.opaque[0].recipients is not None
     assert g.opaque[0].recipients[0]["kid"] == "did:court"  # opacity invariant
     assert "sealed" not in g.meta  # content not leaked
@@ -152,7 +153,8 @@ def test_selective_disclosure() -> None:
     w.add_frame("meta", payload={"private": True}, encrypt=("did:court", key))  # sealed
     g = read(w.to_bytes())  # no key
     assert g.quads == [(0, 1, 2, None)]  # public part readable
-    assert g.opaque and g.opaque[0].reason == "missing-key"  # sealed part opaque
+    assert g.opaque  # sealed part opaque
+    assert g.opaque[0].reason == "missing-key"
     assert "private" not in g.meta
 
 
@@ -162,4 +164,46 @@ def test_decrypt_with_wrong_key_is_opaque() -> None:
     w.add_frame("meta", payload={"x": 1}, encrypt=("did:court", os.urandom(32)))
     wrong = InMemoryKeys(content={"did:court": os.urandom(32)})
     g = read(w.to_bytes(), keys=wrong)
-    assert g.opaque and g.opaque[0].reason == "missing-key"
+    assert g.opaque
+    assert g.opaque[0].reason == "missing-key"
+
+
+# -- input hardening on untrusted CBOR (PR #289 review) -----------------------
+
+
+def test_verify_sig_rejects_non_bytes_signature() -> None:
+    """A COSE_Sign1 with a non-bstr signature is invalid, not a crash."""
+    import cbor2
+
+    from gmeow_tools.gts.crypto import _KID, _TAG_SIGN1
+
+    malformed = cbor2.dumps(
+        cbor2.CBORTag(_TAG_SIGN1, [b"prot", {_KID: b"k"}, None, 123]),  # sig is int
+        canonical=True,
+    )
+    status, kid = verify_sig(malformed, _ID, InMemoryKeys())
+    assert status == "invalid"
+    assert kid == "k"  # recipient still surfaced (opacity invariant)
+
+
+def test_decrypt0_rejects_malformed_fields() -> None:
+    """A held key with a non-bytes IV degrades to missing-key, not a crash."""
+    import cbor2
+
+    from gmeow_tools.gts.crypto import _IV, _KID, _TAG_ENCRYPT0
+
+    body = [b"prot", {_IV: "not-bytes", _KID: b"k"}, b"ct"]  # IV is str, not bstr
+    bad = cbor2.dumps(cbor2.CBORTag(_TAG_ENCRYPT0, body), canonical=True)
+    with pytest.raises(CodecUnavailableError) as exc:
+        decrypt0(bad, InMemoryKeys(content={"k": os.urandom(32)}))
+    assert exc.value.reason == "missing-key"
+
+
+def test_encrypt_requires_catalog_entry() -> None:
+    """A catalog without 'cose-encrypt0' raises a stable API error, not KeyError."""
+    from gmeow_tools.gts.codec import Codec
+
+    catalog = {0: Codec("identity", "encode")}  # no encrypt codec
+    w = Writer(profile="opaque", catalog=catalog)
+    with pytest.raises(ValueError, match="cose-encrypt0"):
+        w.add_frame("meta", payload={"x": 1}, encrypt=("did:court", os.urandom(32)))

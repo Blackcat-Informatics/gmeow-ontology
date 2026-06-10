@@ -123,9 +123,13 @@ class Writer:
                 data = encode_chain(transform, data)
                 x_ids += self._chain_ids(transform)
             if encrypt is not None:
+                encrypt_id = self._name_to_id.get("cose-encrypt0")
+                if encrypt_id is None:
+                    msg = "encrypt requires a catalog entry for 'cose-encrypt0'"
+                    raise ValueError(msg)
                 kid, key = encrypt
                 data = encrypt0(data, kid, key)
-                x_ids.append(self._name_to_id["cose-encrypt0"])
+                x_ids.append(encrypt_id)
             frame["x"] = x_ids
             frame["d"] = data
         elif raw is not None:

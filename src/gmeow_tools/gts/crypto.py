@@ -87,8 +87,8 @@ class InMemoryKeys:
         content: dict[str, bytes] | None = None,
     ) -> None:
         """Build a provider from optional verifier and content-key maps."""
-        self.verifiers = verifiers or {}
-        self.content = content or {}
+        self.verifiers = verifiers if verifiers is not None else {}
+        self.content = content if content is not None else {}
 
     def verification_key(self, kid: str) -> Ed25519PublicKey | None:
         """Return the registered verification key for ``kid``, if any."""
@@ -133,6 +133,8 @@ def verify_sig(
         return ("invalid", None)
     if kid is None:
         return ("invalid", None)
+    if not isinstance(protected, bytes) or not isinstance(signature, bytes):
+        return ("invalid", kid)  # RFC 9052 §3: both are bstr — reject malformed
     public = provider.verification_key(kid)
     if public is None:
         return ("unverified", kid)  # no key resolved — present but not checked
@@ -179,6 +181,14 @@ def decrypt0(blob: bytes, provider: KeyProvider) -> bytes:
     key = provider.content_key(kid)
     if key is None:
         raise CodecUnavailableError("missing-key", f"no content key for {kid!r}")
+    if not isinstance(key, bytes) or len(key) != 32:
+        raise CodecUnavailableError("missing-key", f"invalid content key for {kid!r}")
+    if not (
+        isinstance(iv, bytes)
+        and isinstance(ciphertext, bytes)
+        and isinstance(protected, bytes)
+    ):
+        raise CodecUnavailableError("missing-key", "malformed COSE_Encrypt0 fields")
     aad = cbor2.dumps(["Encrypt0", protected, b""], canonical=True)
     try:
         return AESGCM(key).decrypt(iv, ciphertext, aad)
