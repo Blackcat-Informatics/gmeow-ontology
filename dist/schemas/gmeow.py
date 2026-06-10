@@ -428,11 +428,11 @@ class ContributionRoleEnum(str, Enum):
 
 
 class ControlFlowEnum(str, Enum):
-    flowIngestion1 = "flowIngestion1"
-    flowIngestion2 = "flowIngestion2"
-    flowIngestion3 = "flowIngestion3"
-    flowIngestion4 = "flowIngestion4"
-    flowIngestion5 = "flowIngestion5"
+    ingestion_1 = "flowIngestion1"
+    ingestion_2 = "flowIngestion2"
+    ingestion_3 = "flowIngestion3"
+    ingestion_4 = "flowIngestion4"
+    ingestion_5 = "flowIngestion5"
 
 
 class CopyrightStatusEnum(str, Enum):
