@@ -22,6 +22,7 @@ from gmeow_tools.config import (
     STATEMENT_DSL_DIR,
 )
 from gmeow_tools.graph import iter_source_files, load_merged_graph
+from gmeow_tools.language_tags import check_annotation_literal
 from gmeow_tools.reasoning_lint import reasoning_invariants
 
 _DEFINITION = SKOS.definition
@@ -137,6 +138,7 @@ def structural_lint(graph: Graph) -> ValidationResult:
 
     x_gmeow_pattern = re.compile(r"^x-gmeow-[a-z0-9\-]+$", re.IGNORECASE)
     for s, p, o in graph:
+        # Check 1: literal on a GMEOW-namespace predicate.
         if (
             str(p).startswith(NAMESPACE)
             and isinstance(o, Literal)
@@ -149,6 +151,18 @@ def structural_lint(graph: Graph) -> ValidationResult:
                 f"GMEOW internal data must use the private-use 'x-gmeow-' prefix."
             )
             result.errors.append(msg)
+
+        # Check 2: literal on a standard annotation predicate when the subject
+        # is a GMEOW-authored term.
+        if (
+            isinstance(s, URIRef)
+            and isinstance(p, URIRef)
+            and isinstance(o, Literal)
+            and _is_gmeow_term(s)
+        ):
+            anno_msg = check_annotation_literal(s, p, o)
+            if anno_msg:
+                result.errors.append(anno_msg)
 
     return result
 

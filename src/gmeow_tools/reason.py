@@ -65,8 +65,15 @@ def merge_release(
     args = ["merge", "--catalog", _rel(CATALOG_FILE), "--input", _rel(ONTOLOGY_FILE)]
     if include_statements and STATEMENT_OWL_FILE.exists():
         args += ["--input", _rel(STATEMENT_OWL_FILE)]
-    args += ["--collapse-import-closure", "true", "--output", _rel(output)]
-    _robot(args)
+    import uuid
+
+    tmp = output.with_name(f"{output.stem}.{uuid.uuid4().hex}{output.suffix}")
+    args += ["--collapse-import-closure", "true", "--output", _rel(tmp)]
+    try:
+        _robot(args)
+        tmp.replace(output)
+    finally:
+        tmp.unlink(missing_ok=True)
     return output
 
 

@@ -7,7 +7,7 @@ PREFIX schema: <https://schema.org/>
 CONSTRUCT {
     ?emp schema:startDate ?start .
     ?emp schema:endDate ?end .
-    ?emp schema:employmentType ?etypeLabel .
+    ?emp schema:employmentType ?_final_etypeLabel .
     ?emp schema:jobTitle ?title .
     ?emp schema:worksFor ?org .
 }
@@ -26,6 +26,12 @@ WHERE {
         ?emp a gmeow:Employment .
         ?emp gmeow:employmentType ?etype .
         ?etype rdfs:label ?etypeLabel .
+        OPTIONAL {
+            ?_lang gmeow:languageTag ?_intTag .
+            FILTER(isLiteral(?etypeLabel) && LANG(?etypeLabel) = ?_intTag)
+            ?_lang gmeow:bcp47Tag ?_extTag .
+        }
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?etypeLabel), STR(?_extTag)), ?etypeLabel) AS ?_final_etypeLabel )
     }
     UNION {
         ?emp a gmeow:Employment .

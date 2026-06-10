@@ -7,36 +7,36 @@
 
 <https://blackcatinformatics.ca/gmeow/modules/entities>
     a owl:Ontology ;
-    rdfs:label "GMEOW Entities Module"@en ;
-    rdfs:comment "Person, organization, group and software-agent descriptions, plus naming (the FOAF / schema.org superset layer)."@en ;
+    rdfs:label "GMEOW Entities Module"@x-gmeow-english ;
+    rdfs:comment "Person, organization, group and software-agent descriptions, plus naming (the FOAF / schema.org superset layer)."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Person
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Agent ;
-    rdfs:label "Person"@en ;
-    skos:definition "An individual human being, living or deceased."@en ;
+    rdfs:label "Person"@x-gmeow-english ;
+    skos:definition "An individual human being, living or deceased."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Organization
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Agent ;
-    rdfs:label "Organization"@en ;
-    skos:definition "A structured group of agents — a company, institution, association, or governmental body — able to act as a single agent."@en ;
+    rdfs:label "Organization"@x-gmeow-english ;
+    skos:definition "A structured group of agents — a company, institution, association, or governmental body — able to act as a single agent."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Group
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Entity, gufo:Collection ;
-    rdfs:label "Group"@en ;
-    skos:definition "A collection of agents treated as a unit without the formal structure of an organization."@en ;
+    rdfs:label "Group"@x-gmeow-english ;
+    skos:definition "A collection of agents treated as a unit without the formal structure of an organization."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:SoftwareAgent
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:Agent ;
-    rdfs:label "Software Agent"@en ;
-    skos:definition "A software process or autonomous program that acts on behalf of a person or organization."@en ;
+    rdfs:label "Software Agent"@x-gmeow-english ;
+    skos:definition "A software process or autonomous program that acts on behalf of a person or organization."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # Naming (datatype properties).
@@ -45,24 +45,24 @@ gmeow:name
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "name"@en ;
-    skos:definition "A simple label by which an entity is known — the rdfs:label tier, for entities that do not need the full naming apparatus (organizations, software agents, sources, keys). Persons' names are modelled as gmeow:PersonName (names module); a flat given/family ('First Last') rendering is produced by downcasting that structured model in the projection layer, not stored here. Carries no precedence over an entity's other names. Language-tag the literal where applicable."@en ;
+    rdfs:label "name"@x-gmeow-english ;
+    skos:definition "A simple label by which an entity is known — the rdfs:label tier, for entities that do not need the full naming apparatus (organizations, software agents, sources, keys). Persons' names are modelled as gmeow:PersonName (names module); a flat given/family ('First Last') rendering is produced by downcasting that structured model in the projection layer, not stored here. Carries no precedence over an entity's other names. Language-tag the literal where applicable."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:description
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "description"@en ;
-    skos:definition "A free-text note or description about an entity — the unstructured NOTE field (a biography, a remark, an annotation). Genuinely flat: unlike names, dates or roles, a note has no structure to reify. Distinct from skos:definition, which documents ontology TERMS rather than instances. Language-tag the literal where applicable; non-functional."@en ;
+    rdfs:label "description"@x-gmeow-english ;
+    skos:definition "A free-text note or description about an entity — the unstructured NOTE field (a biography, a remark, an annotation). Genuinely flat: unlike names, dates or roles, a note has no structure to reify. Distinct from skos:definition, which documents ontology TERMS rather than instances. Language-tag the literal where applicable; non-functional."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasWebPage
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:range gmeow:WebPage ;
-    rdfs:label "has web page"@en ;
-    skos:definition "Relates an entity to a web page representing it — a homepage, a profile page, a project site. The structured form of a 'website / URL' field: the page is a first-class gmeow:WebPage (documents module) whose IRI is its URL, so it can itself carry a title, language, and rights. Non-functional — an entity may have several pages."@en ;
+    rdfs:label "has web page"@x-gmeow-english ;
+    skos:definition "Relates an entity to a web page representing it — a homepage, a profile page, a project site. The structured form of a 'website / URL' field: the page is a first-class gmeow:WebPage (documents module) whose IRI is its URL, so it can itself carry a title, language, and rights. Non-functional — an entity may have several pages."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #

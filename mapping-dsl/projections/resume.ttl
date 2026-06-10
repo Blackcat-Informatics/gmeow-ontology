@@ -19,7 +19,7 @@
 # Employment interval start → schema:startDate on the EmployeeRole.
 # The interval end (if present) is projected separately as schema:endDate.
 gmeow:mapResumeStartDate a gmeow:ProjectionMapping ;
-    rdfs:label "Employment interval start → schema:startDate"@en ;
+    rdfs:label "Employment interval start → schema:startDate"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "emp" ; gmeow:value "start" ;
         gmeow:atom (
@@ -33,7 +33,7 @@ gmeow:mapResumeStartDate a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the Employment relator (organization, role, compensation, standpoint) and the interval's temporal frame collapse to a flat schema:startDate on the projected EmployeeRole" ] .
 
 gmeow:mapResumeEndDate a gmeow:ProjectionMapping ;
-    rdfs:label "Employment interval end → schema:endDate"@en ;
+    rdfs:label "Employment interval end → schema:endDate"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "emp" ; gmeow:value "end" ;
         gmeow:atom (
@@ -48,7 +48,7 @@ gmeow:mapResumeEndDate a gmeow:ProjectionMapping ;
 
 # Employment type value label → schema:employmentType string.
 gmeow:mapResumeEmploymentType a gmeow:ProjectionMapping ;
-    rdfs:label "Employment type → schema:employmentType"@en ;
+    rdfs:label "Employment type → schema:employmentType"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "emp" ; gmeow:value "etypeLabel" ;
         gmeow:atom (
@@ -66,7 +66,7 @@ gmeow:mapResumeEmploymentType a gmeow:ProjectionMapping ;
 # Employment and carries the "resume" profile so that CV consumers can opt into
 # the Employment-scoped projection explicitly.
 gmeow:mapResumeJobTitle a gmeow:ProjectionMapping ;
-    rdfs:label "Employment role → schema:jobTitle (resume profile)"@en ;
+    rdfs:label "Employment role → schema:jobTitle (resume profile)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "emp" ; gmeow:value "title" ;
         gmeow:atom (
@@ -84,7 +84,7 @@ gmeow:mapResumeJobTitle a gmeow:ProjectionMapping ;
 
 # Employment-specific worksFor projection.
 gmeow:mapResumeWorksFor a gmeow:ProjectionMapping ;
-    rdfs:label "Employment organization → schema:worksFor (resume profile)"@en ;
+    rdfs:label "Employment organization → schema:worksFor (resume profile)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "emp" ; gmeow:value "org" ;
         gmeow:atom (

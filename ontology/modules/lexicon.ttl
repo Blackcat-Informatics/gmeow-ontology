@@ -10,7 +10,7 @@
 
 <https://blackcatinformatics.ca/gmeow/modules/lexicon>
     a owl:Ontology ;
-    rdfs:label "GMEOW Lexicon Module"@en ;
+    rdfs:label "GMEOW Lexicon Module"@x-gmeow-english ;
     rdfs:comment """Lexical items, forms, usage attestations, and etymological
     derivations — the lexical and constructional layer of GMEOW. Models words,
     morphemes, phrases, idioms, symbols, and constructions as first-class
@@ -19,7 +19,7 @@
     Etymology is modeled as a graph of provenance-rich, standpointed claims,
     not as a flat origin string (Principle 9). Aligns to OntoLex-Lemon by
     reference (Principle 5). Builds on the language-state/variety layer in
-    #170 and the universal observation stack (#43)."""@en ;
+    #170 and the universal observation stack (#43)."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -29,22 +29,22 @@
 gmeow:LexicalItem
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Lexical Item"@en ;
-    skos:definition "The abstract lexical or constructional object: a word, morpheme, phrase, idiom, symbol, sign, or construction. Carries no surface form itself; forms are linked via gmeow:hasLexicalForm. Aligns to OntoLex LexicalEntry by reference, but is broader than names (which are modeled in the names module as Appellation)."@en ;
+    rdfs:label "Lexical Item"@x-gmeow-english ;
+    skos:definition "The abstract lexical or constructional object: a word, morpheme, phrase, idiom, symbol, sign, or construction. Carries no surface form itself; forms are linked via gmeow:hasLexicalForm. Aligns to OntoLex LexicalEntry by reference, but is broader than names (which are modeled in the names module as Appellation)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:LexicalForm
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Lexical Form"@en ;
-    skos:definition "A concrete form of a lexical item — written, spoken, signed, rendered, reconstructed, normalized, transliterated, or translated. The surface representation is carried by gmeow:formRepresentation; the kind of form is a gmeow:LexicalFormType value. A single lexical item may have many coexisting forms (Principle 9). Aligns to OntoLex Form by reference."@en ;
+    rdfs:label "Lexical Form"@x-gmeow-english ;
+    skos:definition "A concrete form of a lexical item — written, spoken, signed, rendered, reconstructed, normalized, transliterated, or translated. The surface representation is carried by gmeow:formRepresentation; the kind of form is a gmeow:LexicalFormType value. A single lexical item may have many coexisting forms (Principle 9). Aligns to OntoLex Form by reference."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:UsageAttestation
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
-    rdfs:label "Usage Attestation"@en ;
-    skos:definition "An evidence node recording that a lexical form, reading, inscription, symbol, construction, or usage was observed in a source or context. Evidence, not truth: an attestation records that something was seen, not that a proposed interpretation is correct (Principle 12). Follows the LanguageState / KinRelationship pattern as an Observation + Relator. Mediates between an attested form, a source, a context, and optionally a time interval."@en ;
+    rdfs:label "Usage Attestation"@x-gmeow-english ;
+    skos:definition "An evidence node recording that a lexical form, reading, inscription, symbol, construction, or usage was observed in a source or context. Evidence, not truth: an attestation records that something was seen, not that a proposed interpretation is correct (Principle 12). Follows the LanguageState / KinRelationship pattern as an Observation + Relator. Mediates between an attested form, a source, a context, and optionally a time interval."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # EL axiomatisation: every UsageAttestation mediates at least one form and one source.
@@ -55,8 +55,8 @@ gmeow:UsageAttestation rdfs:subClassOf
 gmeow:EtymologicalDerivation
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
-    rdfs:label "Etymological Derivation"@en ;
-    skos:definition "A provenance-rich claim about historical derivation between lexical items or forms. Not a flat property — a full relator carrying standpoint (accordingTo), confidence, determinacy, and temporal scope (Principle 9). Multiple derivations for the same target coexist without privilege; a superseded derivation is suppressed with displayable false, never erased (Principle 10). Follows the LanguageState / KinRelationship pattern as an Observation + Relator."@en ;
+    rdfs:label "Etymological Derivation"@x-gmeow-english ;
+    skos:definition "A provenance-rich claim about historical derivation between lexical items or forms. Not a flat property — a full relator carrying standpoint (accordingTo), confidence, determinacy, and temporal scope (Principle 9). Multiple derivations for the same target coexist without privilege; a superseded derivation is suppressed with displayable false, never erased (Principle 10). Follows the LanguageState / KinRelationship pattern as an Observation + Relator."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # EL axiomatisation: every EtymologicalDerivation mediates at least one source, one target, and one kind.
@@ -73,16 +73,16 @@ gmeow:hasLexicalForm
     a owl:ObjectProperty ;
     rdfs:domain gmeow:LexicalItem ;
     rdfs:range gmeow:LexicalForm ;
-    rdfs:label "has lexical form"@en ;
-    skos:definition "The concrete form(s) of a lexical item. NON-FUNCTIONAL: a single item may have many forms (written, spoken, reconstructed, etc.), and competing form claims from different standpoints coexist (Principle 9)."@en ;
+    rdfs:label "has lexical form"@x-gmeow-english ;
+    skos:definition "The concrete form(s) of a lexical item. NON-FUNCTIONAL: a single item may have many forms (written, spoken, reconstructed, etc.), and competing form claims from different standpoints coexist (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:lexicalItemLanguage
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:LexicalItem ;
     rdfs:range gmeow:Language ;
-    rdfs:label "lexical item language"@en ;
-    skos:definition "The primary language of a lexical item. Functional: one language per item (polyglot items are modeled as separate items linked by translation)."@en ;
+    rdfs:label "lexical item language"@x-gmeow-english ;
+    skos:definition "The primary language of a lexical item. Functional: one language per item (polyglot items are modeled as separate items linked by translation)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -93,16 +93,16 @@ gmeow:formRepresentation
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:LexicalForm ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "form representation"@en ;
-    skos:definition "The actual string or value of a lexical form — the written text, IPA transcription, sign notation, or reconstructed string. Functional: one representation per form instance (a different representation is a different form)."@en ;
+    rdfs:label "form representation"@x-gmeow-english ;
+    skos:definition "The actual string or value of a lexical form — the written text, IPA transcription, sign notation, or reconstructed string. Functional: one representation per form instance (a different representation is a different form)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:formType
     a owl:ObjectProperty ;
     rdfs:domain gmeow:LexicalForm ;
     rdfs:range gmeow:LexicalFormType ;
-    rdfs:label "form type"@en ;
-    skos:definition "The kind(s) of a lexical form — written, spoken, signed, reconstructed, etc. NON-FUNCTIONAL: a single form may be classified as both spoken and written by different standpoints, or as both reconstructed and normalized in different analytical frames."@en ;
+    rdfs:label "form type"@x-gmeow-english ;
+    skos:definition "The kind(s) of a lexical form — written, spoken, signed, reconstructed, etc. NON-FUNCTIONAL: a single form may be classified as both spoken and written by different standpoints, or as both reconstructed and normalized in different analytical frames."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:formOf
@@ -110,16 +110,16 @@ gmeow:formOf
     owl:inverseOf gmeow:hasLexicalForm ;
     rdfs:domain gmeow:LexicalForm ;
     rdfs:range gmeow:LexicalItem ;
-    rdfs:label "form of"@en ;
-    skos:definition "The lexical item that a form is a form of — the inverse of gmeow:hasLexicalForm."@en ;
+    rdfs:label "form of"@x-gmeow-english ;
+    skos:definition "The lexical item that a form is a form of — the inverse of gmeow:hasLexicalForm."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:formTransliterationScheme
     a owl:ObjectProperty ;
     rdfs:domain gmeow:LexicalForm ;
     rdfs:range gmeow:TransliterationScheme ;
-    rdfs:label "form transliteration scheme"@en ;
-    skos:definition "The transliteration scheme applied to produce this form, when applicable. NON-FUNCTIONAL: a form may be the product of multiple schemes in different analytical standpoints. Reuses the existing TransliterationScheme value vocabulary from the languages module."@en ;
+    rdfs:label "form transliteration scheme"@x-gmeow-english ;
+    skos:definition "The transliteration scheme applied to produce this form, when applicable. NON-FUNCTIONAL: a form may be the product of multiple schemes in different analytical standpoints. Reuses the existing TransliterationScheme value vocabulary from the languages module."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -130,48 +130,48 @@ gmeow:attestedForm
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:UsageAttestation ;
     rdfs:range gmeow:LexicalForm ;
-    rdfs:label "attested form"@en ;
-    skos:definition "The lexical form that a usage attestation observes. Functional per relator: one attested form per UsageAttestation."@en ;
+    rdfs:label "attested form"@x-gmeow-english ;
+    skos:definition "The lexical form that a usage attestation observes. Functional per relator: one attested form per UsageAttestation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:attestedInLanguage
     a owl:ObjectProperty ;
     rdfs:domain gmeow:UsageAttestation ;
     rdfs:range gmeow:Language ;
-    rdfs:label "attested in language"@en ;
-    skos:definition "The language, variety, or state in which the attested form was observed. NON-FUNCTIONAL: a multilingual source may attest the same form in multiple language contexts, or different standpoints may assign different language classifications to the same attestation."@en ;
+    rdfs:label "attested in language"@x-gmeow-english ;
+    skos:definition "The language, variety, or state in which the attested form was observed. NON-FUNCTIONAL: a multilingual source may attest the same form in multiple language contexts, or different standpoints may assign different language classifications to the same attestation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:attestedInSource
     a owl:ObjectProperty ;
     rdfs:domain gmeow:UsageAttestation ;
     rdfs:range gmeow:CreativeWork ;
-    rdfs:label "attested in source"@en ;
-    skos:definition "The bibliographic or documentary source in which the attested form was observed. NON-FUNCTIONAL: an attestation may be supported by multiple sources, and competing source attributions coexist (Principle 9). Targets a CreativeWork (the retired Source Kind was greenfield-refactored in #211)."@en ;
+    rdfs:label "attested in source"@x-gmeow-english ;
+    skos:definition "The bibliographic or documentary source in which the attested form was observed. NON-FUNCTIONAL: an attestation may be supported by multiple sources, and competing source attributions coexist (Principle 9). Targets a CreativeWork (the retired Source Kind was greenfield-refactored in #211)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:attestedInContext
     a owl:ObjectProperty ;
     rdfs:domain gmeow:UsageAttestation ;
     rdfs:range gmeow:Entity ;
-    rdfs:label "attested in context"@en ;
-    skos:definition "The corpus, platform, community, dataset, inscription, or broader context in which the attested form was observed. NON-FUNCTIONAL: a form may be attested in multiple contexts simultaneously, and context assignments are standpoint-scoped."@en ;
+    rdfs:label "attested in context"@x-gmeow-english ;
+    skos:definition "The corpus, platform, community, dataset, inscription, or broader context in which the attested form was observed. NON-FUNCTIONAL: a form may be attested in multiple contexts simultaneously, and context assignments are standpoint-scoped."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:attestedOnCarrier
     a owl:ObjectProperty ;
     rdfs:domain gmeow:UsageAttestation ;
     rdfs:range gmeow:PhysicalObject ;
-    rdfs:label "attested on carrier"@en ;
-    skos:definition "The physical archaeological carrier on which an attested form was observed — a tablet, ostracon, seal, coin, manuscript, or wall. NON-FUNCTIONAL: an attestation may reference multiple carriers (e.g. duplicate impressions), and competing carrier attributions coexist (Principle 9). This is the language-facing hook from UsageAttestation to archaeological evidence (#173)."@en ;
+    rdfs:label "attested on carrier"@x-gmeow-english ;
+    skos:definition "The physical archaeological carrier on which an attested form was observed — a tablet, ostracon, seal, coin, manuscript, or wall. NON-FUNCTIONAL: an attestation may reference multiple carriers (e.g. duplicate impressions), and competing carrier attributions coexist (Principle 9). This is the language-facing hook from UsageAttestation to archaeological evidence (#173)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:attestationInterval
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:UsageAttestation ;
     rdfs:range gmeow:TimeInterval ;
-    rdfs:label "attestation interval"@en ;
-    skos:definition "The time interval over which the attested usage is asserted to have been observed — e.g. a corpus span, an inscription period, or a community usage era. A relator carries its period this way rather than via statement-level validFrom/validUntil alone."@en ;
+    rdfs:label "attestation interval"@x-gmeow-english ;
+    skos:definition "The time interval over which the attested usage is asserted to have been observed — e.g. a corpus span, an inscription period, or a community usage era. A relator carries its period this way rather than via statement-level validFrom/validUntil alone."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -182,32 +182,32 @@ gmeow:derivationSource
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:EtymologicalDerivation ;
     rdfs:range gmeow:InformationObject ;
-    rdfs:label "derivation source"@en ;
-    skos:definition "The ancestor lexical item or form from which the target is derived. Functional per relator: one source per EtymologicalDerivation (a derivation with multiple sources is modeled as multiple derivations)."@en ;
+    rdfs:label "derivation source"@x-gmeow-english ;
+    skos:definition "The ancestor lexical item or form from which the target is derived. Functional per relator: one source per EtymologicalDerivation (a derivation with multiple sources is modeled as multiple derivations)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:derivationTarget
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:EtymologicalDerivation ;
     rdfs:range gmeow:InformationObject ;
-    rdfs:label "derivation target"@en ;
-    skos:definition "The descendant lexical item or form that is derived from the source. Functional per relator: one target per EtymologicalDerivation."@en ;
+    rdfs:label "derivation target"@x-gmeow-english ;
+    skos:definition "The descendant lexical item or form that is derived from the source. Functional per relator: one target per EtymologicalDerivation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:derivationKind
     a owl:ObjectProperty ;
     rdfs:domain gmeow:EtymologicalDerivation ;
     rdfs:range gmeow:DerivationKind ;
-    rdfs:label "derivation kind"@en ;
-    skos:definition "The kind(s) of etymological derivation claimed — borrowing, calque, semantic shift, sound change, etc. NON-FUNCTIONAL: a single derivation may be classified as both borrowing and reanalysis by different analytical standpoints (Principle 9)."@en ;
+    rdfs:label "derivation kind"@x-gmeow-english ;
+    skos:definition "The kind(s) of etymological derivation claimed — borrowing, calque, semantic shift, sound change, etc. NON-FUNCTIONAL: a single derivation may be classified as both borrowing and reanalysis by different analytical standpoints (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:derivationEvidence
     a owl:ObjectProperty ;
     rdfs:domain gmeow:EtymologicalDerivation ;
     rdfs:range gmeow:Entity ;
-    rdfs:label "derivation evidence"@en ;
-    skos:definition "The usage attestations, sources, or other evidence supporting a derivation claim. NON-FUNCTIONAL: a derivation may be supported by multiple evidence nodes, and evidence assessments vary by standpoint."@en ;
+    rdfs:label "derivation evidence"@x-gmeow-english ;
+    skos:definition "The usage attestations, sources, or other evidence supporting a derivation claim. NON-FUNCTIONAL: a derivation may be supported by multiple evidence nodes, and evidence assessments vary by standpoint."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -217,127 +217,127 @@ gmeow:derivationEvidence
 gmeow:LexicalFormType
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Lexical Form Type"@en ;
-    skos:definition "The kind of a lexical form — a value, never an Entity subclass. The seed list is an anchor, not a fence; new analytical frameworks may introduce further form types without ontology modification."@en ;
+    rdfs:label "Lexical Form Type"@x-gmeow-english ;
+    skos:definition "The kind of a lexical form — a value, never an Entity subclass. The seed list is an anchor, not a fence; new analytical frameworks may introduce further form types without ontology modification."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:formWritten
     a gmeow:LexicalFormType ;
-    rdfs:label "written"@en ;
-    skos:definition "Lexical form represented in written modality."@en ;
+    rdfs:label "written"@x-gmeow-english ;
+    skos:definition "Lexical form represented in written modality."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:formSpoken
     a gmeow:LexicalFormType ;
-    rdfs:label "spoken"@en ;
-    skos:definition "Lexical form represented in spoken or auditory modality."@en ;
+    rdfs:label "spoken"@x-gmeow-english ;
+    skos:definition "Lexical form represented in spoken or auditory modality."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:formSigned
     a gmeow:LexicalFormType ;
-    rdfs:label "signed"@en ;
-    skos:definition "Lexical form represented in sign-language or gestural modality."@en ;
+    rdfs:label "signed"@x-gmeow-english ;
+    skos:definition "Lexical form represented in sign-language or gestural modality."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:formRendered
     a gmeow:LexicalFormType ;
-    rdfs:label "rendered"@en ;
-    skos:definition "Lexical form in a specific rendering or typographic presentation."@en ;
+    rdfs:label "rendered"@x-gmeow-english ;
+    skos:definition "Lexical form in a specific rendering or typographic presentation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:formReconstructed
     a gmeow:LexicalFormType ;
-    rdfs:label "reconstructed"@en ;
-    skos:definition "Lexical form hypothesised by historical-comparative reconstruction."@en ;
+    rdfs:label "reconstructed"@x-gmeow-english ;
+    skos:definition "Lexical form hypothesised by historical-comparative reconstruction."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:formNormalized
     a gmeow:LexicalFormType ;
-    rdfs:label "normalized"@en ;
-    skos:definition "Lexical form in a normalised or canonical orthographic shape."@en ;
+    rdfs:label "normalized"@x-gmeow-english ;
+    skos:definition "Lexical form in a normalised or canonical orthographic shape."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:formTransliterated
     a gmeow:LexicalFormType ;
-    rdfs:label "transliterated"@en ;
-    skos:definition "Lexical form rendered through a transliteration scheme."@en ;
+    rdfs:label "transliterated"@x-gmeow-english ;
+    skos:definition "Lexical form rendered through a transliteration scheme."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:formTranslated
     a gmeow:LexicalFormType ;
-    rdfs:label "translated"@en ;
-    skos:definition "Lexical form representing a translation equivalent."@en ;
+    rdfs:label "translated"@x-gmeow-english ;
+    skos:definition "Lexical form representing a translation equivalent."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:DerivationKind
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Derivation Kind"@en ;
-    skos:definition "The kind of etymological derivation — a value, never an Entity subclass. Open-ended: new historical-linguistic frameworks may introduce further derivation types without ontology modification."@en ;
+    rdfs:label "Derivation Kind"@x-gmeow-english ;
+    skos:definition "The kind of etymological derivation — a value, never an Entity subclass. Open-ended: new historical-linguistic frameworks may introduce further derivation types without ontology modification."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:derivationInheritance
     a gmeow:DerivationKind ;
-    rdfs:label "inheritance"@en ;
-    skos:definition "Direct transmission of a lexical item from an ancestor language without structural change."@en ;
+    rdfs:label "inheritance"@x-gmeow-english ;
+    skos:definition "Direct transmission of a lexical item from an ancestor language without structural change."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:derivationBorrowing
     a gmeow:DerivationKind ;
-    rdfs:label "borrowing"@en ;
-    skos:definition "Adoption of a lexical item from a donor language into a recipient language."@en ;
+    rdfs:label "borrowing"@x-gmeow-english ;
+    skos:definition "Adoption of a lexical item from a donor language into a recipient language."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:derivationCalque
     a gmeow:DerivationKind ;
-    rdfs:label "calque"@en ;
-    skos:definition "Loan translation: borrowing of semantic structure mapped onto native morphological material."@en ;
+    rdfs:label "calque"@x-gmeow-english ;
+    skos:definition "Loan translation: borrowing of semantic structure mapped onto native morphological material."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:derivationSemanticShift
     a gmeow:DerivationKind ;
-    rdfs:label "semantic shift"@en ;
-    skos:definition "Change in the meaning of a lexical item while its form remains stable."@en ;
+    rdfs:label "semantic shift"@x-gmeow-english ;
+    skos:definition "Change in the meaning of a lexical item while its form remains stable."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:derivationSoundChange
     a gmeow:DerivationKind ;
-    rdfs:label "sound change"@en ;
-    skos:definition "Systematic phonological alteration affecting a lexical item within a language community."@en ;
+    rdfs:label "sound change"@x-gmeow-english ;
+    skos:definition "Systematic phonological alteration affecting a lexical item within a language community."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:derivationSpellingChange
     a gmeow:DerivationKind ;
-    rdfs:label "spelling change"@en ;
-    skos:definition "Orthographic reform or convention shift altering the written form without phonological change."@en ;
+    rdfs:label "spelling change"@x-gmeow-english ;
+    skos:definition "Orthographic reform or convention shift altering the written form without phonological change."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:derivationCompounding
     a gmeow:DerivationKind ;
-    rdfs:label "compounding"@en ;
-    skos:definition "Formation of a lexical item by combining two or more existing lexical items."@en ;
+    rdfs:label "compounding"@x-gmeow-english ;
+    skos:definition "Formation of a lexical item by combining two or more existing lexical items."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:derivationAffixation
     a gmeow:DerivationKind ;
-    rdfs:label "affixation"@en ;
-    skos:definition "Formation of a lexical item by attaching a bound morpheme to a stem."@en ;
+    rdfs:label "affixation"@x-gmeow-english ;
+    skos:definition "Formation of a lexical item by attaching a bound morpheme to a stem."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:derivationClipping
     a gmeow:DerivationKind ;
-    rdfs:label "clipping"@en ;
-    skos:definition "Shortening of a lexical item by omitting one or more syllables."@en ;
+    rdfs:label "clipping"@x-gmeow-english ;
+    skos:definition "Shortening of a lexical item by omitting one or more syllables."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:derivationBackFormation
     a gmeow:DerivationKind ;
-    rdfs:label "back-formation"@en ;
-    skos:definition "Creation of a new lexical item by removing a supposed affix from an existing form."@en ;
+    rdfs:label "back-formation"@x-gmeow-english ;
+    skos:definition "Creation of a new lexical item by removing a supposed affix from an existing form."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:derivationReanalysis
     a gmeow:DerivationKind ;
-    rdfs:label "reanalysis"@en ;
-    skos:definition "Reinterpretation of the morphological structure of a lexical item by speakers."@en ;
+    rdfs:label "reanalysis"@x-gmeow-english ;
+    skos:definition "Reinterpretation of the morphological structure of a lexical item by speakers."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:derivationFolkEtymology
     a gmeow:DerivationKind ;
-    rdfs:label "folk etymology"@en ;
-    skos:definition "Popular reinterpretation of an opaque form as semantically transparent."@en ;
+    rdfs:label "folk etymology"@x-gmeow-english ;
+    skos:definition "Popular reinterpretation of an opaque form as semantically transparent."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:derivationUnknownOrigin
     a gmeow:DerivationKind ;
-    rdfs:label "unknown origin"@en ;
-    skos:definition "No satisfactory etymological account is available for the lexical item."@en ;
+    rdfs:label "unknown origin"@x-gmeow-english ;
+    skos:definition "No satisfactory etymological account is available for the lexical item."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:derivationReconstruction
     a gmeow:DerivationKind ;
-    rdfs:label "reconstruction"@en ;
-    skos:definition "Hypothesised ancestral form derived by historical-comparative methods."@en ;
+    rdfs:label "reconstruction"@x-gmeow-english ;
+    skos:definition "Hypothesised ancestral form derived by historical-comparative methods."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #

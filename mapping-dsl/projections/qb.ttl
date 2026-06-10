@@ -11,8 +11,8 @@
 # SpatialAggregation → qb:Observation with measure value, plus a well-formed
 # qb:DataSet and qb:DataStructureDefinition per observation (IC-1, IC-2).
 gmeow:mapQbObservation a gmeow:ProjectionMapping ;
-    rdfs:label "SpatialAggregation → qb:Observation + DataSet + DSD"@en ;
-    skos:definition "Maps a GMEOW SpatialAggregation to an RDF Data Cube qb:Observation, retaining measure type (aggregationFunction), observation value (quantityValue of the scalar result), and spatial context (observedFeature). A well-formed qb:DataSet and qb:DataStructureDefinition are minted per observation. Suppressed when displayable=false."@en ;
+    rdfs:label "SpatialAggregation → qb:Observation + DataSet + DSD"@x-gmeow-english ;
+    skos:definition "Maps a GMEOW SpatialAggregation to an RDF Data Cube qb:Observation, retaining measure type (aggregationFunction), observation value (quantityValue of the scalar result), and spatial context (observedFeature). A well-formed qb:DataSet and qb:DataStructureDefinition are minted per observation. Suppressed when displayable=false."@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "agg" ;
         gmeow:atom (

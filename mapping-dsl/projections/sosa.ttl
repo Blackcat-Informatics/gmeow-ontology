@@ -22,7 +22,7 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSosaSensoryObservation a gmeow:ProjectionMapping ;
-    rdfs:label "SensoryObservation → sosa:Observation"@en ;
+    rdfs:label "SensoryObservation → sosa:Observation"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "obs" ;
         gmeow:atom ( [ gmeow:subjectVar "obs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensoryObservation ] ) ;
@@ -33,7 +33,7 @@ gmeow:mapSosaSensoryObservation a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the sensory-specific properties (sensoryProperty, sensoryResult, platformLocation), the reference frame, determinacy, granularity, and standpoint are dropped; only the generic sosa:Observation class survives" ] .
 
 gmeow:mapSosaSensor a gmeow:ProjectionMapping ;
-    rdfs:label "Sensor → sosa:Sensor"@en ;
+    rdfs:label "Sensor → sosa:Sensor"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "sensor" ;
         gmeow:atom ( [ gmeow:subjectVar "sensor" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Sensor ] ) ;
@@ -43,7 +43,7 @@ gmeow:mapSosaSensor a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the agent-specific properties (name, description, web page, role) and the platform-location context are dropped; only the generic sosa:Sensor class survives" ] .
 
 gmeow:mapSosaSensorPlatform a gmeow:ProjectionMapping ;
-    rdfs:label "SensorPlatform → sosa:Platform"@en ;
+    rdfs:label "SensorPlatform → sosa:Platform"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "platform" ;
         gmeow:atom ( [ gmeow:subjectVar "platform" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SensorPlatform ] ) ;
@@ -53,7 +53,7 @@ gmeow:mapSosaSensorPlatform a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the platform-specific properties (platformLocation) and any hosted-sensor structure are dropped; only the generic sosa:Platform class survives" ] .
 
 gmeow:mapSosaObservableProperty a gmeow:ProjectionMapping ;
-    rdfs:label "ObservableProperty → sosa:ObservableProperty"@en ;
+    rdfs:label "ObservableProperty → sosa:ObservableProperty"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "prop" ;
         gmeow:atom ( [ gmeow:subjectVar "prop" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:ObservableProperty ] ) ;
@@ -67,7 +67,7 @@ gmeow:mapSosaObservableProperty a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSosaObservedProperty a gmeow:ProjectionMapping ;
-    rdfs:label "sensoryProperty → sosa:observedProperty"@en ;
+    rdfs:label "sensoryProperty → sosa:observedProperty"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "obs" ; gmeow:value "prop" ;
         gmeow:atom ( [ gmeow:subjectVar "obs" ; gmeow:predicate gmeow:sensoryProperty ; gmeow:objectVar "prop" ] ) ;
@@ -79,7 +79,7 @@ gmeow:mapSosaObservedProperty a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the GMEOW value-vocabulary individual identity is preserved as the object node, but any QID alignment or external classification on the ObservableProperty is dropped if not re-typed" ] .
 
 gmeow:mapSosaPlatformLocation a gmeow:ProjectionMapping ;
-    rdfs:label "platformLocation → geo:location (SOSA has no direct platform-location property)"@en ;
+    rdfs:label "platformLocation → geo:location (SOSA has no direct platform-location property)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "platform" ; gmeow:value "place" ;
         gmeow:atom ( [ gmeow:subjectVar "platform" ; gmeow:predicate gmeow:platformLocation ; gmeow:objectVar "place" ] ) ;
@@ -93,7 +93,7 @@ gmeow:mapSosaPlatformLocation a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSosaSensoryResult a gmeow:ProjectionMapping ;
-    rdfs:label "sensoryResult → sosa:hasResult (scalar quantity value)"@en ;
+    rdfs:label "sensoryResult → sosa:hasResult (scalar quantity value)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "obs" ; gmeow:value "result" ;
         gmeow:atom (
@@ -110,7 +110,7 @@ gmeow:mapSosaSensoryResult a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSosaMadeBySensor a gmeow:ProjectionMapping ;
-    rdfs:label "vantage (Sensor) → sosa:madeBySensor"@en ;
+    rdfs:label "vantage (Sensor) → sosa:madeBySensor"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "obs" ; gmeow:value "sensor" ;
         gmeow:atom (
@@ -128,7 +128,7 @@ gmeow:mapSosaMadeBySensor a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSosaFeatureOfInterest a gmeow:ProjectionMapping ;
-    rdfs:label "sensoryObservationOf → sosa:hasFeatureOfInterest"@en ;
+    rdfs:label "sensoryObservationOf → sosa:hasFeatureOfInterest"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "obs" ; gmeow:value "feature" ;
         gmeow:atom (

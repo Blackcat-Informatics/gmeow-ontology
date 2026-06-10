@@ -11,7 +11,7 @@
 
 # A calendar collection → jCal vcalendar object.
 gmeow:mapJcalVcalendar a gmeow:ProjectionMapping ;
-    rdfs:label "Calendar → jCal vcalendar"@en ;
+    rdfs:label "Calendar → jCal vcalendar"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "cal" ;
         gmeow:atom (
@@ -26,7 +26,7 @@ gmeow:mapJcalVcalendar a gmeow:ProjectionMapping ;
 
 # Task → jCal vtodo object (DUE, PRIORITY, STATUS).
 gmeow:mapJcalVtodo a gmeow:ProjectionMapping ;
-    rdfs:label "Task → jCal vtodo"@en ;
+    rdfs:label "Task → jCal vtodo"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "task" ;
         gmeow:atom (
@@ -44,7 +44,7 @@ gmeow:mapJcalVtodo a gmeow:ProjectionMapping ;
 
 # Reminder → jCal valarm object.
 gmeow:mapJcalValarm a gmeow:ProjectionMapping ;
-    rdfs:label "Reminder → jCal valarm"@en ;
+    rdfs:label "Reminder → jCal valarm"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "reminder" ;
         gmeow:atom (

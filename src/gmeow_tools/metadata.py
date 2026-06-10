@@ -55,7 +55,8 @@ def build_void_graph() -> Graph:
             dataset,
             DCTERMS.title,
             Literal(
-                "GMEOW — Global Metadata and Entity Ontology for the Web", lang="en"
+                "GMEOW — Global Metadata and Entity Ontology for the Web",
+                lang="x-gmeow-english",
             ),
         )
     )
@@ -67,7 +68,7 @@ def build_void_graph() -> Graph:
                 "A reasoning-centric, OWL 2 DL, upper-ontology-grounded "
                 "super-vocabulary for entity, document, agreement and "
                 "person-centric data.",
-                lang="en",
+                lang="x-gmeow-english",
             ),
         )
     )
@@ -104,7 +105,7 @@ def build_dcat_graph() -> Graph:
     bind_prefixes(graph)
     dataset = URIRef(ONTOLOGY_IRI)
     graph.add((dataset, RDF.type, DCAT.Dataset))
-    graph.add((dataset, DCTERMS.title, Literal("GMEOW", lang="en")))
+    graph.add((dataset, DCTERMS.title, Literal("GMEOW", lang="x-gmeow-english")))
     graph.add((dataset, DCTERMS.license, _CC_BY))
     graph.add((dataset, DCTERMS.publisher, _PUBLISHER))
     graph.add((dataset, DCAT.landingPage, URIRef(ONTOLOGY_IRI)))

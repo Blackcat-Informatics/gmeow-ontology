@@ -12,7 +12,7 @@
 
 <https://blackcatinformatics.ca/gmeow/self>
     a owl:Ontology ;
-    rdfs:label "GMEOW Self-Description"@en ;
+    rdfs:label "GMEOW Self-Description"@x-gmeow-english ;
     owl:imports <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -21,8 +21,8 @@
 
 <https://blackcatinformatics.ca/gmeow>
     a gmeow:Work ;
-    rdfs:label "GMEOW — Global Metadata and Entity Ontology for the Web"@en ;
-    skos:definition "A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that unifies document metadata, entity descriptions, legal agreements, contacts, and person-centric data."@en ;
+    rdfs:label "GMEOW — Global Metadata and Entity Ontology for the Web"@x-gmeow-english ;
+    skos:definition "A reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary that unifies document metadata, entity descriptions, legal agreements, contacts, and person-centric data."@x-gmeow-english ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
     foaf:homepage <https://blackcatinformatics.ca/gmeow> ;
     gmeow:datePublished "2026-06-03"^^xsd:date .
@@ -49,7 +49,7 @@
 
 <https://blackcatinformatics.ca/#bii>
     a foaf:Organization ;
-    foaf:name "Blackcat Informatics Inc."@en ;
+    foaf:name "Blackcat Informatics Inc."@x-gmeow-english ;
     foaf:mbox <mailto:doi@blackcatinformatics.ca> .
 
 # =========================================================================== #

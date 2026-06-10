@@ -53,9 +53,9 @@ CONSTRUCT {
     ?ent schema:name ?_final_dispName .
     ?ent schema:givenName ?_final_given .
     ?ent schema:familyName ?_final_family .
-    ?ent schema:gender ?genderLabel .
-    ?ent schema:honorificPrefix ?honPrefix .
-    ?ent schema:honorificSuffix ?honSuffix .
+    ?ent schema:gender ?_final_genderLabel .
+    ?ent schema:honorificPrefix ?_final_honPrefix .
+    ?ent schema:honorificSuffix ?_final_honSuffix .
     ?lang a schema:Language .
     ?prog a schema:ComputerLanguage .
     ?lang schema:alternateName ?bcp47 .
@@ -97,7 +97,7 @@ CONSTRUCT {
     ?agent schema:hasCredential ?cred .
     ?cred schema:recognizedBy ?issuer .
     ?cred schema:competencyRequired ?target .
-    ?ent schema:keywords ?kw .
+    ?ent schema:keywords ?_final_kw .
     ?note a schema:NoteDigitalDocument .
     ?note schema:text ?content .
     ?note schema:author ?author .
@@ -296,16 +296,34 @@ WHERE {
         ?gi gmeow:genderValue ?gv .
         ?gv rdfs:label ?genderLabel .
         FILTER NOT EXISTS { ?gi gmeow:displayable false . }
+        OPTIONAL {
+            ?_lang gmeow:languageTag ?_intTag .
+            FILTER(isLiteral(?genderLabel) && LANG(?genderLabel) = ?_intTag)
+            ?_lang gmeow:bcp47Tag ?_extTag .
+        }
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?genderLabel), STR(?_extTag)), ?genderLabel) AS ?_final_genderLabel )
     }
     UNION {
         ?ent gmeow:honorific ?h .
         ?h rdfs:label ?honPrefix .
         ?h gmeow:honorificPosition gmeow:honorificPositionPrefix .
+        OPTIONAL {
+            ?_lang gmeow:languageTag ?_intTag .
+            FILTER(isLiteral(?honPrefix) && LANG(?honPrefix) = ?_intTag)
+            ?_lang gmeow:bcp47Tag ?_extTag .
+        }
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?honPrefix), STR(?_extTag)), ?honPrefix) AS ?_final_honPrefix )
     }
     UNION {
         ?ent gmeow:honorific ?h .
         ?h rdfs:label ?honSuffix .
         ?h gmeow:honorificPosition gmeow:honorificPositionSuffix .
+        OPTIONAL {
+            ?_lang gmeow:languageTag ?_intTag .
+            FILTER(isLiteral(?honSuffix) && LANG(?honSuffix) = ?_intTag)
+            ?_lang gmeow:bcp47Tag ?_extTag .
+        }
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?honSuffix), STR(?_extTag)), ?honSuffix) AS ?_final_honSuffix )
     }
     UNION {
         ?lang rdf:type/rdfs:subClassOf* gmeow:Language .
@@ -528,6 +546,12 @@ WHERE {
         ?ent gmeow:hasTag ?tag .
         ?tag rdfs:label ?kw .
         FILTER NOT EXISTS { ?tag gmeow:displayable false . }
+        OPTIONAL {
+            ?_lang gmeow:languageTag ?_intTag .
+            FILTER(isLiteral(?kw) && LANG(?kw) = ?_intTag)
+            ?_lang gmeow:bcp47Tag ?_extTag .
+        }
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?kw), STR(?_extTag)), ?kw) AS ?_final_kw )
     }
     UNION {
         ?tagging a gmeow:Tagging .
@@ -536,6 +560,12 @@ WHERE {
         ?tag rdfs:label ?kw .
         FILTER NOT EXISTS { ?tagging gmeow:displayable false . }
         FILTER NOT EXISTS { ?tag gmeow:displayable false . }
+        OPTIONAL {
+            ?_lang gmeow:languageTag ?_intTag .
+            FILTER(isLiteral(?kw) && LANG(?kw) = ?_intTag)
+            ?_lang gmeow:bcp47Tag ?_extTag .
+        }
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?kw), STR(?_extTag)), ?kw) AS ?_final_kw )
     }
     UNION {
         ?note a gmeow:Note .

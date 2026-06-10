@@ -8,7 +8,7 @@
 # projections/ontolex.edoal.ttl + queries/projections/ontolex.rq by `gmeow compile-mappings`.
 
 gmeow:mapOntolexName a gmeow:ProjectionMapping ;
-    rdfs:label "displayable Appellation → ontolex:LexicalEntry + Form + writtenRep"@en ;
+    rdfs:label "displayable Appellation → ontolex:LexicalEntry + Form + writtenRep"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "app" ; gmeow:value "fullName" ;
         gmeow:atom (
@@ -36,7 +36,7 @@ gmeow:mapOntolexName a gmeow:ProjectionMapping ;
 # --- Issue #171: LexicalItem + LexicalForm projections ----------------------- #
 
 gmeow:mapOntolexLexicalItem a gmeow:ProjectionMapping ;
-    rdfs:label "LexicalItem → ontolex:LexicalEntry"@en ;
+    rdfs:label "LexicalItem → ontolex:LexicalEntry"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "item" ;
         gmeow:atom (
@@ -56,7 +56,7 @@ gmeow:mapOntolexLexicalItem a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "hasLexicalForm links, form representations, etymology" ] .
 
 gmeow:mapOntolexLexicalForm a gmeow:ProjectionMapping ;
-    rdfs:label "LexicalForm → ontolex:Form"@en ;
+    rdfs:label "LexicalForm → ontolex:Form"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "form" ; gmeow:value "repr" ;
         gmeow:atom (
@@ -74,7 +74,7 @@ gmeow:mapOntolexLexicalForm a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "formType, transliteration scheme, spoken/reconstructed form kinds" ] .
 
 gmeow:mapOntolexLexicalItemFormLink a gmeow:ProjectionMapping ;
-    rdfs:label "LexicalItem → ontolex:LexicalEntry lexicalForm link (displayable forms only)"@en ;
+    rdfs:label "LexicalItem → ontolex:LexicalEntry lexicalForm link (displayable forms only)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "item" ;
         gmeow:atom (

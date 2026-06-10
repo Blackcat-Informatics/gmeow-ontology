@@ -8,7 +8,7 @@
 
 <https://blackcatinformatics.ca/gmeow/modules/narrative>
     a owl:Ontology ;
-    rdfs:label "GMEOW Narrative Module"@en ;
+    rdfs:label "GMEOW Narrative Module"@x-gmeow-english ;
     rdfs:comment """Narrative reference frames and creative-work sourcing. Part of the #42 Location-as-reference-frame epic.
 
 DOCTRINE.
@@ -17,7 +17,7 @@ DOCTRINE.
   * Characters, places, organizations, events, artifacts in a narrative are ordinary GMEOW entities whose claims are scoped gmeow:accordingTo the narrative frame.
   * Cross-continuity variants are linked with gmeow:counterpartOf, never merged (Principle 5).
   * Retcons and canon revisions are preserved as coexisting frame-scoped claims with gmeow:supersedes and gmeow:displayable false (Principle 10).
-  * No single canon wins (Principle 9): competing continuities coexist as separate NarrativeReferenceFrames that may sharpen one another."""@en ;
+  * No single canon wins (Principle 9): competing continuities coexist as separate NarrativeReferenceFrames that may sharpen one another."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -27,29 +27,29 @@ DOCTRINE.
 gmeow:NarrativeReferenceFrame
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:ReferenceFrame ;
-    rdfs:label "Narrative Reference Frame"@en ;
-    skos:definition "A canon, continuity, or narrative realm that serves as a reference frame for in-universe facts (locations, dates, events) and functionally as the standpoint under which in-universe claims hold true. The Harry Potter canon, the Marvel Multiverse (Earth-616, MCU, Ultimate), and the Star Wars Legends/Canon split are all narrative reference frames. Ordinary GMEOW entities (Person, Place, Organization, Event) may carry claims according to this frame; cross-continuity variants are linked by counterpartOf, never merged."@en ;
+    rdfs:label "Narrative Reference Frame"@x-gmeow-english ;
+    skos:definition "A canon, continuity, or narrative realm that serves as a reference frame for in-universe facts (locations, dates, events) and functionally as the standpoint under which in-universe claims hold true. The Harry Potter canon, the Marvel Multiverse (Earth-616, MCU, Ultimate), and the Star Wars Legends/Canon split are all narrative reference frames. Ordinary GMEOW entities (Person, Place, Organization, Event) may carry claims according to this frame; cross-continuity variants are linked by counterpartOf, never merged."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:NarrativeFrameRelation
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Narrative Frame Relation"@en ;
-    skos:definition "The relationship of one narrative frame to another — a value vocabulary (individuals, never subclasses) spanning canon, alternate continuity, expanded universe, fanon, crossover, and adaptation. Non-functional: a frame may hold several relations to another frame from different standpoints."@en ;
+    rdfs:label "Narrative Frame Relation"@x-gmeow-english ;
+    skos:definition "The relationship of one narrative frame to another — a value vocabulary (individuals, never subclasses) spanning canon, alternate continuity, expanded universe, fanon, crossover, and adaptation. Non-functional: a frame may hold several relations to another frame from different standpoints."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:NarrativeFrameLink
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
-    rdfs:label "Narrative Frame Link"@en ;
-    skos:definition "A reified relator that binds a source narrative frame, a target narrative frame, and the relation type between them into a single node. The canonical form when the specific frame-to-frame relation must itself be a node (e.g. to attach provenance, confidence, temporal scope, or standpoint); the flat shortcuts are gmeow:hasNarrativeFrameRelation and gmeow:relatesToFrame. Structurally the Tagging/NameUsage idiom wearing a different hat."@en ;
+    rdfs:label "Narrative Frame Link"@x-gmeow-english ;
+    skos:definition "A reified relator that binds a source narrative frame, a target narrative frame, and the relation type between them into a single node. The canonical form when the specific frame-to-frame relation must itself be a node (e.g. to attach provenance, confidence, temporal scope, or standpoint); the flat shortcuts are gmeow:hasNarrativeFrameRelation and gmeow:relatesToFrame. Structurally the Tagging/NameUsage idiom wearing a different hat."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:CharacterArc
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Character Arc"@en ;
-    skos:definition "A first-class interpretive/structural information object describing a character's trajectory through a narrative — a standpoint-scoped analysis, never canonical truth. A gufo:Kind with distinct identity criteria (subject, frame, and type). Cross-continuity variants are linked by counterpartOf, never merged."@en ;
+    rdfs:label "Character Arc"@x-gmeow-english ;
+    skos:definition "A first-class interpretive/structural information object describing a character's trajectory through a narrative — a standpoint-scoped analysis, never canonical truth. A gufo:Kind with distinct identity criteria (subject, frame, and type). Cross-continuity variants are linked by counterpartOf, never merged."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -61,88 +61,88 @@ gmeow:sourceFor
     rdfs:subPropertyOf gmeow:contributesToFrame ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range gmeow:NarrativeReferenceFrame ;
-    rdfs:label "source for"@en ;
-    skos:definition "Relates a creative work (a BookRelease, SerialInstallment, film, game, or other out-of-universe artifact) to the narrative reference frame it contributes to, witnesses, revises, or serves as a source for. Non-functional: a work may source several frames, and a frame may have many sources. The specific role (source, witness, revision, adaptation) is carried by gmeow:accordingTo on the claim or by a reified relator when needed."@en ;
+    rdfs:label "source for"@x-gmeow-english ;
+    skos:definition "Relates a creative work (a BookRelease, SerialInstallment, film, game, or other out-of-universe artifact) to the narrative reference frame it contributes to, witnesses, revises, or serves as a source for. Non-functional: a work may source several frames, and a frame may have many sources. The specific role (source, witness, revision, adaptation) is carried by gmeow:accordingTo on the claim or by a reified relator when needed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:contributesToFrame
     a owl:ObjectProperty ;
     rdfs:domain gmeow:InformationObject ;
     rdfs:range gmeow:NarrativeReferenceFrame ;
-    rdfs:label "contributes to frame"@en ;
-    skos:definition "Relates a creative work or content segment to the narrative reference frame it contributes claims to. Broader than gmeow:sourceFor: a segment may contribute to a frame without being the primary source. Non-functional: an information object may contribute to many frames."@en ;
+    rdfs:label "contributes to frame"@x-gmeow-english ;
+    skos:definition "Relates a creative work or content segment to the narrative reference frame it contributes claims to. Broader than gmeow:sourceFor: a segment may contribute to a frame without being the primary source. Non-functional: an information object may contribute to many frames."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:arcSubject
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:CharacterArc ;
     rdfs:range gmeow:Entity ;
-    rdfs:label "arc subject"@en ;
-    skos:definition "The entity whose arc is described — a person, organization, or other narrative entity. Functional: one subject per CharacterArc."@en ;
+    rdfs:label "arc subject"@x-gmeow-english ;
+    skos:definition "The entity whose arc is described — a person, organization, or other narrative entity. Functional: one subject per CharacterArc."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:arcFrame
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:CharacterArc ;
     rdfs:range gmeow:NarrativeReferenceFrame ;
-    rdfs:label "arc frame"@en ;
-    skos:definition "The narrative reference frame within which this arc is interpreted. Functional: one frame per CharacterArc; cross-continuity arcs are separate instances linked by counterpartOf."@en ;
+    rdfs:label "arc frame"@x-gmeow-english ;
+    skos:definition "The narrative reference frame within which this arc is interpreted. Functional: one frame per CharacterArc; cross-continuity arcs are separate instances linked by counterpartOf."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:arcType
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:CharacterArc ;
     rdfs:range gmeow:ArcType ;
-    rdfs:label "arc type"@en ;
-    skos:definition "The interpretive type of this character arc — a value from the open gmeow:ArcType vocabulary. Functional: one type per CharacterArc."@en ;
+    rdfs:label "arc type"@x-gmeow-english ;
+    skos:definition "The interpretive type of this character arc — a value from the open gmeow:ArcType vocabulary. Functional: one type per CharacterArc."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:arcEvidence
     a owl:ObjectProperty ;
     rdfs:domain gmeow:CharacterArc ;
     rdfs:range gmeow:InformationObject ;
-    rdfs:label "arc evidence"@en ;
-    skos:definition "The creative works or content segments that provide evidence for this arc interpretation. Non-functional: an arc may be evidenced by many segments or works."@en ;
+    rdfs:label "arc evidence"@x-gmeow-english ;
+    skos:definition "The creative works or content segments that provide evidence for this arc interpretation. Non-functional: an arc may be evidenced by many segments or works."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasNarrativeFrameRelation
     a owl:ObjectProperty ;
     rdfs:domain gmeow:NarrativeReferenceFrame ;
     rdfs:range gmeow:NarrativeFrameRelation ;
-    rdfs:label "has narrative frame relation"@en ;
-    skos:definition "The relationship(s) this narrative frame bears to another frame — canon, alternate continuity, expanded universe, fanon, crossover, adaptation. Non-functional: competing relation claims from different standpoints coexist (Principle 9). Flat shortcut; promote to gmeow:NarrativeFrameLink when the binding between source, target, and relation type must be explicit."@en ;
+    rdfs:label "has narrative frame relation"@x-gmeow-english ;
+    skos:definition "The relationship(s) this narrative frame bears to another frame — canon, alternate continuity, expanded universe, fanon, crossover, adaptation. Non-functional: competing relation claims from different standpoints coexist (Principle 9). Flat shortcut; promote to gmeow:NarrativeFrameLink when the binding between source, target, and relation type must be explicit."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:relatesToFrame
     a owl:ObjectProperty ;
     rdfs:domain gmeow:NarrativeReferenceFrame ;
     rdfs:range gmeow:NarrativeReferenceFrame ;
-    rdfs:label "relates to frame"@en ;
-    skos:definition "Relates a narrative reference frame to another narrative reference frame with which it stands in a relationship (the nature of which is given by gmeow:hasNarrativeFrameRelation). Non-functional: a frame may relate to many others, and competing relation claims coexist. Flat shortcut; promote to gmeow:NarrativeFrameLink when the binding between source, target, and relation type must be explicit."@en ;
+    rdfs:label "relates to frame"@x-gmeow-english ;
+    skos:definition "Relates a narrative reference frame to another narrative reference frame with which it stands in a relationship (the nature of which is given by gmeow:hasNarrativeFrameRelation). Non-functional: a frame may relate to many others, and competing relation claims coexist. Flat shortcut; promote to gmeow:NarrativeFrameLink when the binding between source, target, and relation type must be explicit."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:narrativeFrameLinkSource
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:NarrativeFrameLink ;
     rdfs:range gmeow:NarrativeReferenceFrame ;
-    rdfs:label "narrative frame link source"@en ;
-    skos:definition "The source narrative reference frame in a link. Functional per relator: one source per NarrativeFrameLink."@en ;
+    rdfs:label "narrative frame link source"@x-gmeow-english ;
+    skos:definition "The source narrative reference frame in a link. Functional per relator: one source per NarrativeFrameLink."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:narrativeFrameLinkTarget
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:NarrativeFrameLink ;
     rdfs:range gmeow:NarrativeReferenceFrame ;
-    rdfs:label "narrative frame link target"@en ;
-    skos:definition "The target narrative reference frame in a link. Functional per relator: one target per NarrativeFrameLink."@en ;
+    rdfs:label "narrative frame link target"@x-gmeow-english ;
+    skos:definition "The target narrative reference frame in a link. Functional per relator: one target per NarrativeFrameLink."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:narrativeFrameLinkRelation
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:NarrativeFrameLink ;
     rdfs:range gmeow:NarrativeFrameRelation ;
-    rdfs:label "narrative frame link relation"@en ;
-    skos:definition "The relation type (canon, adaptation, crossover, etc.) that holds between the source and target frames in this link. Functional per relator: one relation type per NarrativeFrameLink."@en ;
+    rdfs:label "narrative frame link relation"@x-gmeow-english ;
+    skos:definition "The relation type (canon, adaptation, crossover, etc.) that holds between the source and target frames in this link. Functional per relator: one relation type per NarrativeFrameLink."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -151,33 +151,33 @@ gmeow:narrativeFrameLinkRelation
 
 gmeow:relationCanon
     a gmeow:NarrativeFrameRelation ;
-    rdfs:label "canon"@en ;
-    skos:definition "The authoritative, settled continuity of a narrative frame."@en .
+    rdfs:label "canon"@x-gmeow-english ;
+    skos:definition "The authoritative, settled continuity of a narrative frame."@x-gmeow-english .
 
 gmeow:relationAlternateContinuity
     a gmeow:NarrativeFrameRelation ;
-    rdfs:label "alternate continuity"@en ;
-    skos:definition "A divergent continuity that is not the primary canon but is officially recognised (e.g. Marvel Ultimate, Star Wars Legends)."@en .
+    rdfs:label "alternate continuity"@x-gmeow-english ;
+    skos:definition "A divergent continuity that is not the primary canon but is officially recognised (e.g. Marvel Ultimate, Star Wars Legends)."@x-gmeow-english .
 
 gmeow:relationExpandedUniverse
     a gmeow:NarrativeFrameRelation ;
-    rdfs:label "expanded universe"@en ;
-    skos:definition "Officially licensed material that extends the canon but is not part of the core continuity."@en .
+    rdfs:label "expanded universe"@x-gmeow-english ;
+    skos:definition "Officially licensed material that extends the canon but is not part of the core continuity."@x-gmeow-english .
 
 gmeow:relationFanon
     a gmeow:NarrativeFrameRelation ;
-    rdfs:label "fanon"@en ;
-    skos:definition "Community-generated continuity not officially recognised by the rights-holder."@en .
+    rdfs:label "fanon"@x-gmeow-english ;
+    skos:definition "Community-generated continuity not officially recognised by the rights-holder."@x-gmeow-english .
 
 gmeow:relationCrossover
     a gmeow:NarrativeFrameRelation ;
-    rdfs:label "crossover"@en ;
-    skos:definition "A narrative frame that blends characters or settings from two or more distinct continuities."@en .
+    rdfs:label "crossover"@x-gmeow-english ;
+    skos:definition "A narrative frame that blends characters or settings from two or more distinct continuities."@x-gmeow-english .
 
 gmeow:relationAdaptationOf
     a gmeow:NarrativeFrameRelation ;
-    rdfs:label "adaptation of"@en ;
-    skos:definition "A narrative frame that adapts another frame into a different medium or format."@en .
+    rdfs:label "adaptation of"@x-gmeow-english ;
+    skos:definition "A narrative frame that adapts another frame into a different medium or format."@x-gmeow-english .
 
 # =========================================================================== #
 # ARC TYPE VALUE VOCABULARY — individuals, never subclasses (Principle 9)
@@ -186,20 +186,20 @@ gmeow:relationAdaptationOf
 gmeow:ArcType
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Arc Type"@en ;
-    skos:definition "The interpretive type of a character arc — a VALUE vocabulary (individuals, never subclasses). Coming-of-age, redemption, and fall are examples; the set is open."@en ;
+    rdfs:label "Arc Type"@x-gmeow-english ;
+    skos:definition "The interpretive type of a character arc — a VALUE vocabulary (individuals, never subclasses). Coming-of-age, redemption, and fall are examples; the set is open."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
 # ArcType seeds
 # --------------------------------------------------------------------------- #
 
-gmeow:arcTypeComingOfAge a gmeow:ArcType ; rdfs:label "coming-of-age"@en ; skos:definition "A transition from childhood to maturity."@en .
-gmeow:arcTypeRedemption   a gmeow:ArcType ; rdfs:label "redemption"@en ;   skos:definition "A moral recovery or atonement for past failings."@en .
-gmeow:arcTypeFall         a gmeow:ArcType ; rdfs:label "fall"@en ;         skos:definition "A decline from a state of grace, power, or virtue."@en .
-gmeow:arcTypeCorruption   a gmeow:ArcType ; rdfs:label "corruption"@en ;   skos:definition "A moral or ethical degradation."@en .
-gmeow:arcTypeQuest        a gmeow:ArcType ; rdfs:label "quest"@en ;        skos:definition "A journey toward a goal that transforms the protagonist."@en .
-gmeow:arcTypeRecovery     a gmeow:ArcType ; rdfs:label "recovery"@en ;     skos:definition "A return to health, wholeness, or stability after loss."@en .
+gmeow:arcTypeComingOfAge a gmeow:ArcType ; rdfs:label "coming-of-age"@x-gmeow-english ; skos:definition "A transition from childhood to maturity."@x-gmeow-english .
+gmeow:arcTypeRedemption   a gmeow:ArcType ; rdfs:label "redemption"@x-gmeow-english ;   skos:definition "A moral recovery or atonement for past failings."@x-gmeow-english .
+gmeow:arcTypeFall         a gmeow:ArcType ; rdfs:label "fall"@x-gmeow-english ;         skos:definition "A decline from a state of grace, power, or virtue."@x-gmeow-english .
+gmeow:arcTypeCorruption   a gmeow:ArcType ; rdfs:label "corruption"@x-gmeow-english ;   skos:definition "A moral or ethical degradation."@x-gmeow-english .
+gmeow:arcTypeQuest        a gmeow:ArcType ; rdfs:label "quest"@x-gmeow-english ;        skos:definition "A journey toward a goal that transforms the protagonist."@x-gmeow-english .
+gmeow:arcTypeRecovery     a gmeow:ArcType ; rdfs:label "recovery"@x-gmeow-english ;     skos:definition "A return to health, wholeness, or stability after loss."@x-gmeow-english .
 
 # =========================================================================== #
 # MYTH — socially-sustained narrative whose currency is independent of truth-value
@@ -209,8 +209,8 @@ gmeow:arcTypeRecovery     a gmeow:ArcType ; rdfs:label "recovery"@en ;     skos:
 gmeow:Myth
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:SocialObject ;
-    rdfs:label "Myth"@en ;
-    skos:definition "A socially-sustained narrative whose currency is independent of its truth-value — a founding myth, an urban legend, a propaganda narrative, or a debunked claim that persists. GMEOW asserts no truth verdict on a myth (Principle 1); in-myth claims are scoped accordingTo an associated gmeow:NarrativeReferenceFrame. A myth is the abstract narrative (WEMI Work level); concrete tellings are linked via gmeow:hasMythTelling."@en ;
+    rdfs:label "Myth"@x-gmeow-english ;
+    skos:definition "A socially-sustained narrative whose currency is independent of its truth-value — a founding myth, an urban legend, a propaganda narrative, or a debunked claim that persists. GMEOW asserts no truth verdict on a myth (Principle 1); in-myth claims are scoped accordingTo an associated gmeow:NarrativeReferenceFrame. A myth is the abstract narrative (WEMI Work level); concrete tellings are linked via gmeow:hasMythTelling."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> ;
     rdfs:subClassOf
         [ a owl:Restriction ; owl:onProperty gmeow:hasMythTelling ; owl:someValuesFrom gmeow:CreativeWork ] .
@@ -219,16 +219,16 @@ gmeow:hasMythTelling
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Myth ;
     rdfs:range gmeow:CreativeWork ;
-    rdfs:label "has myth telling"@en ;
-    skos:definition "Relates a myth to its concrete tellings or expressions — a BookRelease, Article, MediaObject, social post, or other CreativeWork. Non-functional: co-equal tellings coexist; superseded tellings are set gmeow:displayable false (Principle 10)."@en ;
+    rdfs:label "has myth telling"@x-gmeow-english ;
+    skos:definition "Relates a myth to its concrete tellings or expressions — a BookRelease, Article, MediaObject, social post, or other CreativeWork. Non-functional: co-equal tellings coexist; superseded tellings are set gmeow:displayable false (Principle 10)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:mythFrame
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Myth ;
     rdfs:range gmeow:NarrativeReferenceFrame ;
-    rdfs:label "myth frame"@en ;
-    skos:definition "The narrative reference frame under which in-myth claims hold true. Functional: one frame per Myth. In-myth claims are scoped accordingTo this frame."@en ;
+    rdfs:label "myth frame"@x-gmeow-english ;
+    skos:definition "The narrative reference frame under which in-myth claims hold true. Functional: one frame per Myth. In-myth claims are scoped accordingTo this frame."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:propagatesFrom
@@ -236,22 +236,22 @@ gmeow:propagatesFrom
     rdfs:subPropertyOf gmeow:wasDerivedFrom ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range gmeow:CreativeWork ;
-    rdfs:label "propagates from"@en ;
-    skos:definition "The propagation edge linking one myth telling to the telling it was derived from — reusing the PROV-O lineage spine so myth-spread is not a parallel graph (Principle 4). The propagating agent is a gmeow:Participation with roleDupe (unwitting) or roleDeceiver (knowing)."@en ;
+    rdfs:label "propagates from"@x-gmeow-english ;
+    skos:definition "The propagation edge linking one myth telling to the telling it was derived from — reusing the PROV-O lineage spine so myth-spread is not a parallel graph (Principle 4). The propagating agent is a gmeow:Participation with roleDupe (unwitting) or roleDeceiver (knowing)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:recurringRisk
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Myth ;
     rdfs:range xsd:boolean ;
-    rdfs:label "recurring risk"@en ;
-    skos:definition "A flag indicating that this myth or false claim is a repeat offender — agents and generated reports re-introduce it, so audit tooling can prioritise active correction over one-off debunking."@en ;
+    rdfs:label "recurring risk"@x-gmeow-english ;
+    skos:definition "A flag indicating that this myth or false claim is a repeat offender — agents and generated reports re-introduce it, so audit tooling can prioritise active correction over one-off debunking."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:affectedConsumerSurface
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Myth ;
     rdfs:range gmeow:ProjectionContext ;
-    rdfs:label "affected consumer surface"@en ;
-    skos:definition "The projection consumer surfaces that a myth tends to leak into — e.g. Wikipedia, public site, agent memory — so that a correction can be scoped to the surfaces that actually carry the bad claim. Reuses the gmeow:ProjectionContext vocabulary (#225)."@en ;
+    rdfs:label "affected consumer surface"@x-gmeow-english ;
+    skos:definition "The projection consumer surfaces that a myth tends to leak into — e.g. Wikipedia, public site, agent memory — so that a correction can be scoped to the surfaces that actually carry the bad claim. Reuses the gmeow:ProjectionContext vocabulary (#225)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

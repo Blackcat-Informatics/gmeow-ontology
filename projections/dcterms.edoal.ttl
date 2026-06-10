@@ -6,10 +6,10 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/projections/dcterms> a align:Alignment ;
-    rdfs:label "GMEOW → dcterms (EDOAL)"@en ;
+    rdfs:label "GMEOW → dcterms (EDOAL)"@x-gmeow-english ;
     align:level "2EDOAL" ;
     align:map [ a align:Cell ;
-            rdfs:label "abstract → dcterms:abstract"@en ;
+            rdfs:label "abstract → dcterms:abstract"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:abstract ] ;
             align:entity2 [ a edoal:Property ;
@@ -17,7 +17,7 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
-            rdfs:label "conditionsOfAccess → dcterms:accessRights"@en ;
+            rdfs:label "conditionsOfAccess → dcterms:accessRights"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:conditionsOfAccess ] ;
             align:entity2 [ a edoal:Property ;
@@ -25,7 +25,7 @@
             align:relation "=" ;
             edoal:measure 8.5e-01 ],
         [ a align:Cell ;
-            rdfs:label "audience → dcterms:audience"@en ;
+            rdfs:label "audience → dcterms:audience"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:audience ] ;
             align:entity2 [ a edoal:Property ;
@@ -33,7 +33,7 @@
             align:relation "=" ;
             edoal:measure 7.5e-01 ],
         [ a align:Cell ;
-            rdfs:label "dateAvailable → dcterms:available"@en ;
+            rdfs:label "dateAvailable → dcterms:available"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:dateAvailable ] ;
             align:entity2 [ a edoal:Property ;
@@ -41,7 +41,7 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
-            rdfs:label "bibliographicCitation → dcterms:bibliographicCitation"@en ;
+            rdfs:label "bibliographicCitation → dcterms:bibliographicCitation"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:bibliographicCitation ] ;
             align:entity2 [ a edoal:Property ;
@@ -49,7 +49,7 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
-            rdfs:label "conformsTo → dcterms:conformsTo"@en ;
+            rdfs:label "conformsTo → dcterms:conformsTo"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:conformsTo ] ;
             align:entity2 [ a edoal:Property ;
@@ -57,7 +57,7 @@
             align:relation "=" ;
             edoal:measure 8.5e-01 ],
         [ a align:Cell ;
-            rdfs:label "hasContributor → dcterms:contributor"@en ;
+            rdfs:label "hasContributor → dcterms:contributor"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:hasContributor ] ;
             align:entity2 [ a edoal:Property ;
@@ -65,7 +65,7 @@
             align:relation "=" ;
             edoal:measure 8.5e-01 ],
         [ a align:Cell ;
-            rdfs:label "dateCreated → dcterms:created"@en ;
+            rdfs:label "dateCreated → dcterms:created"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:dateCreated ] ;
             align:entity2 [ a edoal:Property ;
@@ -73,7 +73,7 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
-            rdfs:label "hasAuthor → dcterms:creator"@en ;
+            rdfs:label "hasAuthor → dcterms:creator"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:hasAuthor ] ;
             align:entity2 [ a edoal:Property ;
@@ -81,7 +81,7 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
-            rdfs:label "dateAccepted → dcterms:dateAccepted"@en ;
+            rdfs:label "dateAccepted → dcterms:dateAccepted"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:dateAccepted ] ;
             align:entity2 [ a edoal:Property ;
@@ -89,7 +89,7 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
-            rdfs:label "Copyright year → dcterms:dateCopyrighted (flatten)"@en ;
+            rdfs:label "Copyright year → dcterms:dateCopyrighted (flatten)"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:copyrightYear ] ;
             align:entity2 [ a edoal:Property ;
@@ -97,7 +97,7 @@
             align:relation "<=" ;
             edoal:measure 8e-01 ],
         [ a align:Cell ;
-            rdfs:label "dateSubmitted → dcterms:dateSubmitted"@en ;
+            rdfs:label "dateSubmitted → dcterms:dateSubmitted"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:dateSubmitted ] ;
             align:entity2 [ a edoal:Property ;
@@ -105,7 +105,7 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
-            rdfs:label "description → dcterms:description"@en ;
+            rdfs:label "description → dcterms:description"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:description ] ;
             align:entity2 [ a edoal:Property ;
@@ -113,7 +113,7 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
-            rdfs:label "extent → dcterms:extent"@en ;
+            rdfs:label "extent → dcterms:extent"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:extent ] ;
             align:entity2 [ a edoal:Property ;
@@ -121,7 +121,7 @@
             align:relation "=" ;
             edoal:measure 8e-01 ],
         [ a align:Cell ;
-            rdfs:label "hasPart → dcterms:hasPart"@en ;
+            rdfs:label "hasPart → dcterms:hasPart"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:hasPart ] ;
             align:entity2 [ a edoal:Property ;
@@ -129,7 +129,7 @@
             align:relation "=" ;
             edoal:measure 8.5e-01 ],
         [ a align:Cell ;
-            rdfs:label "hasVersion → dcterms:hasVersion"@en ;
+            rdfs:label "hasVersion → dcterms:hasVersion"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:hasVersion ] ;
             align:entity2 [ a edoal:Property ;
@@ -137,7 +137,7 @@
             align:relation "=" ;
             edoal:measure 8.5e-01 ],
         [ a align:Cell ;
-            rdfs:label "identifier → dcterms:identifier"@en ;
+            rdfs:label "identifier → dcterms:identifier"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:identifier ] ;
             align:entity2 [ a edoal:Property ;
@@ -145,7 +145,7 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
-            rdfs:label "partOf → dcterms:isPartOf"@en ;
+            rdfs:label "partOf → dcterms:isPartOf"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:partOf ] ;
             align:entity2 [ a edoal:Property ;
@@ -153,7 +153,7 @@
             align:relation "=" ;
             edoal:measure 8.5e-01 ],
         [ a align:Cell ;
-            rdfs:label "isReferencedBy → dcterms:isReferencedBy"@en ;
+            rdfs:label "isReferencedBy → dcterms:isReferencedBy"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:isReferencedBy ] ;
             align:entity2 [ a edoal:Property ;
@@ -161,7 +161,7 @@
             align:relation "=" ;
             edoal:measure 8.5e-01 ],
         [ a align:Cell ;
-            rdfs:label "supersededBy → dcterms:isReplacedBy"@en ;
+            rdfs:label "supersededBy → dcterms:isReplacedBy"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:supersededBy ] ;
             align:entity2 [ a edoal:Property ;
@@ -169,7 +169,7 @@
             align:relation "=" ;
             edoal:measure 8.5e-01 ],
         [ a align:Cell ;
-            rdfs:label "isRequiredBy → dcterms:isRequiredBy"@en ;
+            rdfs:label "isRequiredBy → dcterms:isRequiredBy"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:isRequiredBy ] ;
             align:entity2 [ a edoal:Property ;
@@ -177,7 +177,7 @@
             align:relation "=" ;
             edoal:measure 8e-01 ],
         [ a align:Cell ;
-            rdfs:label "versionOf → dcterms:isVersionOf"@en ;
+            rdfs:label "versionOf → dcterms:isVersionOf"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:versionOf ] ;
             align:entity2 [ a edoal:Property ;
@@ -185,7 +185,7 @@
             align:relation "=" ;
             edoal:measure 8.5e-01 ],
         [ a align:Cell ;
-            rdfs:label "datePublished → dcterms:issued"@en ;
+            rdfs:label "datePublished → dcterms:issued"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:datePublished ] ;
             align:entity2 [ a edoal:Property ;
@@ -193,7 +193,7 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
-            rdfs:label "nameLanguage → dcterms:language (anchored on work)"@en ;
+            rdfs:label "nameLanguage → dcterms:language (anchored on work)"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:nameLanguage ] ;
             align:entity2 [ a edoal:Property ;
@@ -201,7 +201,7 @@
             align:relation "=" ;
             edoal:measure 8e-01 ],
         [ a align:Cell ;
-            rdfs:label "hasLicense → dcterms:license"@en ;
+            rdfs:label "hasLicense → dcterms:license"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:hasLicense ] ;
             align:entity2 [ a edoal:Property ;
@@ -209,7 +209,7 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
-            rdfs:label "medium → dcterms:medium"@en ;
+            rdfs:label "medium → dcterms:medium"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:medium ] ;
             align:entity2 [ a edoal:Property ;
@@ -217,7 +217,7 @@
             align:relation "=" ;
             edoal:measure 7.5e-01 ],
         [ a align:Cell ;
-            rdfs:label "dateModified → dcterms:modified"@en ;
+            rdfs:label "dateModified → dcterms:modified"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:dateModified ] ;
             align:entity2 [ a edoal:Property ;
@@ -225,7 +225,7 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
-            rdfs:label "provenance → dcterms:provenance"@en ;
+            rdfs:label "provenance → dcterms:provenance"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:provenance ] ;
             align:entity2 [ a edoal:Property ;
@@ -233,7 +233,7 @@
             align:relation "=" ;
             edoal:measure 7.5e-01 ],
         [ a align:Cell ;
-            rdfs:label "references → dcterms:references"@en ;
+            rdfs:label "references → dcterms:references"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:references ] ;
             align:entity2 [ a edoal:Property ;
@@ -241,7 +241,7 @@
             align:relation "=" ;
             edoal:measure 8.5e-01 ],
         [ a align:Cell ;
-            rdfs:label "supersedes → dcterms:replaces"@en ;
+            rdfs:label "supersedes → dcterms:replaces"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:supersedes ] ;
             align:entity2 [ a edoal:Property ;
@@ -249,7 +249,7 @@
             align:relation "=" ;
             edoal:measure 8.5e-01 ],
         [ a align:Cell ;
-            rdfs:label "requires → dcterms:requires"@en ;
+            rdfs:label "requires → dcterms:requires"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:requires ] ;
             align:entity2 [ a edoal:Property ;
@@ -257,7 +257,7 @@
             align:relation "=" ;
             edoal:measure 8e-01 ],
         [ a align:Cell ;
-            rdfs:label "Copyright relator holder → dcterms:rightsHolder (flatten)"@en ;
+            rdfs:label "Copyright relator holder → dcterms:rightsHolder (flatten)"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:copyrightHolder ] ;
             align:entity2 [ a edoal:Property ;
@@ -265,7 +265,7 @@
             align:relation "<=" ;
             edoal:measure 8.5e-01 ],
         [ a align:Cell ;
-            rdfs:label "Copyright notice → dcterms:rights (flatten)"@en ;
+            rdfs:label "Copyright notice → dcterms:rights (flatten)"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:copyrightNotice ] ;
             align:entity2 [ a edoal:Property ;
@@ -273,7 +273,7 @@
             align:relation "<=" ;
             edoal:measure 8e-01 ],
         [ a align:Cell ;
-            rdfs:label "sourceLocation → dcterms:source"@en ;
+            rdfs:label "sourceLocation → dcterms:source"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:sourceLocation ] ;
             align:entity2 [ a edoal:Property ;
@@ -281,7 +281,7 @@
             align:relation "=" ;
             edoal:measure 8e-01 ],
         [ a align:Cell ;
-            rdfs:label "spatialCoverage → dcterms:spatial"@en ;
+            rdfs:label "spatialCoverage → dcterms:spatial"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:spatialCoverage ] ;
             align:entity2 [ a edoal:Property ;
@@ -289,7 +289,7 @@
             align:relation "=" ;
             edoal:measure 8e-01 ],
         [ a align:Cell ;
-            rdfs:label "isAbout → dcterms:subject"@en ;
+            rdfs:label "isAbout → dcterms:subject"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:isAbout ] ;
             align:entity2 [ a edoal:Property ;
@@ -297,7 +297,7 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
-            rdfs:label "tableOfContents → dcterms:tableOfContents"@en ;
+            rdfs:label "tableOfContents → dcterms:tableOfContents"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:tableOfContents ] ;
             align:entity2 [ a edoal:Property ;
@@ -305,7 +305,7 @@
             align:relation "=" ;
             edoal:measure 9e-01 ],
         [ a align:Cell ;
-            rdfs:label "temporalCoverage → dcterms:temporal"@en ;
+            rdfs:label "temporalCoverage → dcterms:temporal"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:temporalCoverage ] ;
             align:entity2 [ a edoal:Property ;
@@ -313,7 +313,7 @@
             align:relation "=" ;
             edoal:measure 8e-01 ],
         [ a align:Cell ;
-            rdfs:label "title → dcterms:title"@en ;
+            rdfs:label "title → dcterms:title"@x-gmeow-english ;
             align:entity1 [ a edoal:Relation ;
                     edoal:uri gmeow:title ] ;
             align:entity2 [ a edoal:Property ;
@@ -325,4 +325,4 @@
     align:onto2 [ a align:Ontology ;
             align:formalism [ align:name "dcterms" ] ] ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
-    rdfs:comment "GENERATED by `gmeow compile-mappings` from mapping-dsl/ — DO NOT EDIT."@en .
+    rdfs:comment "GENERATED by `gmeow compile-mappings` from mapping-dsl/ — DO NOT EDIT."@x-gmeow-english .

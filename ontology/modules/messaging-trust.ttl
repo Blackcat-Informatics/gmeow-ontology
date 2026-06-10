@@ -8,8 +8,8 @@
 
 <https://blackcatinformatics.ca/gmeow/modules/messaging-trust>
     a owl:Ontology ;
-    rdfs:label "GMEOW Messaging Trust Module"@en ;
-    rdfs:comment "Trust and authenticity indicators for messages: the relay/message path (Received hops with server timestamps), authentication results (DKIM/SPF/DMARC/ARC per RFC 8601/6376/7208/7489/8617), and cryptographic signatures (DKIM, S/MIME per RFC 8551, PGP per RFC 4880/3156). A distinct sub-vocabulary, included with the email slice."@en ;
+    rdfs:label "GMEOW Messaging Trust Module"@x-gmeow-english ;
+    rdfs:comment "Trust and authenticity indicators for messages: the relay/message path (Received hops with server timestamps), authentication results (DKIM/SPF/DMARC/ARC per RFC 8601/6376/7208/7489/8617), and cryptographic signatures (DKIM, S/MIME per RFC 8551, PGP per RFC 4880/3156). A distinct sub-vocabulary, included with the email slice."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -19,56 +19,56 @@
 gmeow:RelayHop
     a owl:Class, gufo:EventType ;
     rdfs:subClassOf gufo:Event ;
-    rdfs:label "Relay Hop"@en ;
-    skos:definition "One hop in a message's delivery path, recorded by a Received header: a relaying server, the host it received from, a server timestamp, and the protocol used."@en ;
+    rdfs:label "Relay Hop"@x-gmeow-english ;
+    skos:definition "One hop in a message's delivery path, recorded by a Received header: a relaying server, the host it received from, a server timestamp, and the protocol used."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasRelayHop
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:range gmeow:RelayHop ;
-    rdfs:label "has relay hop"@en ;
-    skos:definition "Relates a message to a hop in its delivery path."@en ;
+    rdfs:label "has relay hop"@x-gmeow-english ;
+    skos:definition "Relates a message to a hop in its delivery path."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:relayFrom
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "relay from"@en ;
-    skos:definition "The host a relay hop received the message from."@en ;
+    rdfs:label "relay from"@x-gmeow-english ;
+    skos:definition "The host a relay hop received the message from."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:relayBy
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "relay by"@en ;
-    skos:definition "The server that performed a relay hop."@en ;
+    rdfs:label "relay by"@x-gmeow-english ;
+    skos:definition "The server that performed a relay hop."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:relayAt
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:range xsd:dateTime ;
-    rdfs:label "relay at"@en ;
-    skos:definition "The server timestamp recorded for a relay hop."@en ;
+    rdfs:label "relay at"@x-gmeow-english ;
+    skos:definition "The server timestamp recorded for a relay hop."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:relayProtocol
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "relay protocol"@en ;
-    skos:definition "The protocol used for a relay hop (e.g. ESMTP, ESMTPS)."@en ;
+    rdfs:label "relay protocol"@x-gmeow-english ;
+    skos:definition "The protocol used for a relay hop (e.g. ESMTP, ESMTPS)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hopOrdinal
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:range xsd:integer ;
-    rdfs:label "hop ordinal"@en ;
-    skos:definition "The position of a hop within the message path (1 = closest to the origin)."@en ;
+    rdfs:label "hop ordinal"@x-gmeow-english ;
+    skos:definition "The position of a hop within the message path (1 = closest to the origin)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -78,40 +78,40 @@ gmeow:hopOrdinal
 gmeow:AuthenticationResult
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Authentication Result"@en ;
-    skos:definition "The outcome of an email authentication check (RFC 8601 Authentication-Results) — a method (DKIM, SPF, DMARC, ARC), a verdict, and the verifying server."@en ;
+    rdfs:label "Authentication Result"@x-gmeow-english ;
+    skos:definition "The outcome of an email authentication check (RFC 8601 Authentication-Results) — a method (DKIM, SPF, DMARC, ARC), a verdict, and the verifying server."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasAuthenticationResult
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:range gmeow:AuthenticationResult ;
-    rdfs:label "has authentication result"@en ;
-    skos:definition "Relates a message to an authentication check performed on it."@en ;
+    rdfs:label "has authentication result"@x-gmeow-english ;
+    skos:definition "Relates a message to an authentication check performed on it."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:authMethod
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:AuthenticationResult ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "authentication method"@en ;
-    skos:definition "The authentication method checked: dkim, spf, dmarc, arc, iprev, or auth."@en ;
+    rdfs:label "authentication method"@x-gmeow-english ;
+    skos:definition "The authentication method checked: dkim, spf, dmarc, arc, iprev, or auth."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:authResult
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:AuthenticationResult ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "authentication result"@en ;
-    skos:definition "The verdict of an authentication check: pass, fail, none, softfail, neutral, temperror, or permerror."@en ;
+    rdfs:label "authentication result"@x-gmeow-english ;
+    skos:definition "The verdict of an authentication check: pass, fail, none, softfail, neutral, temperror, or permerror."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:authServer
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:AuthenticationResult ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "authentication server"@en ;
-    skos:definition "The authentication-serv-id (authserv-id) that performed the check."@en ;
+    rdfs:label "authentication server"@x-gmeow-english ;
+    skos:definition "The authentication-serv-id (authserv-id) that performed the check."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -121,29 +121,29 @@ gmeow:authServer
 gmeow:CryptographicSignature
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Cryptographic Signature"@en ;
-    skos:definition "A cryptographic signature over a message or its headers, asserting origin and integrity."@en ;
+    rdfs:label "Cryptographic Signature"@x-gmeow-english ;
+    skos:definition "A cryptographic signature over a message or its headers, asserting origin and integrity."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:DKIMSignature
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:CryptographicSignature ;
-    rdfs:label "DKIM Signature"@en ;
-    skos:definition "A DomainKeys Identified Mail signature (RFC 6376) over selected headers and the body."@en ;
+    rdfs:label "DKIM Signature"@x-gmeow-english ;
+    skos:definition "A DomainKeys Identified Mail signature (RFC 6376) over selected headers and the body."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:SMIMESignature
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:CryptographicSignature ;
-    rdfs:label "S/MIME Signature"@en ;
-    skos:definition "An S/MIME signature (RFC 8551) over a message, bound to an X.509 certificate."@en ;
+    rdfs:label "S/MIME Signature"@x-gmeow-english ;
+    skos:definition "An S/MIME signature (RFC 8551) over a message, bound to an X.509 certificate."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:PGPSignature
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:CryptographicSignature ;
-    rdfs:label "PGP Signature"@en ;
-    skos:definition "An OpenPGP signature (RFC 4880/9580, PGP-MIME RFC 3156) over a message, bound to a PGP key."@en ;
+    rdfs:label "PGP Signature"@x-gmeow-english ;
+    skos:definition "An OpenPGP signature (RFC 4880/9580, PGP-MIME RFC 3156) over a message, bound to a PGP key."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # gmeow:hasSignature is defined cross-cuttingly in the attestation module
@@ -154,38 +154,38 @@ gmeow:signedBy
     a owl:ObjectProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:range gmeow:Agent ;
-    rdfs:label "signed by"@en ;
-    skos:definition "The agent (or signing identity) that produced a signature."@en ;
+    rdfs:label "signed by"@x-gmeow-english ;
+    skos:definition "The agent (or signing identity) that produced a signature."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:signingKey
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:range gmeow:CryptographicKey ;
-    rdfs:label "signing key"@en ;
-    skos:definition "The cryptographic key that produced a signature (the trust module's CryptographicKey). Complements gmeow:signedBy: signedBy gives the identity, signingKey gives the key — the pair a gmeow:Certification attests."@en ;
+    rdfs:label "signing key"@x-gmeow-english ;
+    skos:definition "The cryptographic key that produced a signature (the trust module's CryptographicKey). Complements gmeow:signedBy: signedBy gives the identity, signingKey gives the key — the pair a gmeow:Certification attests."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:signingDomain
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "signing domain"@en ;
-    skos:definition "The domain asserted by a signature (e.g. the DKIM d= tag)."@en ;
+    rdfs:label "signing domain"@x-gmeow-english ;
+    skos:definition "The domain asserted by a signature (e.g. the DKIM d= tag)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:signatureAlgorithm
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "signature algorithm"@en ;
-    skos:definition "The algorithm used for a signature (e.g. rsa-sha256, ed25519)."@en ;
+    rdfs:label "signature algorithm"@x-gmeow-english ;
+    skos:definition "The algorithm used for a signature (e.g. rsa-sha256, ed25519)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:verificationStatus
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "verification status"@en ;
-    skos:definition "The verification outcome of a signature: verified, failed, or unverified."@en ;
+    rdfs:label "verification status"@x-gmeow-english ;
+    skos:definition "The verification outcome of a signature: verified, failed, or unverified."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

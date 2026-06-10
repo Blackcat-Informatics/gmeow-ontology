@@ -28,6 +28,7 @@ from rdflib import OWL, RDF, RDFS, SKOS, BNode, Graph, URIRef
 
 from gmeow_tools.config import DIST_DIR, NAMESPACE, ONTOLOGY_IRI, PREFIXES
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.language_tags import load_tag_map, public_text
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
 from gmeow_tools.self_desc import load_self_description
 
@@ -199,6 +200,8 @@ def collect_terms(
     if alignments is None:
         alignments = build_alignment_graph(load_mappings())
 
+    tag_map = load_tag_map(graph)
+
     classes: set[URIRef] = {
         s for s in graph.subjects(RDF.type, OWL.Class) if _in_namespace(s)
     }
@@ -216,8 +219,8 @@ def collect_terms(
                 category="class",
                 iri=str(s),
                 curie=curie(str(s)),
-                label=_text(graph, s, RDFS.label),
-                definition=_text(graph, s, SKOS.definition),
+                label=public_text(graph, s, RDFS.label, tag_map=tag_map),
+                definition=public_text(graph, s, SKOS.definition, tag_map=tag_map),
                 parents=_curies(graph, s, RDFS.subClassOf),
                 alignments=_alignments(alignments, s),
             )
@@ -231,8 +234,8 @@ def collect_terms(
                 category="property",
                 iri=str(s),
                 curie=curie(str(s)),
-                label=_text(graph, s, RDFS.label),
-                definition=_text(graph, s, SKOS.definition),
+                label=public_text(graph, s, RDFS.label, tag_map=tag_map),
+                definition=public_text(graph, s, SKOS.definition, tag_map=tag_map),
                 prop_kind=kind,
                 domain=(
                     _describe_node(graph, domain_val) if domain_val is not None else ""
@@ -260,8 +263,8 @@ def collect_terms(
                     category="individual",
                     iri=str(s),
                     curie=curie(str(s)),
-                    label=_text(graph, s, RDFS.label),
-                    definition=_text(graph, s, SKOS.definition),
+                    label=public_text(graph, s, RDFS.label, tag_map=tag_map),
+                    definition=public_text(graph, s, SKOS.definition, tag_map=tag_map),
                     types=sorted(
                         curie(str(t))
                         for t in graph.objects(s, RDF.type)

@@ -12,7 +12,7 @@
 
 # EventSchedule → schema:Schedule (the recurrence + exception model).
 gmeow:mapSchemaOrgSchedule a gmeow:ProjectionMapping ;
-    rdfs:label "EventSchedule → schema:Schedule"@en ;
+    rdfs:label "EventSchedule → schema:Schedule"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "sched" ;
         gmeow:atom (
@@ -33,7 +33,7 @@ gmeow:mapSchemaOrgSchedule a gmeow:ProjectionMapping ;
 
 # Schedule occurrence → schema:Event (subEvent of the series).
 gmeow:mapSchemaOrgScheduleOccurrence a gmeow:ProjectionMapping ;
-    rdfs:label "Schedule occurrence → schema:Event (subEvent)"@en ;
+    rdfs:label "Schedule occurrence → schema:Event (subEvent)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "occ" ;
         gmeow:atom (
@@ -51,7 +51,7 @@ gmeow:mapSchemaOrgScheduleOccurrence a gmeow:ProjectionMapping ;
 
 # EventSeries (existing events.ttl term) → schema:EventSeries.
 gmeow:mapSchemaOrgEventSeries a gmeow:ProjectionMapping ;
-    rdfs:label "EventSeries → schema:EventSeries"@en ;
+    rdfs:label "EventSeries → schema:EventSeries"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "series" ;
         gmeow:atom (
@@ -67,7 +67,7 @@ gmeow:mapSchemaOrgEventSeries a gmeow:ProjectionMapping ;
 # Task → schema.org Event (with eventStatus = EventPostponed / EventCancelled
 # when taskStatus is cancelled).
 gmeow:mapSchemaOrgTask a gmeow:ProjectionMapping ;
-    rdfs:label "Task → schema:Event (eventStatus)"@en ;
+    rdfs:label "Task → schema:Event (eventStatus)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "task" ;
         gmeow:atom (

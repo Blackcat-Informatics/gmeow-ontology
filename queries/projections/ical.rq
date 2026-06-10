@@ -10,7 +10,7 @@ CONSTRUCT {
     ?event ical:dtstart ?start .
     ?event ical:dtend ?end .
     ?event ical:location ?loc .
-    ?event ical:summary ?summary .
+    ?event ical:summary ?_final_summary .
     ?event ical:attendee ?att .
     ?task a ical:Vtodo .
     ?task ical:due ?due .
@@ -52,6 +52,12 @@ WHERE {
     UNION {
         ?event gmeow:eventType ?et .
         ?et rdfs:label ?summary .
+        OPTIONAL {
+            ?_lang gmeow:languageTag ?_intTag .
+            FILTER(isLiteral(?summary) && LANG(?summary) = ?_intTag)
+            ?_lang gmeow:bcp47Tag ?_extTag .
+        }
+        BIND ( IF(BOUND(?_extTag), STRLANG(STR(?summary), STR(?_extTag)), ?summary) AS ?_final_summary )
     }
     UNION {
         ?event gmeow:hasParticipant ?att .

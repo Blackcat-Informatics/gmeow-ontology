@@ -21,7 +21,7 @@
 # --------------------------------------------------------------------------- #
 
 gmeow:mapDoapProject a gmeow:ProjectionMapping ;
-    rdfs:label "SoftwareProject → doap:Project (facet collapse)"@en ;
+    rdfs:label "SoftwareProject → doap:Project (facet collapse)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proj" ;
         gmeow:atom (
@@ -38,7 +38,7 @@ gmeow:mapDoapProject a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapDoapRepository a gmeow:ProjectionMapping ;
-    rdfs:label "Repository → doap:Repository"@en ;
+    rdfs:label "Repository → doap:Repository"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "repo" ;
         gmeow:atom (
@@ -55,7 +55,7 @@ gmeow:mapDoapRepository a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapDoapVersion a gmeow:ProjectionMapping ;
-    rdfs:label "Release → doap:Version (event conflation)"@en ;
+    rdfs:label "Release → doap:Version (event conflation)"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "rel" ;
         gmeow:atom (
@@ -72,7 +72,7 @@ gmeow:mapDoapVersion a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapDoapRepositoryProp a gmeow:ProjectionMapping ;
-    rdfs:label "hasRepository → doap:repository"@en ;
+    rdfs:label "hasRepository → doap:repository"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proj" ; gmeow:value "repo" ;
         gmeow:atom (
@@ -87,7 +87,7 @@ gmeow:mapDoapRepositoryProp a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapDoapRevision a gmeow:ProjectionMapping ;
-    rdfs:label "releaseVersion → doap:revision"@en ;
+    rdfs:label "releaseVersion → doap:revision"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "rel" ; gmeow:value "ver" ;
         gmeow:atom (
@@ -102,7 +102,7 @@ gmeow:mapDoapRevision a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapDoapLicense a gmeow:ProjectionMapping ;
-    rdfs:label "projectLicense → doap:license"@en ;
+    rdfs:label "projectLicense → doap:license"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proj" ; gmeow:value "lic" ;
         gmeow:atom (
@@ -120,7 +120,7 @@ gmeow:mapDoapLicense a gmeow:ProjectionMapping ;
 # --------------------------------------------------------------------------- #
 
 gmeow:mapDoapDeveloper a gmeow:ProjectionMapping ;
-    rdfs:label "Contribution(role=SoftwareDeveloper) → doap:developer"@en ;
+    rdfs:label "Contribution(role=SoftwareDeveloper) → doap:developer"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proj" ; gmeow:value "devAgent" ;
         gmeow:atom (
@@ -135,7 +135,7 @@ gmeow:mapDoapDeveloper a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "contribution period, provenance, confidence, degree; reified relator flattened to property" ] .
 
 gmeow:mapDoapMaintainer a gmeow:ProjectionMapping ;
-    rdfs:label "Contribution(role=SoftwareMaintainer) → doap:maintainer"@en ;
+    rdfs:label "Contribution(role=SoftwareMaintainer) → doap:maintainer"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proj" ; gmeow:value "maintAgent" ;
         gmeow:atom (
@@ -153,7 +153,7 @@ gmeow:mapDoapMaintainer a gmeow:ProjectionMapping ;
 # DOAP documenter is a lossy drop for software contributions.
 
 gmeow:mapDoapTester a gmeow:ProjectionMapping ;
-    rdfs:label "Contribution(role=CodeReviewer) → doap:tester"@en ;
+    rdfs:label "Contribution(role=CodeReviewer) → doap:tester"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proj" ; gmeow:value "testerAgent" ;
         gmeow:atom (
@@ -168,7 +168,7 @@ gmeow:mapDoapTester a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "reviewer vs tester distinction; contribution period, provenance, confidence, degree" ] .
 
 gmeow:mapDoapHelper a gmeow:ProjectionMapping ;
-    rdfs:label "Contribution(role=SecurityContact) → doap:helper"@en ;
+    rdfs:label "Contribution(role=SecurityContact) → doap:helper"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "proj" ; gmeow:value "helperAgent" ;
         gmeow:atom (

@@ -8,114 +8,114 @@
 
 <https://blackcatinformatics.ca/gmeow/modules/documents>
     a owl:Ontology ;
-    rdfs:label "GMEOW Documents Module"@en ;
-    rdfs:comment "Creative works and document metadata — articles, patents, datasets, media, web pages (the schema.org / BIBO / BIBFRAME superset layer)."@en ;
+    rdfs:label "GMEOW Documents Module"@x-gmeow-english ;
+    rdfs:comment "Creative works and document metadata — articles, patents, datasets, media, web pages (the schema.org / BIBO / BIBFRAME superset layer)."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:CreativeWork
     a owl:Class, gufo:Category ;
     rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Creative Work"@en ;
-    skos:definition "The abstract umbrella category for intellectual and artistic creations in the WEMI spine — a Work, Expression, Manifestation, or Item. Formerly a flat gufo:Kind (pre-#208); now a Category so that the four tiers with distinct identity criteria can each be a gufo:Kind beneath it."@en ;
+    rdfs:label "Creative Work"@x-gmeow-english ;
+    skos:definition "The abstract umbrella category for intellectual and artistic creations in the WEMI spine — a Work, Expression, Manifestation, or Item. Formerly a flat gufo:Kind (pre-#208); now a Category so that the four tiers with distinct identity criteria can each be a gufo:Kind beneath it."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Document
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Work ;
-    rdfs:label "Document"@en ;
-    skos:definition "An abstract intellectual work of bounded textual or digital content — the conceptual document, independent of any particular file, record, or report. A specialization of gmeow:Work."@en ;
+    rdfs:label "Document"@x-gmeow-english ;
+    skos:definition "An abstract intellectual work of bounded textual or digital content — the conceptual document, independent of any particular file, record, or report. A specialization of gmeow:Work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Article
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Work ;
-    rdfs:label "Article"@en ;
-    skos:definition "A written work published in a periodical, blog, or scholarly venue. A specialization of gmeow:Work."@en ;
+    rdfs:label "Article"@x-gmeow-english ;
+    skos:definition "A written work published in a periodical, blog, or scholarly venue. A specialization of gmeow:Work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Patent
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Work ;
-    rdfs:label "Patent"@en ;
-    skos:definition "An abstract intellectual work describing an invention — the inventive concept as claimed, independent of any granted or filed document. A specialization of gmeow:Work."@en ;
+    rdfs:label "Patent"@x-gmeow-english ;
+    skos:definition "An abstract intellectual work describing an invention — the inventive concept as claimed, independent of any granted or filed document. A specialization of gmeow:Work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Dataset
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Work ;
-    rdfs:label "Dataset"@en ;
-    skos:definition "A collection of data published as a unit. A specialization of gmeow:Work."@en ;
+    rdfs:label "Dataset"@x-gmeow-english ;
+    skos:definition "A collection of data published as a unit. A specialization of gmeow:Work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:LiteraryWork
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Work ;
-    rdfs:label "Literary Work"@en ;
-    skos:definition "An abstract long-form story or textual work — fiction, poetry, drama, or literary non-fiction. A specialization of gmeow:Work."@en ;
+    rdfs:label "Literary Work"@x-gmeow-english ;
+    skos:definition "An abstract long-form story or textual work — fiction, poetry, drama, or literary non-fiction. A specialization of gmeow:Work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:SerialWork
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Work ;
-    rdfs:label "Serial Work"@en ;
-    skos:definition "An ongoing authored work released over installments — a web serial, comic series, or magazine. A specialization of gmeow:Work."@en ;
+    rdfs:label "Serial Work"@x-gmeow-english ;
+    skos:definition "An ongoing authored work released over installments — a web serial, comic series, or magazine. A specialization of gmeow:Work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:MediaObject
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Manifestation ;
-    rdfs:label "Media Object"@en ;
-    skos:definition "An image, audio, or video media file — a concrete published artifact. A specialization of gmeow:Manifestation."@en ;
+    rdfs:label "Media Object"@x-gmeow-english ;
+    skos:definition "An image, audio, or video media file — a concrete published artifact. A specialization of gmeow:Manifestation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:WebPage
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Manifestation ;
-    rdfs:label "Web Page"@en ;
-    skos:definition "A page on the web identified by a URL — a concrete published artifact. A specialization of gmeow:Manifestation."@en ;
+    rdfs:label "Web Page"@x-gmeow-english ;
+    skos:definition "A page on the web identified by a URL — a concrete published artifact. A specialization of gmeow:Manifestation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:BookRelease
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Manifestation ;
-    rdfs:label "Book Release"@en ;
-    skos:definition "A concrete published edition or release of a book — an out-of-universe information object and rights-bearing publication artifact. A specialization of gmeow:Manifestation. Distinct from the in-universe narrative frame it contributes to; linked via gmeow:sourceFor."@en ;
+    rdfs:label "Book Release"@x-gmeow-english ;
+    skos:definition "A concrete published edition or release of a book — an out-of-universe information object and rights-bearing publication artifact. A specialization of gmeow:Manifestation. Distinct from the in-universe narrative frame it contributes to; linked via gmeow:sourceFor."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:SerialInstallment
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Manifestation ;
-    rdfs:label "Serial Installment"@en ;
-    skos:definition "A single issue, episode, or chapter of a serial creative work — a comic issue, TV episode, magazine issue, or serial chapter. An out-of-universe publication artifact distinct from the narrative frame it sources. A specialization of gmeow:Manifestation."@en ;
+    rdfs:label "Serial Installment"@x-gmeow-english ;
+    skos:definition "A single issue, episode, or chapter of a serial creative work — a comic issue, TV episode, magazine issue, or serial chapter. An out-of-universe publication artifact distinct from the narrative frame it sources. A specialization of gmeow:Manifestation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:ContentSegment
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Content Segment"@en ;
-    skos:definition "A structural part of a creative work, release, or installment — a chapter, section, scene, or episode. A gufo:Kind with distinct identity criteria (position and type within a containing whole)."@en ;
+    rdfs:label "Content Segment"@x-gmeow-english ;
+    skos:definition "A structural part of a creative work, release, or installment — a chapter, section, scene, or episode. A gufo:Kind with distinct identity criteria (position and type within a containing whole)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:ReadingOrder
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Standpoint ;
-    rdfs:label "Reading Order"@en ;
-    skos:definition "A standpoint that supplies a subjective ordering for consuming segments of a work — publication order, internal chronology, author-recommended order, or fandom order. Never canonical ontology truth; claims are annotated gmeow:accordingTo a ReadingOrder."@en ;
+    rdfs:label "Reading Order"@x-gmeow-english ;
+    skos:definition "A standpoint that supplies a subjective ordering for consuming segments of a work — publication order, internal chronology, author-recommended order, or fandom order. Never canonical ontology truth; claims are annotated gmeow:accordingTo a ReadingOrder."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:CreativeWorkTitle
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Appellation ;
-    rdfs:label "Creative Work Title"@en ;
-    skos:definition "An appellation borne by a creative work — a document title, article headline, dataset name, or media title. Carries its own gmeow:nameLanguage and gmeow:nameScript so co-equal multilingual titles (e.g. 'The Matrix' / '黑客帝国') are separate first-class objects, never alternateName subordinates."@en ;
+    rdfs:label "Creative Work Title"@x-gmeow-english ;
+    skos:definition "An appellation borne by a creative work — a document title, article headline, dataset name, or media title. Carries its own gmeow:nameLanguage and gmeow:nameScript so co-equal multilingual titles (e.g. 'The Matrix' / '黑客帝国') are separate first-class objects, never alternateName subordinates."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasSegment
     a owl:ObjectProperty ;
     rdfs:subPropertyOf gmeow:hasPart ;
     rdfs:range gmeow:ContentSegment ;
-    rdfs:label "has segment"@en ;
-    skos:definition "Relates a whole (work, release, installment, or another segment) to a structural part. Non-functional: a work may have many segments. Inverse of gmeow:segmentOf."@en ;
+    rdfs:label "has segment"@x-gmeow-english ;
+    skos:definition "Relates a whole (work, release, installment, or another segment) to a structural part. Non-functional: a work may have many segments. Inverse of gmeow:segmentOf."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:segmentOf
@@ -124,24 +124,24 @@ gmeow:segmentOf
     rdfs:subPropertyOf gmeow:partOf ;
     rdfs:domain gmeow:ContentSegment ;
     rdfs:range gmeow:Entity ;
-    rdfs:label "segment of"@en ;
-    skos:definition "A structural segment is part of a larger whole — a work, release, installment, or another segment. Transitive; inverse of gmeow:hasSegment."@en ;
+    rdfs:label "segment of"@x-gmeow-english ;
+    skos:definition "A structural segment is part of a larger whole — a work, release, installment, or another segment. Transitive; inverse of gmeow:hasSegment."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:segmentType
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:ContentSegment ;
     rdfs:range gmeow:ContentSegmentType ;
-    rdfs:label "segment type"@en ;
-    skos:definition "The structural type of this segment — chapter, section, scene, etc. A value from the open gmeow:ContentSegmentType vocabulary."@en ;
+    rdfs:label "segment type"@x-gmeow-english ;
+    skos:definition "The structural type of this segment — chapter, section, scene, etc. A value from the open gmeow:ContentSegmentType vocabulary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:segmentIndex
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:ContentSegment ;
     rdfs:range xsd:integer ;
-    rdfs:label "segment index"@en ;
-    skos:definition "The position of this segment within its containing whole — 1-based by convention, but not enforced."@en ;
+    rdfs:label "segment index"@x-gmeow-english ;
+    skos:definition "The position of this segment within its containing whole — 1-based by convention, but not enforced."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:hasTitle
@@ -149,32 +149,32 @@ gmeow:hasTitle
     rdfs:subPropertyOf gmeow:hasAppellation ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range gmeow:CreativeWorkTitle ;
-    rdfs:label "has title"@en ;
-    skos:definition "Relates a creative work to a structured gmeow:CreativeWorkTitle it bears; the creative-work-scoped specialization of gmeow:hasAppellation. Non-functional — a work bears many co-equal titles (original, translated, transliterated, regional); none is primary, and superseded ones set gmeow:displayable false. The structured replacement for the flat gmeow:title literal when multilingual or statement-level metadata is needed."@en ;
+    rdfs:label "has title"@x-gmeow-english ;
+    skos:definition "Relates a creative work to a structured gmeow:CreativeWorkTitle it bears; the creative-work-scoped specialization of gmeow:hasAppellation. Non-functional — a work bears many co-equal titles (original, translated, transliterated, regional); none is primary, and superseded ones set gmeow:displayable false. The structured replacement for the flat gmeow:title literal when multilingual or statement-level metadata is needed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:title
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "title"@en ;
-    skos:definition "The title of a creative work."@en ;
+    rdfs:label "title"@x-gmeow-english ;
+    skos:definition "The title of a creative work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:identifier
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "identifier"@en ;
-    skos:definition "A formal identifier of a creative work, such as a DOI or patent number."@en ;
+    rdfs:label "identifier"@x-gmeow-english ;
+    skos:definition "A formal identifier of a creative work, such as a DOI or patent number."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:datePublished
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range xsd:dateTime ;
-    rdfs:label "date published"@en ;
-    skos:definition "The date a creative work was published or issued."@en ;
+    rdfs:label "date published"@x-gmeow-english ;
+    skos:definition "The date a creative work was published or issued."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -184,20 +184,20 @@ gmeow:datePublished
 gmeow:ContentSegmentType
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Content Segment Type"@en ;
-    skos:definition "The structural type of a content segment — a VALUE vocabulary (individuals, never subclasses). Chapter, section, scene, and paragraph are examples; the set is open."@en ;
+    rdfs:label "Content Segment Type"@x-gmeow-english ;
+    skos:definition "The structural type of a content segment — a VALUE vocabulary (individuals, never subclasses). Chapter, section, scene, and paragraph are examples; the set is open."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
 # ContentSegmentType seeds
 # --------------------------------------------------------------------------- #
 
-gmeow:segmentTypeChapter     a gmeow:ContentSegmentType ; rdfs:label "chapter"@en ;     skos:definition "A major division of a written work."@en .
-gmeow:segmentTypeSection     a gmeow:ContentSegmentType ; rdfs:label "section"@en ;     skos:definition "A distinct part or subdivision of a work."@en .
-gmeow:segmentTypeScene       a gmeow:ContentSegmentType ; rdfs:label "scene"@en ;       skos:definition "A continuous sequence of action in a dramatic or narrative work."@en .
-gmeow:segmentTypeParagraph   a gmeow:ContentSegmentType ; rdfs:label "paragraph"@en ;   skos:definition "A distinct section of writing covering a single theme."@en .
-gmeow:segmentTypeFrontMatter a gmeow:ContentSegmentType ; rdfs:label "front matter"@en ; skos:definition "Preliminary material at the beginning of a book — title page, preface, table of contents."@en .
-gmeow:segmentTypeBackMatter  a gmeow:ContentSegmentType ; rdfs:label "back matter"@en ;  skos:definition "Supplementary material at the end of a book — appendix, bibliography, index."@en .
+gmeow:segmentTypeChapter     a gmeow:ContentSegmentType ; rdfs:label "chapter"@x-gmeow-english ;     skos:definition "A major division of a written work."@x-gmeow-english .
+gmeow:segmentTypeSection     a gmeow:ContentSegmentType ; rdfs:label "section"@x-gmeow-english ;     skos:definition "A distinct part or subdivision of a work."@x-gmeow-english .
+gmeow:segmentTypeScene       a gmeow:ContentSegmentType ; rdfs:label "scene"@x-gmeow-english ;       skos:definition "A continuous sequence of action in a dramatic or narrative work."@x-gmeow-english .
+gmeow:segmentTypeParagraph   a gmeow:ContentSegmentType ; rdfs:label "paragraph"@x-gmeow-english ;   skos:definition "A distinct section of writing covering a single theme."@x-gmeow-english .
+gmeow:segmentTypeFrontMatter a gmeow:ContentSegmentType ; rdfs:label "front matter"@x-gmeow-english ; skos:definition "Preliminary material at the beginning of a book — title page, preface, table of contents."@x-gmeow-english .
+gmeow:segmentTypeBackMatter  a gmeow:ContentSegmentType ; rdfs:label "back matter"@x-gmeow-english ;  skos:definition "Supplementary material at the end of a book — appendix, bibliography, index."@x-gmeow-english .
 
 # --- DC date refinements (issue #60) --------------------------------------- #
 
@@ -205,40 +205,40 @@ gmeow:dateCreated
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range xsd:dateTime ;
-    rdfs:label "date created"@en ;
-    skos:definition "The date a creative work was created. Distinct from datePublished (the issue/release date) and from the creation event's full temporal extent."@en ;
+    rdfs:label "date created"@x-gmeow-english ;
+    skos:definition "The date a creative work was created. Distinct from datePublished (the issue/release date) and from the creation event's full temporal extent."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:dateModified
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range xsd:dateTime ;
-    rdfs:label "date modified"@en ;
-    skos:definition "The date a creative work was last modified."@en ;
+    rdfs:label "date modified"@x-gmeow-english ;
+    skos:definition "The date a creative work was last modified."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:dateAvailable
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range xsd:dateTime ;
-    rdfs:label "date available"@en ;
-    skos:definition "The date a creative work became or will become available."@en ;
+    rdfs:label "date available"@x-gmeow-english ;
+    skos:definition "The date a creative work became or will become available."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:dateAccepted
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range xsd:dateTime ;
-    rdfs:label "date accepted"@en ;
-    skos:definition "The date a creative work was accepted (e.g. by a journal, conference, or repository)."@en ;
+    rdfs:label "date accepted"@x-gmeow-english ;
+    skos:definition "The date a creative work was accepted (e.g. by a journal, conference, or repository)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:dateSubmitted
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range xsd:dateTime ;
-    rdfs:label "date submitted"@en ;
-    skos:definition "The date a creative work was submitted for review or publication."@en ;
+    rdfs:label "date submitted"@x-gmeow-english ;
+    skos:definition "The date a creative work was submitted for review or publication."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --- DC description refinements (issue #60) -------------------------------- #
@@ -247,16 +247,16 @@ gmeow:abstract
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "abstract"@en ;
-    skos:definition "A summary of the content of a creative work."@en ;
+    rdfs:label "abstract"@x-gmeow-english ;
+    skos:definition "A summary of the content of a creative work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:tableOfContents
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "table of contents"@en ;
-    skos:definition "A list of subunits of a creative work."@en ;
+    rdfs:label "table of contents"@x-gmeow-english ;
+    skos:definition "A list of subunits of a creative work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --- DC bibliographic refinements (issue #60) ------------------------------ #
@@ -265,16 +265,16 @@ gmeow:bibliographicCitation
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "bibliographic citation"@en ;
-    skos:definition "A bibliographic reference for a creative work."@en ;
+    rdfs:label "bibliographic citation"@x-gmeow-english ;
+    skos:definition "A bibliographic reference for a creative work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:extent
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:range rdfs:Literal ;
-    rdfs:label "extent"@en ;
-    skos:definition "The size or duration of a creative work."@en ;
+    rdfs:label "extent"@x-gmeow-english ;
+    skos:definition "The size or duration of a creative work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --- Image technical metadata (issue #22) ---------------------------------- #
@@ -285,40 +285,40 @@ gmeow:pixelWidth
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:range xsd:nonNegativeInteger ;
-    rdfs:label "pixel width"@en ;
-    skos:definition "The width of a media object in pixels. Functional: one width per manifestation."@en ;
+    rdfs:label "pixel width"@x-gmeow-english ;
+    skos:definition "The width of a media object in pixels. Functional: one width per manifestation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:pixelHeight
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:range xsd:nonNegativeInteger ;
-    rdfs:label "pixel height"@en ;
-    skos:definition "The height of a media object in pixels. Functional: one height per manifestation."@en ;
+    rdfs:label "pixel height"@x-gmeow-english ;
+    skos:definition "The height of a media object in pixels. Functional: one height per manifestation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:imageOrientation
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:range xsd:decimal ;
-    rdfs:label "image orientation"@en ;
-    skos:definition "The clockwise rotation of an image from its normal orientation, in degrees (EXIF convention: 0, 90, 180, 270). Functional: one orientation per manifestation. Transform math lives in the solver layer (Principle 12)."@en ;
+    rdfs:label "image orientation"@x-gmeow-english ;
+    skos:definition "The clockwise rotation of an image from its normal orientation, in degrees (EXIF convention: 0, 90, 180, 270). Functional: one orientation per manifestation. Transform math lives in the solver layer (Principle 12)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:captureTime
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:range xsd:dateTime ;
-    rdfs:label "capture time"@en ;
-    skos:definition "The date and time when the image or media was captured. Non-functional: competing capture-time claims from different sources or EXIF vs. metadata may coexist with confidence."@en ;
+    rdfs:label "capture time"@x-gmeow-english ;
+    skos:definition "The date and time when the image or media was captured. Non-functional: competing capture-time claims from different sources or EXIF vs. metadata may coexist with confidence."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:captureDevice
     a owl:ObjectProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:range gmeow:PhysicalObject ;
-    rdfs:label "capture device"@en ;
-    skos:definition "The physical device (camera, scanner, screen-capture hardware) that captured the media. Non-functional: multiple devices may be asserted (e.g. a composite image)."@en ;
+    rdfs:label "capture device"@x-gmeow-english ;
+    skos:definition "The physical device (camera, scanner, screen-capture hardware) that captured the media. Non-functional: multiple devices may be asserted (e.g. a composite image)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:colourspace
@@ -326,20 +326,20 @@ gmeow:colourspace
     rdfs:subPropertyOf gmeow:hasReferenceFrame ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:range gmeow:ReferenceFrame ;
-    rdfs:label "colourspace"@en ;
-    skos:definition "The colourspace reference frame in which this media object's pixel values are expressed — sRGB, Adobe RGB, CMYK, CIE XYZ, etc. A subproperty of gmeow:hasReferenceFrame (Principle 11). Multiple colourspace claims for the same image coexist as separate standpoint-indexed assertions (Principle 9), each attributable and confidence-weighted. Not declared FunctionalProperty in the logical core to avoid incorrect owl:sameAs inferences when merging standpoints; single-valued constraint is enforced by SHACL (sh:maxCount 1)."@en ;
+    rdfs:label "colourspace"@x-gmeow-english ;
+    skos:definition "The colourspace reference frame in which this media object's pixel values are expressed — sRGB, Adobe RGB, CMYK, CIE XYZ, etc. A subproperty of gmeow:hasReferenceFrame (Principle 11). Multiple colourspace claims for the same image coexist as separate standpoint-indexed assertions (Principle 9), each attributable and confidence-weighted. Not declared FunctionalProperty in the logical core to avoid incorrect owl:sameAs inferences when merging standpoints; single-valued constraint is enforced by SHACL (sh:maxCount 1)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Collection
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Work ;
-    rdfs:label "Collection"@en ;
-    skos:definition "An aggregation of resources. A specialization of gmeow:Work."@en ;
+    rdfs:label "Collection"@x-gmeow-english ;
+    skos:definition "An aggregation of resources. A specialization of gmeow:Work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Service
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Work ;
-    rdfs:label "Service"@en ;
-    skos:definition "A system that provides one or more functions. A specialization of gmeow:Work."@en ;
+    rdfs:label "Service"@x-gmeow-english ;
+    skos:definition "A system that provides one or more functions. A specialization of gmeow:Work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

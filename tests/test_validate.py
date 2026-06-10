@@ -69,3 +69,33 @@ def test_structural_lint_rejects_external_language_tag_on_gmeow_property() -> No
     result = structural_lint(graph)
     assert not result.ok
     assert any("external or invalid language tag" in err for err in result.errors)
+
+
+def test_structural_lint_rejects_en_on_gmeow_label() -> None:
+    graph = Graph()
+    term = URIRef(NAMESPACE + "TestTerm")
+    from rdflib import RDF
+
+    graph.add((term, RDF.type, OWL.Class))
+    graph.add((term, RDFS.label, Literal("Name", lang="en")))
+    graph.add((term, SKOS.definition, Literal("A test term.")))
+    graph.add((term, RDFS.isDefinedBy, URIRef(NAMESPACE)))
+
+    result = structural_lint(graph)
+    assert not result.ok
+    assert any(
+        "external language tag 'en'" in err and "label" in err for err in result.errors
+    )
+
+
+def test_structural_lint_accepts_x_gmeow_english_on_label() -> None:
+    graph = Graph()
+    term = URIRef(NAMESPACE + "TestTerm")
+    from rdflib import RDF
+
+    graph.add((term, RDF.type, OWL.Class))
+    graph.add((term, RDFS.label, Literal("Name", lang="x-gmeow-english")))
+    graph.add((term, SKOS.definition, Literal("A test term.", lang="x-gmeow-english")))
+    graph.add((term, RDFS.isDefinedBy, URIRef(NAMESPACE)))
+
+    assert structural_lint(graph).ok
