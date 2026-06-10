@@ -225,7 +225,12 @@ def test_dsl_parses() -> None:
     # organizationTypeCompany/Collaboration→org, ChangeEvent→Event,
     # postIn/fillsPost/hasSite/predecessorOrganization/successorOrganization/
     # organizationPurpose/industryClassification→org).
-    assert len(dsl.equivalences) == 1507
+    # Issue #216 carrier deceptions: +5 (fabrication→Wikidata x2, forgery→Wikidata x2,
+    # impersonation→Wikidata x1). PAPO/ROSE mappings removed — no stable resolvable
+    # RDF namespaces for those OntoUML models.
+    # Issue #62 calendar / scheduling slice: +22 (iCalendar x13, schema.org
+    # Schedule x4, Wikidata x5).
+    assert len(dsl.equivalences) == 1534
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -268,7 +273,8 @@ def test_dsl_parses() -> None:
     # Issue #63 first-class annotation & PKM layer: +1 (gmeow-notes.sssom.tsv).
     # Issue #22 image super-ontology: +1 (gmeow-images.sssom.tsv).
     # Issue #23 employment: +1 (gmeow-employment.sssom.tsv).
-    assert len(dsl.mapping_sets) == 48
+    # Issue #62 calendar / scheduling slice: +1 (gmeow-calendar.sssom.tsv).
+    assert len(dsl.mapping_sets) == 49
     # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
     assert len(dsl.projections) > 30
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}

@@ -1,0 +1,82 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+
+# Projection mappings: GMEOW calendar layer → schema.org Schedule / EventSeries.
+# Compiled to projections/schema-org-schedule.edoal.ttl +
+# queries/projections/schema-org-schedule.rq by `gmeow compile-mappings`.
+# Lossy by design: reified participation, standpoint, confidence, and fuzzy
+# precision are dropped; the schedule collapses to schema's flat
+# repeatFrequency / startDate / endDate / eventSchedule pattern.
+
+# EventSchedule → schema:Schedule (the recurrence + exception model).
+gmeow:mapSchemaOrgSchedule a gmeow:ProjectionMapping ;
+    rdfs:label "EventSchedule → schema:Schedule"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "sched" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "sched" ; gmeow:predicate rdf:type ; gmeow:objectVar "type" ]
+            [ gmeow:subjectVar "sched" ; gmeow:predicate gmeow:scheduleRecurrenceRule ; gmeow:objectVar "rule" ; gmeow:optional true ]
+            [ gmeow:subjectVar "rule" ; gmeow:predicate gmeow:recurrenceRuleText ; gmeow:objectVar "freq" ; gmeow:optional true ]
+            [ gmeow:subjectVar "sched" ; gmeow:predicate gmeow:scheduleTemplateEvent ; gmeow:objectVar "tmpl" ; gmeow:optional true ]
+            [ gmeow:subjectVar "tmpl" ; gmeow:predicate gmeow:eventInterval ; gmeow:objectVar "iv" ; gmeow:optional true ]
+            [ gmeow:subjectVar "iv" ; gmeow:predicate gmeow:startedAtTime ; gmeow:objectVar "start" ; gmeow:optional true ]
+            [ gmeow:subjectVar "iv" ; gmeow:predicate gmeow:endedAtTime ; gmeow:objectVar "end" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org-schedule" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "sched" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:Schedule ]
+            [ gmeow:tSubj "sched" ; gmeow:tPred schema:repeatFrequency ; gmeow:tObj "freq" ]
+            [ gmeow:tSubj "sched" ; gmeow:tPred schema:startDate ; gmeow:tObj "start" ]
+            [ gmeow:tSubj "sched" ; gmeow:tPred schema:endDate ; gmeow:tObj "end" ] ) ] .
+
+# Schedule occurrence → schema:Event (subEvent of the series).
+gmeow:mapSchemaOrgScheduleOccurrence a gmeow:ProjectionMapping ;
+    rdfs:label "Schedule occurrence → schema:Event (subEvent)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "occ" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "sched" ; gmeow:predicate gmeow:scheduleOccurrence ; gmeow:objectVar "occ" ]
+            [ gmeow:subjectVar "occ" ; gmeow:predicate gmeow:eventInterval ; gmeow:objectVar "iv" ; gmeow:optional true ]
+            [ gmeow:subjectVar "iv" ; gmeow:predicate gmeow:startedAtTime ; gmeow:objectVar "occStart" ; gmeow:optional true ]
+            [ gmeow:subjectVar "iv" ; gmeow:predicate gmeow:endedAtTime ; gmeow:objectVar "occEnd" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org-schedule" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "occ" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:Event ]
+            [ gmeow:tSubj "occ" ; gmeow:tPred schema:startDate ; gmeow:tObj "occStart" ]
+            [ gmeow:tSubj "occ" ; gmeow:tPred schema:endDate ; gmeow:tObj "occEnd" ]
+            [ gmeow:tSubj "occ" ; gmeow:tPred schema:superEvent ; gmeow:tObj "sched" ] ) ] .
+
+# EventSeries (existing events.ttl term) → schema:EventSeries.
+gmeow:mapSchemaOrgEventSeries a gmeow:ProjectionMapping ;
+    rdfs:label "EventSeries → schema:EventSeries"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "series" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "series" ; gmeow:predicate rdf:type ; gmeow:objectVar "type" ]
+            [ gmeow:subjectVar "series" ; gmeow:predicate gmeow:hasRecurrenceRule ; gmeow:objectVar "rule" ; gmeow:optional true ]
+            [ gmeow:subjectVar "rule" ; gmeow:predicate gmeow:recurrenceRuleText ; gmeow:objectVar "freq" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org-schedule" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "series" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:EventSeries ]
+            [ gmeow:tSubj "series" ; gmeow:tPred schema:repeatFrequency ; gmeow:tObj "freq" ] ) ] .
+
+# Task → schema.org Event (with eventStatus = EventPostponed / EventCancelled
+# when taskStatus is cancelled).
+gmeow:mapSchemaOrgTask a gmeow:ProjectionMapping ;
+    rdfs:label "Task → schema:Event (eventStatus)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "task" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "task" ; gmeow:predicate rdf:type ; gmeow:objectVar "type" ]
+            [ gmeow:subjectVar "task" ; gmeow:predicate gmeow:taskDueDate ; gmeow:objectVar "due" ; gmeow:optional true ]
+            [ gmeow:subjectVar "task" ; gmeow:predicate gmeow:taskStatus ; gmeow:objectVar "ts" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org-schedule" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "task" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:Event ]
+            [ gmeow:tSubj "task" ; gmeow:tPred schema:startDate ; gmeow:tObj "due" ]
+            [ gmeow:tSubj "task" ; gmeow:tPred schema:eventStatus ; gmeow:tObj "ts" ] ) ] .

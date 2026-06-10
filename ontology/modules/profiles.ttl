@@ -98,7 +98,9 @@ gmeow:profileTemporalFrame
         gmeow:frameCalendarSystem ,
         gmeow:frameReferencePosition ;
     gmeow:profileOpenValue
-        gmeow:TimeScale ;
+        gmeow:TimeScale ,
+        gmeow:CalendarSystem ,
+        gmeow:ReferencePosition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:profileTemporalProvenance

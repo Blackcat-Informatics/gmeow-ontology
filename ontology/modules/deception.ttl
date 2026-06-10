@@ -277,6 +277,29 @@ gmeow:maximViolationManner
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
+# CARRIER DECEPTION TYPES — divergence borne by an artifact or identity
+# binding rather than a bare utterance. Issue #216.
+# =========================================================================== #
+
+gmeow:eventTypeFabrication
+    a gmeow:EventType ;
+    rdfs:label "fabrication"@en ;
+    skos:definition "A deception event in which a false artifact (a gmeow:CreativeWork) is produced and its attested provenance is projected as genuine while the deceiver's held standpoint refutes that provenance. The artifact's falsity is evidenced by a gmeow:VerificationResult with status gmeow:verificationStatusFailed, not by a global truth axiom (Principle 12). Distinct from forgery: fabrication invents a false artifact without mimicking a specific genuine one."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eventTypeForgery
+    a gmeow:EventType ;
+    rdfs:label "forgery"@en ;
+    skos:definition "A fabrication that mimics a specific genuine artifact — the forged work bears a gmeow:counterpartOf link to the genuine work it imitates, and when a cryptographic signature is present its verification returns gmeow:verificationStatusFailed. A special case of fabrication distinguished by the specificity of the imitation target and the presence of failed signature evidence when applicable (Principle 12). Document forgery, art forgery, and counterfeit goods are all instances."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eventTypeImpersonation
+    a gmeow:EventType ;
+    rdfs:label "impersonation"@en ;
+    skos:definition "A deception event in which a projected identity claim is presented as belonging to a subject other than the deceiver. Reuses gmeow:IdentityFacet machinery: the projected facet's gmeow:facetSubject differs from the deceiver's identity. Email spoofing is modelled as impersonation with a failed gmeow:AuthenticationResult (DKIM/SPF/DMARC fail). A sockpuppet is an impersonation where the deceiver controls a gmeow:counterpartOf identity they deny controlling. Phishing is an instance (impersonation + fraudulent solicitation), never a taxonomy primitive."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
 # AXIOMATIZED DOCTRINE — deception-specific restrictions are scoped to
 # eventTypeDeception via SHACL (DeceptionEventShape), NOT global OWL
 # restrictions on gmeow:Event, keeping the core Event class clean for

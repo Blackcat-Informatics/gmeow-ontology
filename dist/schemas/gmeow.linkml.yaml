@@ -186,6 +186,16 @@ classes:
     slots:
     - authorIdentityString
     - canonicalizedIdentity
+  Availability:
+    class_uri: https://blackcatinformatics.ca/gmeow/Availability
+    title: Availability
+    slots:
+    - availabilityAgent
+    - availabilitySlot
+    - availabilityStatus
+  AvailabilityStatus:
+    class_uri: https://blackcatinformatics.ca/gmeow/AvailabilityStatus
+    title: Availability Status
   Axis:
     class_uri: https://blackcatinformatics.ca/gmeow/Axis
     title: Axis
@@ -265,6 +275,12 @@ classes:
   CadastralReferenceType:
     class_uri: https://blackcatinformatics.ca/gmeow/CadastralReferenceType
     title: Cadastral Reference Type
+  Calendar:
+    class_uri: https://blackcatinformatics.ca/gmeow/Calendar
+    title: Calendar
+    slots:
+    - calendarMember
+    - calendarTimeZone
   CalendarSystem:
     class_uri: https://blackcatinformatics.ca/gmeow/CalendarSystem
     title: Calendar System
@@ -743,6 +759,7 @@ classes:
     - eventTemporalFrame
     - eventTense
     - eventTime
+    - eventTimeZone
     - eventTrajectory
     - eventType
     - finishedBy
@@ -767,6 +784,23 @@ classes:
     - subEventOf
     - successorOrganization
     - temporalPrecision
+  EventInvitation:
+    class_uri: https://blackcatinformatics.ca/gmeow/EventInvitation
+    title: Event Invitation
+    is_a: Agreement
+    slots:
+    - invitationEvent
+    - invitationInvitee
+    - invitationStatus
+    - rsvpStatus
+  EventSchedule:
+    class_uri: https://blackcatinformatics.ca/gmeow/EventSchedule
+    title: Event Schedule
+    slots:
+    - scheduleOccurrence
+    - scheduleRecurrenceRule
+    - scheduleTemplateEvent
+    - scheduleTimeZone
   EventSeries:
     class_uri: https://blackcatinformatics.ca/gmeow/EventSeries
     title: Event Series
@@ -784,6 +818,9 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/EvidenceSpan
     title: Evidence Span
     is_a: InformationObject
+  ExceptionType:
+    class_uri: https://blackcatinformatics.ca/gmeow/ExceptionType
+    title: Exception Type
   Execution:
     class_uri: https://blackcatinformatics.ca/gmeow/Execution
     title: Execution
@@ -1017,6 +1054,9 @@ classes:
     slots:
     - relationshipInterval
     - relationshipParty
+  InvitationStatus:
+    class_uri: https://blackcatinformatics.ca/gmeow/InvitationStatus
+    title: Invitation Status
   Invoice:
     class_uri: https://blackcatinformatics.ca/gmeow/Invoice
     title: Invoice
@@ -1948,6 +1988,17 @@ classes:
     - releaseOf
     - releaseTag
     - releaseVersion
+  Reminder:
+    class_uri: https://blackcatinformatics.ca/gmeow/Reminder
+    title: Reminder
+    is_a: Entity
+    slots:
+    - reminderAction
+    - reminderTarget
+    - reminderTrigger
+  ReminderAction:
+    class_uri: https://blackcatinformatics.ca/gmeow/ReminderAction
+    title: Reminder Action
   Repository:
     class_uri: https://blackcatinformatics.ca/gmeow/Repository
     title: Repository
@@ -2008,6 +2059,9 @@ classes:
   RouteKind:
     class_uri: https://blackcatinformatics.ca/gmeow/RouteKind
     title: Route Kind
+  RsvpStatus:
+    class_uri: https://blackcatinformatics.ca/gmeow/RsvpStatus
+    title: RSVP Status
   Rule:
     class_uri: https://blackcatinformatics.ca/gmeow/Rule
     title: Rule
@@ -2042,6 +2096,14 @@ classes:
   SceneRelationType:
     class_uri: https://blackcatinformatics.ca/gmeow/SceneRelationType
     title: Scene Relation Type
+  ScheduleException:
+    class_uri: https://blackcatinformatics.ca/gmeow/ScheduleException
+    title: Schedule Exception
+    slots:
+    - exceptionOriginalDate
+    - exceptionReplacementEvent
+    - exceptionSchedule
+    - exceptionType
   ScriptLanguageAttribution:
     class_uri: https://blackcatinformatics.ca/gmeow/ScriptLanguageAttribution
     title: Script Language Attribution
@@ -2337,6 +2399,18 @@ classes:
     - taggingTag
     - taggingTagged
     - taggingTagger
+  Task:
+    class_uri: https://blackcatinformatics.ca/gmeow/Task
+    title: Task
+    is_a: Event
+    slots:
+    - taskDueDate
+    - taskPriority
+    - taskRecurrenceUntilDone
+    - taskStatus
+  TaskStatus:
+    class_uri: https://blackcatinformatics.ca/gmeow/TaskStatus
+    title: Task Status
   TelephoneNumber:
     class_uri: https://blackcatinformatics.ca/gmeow/TelephoneNumber
     title: Telephone Number
@@ -2406,6 +2480,12 @@ classes:
     title: Time-Scoped Relation
     slots:
     - duringInterval
+  TimeZone:
+    class_uri: https://blackcatinformatics.ca/gmeow/TimeZone
+    title: Time Zone
+    is_a: Entity
+    slots:
+    - timeZoneIanaId
   Trademark:
     class_uri: https://blackcatinformatics.ca/gmeow/Trademark
     title: Trademark
@@ -2948,6 +3028,24 @@ slots:
     title: auto submitted
     range: string
     domain: EmailMessage
+  availabilityAgent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/availabilityAgent
+    title: availability agent
+    range: Agent
+    domain: Availability
+    multivalued: true
+  availabilitySlot:
+    slot_uri: https://blackcatinformatics.ca/gmeow/availabilitySlot
+    title: availability slot
+    range: TimeInterval
+    domain: Availability
+    multivalued: false
+  availabilityStatus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/availabilityStatus
+    title: availability status
+    range: AvailabilityStatus
+    domain: Availability
+    multivalued: true
   bcc:
     slot_uri: https://blackcatinformatics.ca/gmeow/bcc
     title: bcc
@@ -3016,6 +3114,18 @@ slots:
     range: string
     domain: BuildActivity
     multivalued: true
+  calendarMember:
+    slot_uri: https://blackcatinformatics.ca/gmeow/calendarMember
+    title: calendar member
+    range: Event
+    domain: Calendar
+    multivalued: true
+  calendarTimeZone:
+    slot_uri: https://blackcatinformatics.ca/gmeow/calendarTimeZone
+    title: calendar time zone
+    range: TimeZone
+    domain: Calendar
+    multivalued: false
   canonicalizedIdentity:
     slot_uri: https://blackcatinformatics.ca/gmeow/canonicalizedIdentity
     title: canonicalized identity
@@ -3831,6 +3941,12 @@ slots:
     title: event time
     range: datetime
     domain: Event
+  eventTimeZone:
+    slot_uri: https://blackcatinformatics.ca/gmeow/eventTimeZone
+    title: event time zone
+    range: TimeZone
+    domain: Event
+    multivalued: false
   eventTrajectory:
     slot_uri: https://blackcatinformatics.ca/gmeow/eventTrajectory
     title: event trajectory
@@ -3843,6 +3959,30 @@ slots:
     range: EventType
     domain: Event
     multivalued: true
+  exceptionOriginalDate:
+    slot_uri: https://blackcatinformatics.ca/gmeow/exceptionOriginalDate
+    title: exception original date
+    range: datetime
+    domain: ScheduleException
+    multivalued: false
+  exceptionReplacementEvent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/exceptionReplacementEvent
+    title: exception replacement event
+    range: Event
+    domain: ScheduleException
+    multivalued: false
+  exceptionSchedule:
+    slot_uri: https://blackcatinformatics.ca/gmeow/exceptionSchedule
+    title: exception schedule
+    range: EventSchedule
+    domain: ScheduleException
+    multivalued: false
+  exceptionType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/exceptionType
+    title: exception type
+    range: ExceptionType
+    domain: ScheduleException
+    multivalued: false
   executesProcedure:
     slot_uri: https://blackcatinformatics.ca/gmeow/executesProcedure
     title: executes procedure
@@ -5233,6 +5373,24 @@ slots:
     range: integer
     domain: TrustAssertion
     multivalued: false
+  invitationEvent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/invitationEvent
+    title: invitation event
+    range: Event
+    domain: EventInvitation
+    multivalued: false
+  invitationInvitee:
+    slot_uri: https://blackcatinformatics.ca/gmeow/invitationInvitee
+    title: invitation invitee
+    range: Agent
+    domain: EventInvitation
+    multivalued: true
+  invitationStatus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/invitationStatus
+    title: invitation status
+    range: InvitationStatus
+    domain: EventInvitation
+    multivalued: true
   invoiceAmount:
     slot_uri: https://blackcatinformatics.ca/gmeow/invoiceAmount
     title: invoice amount
@@ -6738,6 +6896,23 @@ slots:
     title: release version
     range: string
     domain: Release
+  reminderAction:
+    slot_uri: https://blackcatinformatics.ca/gmeow/reminderAction
+    title: reminder action
+    range: ReminderAction
+    domain: Reminder
+    multivalued: false
+  reminderTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/reminderTarget
+    title: reminder target
+    range: Event
+    domain: Reminder
+    multivalued: false
+  reminderTrigger:
+    slot_uri: https://blackcatinformatics.ca/gmeow/reminderTrigger
+    title: reminder trigger
+    range: string
+    domain: Reminder
   replyTo:
     slot_uri: https://blackcatinformatics.ca/gmeow/replyTo
     title: reply to
@@ -6867,6 +7042,12 @@ slots:
     range: string
     domain: Route
     multivalued: true
+  rsvpStatus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/rsvpStatus
+    title: RSVP status
+    range: RsvpStatus
+    domain: EventInvitation
+    multivalued: true
   ruleAction:
     slot_uri: https://blackcatinformatics.ca/gmeow/ruleAction
     title: rule action
@@ -6920,6 +7101,30 @@ slots:
     title: scene subject
     range: ImageRegion
     domain: SceneGraphEdge
+    multivalued: false
+  scheduleOccurrence:
+    slot_uri: https://blackcatinformatics.ca/gmeow/scheduleOccurrence
+    title: schedule occurrence
+    range: Event
+    domain: EventSchedule
+    multivalued: true
+  scheduleRecurrenceRule:
+    slot_uri: https://blackcatinformatics.ca/gmeow/scheduleRecurrenceRule
+    title: schedule recurrence rule
+    range: RecurrenceRule
+    domain: EventSchedule
+    multivalued: true
+  scheduleTemplateEvent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/scheduleTemplateEvent
+    title: schedule template event
+    range: Event
+    domain: EventSchedule
+    multivalued: false
+  scheduleTimeZone:
+    slot_uri: https://blackcatinformatics.ca/gmeow/scheduleTimeZone
+    title: schedule time zone
+    range: TimeZone
+    domain: EventSchedule
     multivalued: false
   scriptCode:
     slot_uri: https://blackcatinformatics.ca/gmeow/scriptCode
@@ -7456,6 +7661,30 @@ slots:
     range: Agent
     domain: Tagging
     multivalued: true
+  taskDueDate:
+    slot_uri: https://blackcatinformatics.ca/gmeow/taskDueDate
+    title: task due date
+    range: datetime
+    domain: Task
+    multivalued: false
+  taskPriority:
+    slot_uri: https://blackcatinformatics.ca/gmeow/taskPriority
+    title: task priority
+    range: integer
+    domain: Task
+    multivalued: false
+  taskRecurrenceUntilDone:
+    slot_uri: https://blackcatinformatics.ca/gmeow/taskRecurrenceUntilDone
+    title: task recurrence until done
+    range: boolean
+    domain: Task
+    multivalued: false
+  taskStatus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/taskStatus
+    title: task status
+    range: TaskStatus
+    domain: Task
+    multivalued: true
   telephone:
     slot_uri: https://blackcatinformatics.ca/gmeow/telephone
     title: telephone
@@ -7532,6 +7761,12 @@ slots:
     title: thread subject
     range: string
     domain: Thread
+  timeZoneIanaId:
+    slot_uri: https://blackcatinformatics.ca/gmeow/timeZoneIanaId
+    title: time zone IANA id
+    range: string
+    domain: TimeZone
+    multivalued: false
   timezone:
     slot_uri: https://blackcatinformatics.ca/gmeow/timezone
     title: timezone
@@ -8130,6 +8365,21 @@ enums:
       attestationTypeVerifiableCredential:
         meaning: https://blackcatinformatics.ca/gmeow/attestationTypeVerifiableCredential
         title: verifiable credential
+  AvailabilityStatusEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AvailabilityStatus
+    permissible_values:
+      availabilityStatusBusy:
+        meaning: https://blackcatinformatics.ca/gmeow/availabilityStatusBusy
+        title: busy
+      availabilityStatusFree:
+        meaning: https://blackcatinformatics.ca/gmeow/availabilityStatusFree
+        title: free
+      availabilityStatusOutOfOffice:
+        meaning: https://blackcatinformatics.ca/gmeow/availabilityStatusOutOfOffice
+        title: out of office
+      availabilityStatusTentative:
+        meaning: https://blackcatinformatics.ca/gmeow/availabilityStatusTentative
+        title: tentative
   AxisEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Axis
     permissible_values:
@@ -9175,9 +9425,15 @@ enums:
       eventTypeExpressionCreation:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeExpressionCreation
         title: expression creation
+      eventTypeFabrication:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeFabrication
+        title: fabrication
       eventTypeFirstCommunion:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeFirstCommunion
         title: first communion
+      eventTypeForgery:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeForgery
+        title: forgery
       eventTypeFuneral:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeFuneral
         title: funeral
@@ -9202,6 +9458,9 @@ enums:
       eventTypeImmigration:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeImmigration
         title: immigration
+      eventTypeImpersonation:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeImpersonation
+        title: impersonation
       eventTypeLie:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeLie
         title: lie / falsification
@@ -9343,6 +9602,15 @@ enums:
       evidenceVERIFIED:
         meaning: https://blackcatinformatics.ca/gmeow/evidenceVERIFIED
         title: verified evidence
+  ExceptionTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ExceptionType
+    permissible_values:
+      exceptionTypeCancellation:
+        meaning: https://blackcatinformatics.ca/gmeow/exceptionTypeCancellation
+        title: cancellation
+      exceptionTypeRescheduling:
+        meaning: https://blackcatinformatics.ca/gmeow/exceptionTypeRescheduling
+        title: rescheduling
   ExecutionStatusEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ExecutionStatus
     permissible_values:
@@ -9721,6 +9989,21 @@ enums:
       honorificPositionSuffix:
         meaning: https://blackcatinformatics.ca/gmeow/honorificPositionSuffix
         title: suffix
+  InvitationStatusEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/InvitationStatus
+    permissible_values:
+      invitationStatusAccepted:
+        meaning: https://blackcatinformatics.ca/gmeow/invitationStatusAccepted
+        title: accepted
+      invitationStatusDeclined:
+        meaning: https://blackcatinformatics.ca/gmeow/invitationStatusDeclined
+        title: declined
+      invitationStatusNeedsAction:
+        meaning: https://blackcatinformatics.ca/gmeow/invitationStatusNeedsAction
+        title: needs action
+      invitationStatusTentative:
+        meaning: https://blackcatinformatics.ca/gmeow/invitationStatusTentative
+        title: tentative
   InvoiceStatusEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/InvoiceStatus
     permissible_values:
@@ -11444,6 +11727,18 @@ enums:
       overlayTypeZoning:
         meaning: https://blackcatinformatics.ca/gmeow/overlayTypeZoning
         title: zoning / land-use regulation
+  ReminderActionEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ReminderAction
+    permissible_values:
+      reminderActionAudio:
+        meaning: https://blackcatinformatics.ca/gmeow/reminderActionAudio
+        title: audio
+      reminderActionDisplay:
+        meaning: https://blackcatinformatics.ca/gmeow/reminderActionDisplay
+        title: display
+      reminderActionEmail:
+        meaning: https://blackcatinformatics.ca/gmeow/reminderActionEmail
+        title: email
   RepositoryTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/RepositoryType
     permissible_values:
@@ -11696,6 +11991,21 @@ enums:
       routeKindWalking:
         meaning: https://blackcatinformatics.ca/gmeow/routeKindWalking
         title: walking route
+  RsvpStatusEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/RsvpStatus
+    permissible_values:
+      rsvpStatusAccepted:
+        meaning: https://blackcatinformatics.ca/gmeow/rsvpStatusAccepted
+        title: accepted
+      rsvpStatusDeclined:
+        meaning: https://blackcatinformatics.ca/gmeow/rsvpStatusDeclined
+        title: declined
+      rsvpStatusNeedsAction:
+        meaning: https://blackcatinformatics.ca/gmeow/rsvpStatusNeedsAction
+        title: needs action
+      rsvpStatusTentative:
+        meaning: https://blackcatinformatics.ca/gmeow/rsvpStatusTentative
+        title: tentative
   SLSALevelEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/SLSALevel
     permissible_values:
@@ -12113,6 +12423,21 @@ enums:
       tagUrgent:
         meaning: https://blackcatinformatics.ca/gmeow/tagUrgent
         title: urgent
+  TaskStatusEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/TaskStatus
+    permissible_values:
+      taskStatusCancelled:
+        meaning: https://blackcatinformatics.ca/gmeow/taskStatusCancelled
+        title: cancelled
+      taskStatusCompleted:
+        meaning: https://blackcatinformatics.ca/gmeow/taskStatusCompleted
+        title: completed
+      taskStatusInProgress:
+        meaning: https://blackcatinformatics.ca/gmeow/taskStatusInProgress
+        title: in progress
+      taskStatusNotStarted:
+        meaning: https://blackcatinformatics.ca/gmeow/taskStatusNotStarted
+        title: not started
   TemporalFrameEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/TemporalFrame
     permissible_values:
