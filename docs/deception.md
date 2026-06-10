@@ -106,9 +106,40 @@ Impersonation reuses the `gmeow:IdentityFacet` machinery from the gender/orienta
 | **schema.org ClaimReview** | Fact-check verdicts | Single-verdict model re-creates the winner slot | **Refuses single verdict** — fact-check is an `Attestation` with `VerificationResult`, not a truth axiom |
 | **AIF** (Argument Interchange Format) | I/RA/CA/PA nodes for argumentation | No ontology integration | **Referenced in solver layer** — `fnArgumentAcceptability` projects to AIF by reference |
 
+## Disinformation and the per-node boundary (issue #217)
+
+A **disinformation campaign** (`gmeow:eventTypeDisinformation`) is a coordinated, propagated deception that aggregates many constituent deception events along a `prov:wasDerivedFrom` / `gmeow:propagatesFrom` propagation chain. The headline result of this model is that **the misinformation↔disinformation boundary is per-node, not a global label.**
+
+### The boundary rule
+
+At each propagation hop, inspect the node's local structural configuration:
+
+| Local configuration | Label | Why |
+|---|---|---|
+| `heldStandpoint ≠ projectedStandpoint` + `deceptiveIntentClaim` present | **Disinformation** | The node originates or knowingly forwards a divergence |
+| `heldStandpoint ≈ projectedStandpoint` + `veridicalityUntrue` + no intent claim | **Misinformation** | The node sincerely believes and reshares an untrue claim |
+
+### The propagation chain example
+
+1. **Deceiver origin** — seeds a false claim knowing it is false (`held = refuted`, `projected = unequivocal`). Label: **disinformation**.
+2. **Dupe reshares** — a sincere believer (`roleDupe`) forwards the claim without knowing it is false (`held = projected = unequivocal`, but `veridicalityUntrue` from the universal frame). Label: **misinformation**.
+3. **Downstream reshares** — another sincere believer picks it up from the dupe. Label: **misinformation**.
+
+The same claim is disinformation at its origin and misinformation at every sincere reshare. There is no global label that overrides the local assessment — this is Principle 9 (co-equal, non-privileged claims) applied to epistemic classification.
+
+### Alignment
+
+| Target | Relationship | Rationale |
+|---|---|---|
+| `wd:Q189656` (disinformation) | `skos:closeMatch` | Disinformation campaign |
+| `wd:Q13579947` (misinformation) | `skos:closeMatch` | Misinformation concept → `veridicalityUntrue` |
+| `wd:Q7281` (propaganda) | `skos:relatedMatch` | Related but may be true or false |
+| `wd:Q878352` (rumor) | `skos:relatedMatch` | Related but may be unverified |
+| `wd:Q28549308` (fake news) | `skos:relatedMatch` | Media-format instance of disinformation |
+
 ## Doctrine
 
 - **Principle 1 — SOTA by being SOTA.** Model what should have been written: a licensed-falsehood safety property, a bullshit modality, and divergence-as-claim rather than truth-as-axiom.
 - **Principle 9 — no single slot to win.** A deception assessment is a standpoint-indexed claim that coexists with its denial; there is no `isDeceptive` boolean.
 - **Principle 11 — frame-relativity.** Falsehood is `refuted` per a reference frame, not globally false.
-- **Principle 12 — compute outside the logic.** Cue-scoring, implicature extraction, maxim-violation detection, and argument acceptability are solver-layer computations, never OWL axioms.
+- **Principle 12 — compute outside the logic.** Cue-scoring, implicature extraction, maxim-violation detection, argument acceptability, and disinformation-boundary walks are solver-layer computations, never OWL axioms.
