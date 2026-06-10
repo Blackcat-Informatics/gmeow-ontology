@@ -13,6 +13,7 @@ annot) require the RDF-star source and are a follow-up under #267.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from rdflib import BNode, Dataset, Graph, Literal, URIRef
@@ -31,12 +32,11 @@ class _Interner:
         self.terms: list[Term] = []
         self._index: dict[tuple[object, ...], int] = {}
 
-    def _intern(self, key: tuple[object, ...], make: object) -> int:
+    def _intern(self, key: tuple[object, ...], make: Callable[[], Term]) -> int:
         existing = self._index.get(key)
         if existing is not None:
             return existing
         tid = len(self.terms)
-        assert callable(make)
         self.terms.append(make())
         self._index[key] = tid
         return tid
@@ -68,13 +68,16 @@ def _intern_node(interner: _Interner, node: Node) -> int | None:
     return None  # quoted triples (RDF 1.2) are out of scope here
 
 
-def _iter_quads(graph: Graph) -> list[tuple[Node, Node, Node, URIRef | None]]:
-    """Yield (s, p, o, graph-name) rows; default graph has ``None`` name."""
+def _iter_quads(graph: Graph) -> list[tuple[Node, Node, Node, Node | None]]:
+    """Yield (s, p, o, graph-name) rows; the default graph has a ``None`` name."""
     if isinstance(graph, Dataset):
-        rows: list[tuple[Node, Node, Node, URIRef | None]] = []
+        rows: list[tuple[Node, Node, Node, Node | None]] = []
+        default_id = graph.default_context.identifier
         for s, p, o, ctx in graph.quads((None, None, None, None)):
             name = ctx.identifier if isinstance(ctx, Graph) else ctx
-            rows.append((s, p, o, name if isinstance(name, URIRef) else None))
+            if name == default_id or not isinstance(name, URIRef | BNode):
+                name = None
+            rows.append((s, p, o, name))
         return rows
     return [(s, p, o, None) for s, p, o in graph]
 

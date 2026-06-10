@@ -1021,8 +1021,8 @@ def gts_from_rdf(file: Path, out: Path | None = _GTS_GTS_OUT) -> None:
     source: Graph = Dataset() if fmt in {"nquads", "trig", "json-ld"} else Graph()
     try:
         source.parse(str(file), format=fmt)
-    except OSError as exc:
-        raise _fail(f"cannot read {file}: {exc}") from exc
+    except (OSError, ValueError, SyntaxError) as exc:
+        raise _fail(f"cannot read or parse {file}: {exc}") from exc
     data = gts.gts_from_graph(source)
     target = out or file.with_suffix(".gts")
     try:
@@ -1042,7 +1042,10 @@ def _gts_to_db(file: Path, out: Path | None, suffix: str, kind: str) -> None:
         raise _fail(f"cannot read {file}: {exc}") from exc
     target = out or file.with_suffix(suffix)
     writer = gts.to_sqlite if kind == "sqlite" else gts.to_duckdb
-    writer(graph, target)
+    try:
+        writer(graph, target)
+    except OSError as exc:
+        raise _fail(f"cannot write {target}: {exc}") from exc
     console.print(f"[green]✓[/green] {target}")
 
 

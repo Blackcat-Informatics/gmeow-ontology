@@ -112,3 +112,12 @@ def test_to_duckdb(tmp_path: Path) -> None:
         conn.close()
     assert n_quads == len(folded.quads)
     assert ("Cat",) in labels
+
+
+def test_producer_default_graph_is_unnamed() -> None:
+    """Default-graph triples export with a None graph name (not the default id)."""
+    ds = Dataset()
+    ds.add((URIRef(EX + "s"), URIRef(EX + "p"), URIRef(EX + "o")))  # default graph
+    folded = read(gts_from_graph(ds))
+    assert len(folded.quads) == 1
+    assert folded.quads[0][3] is None  # default graph, not a spurious named graph

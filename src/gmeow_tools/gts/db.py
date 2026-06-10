@@ -80,12 +80,16 @@ def to_sqlite(graph: Graph, path: str | Path) -> Path:
     """Write a folded graph to a SQLite database, returning its path."""
     out = Path(path)
     out.unlink(missing_ok=True)
-    conn = sqlite3.connect(out)
     try:
-        _load(conn, graph)
-        conn.commit()
-    finally:
-        conn.close()
+        conn = sqlite3.connect(out)
+        try:
+            _load(conn, graph)
+            conn.commit()
+        finally:
+            conn.close()
+    except Exception:
+        out.unlink(missing_ok=True)  # don't leave a half-written DB on disk
+        raise
     return out
 
 
@@ -95,9 +99,13 @@ def to_duckdb(graph: Graph, path: str | Path) -> Path:
 
     out = Path(path)
     out.unlink(missing_ok=True)
-    conn = duckdb.connect(str(out))
     try:
-        _load(conn, graph)
-    finally:
-        conn.close()
+        conn = duckdb.connect(str(out))
+        try:
+            _load(conn, graph)
+        finally:
+            conn.close()
+    except Exception:
+        out.unlink(missing_ok=True)  # don't leave a half-written DB on disk
+        raise
     return out
