@@ -221,7 +221,11 @@ def test_dsl_parses() -> None:
     # Issue #23 employment / CV-résumé block: +8 (schema.org x4, Wikidata x2,
     # W3C ORG x1, ESCO x1).
     # Issue #137 email behavioral metadata: +1 (sentBySoftware → schema:agent).
-    assert len(dsl.equivalences) == 1496
+    # Issue #258 organization module deepening: +11 (Post→org:Post,
+    # organizationTypeCompany/Collaboration→org, ChangeEvent→Event,
+    # postIn/fillsPost/hasSite/predecessorOrganization/successorOrganization/
+    # organizationPurpose/industryClassification→org).
+    assert len(dsl.equivalences) == 1507
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,
@@ -231,7 +235,9 @@ def test_dsl_parses() -> None:
     # fnMaximViolationType, fnDeceptionCueScore, fnCredibilityScore,
     # fnPropagationMutationDistance, fnArgumentAcceptability).
     # Issue #234 software identity over history: +1 (fnComposeMailmapMapping).
-    assert len(dsl.functions) == 36
+    # Issue #258 organization module deepening: +2 (fnOrganizationTypeToClass,
+    # fnPostToOrganizationRole).
+    assert len(dsl.functions) == 38
     # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint,
     # gmeow-events, gmeow-rights, gmeow-coreference, gmeow-determinacy, gmeow-privacy).
     # Issue #70 adds gmeow-qudt, gmeow-fibo, gmeow-temporal.

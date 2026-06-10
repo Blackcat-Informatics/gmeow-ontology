@@ -80,3 +80,193 @@ gmeow:subOrganizationOf
 # Organizational membership propagates through the organizational part/whole
 # hierarchy: a member of a department is a member of the containing organization.
 gmeow:memberOf owl:propertyChainAxiom ( gmeow:memberOf gmeow:subOrganizationOf ) .
+
+# =========================================================================== #
+# Organization type — an OPEN value vocabulary (Principle 9). Mirrors ORG's
+# FormalOrganization / OrganizationalUnit / OrganizationalCollaboration
+# distinctions as co-equal values, without subclassing.
+# =========================================================================== #
+
+gmeow:OrganizationType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Organization Type"@en ;
+    skos:definition "The kind of an organization — a VALUE, never an Organization subclass. The set is open; a kind not among the seed individuals is a FRESH gmeow:OrganizationType individual carrying rdfs:label, not a new class."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:organizationType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Organization ;
+    rdfs:range gmeow:OrganizationType ;
+    rdfs:label "organization type"@en ;
+    skos:definition "The kind(s) of an organization (one or more gmeow:OrganizationType individuals). Non-functional: a single organization may be both a company and an educational institution, and competing classifications coexist as standpoint-indexed claims (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:organizationTypeCompany               a gmeow:OrganizationType ; rdfs:label "company"@en ;               skos:definition "A for-profit business entity."@en .
+gmeow:organizationTypeNonprofit             a gmeow:OrganizationType ; rdfs:label "nonprofit"@en ;             skos:definition "A not-for-profit organization."@en .
+gmeow:organizationTypeGovernmentBody        a gmeow:OrganizationType ; rdfs:label "government body"@en ;        skos:definition "A governmental or public-sector organization."@en .
+gmeow:organizationTypeEducationalInstitution a gmeow:OrganizationType ; rdfs:label "educational institution"@en ; skos:definition "A school, university, college, or other educational body."@en .
+gmeow:organizationTypeAssociation           a gmeow:OrganizationType ; rdfs:label "association"@en ;           skos:definition "An association, society, or union of members."@en .
+gmeow:organizationTypeCollaboration         a gmeow:OrganizationType ; rdfs:label "collaboration"@en ;         skos:definition "A cross-organization collaboration — a consortium, joint venture, standards body, or temporary multi-party arrangement."@en .
+
+# =========================================================================== #
+# Post — the seat/position independent of its holder (ORG's central de-
+# conflation). A Post bundles a Role within a specific Organization.
+# =========================================================================== #
+
+gmeow:Post
+    a owl:Class, gufo:RoleMixin ;
+    rdfs:subClassOf gufo:FunctionalComplex ;
+    rdfs:label "Post"@en ;
+    skos:definition "A seat or position that exists independently of who currently holds it — the CFO chair is not the person now in it. A Post bundles a gmeow:Role within a specific gmeow:Organization, enabling 'vacant post' and 'succession in a post' queries."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:postIn
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Post ;
+    rdfs:range gmeow:Organization ;
+    rdfs:label "post in"@en ;
+    skos:definition "The organization a post belongs to. Functional — a post concerns exactly one organization."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:fillsPost
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Membership ;
+    rdfs:range gmeow:Post ;
+    rdfs:label "fills post"@en ;
+    skos:definition "Relates a membership to the post (seat) the member occupies. The sitter is the member via gmeow:membershipMember; the seat is the Post. Non-functional: a joint appointment may fill one post with several memberships, and competing standpoint-indexed claims coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# A Post mediates at least one organization (EL open-world).
+gmeow:Post rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:postIn ; owl:someValuesFrom gmeow:Organization ] .
+
+# =========================================================================== #
+# Site — an organization's location (headquarters, branch, registered office).
+# Reuses the places module's Location/Place; siteType marks the purpose.
+# =========================================================================== #
+
+gmeow:SiteType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Site Type"@en ;
+    skos:definition "The purpose of an organization's site — headquarters, branch, registered office, etc. A value, not a subclass."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:siteTypeHeadquarters a gmeow:SiteType ; rdfs:label "headquarters"@en ; skos:definition "The principal office or headquarters of an organization."@en .
+gmeow:siteTypeBranch       a gmeow:SiteType ; rdfs:label "branch"@en ;       skos:definition "A branch office or subsidiary location of an organization."@en .
+gmeow:siteTypeRegistered   a gmeow:SiteType ; rdfs:label "registered"@en ;   skos:definition "The registered or legal office of an organization."@en .
+
+gmeow:hasSite
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Organization ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "has site"@en ;
+    skos:definition "Relates an organization to a location it occupies or operates from — a headquarters, branch, or registered office. Reuses the places module's gmeow:Location. Non-functional: an organization may have several sites, and competing standpoint-indexed location claims coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:siteType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Location ;
+    rdfs:range gmeow:SiteType ;
+    rdfs:label "site type"@en ;
+    skos:definition "The purpose of a location when used as an organizational site — headquarters, branch, registered office. Non-functional: a single location may serve multiple purposes for the same or different organizations."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# Multi-organization change events — reuse events.ttl. predecessor/successor
+# link the orgs an event relates. Contested succession stays coexisting
+# accordingTo claims (Principle 9); no privileged winner.
+# =========================================================================== #
+
+gmeow:predecessorOrganization
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Organization ;
+    rdfs:label "predecessor organization"@en ;
+    skos:definition "An organization that ceases or transforms in a multi-organization change event — a merger, split, spin-off, acquisition, or rename. Non-functional: a merger has several predecessors, and competing standpoint-indexed predecessor claims coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:successorOrganization
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Organization ;
+    rdfs:label "successor organization"@en ;
+    skos:definition "An organization that begins or results from a multi-organization change event. Non-functional: a split has several successors, and competing standpoint-indexed successor claims coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# Identifier — reified to avoid conflation when an organization carries
+# multiple codes (e.g. LEI + ROR + NAICS). The scheme binds to the Identifier
+# node, not the Organization, so SPARQL projections pair the correct value with
+# its scheme (Principle 4, review feedback).
+# =========================================================================== #
+
+gmeow:Identifier
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:FunctionalComplex ;
+    rdfs:label "Identifier"@en ;
+    skos:definition "A reified identifier bundling a value with its scheme — a LEI, ROR ID, NAICS code, ISIC code, company-registration number, etc. Reification ensures that when an organization carries multiple identifiers, each value is paired with its correct scheme in SPARQL projections."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasIdentifier
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Organization ;
+    rdfs:range gmeow:Identifier ;
+    rdfs:label "has identifier"@en ;
+    skos:definition "Relates an organization to a formal identifier (legal ID, industry code, etc.). Non-functional: an organization may have several identifiers, and competing standpoint-indexed identifiers coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:legalIdentifier
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasIdentifier ;
+    rdfs:domain gmeow:Organization ;
+    rdfs:range gmeow:Identifier ;
+    rdfs:label "legal identifier"@en ;
+    skos:definition "Relates an organization to a legal identifier — a LEI, ROR ID, company-registration number, or other scheme-specific code. The scheme is declared via gmeow:identifierScheme on the Identifier node. Non-functional: an organization may have several legal identifiers."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:industryClassification
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasIdentifier ;
+    rdfs:domain gmeow:Organization ;
+    rdfs:range gmeow:Identifier ;
+    rdfs:label "industry classification"@en ;
+    skos:definition "Relates an organization to an industry-classification identifier — a NAICS, ISIC, or schema.org industry code. The scheme is declared via gmeow:identifierScheme on the Identifier node. Non-functional: multiple classifications may coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:identifierValue
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Identifier ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "identifier value"@en ;
+    skos:definition "The literal value of an identifier — e.g. '529900T8BM49AURSDO55' or '541511'."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:identifierScheme
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Identifier ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "identifier scheme"@en ;
+    skos:definition "The scheme of an identifier — e.g. 'lei', 'ror', 'naics', 'isicV4', 'companyRegistration', 'wikidata'. Declared on the Identifier node, not the Organization, to avoid cross-product pairing bugs when multiple identifiers coexist."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:jurisdiction
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Identifier ;
+    rdfs:range gmeow:Location ;
+    rdfs:label "jurisdiction"@en ;
+    skos:definition "The legal or regulatory jurisdiction of a specific identifier (e.g., company registration jurisdiction) — a country, state, province, or other gmeow:Location. Non-functional: different identifiers may carry different jurisdictions."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# Purpose — free text (solver-side, Principle 12).
+# =========================================================================== #
+
+gmeow:organizationPurpose
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Organization ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "organization purpose"@en ;
+    skos:definition "A free-text statement of an organization's purpose, mission, or objective."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

@@ -387,6 +387,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -423,6 +432,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -4656,6 +4674,15 @@
                         "null"
                     ]
                 },
+                "siteType": {
+                    "items": {
+                        "$ref": "#/$defs/SiteType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "spatiallyConnectsTo": {
                     "items": {
                         "$ref": "#/$defs/Location"
@@ -8365,6 +8392,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -8401,6 +8437,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -9699,6 +9744,15 @@
                         "null"
                     ]
                 },
+                "siteType": {
+                    "items": {
+                        "$ref": "#/$defs/SiteType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "spatiallyConnectsTo": {
                     "items": {
                         "$ref": "#/$defs/Location"
@@ -10751,6 +10805,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -10805,6 +10868,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -12379,6 +12451,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -12415,6 +12496,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -20285,6 +20375,15 @@
                         }
                     ]
                 },
+                "fillsPost": {
+                    "items": {
+                        "$ref": "#/$defs/Post"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasRole": {
                     "items": {
                         "$ref": "#/$defs/Role"
@@ -21134,6 +21233,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -21170,6 +21278,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -21626,6 +21743,7 @@
         "EventTypeEnum": {
             "description": "",
             "enum": [
+                "eventTypeAcquisition",
                 "eventTypeAdoption",
                 "eventTypeAnnulment",
                 "eventTypeAudit",
@@ -21668,6 +21786,7 @@
                 "eventTypeManifestationProduction",
                 "eventTypeMarriage",
                 "eventTypeMerge",
+                "eventTypeMerger",
                 "eventTypeMilitaryService",
                 "eventTypeNameChange",
                 "eventTypeNaturalization",
@@ -21678,11 +21797,14 @@
                 "eventTypePromotion",
                 "eventTypePush",
                 "eventTypeRelease",
+                "eventTypeRename",
                 "eventTypeResidence",
                 "eventTypeResignation",
                 "eventTypeRetirement",
                 "eventTypeSelfDeception",
                 "eventTypeSeparation",
+                "eventTypeSpinOff",
+                "eventTypeSplit",
                 "eventTypeSupersession",
                 "eventTypeSurvey",
                 "eventTypeTermination",
@@ -22471,6 +22593,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -22507,6 +22638,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -24505,6 +24645,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -24541,6 +24690,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -27698,6 +27856,35 @@
             "title": "HonorificPositionEnum",
             "type": "string"
         },
+        "Identifier": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "identifierScheme": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "identifierValue": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "jurisdiction": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Identifier",
+            "type": "object"
+        },
         "IdentityFacet": {
             "additionalProperties": false,
             "description": "",
@@ -28457,6 +28644,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -28493,6 +28689,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -31662,6 +31867,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -31698,6 +31912,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -32669,6 +32892,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -32705,6 +32937,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -33046,6 +33287,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -33082,6 +33332,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -35086,6 +35345,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -35122,6 +35390,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -36954,6 +37231,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -36990,6 +37276,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -38150,6 +38445,15 @@
                 "references": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "siteType": {
+                    "items": {
+                        "$ref": "#/$defs/SiteType"
                     },
                     "type": [
                         "array",
@@ -41682,6 +41986,15 @@
             "additionalProperties": false,
             "description": "",
             "properties": {
+                "fillsPost": {
+                    "items": {
+                        "$ref": "#/$defs/Post"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasRole": {
                     "items": {
                         "$ref": "#/$defs/Role"
@@ -42568,6 +42881,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -42604,6 +42926,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -48693,6 +49024,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -48729,6 +49069,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -49851,6 +50200,15 @@
                         "null"
                     ]
                 },
+                "hasIdentifier": {
+                    "items": {
+                        "$ref": "#/$defs/Identifier"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "hasMember": {
                     "items": {
                         "$ref": "#/$defs/Agent"
@@ -49872,6 +50230,15 @@
                 "hasOrganizationName": {
                     "items": {
                         "$ref": "#/$defs/OrganizationName"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasSite": {
+                    "items": {
+                        "$ref": "#/$defs/Location"
                     },
                     "type": [
                         "array",
@@ -49923,9 +50290,27 @@
                         "null"
                     ]
                 },
+                "industryClassification": {
+                    "items": {
+                        "$ref": "#/$defs/Identifier"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "knowsLanguage": {
                     "items": {
                         "$ref": "#/$defs/Language"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "legalIdentifier": {
+                    "items": {
+                        "$ref": "#/$defs/Identifier"
                     },
                     "type": [
                         "array",
@@ -49950,6 +50335,21 @@
                 "nativeLanguage": {
                     "items": {
                         "$ref": "#/$defs/Language"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "organizationPurpose": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "organizationType": {
+                    "items": {
+                        "$ref": "#/$defs/OrganizationType"
                     },
                     "type": [
                         "array",
@@ -50054,6 +50454,25 @@
             },
             "title": "OrganizationName",
             "type": "object"
+        },
+        "OrganizationType": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "OrganizationType",
+            "type": "object"
+        },
+        "OrganizationTypeEnum": {
+            "description": "",
+            "enum": [
+                "organizationTypeAssociation",
+                "organizationTypeCollaboration",
+                "organizationTypeCompany",
+                "organizationTypeEducationalInstitution",
+                "organizationTypeGovernmentBody",
+                "organizationTypeNonprofit"
+            ],
+            "title": "OrganizationTypeEnum",
+            "type": "string"
         },
         "Orientation": {
             "additionalProperties": false,
@@ -52519,6 +52938,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -52555,6 +52983,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -54099,6 +54536,15 @@
                         "null"
                     ]
                 },
+                "siteType": {
+                    "items": {
+                        "$ref": "#/$defs/SiteType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "spatiallyConnectsTo": {
                     "items": {
                         "$ref": "#/$defs/Location"
@@ -54809,6 +55255,24 @@
                 }
             },
             "title": "Pose",
+            "type": "object"
+        },
+        "Post": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "postIn": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Organization"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                }
+            },
+            "title": "Post",
             "type": "object"
         },
         "PostalAddress": {
@@ -58855,6 +59319,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -58900,6 +59373,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -62648,6 +63130,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -62715,6 +63206,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -70834,6 +71334,22 @@
             "title": "SignatureSchemeEnum",
             "type": "string"
         },
+        "SiteType": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "SiteType",
+            "type": "object"
+        },
+        "SiteTypeEnum": {
+            "description": "",
+            "enum": [
+                "siteTypeBranch",
+                "siteTypeHeadquarters",
+                "siteTypeRegistered"
+            ],
+            "title": "SiteTypeEnum",
+            "type": "string"
+        },
         "Skill": {
             "additionalProperties": false,
             "description": "",
@@ -76533,6 +77049,15 @@
                         "null"
                     ]
                 },
+                "siteType": {
+                    "items": {
+                        "$ref": "#/$defs/SiteType"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "spatiallyConnectsTo": {
                     "items": {
                         "$ref": "#/$defs/Location"
@@ -78282,6 +78807,15 @@
                 "references": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "siteType": {
+                    "items": {
+                        "$ref": "#/$defs/SiteType"
                     },
                     "type": [
                         "array",
@@ -85244,6 +85778,15 @@
                         "null"
                     ]
                 },
+                "predecessorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "projectedStandpoint": {
                     "items": {
                         "$ref": "#/$defs/StandpointClaim"
@@ -85280,6 +85823,15 @@
                 "subEventOf": {
                     "items": {
                         "$ref": "#/$defs/Event"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "successorOrganization": {
+                    "items": {
+                        "$ref": "#/$defs/Organization"
                     },
                     "type": [
                         "array",
@@ -86868,6 +87420,15 @@
                 "references": {
                     "items": {
                         "$ref": "#/$defs/Entity"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "siteType": {
+                    "items": {
+                        "$ref": "#/$defs/SiteType"
                     },
                     "type": [
                         "array",
