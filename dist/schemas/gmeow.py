@@ -14075,15 +14075,33 @@ class Mailbox(InformationObject):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Mailbox'})
 
+    childMailbox: Optional[list[Mailbox]] = Field(default=None, title="child mailbox", json_schema_extra = { "linkml_meta": {'domain': 'Mailbox',
+         'domain_of': ['Mailbox'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/childMailbox'} })
     mailboxName: Optional[str] = Field(default=None, title="mailbox name", json_schema_extra = { "linkml_meta": {'domain': 'Mailbox',
          'domain_of': ['Mailbox'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/mailboxName'} })
     mailboxOfAccount: Optional[OnlineAccount] = Field(default=None, title="mailbox of account", json_schema_extra = { "linkml_meta": {'domain': 'Mailbox',
          'domain_of': ['Mailbox'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/mailboxOfAccount'} })
+    mailboxPath: Optional[str] = Field(default=None, title="mailbox path", json_schema_extra = { "linkml_meta": {'domain': 'Mailbox',
+         'domain_of': ['Mailbox'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/mailboxPath'} })
     mailboxRole: Optional[str] = Field(default=None, title="mailbox role", json_schema_extra = { "linkml_meta": {'domain': 'Mailbox',
          'domain_of': ['Mailbox'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/mailboxRole'} })
+    mailboxSortOrder: Optional[int] = Field(default=None, title="mailbox sort order", json_schema_extra = { "linkml_meta": {'domain': 'Mailbox',
+         'domain_of': ['Mailbox'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/mailboxSortOrder'} })
+    mailboxTotalMessages: Optional[int] = Field(default=None, title="mailbox total messages", json_schema_extra = { "linkml_meta": {'domain': 'Mailbox',
+         'domain_of': ['Mailbox'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/mailboxTotalMessages'} })
+    mailboxUnreadMessages: Optional[int] = Field(default=None, title="mailbox unread messages", json_schema_extra = { "linkml_meta": {'domain': 'Mailbox',
+         'domain_of': ['Mailbox'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/mailboxUnreadMessages'} })
+    parentMailbox: Optional[list[Mailbox]] = Field(default=None, title="parent mailbox", json_schema_extra = { "linkml_meta": {'domain': 'Mailbox',
+         'domain_of': ['Mailbox'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/parentMailbox'} })
     contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })

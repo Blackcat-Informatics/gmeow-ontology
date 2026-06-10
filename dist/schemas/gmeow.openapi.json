@@ -40095,6 +40095,15 @@
                   "null"
                 ]
               },
+              "childMailbox": {
+                "items": {
+                  "$ref": "#/$defs/Mailbox"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "cites": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -40387,9 +40396,33 @@
                   }
                 ]
               },
+              "mailboxPath": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
               "mailboxRole": {
                 "type": [
                   "string",
+                  "null"
+                ]
+              },
+              "mailboxSortOrder": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "mailboxTotalMessages": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "mailboxUnreadMessages": {
+                "type": [
+                  "integer",
                   "null"
                 ]
               },
@@ -40405,6 +40438,15 @@
               "name": {
                 "type": [
                   "string",
+                  "null"
+                ]
+              },
+              "parentMailbox": {
+                "items": {
+                  "$ref": "#/$defs/Mailbox"
+                },
+                "type": [
+                  "array",
                   "null"
                 ]
               },
