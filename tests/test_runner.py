@@ -89,3 +89,27 @@ def test_run_container_kills_and_raises_on_timeout() -> None:
     assert docker_calls[2][1] == "run"
     assert docker_calls[3][1] == "kill"
     assert docker_calls[4][1:3] == ["rm", "-f"]
+
+
+def test_run_container_kills_and_raises_on_timeout_bytes_output() -> None:
+    """Same as above but with bytes stdout/stderr to exercise the decode path."""
+    docker_calls: list[list[str]] = []
+
+    def fake_run(cmd: list[str], **kwargs: object) -> MagicMock:
+        docker_calls.append(cmd)
+        if cmd[1] == "run":
+            raise FakeTimeoutExpired(cmd, timeout=1.0, stdout=b"out", stderr=b"err")
+        mock = MagicMock()
+        mock.returncode = 0
+        return mock
+
+    with (
+        patch("gmeow_tools.runner.shutil.which", return_value="/bin/docker"),
+        patch("gmeow_tools.runner.subprocess.run", side_effect=fake_run),
+        pytest.raises(ToolExecutionError, match="timed out"),
+    ):
+        run_container("stain/jena:5.4.0", ["riot", "--version"], timeout=1.0)
+
+    assert docker_calls[2][1] == "run"
+    assert docker_calls[3][1] == "kill"
+    assert docker_calls[4][1:3] == ["rm", "-f"]

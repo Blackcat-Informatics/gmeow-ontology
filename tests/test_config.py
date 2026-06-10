@@ -68,20 +68,24 @@ def test_gmeow_temp_dir_uses_prefix() -> None:
 
 
 def test_sweep_stale_gmeow_temp_dirs_removes_old() -> None:
+    import os
+    import shutil
+    import tempfile
     import time
 
-    with gmeow_temp_dir() as tmp:
-        path = Path(tmp)
+    # Manually create a temp dir to simulate a leaked directory (no context mgr)
+    tmp_dir = tempfile.mkdtemp(dir=PROJECT_ROOT, prefix=".gmeow-tmp-")
+    path = Path(tmp_dir)
+    try:
         # Artificially age the directory
         old_time = time.time() - 7200
-        path.touch()
-        # Force mtime update (touch updates both, so set mtime explicitly)
-        import os
-
         os.utime(path, (old_time, old_time))
         removed = sweep_stale_gmeow_temp_dirs(max_age_seconds=3600.0)
         assert path in removed
         assert not path.exists()
+    finally:
+        if path.exists():
+            shutil.rmtree(path)
 
 
 def test_sweep_stale_gmeow_temp_dirs_leaves_young() -> None:

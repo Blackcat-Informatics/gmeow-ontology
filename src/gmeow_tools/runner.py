@@ -180,7 +180,7 @@ def run_container(
     except subprocess.TimeoutExpired as exc:
         # The docker client died but the container keeps running.
         # Kill it explicitly so --rm fires.
-        with contextlib.suppress(subprocess.TimeoutExpired):
+        with contextlib.suppress(Exception):
             subprocess.run(
                 ["docker", "kill", name],
                 capture_output=True,
@@ -189,7 +189,7 @@ def run_container(
                 timeout=10.0,
             )
         # Ensure removal even if kill failed.
-        with contextlib.suppress(subprocess.TimeoutExpired):
+        with contextlib.suppress(Exception):
             subprocess.run(
                 ["docker", "rm", "-f", name],
                 capture_output=True,
@@ -198,10 +198,14 @@ def run_container(
                 timeout=10.0,
             )
         _stdout = (
-            exc.stdout.decode() if isinstance(exc.stdout, bytes) else (exc.stdout or "")
+            exc.stdout.decode(errors="replace")
+            if isinstance(exc.stdout, bytes)
+            else (exc.stdout or "")
         )
         _stderr = (
-            exc.stderr.decode() if isinstance(exc.stderr, bytes) else (exc.stderr or "")
+            exc.stderr.decode(errors="replace")
+            if isinstance(exc.stderr, bytes)
+            else (exc.stderr or "")
         )
         raise ToolExecutionError(
             docker_cmd,
