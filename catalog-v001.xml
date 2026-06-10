@@ -57,5 +57,6 @@
     <uri name="https://blackcatinformatics.ca/gmeow/modules/accessibility" uri="ontology/modules/accessibility.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/archaeological-evidence" uri="ontology/modules/archaeological-evidence.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/notes" uri="ontology/modules/notes.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/modules/calendar" uri="ontology/modules/calendar.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/deception" uri="ontology/modules/deception.ttl"/>
 </catalog>

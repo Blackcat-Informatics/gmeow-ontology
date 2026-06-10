@@ -32,6 +32,14 @@
             edoal:measure 8e-01 ;
             edoal:transformation [ rdfs:seeAlso gmeow:fnParticipantToAttendee ] ],
         [ a align:Cell ;
+            rdfs:label "RecurrenceRule text → iCalendar RRULE"@en ;
+            align:entity1 [ a edoal:Relation ;
+                    edoal:uri gmeow:recurrenceRuleText ] ;
+            align:entity2 [ a edoal:Property ;
+                    edoal:uri ical:rrule ] ;
+            align:relation "<=" ;
+            edoal:measure 9.5e-01 ],
+        [ a align:Cell ;
             rdfs:label "Event type label → iCalendar SUMMARY"@en ;
             align:entity1 [ a edoal:Relation ;
                     edoal:compose ( [ a edoal:Relation ;
