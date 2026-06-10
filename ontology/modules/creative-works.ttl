@@ -8,6 +8,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/creative-works>
     a owl:Ontology ;
     rdfs:label "GMEOW Creative Works Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Creative Works Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> ;
     rdfs:comment """The WEMI spine for creative and intellectual works — Work, Expression,
 Manifestation, Item — reconstructed from native GMEOW primitives (frame-relativity,
 reified events, relators, standpoints) and bridged to FRBR/LRMoo/CIDOC/schema.org
@@ -279,85 +281,144 @@ gmeow:CarrierMedium
 # --------------------------------------------------------------------------- #
 
 gmeow:workTypeLiterary        a gmeow:CreativeWorkType ; rdfs:label "literary"@x-gmeow-english ;        skos:definition "A work of literature — fiction, poetry, drama, or literary non-fiction."@x-gmeow-english .
+gmeow:workTypeLiterary rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:workTypeWritten         a gmeow:CreativeWorkType ; rdfs:label "written"@x-gmeow-english ;         skos:definition "A primarily written work — scholarly, journalistic, or technical."@x-gmeow-english .
+gmeow:workTypeWritten rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:workTypeNarrative       a gmeow:CreativeWorkType ; rdfs:label "narrative"@x-gmeow-english ;       skos:definition "A work whose primary content is a story or narrative."@x-gmeow-english .
+gmeow:workTypeNarrative rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:workTypeMusical         a gmeow:CreativeWorkType ; rdfs:label "musical"@x-gmeow-english ;         skos:definition "A work of music — a song, symphony, or composition."@x-gmeow-english .
+gmeow:workTypeMusical rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:workTypeComposedMusical a gmeow:CreativeWorkType ; rdfs:label "composed musical"@x-gmeow-english ; skos:definition "A notated musical work — a score, sheet music, or composition in written form."@x-gmeow-english .
+gmeow:workTypeComposedMusical rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:workTypeVisual          a gmeow:CreativeWorkType ; rdfs:label "visual"@x-gmeow-english ;          skos:definition "A visual artwork — a painting, drawing, or digital image."@x-gmeow-english .
+gmeow:workTypeVisual rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:workTypePhotographic    a gmeow:CreativeWorkType ; rdfs:label "photographic"@x-gmeow-english ;    skos:definition "A photographic work — a still photograph or photo essay."@x-gmeow-english .
+gmeow:workTypePhotographic rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:workTypeAudiovisual     a gmeow:CreativeWorkType ; rdfs:label "audiovisual"@x-gmeow-english ;     skos:definition "A work combining moving images and sound — a film, television program, or video."@x-gmeow-english .
+gmeow:workTypeAudiovisual rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:workTypeFilm            a gmeow:CreativeWorkType ; rdfs:label "film"@x-gmeow-english ;            skos:definition "A cinematic work — a feature film, short film, or documentary."@x-gmeow-english .
+gmeow:workTypeFilm rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:workTypeChoreographic   a gmeow:CreativeWorkType ; rdfs:label "choreographic"@x-gmeow-english ;  skos:definition "A choreographic work — a dance piece or movement composition."@x-gmeow-english .
+gmeow:workTypeChoreographic rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:workTypeCartographic    a gmeow:CreativeWorkType ; rdfs:label "cartographic"@x-gmeow-english ;  skos:definition "A cartographic work — a map, atlas, or geospatial representation."@x-gmeow-english .
+gmeow:workTypeCartographic rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:workTypeSoftware        a gmeow:CreativeWorkType ; rdfs:label "software"@x-gmeow-english ;        skos:definition "A software work — a program, library, or application."@x-gmeow-english .
+gmeow:workTypeSoftware rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:workTypeDataset         a gmeow:CreativeWorkType ; rdfs:label "dataset"@x-gmeow-english ;         skos:definition "A dataset work — a structured collection of data published as a unit."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # ContributionRole seeds
 # --------------------------------------------------------------------------- #
+gmeow:workTypeDataset rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 
 gmeow:roleAuthor              a gmeow:ContributionRole ; rdfs:label "author"@x-gmeow-english ;              skos:definition "The creator of the intellectual content of a work."@x-gmeow-english .
+gmeow:roleAuthor rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleEditor              a gmeow:ContributionRole ; rdfs:label "editor"@x-gmeow-english ;              skos:definition "An agent who edited, compiled, or curated the content."@x-gmeow-english .
+gmeow:roleEditor rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleTranslator          a gmeow:ContributionRole ; rdfs:label "translator"@x-gmeow-english ;          skos:definition "An agent who translated the work into another language or notation."@x-gmeow-english .
+gmeow:roleTranslator rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleIllustrator         a gmeow:ContributionRole ; rdfs:label "illustrator"@x-gmeow-english ;         skos:definition "An agent who contributed visual illustrations."@x-gmeow-english .
+gmeow:roleIllustrator rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleNarrator            a gmeow:ContributionRole ; rdfs:label "narrator"@x-gmeow-english ;            skos:definition "An agent who narrated or performed a spoken-word rendition."@x-gmeow-english .
+gmeow:roleNarrator rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleComposer            a gmeow:ContributionRole ; rdfs:label "composer"@x-gmeow-english ;            skos:definition "An agent who composed the musical content."@x-gmeow-english .
+gmeow:roleComposer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleDirector            a gmeow:ContributionRole ; rdfs:label "director"@x-gmeow-english ;            skos:definition "An agent who directed a film, theatre, or choreographic production."@x-gmeow-english .
+gmeow:roleDirector rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:rolePhotographer        a gmeow:ContributionRole ; rdfs:label "photographer"@x-gmeow-english ;        skos:definition "An agent who created photographic content."@x-gmeow-english .
+gmeow:rolePhotographer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleCoverArtist         a gmeow:ContributionRole ; rdfs:label "cover artist"@x-gmeow-english ;        skos:definition "An agent who created cover art for a manifestation."@x-gmeow-english .
+gmeow:roleCoverArtist rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleLetterer            a gmeow:ContributionRole ; rdfs:label "letterer"@x-gmeow-english ;            skos:definition "An agent who lettered or calligraphed text in a visual work."@x-gmeow-english .
+gmeow:roleLetterer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleLLMAssistedEditor   a gmeow:ContributionRole ; rdfs:label "LLM-assisted editor"@x-gmeow-english ; skos:definition "An agent who edited with substantial assistance from a large language model."@x-gmeow-english .
 
 # CRediT roles (NISO Z39.104-2022) — bridged by reference, not imported
+gmeow:roleLLMAssistedEditor rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleConceptualization     a gmeow:ContributionRole ; rdfs:label "conceptualization"@x-gmeow-english ;     skos:definition "Ideas, formulation or evolution of overarching research goals and aims."@x-gmeow-english .
+gmeow:roleConceptualization rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleDataCuration          a gmeow:ContributionRole ; rdfs:label "data curation"@x-gmeow-english ;          skos:definition "Management activities to annotate, scrub data and maintain research data."@x-gmeow-english .
+gmeow:roleDataCuration rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleFormalAnalysis        a gmeow:ContributionRole ; rdfs:label "formal analysis"@x-gmeow-english ;        skos:definition "Application of statistical, mathematical, computational, or other formal techniques to analyse or synthesize study data."@x-gmeow-english .
+gmeow:roleFormalAnalysis rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleFundingAcquisition    a gmeow:ContributionRole ; rdfs:label "funding acquisition"@x-gmeow-english ;    skos:definition "Acquisition of the financial support for the project leading to this publication."@x-gmeow-english .
+gmeow:roleFundingAcquisition rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleInvestigation         a gmeow:ContributionRole ; rdfs:label "investigation"@x-gmeow-english ;         skos:definition "Conducting a research and investigation process, specifically performing the experiments, or data/evidence collection."@x-gmeow-english .
+gmeow:roleInvestigation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleMethodology           a gmeow:ContributionRole ; rdfs:label "methodology"@x-gmeow-english ;           skos:definition "Development or design of methodology; creation of models."@x-gmeow-english .
+gmeow:roleMethodology rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleProjectAdministration a gmeow:ContributionRole ; rdfs:label "project administration"@x-gmeow-english ; skos:definition "Management and coordination responsibility for the research activity planning and execution."@x-gmeow-english .
+gmeow:roleProjectAdministration rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleResources             a gmeow:ContributionRole ; rdfs:label "resources"@x-gmeow-english ;              skos:definition "Provision of study materials, reagents, materials, patients, laboratory samples, animals, instrumentation, computing resources, or other analysis tools."@x-gmeow-english .
+gmeow:roleResources rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleSoftware              a gmeow:ContributionRole ; rdfs:label "software"@x-gmeow-english ;              skos:definition "Programming, software development; designing computer programs; implementation of the computer code and supporting algorithms."@x-gmeow-english .
+gmeow:roleSoftware rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleSupervision           a gmeow:ContributionRole ; rdfs:label "supervision"@x-gmeow-english ;            skos:definition "Oversight and leadership responsibility for the research activity planning and execution, including mentorship external to the core team."@x-gmeow-english .
+gmeow:roleSupervision rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleValidation            a gmeow:ContributionRole ; rdfs:label "validation"@x-gmeow-english ;             skos:definition "Verification, whether as a part of the activity or separate, of the overall replication/reproducibility of results/experiments and other research outputs."@x-gmeow-english .
+gmeow:roleValidation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleVisualization         a gmeow:ContributionRole ; rdfs:label "visualization"@x-gmeow-english ;          skos:definition "Preparation, creation and/or presentation of the published work, specifically visualization/data presentation."@x-gmeow-english .
+gmeow:roleVisualization rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleWritingOriginalDraft  a gmeow:ContributionRole ; rdfs:label "writing – original draft"@x-gmeow-english ;  skos:definition "Creation and/or presentation of the published work, specifically writing the initial draft."@x-gmeow-english .
+gmeow:roleWritingOriginalDraft rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleWritingReviewEditing  a gmeow:ContributionRole ; rdfs:label "writing – review & editing"@x-gmeow-english ;  skos:definition "Critical review, commentary or revision – including pre- or post-publication stages."@x-gmeow-english .
 
 # Software-specific contribution roles (open vocabulary seeds)
+gmeow:roleWritingReviewEditing rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleSoftwareMaintainer  a gmeow:ContributionRole ; rdfs:label "software maintainer"@x-gmeow-english ;  skos:definition "An agent with ongoing responsibility for a software project — triaging issues, reviewing contributions, and cutting releases."@x-gmeow-english .
+gmeow:roleSoftwareMaintainer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleSoftwareDeveloper   a gmeow:ContributionRole ; rdfs:label "software developer"@x-gmeow-english ;   skos:definition "An agent who writes code, fixes bugs, or implements features in a software project."@x-gmeow-english .
+gmeow:roleSoftwareDeveloper rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleCodeReviewer        a gmeow:ContributionRole ; rdfs:label "code reviewer"@x-gmeow-english ;         skos:definition "An agent who reviews code changes for quality, correctness, and policy compliance before merge."@x-gmeow-english .
+gmeow:roleCodeReviewer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleReleaser            a gmeow:ContributionRole ; rdfs:label "releaser"@x-gmeow-english ;             skos:definition "An agent who cuts and publishes software releases."@x-gmeow-english .
+gmeow:roleReleaser rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleSecurityContact     a gmeow:ContributionRole ; rdfs:label "security contact"@x-gmeow-english ;     skos:definition "An agent responsible for receiving and handling security vulnerability reports."@x-gmeow-english .
+gmeow:roleSecurityContact rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleBotContributor      a gmeow:ContributionRole ; rdfs:label "bot contributor"@x-gmeow-english ;      skos:definition "An automated bot or CI agent that contributes to a project — e.g. dependency updates, formatting bots."@x-gmeow-english .
+gmeow:roleBotContributor rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:roleAIAssistant         a gmeow:ContributionRole ; rdfs:label "AI assistant"@x-gmeow-english ;         skos:definition "An AI system that assists in creating or editing software — attributed and confidence-weighted, never ground truth (Principle 9)."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # ManifestationFormat seeds
 # --------------------------------------------------------------------------- #
+gmeow:roleAIAssistant rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 
 gmeow:formatHardcover   a gmeow:ManifestationFormat ; rdfs:label "hardcover"@x-gmeow-english ;   skos:definition "A hardcover book edition."@x-gmeow-english .
+gmeow:formatHardcover rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:formatPaperback   a gmeow:ManifestationFormat ; rdfs:label "paperback"@x-gmeow-english ;   skos:definition "A paperback book edition."@x-gmeow-english .
+gmeow:formatPaperback rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:formatEPUB        a gmeow:ManifestationFormat ; rdfs:label "EPUB"@x-gmeow-english ;        skos:definition "An EPUB electronic book format."@x-gmeow-english .
+gmeow:formatEPUB rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:formatPDF         a gmeow:ManifestationFormat ; rdfs:label "PDF"@x-gmeow-english ;         skos:definition "A PDF document format."@x-gmeow-english .
+gmeow:formatPDF rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:formatAudiobook   a gmeow:ManifestationFormat ; rdfs:label "audiobook"@x-gmeow-english ;   skos:definition "An audiobook audio format."@x-gmeow-english .
+gmeow:formatAudiobook rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:formatVinyl       a gmeow:ManifestationFormat ; rdfs:label "vinyl"@x-gmeow-english ;       skos:definition "A vinyl phonograph record."@x-gmeow-english .
+gmeow:formatVinyl rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:formatDigitalFile a gmeow:ManifestationFormat ; rdfs:label "digital file"@x-gmeow-english ; skos:definition "A generic digital file format."@x-gmeow-english .
+gmeow:formatDigitalFile rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:formatWebPage     a gmeow:ManifestationFormat ; rdfs:label "web page"@x-gmeow-english ;    skos:definition "A web page or online document."@x-gmeow-english .
+gmeow:formatWebPage rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:formatWebSerial   a gmeow:ManifestationFormat ; rdfs:label "web serial"@x-gmeow-english ;   skos:definition "A serialized work published incrementally online."@x-gmeow-english .
+gmeow:formatWebSerial rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:formatComicIssue  a gmeow:ManifestationFormat ; rdfs:label "comic issue"@x-gmeow-english ;  skos:definition "A single issue of a comic book series."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # CarrierMedium seeds
 # --------------------------------------------------------------------------- #
+gmeow:formatComicIssue rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 
 gmeow:mediumPrint       a gmeow:CarrierMedium ; rdfs:label "print"@x-gmeow-english ;        skos:definition "A printed paper medium."@x-gmeow-english .
+gmeow:mediumPrint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:mediumEInkFile    a gmeow:CarrierMedium ; rdfs:label "e-ink file"@x-gmeow-english ;    skos:definition "An electronic-ink file or e-book file."@x-gmeow-english .
+gmeow:mediumEInkFile rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:mediumOpticalDisc a gmeow:CarrierMedium ; rdfs:label "optical disc"@x-gmeow-english ;  skos:definition "An optical disc — CD, DVD, Blu-ray."@x-gmeow-english .
+gmeow:mediumOpticalDisc rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 gmeow:mediumServerObject a gmeow:CarrierMedium ; rdfs:label "server object"@x-gmeow-english ; skos:definition "A digital object stored on a server."@x-gmeow-english .
 
 # --- DC relation family (issue #60) ---------------------------------------- #
+gmeow:mediumServerObject rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 
 gmeow:isReferencedBy
     a owl:ObjectProperty ;

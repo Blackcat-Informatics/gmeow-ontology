@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/sources>
     a owl:Ontology ;
     rdfs:label "GMEOW Sources Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Sources Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sources> ;
     rdfs:comment """Sources, citations, and the evidence layer — a cross-cutting facility
 (reused by genealogy and every other slice) for evidence-based, source-cited claims.
 Refactored in #211: the anti-rigid Source Kind is retired; source-hood is mediated by

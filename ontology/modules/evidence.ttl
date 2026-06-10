@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/evidence>
     a owl:Ontology ;
     rdfs:label "GMEOW Evidence Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Evidence Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/evidence> ;
     rdfs:comment """Evidential warrant and source-typing substrate: two orthogonal axes that travel with the evidence link (CitationAct / EvidenceSpan) rather than the asserted fact.
 
 Axis A — Evidential warrant (strength/kind of evidence for a fact). An open value vocabulary gmeow:EvidenceClass reached by a non-functional property gmeow:hasEvidenceClass. A multi-source claim legitimately carries several evidence classes (Principle 9).

@@ -8,6 +8,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/citations>
     a owl:Ontology ;
     rdfs:label "GMEOW Citations Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Citations Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/citations> ;
     rdfs:comment """Citation, credit, and attribution — the universal CitationAct relator,
 Contribution degree, and selector vocabulary. Replaces the old sources.ttl evidence link
 with a typed, reified citation relator and an anti-rigid SourceRole. Bridges to CiTO,

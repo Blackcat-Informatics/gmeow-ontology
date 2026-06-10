@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/accessibility>
     a owl:Ontology ;
     rdfs:label "GMEOW Accessibility Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Accessibility Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/accessibility> ;
     rdfs:comment """Cross-cutting accessibility layer — whether an entity can reach or use a location under constraints (wheelchair/step-free, sensory, clearance, life-support). Accessibility features, barriers, and needs are modelled as orthogonal, co-equal value facets (Principle 9). The flat shortcuts (hasAccessibilityFeature, hasBarrier, hasAccessibilityNeed) cover the 80 % case; promote to AccessibilityAssertion when provenance, confidence, temporal scope, or suppression matter (Principle 10). Accessible routes are computed by the solver layer, not asserted in OWL (Principle 12). Part of the #42 Location-as-reference-frame epic."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
@@ -26,22 +28,29 @@ gmeow:AccessibilityFacet
 # Seed individuals
 gmeow:facetWheelchair    a gmeow:AccessibilityFacet ; rdfs:label "wheelchair access"@x-gmeow-english ;
     skos:definition "Access for wheelchair users — level surfaces, ramps, elevators, wide doorways."@x-gmeow-english .
+gmeow:facetWheelchair rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/accessibility> .
 gmeow:facetStepFree      a gmeow:AccessibilityFacet ; rdfs:label "step-free access"@x-gmeow-english ;
     skos:definition "Access without steps or stairs — ramps, lifts, level entrances."@x-gmeow-english .
+gmeow:facetStepFree rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/accessibility> .
 gmeow:facetVisual        a gmeow:AccessibilityFacet ; rdfs:label "visual access"@x-gmeow-english ;
     skos:definition "Access for people with visual impairments — tactile paving, audio signals, high contrast, braille."@x-gmeow-english .
+gmeow:facetVisual rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/accessibility> .
 gmeow:facetAuditory      a gmeow:AccessibilityFacet ; rdfs:label "auditory access"@x-gmeow-english ;
     skos:definition "Access for people with auditory impairments — visual alarms, induction loops, sign language."@x-gmeow-english .
+gmeow:facetAuditory rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/accessibility> .
 gmeow:facetCognitive     a gmeow:AccessibilityFacet ; rdfs:label "cognitive access"@x-gmeow-english ;
     skos:definition "Access for people with cognitive impairments — clear signage, simple wayfinding, sensory-quiet spaces."@x-gmeow-english .
+gmeow:facetCognitive rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/accessibility> .
 gmeow:facetClearance     a gmeow:AccessibilityFacet ; rdfs:label "physical clearance"@x-gmeow-english ;
     skos:definition "Sufficient physical space for passage — doorway width, corridor width, turning radius, vertical clearance."@x-gmeow-english .
+gmeow:facetClearance rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/accessibility> .
 gmeow:facetLifeSupport   a gmeow:AccessibilityFacet ; rdfs:label "life-support access"@x-gmeow-english ;
     skos:definition "Access for people who require life-support equipment — power outlets, oxygen, climate control, emergency protocols."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Value vocabulary — AccessibilityPolarity
 # --------------------------------------------------------------------------- #
+gmeow:facetLifeSupport rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/accessibility> .
 
 gmeow:AccessibilityPolarity
     a owl:Class, gufo:AbstractIndividualType ;
@@ -52,14 +61,17 @@ gmeow:AccessibilityPolarity
 
 gmeow:polarityFeature  a gmeow:AccessibilityPolarity ; rdfs:label "feature"@x-gmeow-english ;
     skos:definition "A positive accessibility feature — the subject provides the facet."@x-gmeow-english .
+gmeow:polarityFeature rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/accessibility> .
 gmeow:polarityBarrier  a gmeow:AccessibilityPolarity ; rdfs:label "barrier"@x-gmeow-english ;
     skos:definition "A negative accessibility barrier — the subject impedes the facet."@x-gmeow-english .
+gmeow:polarityBarrier rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/accessibility> .
 gmeow:polarityLimited  a gmeow:AccessibilityPolarity ; rdfs:label "limited"@x-gmeow-english ;
     skos:definition "A partial or limited accessibility status — the subject provides the facet under some conditions but not all."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Flat shortcuts — the 80 % case
 # --------------------------------------------------------------------------- #
+gmeow:polarityLimited rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/accessibility> .
 
 gmeow:hasAccessibilityFeature
     a owl:ObjectProperty ;
@@ -143,3 +155,4 @@ gmeow:AccessibilityAssertion rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:assertionSubject ; owl:someValuesFrom gmeow:Entity ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:assertionFacet ; owl:someValuesFrom gmeow:AccessibilityFacet ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:assertionPolarity ; owl:someValuesFrom gmeow:AccessibilityPolarity ] .
+gmeow:routeKindAccessible rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/accessibility> .

@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/procedures>
     a owl:Ontology ;
     rdfs:label "GMEOW Procedures Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Procedures Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/procedures> ;
     rdfs:comment """The plan ⟂ execution slice: a prescriptive layer that de-conflates
 procedures, recipes, protocols, and workflow definitions from the events that enact them.
 Reuses the event stack (Execution ⊑ Event, Participation for agent/tool assignment), the
@@ -400,9 +402,21 @@ gmeow:stepIngestionPrivacyPosture
 
 # Control-flow edges for the canonical ingestion procedure
 gmeow:flowIngestion1 a gmeow:ControlFlow ; gmeow:flowSource gmeow:stepIngestionRawRoot ;      gmeow:flowTarget gmeow:stepIngestionFileCopy ;       gmeow:flowOrder 1 ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:flowIngestion1 rdfs:label "ingestion 1"@x-gmeow-english ;
+    skos:definition "The ingestion 1 control flow — a named stage or pattern in a procedural or data-ingestion pipeline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/procedures> .
 gmeow:flowIngestion2 a gmeow:ControlFlow ; gmeow:flowSource gmeow:stepIngestionFileCopy ;     gmeow:flowTarget gmeow:stepIngestionOcrExtract ;     gmeow:flowOrder 2 ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:flowIngestion2 rdfs:label "ingestion 2"@x-gmeow-english ;
+    skos:definition "The ingestion 2 control flow — a named stage or pattern in a procedural or data-ingestion pipeline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/procedures> .
 gmeow:flowIngestion3 a gmeow:ControlFlow ; gmeow:flowSource gmeow:stepIngestionOcrExtract ;   gmeow:flowTarget gmeow:stepIngestionDerivedClaims ;  gmeow:flowOrder 3 ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:flowIngestion3 rdfs:label "ingestion 3"@x-gmeow-english ;
+    skos:definition "The ingestion 3 control flow — a named stage or pattern in a procedural or data-ingestion pipeline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/procedures> .
 gmeow:flowIngestion4 a gmeow:ControlFlow ; gmeow:flowSource gmeow:stepIngestionDerivedClaims ; gmeow:flowTarget gmeow:stepIngestionUnresolvedLeads ; gmeow:flowOrder 4 ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:flowIngestion4 rdfs:label "ingestion 4"@x-gmeow-english ;
+    skos:definition "The ingestion 4 control flow — a named stage or pattern in a procedural or data-ingestion pipeline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/procedures> .
 gmeow:flowIngestion5 a gmeow:ControlFlow ; gmeow:flowSource gmeow:stepIngestionUnresolvedLeads ; gmeow:flowTarget gmeow:stepIngestionPrivacyPosture ; gmeow:flowOrder 5 ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # Link steps to the canonical procedure
@@ -417,6 +431,9 @@ gmeow:procedureIngestionCanonical gmeow:hasProcedureStep
 # =========================================================================== #
 # SEED PROFILE: RESEARCH INQUIRY
 # =========================================================================== #
+gmeow:flowIngestion5 rdfs:label "ingestion 5"@x-gmeow-english ;
+    skos:definition "The ingestion 5 control flow — a named stage or pattern in a procedural or data-ingestion pipeline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/procedures> .
 
 gmeow:inquiryPriority
     a owl:DatatypeProperty ;

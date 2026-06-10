@@ -11,6 +11,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/core>
     a owl:Ontology ;
     rdfs:label "GMEOW Core Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Core Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/core> ;
     rdfs:comment "Foundational GMEOW categories grounded in gUFO, plus the annotation properties used across all modules."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
@@ -180,9 +182,17 @@ gmeow:hasDeterminacy
 
 # Seeds
 gmeow:determinacyCrisp         a gmeow:Determinacy ; rdfs:label "crisp"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:determinacyCrisp skos:definition "The crisp determinacy — a characterization of whether a value is crisp, vague, fuzzy, probabilistic, or disputed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/core> .
 gmeow:determinacyVague         a gmeow:Determinacy ; rdfs:label "vague"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:determinacyVague skos:definition "The vague determinacy — a characterization of whether a value is crisp, vague, fuzzy, probabilistic, or disputed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/core> .
 gmeow:determinacyFuzzy         a gmeow:Determinacy ; rdfs:label "fuzzy"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:determinacyFuzzy skos:definition "The fuzzy determinacy — a characterization of whether a value is crisp, vague, fuzzy, probabilistic, or disputed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/core> .
 gmeow:determinacyProbabilistic a gmeow:Determinacy ; rdfs:label "probabilistic"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:determinacyProbabilistic skos:definition "The probabilistic determinacy — a characterization of whether a value is crisp, vague, fuzzy, probabilistic, or disputed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/core> .
 gmeow:determinacyDisputed      a gmeow:Determinacy ; rdfs:label "disputed"@x-gmeow-english ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 # --------------------------------------------------------------------------- #
 # Sensitivity — universal privacy-classification vocabulary (#73, PRIV-GEN).
@@ -191,6 +201,8 @@ gmeow:determinacyDisputed      a gmeow:Determinacy ; rdfs:label "disputed"@x-gme
 # (coarsenTo / displayable) at projection time under a consent guard (P10).
 # The sensitivity axis is orthogonal to determinacy, confidence, and granularity.
 # --------------------------------------------------------------------------- #
+gmeow:determinacyDisputed skos:definition "The disputed determinacy — a characterization of whether a value is crisp, vague, fuzzy, probabilistic, or disputed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/core> .
 
 gmeow:SensitivityLevel
     a owl:Class, gufo:AbstractIndividualType ;
@@ -208,9 +220,17 @@ gmeow:hasSensitivity
 
 # Seeds
 gmeow:sensitivityPublic            a gmeow:SensitivityLevel ; rdfs:label "public"@x-gmeow-english ;            rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:sensitivityPublic skos:definition "The public sensitivity level — a classification of information by the risk associated with its disclosure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/core> .
 gmeow:sensitivityInternal          a gmeow:SensitivityLevel ; rdfs:label "internal"@x-gmeow-english ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:sensitivityInternal skos:definition "The internal sensitivity level — a classification of information by the risk associated with its disclosure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/core> .
 gmeow:sensitivityConfidential      a gmeow:SensitivityLevel ; rdfs:label "confidential"@x-gmeow-english ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:sensitivityConfidential skos:definition "The confidential sensitivity level — a classification of information by the risk associated with its disclosure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/core> .
 gmeow:sensitivityRestricted        a gmeow:SensitivityLevel ; rdfs:label "restricted"@x-gmeow-english ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:sensitivityRestricted skos:definition "The restricted sensitivity level — a classification of information by the risk associated with its disclosure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/core> .
 gmeow:sensitivitySensitivePersonal a gmeow:SensitivityLevel ; rdfs:label "sensitive personal"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
@@ -223,6 +243,8 @@ gmeow:sensitivitySensitivePersonal a gmeow:SensitivityLevel ; rdfs:label "sensit
 # granularity (Principle 9). The eligibility decision (k-anonymity, source
 # independence) stays in the solver layer (P12).
 # --------------------------------------------------------------------------- #
+gmeow:sensitivitySensitivePersonal skos:definition "The sensitive personal sensitivity level — a classification of information by the risk associated with its disclosure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/core> .
 
 gmeow:ProjectionContext
     a owl:Class, gufo:AbstractIndividualType ;

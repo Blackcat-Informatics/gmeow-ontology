@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/tags>
     a owl:Ontology ;
     rdfs:label "GMEOW Tags Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Tags Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/tags> ;
     rdfs:comment "Universal tagging building block — open folksonomy, aboutness, and typing as three distinct axes (Principle 9). A gmeow:Tag is an information-object value (like a skos:Concept); a gmeow:TagScheme is its namespace bucket; and gmeow:Tagging is a gufo:Relator that reifies the act of tagging with provenance, confidence, temporal scope and suppression (Principle 10). The flat gmeow:hasTag shortcut covers the 80% case; promote to Tagging when the act itself must be a node. Tags align (lossily) to SKOS, schema.org, W3C Web Annotation and MOAT."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
@@ -148,7 +150,11 @@ gmeow:tagInScheme
 # --------------------------------------------------------------------------- #
 
 gmeow:tagUrgent  a gmeow:Tag ; rdfs:label "urgent"@x-gmeow-english .
+gmeow:tagUrgent skos:definition "The urgent tag — a keyword or marker attached to an entity for categorization or workflow."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/tags> .
 gmeow:tagTodo    a gmeow:Tag ; rdfs:label "todo"@x-gmeow-english .
+gmeow:tagTodo skos:definition "The todo tag — a keyword or marker attached to an entity for categorization or workflow."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/tags> .
 gmeow:tagReview  a gmeow:Tag ; rdfs:label "review"@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
@@ -159,3 +165,5 @@ gmeow:Tagging rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:taggingTagged ; owl:someValuesFrom gmeow:Entity ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:taggingTag ; owl:someValuesFrom gmeow:Tag ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:taggingTagger ; owl:someValuesFrom gmeow:Agent ] .
+gmeow:tagReview skos:definition "The review tag — a keyword or marker attached to an entity for categorization or workflow."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/tags> .

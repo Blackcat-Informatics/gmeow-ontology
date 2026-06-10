@@ -11,6 +11,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/languages>
     a owl:Ontology ;
     rdfs:label "GMEOW Languages Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Languages Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> ;
     rdfs:comment "Languages and writing systems as first-class, registry-INDEPENDENT information objects (the BCP-47 / ISO 639 / Glottolog / Wikidata / schema.org superset layer). A gmeow:Language has a self-minted IRI; codes (gmeow:languageCode, gmeow:authorityLink, skos:exactMatch) are OPTIONAL alignments, never identity — so a code-less conlang (Ithkuil), a fast-versioning AI-minted interlingua, an under-coded sign/minority language, and a programming language are all co-equal first-class languages. Covers natural, constructed (auxiliary/engineered/artistic/ritual), AI-generated, historical/reconstructed, sign/whistled/tactile, and formal/programming/markup languages. Writing systems are first-class and a language CO-MINGLES many co-equal scripts (Japanese = kanji/Hani + hiragana/Hira + katakana/Kana + rōmaji/Latn), bound by the reified gmeow:WritingSystemUsage relator (mirroring names' gmeow:NameUsage), which also models script changes over time (Turkish Arabic→Latin, 1928). Versions form a first-class lineage (gmeow:versionOf / supersedes). Endonym/exonym names reuse the names module's gmeow:Appellation; transliteration schemes that produce a gmeow:romanization are named by gmeow:transliterationScheme and catalogued as FnO functions in the projection layer."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
@@ -425,19 +427,47 @@ gmeow:LanguageOrigin
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:originNatural               a gmeow:LanguageOrigin ; rdfs:label "natural"@x-gmeow-english .
+gmeow:originNatural skos:definition "The natural language origin — a provenance category that explains how a language or variety arose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:originConstructedAuxiliary  a gmeow:LanguageOrigin ; rdfs:label "constructed — auxiliary (IAL, e.g. Esperanto)"@x-gmeow-english .
+gmeow:originConstructedAuxiliary skos:definition "The constructed auxiliary language origin — a provenance category that explains how a language or variety arose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:originConstructedEngineered a gmeow:LanguageOrigin ; rdfs:label "constructed — engineered (e.g. Lojban, Ithkuil)"@x-gmeow-english .
+gmeow:originConstructedEngineered skos:definition "The constructed engineered language origin — a provenance category that explains how a language or variety arose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:originConstructedArtistic   a gmeow:LanguageOrigin ; rdfs:label "constructed — artistic (e.g. Quenya, Klingon)"@x-gmeow-english .
+gmeow:originConstructedArtistic skos:definition "The constructed artistic language origin — a provenance category that explains how a language or variety arose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:originConstructedRitual     a gmeow:LanguageOrigin ; rdfs:label "constructed — ritual / liturgical"@x-gmeow-english .
+gmeow:originConstructedRitual skos:definition "The constructed ritual language origin — a provenance category that explains how a language or variety arose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:originAiGenerated           a gmeow:LanguageOrigin ; rdfs:label "AI / machine-generated"@x-gmeow-english .
+gmeow:originAiGenerated skos:definition "The ai generated language origin — a provenance category that explains how a language or variety arose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:originFormal                a gmeow:LanguageOrigin ; rdfs:label "formal (logic / schema)"@x-gmeow-english .
+gmeow:originFormal skos:definition "The formal language origin — a provenance category that explains how a language or variety arose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:originProgramming           a gmeow:LanguageOrigin ; rdfs:label "programming"@x-gmeow-english .
+gmeow:originProgramming skos:definition "The programming language origin — a provenance category that explains how a language or variety arose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:originMarkup                a gmeow:LanguageOrigin ; rdfs:label "markup"@x-gmeow-english .
+gmeow:originMarkup skos:definition "The markup language origin — a provenance category that explains how a language or variety arose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:originQuery                 a gmeow:LanguageOrigin ; rdfs:label "query"@x-gmeow-english .
+gmeow:originQuery skos:definition "The query language origin — a provenance category that explains how a language or variety arose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:originPidgin                a gmeow:LanguageOrigin ; rdfs:label "pidgin"@x-gmeow-english .
+gmeow:originPidgin skos:definition "The pidgin language origin — a provenance category that explains how a language or variety arose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:originCreole                a gmeow:LanguageOrigin ; rdfs:label "creole"@x-gmeow-english .
+gmeow:originCreole skos:definition "The creole language origin — a provenance category that explains how a language or variety arose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:originMixed                 a gmeow:LanguageOrigin ; rdfs:label "mixed / contact language"@x-gmeow-english .
+gmeow:originMixed skos:definition "The mixed language origin — a provenance category that explains how a language or variety arose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:originReconstructed         a gmeow:LanguageOrigin ; rdfs:label "reconstructed (proto-language)"@x-gmeow-english .
+gmeow:originReconstructed skos:definition "The reconstructed language origin — a provenance category that explains how a language or variety arose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 
 gmeow:LanguageModality
     a owl:Class, gufo:AbstractIndividualType ;
@@ -447,12 +477,26 @@ gmeow:LanguageModality
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:modalitySpoken     a gmeow:LanguageModality ; rdfs:label "spoken"@x-gmeow-english .
+gmeow:modalitySpoken skos:definition "The spoken language modality — a channel or medium through which a language is produced or perceived."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:modalitySigned     a gmeow:LanguageModality ; rdfs:label "signed"@x-gmeow-english .
+gmeow:modalitySigned skos:definition "The signed language modality — a channel or medium through which a language is produced or perceived."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:modalityWritten    a gmeow:LanguageModality ; rdfs:label "written"@x-gmeow-english .
+gmeow:modalityWritten skos:definition "The written language modality — a channel or medium through which a language is produced or perceived."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:modalityWhistled   a gmeow:LanguageModality ; rdfs:label "whistled"@x-gmeow-english .
+gmeow:modalityWhistled skos:definition "The whistled language modality — a channel or medium through which a language is produced or perceived."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:modalityTactile    a gmeow:LanguageModality ; rdfs:label "tactile (e.g. Braille, Protactile)"@x-gmeow-english .
+gmeow:modalityTactile skos:definition "The tactile language modality — a channel or medium through which a language is produced or perceived."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:modalityMachine    a gmeow:LanguageModality ; rdfs:label "machine / programmatic"@x-gmeow-english .
+gmeow:modalityMachine skos:definition "The machine language modality — a channel or medium through which a language is produced or perceived."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:modalityMultimodal a gmeow:LanguageModality ; rdfs:label "multimodal"@x-gmeow-english .
+gmeow:modalityMultimodal skos:definition "The multimodal language modality — a channel or medium through which a language is produced or perceived."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 
 gmeow:LanguageStatus
     a owl:Class, gufo:AbstractIndividualType ;
@@ -462,13 +506,29 @@ gmeow:LanguageStatus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:statusLiving            a gmeow:LanguageStatus ; rdfs:label "living"@x-gmeow-english .
+gmeow:statusLiving skos:definition "The living language status — a vitality or registration stage of a language or constructed language project."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:statusHistorical        a gmeow:LanguageStatus ; rdfs:label "historical"@x-gmeow-english .
+gmeow:statusHistorical skos:definition "The historical language status — a vitality or registration stage of a language or constructed language project."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:statusExtinct           a gmeow:LanguageStatus ; rdfs:label "extinct"@x-gmeow-english .
+gmeow:statusExtinct skos:definition "The extinct language status — a vitality or registration stage of a language or constructed language project."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:statusDormant           a gmeow:LanguageStatus ; rdfs:label "dormant"@x-gmeow-english .
+gmeow:statusDormant skos:definition "The dormant language status — a vitality or registration stage of a language or constructed language project."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:statusRevived           a gmeow:LanguageStatus ; rdfs:label "revived"@x-gmeow-english .
+gmeow:statusRevived skos:definition "The revived language status — a vitality or registration stage of a language or constructed language project."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:statusEmerging          a gmeow:LanguageStatus ; rdfs:label "emerging"@x-gmeow-english .
+gmeow:statusEmerging skos:definition "The emerging language status — a vitality or registration stage of a language or constructed language project."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:statusProposed          a gmeow:LanguageStatus ; rdfs:label "proposed"@x-gmeow-english .
+gmeow:statusProposed skos:definition "The proposed language status — a vitality or registration stage of a language or constructed language project."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:statusConstructedActive a gmeow:LanguageStatus ; rdfs:label "constructed — actively used"@x-gmeow-english .
+gmeow:statusConstructedActive skos:definition "The constructed active language status — a vitality or registration stage of a language or constructed language project."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 
 gmeow:WritingSystemType
     a owl:Class, gufo:AbstractIndividualType ;
@@ -478,15 +538,35 @@ gmeow:WritingSystemType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:wsTypeAlphabet     a gmeow:WritingSystemType ; rdfs:label "alphabet"@x-gmeow-english .
+gmeow:wsTypeAlphabet skos:definition "The alphabet writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:wsTypeAbjad        a gmeow:WritingSystemType ; rdfs:label "abjad"@x-gmeow-english .
+gmeow:wsTypeAbjad skos:definition "The abjad writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:wsTypeAbugida      a gmeow:WritingSystemType ; rdfs:label "abugida"@x-gmeow-english .
+gmeow:wsTypeAbugida skos:definition "The abugida writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:wsTypeSyllabary    a gmeow:WritingSystemType ; rdfs:label "syllabary"@x-gmeow-english .
+gmeow:wsTypeSyllabary skos:definition "The syllabary writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:wsTypeLogographic  a gmeow:WritingSystemType ; rdfs:label "logographic"@x-gmeow-english .
+gmeow:wsTypeLogographic skos:definition "The logographic writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:wsTypeFeatural     a gmeow:WritingSystemType ; rdfs:label "featural"@x-gmeow-english .
+gmeow:wsTypeFeatural skos:definition "The featural writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:wsTypeIdeographic  a gmeow:WritingSystemType ; rdfs:label "ideographic"@x-gmeow-english .
+gmeow:wsTypeIdeographic skos:definition "The ideographic writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:wsTypePictographic a gmeow:WritingSystemType ; rdfs:label "pictographic"@x-gmeow-english .
+gmeow:wsTypePictographic skos:definition "The pictographic writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:wsTypeNonLinear    a gmeow:WritingSystemType ; rdfs:label "non-linear (e.g. Ithkuil)"@x-gmeow-english .
+gmeow:wsTypeNonLinear skos:definition "The non linear writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:wsTypeMixed        a gmeow:WritingSystemType ; rdfs:label "mixed"@x-gmeow-english .
+gmeow:wsTypeMixed skos:definition "The mixed writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 
 gmeow:TextDirection
     a owl:Class, gufo:AbstractIndividualType ;
@@ -496,12 +576,26 @@ gmeow:TextDirection
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:directionLtr           a gmeow:TextDirection ; rdfs:label "left-to-right"@x-gmeow-english .
+gmeow:directionLtr skos:definition "The ltr text direction — a convention for ordering glyphs when rendering a writing system."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:directionRtl           a gmeow:TextDirection ; rdfs:label "right-to-left"@x-gmeow-english .
+gmeow:directionRtl skos:definition "The rtl text direction — a convention for ordering glyphs when rendering a writing system."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:directionVerticalRtl   a gmeow:TextDirection ; rdfs:label "vertical, columns right-to-left"@x-gmeow-english .
+gmeow:directionVerticalRtl skos:definition "The vertical rtl text direction — a convention for ordering glyphs when rendering a writing system."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:directionVerticalLtr   a gmeow:TextDirection ; rdfs:label "vertical, columns left-to-right"@x-gmeow-english .
+gmeow:directionVerticalLtr skos:definition "The vertical ltr text direction — a convention for ordering glyphs when rendering a writing system."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:directionBoustrophedon a gmeow:TextDirection ; rdfs:label "boustrophedon"@x-gmeow-english .
+gmeow:directionBoustrophedon skos:definition "The boustrophedon text direction — a convention for ordering glyphs when rendering a writing system."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:directionNonLinear     a gmeow:TextDirection ; rdfs:label "non-linear"@x-gmeow-english .
+gmeow:directionNonLinear skos:definition "The non linear text direction — a convention for ordering glyphs when rendering a writing system."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:directionContextual    a gmeow:TextDirection ; rdfs:label "contextual / bidirectional"@x-gmeow-english .
+gmeow:directionContextual skos:definition "The contextual text direction — a convention for ordering glyphs when rendering a writing system."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 
 gmeow:ScriptRole
     a owl:Class, gufo:AbstractIndividualType ;
@@ -511,13 +605,29 @@ gmeow:ScriptRole
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:scriptRolePrimary            a gmeow:ScriptRole ; rdfs:label "primary"@x-gmeow-english .
+gmeow:scriptRolePrimary skos:definition "The primary script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:scriptRoleLogographicContent a gmeow:ScriptRole ; rdfs:label "logographic content"@x-gmeow-english .
+gmeow:scriptRoleLogographicContent skos:definition "The logographic content script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:scriptRoleSyllabicGrammar    a gmeow:ScriptRole ; rdfs:label "syllabic grammar / inflection"@x-gmeow-english .
+gmeow:scriptRoleSyllabicGrammar skos:definition "The syllabic grammar script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:scriptRoleLoanword           a gmeow:ScriptRole ; rdfs:label "loanword / foreign term"@x-gmeow-english .
+gmeow:scriptRoleLoanword skos:definition "The loanword script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:scriptRoleTransliteration    a gmeow:ScriptRole ; rdfs:label "transliteration / romanization"@x-gmeow-english .
+gmeow:scriptRoleTransliteration skos:definition "The transliteration script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:scriptRoleLiturgical         a gmeow:ScriptRole ; rdfs:label "liturgical"@x-gmeow-english .
+gmeow:scriptRoleLiturgical skos:definition "The liturgical script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:scriptRoleHistorical         a gmeow:ScriptRole ; rdfs:label "historical / superseded"@x-gmeow-english .
+gmeow:scriptRoleHistorical skos:definition "The historical script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:scriptRoleDecorative         a gmeow:ScriptRole ; rdfs:label "decorative"@x-gmeow-english .
+gmeow:scriptRoleDecorative skos:definition "The decorative script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 
 gmeow:ProficiencyModality
     a owl:Class, gufo:AbstractIndividualType ;
@@ -527,12 +637,26 @@ gmeow:ProficiencyModality
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:profModalitySpeaking      a gmeow:ProficiencyModality ; rdfs:label "speaking"@x-gmeow-english .
+gmeow:profModalitySpeaking skos:definition "The speaking proficiency modality — a specific skill channel (receptive, productive, signing, etc.) on which proficiency is assessed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:profModalityListening     a gmeow:ProficiencyModality ; rdfs:label "listening"@x-gmeow-english .
+gmeow:profModalityListening skos:definition "The listening proficiency modality — a specific skill channel (receptive, productive, signing, etc.) on which proficiency is assessed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:profModalityReading       a gmeow:ProficiencyModality ; rdfs:label "reading"@x-gmeow-english .
+gmeow:profModalityReading skos:definition "The reading proficiency modality — a specific skill channel (receptive, productive, signing, etc.) on which proficiency is assessed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:profModalityWriting       a gmeow:ProficiencyModality ; rdfs:label "writing"@x-gmeow-english .
+gmeow:profModalityWriting skos:definition "The writing proficiency modality — a specific skill channel (receptive, productive, signing, etc.) on which proficiency is assessed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:profModalitySigning       a gmeow:ProficiencyModality ; rdfs:label "signing"@x-gmeow-english .
+gmeow:profModalitySigning skos:definition "The signing proficiency modality — a specific skill channel (receptive, productive, signing, etc.) on which proficiency is assessed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:profModalityComprehension a gmeow:ProficiencyModality ; rdfs:label "comprehension"@x-gmeow-english .
+gmeow:profModalityComprehension skos:definition "The comprehension proficiency modality — a specific skill channel (receptive, productive, signing, etc.) on which proficiency is assessed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:profModalityOverall       a gmeow:ProficiencyModality ; rdfs:label "overall"@x-gmeow-english .
+gmeow:profModalityOverall skos:definition "The overall proficiency modality — a specific skill channel (receptive, productive, signing, etc.) on which proficiency is assessed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 
 gmeow:ProficiencyScale
     a owl:Class, gufo:AbstractIndividualType ;
@@ -542,12 +666,26 @@ gmeow:ProficiencyScale
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:scaleCEFR         a gmeow:ProficiencyScale ; rdfs:label "CEFR"@x-gmeow-english .
+gmeow:scaleCEFR skos:definition "The cefr proficiency scale — a named framework that defines ordered levels of language or skill competence."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:scaleILR          a gmeow:ProficiencyScale ; rdfs:label "ILR"@x-gmeow-english .
+gmeow:scaleILR skos:definition "The ilr proficiency scale — a named framework that defines ordered levels of language or skill competence."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:scaleACTFL        a gmeow:ProficiencyScale ; rdfs:label "ACTFL"@x-gmeow-english .
+gmeow:scaleACTFL skos:definition "The actfl proficiency scale — a named framework that defines ordered levels of language or skill competence."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:scaleSelfReported a gmeow:ProficiencyScale ; rdfs:label "self-reported"@x-gmeow-english .
+gmeow:scaleSelfReported skos:definition "The self reported proficiency scale — a named framework that defines ordered levels of language or skill competence."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:scaleDreyfus      a gmeow:ProficiencyScale ; rdfs:label "Dreyfus"@x-gmeow-english .
+gmeow:scaleDreyfus skos:definition "The dreyfus proficiency scale — a named framework that defines ordered levels of language or skill competence."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:scaleNIH          a gmeow:ProficiencyScale ; rdfs:label "NIH"@x-gmeow-english .
+gmeow:scaleNIH skos:definition "The nih proficiency scale — a named framework that defines ordered levels of language or skill competence."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:scaleAssessed     a gmeow:ProficiencyScale ; rdfs:label "assessed"@x-gmeow-english .
+gmeow:scaleAssessed skos:definition "The assessed proficiency scale — a named framework that defines ordered levels of language or skill competence."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 
 gmeow:ProficiencyLevel
     a owl:Class, gufo:AbstractIndividualType ;
@@ -557,31 +695,71 @@ gmeow:ProficiencyLevel
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:cefrA1 a gmeow:ProficiencyLevel ; rdfs:label "CEFR A1"@x-gmeow-english ; gmeow:levelScale gmeow:scaleCEFR .
+gmeow:cefrA1 skos:definition "The a 1 proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:cefrA2 a gmeow:ProficiencyLevel ; rdfs:label "CEFR A2"@x-gmeow-english ; gmeow:levelScale gmeow:scaleCEFR .
+gmeow:cefrA2 skos:definition "The a 2 proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:cefrB1 a gmeow:ProficiencyLevel ; rdfs:label "CEFR B1"@x-gmeow-english ; gmeow:levelScale gmeow:scaleCEFR .
+gmeow:cefrB1 skos:definition "The b 1 proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:cefrB2 a gmeow:ProficiencyLevel ; rdfs:label "CEFR B2"@x-gmeow-english ; gmeow:levelScale gmeow:scaleCEFR .
+gmeow:cefrB2 skos:definition "The b 2 proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:cefrC1 a gmeow:ProficiencyLevel ; rdfs:label "CEFR C1"@x-gmeow-english ; gmeow:levelScale gmeow:scaleCEFR .
+gmeow:cefrC1 skos:definition "The c 1 proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:cefrC2 a gmeow:ProficiencyLevel ; rdfs:label "CEFR C2"@x-gmeow-english ; gmeow:levelScale gmeow:scaleCEFR .
+gmeow:cefrC2 skos:definition "The c 2 proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:levelNative   a gmeow:ProficiencyLevel ; rdfs:label "native"@x-gmeow-english .
+gmeow:levelNative skos:definition "The native proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:levelHeritage a gmeow:ProficiencyLevel ; rdfs:label "heritage"@x-gmeow-english .
 
 # Dreyfus model (skill scale)
+gmeow:levelHeritage skos:definition "The heritage proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:dreyfusNovice          a gmeow:ProficiencyLevel ; rdfs:label "Dreyfus novice"@x-gmeow-english ;          gmeow:levelScale gmeow:scaleDreyfus .
+gmeow:dreyfusNovice skos:definition "The novice proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:dreyfusAdvancedBeginner a gmeow:ProficiencyLevel ; rdfs:label "Dreyfus advanced beginner"@x-gmeow-english ; gmeow:levelScale gmeow:scaleDreyfus .
+gmeow:dreyfusAdvancedBeginner skos:definition "The advanced beginner proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:dreyfusCompetent       a gmeow:ProficiencyLevel ; rdfs:label "Dreyfus competent"@x-gmeow-english ;       gmeow:levelScale gmeow:scaleDreyfus .
+gmeow:dreyfusCompetent skos:definition "The competent proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:dreyfusProficient      a gmeow:ProficiencyLevel ; rdfs:label "Dreyfus proficient"@x-gmeow-english ;      gmeow:levelScale gmeow:scaleDreyfus .
+gmeow:dreyfusProficient skos:definition "The proficient proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:dreyfusExpert          a gmeow:ProficiencyLevel ; rdfs:label "Dreyfus expert"@x-gmeow-english ;          gmeow:levelScale gmeow:scaleDreyfus .
 
 # NIH proficiency scale (skill scale)
+gmeow:dreyfusExpert skos:definition "The expert proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:nihBeginner     a gmeow:ProficiencyLevel ; rdfs:label "NIH beginner"@x-gmeow-english ;     gmeow:levelScale gmeow:scaleNIH .
+gmeow:nihBeginner skos:definition "The beginner proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:nihIntermediate a gmeow:ProficiencyLevel ; rdfs:label "NIH intermediate"@x-gmeow-english ; gmeow:levelScale gmeow:scaleNIH .
+gmeow:nihIntermediate skos:definition "The intermediate proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:nihAdvanced     a gmeow:ProficiencyLevel ; rdfs:label "NIH advanced"@x-gmeow-english ;     gmeow:levelScale gmeow:scaleNIH .
+gmeow:nihAdvanced skos:definition "The advanced proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:nihExpert       a gmeow:ProficiencyLevel ; rdfs:label "NIH expert"@x-gmeow-english ;       gmeow:levelScale gmeow:scaleNIH .
 
 # Generic assessed scale (skill scale)
+gmeow:nihExpert skos:definition "The expert proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:assessedBeginner  a gmeow:ProficiencyLevel ; rdfs:label "assessed beginner"@x-gmeow-english ;  gmeow:levelScale gmeow:scaleAssessed .
+gmeow:assessedBeginner skos:definition "The assessed beginner proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:assessedCompetent a gmeow:ProficiencyLevel ; rdfs:label "assessed competent"@x-gmeow-english ; gmeow:levelScale gmeow:scaleAssessed .
+gmeow:assessedCompetent skos:definition "The assessed competent proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:assessedExpert    a gmeow:ProficiencyLevel ; rdfs:label "assessed expert"@x-gmeow-english ;    gmeow:levelScale gmeow:scaleAssessed .
+gmeow:assessedExpert skos:definition "The assessed expert proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 
 gmeow:TransliterationScheme
     a owl:Class, gufo:AbstractIndividualType ;
@@ -591,21 +769,45 @@ gmeow:TransliterationScheme
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:schemeHepburn              a gmeow:TransliterationScheme ; rdfs:label "Hepburn (Japanese → Latin)"@x-gmeow-english .
+gmeow:schemeHepburn skos:definition "The hepburn transliteration scheme — a rule set for converting text from one writing system into another while preserving phonemic or orthographic structure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:schemeKunreiShiki          a gmeow:TransliterationScheme ; rdfs:label "Kunrei-shiki (Japanese → Latin)"@x-gmeow-english .
+gmeow:schemeKunreiShiki skos:definition "The kunrei shiki transliteration scheme — a rule set for converting text from one writing system into another while preserving phonemic or orthographic structure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:schemeNihonShiki           a gmeow:TransliterationScheme ; rdfs:label "Nihon-shiki (Japanese → Latin)"@x-gmeow-english .
+gmeow:schemeNihonShiki skos:definition "The nihon shiki transliteration scheme — a rule set for converting text from one writing system into another while preserving phonemic or orthographic structure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:schemePinyin               a gmeow:TransliterationScheme ; rdfs:label "Hanyu Pinyin (Mandarin → Latin)"@x-gmeow-english .
+gmeow:schemePinyin skos:definition "The pinyin transliteration scheme — a rule set for converting text from one writing system into another while preserving phonemic or orthographic structure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:schemeWadeGiles            a gmeow:TransliterationScheme ; rdfs:label "Wade-Giles (Mandarin → Latin)"@x-gmeow-english .
+gmeow:schemeWadeGiles skos:definition "The wade giles transliteration scheme — a rule set for converting text from one writing system into another while preserving phonemic or orthographic structure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:schemeRevisedRomanization  a gmeow:TransliterationScheme ; rdfs:label "Revised Romanization (Korean → Latin)"@x-gmeow-english .
+gmeow:schemeRevisedRomanization skos:definition "The revised romanization transliteration scheme — a rule set for converting text from one writing system into another while preserving phonemic or orthographic structure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:schemeMcCuneReischauer     a gmeow:TransliterationScheme ; rdfs:label "McCune-Reischauer (Korean → Latin)"@x-gmeow-english .
+gmeow:schemeMcCuneReischauer skos:definition "The mc cune reischauer transliteration scheme — a rule set for converting text from one writing system into another while preserving phonemic or orthographic structure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:schemeISO233               a gmeow:TransliterationScheme ; rdfs:label "ISO 233 (Arabic → Latin)"@x-gmeow-english .
+gmeow:schemeISO233 skos:definition "The iso 233 transliteration scheme — a rule set for converting text from one writing system into another while preserving phonemic or orthographic structure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:schemeISO15919             a gmeow:TransliterationScheme ; rdfs:label "ISO 15919 (Indic → Latin)"@x-gmeow-english .
+gmeow:schemeISO15919 skos:definition "The iso 15919 transliteration scheme — a rule set for converting text from one writing system into another while preserving phonemic or orthographic structure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:schemeIAST                 a gmeow:TransliterationScheme ; rdfs:label "IAST (Sanskrit/Indic → Latin)"@x-gmeow-english .
+gmeow:schemeIAST skos:definition "The iast transliteration scheme — a rule set for converting text from one writing system into another while preserving phonemic or orthographic structure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:schemeBGNPCGN              a gmeow:TransliterationScheme ; rdfs:label "BGN/PCGN romanization"@x-gmeow-english .
+gmeow:schemeBGNPCGN skos:definition "The bgn/pcgn transliteration scheme — a rule set for converting text from one writing system into another while preserving phonemic or orthographic structure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:schemeIPA                  a gmeow:TransliterationScheme ; rdfs:label "IPA phonetic transcription"@x-gmeow-english .
 
 # =========================================================================== #
 # VARIETY & CHANGE VALUE VOCABULARIES (open; individuals carry rdfs:label only)
 # =========================================================================== #
+gmeow:schemeIPA skos:definition "The ipa transliteration scheme — a rule set for converting text from one writing system into another while preserving phonemic or orthographic structure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 
 gmeow:LanguageVarietyKind
     a owl:Class, gufo:AbstractIndividualType ;
@@ -615,18 +817,44 @@ gmeow:LanguageVarietyKind
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:kindDialect           a gmeow:LanguageVarietyKind ; rdfs:label "dialect"@x-gmeow-english .
+gmeow:kindDialect skos:definition "The dialect language variety kind — a sociolinguistic category that describes the relationship of a variety to its speech community."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:kindSociolect         a gmeow:LanguageVarietyKind ; rdfs:label "sociolect"@x-gmeow-english .
+gmeow:kindSociolect skos:definition "The sociolect language variety kind — a sociolinguistic category that describes the relationship of a variety to its speech community."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:kindRegister          a gmeow:LanguageVarietyKind ; rdfs:label "register"@x-gmeow-english .
+gmeow:kindRegister skos:definition "The register language variety kind — a sociolinguistic category that describes the relationship of a variety to its speech community."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:kindIdiolect          a gmeow:LanguageVarietyKind ; rdfs:label "idiolect"@x-gmeow-english .
+gmeow:kindIdiolect skos:definition "The idiolect language variety kind — a sociolinguistic category that describes the relationship of a variety to its speech community."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:kindSlang             a gmeow:LanguageVarietyKind ; rdfs:label "slang"@x-gmeow-english .
+gmeow:kindSlang skos:definition "The slang language variety kind — a sociolinguistic category that describes the relationship of a variety to its speech community."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:kindJargon            a gmeow:LanguageVarietyKind ; rdfs:label "jargon"@x-gmeow-english .
+gmeow:kindJargon skos:definition "The jargon language variety kind — a sociolinguistic category that describes the relationship of a variety to its speech community."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:kindLocalizedVariant  a gmeow:LanguageVarietyKind ; rdfs:label "localized variant"@x-gmeow-english .
+gmeow:kindLocalizedVariant skos:definition "The localized variant language variety kind — a sociolinguistic category that describes the relationship of a variety to its speech community."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:kindStandard          a gmeow:LanguageVarietyKind ; rdfs:label "standard"@x-gmeow-english .
+gmeow:kindStandard skos:definition "The standard language variety kind — a sociolinguistic category that describes the relationship of a variety to its speech community."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:kindLanguage          a gmeow:LanguageVarietyKind ; rdfs:label "language (standpointed classification)"@x-gmeow-english .
+gmeow:kindLanguage skos:definition "The language language variety kind — a sociolinguistic category that describes the relationship of a variety to its speech community."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:kindCreole            a gmeow:LanguageVarietyKind ; rdfs:label "creole"@x-gmeow-english .
+gmeow:kindCreole skos:definition "The creole language variety kind — a sociolinguistic category that describes the relationship of a variety to its speech community."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:kindPidgin            a gmeow:LanguageVarietyKind ; rdfs:label "pidgin"@x-gmeow-english .
+gmeow:kindPidgin skos:definition "The pidgin language variety kind — a sociolinguistic category that describes the relationship of a variety to its speech community."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:kindKoine             a gmeow:LanguageVarietyKind ; rdfs:label "koine"@x-gmeow-english .
+gmeow:kindKoine skos:definition "The koine language variety kind — a sociolinguistic category that describes the relationship of a variety to its speech community."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:kindLinguaFranca      a gmeow:LanguageVarietyKind ; rdfs:label "lingua franca"@x-gmeow-english .
+gmeow:kindLinguaFranca skos:definition "The lingua franca language variety kind — a sociolinguistic category that describes the relationship of a variety to its speech community."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 
 gmeow:LanguageChangeType
     a owl:Class, gufo:AbstractIndividualType ;
@@ -636,18 +864,44 @@ gmeow:LanguageChangeType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:changeSoundShift        a gmeow:LanguageChangeType ; rdfs:label "sound shift"@x-gmeow-english .
+gmeow:changeSoundShift skos:definition "The sound shift language change type — a kind of diachronic process that alters a language's form, lexicon, or social standing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:changeSemanticDrift     a gmeow:LanguageChangeType ; rdfs:label "semantic drift"@x-gmeow-english .
+gmeow:changeSemanticDrift skos:definition "The semantic drift language change type — a kind of diachronic process that alters a language's form, lexicon, or social standing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:changeBorrowing         a gmeow:LanguageChangeType ; rdfs:label "borrowing"@x-gmeow-english .
+gmeow:changeBorrowing skos:definition "The borrowing language change type — a kind of diachronic process that alters a language's form, lexicon, or social standing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:changeSpellingReform    a gmeow:LanguageChangeType ; rdfs:label "spelling reform"@x-gmeow-english .
+gmeow:changeSpellingReform skos:definition "The spelling reform language change type — a kind of diachronic process that alters a language's form, lexicon, or social standing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:changeGrammaticalChange a gmeow:LanguageChangeType ; rdfs:label "grammatical change"@x-gmeow-english .
+gmeow:changeGrammaticalChange skos:definition "The grammatical change language change type — a kind of diachronic process that alters a language's form, lexicon, or social standing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:changeLexicalInnovation a gmeow:LanguageChangeType ; rdfs:label "lexical innovation"@x-gmeow-english .
+gmeow:changeLexicalInnovation skos:definition "The lexical innovation language change type — a kind of diachronic process that alters a language's form, lexicon, or social standing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:changeStandardization   a gmeow:LanguageChangeType ; rdfs:label "standardization"@x-gmeow-english .
+gmeow:changeStandardization skos:definition "The standardization language change type — a kind of diachronic process that alters a language's form, lexicon, or social standing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:changeLanguageContact   a gmeow:LanguageChangeType ; rdfs:label "language contact"@x-gmeow-english .
+gmeow:changeLanguageContact skos:definition "The language contact language change type — a kind of diachronic process that alters a language's form, lexicon, or social standing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:changeExtinction        a gmeow:LanguageChangeType ; rdfs:label "extinction"@x-gmeow-english .
+gmeow:changeExtinction skos:definition "The extinction language change type — a kind of diachronic process that alters a language's form, lexicon, or social standing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:changeRevival          a gmeow:LanguageChangeType ; rdfs:label "revival"@x-gmeow-english .
+gmeow:changeRevival skos:definition "The revival language change type — a kind of diachronic process that alters a language's form, lexicon, or social standing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:changeRevitalization   a gmeow:LanguageChangeType ; rdfs:label "revitalization"@x-gmeow-english .
+gmeow:changeRevitalization skos:definition "The revitalization language change type — a kind of diachronic process that alters a language's form, lexicon, or social standing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:changeSplit            a gmeow:LanguageChangeType ; rdfs:label "split"@x-gmeow-english .
+gmeow:changeSplit skos:definition "The split language change type — a kind of diachronic process that alters a language's form, lexicon, or social standing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 gmeow:changeMerger           a gmeow:LanguageChangeType ; rdfs:label "merger"@x-gmeow-english .
 
 # Endonym/exonym/glossonym are defined in the names module (gmeow:NamePurpose
 # value vocabulary). Languages reference them, they are not redeclared here.
+gmeow:changeMerger skos:definition "The merger language change type — a kind of diachronic process that alters a language's form, lexicon, or social standing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .

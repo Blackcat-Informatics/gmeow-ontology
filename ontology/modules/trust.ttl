@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/trust>
     a owl:Ontology ;
     rdfs:label "GMEOW Trust Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Trust Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/trust> ;
     rdfs:comment """A cross-cutting trust facility: cryptographic keys, certifications (key↔identity attestations) and perspectival owner-trust — the Web-of-Trust superset layer (OpenPGP RFC 4880/9580, X.509, SSH, Nostr; aligned to the WOT schema). Reused wherever identity must be vouched for: contacts, accounts, and message signatures (the messaging-trust module builds on this). Trust here is asserted and perspectival; trust METRICS (transitive validity propagation) are deliberately left outside the logical core — represent inputs and outputs, never compute them in OWL.
 
 STANDPOINT DOCTRINE (#51). The trust module exercises the three-axis separation that governs every contested-fact slice: gmeow:accordingTo (whose frame holds the claim true) ⟂ gmeow:wasAttributedTo (which source recorded it) ⟂ gmeow:confidence (how sure we are). A gmeow:TrustAssertion is already perspectival (its gmeow:trustor is the frame holder), but the underlying gmeow:Certification — a key↔identity binding — can ALSO be disputed across standpoints: one standpoint holds the binding unequivocal, another refutes it. The three axes never bridge (Principle 9); a neutral archive can record a partisan claim (source ≠ standpoint), and a claim can be high-confidence-that-S-holds-it yet about a frame we disagree with (confidence ≠ standpoint). There is NO trust-specific dispute mechanism, no primaryCertification, no preferredTrust — only the cross-cutting #43 facility."""@x-gmeow-english ;
@@ -34,9 +36,17 @@ gmeow:KeyScheme
 
 # Standard key schemes (extend by adding individuals, never subclasses).
 gmeow:keySchemePGP   a gmeow:KeyScheme ; rdfs:label "OpenPGP"@x-gmeow-english .
+gmeow:keySchemePGP skos:definition "The pgp key scheme — a cryptographic key format used to identify an agent or sign messages."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/trust> .
 gmeow:keySchemeX509  a gmeow:KeyScheme ; rdfs:label "X.509"@x-gmeow-english .
+gmeow:keySchemeX509 skos:definition "The x.509 key scheme — a cryptographic key format used to identify an agent or sign messages."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/trust> .
 gmeow:keySchemeSSH   a gmeow:KeyScheme ; rdfs:label "SSH"@x-gmeow-english .
+gmeow:keySchemeSSH skos:definition "The ssh key scheme — a cryptographic key format used to identify an agent or sign messages."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/trust> .
 gmeow:keySchemeNostr a gmeow:KeyScheme ; rdfs:label "Nostr"@x-gmeow-english .
+gmeow:keySchemeNostr skos:definition "The nostr key scheme — a cryptographic key format used to identify an agent or sign messages."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/trust> .
 
 gmeow:keyScheme
     a owl:ObjectProperty, owl:FunctionalProperty ;

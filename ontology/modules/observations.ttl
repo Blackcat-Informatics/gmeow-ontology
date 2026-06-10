@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/observations>
     a owl:Ontology ;
     rdfs:label "GMEOW Observations Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Observations Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> ;
     rdfs:comment """The universal observation stack: a reified gufo:Relator that unifies spatial measurement, temporal dating, sensory reading, standpoint claims, identity claims, naming claims, rights claims, and kinship claims into one structure — realising Governing Principle #9 (Observation ≡ Measurement ≡ Standpoint ≡ IdentityFacet ≡ NameUsage ≡ RightsStatement ≡ KinRelationship). Sits in the foundational provenance/standpoint layer and is consumed by every slice. Aligns SOSA/SSN, PROV-O, and CIDOC E13 by reference.
 
 Also home to the universal Quantity / MeasuredValue construct (#77): a scalar numeric value bundled with unit/frame, determinacy, and provenance — the synthesis of FRAME-GEN + DET-GEN + OBS. gmeow:Quantity and gmeow:MeasuredValue are equivalent to gmeow:ScalarQuantity, providing domain-neutral names for the same construct."""@x-gmeow-english ;
@@ -203,23 +205,39 @@ gmeow:ObservationType
 
 # Seeds — ObservationType
 gmeow:observationTypeMeasurement  a gmeow:ObservationType ; rdfs:label "measurement"@x-gmeow-english ;          skos:definition "A quantitative or qualitative measurement assigning a value to a feature."@x-gmeow-english .
+gmeow:observationTypeMeasurement rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:observationTypeSensory      a gmeow:ObservationType ; rdfs:label "sensory reading"@x-gmeow-english ;      skos:definition "A reading from a sensor or sensory apparatus."@x-gmeow-english .
+gmeow:observationTypeSensory rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:observationTypeStandpoint   a gmeow:ObservationType ; rdfs:label "standpoint claim"@x-gmeow-english ;     skos:definition "An assertion made from a specific standpoint or frame."@x-gmeow-english .
+gmeow:observationTypeStandpoint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:observationTypeDerived      a gmeow:ObservationType ; rdfs:label "derived inference"@x-gmeow-english ;    skos:definition "An observation produced by inference, calculation, or machine learning from other observations."@x-gmeow-english .
+gmeow:observationTypeDerived rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:observationTypeSimulation   a gmeow:ObservationType ; rdfs:label "simulation output"@x-gmeow-english ;    skos:definition "An observation produced by computational simulation rather than direct measurement."@x-gmeow-english .
+gmeow:observationTypeSimulation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:observationTypeIdentity     a gmeow:ObservationType ; rdfs:label "identity claim"@x-gmeow-english ;       skos:definition "An identity claim — gender identity, gender expression, sexual orientation, or romantic orientation — asserted by or about a person."@x-gmeow-english .
+gmeow:observationTypeIdentity rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:observationTypeNaming       a gmeow:ObservationType ; rdfs:label "naming claim"@x-gmeow-english ;         skos:definition "A claim about the appellation by which an entity is known in a given context."@x-gmeow-english .
+gmeow:observationTypeNaming rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:observationTypeRights       a gmeow:ObservationType ; rdfs:label "rights claim"@x-gmeow-english ;         skos:definition "A claim about the rights, permissions, prohibitions, or duties governing an entity."@x-gmeow-english .
+gmeow:observationTypeRights rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:observationTypeKinship      a gmeow:ObservationType ; rdfs:label "kinship claim"@x-gmeow-english ;        skos:definition "A claim about a kinship or genealogical relationship between persons."@x-gmeow-english .
+gmeow:observationTypeKinship rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:observationTypeStreaming    a gmeow:ObservationType ; rdfs:label "streaming"@x-gmeow-english ;            skos:definition "A streaming observation — a member of a time-ordered sequence produced by a sensor or platform."@x-gmeow-english .
 
 # Seeds — ObservationMethod (generic; domain-specific methods live in their modules)
+gmeow:observationTypeStreaming rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:methodDirectObservation     a gmeow:ObservationMethod ; rdfs:label "direct observation"@x-gmeow-english ;   skos:definition "Observation by unaided human perception."@x-gmeow-english .
+gmeow:methodDirectObservation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:methodInstrumentalReading   a gmeow:ObservationMethod ; rdfs:label "instrumental reading"@x-gmeow-english ; skos:definition "Observation by a calibrated instrument or sensor."@x-gmeow-english .
+gmeow:methodInstrumentalReading rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:methodSurvey               a gmeow:ObservationMethod ; rdfs:label "survey"@x-gmeow-english ;               skos:definition "A systematic survey or census procedure."@x-gmeow-english .
+gmeow:methodSurvey rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:methodRemoteSensing        a gmeow:ObservationMethod ; rdfs:label "remote sensing"@x-gmeow-english ;        skos:definition "Observation from a distance, typically satellite or aerial imagery."@x-gmeow-english .
+gmeow:methodRemoteSensing rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:methodComputationalModel   a gmeow:ObservationMethod ; rdfs:label "computational model"@x-gmeow-english ;  skos:definition "Observation derived from a computational or mathematical model."@x-gmeow-english .
+gmeow:methodComputationalModel rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:methodExpertJudgement      a gmeow:ObservationMethod ; rdfs:label "expert judgement"@x-gmeow-english ;     skos:definition "Observation based on expert assessment or consensus."@x-gmeow-english .
+gmeow:methodExpertJudgement rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 gmeow:methodStreaming            a gmeow:ObservationMethod ; rdfs:label "streaming"@x-gmeow-english ;            skos:definition "Collection via a continuous or periodic streaming protocol."@x-gmeow-english .
 
 # =========================================================================== #
@@ -229,6 +247,7 @@ gmeow:methodStreaming            a gmeow:ObservationMethod ; rdfs:label "streami
 # sensory, standpoint, events) shares the same parent.  Each module DEEPENS
 # its specialisation with domain-specific properties and seeds.
 # =========================================================================== #
+gmeow:methodStreaming rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/observations> .
 
 gmeow:Measurement
     a owl:Class, gufo:SubKind ;

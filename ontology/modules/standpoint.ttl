@@ -8,6 +8,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/standpoint>
     a owl:Ontology ;
     rdfs:label "GMEOW Standpoint Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Standpoint Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/standpoint> ;
     rdfs:comment """Cross-cutting foundational facility (a peer of the temporal module): the standpoint axis — *according to whom* a statement is held true. It lands in the statement/provenance layer and is consumed by every slice that records contested facts (events, locations, genealogy, organizations, trust, naming).
 
 DOCTRINE.
@@ -55,21 +57,25 @@ gmeow:unequivocal
     a gmeow:StandpointModality ;
     rdfs:label "unequivocal (□, true)"@x-gmeow-english ;
     skos:definition "□_S — settled / necessary true according to the standpoint: the proposition holds in every precisification the standpoint admits (CRMinf belief value 'true'). The default when no gmeow:standpointModality is given."@x-gmeow-english .
+gmeow:unequivocal rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/standpoint> .
 
 gmeow:probable
     a gmeow:StandpointModality ;
     rdfs:label "probable"@x-gmeow-english ;
     skos:definition "Likely true according to the standpoint — held more strongly than merely possible, but short of settled (CRMinf belief value 'probable')."@x-gmeow-english .
+gmeow:probable rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/standpoint> .
 
 gmeow:conceivable
     a gmeow:StandpointModality ;
     rdfs:label "conceivable (◊, possible)"@x-gmeow-english ;
     skos:definition "◊_S — possible according to the standpoint: the proposition holds in some precisification the standpoint admits, but is not settled (CRMinf belief value 'possible')."@x-gmeow-english .
+gmeow:conceivable rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/standpoint> .
 
 gmeow:refuted
     a gmeow:StandpointModality ;
     rdfs:label "refuted (□¬, false)"@x-gmeow-english ;
     skos:definition "□¬_S — settled false according to the standpoint: the standpoint DENIES the proposition (CRMinf belief value 'false'). Distinct from silence (no claim) and from low gmeow:confidence — an explicit, recorded denial. The proposition is carried as the subject of the denial, never asserted as a fact of the universal standpoint."@x-gmeow-english .
+gmeow:refuted rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/standpoint> .
 
 gmeow:bullshit
     a gmeow:StandpointModality ;
@@ -79,6 +85,7 @@ gmeow:bullshit
 # --------------------------------------------------------------------------- #
 # The standpoint as a first-class frame, and the standpoint poset.
 # --------------------------------------------------------------------------- #
+gmeow:bullshit rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/standpoint> .
 
 gmeow:Standpoint
     a owl:Class, gufo:Kind ;

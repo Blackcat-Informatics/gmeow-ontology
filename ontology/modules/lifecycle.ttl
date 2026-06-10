@@ -8,6 +8,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/lifecycle>
     a owl:Ontology ;
     rdfs:label "GMEOW Lifecycle Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Lifecycle Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/lifecycle> ;
     rdfs:comment """Universal time-bounded existence facility: ontic existence-over-time for any gmeow:Entity, distinct from suppression (a display contract). Every entity may carry creation and destruction events, an existence interval, and supersession links. Revised forward, never deleted (Principle 10). Reuses the events module (gmeow:Event + EventType value vocabulary), the temporal module (TimeInterval / TimeScopedRelation / validFrom / validUntil), and the standpoint module (accordingTo / contested claims). Flat-first, reify on demand."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 

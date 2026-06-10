@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/connectivity>
     a owl:Ontology ;
     rdfs:label "GMEOW Connectivity Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Connectivity Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/connectivity> ;
     rdfs:comment "Universal connectivity, network, and routing constructs — traversable links, reified connections, and route paths. Distinct from mereology (partOf) and RCC-8 adjacency. Part of the #42 Location-as-reference-frame epic."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
@@ -59,14 +61,28 @@ gmeow:RouteKind
 
 # Seeds for RouteKind
 gmeow:routeKindTransit      a gmeow:RouteKind ; rdfs:label "transit route"@x-gmeow-english .
+gmeow:routeKindTransit skos:definition "The transit route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/connectivity> .
 gmeow:routeKindWalking      a gmeow:RouteKind ; rdfs:label "walking route"@x-gmeow-english .
+gmeow:routeKindWalking skos:definition "The walking route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/connectivity> .
 gmeow:routeKindFlight       a gmeow:RouteKind ; rdfs:label "flight path"@x-gmeow-english .
+gmeow:routeKindFlight skos:definition "The flight route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/connectivity> .
 gmeow:routeKindNetwork      a gmeow:RouteKind ; rdfs:label "network path"@x-gmeow-english .
+gmeow:routeKindNetwork skos:definition "The network route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/connectivity> .
 gmeow:routeKindCitation     a gmeow:RouteKind ; rdfs:label "citation chain"@x-gmeow-english .
+gmeow:routeKindCitation skos:definition "The citation route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/connectivity> .
 gmeow:routeKindSocial       a gmeow:RouteKind ; rdfs:label "social path"@x-gmeow-english .
+gmeow:routeKindSocial skos:definition "The social route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/connectivity> .
 gmeow:routeKindDependency   a gmeow:RouteKind ; rdfs:label "dependency chain"@x-gmeow-english .
 
 # Route properties
+gmeow:routeKindDependency skos:definition "The dependency route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/connectivity> .
 gmeow:routeStart
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:Route ;
@@ -130,3 +146,5 @@ gmeow:referenceFrameNetworkGraph
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricGraphHops .
+gmeow:referenceFrameNetworkGraph skos:definition "The network graph reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/connectivity> .
