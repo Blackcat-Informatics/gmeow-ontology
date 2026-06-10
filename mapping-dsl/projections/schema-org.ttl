@@ -795,3 +795,88 @@ gmeow:mapSchemaDescriptionPublicOnly a gmeow:ProjectionMapping ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:description ; gmeow:relation "=" ; gmeow:confidence 1.0 ;
         gmeow:lossyDrop "description withheld when entity is not explicitly eligible for consumerPublicSite" ] .
+
+# --------------------------------------------------------------------------- #
+# Issue #258 — Organization module deepening
+# --------------------------------------------------------------------------- #
+
+gmeow:mapSchemaOrganizationType a gmeow:ProjectionMapping ;
+    rdfs:label "OrganizationType value → schema target class"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "org" ; gmeow:value "otype" ;
+        gmeow:atom ( [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:organizationType ; gmeow:objectVar "otype" ] ) ;
+        gmeow:edoalSource gmeow:Organization ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:relation "=" ;
+        gmeow:transform gmeow:fnOrganizationTypeToClass ;
+        gmeow:valueClassMap (
+            [ gmeow:whenValue gmeow:organizationTypeCompany ; gmeow:toClass schema:Corporation ]
+            [ gmeow:whenValue gmeow:organizationTypeNonprofit ; gmeow:toClass schema:NGO ]
+            [ gmeow:whenValue gmeow:organizationTypeGovernmentBody ; gmeow:toClass schema:GovernmentOrganization ]
+            [ gmeow:whenValue gmeow:organizationTypeEducationalInstitution ; gmeow:toClass schema:EducationalOrganization ]
+            [ gmeow:whenValue gmeow:organizationTypeAssociation ; gmeow:toClass schema:Organization ]
+            [ gmeow:whenValue gmeow:organizationTypeCollaboration ; gmeow:toClass schema:Project ] ) ] .
+
+gmeow:mapSchemaPostRole a gmeow:ProjectionMapping ;
+    rdfs:label "Post → schema:OrganizationRole (lossy)"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "post" ; gmeow:value "roleName" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "post" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Post ]
+            [ gmeow:subjectVar "post" ; gmeow:predicate gmeow:postIn ; gmeow:objectVar "postOrg" ]
+            [ gmeow:subjectVar "mem" ; gmeow:predicate gmeow:fillsPost ; gmeow:objectVar "post" ]
+            [ gmeow:subjectVar "mem" ; gmeow:predicate gmeow:hasRole ; gmeow:objectVar "role" ]
+            [ gmeow:subjectVar "role" ;
+              gmeow:path [ a gmeow:AltPath ; gmeow:pathAlts ( rdfs:label gmeow:name ) ] ;
+              gmeow:objectVar "roleName" ] ) ;
+        gmeow:edoalPath true ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:roleName ; gmeow:relation "<=" ;
+        gmeow:transform gmeow:fnPostToOrganizationRole ; gmeow:confidence 0.7 ;
+        gmeow:lossyDrop "the Post (seat ⟂ holder) and Membership relator collapse to a flat schema:roleName; contested membership claims are not distinguished" ] .
+
+gmeow:mapSchemaHasSite a gmeow:ProjectionMapping ;
+    rdfs:label "hasSite → schema:location"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "org" ; gmeow:value "site" ;
+        gmeow:atom ( [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:hasSite ; gmeow:objectVar "site" ] ) ;
+        gmeow:edoalSource gmeow:hasSite ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:location ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:lossyDrop "the siteType distinction (headquarters/branch/registered) is dropped; the target node's own Place projection preserves geographic detail" ] .
+
+gmeow:mapSchemaLeiCode a gmeow:ProjectionMapping ;
+    rdfs:label "legalIdentifier (LEI scheme) → schema:leiCode"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "org" ; gmeow:value "lei" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:legalIdentifier ; gmeow:objectVar "lei" ]
+            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:identifierScheme ; gmeow:objectLiteral "lei" ] ) ;
+        gmeow:edoalSource gmeow:legalIdentifier ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:leiCode ; gmeow:relation "<=" ; gmeow:confidence 0.95 ;
+        gmeow:lossyDrop "only LEI-scheme identifiers are emitted; other schemes (ROR, company registration, Wikidata) are dropped in this projection" ] .
+
+gmeow:mapSchemaIndustryNaics a gmeow:ProjectionMapping ;
+    rdfs:label "industryClassification → schema:naics"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "org" ; gmeow:value "naics" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:industryClassification ; gmeow:objectVar "naics" ]
+            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:identifierScheme ; gmeow:objectLiteral "naics" ] ) ;
+        gmeow:edoalSource gmeow:industryClassification ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:naics ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "only NAICS-scheme classifications are emitted; ISIC and other schemes are dropped; the code is emitted as a plain literal" ] .
+
+gmeow:mapSchemaIndustryIsic a gmeow:ProjectionMapping ;
+    rdfs:label "industryClassification → schema:isicV4"@en ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "org" ; gmeow:value "isic" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:industryClassification ; gmeow:objectVar "isic" ]
+            [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:identifierScheme ; gmeow:objectLiteral "isicV4" ] ) ;
+        gmeow:edoalSource gmeow:industryClassification ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:isicV4 ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
+        gmeow:lossyDrop "only ISIC-V4-scheme classifications are emitted; NAICS and other schemes are dropped" ] .

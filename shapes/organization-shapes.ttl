@@ -1,0 +1,126 @@
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# SHACL shapes for the organization module (issue #258).
+# These target instance data and stay dormant when validating the TBox.
+
+# --------------------------------------------------------------------------- #
+# Post well-formedness
+# --------------------------------------------------------------------------- #
+
+gmeow:PostMustHavePostInShape
+    a sh:NodeShape ;
+    rdfs:label "Post must have exactly one postIn" ;
+    sh:targetClass gmeow:Post ;
+    sh:property [
+        sh:path gmeow:postIn ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:Post must have exactly one gmeow:postIn organization." ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Membership / Post org mismatch
+# --------------------------------------------------------------------------- #
+
+gmeow:MembershipFillsPostOrgMismatchShape
+    a sh:NodeShape ;
+    rdfs:label "Membership fillsPost org mismatch warning" ;
+    sh:targetClass gmeow:Membership ;
+    sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it
+    sh:sparql [
+        sh:message "A Membership fills a Post whose organization differs from the membership's organization." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/fillsPost> ?post .
+                $this <https://blackcatinformatics.ca/gmeow/membershipOrganization> ?memOrg .
+                ?post <https://blackcatinformatics.ca/gmeow/postIn> ?postOrg .
+                FILTER(?memOrg != ?postOrg)
+            }
+        """ ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Multi-org change event well-formedness
+# --------------------------------------------------------------------------- #
+
+gmeow:MergerAcquisitionEventShape
+    a sh:NodeShape ;
+    rdfs:label "Merger / acquisition event shape" ;
+    sh:targetClass gmeow:Event ;
+    sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it
+    sh:sparql [
+        sh:message "A merger or acquisition event should have at least 2 predecessor organizations and at least 1 successor organization." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/eventType> ?et .
+                FILTER(?et IN (
+                    <https://blackcatinformatics.ca/gmeow/eventTypeMerger>,
+                    <https://blackcatinformatics.ca/gmeow/eventTypeAcquisition>
+                ))
+                {
+                    SELECT $this (COUNT(?pred) AS ?predCount) WHERE {
+                        $this <https://blackcatinformatics.ca/gmeow/predecessorOrganization> ?pred .
+                    } GROUP BY $this
+                    HAVING (?predCount < 2)
+                } UNION {
+                    SELECT $this (COUNT(?succ) AS ?succCount) WHERE {
+                        $this <https://blackcatinformatics.ca/gmeow/successorOrganization> ?succ .
+                    } GROUP BY $this
+                    HAVING (?succCount < 1)
+                }
+            }
+        """ ;
+    ] .
+
+gmeow:SplitSpinOffEventShape
+    a sh:NodeShape ;
+    rdfs:label "Split / spin-off event shape" ;
+    sh:targetClass gmeow:Event ;
+    sh:severity sh:Warning ;   # NodeShape-level so pyshacl honors it
+    sh:sparql [
+        sh:message "A split or spin-off event should have at least 1 predecessor organization and at least 2 successor organizations." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/eventType> ?et .
+                FILTER(?et IN (
+                    <https://blackcatinformatics.ca/gmeow/eventTypeSplit>,
+                    <https://blackcatinformatics.ca/gmeow/eventTypeSpinOff>
+                ))
+                {
+                    SELECT $this (COUNT(?pred) AS ?predCount) WHERE {
+                        $this <https://blackcatinformatics.ca/gmeow/predecessorOrganization> ?pred .
+                    } GROUP BY $this
+                    HAVING (?predCount < 1)
+                } UNION {
+                    SELECT $this (COUNT(?succ) AS ?succCount) WHERE {
+                        $this <https://blackcatinformatics.ca/gmeow/successorOrganization> ?succ .
+                    } GROUP BY $this
+                    HAVING (?succCount < 2)
+                }
+            }
+        """ ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Legal identifier well-formedness
+# --------------------------------------------------------------------------- #
+
+gmeow:LegalIdentifierHasSchemeShape
+    a sh:NodeShape ;
+    rdfs:label "Legal identifier must carry a scheme" ;
+    sh:targetClass gmeow:Organization ;
+    sh:severity sh:Violation ;   # NodeShape-level so pyshacl honors it
+    sh:sparql [
+        sh:message "An organization with a gmeow:legalIdentifier must also declare a gmeow:identifierScheme." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/legalIdentifier> ?id .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/identifierScheme> ?scheme
+                }
+            }
+        """ ;
+    ] .

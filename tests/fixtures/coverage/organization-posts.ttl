@@ -1,0 +1,47 @@
+# Coverage slice (#258): Post seat independent of holder.
+# Exercises vacant post, successive holders, and org mismatch warning.
+
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/organizations/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:acme a gmeow:Organization .
+
+# A vacant post — no Membership fills it.
+ex:cfoPost a gmeow:Post ;
+    gmeow:postIn ex:acme .
+
+# A post with a current holder.
+ex:ceoPost a gmeow:Post ;
+    gmeow:postIn ex:acme .
+
+ex:aliceMembership a gmeow:Membership ;
+    gmeow:membershipMember ex:alice ;
+    gmeow:membershipOrganization ex:acme ;
+    gmeow:fillsPost ex:ceoPost ;
+    gmeow:hasRole ex:ceoRole .
+
+ex:alice a gmeow:Person .
+ex:ceoRole a gmeow:Role ; rdfs:label "Chief Executive Officer"@en .
+
+# A former holder (successive holders test).
+ex:bobMembership a gmeow:Membership ;
+    gmeow:membershipMember ex:bob ;
+    gmeow:membershipOrganization ex:acme ;
+    gmeow:fillsPost ex:ceoPost ;
+    gmeow:hasRole ex:ceoRole .
+
+ex:bob a gmeow:Person .
+
+# An org-mismatch case for the warning shape.
+ex:otherOrg a gmeow:Organization .
+
+ex:mismatchPost a gmeow:Post ;
+    gmeow:postIn ex:otherOrg .
+
+ex:badMembership a gmeow:Membership ;
+    gmeow:membershipMember ex:carol ;
+    gmeow:membershipOrganization ex:acme ;
+    gmeow:fillsPost ex:mismatchPost .
+
+ex:carol a gmeow:Person .

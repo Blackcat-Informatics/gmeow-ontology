@@ -528,3 +528,65 @@ gmeow:eqProperties060 a gmeow:TermEquivalence ;
     gmeow:confidence 0.9 ;
     gmeow:comment "DCTerms identifier — a formal identifier such as a DOI or patent number" ;
     gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+# --- Organization module deepening (issue #258) ---------------------------- #
+
+gmeow:eqProperties061 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:postIn ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject org:postIn ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties062 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:fillsPost ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject org:holds ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "fillsPost links Membership→Post; org:holds links Agent→Post (different domain, close not equivalent)" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties063 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasSite ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject org:hasSite ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties064 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:predecessorOrganization ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject org:originalOrganization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "predecessorOrganization on Event ≈ originalOrganization on ChangeEvent" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties065 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:successorOrganization ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject org:resultingOrganization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "successorOrganization on Event ≈ resultingOrganization on ChangeEvent" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties066 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:organizationPurpose ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject org:purpose ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties067 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:industryClassification ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject org:classification ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "industryClassification carries open codes (NAICS/ISIC); org:classification is broader" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
