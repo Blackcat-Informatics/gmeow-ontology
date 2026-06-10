@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+from unittest.mock import patch
+
 import pytest
 
 from gmeow_tools.wikidata import (
     NamespaceMisuse,
+    _load_cached,
+    _save_cached,
     check_syntax,
     check_syntax_iri,
     is_valid_id,
@@ -106,3 +111,23 @@ def test_check_syntax_iri_bad_syntax() -> None:
     misuses = check_syntax_iri("http://www.wikidata.org/entity/Q0")
     assert len(misuses) == 1
     assert misuses[0][1] == NamespaceMisuse.BAD_SYNTAX
+
+
+def test_load_cached_logs_on_json_decode_error(
+    caplog: pytest.LogCaptureFixture, tmp_path: Path
+) -> None:
+    with patch("gmeow_tools.wikidata._cache_path") as mock_path:
+        cache_file = tmp_path / "test-key.json"
+        cache_file.write_text("not json", encoding="utf-8")
+        mock_path.return_value = cache_file
+        with caplog.at_level("DEBUG", logger="gmeow_tools.wikidata"):
+            result = _load_cached("test-key")
+        assert result is None
+        assert "cache read failed" in caplog.text
+
+
+def test_save_cached_logs_on_os_error(caplog: pytest.LogCaptureFixture) -> None:
+    with patch("pathlib.Path.open", side_effect=OSError("disk full")):
+        with caplog.at_level("DEBUG", logger="gmeow_tools.wikidata"):
+            _save_cached("test-key", {"data": 1})
+        assert "cache write failed" in caplog.text

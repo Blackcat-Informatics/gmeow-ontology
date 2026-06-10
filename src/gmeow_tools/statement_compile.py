@@ -22,7 +22,6 @@ engine (:mod:`gmeow_tools.mapping_compile`), generalized to the metadata layer.
 
 from __future__ import annotations
 
-import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -35,6 +34,8 @@ from gmeow_tools.config import (
     STATEMENT_OWL_FILE,
     STATEMENT_RDF12_FILE,
     STATEMENTS_DIR,
+    gmeow_temp_dir,
+    sweep_stale_gmeow_temp_dirs,
 )
 from gmeow_tools.graph import bind_prefixes, load_merged_graph
 from gmeow_tools.mapping_dsl import CompileError
@@ -156,6 +157,8 @@ def compile_statements(check: bool = False) -> StatementReport:
         CompileError: On an invariant violation or a lossy round-trip.
         ToolUnavailableError: If Docker / the pinned Jena image is unavailable.
     """
+    sweep_stale_gmeow_temp_dirs()
+
     dsl = load_statement_dsl()
     onto = load_merged_graph(include_imports=False)
     problems = statement_invariants(dsl, onto)
@@ -165,7 +168,7 @@ def compile_statements(check: bool = False) -> StatementReport:
         )
 
     owl = emit_owl(dsl)
-    with tempfile.TemporaryDirectory(dir=PROJECT_ROOT) as tmp:
+    with gmeow_temp_dir() as tmp:
         root = Path(tmp)
         owl_tmp = root / "gmeow-statements.owl.ttl"
         _write_ttl(owl, owl_tmp, _OWL_BANNER)

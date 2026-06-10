@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import re
 import time
 from dataclasses import dataclass
@@ -25,6 +26,8 @@ from pathlib import Path
 import httpx
 
 from gmeow_tools.config import PREFIXES, PROJECT_ROOT
+
+_log = logging.getLogger(__name__)
 
 #: A valid Wikidata item id: ``Q`` followed by a non-zero-leading integer.
 QID_RE = re.compile(r"^Q[1-9]\d*$")
@@ -67,7 +70,8 @@ def _load_cached(key: str, ttl: float = DEFAULT_CACHE_TTL) -> dict[str, object] 
     try:
         with path.open("r", encoding="utf-8") as fh:
             return json.load(fh)  # type: ignore[no-any-return]
-    except (json.JSONDecodeError, OSError):
+    except (json.JSONDecodeError, OSError) as exc:
+        _log.debug("wikidata cache read failed for %s: %s", key, exc)
         return None
 
 
@@ -77,8 +81,8 @@ def _save_cached(key: str, data: dict[str, object]) -> None:
     try:
         with path.open("w", encoding="utf-8") as fh:
             json.dump(data, fh)
-    except OSError:
-        pass  # cache write is best-effort
+    except OSError as exc:
+        _log.debug("wikidata cache write failed for %s: %s", key, exc)
 
 
 def is_valid_qid(identifier: str) -> bool:

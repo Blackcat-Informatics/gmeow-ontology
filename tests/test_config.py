@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from gmeow_tools.config import (
     ALIGNMENT_TARGETS,
+    PROJECT_ROOT,
     LinkPolicy,
+    gmeow_temp_dir,
     policy_for_license,
+    sweep_stale_gmeow_temp_dirs,
 )
 
 
@@ -53,3 +58,39 @@ def test_alignment_targets_policies() -> None:
     assert ALIGNMENT_TARGETS["foaf"].policy is LinkPolicy.IMPORT_OK
     assert ALIGNMENT_TARGETS["dolce"].policy is LinkPolicy.REFERENCE_ONLY
     assert ALIGNMENT_TARGETS["schema"].policy is LinkPolicy.REFERENCE_ONLY
+
+
+def test_gmeow_temp_dir_uses_prefix() -> None:
+    with gmeow_temp_dir() as tmp:
+        path = Path(tmp)
+        assert path.name.startswith(".gmeow-tmp-")
+        assert path.is_relative_to(PROJECT_ROOT)
+
+
+def test_sweep_stale_gmeow_temp_dirs_removes_old() -> None:
+    import os
+    import shutil
+    import tempfile
+    import time
+
+    # Manually create a temp dir to simulate a leaked directory (no context mgr)
+    tmp_dir = tempfile.mkdtemp(dir=PROJECT_ROOT, prefix=".gmeow-tmp-")
+    path = Path(tmp_dir)
+    try:
+        # Artificially age the directory
+        old_time = time.time() - 7200
+        os.utime(path, (old_time, old_time))
+        removed = sweep_stale_gmeow_temp_dirs(max_age_seconds=3600.0)
+        assert path in removed
+        assert not path.exists()
+    finally:
+        if path.exists():
+            shutil.rmtree(path)
+
+
+def test_sweep_stale_gmeow_temp_dirs_leaves_young() -> None:
+    with gmeow_temp_dir() as tmp:
+        path = Path(tmp)
+        removed = sweep_stale_gmeow_temp_dirs(max_age_seconds=3600.0)
+        assert path not in removed
+        assert path.exists()

@@ -10,16 +10,16 @@ writes to the committed artifact paths.
 
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
 
 from rdflib import Graph
 from rdflib.compare import graph_diff, isomorphic
 
 from gmeow_tools.config import (
-    PROJECT_ROOT,
     STATEMENT_OWL_FILE,
     STATEMENT_RDF12_FILE,
+    gmeow_temp_dir,
+    sweep_stale_gmeow_temp_dirs,
 )
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.mapping_dsl import CompileError
@@ -76,6 +76,8 @@ def compile_statements_pyoxigraph() -> StatementReport:
     Raises:
         CompileError: On an invariant violation or a lossy round-trip.
     """
+    sweep_stale_gmeow_temp_dirs()
+
     dsl = load_statement_dsl()
     onto = load_merged_graph(include_imports=False)
     problems = statement_invariants(dsl, onto)
@@ -85,7 +87,7 @@ def compile_statements_pyoxigraph() -> StatementReport:
         )
 
     owl = emit_owl(dsl)
-    with tempfile.TemporaryDirectory(dir=PROJECT_ROOT) as tmp:
+    with gmeow_temp_dir() as tmp:
         root = Path(tmp)
         owl_tmp = root / "gmeow-statements.owl.ttl"
         _write_ttl(owl, owl_tmp, _OWL_BANNER)
