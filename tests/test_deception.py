@@ -7,7 +7,7 @@ SHACL shapes, and the no-isFalse doctrine.
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
+from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
 
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.validate import run_shacl
@@ -337,3 +337,100 @@ def test_licensed_falsehood_not_a_lie() -> None:
         RDF.type,
         OWL.Class,
     ) in graph
+
+
+# ===========================================================================
+# Issue #216 — Carrier deception types.
+# ===========================================================================
+
+
+def test_event_type_fabrication_exists() -> None:
+    graph = _graph()
+    assert (GMEOW.eventTypeFabrication, RDF.type, GMEOW.EventType) in graph
+
+
+def test_event_type_forgery_exists() -> None:
+    graph = _graph()
+    assert (GMEOW.eventTypeForgery, RDF.type, GMEOW.EventType) in graph
+
+
+def test_event_type_impersonation_exists() -> None:
+    graph = _graph()
+    assert (GMEOW.eventTypeImpersonation, RDF.type, GMEOW.EventType) in graph
+
+
+def test_fabrication_refuted_provenance() -> None:
+    """A fabrication event with refuted provenance passes SHACL."""
+    g = Graph()
+    g.add((EX.event1, RDF.type, GMEOW.Event))
+    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeFabrication))
+    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
+    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
+    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimA, GMEOW.observationMethod, EX.method1))
+    g.add((EX.claimB, GMEOW.observationMethod, EX.method1))
+    g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
+    # The fabricated work has a failed verification result (evidence, not axiom).
+    g.add((EX.work1, RDF.type, GMEOW.CreativeWork))
+    g.add((EX.event1, GMEOW.implicates, EX.work1))
+    g.add((EX.verification1, RDF.type, GMEOW.VerificationResult))
+    g.add(
+        (EX.verification1, GMEOW.hasVerificationStatus, GMEOW.verificationStatusFailed)
+    )
+
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+
+
+def test_forgery_failed_signature_structure() -> None:
+    """A forgery event with counterpartOf + failed CryptographicSignature
+    passes SHACL."""
+    g = Graph()
+    g.add((EX.event1, RDF.type, GMEOW.Event))
+    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeForgery))
+    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
+    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
+    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimA, GMEOW.observationMethod, EX.method1))
+    g.add((EX.claimB, GMEOW.observationMethod, EX.method1))
+    g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
+    # Forged work counterpartOf genuine work.
+    g.add((EX.forgedWork, RDF.type, GMEOW.CreativeWork))
+    g.add((EX.genuineWork, RDF.type, GMEOW.CreativeWork))
+    g.add((EX.forgedWork, GMEOW.counterpartOf, EX.genuineWork))
+    g.add((EX.event1, GMEOW.implicates, EX.forgedWork))
+    # Failed cryptographic signature.
+    g.add((EX.signature1, RDF.type, GMEOW.CryptographicSignature))
+    g.add((EX.signature1, GMEOW.signatureOf, EX.forgedWork))
+    g.add((EX.signature1, GMEOW.hasVerificationStatus, GMEOW.verificationStatusFailed))
+
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)
+
+
+def test_impersonation_facet_subject_mismatch() -> None:
+    """An impersonation event where projected identity facet subject
+    ≠ deceiver passes SHACL."""
+    g = Graph()
+    g.add((EX.event1, RDF.type, GMEOW.Event))
+    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeImpersonation))
+    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
+    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
+    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimA, GMEOW.observationMethod, EX.method1))
+    g.add((EX.claimB, GMEOW.observationMethod, EX.method1))
+    g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
+    # Projected identity facet's subject is the victim, not the deceiver.
+    g.add((EX.facet1, RDF.type, GMEOW.IdentityFacet))
+    g.add((EX.facet1, GMEOW.facetSubject, EX.victim))
+    g.add((EX.facet1, GMEOW.facetVantage, EX.victim))
+    g.add((EX.facet1, GMEOW.observedFeature, EX.event1))
+    # Failed email authentication result (spoofing instance).
+    g.add((EX.authResult1, RDF.type, GMEOW.AuthenticationResult))
+    g.add((EX.authResult1, GMEOW.authResult, Literal("fail")))
+
+    result = run_shacl(g)
+    assert result.ok, "\n".join(result.errors)

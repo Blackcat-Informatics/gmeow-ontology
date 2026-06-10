@@ -62,6 +62,40 @@ The safety property is structural, not a matter of inference: the creator or pub
 
 `gmeow:deceptionCue` links a deception event to an `Observation` — a behavioural, linguistic, or evidential signal. Cue-scoring and weighting live in the solver layer (Principle 12), not the ontology. The ontology records only that a cue observation exists and is linked to the event.
 
+## Carrier deceptions — artifact and identity binding (issue #216)
+
+Not all deceptions are speech acts. Three additional `gmeow:eventType` values cover deceptions where the held↔projected divergence is borne by a **fabricated artifact** or a **false identity binding**:
+
+| Type | Structure | Distinctive machinery |
+|---|---|---|
+| **Fabrication** | `heldStandpoint` = refuted provenance, `projectedStandpoint` = genuine provenance | A false `gmeow:CreativeWork` whose attestation returns `gmeow:verificationStatusFailed` |
+| **Forgery** | As fabrication, plus `counterpartOf` link to genuine work | A **specific** imitation target + failed `gmeow:CryptographicSignature` verification |
+| **Impersonation** | `heldStandpoint` = refuted identity claim, `projectedStandpoint` = unequivocal identity claim | Projected `gmeow:IdentityFacet` whose `facetSubject` ≠ the deceiver |
+
+### Fabrication vs forgery
+
+Both involve a false artifact, but **forgery** is distinguished by two additional properties:
+
+1. **Specificity of imitation** — the forged work bears a `gmeow:counterpartOf` link to the specific genuine work it mimics. A fabrication invents a false artifact without mimicking a specific genuine one.
+2. **Signature evidence** — a forgery typically carries a failed cryptographic signature verification (DKIM, S/MIME, PGP) that exposes the forgery. The verification result is an `Observation`, not a truth axiom (Principle 12).
+
+### Impersonation — identity as the carrier
+
+Impersonation reuses the `gmeow:IdentityFacet` machinery from the gender/orientation/identity modules. The projected identity facet's `gmeow:facetSubject` is the victim, not the deceiver. Email spoofing is modelled as **impersonation + a failed `gmeow:AuthenticationResult`** (DKIM/SPF/DMARC fail). A **sockpuppet** is an impersonation where the deceiver controls a `gmeow:counterpartOf` identity they publicly deny controlling.
+
+**Phishing is an instance, never a taxonomy primitive.** Following the PAPO/ROSE lesson, phishing is `eventTypeImpersonation` + a fraudulent-solicitation event — the specific combination of mechanisms, not a new type.
+
+### Alignment
+
+| Target | Relationship | Rationale |
+|---|---|---|
+| `wd:Q18387855` (tampering with evidence) | `skos:closeMatch` | Fabrication |
+| `wd:Q1332286` (forgery) | `skos:closeMatch` | Forgery; shared with fabrication at lower confidence |
+| `wd:Q693988` (document forgery) | `skos:closeMatch` | Document-specific forgery |
+| `wd:Q2146099` (impersonation) | `skos:closeMatch` | Impersonation |
+| PAPO `PhishingAttack` | `skos:relatedMatch` | Phishing is an instance of impersonation |
+| ROSE `SocialEngineeringThreat` | `skos:relatedMatch` | Risk-treatment view of impersonation |
+
 ## SOTA, and how GMEOW transcends it
 
 | Prior work | What it offers | Where it falls short | GMEOW's response |

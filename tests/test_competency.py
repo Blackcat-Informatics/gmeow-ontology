@@ -535,6 +535,70 @@ def test_competency_deception_self_deception_query() -> None:
     assert str(EX.event1) in terms
 
 
+def test_competency_deception_fabrication_query() -> None:
+    """Fabrication = held refuted + projected unequivocal + failed verification."""
+    g = Graph()
+    g.add((EX.event1, RDF.type, GMEOW.Event))
+    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeFabrication))
+    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
+    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
+    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimA, GMEOW.claimModality, GMEOW.refuted))
+    g.add((EX.claimB, GMEOW.claimModality, GMEOW.unequivocal))
+    # Distinctive machinery: fabricated work + failed verification result.
+    g.add((EX.work1, RDF.type, GMEOW.CreativeWork))
+    g.add((EX.event1, GMEOW.implicates, EX.work1))
+    g.add((EX.verification1, RDF.type, GMEOW.VerificationResult))
+    g.add(
+        (EX.verification1, GMEOW.hasVerificationStatus, GMEOW.verificationStatusFailed)
+    )
+    terms = _query_terms_on_graph("deception-fabrication.rq", g)
+    assert str(EX.event1) in terms
+
+
+def test_competency_deception_forgery_query() -> None:
+    """Forgery = held refuted + projected unequivocal + counterpart + failed sig."""
+    g = Graph()
+    g.add((EX.event1, RDF.type, GMEOW.Event))
+    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeForgery))
+    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
+    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
+    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimA, GMEOW.claimModality, GMEOW.refuted))
+    g.add((EX.claimB, GMEOW.claimModality, GMEOW.unequivocal))
+    # Distinctive machinery: forged work with counterpartOf + failed signature.
+    g.add((EX.forgedWork, RDF.type, GMEOW.CreativeWork))
+    g.add((EX.genuineWork, RDF.type, GMEOW.CreativeWork))
+    g.add((EX.forgedWork, GMEOW.counterpartOf, EX.genuineWork))
+    g.add((EX.event1, GMEOW.implicates, EX.forgedWork))
+    g.add((EX.signature1, RDF.type, GMEOW.CryptographicSignature))
+    g.add((EX.signature1, GMEOW.signatureOf, EX.forgedWork))
+    g.add((EX.signature1, GMEOW.hasVerificationStatus, GMEOW.verificationStatusFailed))
+    terms = _query_terms_on_graph("deception-forgery.rq", g)
+    assert str(EX.event1) in terms
+
+
+def test_competency_deception_impersonation_query() -> None:
+    """Impersonation = held refuted + projected unequivocal + mismatched facet."""
+    g = Graph()
+    g.add((EX.event1, RDF.type, GMEOW.Event))
+    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeImpersonation))
+    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
+    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
+    g.add((EX.claimA, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimB, RDF.type, GMEOW.StandpointClaim))
+    g.add((EX.claimA, GMEOW.claimModality, GMEOW.refuted))
+    g.add((EX.claimB, GMEOW.claimModality, GMEOW.unequivocal))
+    # Distinctive machinery: identity facet whose subject differs from deceiver.
+    g.add((EX.facet1, RDF.type, GMEOW.IdentityFacet))
+    g.add((EX.facet1, GMEOW.observedFeature, EX.event1))
+    g.add((EX.facet1, GMEOW.facetSubject, EX.victim))
+    terms = _query_terms_on_graph("deception-impersonation.rq", g)
+    assert str(EX.event1) in terms
+
+
 def test_competency_myths_query() -> None:
     terms = _query_terms("myths.rq")
     for term in (
