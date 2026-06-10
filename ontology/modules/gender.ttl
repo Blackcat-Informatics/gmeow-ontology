@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/gender>
     a owl:Ontology ;
     rdfs:label "GMEOW Gender Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Gender Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> ;
     rdfs:comment "A respectful, inclusive model of a person's gender, grounded on a shared gmeow:IdentityFacet — a reified, SELF-ASSERTED claim (a gufo:Relator, the same idiom as names' NameUsage) that mediates a person and an identity value, carrying an optional validity period and the gmeow:displayable display control. This module covers gender IDENTITY, gender EXPRESSION, and the recorded sex-assigned-at-birth datum; the sibling sexuality module reuses the same IdentityFacet base for sexual/romantic orientation. GOVERNING TENETS: (1) ADDRESS ≠ IDENTITY — pronouns and honorifics (in the names module) are how a person is addressed and carry NO inferential bridge to gender; nothing infers one from the other. (2) SEX ≠ GENDER — gmeow:sexAssignedAtBirth is a recorded administrative datum, NOT an IdentityFacet and never equated with gender identity/expression. (3) SELF-ASSERTION is the top authority (gmeow:selfAsserted). (4) CO-EQUALITY — a person may bear many co-equal identities (e.g. bigender = two facets); there is deliberately NO preferred/primary gender term; only display SUPPRESSION (gmeow:displayable false, the deadname analog for a superseded label) is modelled, never deletion. (5) INCLUSIVE WITHOUT OVERTYPING — gmeow:Gender, gmeow:GenderExpressionStyle and gmeow:SexAssignedAtBirth are OPEN value vocabularies of individuals (never per-value Person subclasses, never a forced enum); an identity not among the seeds is expressed by minting a FRESH value individual carrying rdfs:label, the names' custom-PronounSet idiom — there is deliberately no parallel flat-literal shortcut. Aligns (lossily) to GSSO, Homosaurus, schema.org, Wikidata, FOAF and HL7/FHIR; the reified self-asserted-co-equal machinery is canonical."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
@@ -138,19 +140,41 @@ gmeow:Gender
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:genderWoman       a gmeow:Gender ; rdfs:label "woman"@x-gmeow-english .
+gmeow:genderWoman skos:definition "The woman gender — a gender identity value that an agent may self-assert or be described by."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 gmeow:genderMan         a gmeow:Gender ; rdfs:label "man"@x-gmeow-english .
+gmeow:genderMan skos:definition "The man gender — a gender identity value that an agent may self-assert or be described by."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 gmeow:genderNonBinary   a gmeow:Gender ; rdfs:label "non-binary"@x-gmeow-english .
+gmeow:genderNonBinary skos:definition "The non binary gender — a gender identity value that an agent may self-assert or be described by."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 gmeow:genderAgender     a gmeow:Gender ; rdfs:label "agender"@x-gmeow-english .
+gmeow:genderAgender skos:definition "The agender gender — a gender identity value that an agent may self-assert or be described by."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 gmeow:genderGenderfluid a gmeow:Gender ; rdfs:label "genderfluid"@x-gmeow-english .
+gmeow:genderGenderfluid skos:definition "The genderfluid gender — a gender identity value that an agent may self-assert or be described by."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 gmeow:genderGenderqueer a gmeow:Gender ; rdfs:label "genderqueer"@x-gmeow-english .
+gmeow:genderGenderqueer skos:definition "The genderqueer gender — a gender identity value that an agent may self-assert or be described by."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 gmeow:genderBigender    a gmeow:Gender ; rdfs:label "bigender"@x-gmeow-english .
+gmeow:genderBigender skos:definition "The bigender gender — a gender identity value that an agent may self-assert or be described by."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 gmeow:genderDemigirl    a gmeow:Gender ; rdfs:label "demigirl"@x-gmeow-english .
+gmeow:genderDemigirl skos:definition "The demigirl gender — a gender identity value that an agent may self-assert or be described by."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 gmeow:genderDemiboy     a gmeow:Gender ; rdfs:label "demiboy"@x-gmeow-english .
+gmeow:genderDemiboy skos:definition "The demiboy gender — a gender identity value that an agent may self-assert or be described by."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 gmeow:genderTwoSpirit   a gmeow:Gender ; rdfs:label "Two-Spirit"@x-gmeow-english ;
     skos:scopeNote "An umbrella term specific to certain Indigenous North American cultures; not a generic synonym for non-binary and to be used only self-referentially within those contexts."@x-gmeow-english .
+gmeow:genderTwoSpirit skos:definition "The two spirit gender — a gender identity value that an agent may self-assert or be described by."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 gmeow:genderQuestioning a gmeow:Gender ; rdfs:label "questioning"@x-gmeow-english .
 
 # --- Gender expression style — how a person presents ------------------------ #
+gmeow:genderQuestioning skos:definition "The questioning gender — a gender identity value that an agent may self-assert or be described by."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 
 gmeow:GenderExpressionStyle
     a owl:Class, gufo:AbstractIndividualType ;
@@ -160,12 +184,22 @@ gmeow:GenderExpressionStyle
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:expressionFeminine    a gmeow:GenderExpressionStyle ; rdfs:label "feminine"@x-gmeow-english .
+gmeow:expressionFeminine skos:definition "The feminine gender expression style — a stylistic presentation of gender through behavior, appearance, or self-presentation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 gmeow:expressionMasculine   a gmeow:GenderExpressionStyle ; rdfs:label "masculine"@x-gmeow-english .
+gmeow:expressionMasculine skos:definition "The masculine gender expression style — a stylistic presentation of gender through behavior, appearance, or self-presentation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 gmeow:expressionAndrogynous a gmeow:GenderExpressionStyle ; rdfs:label "androgynous"@x-gmeow-english .
+gmeow:expressionAndrogynous skos:definition "The androgynous gender expression style — a stylistic presentation of gender through behavior, appearance, or self-presentation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 gmeow:expressionFluid       a gmeow:GenderExpressionStyle ; rdfs:label "fluid"@x-gmeow-english .
+gmeow:expressionFluid skos:definition "The fluid gender expression style — a stylistic presentation of gender through behavior, appearance, or self-presentation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 gmeow:expressionNeutral     a gmeow:GenderExpressionStyle ; rdfs:label "neutral"@x-gmeow-english .
 
 # --- Sex assigned at birth — recorded administrative value ------------------ #
+gmeow:expressionNeutral skos:definition "The neutral gender expression style — a stylistic presentation of gender through behavior, appearance, or self-presentation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 
 gmeow:SexAssignedAtBirth
     a owl:Class, gufo:AbstractIndividualType ;
@@ -175,10 +209,18 @@ gmeow:SexAssignedAtBirth
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:saabFemale   a gmeow:SexAssignedAtBirth ; rdfs:label "assigned female"@x-gmeow-english .
+gmeow:saabFemale skos:definition "The female sex assigned at birth — a category used to record sex assigned to a person at birth."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 gmeow:saabMale     a gmeow:SexAssignedAtBirth ; rdfs:label "assigned male"@x-gmeow-english .
+gmeow:saabMale skos:definition "The male sex assigned at birth — a category used to record sex assigned to a person at birth."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 gmeow:saabIntersex a gmeow:SexAssignedAtBirth ; rdfs:label "intersex"@x-gmeow-english .
+gmeow:saabIntersex skos:definition "The intersex sex assigned at birth — a category used to record sex assigned to a person at birth."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 gmeow:saabUnknown  a gmeow:SexAssignedAtBirth ; rdfs:label "unknown / not recorded"@x-gmeow-english .
 
+gmeow:saabUnknown skos:definition "The unknown sex assigned at birth — a category used to record sex assigned to a person at birth."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/gender> .
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE (#38 — phase 2 of the reasoning-depth epic #35)
 #

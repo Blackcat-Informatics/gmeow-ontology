@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/expertise>
     a owl:Ontology ;
     rdfs:label "GMEOW Expertise Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Expertise Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/expertise> ;
     rdfs:comment """Skills, occupations and credentials (the schema.org / ESCO / CTDL / O*NET / SOC superset layer). SKOS concepts are reused as recommended value vocabularies rather than re-grounded.
 
 DOCTRINE.

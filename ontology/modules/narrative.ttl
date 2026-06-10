@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/narrative>
     a owl:Ontology ;
     rdfs:label "GMEOW Narrative Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Narrative Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/narrative> ;
     rdfs:comment """Narrative reference frames and creative-work sourcing. Part of the #42 Location-as-reference-frame epic.
 
 DOCTRINE.
@@ -153,26 +155,31 @@ gmeow:relationCanon
     a gmeow:NarrativeFrameRelation ;
     rdfs:label "canon"@x-gmeow-english ;
     skos:definition "The authoritative, settled continuity of a narrative frame."@x-gmeow-english .
+gmeow:relationCanon rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/narrative> .
 
 gmeow:relationAlternateContinuity
     a gmeow:NarrativeFrameRelation ;
     rdfs:label "alternate continuity"@x-gmeow-english ;
     skos:definition "A divergent continuity that is not the primary canon but is officially recognised (e.g. Marvel Ultimate, Star Wars Legends)."@x-gmeow-english .
+gmeow:relationAlternateContinuity rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/narrative> .
 
 gmeow:relationExpandedUniverse
     a gmeow:NarrativeFrameRelation ;
     rdfs:label "expanded universe"@x-gmeow-english ;
     skos:definition "Officially licensed material that extends the canon but is not part of the core continuity."@x-gmeow-english .
+gmeow:relationExpandedUniverse rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/narrative> .
 
 gmeow:relationFanon
     a gmeow:NarrativeFrameRelation ;
     rdfs:label "fanon"@x-gmeow-english ;
     skos:definition "Community-generated continuity not officially recognised by the rights-holder."@x-gmeow-english .
+gmeow:relationFanon rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/narrative> .
 
 gmeow:relationCrossover
     a gmeow:NarrativeFrameRelation ;
     rdfs:label "crossover"@x-gmeow-english ;
     skos:definition "A narrative frame that blends characters or settings from two or more distinct continuities."@x-gmeow-english .
+gmeow:relationCrossover rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/narrative> .
 
 gmeow:relationAdaptationOf
     a gmeow:NarrativeFrameRelation ;
@@ -182,6 +189,7 @@ gmeow:relationAdaptationOf
 # =========================================================================== #
 # ARC TYPE VALUE VOCABULARY — individuals, never subclasses (Principle 9)
 # =========================================================================== #
+gmeow:relationAdaptationOf rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/narrative> .
 
 gmeow:ArcType
     a owl:Class, gufo:AbstractIndividualType ;
@@ -195,16 +203,22 @@ gmeow:ArcType
 # --------------------------------------------------------------------------- #
 
 gmeow:arcTypeComingOfAge a gmeow:ArcType ; rdfs:label "coming-of-age"@x-gmeow-english ; skos:definition "A transition from childhood to maturity."@x-gmeow-english .
+gmeow:arcTypeComingOfAge rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/narrative> .
 gmeow:arcTypeRedemption   a gmeow:ArcType ; rdfs:label "redemption"@x-gmeow-english ;   skos:definition "A moral recovery or atonement for past failings."@x-gmeow-english .
+gmeow:arcTypeRedemption rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/narrative> .
 gmeow:arcTypeFall         a gmeow:ArcType ; rdfs:label "fall"@x-gmeow-english ;         skos:definition "A decline from a state of grace, power, or virtue."@x-gmeow-english .
+gmeow:arcTypeFall rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/narrative> .
 gmeow:arcTypeCorruption   a gmeow:ArcType ; rdfs:label "corruption"@x-gmeow-english ;   skos:definition "A moral or ethical degradation."@x-gmeow-english .
+gmeow:arcTypeCorruption rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/narrative> .
 gmeow:arcTypeQuest        a gmeow:ArcType ; rdfs:label "quest"@x-gmeow-english ;        skos:definition "A journey toward a goal that transforms the protagonist."@x-gmeow-english .
+gmeow:arcTypeQuest rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/narrative> .
 gmeow:arcTypeRecovery     a gmeow:ArcType ; rdfs:label "recovery"@x-gmeow-english ;     skos:definition "A return to health, wholeness, or stability after loss."@x-gmeow-english .
 
 # =========================================================================== #
 # MYTH — socially-sustained narrative whose currency is independent of truth-value
 # (issue #214, Deception EPIC #212)
 # =========================================================================== #
+gmeow:arcTypeRecovery rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/narrative> .
 
 gmeow:Myth
     a owl:Class, gufo:Kind ;

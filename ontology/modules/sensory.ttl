@@ -8,6 +8,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/sensory>
     a owl:Ontology ;
     rdfs:label "GMEOW Sensory Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Sensory Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sensory> ;
     rdfs:comment "Sensor, sensor platform, observable property, and sensory observation stack. Deepens the SensoryObservation stub from observations.ttl with sensor-specific properties and bridges to SOSA/SSN by reference."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
@@ -67,11 +69,23 @@ gmeow:ObservableProperty
 
 # Seeds — common environmental and physical observable properties.
 gmeow:observablePropertyTemperature           a gmeow:ObservableProperty ; rdfs:label "temperature"@x-gmeow-english ;           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:observablePropertyTemperature skos:definition "The temperature observable property — a physical or environmental quantity that can be measured by a sensor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sensory> .
 gmeow:observablePropertyHumidity              a gmeow:ObservableProperty ; rdfs:label "humidity"@x-gmeow-english ;              rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:observablePropertyHumidity skos:definition "The humidity observable property — a physical or environmental quantity that can be measured by a sensor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sensory> .
 gmeow:observablePropertyLightIntensity        a gmeow:ObservableProperty ; rdfs:label "light intensity"@x-gmeow-english ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:observablePropertyLightIntensity skos:definition "The light intensity observable property — a physical or environmental quantity that can be measured by a sensor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sensory> .
 gmeow:observablePropertySoundPressureLevel    a gmeow:ObservableProperty ; rdfs:label "sound pressure level"@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:observablePropertySoundPressureLevel skos:definition "The sound pressure level observable property — a physical or environmental quantity that can be measured by a sensor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sensory> .
 gmeow:observablePropertyAtmosphericPressure   a gmeow:ObservableProperty ; rdfs:label "atmospheric pressure"@x-gmeow-english ;   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:observablePropertyAtmosphericPressure skos:definition "The atmospheric pressure observable property — a physical or environmental quantity that can be measured by a sensor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sensory> .
 gmeow:observablePropertyAirQualityIndex       a gmeow:ObservableProperty ; rdfs:label "air quality index"@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:observablePropertyAirQualityIndex skos:definition "The air quality index observable property — a physical or environmental quantity that can be measured by a sensor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sensory> .
 gmeow:observablePropertyRadiationLevel        a gmeow:ObservableProperty ; rdfs:label "radiation level"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
@@ -81,6 +95,8 @@ gmeow:observablePropertyRadiationLevel        a gmeow:ObservableProperty ; rdfs:
 # the #77 precedent (Quantity ≡ ScalarQuantity ≡ MeasuredValue), SensoryQuantity
 # is the sensory-domain name for the same value×unit×determinacy bundle.
 # =========================================================================== #
+gmeow:observablePropertyRadiationLevel skos:definition "The radiation level observable property — a physical or environmental quantity that can be measured by a sensor."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/sensory> .
 
 gmeow:SensoryQuantity
     a owl:Class, gufo:Kind ;

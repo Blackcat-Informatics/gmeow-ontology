@@ -10,6 +10,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/email>
     a owl:Ontology ;
     rdfs:label "GMEOW Email Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Email Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/email> ;
     rdfs:comment "Email messages, threads, mailboxes and body structure — the JMAP (RFC 8621) superset layer, also covering RFC 5322 headers, MIME, IMAP keywords and the Gmail API. Messages are not disjoint from the entities (via EmailAddress) or accounts (via mailbox residence) they involve, and residence is temporally grounded."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
@@ -75,11 +77,23 @@ gmeow:MessageKeyword
 
 # Standard keyword individuals (IMAP \\flags / JMAP $keywords).
 gmeow:keywordSeen      a gmeow:MessageKeyword ; rdfs:label "seen"@x-gmeow-english .
+gmeow:keywordSeen skos:definition "The seen message keyword — a flag or classifier applied to a message for retrieval or workflow."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/email> .
 gmeow:keywordFlagged   a gmeow:MessageKeyword ; rdfs:label "flagged"@x-gmeow-english .
+gmeow:keywordFlagged skos:definition "The flagged message keyword — a flag or classifier applied to a message for retrieval or workflow."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/email> .
 gmeow:keywordAnswered  a gmeow:MessageKeyword ; rdfs:label "answered"@x-gmeow-english .
+gmeow:keywordAnswered skos:definition "The answered message keyword — a flag or classifier applied to a message for retrieval or workflow."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/email> .
 gmeow:keywordDraft     a gmeow:MessageKeyword ; rdfs:label "draft"@x-gmeow-english .
+gmeow:keywordDraft skos:definition "The draft message keyword — a flag or classifier applied to a message for retrieval or workflow."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/email> .
 gmeow:keywordForwarded a gmeow:MessageKeyword ; rdfs:label "forwarded"@x-gmeow-english .
+gmeow:keywordForwarded skos:definition "The forwarded message keyword — a flag or classifier applied to a message for retrieval or workflow."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/email> .
 gmeow:keywordJunk      a gmeow:MessageKeyword ; rdfs:label "junk"@x-gmeow-english .
+gmeow:keywordJunk skos:definition "The junk message keyword — a flag or classifier applied to a message for retrieval or workflow."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/email> .
 
 gmeow:MailboxResidence
     a owl:Class, gufo:SituationType ;
@@ -555,20 +569,35 @@ gmeow:MessageParticipantRole
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:messageRoleFrom         a gmeow:MessageParticipantRole ; rdfs:label "from"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleFrom skos:definition "The from message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
 gmeow:messageRoleSender       a gmeow:MessageParticipantRole ; rdfs:label "sender"@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleSender skos:definition "The sender message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
 gmeow:messageRoleReplyTo      a gmeow:MessageParticipantRole ; rdfs:label "reply-to"@x-gmeow-english ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleReplyTo skos:definition "The reply to message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
 gmeow:messageRoleTo           a gmeow:MessageParticipantRole ; rdfs:label "to"@x-gmeow-english ;           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleTo skos:definition "The to message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
 gmeow:messageRoleCc           a gmeow:MessageParticipantRole ; rdfs:label "cc"@x-gmeow-english ;           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleCc skos:definition "The cc message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
 gmeow:messageRoleBcc          a gmeow:MessageParticipantRole ; rdfs:label "bcc"@x-gmeow-english ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleBcc skos:definition "The bcc message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
 gmeow:messageRoleReturnPath   a gmeow:MessageParticipantRole ; rdfs:label "return-path"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleReturnPath skos:definition "The return path message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
 gmeow:messageRoleErrorsTo     a gmeow:MessageParticipantRole ; rdfs:label "errors-to"@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleErrorsTo skos:definition "The errors to message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
 gmeow:messageRoleEnvelopeFrom a gmeow:MessageParticipantRole ; rdfs:label "envelope-from"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleEnvelopeFrom skos:definition "The envelope from message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
 gmeow:messageRoleEnvelopeTo   a gmeow:MessageParticipantRole ; rdfs:label "envelope-to"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleEnvelopeTo skos:definition "The envelope to message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
 gmeow:messageRoleDeliveredTo  a gmeow:MessageParticipantRole ; rdfs:label "delivered-to"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleDeliveredTo skos:definition "The delivered to message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
 gmeow:messageRoleOriginalTo   a gmeow:MessageParticipantRole ; rdfs:label "original-to"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleOriginalTo skos:definition "The original to message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
 gmeow:messageRoleResentFrom   a gmeow:MessageParticipantRole ; rdfs:label "resent-from"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleResentFrom skos:definition "The resent from message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
 gmeow:messageRoleResentTo     a gmeow:MessageParticipantRole ; rdfs:label "resent-to"@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleResentTo skos:definition "The resent to message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
 gmeow:messageRoleResentCc     a gmeow:MessageParticipantRole ; rdfs:label "resent-cc"@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleResentCc skos:definition "The resent cc message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # MessageKind — open value vocabulary for behavioral / report categories (issue #137)

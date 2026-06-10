@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/finance>
     a owl:Ontology ;
     rdfs:label "GMEOW Finance Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Finance Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> ;
     rdfs:comment """Personal and SMB financial existence: accounts, monetary amounts, transactions, ledgers, invoices, orders, asset holdings, and crypto wallets. Grounded in the existing Event/Participation/Agreement/Rights/Trust substrate. FIBO, schema.org, ISO 4217, ISO 20022, FIGI and OFX are aligned by reference, never imported.
 
 DOCTRINE.
@@ -133,13 +135,17 @@ gmeow:FinancialAccountType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:accountTypeBank       a gmeow:FinancialAccountType ; rdfs:label "bank account"@x-gmeow-english ;       skos:definition "A deposit or chequing account at a bank or credit union."@x-gmeow-english .
+gmeow:accountTypeBank rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:accountTypeCredit     a gmeow:FinancialAccountType ; rdfs:label "credit account"@x-gmeow-english ;     skos:definition "A credit card or line-of-credit account."@x-gmeow-english .
+gmeow:accountTypeCredit rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:accountTypeInvestment a gmeow:FinancialAccountType ; rdfs:label "investment account"@x-gmeow-english ; skos:definition "A brokerage, retirement, or other investment holdings account."@x-gmeow-english .
+gmeow:accountTypeInvestment rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:accountTypeWallet     a gmeow:FinancialAccountType ; rdfs:label "wallet"@x-gmeow-english ;            skos:definition "A digital wallet — fiat or crypto — held by an agent."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Transaction type and status — declared now for Phase B; seeds in Phase B.
 # --------------------------------------------------------------------------- #
+gmeow:accountTypeWallet rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 
 gmeow:TransactionType
     a owl:Class, gufo:AbstractIndividualType ;
@@ -323,14 +329,19 @@ gmeow:LedgerAccountType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:ledgerAccountTypeAsset     a gmeow:LedgerAccountType ; rdfs:label "asset"@x-gmeow-english ;     skos:definition "An asset account — resources owned by the entity (cash, receivables, inventory, equipment)."@x-gmeow-english .
+gmeow:ledgerAccountTypeAsset rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:ledgerAccountTypeLiability a gmeow:LedgerAccountType ; rdfs:label "liability"@x-gmeow-english ; skos:definition "A liability account — obligations owed by the entity (payables, loans, accrued expenses)."@x-gmeow-english .
+gmeow:ledgerAccountTypeLiability rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:ledgerAccountTypeEquity    a gmeow:LedgerAccountType ; rdfs:label "equity"@x-gmeow-english ;    skos:definition "An equity account — the residual interest in the assets after deducting liabilities (owner capital, retained earnings)."@x-gmeow-english .
+gmeow:ledgerAccountTypeEquity rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:ledgerAccountTypeRevenue   a gmeow:LedgerAccountType ; rdfs:label "revenue"@x-gmeow-english ;   skos:definition "A revenue account — income generated from normal business operations (sales, fees, interest income)."@x-gmeow-english .
+gmeow:ledgerAccountTypeRevenue rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:ledgerAccountTypeExpense   a gmeow:LedgerAccountType ; rdfs:label "expense"@x-gmeow-english ;   skos:definition "An expense account — costs incurred in the process of generating revenue (salaries, rent, utilities, supplies)."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Posting direction — an OPEN value vocabulary (debit / credit).
 # --------------------------------------------------------------------------- #
+gmeow:ledgerAccountTypeExpense rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 
 gmeow:PostingDirection
     a owl:Class, gufo:AbstractIndividualType ;
@@ -340,36 +351,51 @@ gmeow:PostingDirection
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:postingDirectionDebit  a gmeow:PostingDirection ; rdfs:label "debit"@x-gmeow-english ;  skos:definition "A debit posting — an entry on the left side of a ledger account."@x-gmeow-english .
+gmeow:postingDirectionDebit rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:postingDirectionCredit a gmeow:PostingDirection ; rdfs:label "credit"@x-gmeow-english ; skos:definition "A credit posting — an entry on the right side of a ledger account."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Transaction type — seeds for Phase B.
 # --------------------------------------------------------------------------- #
+gmeow:postingDirectionCredit rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 
 gmeow:transactionTypePayment    a gmeow:TransactionType ; rdfs:label "payment"@x-gmeow-english ;    skos:definition "A payment transaction — money sent from one agent to another."@x-gmeow-english .
+gmeow:transactionTypePayment rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:transactionTypeTransfer   a gmeow:TransactionType ; rdfs:label "transfer"@x-gmeow-english ;   skos:definition "A transfer transaction — money moved between accounts held by the same agent."@x-gmeow-english .
+gmeow:transactionTypeTransfer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:transactionTypeDeposit    a gmeow:TransactionType ; rdfs:label "deposit"@x-gmeow-english ;    skos:definition "A deposit transaction — money added to an account."@x-gmeow-english .
+gmeow:transactionTypeDeposit rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:transactionTypeWithdrawal a gmeow:TransactionType ; rdfs:label "withdrawal"@x-gmeow-english ; skos:definition "A withdrawal transaction — money removed from an account."@x-gmeow-english .
+gmeow:transactionTypeWithdrawal rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:transactionTypeFee        a gmeow:TransactionType ; rdfs:label "fee"@x-gmeow-english ;        skos:definition "A fee transaction — a charge levied by a financial institution or service provider."@x-gmeow-english .
+gmeow:transactionTypeFee rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:transactionTypeInterest   a gmeow:TransactionType ; rdfs:label "interest"@x-gmeow-english ;   skos:definition "An interest transaction — interest earned or charged on an account balance."@x-gmeow-english .
+gmeow:transactionTypeInterest rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:transactionTypeRefund     a gmeow:TransactionType ; rdfs:label "refund"@x-gmeow-english ;     skos:definition "A refund transaction — money returned to the payer."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Transaction status — seeds for Phase B.
 # --------------------------------------------------------------------------- #
+gmeow:transactionTypeRefund rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 
 gmeow:transactionStatusPending    a gmeow:TransactionStatus ; rdfs:label "pending"@x-gmeow-english ;    skos:definition "A transaction that has been initiated but not yet settled."@x-gmeow-english .
+gmeow:transactionStatusPending rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:transactionStatusCompleted  a gmeow:TransactionStatus ; rdfs:label "completed"@x-gmeow-english ;  skos:definition "A transaction that has been fully processed and settled."@x-gmeow-english .
+gmeow:transactionStatusCompleted rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:transactionStatusReversed   a gmeow:TransactionStatus ; rdfs:label "reversed"@x-gmeow-english ;   skos:definition "A transaction that has been reversed or voided. The original transaction record is retained with displayable false (Principle 10); the reversal is a separate event."@x-gmeow-english .
+gmeow:transactionStatusReversed rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:transactionStatusFailed     a gmeow:TransactionStatus ; rdfs:label "failed"@x-gmeow-english ;     skos:definition "A transaction that failed to complete."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Participant role seeds for financial events — payer, payee, intermediary.
 # These extend the open ParticipantRole vocabulary in the events module.
 # --------------------------------------------------------------------------- #
+gmeow:transactionStatusFailed rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 
 gmeow:rolePayer         a gmeow:ParticipantRole ; rdfs:label "payer"@x-gmeow-english ;         skos:definition "The agent that sends money in a financial transaction."@x-gmeow-english .
+gmeow:rolePayer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:rolePayee         a gmeow:ParticipantRole ; rdfs:label "payee"@x-gmeow-english ;         skos:definition "The agent that receives money in a financial transaction."@x-gmeow-english .
+gmeow:rolePayee rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:roleIntermediary  a gmeow:ParticipantRole ; rdfs:label "intermediary"@x-gmeow-english ;  skos:definition "An intermediary agent in a financial transaction — a bank, payment processor, or clearing house."@x-gmeow-english .
 
 # =========================================================================== #
@@ -380,6 +406,7 @@ gmeow:roleIntermediary  a gmeow:ParticipantRole ; rdfs:label "intermediary"@x-gm
 # Payment — a payment event (thin subclass of FinancialTransaction).
 # Carries paymentMethod when the medium of payment matters.
 # --------------------------------------------------------------------------- #
+gmeow:roleIntermediary rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 
 gmeow:Payment
     a owl:Class, gufo:EventType ;
@@ -408,14 +435,19 @@ gmeow:PaymentMethod
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:paymentMethodCash         a gmeow:PaymentMethod ; rdfs:label "cash"@x-gmeow-english ;         skos:definition "Payment made in physical currency."@x-gmeow-english .
+gmeow:paymentMethodCash rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:paymentMethodCheque       a gmeow:PaymentMethod ; rdfs:label "cheque"@x-gmeow-english ;       skos:definition "Payment made by cheque."@x-gmeow-english .
+gmeow:paymentMethodCheque rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:paymentMethodCreditCard   a gmeow:PaymentMethod ; rdfs:label "credit card"@x-gmeow-english ;  skos:definition "Payment made by credit card."@x-gmeow-english .
+gmeow:paymentMethodCreditCard rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:paymentMethodBankTransfer a gmeow:PaymentMethod ; rdfs:label "bank transfer"@x-gmeow-english ; skos:definition "Payment made by bank transfer or wire."@x-gmeow-english .
+gmeow:paymentMethodBankTransfer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:paymentMethodCrypto       a gmeow:PaymentMethod ; rdfs:label "cryptocurrency"@x-gmeow-english ; skos:definition "Payment made in cryptocurrency."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Invoice — a billing document (⊑ Document).
 # --------------------------------------------------------------------------- #
+gmeow:paymentMethodCrypto rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 
 gmeow:Invoice
     a owl:Class, gufo:SubKind ;
@@ -476,14 +508,19 @@ gmeow:InvoiceStatus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:invoiceStatusDraft     a gmeow:InvoiceStatus ; rdfs:label "draft"@x-gmeow-english ;     skos:definition "An invoice that has been created but not yet sent."@x-gmeow-english .
+gmeow:invoiceStatusDraft rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:invoiceStatusSent     a gmeow:InvoiceStatus ; rdfs:label "sent"@x-gmeow-english ;      skos:definition "An invoice that has been sent to the recipient."@x-gmeow-english .
+gmeow:invoiceStatusSent rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:invoiceStatusPaid     a gmeow:InvoiceStatus ; rdfs:label "paid"@x-gmeow-english ;      skos:definition "An invoice that has been paid in full."@x-gmeow-english .
+gmeow:invoiceStatusPaid rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:invoiceStatusOverdue  a gmeow:InvoiceStatus ; rdfs:label "overdue"@x-gmeow-english ;   skos:definition "An invoice whose due date has passed without payment."@x-gmeow-english .
+gmeow:invoiceStatusOverdue rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:invoiceStatusCancelled a gmeow:InvoiceStatus ; rdfs:label "cancelled"@x-gmeow-english ; skos:definition "An invoice that has been cancelled. Retained with displayable false, never deleted (Principle 10)."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Order — a purchase or sales order (⊑ Agreement).
 # --------------------------------------------------------------------------- #
+gmeow:invoiceStatusCancelled rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 
 gmeow:Order
     a owl:Class, gufo:SubKind ;
@@ -536,14 +573,19 @@ gmeow:OrderStatus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:orderStatusPending    a gmeow:OrderStatus ; rdfs:label "pending"@x-gmeow-english ;    skos:definition "An order that has been placed but not yet confirmed."@x-gmeow-english .
+gmeow:orderStatusPending rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:orderStatusConfirmed  a gmeow:OrderStatus ; rdfs:label "confirmed"@x-gmeow-english ;  skos:definition "An order that has been confirmed by the seller."@x-gmeow-english .
+gmeow:orderStatusConfirmed rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:orderStatusShipped   a gmeow:OrderStatus ; rdfs:label "shipped"@x-gmeow-english ;   skos:definition "An order whose goods have been shipped."@x-gmeow-english .
+gmeow:orderStatusShipped rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:orderStatusDelivered a gmeow:OrderStatus ; rdfs:label "delivered"@x-gmeow-english ; skos:definition "An order whose goods have been delivered."@x-gmeow-english .
+gmeow:orderStatusDelivered rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:orderStatusCancelled a gmeow:OrderStatus ; rdfs:label "cancelled"@x-gmeow-english ; skos:definition "An order that has been cancelled. Retained with displayable false, never deleted (Principle 10)."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Asset — a financial asset (stock, bond, cryptocurrency, real estate, commodity).
 # --------------------------------------------------------------------------- #
+gmeow:orderStatusCancelled rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 
 gmeow:Asset
     a owl:Class, gufo:Kind ;
@@ -580,9 +622,13 @@ gmeow:AssetType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:assetTypeStock          a gmeow:AssetType ; rdfs:label "stock"@x-gmeow-english ;          skos:definition "A share of ownership in a corporation."@x-gmeow-english .
+gmeow:assetTypeStock rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:assetTypeBond           a gmeow:AssetType ; rdfs:label "bond"@x-gmeow-english ;           skos:definition "A fixed-income debt instrument."@x-gmeow-english .
+gmeow:assetTypeBond rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:assetTypeCryptocurrency a gmeow:AssetType ; rdfs:label "cryptocurrency"@x-gmeow-english ; skos:definition "A digital currency operating on a blockchain or distributed ledger."@x-gmeow-english .
+gmeow:assetTypeCryptocurrency rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:assetTypeRealEstate     a gmeow:AssetType ; rdfs:label "real estate"@x-gmeow-english ;     skos:definition "A real property asset — land, buildings, or improvements."@x-gmeow-english .
+gmeow:assetTypeRealEstate rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:assetTypeCommodity      a gmeow:AssetType ; rdfs:label "commodity"@x-gmeow-english ;      skos:definition "A basic good or raw material traded on a market (gold, oil, wheat, etc.)."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
@@ -590,6 +636,7 @@ gmeow:assetTypeCommodity      a gmeow:AssetType ; rdfs:label "commodity"@x-gmeow
 # Reify-on-demand: a flat accountBalance on FinancialAccount covers the 80% case;
 # promote to Holding when cost-basis, period, or provenance matters.
 # --------------------------------------------------------------------------- #
+gmeow:assetTypeCommodity rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 
 gmeow:Holding
     a owl:Class, gufo:Kind ;
@@ -689,10 +736,14 @@ gmeow:WalletScheme
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:walletSchemeBTC a gmeow:WalletScheme ; rdfs:label "Bitcoin"@x-gmeow-english ; skos:definition "The Bitcoin blockchain scheme."@x-gmeow-english .
+gmeow:walletSchemeBTC rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:walletSchemeETH a gmeow:WalletScheme ; rdfs:label "Ethereum"@x-gmeow-english ; skos:definition "The Ethereum blockchain scheme."@x-gmeow-english .
+gmeow:walletSchemeETH rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:walletSchemeSOL a gmeow:WalletScheme ; rdfs:label "Solana"@x-gmeow-english ; skos:definition "The Solana blockchain scheme."@x-gmeow-english .
+gmeow:walletSchemeSOL rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 gmeow:walletSchemeXMR a gmeow:WalletScheme ; rdfs:label "Monero"@x-gmeow-english ; skos:definition "The Monero blockchain scheme."@x-gmeow-english .
 
+gmeow:walletSchemeXMR rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/finance> .
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE — relator mediation (EL someValuesFrom, open-world).
 # Closed-world cardinality is SHACL's (gmeow-shapes.ttl).

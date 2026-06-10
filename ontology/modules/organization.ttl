@@ -8,6 +8,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/organization>
     a owl:Ontology ;
     rdfs:label "GMEOW Organization Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Organization Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/organization> ;
     rdfs:comment """Organizational roles and memberships (the ORG-superset layer).
 
 STANDPOINT DOCTRINE (#51). Contested facts in the organization slice — disputed membership, rival succession claims, contested recognition of legitimacy — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested membership is two gmeow:accordingTo-annotated gmeow:memberOf base triples, or two reified gmeow:Membership relators each carrying gmeow:accordingTo. A contested succession (post-merger, post-coup) is two gmeow:accordingTo-annotated gmeow:subOrganizationOf claims. Recognition granted and later withdrawn is modelled as a gmeow:StandpointTenure with gmeow:displayable false, never deletion (Principle 10). There is NO organization-specific dispute mechanism, no primaryMember, no preferredSuccessor — only the cross-cutting #43 facility."""@x-gmeow-english ;
@@ -103,16 +105,22 @@ gmeow:organizationType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:organizationTypeCompany               a gmeow:OrganizationType ; rdfs:label "company"@x-gmeow-english ;               skos:definition "A for-profit business entity."@x-gmeow-english .
+gmeow:organizationTypeCompany rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/organization> .
 gmeow:organizationTypeNonprofit             a gmeow:OrganizationType ; rdfs:label "nonprofit"@x-gmeow-english ;             skos:definition "A not-for-profit organization."@x-gmeow-english .
+gmeow:organizationTypeNonprofit rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/organization> .
 gmeow:organizationTypeGovernmentBody        a gmeow:OrganizationType ; rdfs:label "government body"@x-gmeow-english ;        skos:definition "A governmental or public-sector organization."@x-gmeow-english .
+gmeow:organizationTypeGovernmentBody rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/organization> .
 gmeow:organizationTypeEducationalInstitution a gmeow:OrganizationType ; rdfs:label "educational institution"@x-gmeow-english ; skos:definition "A school, university, college, or other educational body."@x-gmeow-english .
+gmeow:organizationTypeEducationalInstitution rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/organization> .
 gmeow:organizationTypeAssociation           a gmeow:OrganizationType ; rdfs:label "association"@x-gmeow-english ;           skos:definition "An association, society, or union of members."@x-gmeow-english .
+gmeow:organizationTypeAssociation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/organization> .
 gmeow:organizationTypeCollaboration         a gmeow:OrganizationType ; rdfs:label "collaboration"@x-gmeow-english ;         skos:definition "A cross-organization collaboration — a consortium, joint venture, standards body, or temporary multi-party arrangement."@x-gmeow-english .
 
 # =========================================================================== #
 # Post — the seat/position independent of its holder (ORG's central de-
 # conflation). A Post bundles a Role within a specific Organization.
 # =========================================================================== #
+gmeow:organizationTypeCollaboration rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/organization> .
 
 gmeow:Post
     a owl:Class, gufo:RoleMixin ;
@@ -154,8 +162,11 @@ gmeow:SiteType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:siteTypeHeadquarters a gmeow:SiteType ; rdfs:label "headquarters"@x-gmeow-english ; skos:definition "The principal office or headquarters of an organization."@x-gmeow-english .
+gmeow:siteTypeHeadquarters rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/organization> .
 gmeow:siteTypeBranch       a gmeow:SiteType ; rdfs:label "branch"@x-gmeow-english ;       skos:definition "A branch office or subsidiary location of an organization."@x-gmeow-english .
+gmeow:siteTypeBranch rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/organization> .
 gmeow:siteTypeRegistered   a gmeow:SiteType ; rdfs:label "registered"@x-gmeow-english ;   skos:definition "The registered or legal office of an organization."@x-gmeow-english .
+gmeow:siteTypeRegistered rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/organization> .
 
 gmeow:hasSite
     a owl:ObjectProperty ;

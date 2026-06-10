@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/provenance>
     a owl:Ontology ;
     rdfs:label "GMEOW Provenance Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Provenance Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/provenance> ;
     rdfs:comment "Activities, attribution, and the cross-cutting statement-level annotation properties (confidence, importance, mapping provenance) used across every slice (the PROV-O superset layer)."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 

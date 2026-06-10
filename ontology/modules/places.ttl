@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/places>
     a owl:Ontology ;
     rdfs:label "GMEOW Locations Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Locations Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> ;
     rdfs:comment """Locations — geographic places, online (virtual) locations, digital storage locations, celestial / astronomical locations, and biological-sequence loci — with coordinates, geometry, containment, and external-gazetteer coreference (the schema.org / GeoSPARQL / GeoNames / Getty TGN / Wikidata / WGS84 / BOT / ifcOWL / IVOA / UAT / SWEET / FALDO / Sequence Ontology superset layer). Place kinds, celestial object kinds, and sequence feature kinds are open value vocabularies (gmeow:placeType, gmeow:celestialObjectType, gmeow:sequenceFeatureType), so any granularity from country to room, from star to galaxy cluster, or from chromosome to SNP, can be a first-class, QID-bearing entity chained by containedInPlace or locatedAt.
 
 STANDPOINT DOCTRINE (#51). Contested facts in the locations slice — sovereignty/jurisdiction disputes, competing place names (endonym vs exonym per community), boundary changes, regulatory overlays — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame asserting it — the two axes are orthogonal and must not be conflated. There is NO location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the cross-cutting #43 facility. Superseded or withdrawn claims set gmeow:displayable false, never deletion (Principle 10).
@@ -70,12 +72,26 @@ gmeow:VirtualLocationType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:virtualLocationTypeVideoConference   a gmeow:VirtualLocationType ; rdfs:label "video conference"@x-gmeow-english .
+gmeow:virtualLocationTypeVideoConference skos:definition "The video conference virtual location type — a kind of online or digital venue where an entity can be reached."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:virtualLocationTypeChatSpace         a gmeow:VirtualLocationType ; rdfs:label "chat space"@x-gmeow-english .
+gmeow:virtualLocationTypeChatSpace skos:definition "The chat space virtual location type — a kind of online or digital venue where an entity can be reached."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:virtualLocationTypeMetaverseRoom     a gmeow:VirtualLocationType ; rdfs:label "metaverse room"@x-gmeow-english .
+gmeow:virtualLocationTypeMetaverseRoom skos:definition "The metaverse room virtual location type — a kind of online or digital venue where an entity can be reached."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:virtualLocationTypeWebsite           a gmeow:VirtualLocationType ; rdfs:label "website"@x-gmeow-english .
+gmeow:virtualLocationTypeWebsite skos:definition "The website virtual location type — a kind of online or digital venue where an entity can be reached."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:virtualLocationTypeSocialMediaPage   a gmeow:VirtualLocationType ; rdfs:label "social media page"@x-gmeow-english .
+gmeow:virtualLocationTypeSocialMediaPage skos:definition "The social media page virtual location type — a kind of online or digital venue where an entity can be reached."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:virtualLocationTypeOnlineForum       a gmeow:VirtualLocationType ; rdfs:label "online forum"@x-gmeow-english .
+gmeow:virtualLocationTypeOnlineForum skos:definition "The online forum virtual location type — a kind of online or digital venue where an entity can be reached."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:virtualLocationTypeStreamingChannel  a gmeow:VirtualLocationType ; rdfs:label "streaming channel"@x-gmeow-english .
+gmeow:virtualLocationTypeStreamingChannel skos:definition "The streaming channel virtual location type — a kind of online or digital venue where an entity can be reached."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:virtualLocationTypeVirtualEventSpace a gmeow:VirtualLocationType ; rdfs:label "virtual event space"@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
@@ -86,6 +102,8 @@ gmeow:virtualLocationTypeVirtualEventSpace a gmeow:VirtualLocationType ; rdfs:la
 # promote to NetworkAddress when frame, provenance, confidence, or standpoint
 # matters (Principle 11). Actual CIDR/DNS containment is solver-layer (P12).
 # --------------------------------------------------------------------------- #
+gmeow:virtualLocationTypeVirtualEventSpace skos:definition "The virtual event space virtual location type — a kind of online or digital venue where an entity can be reached."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:NetworkAddress
     a owl:Class, gufo:Kind ;
@@ -102,12 +120,26 @@ gmeow:NetworkAddressType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:networkAddressTypeIPv4 a gmeow:NetworkAddressType ; rdfs:label "IPv4 address"@x-gmeow-english .
+gmeow:networkAddressTypeIPv4 skos:definition "The i pv 4 network address type — a scheme for locating or identifying a node or resource on a network."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:networkAddressTypeIPv6 a gmeow:NetworkAddressType ; rdfs:label "IPv6 address"@x-gmeow-english .
+gmeow:networkAddressTypeIPv6 skos:definition "The i pv 6 network address type — a scheme for locating or identifying a node or resource on a network."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:networkAddressTypeMAC  a gmeow:NetworkAddressType ; rdfs:label "MAC address"@x-gmeow-english .
+gmeow:networkAddressTypeMAC skos:definition "The mac network address type — a scheme for locating or identifying a node or resource on a network."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:networkAddressTypeDNS  a gmeow:NetworkAddressType ; rdfs:label "DNS name"@x-gmeow-english .
+gmeow:networkAddressTypeDNS skos:definition "The dns network address type — a scheme for locating or identifying a node or resource on a network."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:networkAddressTypeURL  a gmeow:NetworkAddressType ; rdfs:label "URL"@x-gmeow-english .
+gmeow:networkAddressTypeURL skos:definition "The url network address type — a scheme for locating or identifying a node or resource on a network."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:networkAddressTypePort a gmeow:NetworkAddressType ; rdfs:label "port number"@x-gmeow-english .
+gmeow:networkAddressTypePort skos:definition "The port network address type — a scheme for locating or identifying a node or resource on a network."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:networkAddressTypeBGP  a gmeow:NetworkAddressType ; rdfs:label "BGP autonomous system"@x-gmeow-english .
+gmeow:networkAddressTypeBGP skos:definition "The bgp network address type — a scheme for locating or identifying a node or resource on a network."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:CelestialLocation
     a owl:Class, gufo:SubKind ;
@@ -237,23 +269,51 @@ gmeow:PlaceType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:placeTypeCountry            a gmeow:PlaceType ; rdfs:label "country"@x-gmeow-english .
+gmeow:placeTypeCountry skos:definition "The country place type — a classification of a location by its function or form in human geography."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:placeTypeAdministrativeArea a gmeow:PlaceType ; rdfs:label "administrative area"@x-gmeow-english .
+gmeow:placeTypeAdministrativeArea skos:definition "The administrative area place type — a classification of a location by its function or form in human geography."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:placeTypeRegion             a gmeow:PlaceType ; rdfs:label "region / state / province"@x-gmeow-english .
+gmeow:placeTypeRegion skos:definition "The region place type — a classification of a location by its function or form in human geography."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:placeTypeCity               a gmeow:PlaceType ; rdfs:label "city / populated place"@x-gmeow-english .
+gmeow:placeTypeCity skos:definition "The city place type — a classification of a location by its function or form in human geography."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:placeTypeNeighborhood       a gmeow:PlaceType ; rdfs:label "neighborhood"@x-gmeow-english .
+gmeow:placeTypeNeighborhood skos:definition "The neighborhood place type — a classification of a location by its function or form in human geography."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:placeTypeThoroughfare       a gmeow:PlaceType ; rdfs:label "thoroughfare / street"@x-gmeow-english .
+gmeow:placeTypeThoroughfare skos:definition "The thoroughfare place type — a classification of a location by its function or form in human geography."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:placeTypePremises           a gmeow:PlaceType ; rdfs:label "premises / address point"@x-gmeow-english .
+gmeow:placeTypePremises skos:definition "The premises place type — a classification of a location by its function or form in human geography."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:placeTypeSite               a gmeow:PlaceType ; rdfs:label "site / campus"@x-gmeow-english .
+gmeow:placeTypeSite skos:definition "The site place type — a classification of a location by its function or form in human geography."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:placeTypeParcel             a gmeow:PlaceType ; rdfs:label "parcel / lot"@x-gmeow-english .
+gmeow:placeTypeParcel skos:definition "The parcel place type — a classification of a location by its function or form in human geography."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:placeTypeBuilding           a gmeow:PlaceType ; rdfs:label "building"@x-gmeow-english .
+gmeow:placeTypeBuilding skos:definition "The building place type — a classification of a location by its function or form in human geography."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:placeTypeFloor              a gmeow:PlaceType ; rdfs:label "floor / level"@x-gmeow-english .
+gmeow:placeTypeFloor skos:definition "The floor place type — a classification of a location by its function or form in human geography."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:placeTypeRoom               a gmeow:PlaceType ; rdfs:label "room"@x-gmeow-english .
+gmeow:placeTypeRoom skos:definition "The room place type — a classification of a location by its function or form in human geography."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:placeTypePointOfInterest    a gmeow:PlaceType ; rdfs:label "point of interest"@x-gmeow-english .
+gmeow:placeTypePointOfInterest skos:definition "The point of interest place type — a classification of a location by its function or form in human geography."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:placeTypeNaturalFeature     a gmeow:PlaceType ; rdfs:label "natural feature"@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Storage medium — a VALUE vocabulary (open; individuals, not subclasses)
 # --------------------------------------------------------------------------- #
+gmeow:placeTypeNaturalFeature skos:definition "The natural feature place type — a classification of a location by its function or form in human geography."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:StorageMedium
     a owl:Class, gufo:AbstractIndividualType ;
@@ -263,15 +323,27 @@ gmeow:StorageMedium
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:storageMediumCloudService     a gmeow:StorageMedium ; rdfs:label "cloud service"@x-gmeow-english .
+gmeow:storageMediumCloudService skos:definition "The cloud service storage medium — a technology or service used to persist digital information."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:storageMediumLocalFilesystem  a gmeow:StorageMedium ; rdfs:label "local filesystem"@x-gmeow-english .
+gmeow:storageMediumLocalFilesystem skos:definition "The local filesystem storage medium — a technology or service used to persist digital information."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:storageMediumObjectStore      a gmeow:StorageMedium ; rdfs:label "object store"@x-gmeow-english .
+gmeow:storageMediumObjectStore skos:definition "The object store storage medium — a technology or service used to persist digital information."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:storageMediumContentAddressed a gmeow:StorageMedium ; rdfs:label "content-addressed store"@x-gmeow-english .
+gmeow:storageMediumContentAddressed skos:definition "The content addressed storage medium — a technology or service used to persist digital information."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:storageMediumPhysicalDisk     a gmeow:StorageMedium ; rdfs:label "physical disk"@x-gmeow-english .
+gmeow:storageMediumPhysicalDisk skos:definition "The physical disk storage medium — a technology or service used to persist digital information."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:storageMediumRemovableMedia   a gmeow:StorageMedium ; rdfs:label "removable media"@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Relations (all non-functional — multi-source conflicts must coexist)
 # --------------------------------------------------------------------------- #
+gmeow:storageMediumRemovableMedia skos:definition "The removable media storage medium — a technology or service used to persist digital information."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:locatedAt
     a owl:ObjectProperty ;
@@ -672,72 +744,128 @@ gmeow:trajectoryReferenceFrame
 
 # Seeds for Frame Realm
 gmeow:frameRealmTerrestrial a gmeow:FrameRealm ; rdfs:label "terrestrial"@x-gmeow-english .
+gmeow:frameRealmTerrestrial skos:definition "The terrestrial frame realm — a domain of discourse that defines what kind of value a reference frame measures or locates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameRealmIndoor     a gmeow:FrameRealm ; rdfs:label "indoor"@x-gmeow-english .
+gmeow:frameRealmIndoor skos:definition "The indoor frame realm — a domain of discourse that defines what kind of value a reference frame measures or locates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameRealmVirtual    a gmeow:FrameRealm ; rdfs:label "virtual / network"@x-gmeow-english .
+gmeow:frameRealmVirtual skos:definition "The virtual frame realm — a domain of discourse that defines what kind of value a reference frame measures or locates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameRealmCelestial    a gmeow:FrameRealm ; rdfs:label "celestial / astronomical"@x-gmeow-english .
+gmeow:frameRealmCelestial skos:definition "The celestial frame realm — a domain of discourse that defines what kind of value a reference frame measures or locates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameRealmMathematical a gmeow:FrameRealm ; rdfs:label "mathematical / n-D"@x-gmeow-english .
+gmeow:frameRealmMathematical skos:definition "The mathematical frame realm — a domain of discourse that defines what kind of value a reference frame measures or locates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameRealmRobotic      a gmeow:FrameRealm ; rdfs:label "robotic"@x-gmeow-english .
+gmeow:frameRealmRobotic skos:definition "The robotic frame realm — a domain of discourse that defines what kind of value a reference frame measures or locates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:frameRealmMeasurement  a gmeow:FrameRealm ; rdfs:label "measurement"@x-gmeow-english .
+gmeow:frameRealmMeasurement skos:definition "The measurement frame realm — a domain of discourse that defines what kind of value a reference frame measures or locates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameRealmCurrency     a gmeow:FrameRealm ; rdfs:label "currency"@x-gmeow-english .
+gmeow:frameRealmCurrency skos:definition "The currency frame realm — a domain of discourse that defines what kind of value a reference frame measures or locates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameRealmTemporal     a gmeow:FrameRealm ; rdfs:label "temporal"@x-gmeow-english .
+gmeow:frameRealmTemporal skos:definition "The temporal frame realm — a domain of discourse that defines what kind of value a reference frame measures or locates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameRealmColourspace  a gmeow:FrameRealm ; rdfs:label "colourspace"@x-gmeow-english .
+gmeow:frameRealmColourspace skos:definition "The colourspace frame realm — a domain of discourse that defines what kind of value a reference frame measures or locates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameRealmLinguistic   a gmeow:FrameRealm ; rdfs:label "linguistic"@x-gmeow-english .
+gmeow:frameRealmLinguistic skos:definition "The linguistic frame realm — a domain of discourse that defines what kind of value a reference frame measures or locates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameRealmPerceptual   a gmeow:FrameRealm ; rdfs:label "perceptual"@x-gmeow-english ;
     skos:definition "A perceptual or subjective domain in which values are expressed relative to a perceiver's sensory frame (e.g. thermal comfort, olfactory quality, subjective loudness)."@x-gmeow-english .
+gmeow:frameRealmPerceptual rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:frameRealmPsychological a gmeow:FrameRealm ; rdfs:label "psychological / cognitive"@x-gmeow-english ;
     skos:definition "A psychological or cognitive domain in which values are expressed relative to a mind's internal representational frame — conceptual spaces, affective states, cognitive maps, or imagined spaces (e.g. memory palace, dream). Hosted by the perceiver, thinker, or dreamer; the frame deactivates when its host does."@x-gmeow-english .
+gmeow:frameRealmPsychological rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:frameRealmNarrative    a gmeow:FrameRealm ; rdfs:label "narrative / fictional"@x-gmeow-english ;
     skos:definition "A fictional, literary, or narrative domain in which in-universe claims hold relative to a canon or continuity frame."@x-gmeow-english .
+gmeow:frameRealmNarrative rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:frameRealmBiological a gmeow:FrameRealm ; rdfs:label "biological / genomic sequence"@x-gmeow-english ;
     skos:definition "A biological sequence domain (DNA, RNA, protein) in which positions and features are expressed relative to a reference assembly or sequence."@x-gmeow-english .
 # Seeds for Frame Kind
+gmeow:frameRealmBiological rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameKindGeodetic      a gmeow:FrameKind ; rdfs:label "geodetic"@x-gmeow-english .
+gmeow:frameKindGeodetic skos:definition "The geodetic frame kind — a mathematical or representational shape of a reference frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameKindCartesian     a gmeow:FrameKind ; rdfs:label "cartesian"@x-gmeow-english .
+gmeow:frameKindCartesian skos:definition "The cartesian frame kind — a mathematical or representational shape of a reference frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameKindPolar         a gmeow:FrameKind ; rdfs:label "polar"@x-gmeow-english .
+gmeow:frameKindPolar skos:definition "The polar frame kind — a mathematical or representational shape of a reference frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameKindGrid          a gmeow:FrameKind ; rdfs:label "grid"@x-gmeow-english .
+gmeow:frameKindGrid skos:definition "The grid frame kind — a mathematical or representational shape of a reference frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameKindScalar        a gmeow:FrameKind ; rdfs:label "scalar"@x-gmeow-english .
+gmeow:frameKindScalar skos:definition "The scalar frame kind — a mathematical or representational shape of a reference frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameKindTemporal      a gmeow:FrameKind ; rdfs:label "temporal"@x-gmeow-english .
+gmeow:frameKindTemporal skos:definition "The temporal frame kind — a mathematical or representational shape of a reference frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameKindCylindrical   a gmeow:FrameKind ; rdfs:label "cylindrical"@x-gmeow-english .
+gmeow:frameKindCylindrical skos:definition "The cylindrical frame kind — a mathematical or representational shape of a reference frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameKindTopological   a gmeow:FrameKind ; rdfs:label "topological"@x-gmeow-english ;
     skos:definition "A frame whose structure is defined by containment, adjacency, or graph connectivity rather than geometric coordinates. Distance is measured in hops or nesting depth, not metres or degrees."@x-gmeow-english .
+gmeow:frameKindTopological rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameKindHilbert       a gmeow:FrameKind ; rdfs:label "Hilbert space"@x-gmeow-english ;
     skos:definition "An inner-product space that is complete with respect to the norm induced by the inner product; may be infinite-dimensional. The ontology models this with dimensionCount 1 and a single axis, leaving actual dimensionality to solver-layer matrix attributes (Principle 12)."@x-gmeow-english .
+gmeow:frameKindHilbert rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameKindManifold      a gmeow:FrameKind ; rdfs:label "manifold"@x-gmeow-english ;
     skos:definition "A topological space that locally resembles Euclidean space. Coordinate charts and tangent spaces are solver-layer constructs (Principle 12), not asserted as OWL axioms."@x-gmeow-english .
+gmeow:frameKindManifold rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameKindNarrative     a gmeow:FrameKind ; rdfs:label "narrative"@x-gmeow-english ;
     skos:definition "A frame whose structure is defined by canon, continuity, and narrative topology rather than geometric coordinates. Distance is measured in narrative proximity (plot relevance, character interaction), not metres or degrees."@x-gmeow-english .
+gmeow:frameKindNarrative rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameKindPhaseSpace    a gmeow:FrameKind ; rdfs:label "phase space"@x-gmeow-english ;
     skos:definition "A space in which all possible states of a dynamical system are represented, with each state corresponding to one unique point. Typically 2n-dimensional for n degrees of freedom (generalized coordinates + conjugate momenta)."@x-gmeow-english .
+gmeow:frameKindPhaseSpace rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameKindLatentSpace   a gmeow:FrameKind ; rdfs:label "latent vector space"@x-gmeow-english ;
     skos:definition "A compressed, lower-dimensional representation space learned by a neural network or other statistical model. Similarity is measured by cosine or Euclidean metrics."@x-gmeow-english .
+gmeow:frameKindLatentSpace rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameKindConfigurationSpace a gmeow:FrameKind ; rdfs:label "configuration space"@x-gmeow-english ;
     skos:definition "A smooth manifold representing the set of all possible configurations of a robot mechanism, with joint-limit boundaries constraining valid regions. Distance is measured along geodesics on the manifold surface, subject to joint limits. The actual manifold geometry and collision-aware path planning live in the solver layer (Principle 12)."@x-gmeow-english .
+gmeow:frameKindConfigurationSpace rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameKindGeocoding a gmeow:FrameKind ; rdfs:label "geocoding / discrete location code"@x-gmeow-english ;
     skos:definition "A frame whose structure is defined by a discrete location-coding scheme (Plus Code, what3words, geohash, MGRS) that partitions the Earth's surface into named cells. Distance is measured by geodesic proximity of the decoded coordinates, not by the code string itself (Principle 12)."@x-gmeow-english .
+gmeow:frameKindGeocoding rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameKindLinear a gmeow:FrameKind ; rdfs:label "linear referencing / distance-along"@x-gmeow-english ;
     skos:definition "A one-dimensional frame defined by distance along a linear feature (road, railway, pipeline). The coordinate is a scalar chainage or mile-marker; conversion to 2D/3D geographic coordinates requires the linear feature's geometry and is performed by the solver layer (Principle 12)."@x-gmeow-english .
+gmeow:frameKindLinear rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:frameKindLinearSequence a gmeow:FrameKind ; rdfs:label "linear sequence"@x-gmeow-english ;
     skos:definition "A one-dimensional coordinate system along a linear biological sequence (DNA, RNA, protein). Positions are integer offsets from a sequence origin; distance is measured in base pairs or amino-acid residues (edit-distance / sequence-alignment metric)."@x-gmeow-english .
 
 # Seeds for MetricKind
+gmeow:frameKindLinearSequence rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:metricGeodesic     a gmeow:MetricKind ; rdfs:label "geodesic"@x-gmeow-english ;
     skos:definition "Shortest path along a curved surface (e.g. great-circle on a spheroid)."@x-gmeow-english .
+gmeow:metricGeodesic rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:metricEuclidean   a gmeow:MetricKind ; rdfs:label "Euclidean"@x-gmeow-english ;
     skos:definition "Straight-line distance in a Cartesian or flat space."@x-gmeow-english .
+gmeow:metricEuclidean rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:metricCosine      a gmeow:MetricKind ; rdfs:label "cosine similarity"@x-gmeow-english ;
     skos:definition "Angular proximity in a latent vector space (1 − cosine distance)."@x-gmeow-english .
+gmeow:metricCosine rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:metricEditDistance a gmeow:MetricKind ; rdfs:label "edit distance"@x-gmeow-english ;
     skos:definition "String or sequence dissimilarity (Levenshtein, Hamming, Damerau-Levenshtein, etc.)."@x-gmeow-english .
+gmeow:metricEditDistance rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:metricPositionalDistance a gmeow:MetricKind ; rdfs:label "positional distance"@x-gmeow-english ;
     skos:definition "Absolute difference between coordinates on a linear 1-D frame (base pairs, amino-acid residues, sequence indices). Interval length (|end - start| + 1 for inclusive ranges) is a distinct metric."@x-gmeow-english .
+gmeow:metricPositionalDistance rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:metricGraphHops   a gmeow:MetricKind ; rdfs:label "graph hops"@x-gmeow-english ;
     skos:definition "Shortest-path edge count in a network or graph."@x-gmeow-english .
+gmeow:metricGraphHops rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:metricSymplectic  a gmeow:MetricKind ; rdfs:label "phase-space Euclidean"@x-gmeow-english ;
     skos:definition "Standard Euclidean distance metric on a finite-dimensional Hamiltonian phase space, treating the concatenated (q,p) state vector as a point in ℝ²ⁿ."@x-gmeow-english .
 
@@ -745,88 +873,224 @@ gmeow:metricSymplectic  a gmeow:MetricKind ; rdfs:label "phase-space Euclidean"@
 # Ordered coarse→fine by gmeow:coarserThan (transitive, so country is coarser than
 # every finer level). Aligned by reference to gmeow:placeType (the place kind at
 # that level) and, through it, to ISO 19112 LocationType / gazetteer tiers.
+gmeow:metricSymplectic rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:granularityCountry a gmeow:GranularityLevel ; rdfs:label "country level"@x-gmeow-english ;
     gmeow:coarserThan gmeow:granularityRegion ; skos:closeMatch gmeow:placeTypeCountry .
+gmeow:granularityCountry skos:definition "The country granularity level — a resolution at which a value may be disclosed or coarsened (Principle 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:granularityRegion  a gmeow:GranularityLevel ; rdfs:label "region level"@x-gmeow-english ;
     gmeow:coarserThan gmeow:granularityCity ; skos:closeMatch gmeow:placeTypeRegion .
+gmeow:granularityRegion skos:definition "The region granularity level — a resolution at which a value may be disclosed or coarsened (Principle 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:granularityCity    a gmeow:GranularityLevel ; rdfs:label "city level"@x-gmeow-english ;
     gmeow:coarserThan gmeow:granularityAddress ; skos:closeMatch gmeow:placeTypeCity .
+gmeow:granularityCity skos:definition "The city granularity level — a resolution at which a value may be disclosed or coarsened (Principle 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:granularityAddress a gmeow:GranularityLevel ; rdfs:label "address level"@x-gmeow-english ;
     gmeow:coarserThan gmeow:granularityPoint ; skos:closeMatch gmeow:placeTypePremises .
+gmeow:granularityAddress skos:definition "The address granularity level — a resolution at which a value may be disclosed or coarsened (Principle 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:granularityPoint   a gmeow:GranularityLevel ; rdfs:label "point / exact coordinate level"@x-gmeow-english .
 
 # Axes individuals
+gmeow:granularityPoint skos:definition "The point granularity level — a resolution at which a value may be disclosed or coarsened (Principle 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisLatitude         a gmeow:Axis ; rdfs:label "latitude"@x-gmeow-english .
+gmeow:axisLatitude skos:definition "The latitude axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisLongitude        a gmeow:Axis ; rdfs:label "longitude"@x-gmeow-english .
+gmeow:axisLongitude skos:definition "The longitude axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisElevation        a gmeow:Axis ; rdfs:label "elevation"@x-gmeow-english .
+gmeow:axisElevation skos:definition "The elevation axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisX                a gmeow:Axis ; rdfs:label "X axis"@x-gmeow-english .
+gmeow:axisX skos:definition "The x axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisY                a gmeow:Axis ; rdfs:label "Y axis"@x-gmeow-english .
+gmeow:axisY skos:definition "The y axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisZ                a gmeow:Axis ; rdfs:label "Z axis"@x-gmeow-english .
+gmeow:axisZ skos:definition "The z axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisYaw              a gmeow:Axis ; rdfs:label "yaw axis"@x-gmeow-english .
+gmeow:axisYaw skos:definition "The yaw axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisPitch            a gmeow:Axis ; rdfs:label "pitch axis"@x-gmeow-english .
+gmeow:axisPitch skos:definition "The pitch axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisRoll             a gmeow:Axis ; rdfs:label "roll axis"@x-gmeow-english .
+gmeow:axisRoll skos:definition "The roll axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisQuaternionX      a gmeow:Axis ; rdfs:label "quaternion X axis"@x-gmeow-english .
+gmeow:axisQuaternionX skos:definition "The quaternion x axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisQuaternionY      a gmeow:Axis ; rdfs:label "quaternion Y axis"@x-gmeow-english .
+gmeow:axisQuaternionY skos:definition "The quaternion y axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisQuaternionZ      a gmeow:Axis ; rdfs:label "quaternion Z axis"@x-gmeow-english .
+gmeow:axisQuaternionZ skos:definition "The quaternion z axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisQuaternionW      a gmeow:Axis ; rdfs:label "quaternion W axis"@x-gmeow-english .
+gmeow:axisQuaternionW skos:definition "The quaternion w axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisHeading          a gmeow:Axis ; rdfs:label "heading axis"@x-gmeow-english .
+gmeow:axisHeading skos:definition "The heading axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisBearing          a gmeow:Axis ; rdfs:label "bearing axis"@x-gmeow-english .
+gmeow:axisBearing skos:definition "The bearing axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisVirtualAddress   a gmeow:Axis ; rdfs:label "virtual address axis"@x-gmeow-english .
+gmeow:axisVirtualAddress skos:definition "The virtual address axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisRightAscension   a gmeow:Axis ; rdfs:label "right ascension"@x-gmeow-english .
+gmeow:axisRightAscension skos:definition "The right ascension axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisDeclination      a gmeow:Axis ; rdfs:label "declination"@x-gmeow-english .
+gmeow:axisDeclination skos:definition "The declination axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisGalacticLongitude  a gmeow:Axis ; rdfs:label "galactic longitude"@x-gmeow-english .
+gmeow:axisGalacticLongitude skos:definition "The galactic longitude axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisGalacticLatitude   a gmeow:Axis ; rdfs:label "galactic latitude"@x-gmeow-english .
+gmeow:axisGalacticLatitude skos:definition "The galactic latitude axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisScalar           a gmeow:Axis ; rdfs:label "scalar axis"@x-gmeow-english .
+gmeow:axisScalar skos:definition "The scalar axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisYear             a gmeow:Axis ; rdfs:label "year"@x-gmeow-english .
+gmeow:axisYear skos:definition "The year axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisMonth            a gmeow:Axis ; rdfs:label "month"@x-gmeow-english .
+gmeow:axisMonth skos:definition "The month axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisDay              a gmeow:Axis ; rdfs:label "day"@x-gmeow-english .
+gmeow:axisDay skos:definition "The day axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisHour             a gmeow:Axis ; rdfs:label "hour"@x-gmeow-english .
+gmeow:axisHour skos:definition "The hour axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisMinute           a gmeow:Axis ; rdfs:label "minute"@x-gmeow-english .
+gmeow:axisMinute skos:definition "The minute axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisSecond           a gmeow:Axis ; rdfs:label "second"@x-gmeow-english .
+gmeow:axisSecond skos:definition "The second axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisRed              a gmeow:Axis ; rdfs:label "red channel"@x-gmeow-english .
+gmeow:axisRed skos:definition "The red axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisGreen            a gmeow:Axis ; rdfs:label "green channel"@x-gmeow-english .
+gmeow:axisGreen skos:definition "The green axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisBlue             a gmeow:Axis ; rdfs:label "blue channel"@x-gmeow-english .
+gmeow:axisBlue skos:definition "The blue axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisCyan             a gmeow:Axis ; rdfs:label "cyan channel"@x-gmeow-english .
+gmeow:axisCyan skos:definition "The cyan axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisMagenta          a gmeow:Axis ; rdfs:label "magenta channel"@x-gmeow-english .
+gmeow:axisMagenta skos:definition "The magenta axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisYellow           a gmeow:Axis ; rdfs:label "yellow channel"@x-gmeow-english .
+gmeow:axisYellow skos:definition "The yellow axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisKey              a gmeow:Axis ; rdfs:label "key (black) channel"@x-gmeow-english .
+gmeow:axisKey skos:definition "The key axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisIPv4Address      a gmeow:Axis ; rdfs:label "IPv4 address axis"@x-gmeow-english .
+gmeow:axisIPv4Address skos:definition "The i pv 4 address axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisIPv6Address      a gmeow:Axis ; rdfs:label "IPv6 address axis"@x-gmeow-english .
+gmeow:axisIPv6Address skos:definition "The i pv 6 address axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisMACAddress       a gmeow:Axis ; rdfs:label "MAC address axis"@x-gmeow-english .
+gmeow:axisMACAddress skos:definition "The mac address axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisDNSName          a gmeow:Axis ; rdfs:label "DNS name axis"@x-gmeow-english .
+gmeow:axisDNSName skos:definition "The dns name axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisURL              a gmeow:Axis ; rdfs:label "URL axis"@x-gmeow-english .
+gmeow:axisURL skos:definition "The url axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisPortNumber       a gmeow:Axis ; rdfs:label "port number axis"@x-gmeow-english .
+gmeow:axisPortNumber skos:definition "The port number axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisBGPAS            a gmeow:Axis ; rdfs:label "BGP autonomous system axis"@x-gmeow-english .
 
 # Postal address axes (#107)
+gmeow:axisBGPAS skos:definition "The bgpas axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisStreetAddress    a gmeow:Axis ; rdfs:label "street address axis"@x-gmeow-english .
+gmeow:axisStreetAddress skos:definition "The street address axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisExtendedAddress  a gmeow:Axis ; rdfs:label "extended address axis"@x-gmeow-english .
+gmeow:axisExtendedAddress skos:definition "The extended address axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisPostOfficeBox    a gmeow:Axis ; rdfs:label "post office box axis"@x-gmeow-english .
+gmeow:axisPostOfficeBox skos:definition "The post office box axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisAddressLocality  a gmeow:Axis ; rdfs:label "address locality axis"@x-gmeow-english .
+gmeow:axisAddressLocality skos:definition "The address locality axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisAddressRegion    a gmeow:Axis ; rdfs:label "address region axis"@x-gmeow-english .
+gmeow:axisAddressRegion skos:definition "The address region axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisPostalCode       a gmeow:Axis ; rdfs:label "postal code axis"@x-gmeow-english .
+gmeow:axisPostalCode skos:definition "The postal code axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisCountryCode      a gmeow:Axis ; rdfs:label "country code axis"@x-gmeow-english .
 
 # Sensory-environment axes (#104)
+gmeow:axisCountryCode skos:definition "The country code axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisTristimulusX     a gmeow:Axis ; rdfs:label "CIE X tristimulus"@x-gmeow-english .
+gmeow:axisTristimulusX skos:definition "The tristimulus x axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisTristimulusY     a gmeow:Axis ; rdfs:label "CIE Y tristimulus"@x-gmeow-english .
+gmeow:axisTristimulusY skos:definition "The tristimulus y axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisTristimulusZ     a gmeow:Axis ; rdfs:label "CIE Z tristimulus"@x-gmeow-english .
+gmeow:axisTristimulusZ skos:definition "The tristimulus z axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisLightness        a gmeow:Axis ; rdfs:label "CIE L* lightness"@x-gmeow-english .
+gmeow:axisLightness skos:definition "The lightness axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisAstar            a gmeow:Axis ; rdfs:label "CIE a* red-green"@x-gmeow-english .
+gmeow:axisAstar skos:definition "The astar axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisBstar            a gmeow:Axis ; rdfs:label "CIE b* blue-yellow"@x-gmeow-english .
+gmeow:axisBstar skos:definition "The bstar axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisFrequency        a gmeow:Axis ; rdfs:label "frequency"@x-gmeow-english .
+gmeow:axisFrequency skos:definition "The frequency axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisMagnitude        a gmeow:Axis ; rdfs:label "magnitude"@x-gmeow-english .
+gmeow:axisMagnitude skos:definition "The magnitude axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisPredictedMeanVote a gmeow:Axis ; rdfs:label "predicted mean vote (PMV)"@x-gmeow-english .
+gmeow:axisPredictedMeanVote skos:definition "The predicted mean vote axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisPredictedPercentageDissatisfied a gmeow:Axis ; rdfs:label "predicted percentage dissatisfied (PPD)"@x-gmeow-english .
+gmeow:axisPredictedPercentageDissatisfied skos:definition "The predicted percentage dissatisfied axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisGeneralizedCoordinate a gmeow:Axis ; rdfs:label "generalized coordinate"@x-gmeow-english ;
     skos:definition "A generalized position coordinate qᵢ in a Lagrangian or Hamiltonian formulation."@x-gmeow-english .
+gmeow:axisGeneralizedCoordinate rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisGeneralizedMomentum a gmeow:Axis ; rdfs:label "generalized momentum"@x-gmeow-english ;
     skos:definition "The conjugate momentum pᵢ = ∂L/∂q̇ᵢ corresponding to a generalized coordinate qᵢ."@x-gmeow-english .
+gmeow:axisGeneralizedMomentum rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisMomentumX       a gmeow:Axis ; rdfs:label "momentum X"@x-gmeow-english .
+gmeow:axisMomentumX skos:definition "The momentum x axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisMomentumY       a gmeow:Axis ; rdfs:label "momentum Y"@x-gmeow-english .
+gmeow:axisMomentumY skos:definition "The momentum y axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisMomentumZ       a gmeow:Axis ; rdfs:label "momentum Z"@x-gmeow-english .
+gmeow:axisMomentumZ skos:definition "The momentum z axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisHilbertState    a gmeow:Axis ; rdfs:label "Hilbert state vector"@x-gmeow-english ;
     skos:definition "A single axis representing the state vector in a Hilbert space. The actual infinite-dimensional structure is a solver-layer attribute (Principle 12)."@x-gmeow-english .
+gmeow:axisHilbertState rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisLatentVector    a gmeow:Axis ; rdfs:label "latent vector"@x-gmeow-english ;
     skos:definition "A single axis representing a point in a learned latent vector space. The embedding dimension is a solver-layer attribute (Principle 12)."@x-gmeow-english .
 gmeow:axisJointAngle1     a gmeow:Axis ; rdfs:label "joint angle 1"@x-gmeow-english .
@@ -837,53 +1101,105 @@ gmeow:axisJointAngle5     a gmeow:Axis ; rdfs:label "joint angle 5"@x-gmeow-engl
 gmeow:axisJointAngle6     a gmeow:Axis ; rdfs:label "joint angle 6"@x-gmeow-english .
 
 # Psychological / cognitive axes (#87)
+gmeow:axisLatentVector rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisValence              a gmeow:Axis ; rdfs:label "valence"@x-gmeow-english ; skos:definition "The pleasure-displeasure dimension of affect (Russell circumplex)."@x-gmeow-english .
+gmeow:axisValence rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisArousal              a gmeow:Axis ; rdfs:label "arousal"@x-gmeow-english ; skos:definition "The activation-deactivation dimension of affect (Russell circumplex)."@x-gmeow-english .
+gmeow:axisArousal rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisConceptualSimilarity a gmeow:Axis ; rdfs:label "conceptual similarity"@x-gmeow-english ; skos:definition "The similarity or distance between concepts in a Gärdenfors-style conceptual space."@x-gmeow-english .
+gmeow:axisConceptualSimilarity rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisEgocentricForward    a gmeow:Axis ; rdfs:label "egocentric forward"@x-gmeow-english ; skos:definition "The forward/backward axis of an egocentric cognitive map, relative to the agent's facing direction."@x-gmeow-english .
+gmeow:axisEgocentricForward rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisEgocentricLateral    a gmeow:Axis ; rdfs:label "egocentric lateral"@x-gmeow-english ; skos:definition "The left/right axis of an egocentric cognitive map, relative to the agent's facing direction."@x-gmeow-english .
+gmeow:axisEgocentricLateral rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisAllocentricX         a gmeow:Axis ; rdfs:label "allocentric X"@x-gmeow-english ; skos:definition "The X axis of an allocentric (world-centred) cognitive map."@x-gmeow-english .
+gmeow:axisAllocentricX rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisAllocentricY         a gmeow:Axis ; rdfs:label "allocentric Y"@x-gmeow-english ; skos:definition "The Y axis of an allocentric (world-centred) cognitive map."@x-gmeow-english .
+gmeow:axisAllocentricY rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisImaginedSpaceX       a gmeow:Axis ; rdfs:label "imagined space X"@x-gmeow-english ; skos:definition "The X axis of an imagined or dream space (memory palace, dream landscape)."@x-gmeow-english .
+gmeow:axisImaginedSpaceX rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisImaginedSpaceY       a gmeow:Axis ; rdfs:label "imagined space Y"@x-gmeow-english ; skos:definition "The Y axis of an imagined or dream space (memory palace, dream landscape)."@x-gmeow-english .
+gmeow:axisImaginedSpaceY rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisImaginedSpaceZ       a gmeow:Axis ; rdfs:label "imagined space Z"@x-gmeow-english ; skos:definition "The Z axis of an imagined or dream space (memory palace, dream landscape)."@x-gmeow-english .
 
 # Robotic-space axes (#88)
+gmeow:axisImaginedSpaceZ rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisJointAngle1           a gmeow:Axis ; rdfs:label "joint angle 1"@x-gmeow-english .
+gmeow:axisJointAngle1 skos:definition "The joint angle 1 axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisJointAngle2           a gmeow:Axis ; rdfs:label "joint angle 2"@x-gmeow-english .
+gmeow:axisJointAngle2 skos:definition "The joint angle 2 axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisJointAngle3           a gmeow:Axis ; rdfs:label "joint angle 3"@x-gmeow-english .
+gmeow:axisJointAngle3 skos:definition "The joint angle 3 axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisJointAngle4           a gmeow:Axis ; rdfs:label "joint angle 4"@x-gmeow-english .
+gmeow:axisJointAngle4 skos:definition "The joint angle 4 axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisJointAngle5           a gmeow:Axis ; rdfs:label "joint angle 5"@x-gmeow-english .
+gmeow:axisJointAngle5 skos:definition "The joint angle 5 axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisJointAngle6           a gmeow:Axis ; rdfs:label "joint angle 6"@x-gmeow-english .
+gmeow:axisJointAngle6 skos:definition "The joint angle 6 axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisConfigurationVector   a gmeow:Axis ; rdfs:label "configuration vector axis"@x-gmeow-english ;
     skos:definition "A generic n-dimensional configuration vector axis for variable-DOF robots. The actual dimensionality is pushed to the solver layer via CoordinateMatrix.matrixShape (Principle 12)."@x-gmeow-english .
+gmeow:axisConfigurationVector rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisLinearVelocityX       a gmeow:Axis ; rdfs:label "linear velocity X axis"@x-gmeow-english .
+gmeow:axisLinearVelocityX skos:definition "The linear velocity x axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisLinearVelocityY       a gmeow:Axis ; rdfs:label "linear velocity Y axis"@x-gmeow-english .
+gmeow:axisLinearVelocityY skos:definition "The linear velocity y axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisLinearVelocityZ       a gmeow:Axis ; rdfs:label "linear velocity Z axis"@x-gmeow-english .
+gmeow:axisLinearVelocityZ skos:definition "The linear velocity z axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisAngularVelocityX      a gmeow:Axis ; rdfs:label "angular velocity X axis"@x-gmeow-english .
+gmeow:axisAngularVelocityX skos:definition "The angular velocity x axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisAngularVelocityY      a gmeow:Axis ; rdfs:label "angular velocity Y axis"@x-gmeow-english .
+gmeow:axisAngularVelocityY skos:definition "The angular velocity y axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisAngularVelocityZ      a gmeow:Axis ; rdfs:label "angular velocity Z axis"@x-gmeow-english .
 
 # Geocoding axes (#91)
+gmeow:axisAngularVelocityZ skos:definition "The angular velocity z axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisPlusCode         a gmeow:Axis ; rdfs:label "Plus Code cell"@x-gmeow-english .
+gmeow:axisPlusCode skos:definition "The plus code axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisWhat3Words       a gmeow:Axis ; rdfs:label "what3words word triple"@x-gmeow-english .
+gmeow:axisWhat3Words skos:definition "The what 3 words axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisGeohash          a gmeow:Axis ; rdfs:label "geohash string"@x-gmeow-english .
+gmeow:axisGeohash skos:definition "The geohash axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisMGRS             a gmeow:Axis ; rdfs:label "MGRS grid reference"@x-gmeow-english .
+gmeow:axisMGRS skos:definition "The mgrs axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisUNLocode         a gmeow:Axis ; rdfs:label "UN/LOCODE code"@x-gmeow-english .
+gmeow:axisUNLocode skos:definition "The un locode axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisMileMarker       a gmeow:Axis ; rdfs:label "mile marker / chainage"@x-gmeow-english .
 
 # Vertical-dimension axes — altitude / depth / flight level (#93)
+gmeow:axisMileMarker skos:definition "The mile marker axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisAltitude         a gmeow:Axis ; rdfs:label "altitude"@x-gmeow-english ;
     skos:definition "The vertical axis above a reference datum — mean sea level, ground level, or another vertical reference surface. Used for aviation and terrestrial elevation bounds."@x-gmeow-english .
+gmeow:axisAltitude rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisFlightLevel      a gmeow:Axis ; rdfs:label "flight level"@x-gmeow-english ;
     skos:definition "The pressure-altitude axis expressed as ICAO flight level (standard atmosphere 1013.25 hPa). Independent of local QNH; used for en-route airspace bounds."@x-gmeow-english .
+gmeow:axisFlightLevel rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisDepth            a gmeow:Axis ; rdfs:label "depth"@x-gmeow-english ;
     skos:definition "The vertical axis below a reference datum — mean sea level, chart datum, or another vertical reference surface. Used for maritime depth bounds and bathymetry."@x-gmeow-english .
 
 # Biological-sequence axis (#90)
+gmeow:axisDepth rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:axisSequencePosition     a gmeow:Axis ; rdfs:label "sequence position"@x-gmeow-english ;
     skos:definition "The linear position axis along a biological sequence (DNA, RNA, protein), measured in base pairs or amino-acid residues from a sequence origin."@x-gmeow-english .
 # Default Reference Frames for the seed realms
+gmeow:axisSequencePosition rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:referenceFrameWGS84
     a gmeow:ReferenceFrame ;
     rdfs:label "WGS 84 Geodetic Reference Frame"@x-gmeow-english ;
@@ -894,6 +1210,8 @@ gmeow:referenceFrameWGS84
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricGeodesic .
+gmeow:referenceFrameWGS84 skos:definition "The wgs 84 reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameLocalGrid
     a gmeow:ReferenceFrame ;
@@ -905,6 +1223,8 @@ gmeow:referenceFrameLocalGrid
     gmeow:requiresHost true ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricEuclidean .
+gmeow:referenceFrameLocalGrid skos:definition "The local grid reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameVirtualPlatform
     a gmeow:ReferenceFrame ;
@@ -915,6 +1235,8 @@ gmeow:referenceFrameVirtualPlatform
     gmeow:frameKind gmeow:frameKindGrid ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:referenceFrameVirtualPlatform skos:definition "The virtual platform reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameCelestialEquatorial
     a gmeow:ReferenceFrame ;
@@ -928,6 +1250,8 @@ gmeow:referenceFrameCelestialEquatorial
     gmeow:hasMetricKind gmeow:metricGeodesic ;
     gmeow:hasReferencePosition gmeow:refOriginGeocentric ;
     gmeow:hasTimeScale gmeow:timeScaleUTC .
+gmeow:referenceFrameCelestialEquatorial skos:definition "The celestial equatorial reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameICRS
     a gmeow:ReferenceFrame ;
@@ -941,6 +1265,8 @@ gmeow:referenceFrameICRS
     gmeow:hasMetricKind gmeow:metricGeodesic ;
     gmeow:hasReferencePosition gmeow:refOriginBarycentric ;
     gmeow:hasTimeScale gmeow:timeScaleTDB .
+gmeow:referenceFrameICRS skos:definition "The icrs reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameFK5
     a gmeow:ReferenceFrame ;
@@ -954,6 +1280,8 @@ gmeow:referenceFrameFK5
     gmeow:hasMetricKind gmeow:metricGeodesic ;
     gmeow:hasReferencePosition gmeow:refOriginGeocentric ;
     gmeow:hasTimeScale gmeow:timeScaleUTC .
+gmeow:referenceFrameFK5 skos:definition "The fk 5 reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameGalactic
     a gmeow:ReferenceFrame ;
@@ -967,6 +1295,8 @@ gmeow:referenceFrameGalactic
     gmeow:hasMetricKind gmeow:metricGeodesic ;
     gmeow:hasReferencePosition gmeow:refOriginBarycentric ;
     gmeow:hasTimeScale gmeow:timeScaleTDB .
+gmeow:referenceFrameGalactic skos:definition "The galactic reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameRobotBase
     a gmeow:ReferenceFrame ;
@@ -978,6 +1308,8 @@ gmeow:referenceFrameRobotBase
     gmeow:requiresHost true ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricEuclidean .
+gmeow:referenceFrameRobotBase skos:definition "The robot base reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameRobotCspace6DOF
     a gmeow:ReferenceFrame ;
@@ -989,6 +1321,8 @@ gmeow:referenceFrameRobotCspace6DOF
     gmeow:requiresHost true ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricGeodesic .
+gmeow:referenceFrameRobotCspace6DOF skos:definition "The robot cspace 6 dof reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameRobotTaskSpace
     a gmeow:ReferenceFrame ;
@@ -1000,6 +1334,8 @@ gmeow:referenceFrameRobotTaskSpace
     gmeow:requiresHost true ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricEuclidean .
+gmeow:referenceFrameRobotTaskSpace skos:definition "The robot task space reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameRobotVelocity
     a gmeow:ReferenceFrame ;
@@ -1011,6 +1347,8 @@ gmeow:referenceFrameRobotVelocity
     gmeow:requiresHost true ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricEuclidean .
+gmeow:referenceFrameRobotVelocity skos:definition "The robot velocity reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameRobotSLAM
     a gmeow:ReferenceFrame ;
@@ -1030,6 +1368,8 @@ gmeow:referenceFrameRobotSLAM
 # Altitude and depth are frame-relative; conversion between MSL, AGL, flight
 # level, and chart datum is a solver-layer computation (Principle 12).
 # --------------------------------------------------------------------------- #
+gmeow:referenceFrameRobotSLAM skos:definition "The robot slam reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameAltitudeMSL
     a gmeow:ReferenceFrame ;
@@ -1041,6 +1381,8 @@ gmeow:referenceFrameAltitudeMSL
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricEuclidean .
+gmeow:referenceFrameAltitudeMSL skos:definition "The altitude msl reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameFlightLevel
     a gmeow:ReferenceFrame ;
@@ -1052,6 +1394,8 @@ gmeow:referenceFrameFlightLevel
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricEuclidean .
+gmeow:referenceFrameFlightLevel skos:definition "The flight level reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameAltitudeAGL
     a gmeow:ReferenceFrame ;
@@ -1063,6 +1407,8 @@ gmeow:referenceFrameAltitudeAGL
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricEuclidean .
+gmeow:referenceFrameAltitudeAGL skos:definition "The altitude agl reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameDepthBelowSeaLevel
     a gmeow:ReferenceFrame ;
@@ -1074,6 +1420,8 @@ gmeow:referenceFrameDepthBelowSeaLevel
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricEuclidean .
+gmeow:referenceFrameDepthBelowSeaLevel skos:definition "The depth below sea level reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameDepthBelowChartDatum
     a gmeow:ReferenceFrame ;
@@ -1085,6 +1433,8 @@ gmeow:referenceFrameDepthBelowChartDatum
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricEuclidean .
+gmeow:referenceFrameDepthBelowChartDatum skos:definition "The depth below chart datum reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameSI
     a gmeow:ReferenceFrame ;
@@ -1095,6 +1445,8 @@ gmeow:referenceFrameSI
     gmeow:frameKind gmeow:frameKindScalar ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:referenceFrameSI skos:definition "The si reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameUSD
     a gmeow:ReferenceFrame ;
@@ -1105,6 +1457,8 @@ gmeow:referenceFrameUSD
     gmeow:frameKind gmeow:frameKindScalar ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:referenceFrameUSD skos:definition "The usd reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameEUR
     a gmeow:ReferenceFrame ;
@@ -1115,6 +1469,8 @@ gmeow:referenceFrameEUR
     gmeow:frameKind gmeow:frameKindScalar ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:referenceFrameEUR skos:definition "The eur reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameGBP
     a gmeow:ReferenceFrame ;
@@ -1125,6 +1481,8 @@ gmeow:referenceFrameGBP
     gmeow:frameKind gmeow:frameKindScalar ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:referenceFrameGBP skos:definition "The gbp reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameJPY
     a gmeow:ReferenceFrame ;
@@ -1135,6 +1493,8 @@ gmeow:referenceFrameJPY
     gmeow:frameKind gmeow:frameKindScalar ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:referenceFrameJPY skos:definition "The jpy reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameCAD
     a gmeow:ReferenceFrame ;
@@ -1145,6 +1505,8 @@ gmeow:referenceFrameCAD
     gmeow:frameKind gmeow:frameKindScalar ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:referenceFrameCAD skos:definition "The cad reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameCHF
     a gmeow:ReferenceFrame ;
@@ -1155,6 +1517,8 @@ gmeow:referenceFrameCHF
     gmeow:frameKind gmeow:frameKindScalar ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:referenceFrameCHF skos:definition "The chf reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameAUD
     a gmeow:ReferenceFrame ;
@@ -1165,6 +1529,8 @@ gmeow:referenceFrameAUD
     gmeow:frameKind gmeow:frameKindScalar ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:referenceFrameAUD skos:definition "The aud reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameCNY
     a gmeow:ReferenceFrame ;
@@ -1175,6 +1541,8 @@ gmeow:referenceFrameCNY
     gmeow:frameKind gmeow:frameKindScalar ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:referenceFrameCNY skos:definition "The cny reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameBTC
     a gmeow:ReferenceFrame ;
@@ -1185,6 +1553,8 @@ gmeow:referenceFrameBTC
     gmeow:frameKind gmeow:frameKindScalar ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:referenceFrameBTC skos:definition "The btc reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameETH
     a gmeow:ReferenceFrame ;
@@ -1195,6 +1565,8 @@ gmeow:referenceFrameETH
     gmeow:frameKind gmeow:frameKindScalar ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:referenceFrameETH skos:definition "The eth reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameGregorian
     a gmeow:ReferenceFrame ;
@@ -1205,6 +1577,8 @@ gmeow:referenceFrameGregorian
     gmeow:frameKind gmeow:frameKindTemporal ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:referenceFrameGregorian skos:definition "The gregorian reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameUnixEpoch
     a gmeow:ReferenceFrame ;
@@ -1215,6 +1589,8 @@ gmeow:referenceFrameUnixEpoch
     gmeow:frameKind gmeow:frameKindScalar ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:referenceFrameUnixEpoch skos:definition "The unix epoch reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameSRGB
     a gmeow:ReferenceFrame ;
@@ -1225,6 +1601,8 @@ gmeow:referenceFrameSRGB
     gmeow:frameKind gmeow:frameKindCartesian ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:referenceFrameSRGB skos:definition "The s rgb reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameCMYK
     a gmeow:ReferenceFrame ;
@@ -1235,6 +1613,8 @@ gmeow:referenceFrameCMYK
     gmeow:frameKind gmeow:frameKindCartesian ;
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:referenceFrameCMYK skos:definition "The cmyk reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameEnglish
     a gmeow:ReferenceFrame ;
@@ -1255,6 +1635,8 @@ gmeow:referenceFrameEnglish
 # The Internet frame is the root; each address-space frame is a child via
 # parentFrame, forming the Internet-wide topology hierarchy.
 # --------------------------------------------------------------------------- #
+gmeow:referenceFrameEnglish skos:definition "The english reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameInternet
     a gmeow:ReferenceFrame ;
@@ -1266,6 +1648,8 @@ gmeow:referenceFrameInternet
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricGraphHops .
+gmeow:referenceFrameInternet skos:definition "The internet reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameIPv4
     a gmeow:ReferenceFrame ;
@@ -1278,6 +1662,8 @@ gmeow:referenceFrameIPv4
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricGraphHops ;
     gmeow:parentFrame gmeow:referenceFrameInternet .
+gmeow:referenceFrameIPv4 skos:definition "The i pv 4 reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameIPv6
     a gmeow:ReferenceFrame ;
@@ -1290,6 +1676,8 @@ gmeow:referenceFrameIPv6
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricGraphHops ;
     gmeow:parentFrame gmeow:referenceFrameInternet .
+gmeow:referenceFrameIPv6 skos:definition "The i pv 6 reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameMAC
     a gmeow:ReferenceFrame ;
@@ -1302,6 +1690,8 @@ gmeow:referenceFrameMAC
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricGraphHops ;
     gmeow:parentFrame gmeow:referenceFrameInternet .
+gmeow:referenceFrameMAC skos:definition "The mac reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameDNS
     a gmeow:ReferenceFrame ;
@@ -1314,6 +1704,8 @@ gmeow:referenceFrameDNS
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricGraphHops ;
     gmeow:parentFrame gmeow:referenceFrameInternet .
+gmeow:referenceFrameDNS skos:definition "The dns reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameURL
     a gmeow:ReferenceFrame ;
@@ -1326,6 +1718,8 @@ gmeow:referenceFrameURL
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricGraphHops ;
     gmeow:parentFrame gmeow:referenceFrameInternet .
+gmeow:referenceFrameURL skos:definition "The url reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFramePort
     a gmeow:ReferenceFrame ;
@@ -1338,6 +1732,8 @@ gmeow:referenceFramePort
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricGraphHops ;
     gmeow:parentFrame gmeow:referenceFrameInternet .
+gmeow:referenceFramePort skos:definition "The port reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameBGP
     a gmeow:ReferenceFrame ;
@@ -1357,6 +1753,8 @@ gmeow:referenceFrameBGP
 # region ⊂ country), not geometric; distance is measured in graph-hops along
 # the administrative hierarchy (Principle 12 — the actual resolution/geocoding
 # math lives in the solver layer).
+gmeow:referenceFrameBGP skos:definition "The bgp reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:referenceFramePostalAddress
     a gmeow:ReferenceFrame ;
     rdfs:label "Postal Address Reference Frame"@x-gmeow-english ;
@@ -1371,6 +1769,8 @@ gmeow:referenceFramePostalAddress
     gmeow:hasMetricKind gmeow:metricGraphHops .
 
 # Reference Frame Profile Properties
+gmeow:referenceFramePostalAddress skos:definition "The postal address reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:frameRealm
     a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:ReferenceFrame ;
@@ -2037,22 +2437,31 @@ gmeow:RegulatoryOverlayType
 
 gmeow:overlayTypeZoning              a gmeow:RegulatoryOverlayType ; rdfs:label "zoning / land-use regulation"@x-gmeow-english ;
     skos:definition "A land-use zoning overlay designating permitted uses (residential, commercial, industrial, agricultural, mixed-use) within a geographic area."@x-gmeow-english .
+gmeow:overlayTypeZoning rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeProtectedArea       a gmeow:RegulatoryOverlayType ; rdfs:label "protected area"@x-gmeow-english ;
     skos:definition "A legally-designated protected area such as a national park, wildlife reserve, marine protected area, or wilderness area. Management categories (IUCN Ia–VI) are carried as additional classifications, not as subclasses."@x-gmeow-english .
+gmeow:overlayTypeProtectedArea rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeRestrictedAirspace  a gmeow:RegulatoryOverlayType ; rdfs:label "restricted airspace"@x-gmeow-english ;
     skos:definition "An airspace restriction including prohibited areas, restricted areas, danger areas, temporary reserved airspace (TRA), temporary segregated airspace (TSA), and no-fly zones. 3D bounds (altitude/ flight levels) are carried via overlayLowerBound / overlayUpperBound."@x-gmeow-english .
+gmeow:overlayTypeRestrictedAirspace rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeSanctions           a gmeow:RegulatoryOverlayType ; rdfs:label "sanctions / embargo"@x-gmeow-english ;
     skos:definition "A territory subject to international or unilateral sanctions, embargoes, or trade restrictions imposed by one or more authorities."@x-gmeow-english .
+gmeow:overlayTypeSanctions rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeTaxDistrict         a gmeow:RegulatoryOverlayType ; rdfs:label "tax district"@x-gmeow-english ;
     skos:definition "An administrative area designated for tax assessment, collection, or rate-setting purposes."@x-gmeow-english .
+gmeow:overlayTypeTaxDistrict rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeElectoralDistrict   a gmeow:RegulatoryOverlayType ; rdfs:label "electoral district"@x-gmeow-english ;
     skos:definition "A constituency or voting district defining the geographic boundary for an election."@x-gmeow-english .
+gmeow:overlayTypeElectoralDistrict rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypePostalZone          a gmeow:RegulatoryOverlayType ; rdfs:label "postal zone"@x-gmeow-english ;
     skos:definition "A postal code or ZIP delivery area — a zone designated for mail sorting and delivery by a postal authority."@x-gmeow-english .
+gmeow:overlayTypePostalZone rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeCivilTimeZone       a gmeow:RegulatoryOverlayType ; rdfs:label "civil time zone"@x-gmeow-english ;
     skos:definition "A geographic area sharing the same standard civil time, typically following political boundaries and designated by an IANA time-zone identifier. The authority is the government or international body that decreed the timezone boundary."@x-gmeow-english .
+gmeow:overlayTypeCivilTimeZone rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeFishingZone         a gmeow:RegulatoryOverlayType ; rdfs:label "fishing zone / EEZ"@x-gmeow-english ;
     skos:definition "An exclusive economic zone (EEZ), fisheries management zone, or other maritime area subject to resource-extraction regulation under UNCLOS or bilateral agreement."@x-gmeow-english .
+gmeow:overlayTypeFishingZone rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeCustomsZone         a gmeow:RegulatoryOverlayType ; rdfs:label "customs zone"@x-gmeow-english ;
     skos:definition "A customs territory, free-trade zone, bonded warehouse area, or other zone with special customs/tariff regulations."@x-gmeow-english .
 
@@ -2068,6 +2477,7 @@ gmeow:overlayTypeCustomsZone         a gmeow:RegulatoryOverlayType ; rdfs:label 
 # cancelled tenures keep their record (gmeow:displayable false), never deletion
 # (Principle 10).
 # --------------------------------------------------------------------------- #
+gmeow:overlayTypeCustomsZone rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:LandTenure
     a owl:Class, gufo:SituationType ;
@@ -2128,16 +2538,22 @@ gmeow:LandTenureType
 
 gmeow:tenureTypeOwnership    a gmeow:LandTenureType ; rdfs:label "ownership"@x-gmeow-english ;
     skos:definition "Full ownership of the land — the right to possess, use, enjoy, and dispose of the property, subject to applicable law."@x-gmeow-english .
+gmeow:tenureTypeOwnership rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:tenureTypeLeasehold    a gmeow:LandTenureType ; rdfs:label "leasehold"@x-gmeow-english ;
     skos:definition "A leasehold interest — the right to occupy and use land for a specified term under a lease agreement with the owner."@x-gmeow-english .
+gmeow:tenureTypeLeasehold rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:tenureTypeEasement     a gmeow:LandTenureType ; rdfs:label "easement"@x-gmeow-english ;
     skos:definition "An easement — a non-possessory right to use land owned by another party for a specific purpose (e.g. right of way, utility corridor)."@x-gmeow-english .
+gmeow:tenureTypeEasement rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:tenureTypeMortgage     a gmeow:LandTenureType ; rdfs:label "mortgage"@x-gmeow-english ;
     skos:definition "A mortgage or charge — a security interest in land granted to a lender as collateral for a debt."@x-gmeow-english .
+gmeow:tenureTypeMortgage rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:tenureTypeUsufruct     a gmeow:LandTenureType ; rdfs:label "usufruct"@x-gmeow-english ;
     skos:definition "A usufruct — the right to use and derive income from land belonging to another, without impairing its substance."@x-gmeow-english .
+gmeow:tenureTypeUsufruct rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:tenureTypeFreehold     a gmeow:LandTenureType ; rdfs:label "freehold"@x-gmeow-english ;
     skos:definition "A freehold estate — ownership of land for an unlimited duration, subject only to the powers of the Crown or state (allodial title)."@x-gmeow-english .
+gmeow:tenureTypeFreehold rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:tenureTypeCrownLease   a gmeow:LandTenureType ; rdfs:label "crown lease"@x-gmeow-english ;
     skos:definition "A lease from the Crown or state — land held under a lease agreement with the sovereign or government, common in Commonwealth jurisdictions."@x-gmeow-english .
 
@@ -2150,6 +2566,7 @@ gmeow:tenureTypeCrownLease   a gmeow:LandTenureType ; rdfs:label "crown lease"@x
 # jurisdiction when those matter. Temporal validity (validFrom / validUntil) is
 # carried on the CadastralReference itself, following the core module pattern.
 # --------------------------------------------------------------------------- #
+gmeow:tenureTypeCrownLease rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:CadastralReference
     a owl:Class, gufo:Kind ;
@@ -2209,56 +2626,75 @@ gmeow:CadastralReferenceType
 
 gmeow:referenceTypeParcelId   a gmeow:CadastralReferenceType ; rdfs:label "parcel identifier"@x-gmeow-english ;
     skos:definition "A parcel identifier — the primary identifier assigned to a cadastral parcel by a registry."@x-gmeow-english .
+gmeow:referenceTypeParcelId rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:referenceTypeFolio      a gmeow:CadastralReferenceType ; rdfs:label "folio number"@x-gmeow-english ;
     skos:definition "A folio number — an identifier used in land-title registers, especially in Commonwealth jurisdictions."@x-gmeow-english .
+gmeow:referenceTypeFolio rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:referenceTypeTitle      a gmeow:CadastralReferenceType ; rdfs:label "title number"@x-gmeow-english ;
     skos:definition "A title number — an identifier for a registered title or deed in a land titles system."@x-gmeow-english .
+gmeow:referenceTypeTitle rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:referenceTypeLot        a gmeow:CadastralReferenceType ; rdfs:label "lot number"@x-gmeow-english ;
     skos:definition "A lot number — an identifier for a subdivided lot within a larger plan or survey."@x-gmeow-english .
+gmeow:referenceTypeLot rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:referenceTypeSurveyPlan a gmeow:CadastralReferenceType ; rdfs:label "survey plan reference"@x-gmeow-english ;
     skos:definition "A survey plan reference — an identifier for the official survey plan that defines a parcel's boundaries."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Maritime zone types — UNCLOS-based (#93)
 # --------------------------------------------------------------------------- #
+gmeow:referenceTypeSurveyPlan rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:overlayTypeTerritorialSea      a gmeow:RegulatoryOverlayType ; rdfs:label "territorial sea"@x-gmeow-english ;
     skos:definition "A belt of coastal waters extending up to 12 nautical miles from the baseline of a coastal state, over which the state exercises sovereignty (UNCLOS Article 3)."@x-gmeow-english .
+gmeow:overlayTypeTerritorialSea rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeContiguousZone      a gmeow:RegulatoryOverlayType ; rdfs:label "contiguous zone"@x-gmeow-english ;
     skos:definition "A band of water extending from the outer edge of the territorial sea to up to 24 nautical miles from the baseline, in which the coastal state may exercise control to prevent infringement of its customs, fiscal, immigration, or sanitary laws (UNCLOS Article 33)."@x-gmeow-english .
+gmeow:overlayTypeContiguousZone rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeContinentalShelf    a gmeow:RegulatoryOverlayType ; rdfs:label "continental shelf"@x-gmeow-english ;
     skos:definition "The seabed and subsoil of the submarine areas that extend beyond the territorial sea to the outer edge of the continental margin, or to 200 nautical miles from the baseline where the margin does not extend that far (UNCLOS Article 76)."@x-gmeow-english .
+gmeow:overlayTypeContinentalShelf rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeHighSeas            a gmeow:RegulatoryOverlayType ; rdfs:label "high seas"@x-gmeow-english ;
     skos:definition "All parts of the sea that are not included in the exclusive economic zone, territorial sea, or internal waters of a state (UNCLOS Article 86)."@x-gmeow-english .
+gmeow:overlayTypeHighSeas rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeMarineProtectedArea a gmeow:RegulatoryOverlayType ; rdfs:label "marine protected area"@x-gmeow-english ;
     skos:definition "A clearly defined geographical space in the marine environment recognised, dedicated and managed through legal or other effective means to achieve the long-term conservation of nature with associated ecosystem services and cultural values (IUCN definition)."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Aviation zone types — ICAO / AIXM-based (#93)
 # --------------------------------------------------------------------------- #
+gmeow:overlayTypeMarineProtectedArea rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:overlayTypeAirway              a gmeow:RegulatoryOverlayType ; rdfs:label "airway"@x-gmeow-english ;
     skos:definition "A control area or portion thereof established in the form of a corridor equipped with navigation aids, designated by ICAO for channelling the flow of traffic."@x-gmeow-english .
+gmeow:overlayTypeAirway rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeControlZone         a gmeow:RegulatoryOverlayType ; rdfs:label "control zone (CTR)"@x-gmeow-english ;
     skos:definition "A controlled airspace extending upwards from the surface of the earth to a specified upper limit, established around an aerodrome (ICAO)."@x-gmeow-english .
+gmeow:overlayTypeControlZone rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeTerminalControlArea a gmeow:RegulatoryOverlayType ; rdfs:label "terminal control area (TMA/TCA)"@x-gmeow-english ;
     skos:definition "A controlled airspace normally established at the confluence of ATS routes in the vicinity of one or more major aerodromes (ICAO)."@x-gmeow-english .
+gmeow:overlayTypeTerminalControlArea rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeFlightInformationRegion a gmeow:RegulatoryOverlayType ; rdfs:label "flight information region (FIR)"@x-gmeow-english ;
     skos:definition "An airspace of defined dimensions within which flight information service and alerting service are provided (ICAO)."@x-gmeow-english .
+gmeow:overlayTypeFlightInformationRegion rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeAerodromeTrafficZone a gmeow:RegulatoryOverlayType ; rdfs:label "aerodrome traffic zone (ATZ)"@x-gmeow-english ;
     skos:definition "An area of protected airspace established around an aerodrome for the protection of aerodrome traffic."@x-gmeow-english .
+gmeow:overlayTypeAerodromeTrafficZone rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeMilitaryOperationsArea a gmeow:RegulatoryOverlayType ; rdfs:label "military operations area (MOA)"@x-gmeow-english ;
     skos:definition "Airspace established outside controlled airspace to segregate certain military activities from IFR traffic and to identify for VFR traffic where these activities are conducted."@x-gmeow-english .
+gmeow:overlayTypeMilitaryOperationsArea rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeWarningArea         a gmeow:RegulatoryOverlayType ; rdfs:label "warning area"@x-gmeow-english ;
     skos:definition "Airspace of defined dimensions, extending from 3 NM outward from the coast of the United States, that contains activity which may be hazardous to non-participating aircraft."@x-gmeow-english .
+gmeow:overlayTypeWarningArea rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeAlertArea           a gmeow:RegulatoryOverlayType ; rdfs:label "alert area"@x-gmeow-english ;
     skos:definition "Airspace which may contain a high volume of pilot training or an unusual type of aerial activity, neither of which is hazardous to aircraft."@x-gmeow-english .
+gmeow:overlayTypeAlertArea rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:overlayTypeNOTAM               a gmeow:RegulatoryOverlayType ; rdfs:label "notice to air missions (NOTAM)"@x-gmeow-english ;
     skos:definition "A temporary, dynamic regulatory overlay issued to notify pilots of potential hazards or changes to aeronautical facilities, services, or procedures. Typically short-validity; modeled as a RegulatoryOverlay with brief duringInterval."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # GeometryType value vocabulary & GeoJSON support (#82)
 # --------------------------------------------------------------------------- #
+gmeow:overlayTypeNOTAM rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:GeometryType
     a owl:Class, gufo:AbstractIndividualType ;
@@ -2276,11 +2712,23 @@ gmeow:geometryType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:geometryTypePoint           a gmeow:GeometryType ; rdfs:label "point"@x-gmeow-english .
+gmeow:geometryTypePoint skos:definition "The point geometry type — a Simple Features shape class used to represent a spatial extent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:geometryTypeLineString      a gmeow:GeometryType ; rdfs:label "line string"@x-gmeow-english .
+gmeow:geometryTypeLineString skos:definition "The line string geometry type — a Simple Features shape class used to represent a spatial extent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:geometryTypePolygon         a gmeow:GeometryType ; rdfs:label "polygon"@x-gmeow-english .
+gmeow:geometryTypePolygon skos:definition "The polygon geometry type — a Simple Features shape class used to represent a spatial extent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:geometryTypeMultiPoint      a gmeow:GeometryType ; rdfs:label "multi-point"@x-gmeow-english .
+gmeow:geometryTypeMultiPoint skos:definition "The multi point geometry type — a Simple Features shape class used to represent a spatial extent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:geometryTypeMultiLineString a gmeow:GeometryType ; rdfs:label "multi-line string"@x-gmeow-english .
+gmeow:geometryTypeMultiLineString skos:definition "The multi line string geometry type — a Simple Features shape class used to represent a spatial extent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:geometryTypeMultiPolygon    a gmeow:GeometryType ; rdfs:label "multi-polygon"@x-gmeow-english .
+gmeow:geometryTypeMultiPolygon skos:definition "The multi polygon geometry type — a Simple Features shape class used to represent a spatial extent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:asGeoJSON
     a owl:DatatypeProperty ;
@@ -2490,17 +2938,33 @@ gmeow:CelestialObjectType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:celestialObjectTypeStar       a gmeow:CelestialObjectType ; rdfs:label "star"@x-gmeow-english .
+gmeow:celestialObjectTypeStar skos:definition "The star celestial object type — a category of astronomical entity by its physical nature or scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:celestialObjectTypeGalaxy     a gmeow:CelestialObjectType ; rdfs:label "galaxy"@x-gmeow-english .
+gmeow:celestialObjectTypeGalaxy skos:definition "The galaxy celestial object type — a category of astronomical entity by its physical nature or scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:celestialObjectTypeNebula     a gmeow:CelestialObjectType ; rdfs:label "nebula"@x-gmeow-english .
+gmeow:celestialObjectTypeNebula skos:definition "The nebula celestial object type — a category of astronomical entity by its physical nature or scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:celestialObjectTypePlanet     a gmeow:CelestialObjectType ; rdfs:label "planet"@x-gmeow-english .
+gmeow:celestialObjectTypePlanet skos:definition "The planet celestial object type — a category of astronomical entity by its physical nature or scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:celestialObjectTypeAsteroid   a gmeow:CelestialObjectType ; rdfs:label "asteroid"@x-gmeow-english .
+gmeow:celestialObjectTypeAsteroid skos:definition "The asteroid celestial object type — a category of astronomical entity by its physical nature or scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:celestialObjectTypeComet      a gmeow:CelestialObjectType ; rdfs:label "comet"@x-gmeow-english .
+gmeow:celestialObjectTypeComet skos:definition "The comet celestial object type — a category of astronomical entity by its physical nature or scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:celestialObjectTypeSpacecraft a gmeow:CelestialObjectType ; rdfs:label "spacecraft / artificial satellite"@x-gmeow-english .
+gmeow:celestialObjectTypeSpacecraft skos:definition "The spacecraft celestial object type — a category of astronomical entity by its physical nature or scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:celestialObjectTypeCluster    a gmeow:CelestialObjectType ; rdfs:label "star cluster"@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Celestial Reference Origin — VALUE vocabulary (IVOA refposition alignment) (#85)
 # --------------------------------------------------------------------------- #
+gmeow:celestialObjectTypeCluster skos:definition "The cluster celestial object type — a category of astronomical entity by its physical nature or scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:CelestialReferenceOrigin
     a owl:Class, gufo:AbstractIndividualType ;
@@ -2510,12 +2974,20 @@ gmeow:CelestialReferenceOrigin
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:refOriginTopocentric  a gmeow:CelestialReferenceOrigin ; rdfs:label "topocentric (observatory site)"@x-gmeow-english .
+gmeow:refOriginTopocentric skos:definition "The topocentric celestial reference origin — a geometric origin point relative to which celestial coordinates are expressed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:refOriginGeocentric   a gmeow:CelestialReferenceOrigin ; rdfs:label "geocentric"@x-gmeow-english .
+gmeow:refOriginGeocentric skos:definition "The geocentric celestial reference origin — a geometric origin point relative to which celestial coordinates are expressed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:refOriginBarycentric  a gmeow:CelestialReferenceOrigin ; rdfs:label "barycentric (solar system)"@x-gmeow-english .
+gmeow:refOriginBarycentric skos:definition "The barycentric celestial reference origin — a geometric origin point relative to which celestial coordinates are expressed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:refOriginHeliocentric a gmeow:CelestialReferenceOrigin ; rdfs:label "heliocentric"@x-gmeow-english .
 
 # Mathematical / n-D Reference Frame seeds (#86)
 # --------------------------------------------------------------------------- #
+gmeow:refOriginHeliocentric skos:definition "The heliocentric celestial reference origin — a geometric origin point relative to which celestial coordinates are expressed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFramePhaseSpace3DOF
     a gmeow:ReferenceFrame ;
@@ -2527,6 +2999,8 @@ gmeow:referenceFramePhaseSpace3DOF
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricSymplectic .
+gmeow:referenceFramePhaseSpace3DOF skos:definition "The phase space 3 dof reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameHilbertSpace
     a gmeow:ReferenceFrame ;
@@ -2538,6 +3012,8 @@ gmeow:referenceFrameHilbertSpace
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricEuclidean .
+gmeow:referenceFrameHilbertSpace skos:definition "The hilbert space reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameLatentVectorSpace
     a gmeow:ReferenceFrame ;
@@ -2549,6 +3025,8 @@ gmeow:referenceFrameLatentVectorSpace
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricCosine .
+gmeow:referenceFrameLatentVectorSpace skos:definition "The latent vector space reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameRobotArm6DOF
     a gmeow:ReferenceFrame ;
@@ -2569,6 +3047,8 @@ gmeow:referenceFrameRobotArm6DOF
 # a feature is a range (SequenceCoordinates with start, end, strand) in that
 # frame. FALDO = positions, SO = feature types; liftover = solver (P12).
 # =========================================================================== #
+gmeow:referenceFrameRobotArm6DOF skos:definition "The robot arm 6 dof reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:BiologicalSequenceLocation
     a owl:Class, gufo:SubKind ;
@@ -2664,19 +3144,36 @@ gmeow:sequenceFeatureType
 
 # Seeds for StrandOrientation
 gmeow:strandForward a gmeow:StrandOrientation ; rdfs:label "forward / Watson strand"@x-gmeow-english .
+gmeow:strandForward skos:definition "The forward strand orientation — a directionality of a nucleic-acid strand relative to its counterpart."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:strandReverse a gmeow:StrandOrientation ; rdfs:label "reverse / Crick strand"@x-gmeow-english .
+gmeow:strandReverse skos:definition "The reverse strand orientation — a directionality of a nucleic-acid strand relative to its counterpart."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:strandBoth    a gmeow:StrandOrientation ; rdfs:label "both strands"@x-gmeow-english ;
     skos:definition "Applies to both strands, e.g. some regulatory regions."@x-gmeow-english .
 
 # Seeds for SequenceFeatureType (aligned to Sequence Ontology by reference)
+gmeow:strandBoth rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:sequenceFeatureTypeGene       a gmeow:SequenceFeatureType ; rdfs:label "gene"@x-gmeow-english .
+gmeow:sequenceFeatureTypeGene skos:definition "The gene sequence feature type — a kind of biological feature identified along a genetic or molecular sequence."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:sequenceFeatureTypeExon       a gmeow:SequenceFeatureType ; rdfs:label "exon"@x-gmeow-english .
+gmeow:sequenceFeatureTypeExon skos:definition "The exon sequence feature type — a kind of biological feature identified along a genetic or molecular sequence."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:sequenceFeatureTypeIntron     a gmeow:SequenceFeatureType ; rdfs:label "intron"@x-gmeow-english .
+gmeow:sequenceFeatureTypeIntron skos:definition "The intron sequence feature type — a kind of biological feature identified along a genetic or molecular sequence."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:sequenceFeatureTypeCDS        a gmeow:SequenceFeatureType ; rdfs:label "coding sequence (CDS)"@x-gmeow-english .
+gmeow:sequenceFeatureTypeCDS skos:definition "The cds sequence feature type — a kind of biological feature identified along a genetic or molecular sequence."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:sequenceFeatureTypeSNP        a gmeow:SequenceFeatureType ; rdfs:label "single nucleotide polymorphism (SNP)"@x-gmeow-english .
+gmeow:sequenceFeatureTypeSNP skos:definition "The snp sequence feature type — a kind of biological feature identified along a genetic or molecular sequence."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:sequenceFeatureTypeChromosome a gmeow:SequenceFeatureType ; rdfs:label "chromosome"@x-gmeow-english .
 
 # Seed ReferenceFrame — GRCh38 human reference assembly
+gmeow:sequenceFeatureTypeChromosome skos:definition "The chromosome sequence feature type — a kind of biological feature identified along a genetic or molecular sequence."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:referenceFrameGRCh38
     a gmeow:ReferenceFrame ;
     rdfs:label "GRCh38 Human Reference Assembly"@x-gmeow-english ;
@@ -2695,6 +3192,8 @@ gmeow:referenceFrameGRCh38
 # is carried on a Geocode instance via gmeow:hasCoordinateMatrix (identifier)
 # or the per-system datatype property. Conversion to WGS84 = solver (P12).
 # --------------------------------------------------------------------------- #
+gmeow:referenceFrameGRCh38 skos:definition "The gr ch 38 reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFramePlusCode
     a gmeow:ReferenceFrame ;
@@ -2706,6 +3205,8 @@ gmeow:referenceFramePlusCode
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricGeodesic .
+gmeow:referenceFramePlusCode skos:definition "The plus code reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameWhat3Words
     a gmeow:ReferenceFrame ;
@@ -2717,6 +3218,8 @@ gmeow:referenceFrameWhat3Words
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricGeodesic .
+gmeow:referenceFrameWhat3Words skos:definition "The what 3 words reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameGeohash
     a gmeow:ReferenceFrame ;
@@ -2728,6 +3231,8 @@ gmeow:referenceFrameGeohash
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricGeodesic .
+gmeow:referenceFrameGeohash skos:definition "The geohash reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameMGRS
     a gmeow:ReferenceFrame ;
@@ -2739,6 +3244,8 @@ gmeow:referenceFrameMGRS
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricGeodesic .
+gmeow:referenceFrameMGRS skos:definition "The mgrs reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameUNLocode
     a gmeow:ReferenceFrame ;
@@ -2750,6 +3257,8 @@ gmeow:referenceFrameUNLocode
     gmeow:requiresHost false ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:hasMetricKind gmeow:metricGraphHops .
+gmeow:referenceFrameUNLocode skos:definition "The un locode reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:referenceFrameMileMarker
     a gmeow:ReferenceFrame ;
@@ -2767,19 +3276,26 @@ gmeow:referenceFrameMileMarker
 # individuals for coordinate-assignment protocols. These are plain individuals
 # (a gmeow:ObservationMethod, never a subclass) per Principle 9.
 # --------------------------------------------------------------------------- #
+gmeow:referenceFrameMileMarker skos:definition "The mile marker reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:methodGPS a gmeow:ObservationMethod ; rdfs:label "GPS survey"@x-gmeow-english ;
     skos:definition "Coordinate assignment via Global Positioning System satellite ranging."@x-gmeow-english .
+gmeow:methodGPS rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:methodLiDAR a gmeow:ObservationMethod ; rdfs:label "LiDAR survey"@x-gmeow-english ;
     skos:definition "Coordinate assignment via light detection and ranging (airborne or terrestrial laser scanning)."@x-gmeow-english .
+gmeow:methodLiDAR rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:methodTotalStation a gmeow:ObservationMethod ; rdfs:label "total station survey"@x-gmeow-english ;
     skos:definition "Coordinate assignment via electronic theodolite integrated with electronic distance measurement."@x-gmeow-english .
+gmeow:methodTotalStation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:methodPhotogrammetry a gmeow:ObservationMethod ; rdfs:label "photogrammetry"@x-gmeow-english ;
     skos:definition "Coordinate assignment via stereo-photographic image triangulation."@x-gmeow-english .
+gmeow:methodPhotogrammetry rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 gmeow:methodGNSSRTK a gmeow:ObservationMethod ; rdfs:label "GNSS RTK survey"@x-gmeow-english ;
     skos:definition "Coordinate assignment via real-time kinematic GNSS with centimetre-level precision."@x-gmeow-english .
 
 # --- DC spatial coverage (issue #60) --------------------------------------- #
+gmeow:methodGNSSRTK rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/places> .
 
 gmeow:spatialCoverage
     a owl:ObjectProperty ;

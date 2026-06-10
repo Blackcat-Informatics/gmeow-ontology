@@ -19,6 +19,7 @@ from gmeow_tools.config import (
     FIXTURES_DIR,
     MAPPING_DSL_DIR,
     NAMESPACE,
+    ONTOLOGY_IRI,
     SHAPES_DIR,
     SHAPES_FILE,
     STATEMENT_DSL_DIR,
@@ -141,17 +142,78 @@ def check_sameas_ban(paths: list[Path] | None = None) -> ValidationResult:
 
 
 def _is_gmeow_term(term: URIRef) -> bool:
-    """Return whether an IRI belongs to the GMEOW namespace."""
-    return str(term).startswith(NAMESPACE)
+    """Return whether an IRI is the GMEOW root or lives in its namespace."""
+    s = str(term)
+    return s.startswith(NAMESPACE) or s == ONTOLOGY_IRI
+
+
+_TERM_KIND_ORDER = (
+    "ontology",
+    "class",
+    "property",
+    "annotation property",
+    "datatype",
+    "individual",
+)
+
+
+def _term_kind(graph: Graph, term: URIRef) -> str:
+    """Return the primary structural kind of a GMEOW term based on its rdf:type."""
+    types = set(graph.objects(term, RDF.type))
+    if OWL.Ontology in types:
+        return "ontology"
+    if OWL.Class in types:
+        return "class"
+    if OWL.AnnotationProperty in types:
+        return "annotation property"
+    if OWL.ObjectProperty in types or OWL.DatatypeProperty in types:
+        return "property"
+    if RDFS.Datatype in types:
+        return "datatype"
+    return "individual"
+
+
+def _collect_typed_terms(graph: Graph) -> dict[URIRef, str]:
+    """Map every GMEOW-namespaced term with an rdf:type to its primary kind.
+
+    Queries by type rather than scanning every subject, then resolves
+    multi-typed terms to the most specific kind using the canonical priority.
+    """
+    terms: dict[URIRef, str] = {}
+    typed_queries = (
+        OWL.Ontology,
+        OWL.Class,
+        OWL.ObjectProperty,
+        OWL.DatatypeProperty,
+        OWL.AnnotationProperty,
+        RDFS.Datatype,
+    )
+    for rdf_type in typed_queries:
+        for term in graph.subjects(RDF.type, rdf_type):
+            if not isinstance(term, URIRef) or not _is_gmeow_term(term):
+                continue
+            current = terms.get(term)
+            kind = _term_kind(graph, term)
+            if current is None or _TERM_KIND_ORDER.index(kind) < _TERM_KIND_ORDER.index(
+                current
+            ):
+                terms[term] = kind
+    # Any remaining GMEOW subjects with an explicit rdf:type are treated as individuals.
+    for term in set(graph.subjects(RDF.type, None)):
+        if isinstance(term, URIRef) and _is_gmeow_term(term) and term not in terms:
+            terms[term] = "individual"
+    return terms
 
 
 def structural_lint(graph: Graph) -> ValidationResult:
     """Check that every GMEOW term is fully annotated.
 
-    Each GMEOW-namespaced class and property must carry an ``rdfs:label`` and a
-    ``skos:definition`` (errors), and should declare ``rdfs:isDefinedBy``
-    (warning). Dangling ``rdfs:subClassOf`` targets in the GMEOW namespace that
-    are never declared are reported as errors.
+    Every GMEOW-namespaced ontology header, class, property, annotation
+    property, datatype, and individual must carry ``rdfs:label``,
+    ``skos:definition``, and ``rdfs:isDefinedBy`` (all errors as of issue #221).
+    Dangling ``rdfs:subClassOf`` / ``rdfs:subPropertyOf`` targets are reported as
+    errors, and a comprehensiveness heuristic warns when a parent class has
+    multiple undocumented direct subclasses.
 
     Args:
         graph: The merged ontology graph.
@@ -160,23 +222,17 @@ def structural_lint(graph: Graph) -> ValidationResult:
         The validation result.
     """
     result = ValidationResult()
-    typed: list[tuple[URIRef, str]] = []
-    for cls in graph.subjects(RDF.type, OWL.Class):
-        if isinstance(cls, URIRef) and _is_gmeow_term(cls):
-            typed.append((cls, "class"))
-    for prop_type in (OWL.ObjectProperty, OWL.DatatypeProperty):
-        for prop in graph.subjects(RDF.type, prop_type):
-            if isinstance(prop, URIRef) and _is_gmeow_term(prop):
-                typed.append((prop, "property"))
+    typed = _collect_typed_terms(graph)
 
-    declared = {term for term, _ in typed}
-    for term, kind in typed:
+    for term, kind in sorted(typed.items(), key=lambda x: str(x[0])):
         if (term, RDFS.label, None) not in graph:
             result.errors.append(f"{kind} {term} is missing rdfs:label")
         if (term, _DEFINITION, None) not in graph:
             result.errors.append(f"{kind} {term} is missing skos:definition")
         if (term, RDFS.isDefinedBy, None) not in graph:
-            result.warnings.append(f"{kind} {term} is missing rdfs:isDefinedBy")
+            result.errors.append(f"{kind} {term} is missing rdfs:isDefinedBy")
+
+    declared = set(typed)
 
     # Dangling GMEOW subclass/subproperty targets.
     for predicate in (RDFS.subClassOf, RDFS.subPropertyOf):
@@ -189,6 +245,31 @@ def structural_lint(graph: Graph) -> ValidationResult:
                 result.errors.append(
                     f"dangling {predicate} target (undeclared GMEOW term): {target}"
                 )
+
+    # Comprehensiveness heuristic: if a GMEOW class has ≥3 direct subclasses
+    # in the GMEOW namespace and ≥3 of them lack skos:definition, warn about
+    # the parent being under-documented. This surfaces systematic gaps even
+    # when the basic per-term check catches each individually. Blank-node
+    # restrictions and non-GMEOW children are filtered out.
+    parent_to_children: dict[URIRef, list[URIRef]] = {}
+    for child, _, parent in graph.triples((None, RDFS.subClassOf, None)):
+        if (
+            isinstance(child, URIRef)
+            and _is_gmeow_term(child)
+            and isinstance(parent, URIRef)
+            and _is_gmeow_term(parent)
+        ):
+            parent_to_children.setdefault(parent, []).append(child)
+    for parent, children in parent_to_children.items():
+        if len(children) < 3:
+            continue
+        missing = [c for c in children if (c, _DEFINITION, None) not in graph]
+        if len(missing) >= 3:
+            result.warnings.append(
+                f"class {parent} has {len(missing)} of {len(children)} "
+                f"direct subclasses missing skos:definition "
+                f"(systematic documentation gap)"
+            )
 
     # Ensure all language-tagged string literals on GMEOW properties
     # use the GMEOW-internal 'x-gmeow-' prefix.

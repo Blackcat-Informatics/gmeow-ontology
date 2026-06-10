@@ -180,7 +180,7 @@ def emit_fno(dsl: Dsl, onto: Graph) -> Graph:
             graph.add(
                 (
                     fn_iri,
-                    DCTERMS.description,
+                    SKOS.definition,
                     Literal(fn.description, lang="x-gmeow-english"),
                 )
             )

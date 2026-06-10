@@ -7,6 +7,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/coreference>
     a owl:Ontology ;
     rdfs:label "GMEOW Coreference Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Coreference Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/coreference> ;
     rdfs:comment "Universal identity and coreference links: stable GMEOW entities link to external records and cross-realm counterparts by reference, never by owl:sameAs merger. Wikidata is the recommended hub, but all authority records remain external claims that may be exact, close, contested, or standpoint-indexed."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 

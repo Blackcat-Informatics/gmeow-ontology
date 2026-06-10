@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/calendar>
     a owl:Ontology ;
     rdfs:label "GMEOW Calendar and Scheduling Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Calendar and Scheduling Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/calendar> ;
     rdfs:comment """The calendar and scheduling slice: recurrence, availability, RSVP, reminders, tasks, and time zones on top of events. Builds on the events module (#41) and temporal module, reusing Event, Participation, EventSeries/RecurrenceRule, TimeInterval, and the four clocks. Aligns to iCalendar RFC 5545/5546/6047/4791/6638/7809, jCal RFC 7265, xCal RFC 6321, schema.org Schedule/EventSeries, OWL-Time, and Wikidata by reference.
 
 DESIGN PRINCIPLES.
@@ -141,11 +143,13 @@ gmeow:ExceptionType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:exceptionTypeCancellation  a gmeow:ExceptionType ; rdfs:label "cancellation"@x-gmeow-english ; skos:definition "The occurrence is cancelled."@x-gmeow-english .
+gmeow:exceptionTypeCancellation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:exceptionTypeRescheduling  a gmeow:ExceptionType ; rdfs:label "rescheduling"@x-gmeow-english ; skos:definition "The occurrence is moved to a different time."@x-gmeow-english .
 
 # =========================================================================== #
 # PHASE B — EventInvitation, Availability (RSVP + free-busy)
 # =========================================================================== #
+gmeow:exceptionTypeRescheduling rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:EventInvitation
     a owl:Class, gufo:SubKind ;
@@ -231,6 +235,7 @@ gmeow:InvitationStatus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:invitationStatusNeedsAction a gmeow:InvitationStatus ; rdfs:label "needs action"@x-gmeow-english ; skos:definition "The invitee has not yet responded. Aligned to iTIP PARTSTAT=NEEDS-ACTION."@x-gmeow-english .
+gmeow:invitationStatusNeedsAction rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:invitationStatusAccepted    a gmeow:InvitationStatus ; rdfs:label "accepted"@x-gmeow-english ;    skos:definition "The invitee has accepted the invitation. Aligned to iTIP PARTSTAT=ACCEPTED."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:invitationStatusDeclined    a gmeow:InvitationStatus ; rdfs:label "declined"@x-gmeow-english ;    skos:definition "The invitee has declined the invitation. Aligned to iTIP PARTSTAT=DECLINED."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:invitationStatusTentative   a gmeow:InvitationStatus ; rdfs:label "tentative"@x-gmeow-english ;   skos:definition "The invitee has tentatively accepted. Aligned to iTIP PARTSTAT=TENTATIVE."@x-gmeow-english ;   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -245,6 +250,7 @@ gmeow:RsvpStatus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:rsvpStatusNeedsAction a gmeow:RsvpStatus ; rdfs:label "needs action"@x-gmeow-english ; skos:definition "The invitee has not yet responded."@x-gmeow-english .
+gmeow:rsvpStatusNeedsAction rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:rsvpStatusAccepted    a gmeow:RsvpStatus ; rdfs:label "accepted"@x-gmeow-english ;    skos:definition "The invitee has accepted."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:rsvpStatusDeclined    a gmeow:RsvpStatus ; rdfs:label "declined"@x-gmeow-english ;    skos:definition "The invitee has declined."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:rsvpStatusTentative   a gmeow:RsvpStatus ; rdfs:label "tentative"@x-gmeow-english ;   skos:definition "The invitee has tentatively accepted."@x-gmeow-english ;   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
@@ -266,6 +272,7 @@ gmeow:availabilityStatusOutOfOffice  a gmeow:AvailabilityStatus ; rdfs:label "ou
 # =========================================================================== #
 # PHASE C — Reminder, Task, TimeZone
 # =========================================================================== #
+gmeow:availabilityStatusOutOfOffice rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Reminder
     a owl:Class, gufo:Kind ;
@@ -379,6 +386,7 @@ gmeow:ReminderAction
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:reminderActionDisplay a gmeow:ReminderAction ; rdfs:label "display"@x-gmeow-english ; skos:definition "Display the reminder on screen. Aligned to iCalendar ACTION=DISPLAY."@x-gmeow-english .
+gmeow:reminderActionDisplay rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:reminderActionEmail  a gmeow:ReminderAction ; rdfs:label "email"@x-gmeow-english ;  skos:definition "Send the reminder by email. Aligned to iCalendar ACTION=EMAIL."@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:reminderActionAudio  a gmeow:ReminderAction ; rdfs:label "audio"@x-gmeow-english ;  skos:definition "Play an audio reminder. Aligned to iCalendar ACTION=AUDIO."@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
@@ -392,10 +400,13 @@ gmeow:TaskStatus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:taskStatusNotStarted  a gmeow:TaskStatus ; rdfs:label "not started"@x-gmeow-english ; skos:definition "The task has not yet been started."@x-gmeow-english .
+gmeow:taskStatusNotStarted rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:taskStatusInProgress  a gmeow:TaskStatus ; rdfs:label "in progress"@x-gmeow-english ; skos:definition "The task is actively being worked on."@x-gmeow-english .
+gmeow:taskStatusInProgress rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:taskStatusCompleted   a gmeow:TaskStatus ; rdfs:label "completed"@x-gmeow-english ;  skos:definition "The task is completed."@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:taskStatusCancelled   a gmeow:TaskStatus ; rdfs:label "cancelled"@x-gmeow-english ;  skos:definition "The task is cancelled. Retained with displayable false, never deleted (Principle 10)."@x-gmeow-english .
 
+gmeow:taskStatusCancelled rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE — relator mediation (mirrors events.ttl, agreements.ttl)
 # =========================================================================== #

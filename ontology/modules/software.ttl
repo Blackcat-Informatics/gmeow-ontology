@@ -14,6 +14,8 @@ gmeow:Agent a owl:Class .
 <https://blackcatinformatics.ca/gmeow/modules/software>
     a owl:Ontology ;
     rdfs:label "GMEOW Software Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Software Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> ;
     rdfs:comment """The software slice: a five-facet de-conflation of the project domain.
 
 Project ≠ Product ≠ Codebase ≠ Repository ≠ History.
@@ -397,11 +399,17 @@ gmeow:RepositoryType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:repoTypeGit     a gmeow:RepositoryType ; rdfs:label "git"@x-gmeow-english ;     skos:definition "The Git distributed version control system."@x-gmeow-english .
+gmeow:repoTypeGit rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 gmeow:repoTypeHg      a gmeow:RepositoryType ; rdfs:label "mercurial"@x-gmeow-english ; skos:definition "The Mercurial distributed version control system."@x-gmeow-english .
+gmeow:repoTypeHg rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 gmeow:repoTypeSVN     a gmeow:RepositoryType ; rdfs:label "subversion"@x-gmeow-english ; skos:definition "The Apache Subversion centralized version control system."@x-gmeow-english .
+gmeow:repoTypeSVN rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 gmeow:repoTypeFossil  a gmeow:RepositoryType ; rdfs:label "fossil"@x-gmeow-english ;  skos:definition "The Fossil distributed version control system with built-in wiki and issue tracking."@x-gmeow-english .
+gmeow:repoTypeFossil rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 gmeow:repoTypeJJ      a gmeow:RepositoryType ; rdfs:label "jujutsu"@x-gmeow-english ; skos:definition "The Jujutsu (jj) version control system."@x-gmeow-english .
+gmeow:repoTypeJJ rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 gmeow:repoTypePijul   a gmeow:RepositoryType ; rdfs:label "pijul"@x-gmeow-english ;   skos:definition "The Pijul version control system based on patch theory."@x-gmeow-english .
+gmeow:repoTypePijul rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 
 gmeow:MaintenanceStatus
     a owl:Class, gufo:AbstractIndividualType ;
@@ -411,10 +419,15 @@ gmeow:MaintenanceStatus
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:statusActive      a gmeow:MaintenanceStatus ; rdfs:label "active"@x-gmeow-english ;      skos:definition "The project is under active development with frequent releases."@x-gmeow-english .
+gmeow:statusActive rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 gmeow:statusMaintained  a gmeow:MaintenanceStatus ; rdfs:label "maintained"@x-gmeow-english ;  skos:definition "The project receives bug fixes and security updates but may not see new features."@x-gmeow-english .
+gmeow:statusMaintained rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 gmeow:statusDeprecated  a gmeow:MaintenanceStatus ; rdfs:label "deprecated"@x-gmeow-english ;  skos:definition "The project is no longer recommended; users should migrate to a successor."@x-gmeow-english .
+gmeow:statusDeprecated rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 gmeow:statusAbandoned   a gmeow:MaintenanceStatus ; rdfs:label "abandoned"@x-gmeow-english ;   skos:definition "The project has been abandoned by its maintainers with no successor identified."@x-gmeow-english .
+gmeow:statusAbandoned rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 gmeow:statusEOL         a gmeow:MaintenanceStatus ; rdfs:label "end of life"@x-gmeow-english ; skos:definition "The project has reached end-of-life; no further updates of any kind are planned."@x-gmeow-english .
+gmeow:statusEOL rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 
 gmeow:GovernanceModel
     a owl:Class, gufo:AbstractIndividualType ;
@@ -424,14 +437,19 @@ gmeow:GovernanceModel
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:governanceBDFL        a gmeow:GovernanceModel ; rdfs:label "BDFL"@x-gmeow-english ;        skos:definition "Benevolent dictator for life — a single individual has final decision authority."@x-gmeow-english .
+gmeow:governanceBDFL rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 gmeow:governanceFoundation  a gmeow:GovernanceModel ; rdfs:label "foundation"@x-gmeow-english ;  skos:definition "Governed by a nonprofit foundation or consortium with formal bylaws."@x-gmeow-english .
+gmeow:governanceFoundation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 gmeow:governanceMeritocracy a gmeow:GovernanceModel ; rdfs:label "meritocracy"@x-gmeow-english ; skos:definition "Decisions are made by those who have demonstrated contribution and expertise."@x-gmeow-english .
+gmeow:governanceMeritocracy rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 gmeow:governanceDAO       a gmeow:GovernanceModel ; rdfs:label "DAO"@x-gmeow-english ;         skos:definition "Decentralized autonomous organization — governance via on-chain voting and smart contracts."@x-gmeow-english .
+gmeow:governanceDAO rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 gmeow:governanceCorporate   a gmeow:GovernanceModel ; rdfs:label "corporate"@x-gmeow-english ;   skos:definition "Governed by a single company or corporate sponsor."@x-gmeow-english .
 
 # =========================================================================== #
 # NAMING — SoftwareName and hasSoftwareName (retained from original module)
 # =========================================================================== #
+gmeow:governanceCorporate rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 
 gmeow:SoftwareName
     a owl:Class, gufo:SubKind ;
@@ -699,9 +717,13 @@ gmeow:SLSALevel
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:slsaLevel1 a gmeow:SLSALevel ; rdfs:label "SLSA Level 1"@x-gmeow-english ; skos:definition "Provenance exists — the build process is documented."@x-gmeow-english .
+gmeow:slsaLevel1 rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 gmeow:slsaLevel2 a gmeow:SLSALevel ; rdfs:label "SLSA Level 2"@x-gmeow-english ; skos:definition "Signed provenance — the build runs in a hosted environment with signed output."@x-gmeow-english .
+gmeow:slsaLevel2 rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 gmeow:slsaLevel3 a gmeow:SLSALevel ; rdfs:label "SLSA Level 3"@x-gmeow-english ; skos:definition "Hardened build — the build runs in a hardened, hermetic environment with reproducible steps."@x-gmeow-english .
+gmeow:slsaLevel3 rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 gmeow:slsaLevel4 a gmeow:SLSALevel ; rdfs:label "SLSA Level 4"@x-gmeow-english ; skos:definition "Two-person review + hermetic, reproducible build with comprehensive audit trail."@x-gmeow-english .
+gmeow:slsaLevel4 rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 
 gmeow:eventTypeBuild a gmeow:EventType ; rdfs:label "build"@x-gmeow-english ; skos:definition "The event of building software from source into distribution artifacts."@x-gmeow-english .
 
@@ -712,6 +734,7 @@ gmeow:eventTypeBuild a gmeow:EventType ; rdfs:label "build"@x-gmeow-english ; sk
 # identities carry gmeow:displayable false (Principle 10). The .mailmap file is
 # a generated projection, not canonical source (Principle 4).
 # --------------------------------------------------------------------------- #
+gmeow:eventTypeBuild rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/software> .
 
 gmeow:AuthorIdentity
     a owl:Class, gufo:Kind ;

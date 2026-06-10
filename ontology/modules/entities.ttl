@@ -8,6 +8,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/entities>
     a owl:Ontology ;
     rdfs:label "GMEOW Entities Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Entities Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/entities> ;
     rdfs:comment "Person, organization, group and software-agent descriptions, plus naming (the FOAF / schema.org superset layer)."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 

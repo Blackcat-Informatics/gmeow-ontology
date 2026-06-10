@@ -8,6 +8,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/versions>
     a owl:Ontology ;
     rdfs:label "GMEOW Versions Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Versions Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/versions> ;
     rdfs:comment """Cross-cutting version-set and version-membership facility for information-object lineages. Reuses the universal claim stack (Observation / Relator) so that version roles — canonical, variant, latest, stable, LTS, deprecated, yanked, etc. — are standpoint-scoped claims coexisting without privilege (Principle 9), never hard-coded as essential types. Suppressed versions remain first-class with gmeow:displayable false (Principle 10). Attestation evidence (signatures, SLSA, DOI assertions) belongs in #162 and composes with this layer; it is not embedded here."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
@@ -105,17 +107,41 @@ gmeow:VersionRole
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:roleCanonical     a gmeow:VersionRole ; rdfs:label "canonical"@x-gmeow-english .
+gmeow:roleCanonical skos:definition "The canonical version role — a status that a versioned artifact occupies in its release lifecycle."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/versions> .
 gmeow:roleVariant       a gmeow:VersionRole ; rdfs:label "variant"@x-gmeow-english .
+gmeow:roleVariant skos:definition "The variant version role — a status that a versioned artifact occupies in its release lifecycle."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/versions> .
 gmeow:roleLatest        a gmeow:VersionRole ; rdfs:label "latest"@x-gmeow-english .
+gmeow:roleLatest skos:definition "The latest version role — a status that a versioned artifact occupies in its release lifecycle."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/versions> .
 gmeow:roleStable        a gmeow:VersionRole ; rdfs:label "stable"@x-gmeow-english .
+gmeow:roleStable skos:definition "The stable version role — a status that a versioned artifact occupies in its release lifecycle."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/versions> .
 gmeow:roleLTS           a gmeow:VersionRole ; rdfs:label "long-term support (LTS)"@x-gmeow-english .
+gmeow:roleLTS skos:definition "The lts version role — a status that a versioned artifact occupies in its release lifecycle."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/versions> .
 gmeow:roleDeprecated    a gmeow:VersionRole ; rdfs:label "deprecated"@x-gmeow-english .
+gmeow:roleDeprecated skos:definition "The deprecated version role — a status that a versioned artifact occupies in its release lifecycle."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/versions> .
 gmeow:roleYanked        a gmeow:VersionRole ; rdfs:label "yanked"@x-gmeow-english .
+gmeow:roleYanked skos:definition "The yanked version role — a status that a versioned artifact occupies in its release lifecycle."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/versions> .
 gmeow:roleDraft         a gmeow:VersionRole ; rdfs:label "draft"@x-gmeow-english .
+gmeow:roleDraft skos:definition "The draft version role — a status that a versioned artifact occupies in its release lifecycle."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/versions> .
 gmeow:rolePublished     a gmeow:VersionRole ; rdfs:label "published"@x-gmeow-english .
+gmeow:rolePublished skos:definition "The published version role — a status that a versioned artifact occupies in its release lifecycle."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/versions> .
 gmeow:roleRevised       a gmeow:VersionRole ; rdfs:label "revised"@x-gmeow-english .
+gmeow:roleRevised skos:definition "The revised version role — a status that a versioned artifact occupies in its release lifecycle."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/versions> .
 gmeow:roleCollected     a gmeow:VersionRole ; rdfs:label "collected"@x-gmeow-english .
+gmeow:roleCollected skos:definition "The collected version role — a status that a versioned artifact occupies in its release lifecycle."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/versions> .
 gmeow:roleWithdrawn     a gmeow:VersionRole ; rdfs:label "withdrawn"@x-gmeow-english .
+gmeow:roleWithdrawn skos:definition "The withdrawn version role — a status that a versioned artifact occupies in its release lifecycle."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/versions> .
 
 gmeow:VersionScale
     a owl:Class, gufo:AbstractIndividualType ;
@@ -125,9 +151,15 @@ gmeow:VersionScale
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:scaleTrivial      a gmeow:VersionScale ; rdfs:label "trivial"@x-gmeow-english .
+gmeow:scaleTrivial skos:definition "The trivial version scale — a magnitude category used to characterize the impact of a version change."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/versions> .
 gmeow:scaleMinor        a gmeow:VersionScale ; rdfs:label "minor"@x-gmeow-english .
+gmeow:scaleMinor skos:definition "The minor version scale — a magnitude category used to characterize the impact of a version change."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/versions> .
 gmeow:scaleMajor        a gmeow:VersionScale ; rdfs:label "major"@x-gmeow-english .
 
+gmeow:scaleMajor skos:definition "The major version scale — a magnitude category used to characterize the impact of a version change."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/versions> .
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE — EL someValuesFrom for reasoner visibility
 # =========================================================================== #

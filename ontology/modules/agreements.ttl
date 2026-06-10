@@ -8,6 +8,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/agreements>
     a owl:Ontology ;
     rdfs:label "GMEOW Agreements Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Agreements Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/agreements> ;
     rdfs:comment "Legal agreements and contracts, modeled as relators binding their parties."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 

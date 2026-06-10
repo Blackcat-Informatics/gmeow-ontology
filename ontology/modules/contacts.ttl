@@ -8,6 +8,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/contacts>
     a owl:Ontology ;
     rdfs:label "GMEOW Contacts Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Contacts Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/contacts> ;
     rdfs:comment "Contact points and channels (email, telephone, postal address), temporally-scoped contact relationships, and the reified interpersonal-relationship relator (the schema.org / vCard / REL superset layer). Identity trust between contacts (keys, certifications, owner-trust) lives in the cross-cutting trust module."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 

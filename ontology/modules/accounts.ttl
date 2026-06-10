@@ -9,6 +9,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/accounts>
     a owl:Ontology ;
     rdfs:label "GMEOW Accounts Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Accounts Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/accounts> ;
     rdfs:comment "Online accounts and decentralized identity (the FOAF OnlineAccount + decentralized-identity layer)."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 

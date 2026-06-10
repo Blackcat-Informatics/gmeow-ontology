@@ -8,6 +8,8 @@
 <https://blackcatinformatics.ca/gmeow/modules/employment>
     a owl:Ontology ;
     rdfs:label "GMEOW Employment Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Employment Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/employment> ;
     rdfs:comment """Employment relationships, compensation, and career events (the ResumeRDF / Europass / schema.org / ESCO / CTDL superset layer).
 
 STANDPOINT DOCTRINE (#51). Contested facts in the employment slice — disputed tenure, rival role claims, contested termination — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested employment is two gmeow:accordingTo-annotated gmeow:memberOf base triples, or two reified gmeow:Employment relators each carrying gmeow:accordingTo. A withdrawn employment record is modelled with gmeow:displayable false, never deletion (Principle 10). There is NO employment-specific dispute mechanism, no primaryEmployment, no preferredJob — only the cross-cutting #43 facility.
@@ -45,16 +47,23 @@ gmeow:EmploymentType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:employmentTypeFullTime    a gmeow:EmploymentType ; rdfs:label "full-time"@x-gmeow-english ;    skos:definition "Employment for the full ordinary duration of working hours."@x-gmeow-english .
+gmeow:employmentTypeFullTime rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/employment> .
 gmeow:employmentTypePartTime    a gmeow:EmploymentType ; rdfs:label "part-time"@x-gmeow-english ;    skos:definition "Employment for less than the full ordinary duration of working hours."@x-gmeow-english .
+gmeow:employmentTypePartTime rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/employment> .
 gmeow:employmentTypeContract    a gmeow:EmploymentType ; rdfs:label "contract"@x-gmeow-english ;    skos:definition "Employment under a fixed-term contract."@x-gmeow-english .
+gmeow:employmentTypeContract rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/employment> .
 gmeow:employmentTypeIntern      a gmeow:EmploymentType ; rdfs:label "intern"@x-gmeow-english ;      skos:definition "Employment as an intern or trainee."@x-gmeow-english .
+gmeow:employmentTypeIntern rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/employment> .
 gmeow:employmentTypeFreelance   a gmeow:EmploymentType ; rdfs:label "freelance"@x-gmeow-english ;   skos:definition "Self-employed or independent contractor work."@x-gmeow-english .
+gmeow:employmentTypeFreelance rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/employment> .
 gmeow:employmentTypeVolunteer   a gmeow:EmploymentType ; rdfs:label "volunteer"@x-gmeow-english ;   skos:definition "Unpaid voluntary work."@x-gmeow-english .
+gmeow:employmentTypeVolunteer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/employment> .
 gmeow:employmentTypeApprentice  a gmeow:EmploymentType ; rdfs:label "apprentice"@x-gmeow-english ;  skos:definition "Employment as an apprentice, combining work with structured training."@x-gmeow-english .
 
 # =========================================================================== #
 # Seniority level — an OPEN value vocabulary (gufo:QualityValue).
 # =========================================================================== #
+gmeow:employmentTypeApprentice rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/employment> .
 
 gmeow:SeniorityLevel
     a owl:Class, gufo:AbstractIndividualType ;
@@ -64,14 +73,19 @@ gmeow:SeniorityLevel
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:seniorityEntry     a gmeow:SeniorityLevel ; rdfs:label "entry-level"@x-gmeow-english ;     skos:definition "An entry-level or junior position."@x-gmeow-english .
+gmeow:seniorityEntry rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/employment> .
 gmeow:seniorityMid      a gmeow:SeniorityLevel ; rdfs:label "mid-level"@x-gmeow-english ;       skos:definition "A mid-level position."@x-gmeow-english .
+gmeow:seniorityMid rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/employment> .
 gmeow:senioritySenior   a gmeow:SeniorityLevel ; rdfs:label "senior"@x-gmeow-english ;          skos:definition "A senior-level position."@x-gmeow-english .
+gmeow:senioritySenior rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/employment> .
 gmeow:seniorityLead     a gmeow:SeniorityLevel ; rdfs:label "lead"@x-gmeow-english ;            skos:definition "A lead or principal position."@x-gmeow-english .
+gmeow:seniorityLead rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/employment> .
 gmeow:seniorityExecutive a gmeow:SeniorityLevel ; rdfs:label "executive"@x-gmeow-english ;      skos:definition "An executive or C-level position."@x-gmeow-english .
 
 # =========================================================================== #
 # Properties
 # =========================================================================== #
+gmeow:seniorityExecutive rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/employment> .
 
 gmeow:employmentType
     a owl:ObjectProperty, owl:FunctionalProperty ;
