@@ -115,15 +115,16 @@ class _Builder:
                     self._ox(o.predicate),
                     self._ox(o.object),
                 )
-                if None not in (rid, qs, qp, qo):
-                    assert (
-                        rid is not None
-                        and qs is not None
-                        and qp is not None
-                        and qo is not None
-                    )
-                    self.reifies[rid] = (qs, qp, qo)
+                if (
+                    rid is not None
+                    and qs is not None
+                    and qp is not None
+                    and qo is not None
+                ):
                     reifier_ids.add(rid)
+                    # Keep the first binding; a conflicting rebind is ignored
+                    # (matches the reader's conflicting-reifier rule, §7.8).
+                    self.reifies.setdefault(rid, (qs, qp, qo))
             else:
                 pending.append((s, p, o))
         # Pass 2: a reifier's other triples are annotations; the rest are base quads.
@@ -183,8 +184,10 @@ def _iter_quads(graph: Graph) -> list[tuple[Node, Node, Node, Node | None]]:
         default_id = graph.default_context.identifier
         for s, p, o, ctx in graph.quads((None, None, None, None)):
             name = ctx.identifier if isinstance(ctx, Graph) else ctx
-            if name == default_id or not isinstance(name, URIRef | BNode):
+            if name == default_id:
                 name = None
+            elif not isinstance(name, URIRef | BNode):
+                continue  # skip quads with an unsupported (non-IRI/bnode) graph name
             rows.append((s, p, o, name))
         return rows
     return [(s, p, o, None) for s, p, o in graph]
@@ -220,9 +223,17 @@ def compile_gts(
     *,
     transform: list[str] | None = None,
 ) -> bytes:
-    """Compile a statement-complete ``dist`` GTS: base graph + RDF 1.2 statements."""
+    """Compile a statement-complete ``dist`` GTS: base graph + RDF 1.2 statements.
+
+    Raises:
+        FileNotFoundError: if ``rdf12_path`` is given but does not exist (a missing
+            statement layer is an error, not a silent RDF-1.1-only fallback).
+    """
     builder = _Builder()
     builder.add_graph(graph)
-    if rdf12_path is not None and rdf12_path.exists():
+    if rdf12_path is not None:
+        if not rdf12_path.exists():
+            msg = f"RDF 1.2 statement artifact not found: {rdf12_path}"
+            raise FileNotFoundError(msg)
         builder.add_rdf12(rdf12_path)
     return builder.to_gts(profile="dist", transform=transform)

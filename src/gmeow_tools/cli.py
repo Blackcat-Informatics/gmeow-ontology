@@ -1074,7 +1074,13 @@ def gts_compile(out: Path | None = _GTS_GTS_OUT) -> None:
 
     source = load_merged_graph(include_imports=False)
     rdf12 = config.STATEMENTS_DIR / "gmeow.rdf12.ttl"
-    data = gts.compile_gts(source, rdf12 if rdf12.exists() else None)
+    if not rdf12.exists():
+        raise _fail(
+            f"RDF 1.2 statement artifact not found: {rdf12}\n"
+            "run 'make compile-statements' first (a statement-less dist would drop "
+            "confidence/standpoint/provenance)."
+        )
+    data = gts.compile_gts(source, rdf12)
     target = out or (config.DIST_DIR / "gmeow.gts")
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(data)

@@ -142,3 +142,13 @@ def test_rdf12_producer_reifier_and_annotation(tmp_path: Path) -> None:
     _reifier, pred_id, value_id = g.annotations[0]
     assert g.term(pred_id).value == "https://example.org/confidence"
     assert g.term(value_id).value == "0.9"
+
+
+def test_compile_gts_missing_rdf12_raises(tmp_path: Path) -> None:
+    """compile_gts errors on an explicitly-provided but missing RDF 1.2 path."""
+    import pytest
+
+    from gmeow_tools.gts import compile_gts
+
+    with pytest.raises(FileNotFoundError):
+        compile_gts(_sample_graph(), tmp_path / "does-not-exist.ttl")
