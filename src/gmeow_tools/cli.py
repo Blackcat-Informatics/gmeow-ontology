@@ -1003,6 +1003,90 @@ def gts_to_nq(file: Path, out: Path | None = _GTS_OUT_OPTION) -> None:
     console.print(f"[green]✓[/green] {out}")
 
 
+_GTS_GTS_OUT = typer.Option(
+    None, "--out", "-o", help="Output .gts path (default: <input>.gts)."
+)
+_GTS_DB_OUT = typer.Option(None, "--out", "-o", help="Output database path.")
+
+
+@gts_app.command("from-rdf")
+def gts_from_rdf(file: Path, out: Path | None = _GTS_GTS_OUT) -> None:
+    """Produce a GTS dist snapshot from an RDF file (Turtle/N-Triples/N-Quads/…)."""
+    from rdflib import Dataset, Graph
+    from rdflib.util import guess_format
+
+    from gmeow_tools import gts
+
+    fmt = guess_format(str(file))
+    source: Graph = Dataset() if fmt in {"nquads", "trig", "json-ld"} else Graph()
+    try:
+        source.parse(str(file), format=fmt)
+    except (OSError, ValueError, SyntaxError) as exc:
+        raise _fail(f"cannot read or parse {file}: {exc}") from exc
+    data = gts.gts_from_graph(source)
+    target = out or file.with_suffix(".gts")
+    try:
+        target.write_bytes(data)
+    except OSError as exc:
+        raise _fail(f"cannot write {target}: {exc}") from exc
+    console.print(f"[green]✓[/green] {target} ({len(data)} bytes)")
+
+
+def _gts_to_db(file: Path, out: Path | None, suffix: str, kind: str) -> None:
+    """Shared body for the gts → {sqlite,duckdb} transforms."""
+    from gmeow_tools import gts
+
+    try:
+        graph = gts.read(file.read_bytes())
+    except OSError as exc:
+        raise _fail(f"cannot read {file}: {exc}") from exc
+    target = out or file.with_suffix(suffix)
+    writer = gts.to_sqlite if kind == "sqlite" else gts.to_duckdb
+    try:
+        writer(graph, target)
+    except OSError as exc:
+        raise _fail(f"cannot write {target}: {exc}") from exc
+    console.print(f"[green]✓[/green] {target}")
+
+
+@gts_app.command("to-sqlite")
+def gts_to_sqlite(file: Path, out: Path | None = _GTS_DB_OUT) -> None:
+    """Transform a GTS file to a SQLite database (dictionary-encoded tables)."""
+    _gts_to_db(file, out, ".sqlite", "sqlite")
+
+
+@gts_app.command("to-duckdb")
+def gts_to_duckdb(file: Path, out: Path | None = _GTS_DB_OUT) -> None:
+    """Transform a GTS file to a DuckDB database (dictionary-encoded tables)."""
+    _gts_to_db(file, out, ".duckdb", "duckdb")
+
+
+@gts_app.command("compile")
+def gts_compile(out: Path | None = _GTS_GTS_OUT) -> None:
+    """Compile a statement-complete GTS dist snapshot (dist/gmeow.gts).
+
+    Merges the RDF 1.1 base graph with the RDF 1.2 statement layer
+    (``statements/gmeow.rdf12.ttl``, via pyoxigraph) so confidence / standpoint /
+    provenance survive into the shipped artifact.
+    """
+    from gmeow_tools import config, gts
+    from gmeow_tools.graph import load_merged_graph
+
+    source = load_merged_graph(include_imports=False)
+    rdf12 = config.STATEMENTS_DIR / "gmeow.rdf12.ttl"
+    if not rdf12.exists():
+        raise _fail(
+            f"RDF 1.2 statement artifact not found: {rdf12}\n"
+            "run 'make compile-statements' first (a statement-less dist would drop "
+            "confidence/standpoint/provenance)."
+        )
+    data = gts.compile_gts(source, rdf12)
+    target = out or (config.DIST_DIR / "gmeow.gts")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(data)
+    console.print(f"[green]✓[/green] {target} ({len(data)} bytes)")
+
+
 @app.command(name="mcp")
 def mcp_start() -> None:
     """Start the GMEOW MCP server (stdio transport).
