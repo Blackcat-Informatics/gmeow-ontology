@@ -15,6 +15,8 @@ from rdflib.namespace import OWL, SKOS
 from rdflib.term import Node
 
 from gmeow_tools.config import (
+    _SAMEAS_ALLOWLIST,
+    FIXTURES_DIR,
     MAPPING_DSL_DIR,
     NAMESPACE,
     SHAPES_DIR,
@@ -71,14 +73,70 @@ class ValidationResult:
         self.warnings.extend(other.warnings)
 
 
+@lru_cache(maxsize=256)
+def _parse_file(path: Path) -> tuple[Graph | None, Exception | None]:
+    """Parse a single Turtle file, returning (graph, error) for caching.
+
+    Both syntax validation and the sameAs ban scan the same source files.
+    Caching the parse avoids redundant I/O when both checks run in sequence.
+    """
+    try:
+        return Graph().parse(path, format="turtle"), None
+    except Exception as exc:
+        return None, exc
+
+
 def check_syntax() -> ValidationResult:
     """Parse every source Turtle file individually to catch syntax errors."""
     result = ValidationResult()
     for source in iter_source_files():
-        try:
-            Graph().parse(source, format="turtle")
-        except Exception as exc:  # report any parse failure as an error
+        _graph, exc = _parse_file(source)
+        if exc is not None:
             result.errors.append(f"syntax error in {source}: {exc}")
+    return result
+
+
+def check_sameas_ban(paths: list[Path] | None = None) -> ValidationResult:
+    """Enforce Principle 5: no ``owl:sameAs`` merge with external entities.
+
+    Scans the given Turtle files and errors on every ``owl:sameAs`` triple whose
+    object is a URI outside the GMEOW namespace, unless the (subject, object)
+    pair is explicitly listed in :data:`gmeow_tools.config._SAMEAS_ALLOWLIST`.
+
+    Args:
+        paths: Files to audit. Defaults to canonical ontology sources plus the
+            fixture corpus under ``tests/fixtures``.
+
+    Returns:
+        Validation result with one error per banned triple.
+    """
+    if paths is None:
+        paths = [
+            *iter_source_files(),
+            *sorted(FIXTURES_DIR.rglob("*.ttl")),
+        ]
+    result = ValidationResult()
+    for source in paths:
+        graph, exc = _parse_file(source)
+        if exc is not None:
+            result.errors.append(f"failed to parse {source}: {exc}")
+            continue
+        assert graph is not None
+        for s, p, o in graph:
+            if p != OWL.sameAs:
+                continue
+            if not isinstance(o, URIRef):
+                continue
+            obj = str(o)
+            if obj.startswith(NAMESPACE):
+                continue
+            if (str(s), obj) in _SAMEAS_ALLOWLIST:
+                continue
+            result.errors.append(
+                f"{source}: banned owl:sameAs to external entity "
+                f"{s} owl:sameAs {o} (Principle 5); "
+                f"use skos:exactMatch or gmeow:authorityLink"
+            )
     return result
 
 
@@ -281,10 +339,12 @@ def _dsl_shacl(dsl_dir: Path, label: str) -> ValidationResult:
 
 
 def validate_all() -> ValidationResult:
-    """Run syntax, structural lint, and SHACL checks over the merged graph."""
+    """Run syntax, structural lint, SHACL, and sameAs-ban checks."""
     result = check_syntax()
+    result.extend(check_sameas_ban())
     if not result.ok:
-        # No point loading a merged graph if a file will not parse.
+        # No point loading a merged graph if a file will not parse or the
+        # sameAs ban is violated.
         return result
     merged = load_merged_graph()
     result.extend(structural_lint(merged))

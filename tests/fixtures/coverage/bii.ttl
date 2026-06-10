@@ -17,7 +17,6 @@
 @prefix ontodm: <http://www.ontodm.com/OntoDM-core/> .
 @prefix openalex-topic: <https://openalex.org/> .
 @prefix org: <http://www.w3.org/ns/org#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -394,8 +393,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
 <https://blackcatinformatics.ca/#concept-ai-agents> a skos:Concept ;
     rdfs:label "Intelligent Agents (Agentic AI)"@en ;
     mads:authoritativeLabel "Intelligent Agents (Agentic AI)"@en ;
-    owl:sameAs dbr:Intelligent_agent,
-        wd:Q170978 ;
     skos:broader <https://blackcatinformatics.ca/#concept-artificial-intelligence> ;
     skos:closeMatch acm:10010147.10010178.10010219.10010220,
         <unesco-thesaurus:3055> ;
@@ -412,8 +409,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     rdfs:label "Bioinformatics"@en ;
     mads:authoritativeLabel "Bioinformatics"@en ;
     mads:hasCloseExternalAuthority lcsh:sh00003585 ;
-    owl:sameAs dbr:Bioinformatics,
-        wd:Q128570 ;
     skos:broader <https://blackcatinformatics.ca/#concept-computer-science> ;
     skos:closeMatch acm:10010405.10010444.10010450,
         eurovoc:c_f0a7cb51,
@@ -432,8 +427,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     rdfs:label "Cloud Computing"@en ;
     mads:authoritativeLabel "Cloud Computing"@en ;
     mads:hasCloseExternalAuthority lcsh:sh2008004883 ;
-    owl:sameAs dbr:Cloud_computing,
-        wd:Q483639 ;
     skos:broader <https://blackcatinformatics.ca/#concept-computer-science> ;
     skos:closeMatch esco:bd14968e-e409-45af-b362-3495ed7b10e0,
         acm:10003033.10003099.10003100,
@@ -466,8 +459,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
 <https://blackcatinformatics.ca/#concept-generative-ai> a skos:Concept ;
     rdfs:label "Generative AI"@en ;
     mads:authoritativeLabel "Generative AI"@en ;
-    owl:sameAs dbr:Generative_artificial_intelligence,
-        wd:Q108235848 ;
     skos:broader <https://blackcatinformatics.ca/#concept-artificial-intelligence> ;
     skos:exactMatch dbr:Generative_artificial_intelligence,
         wd:Q108235848 ;
@@ -481,8 +472,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
 <https://blackcatinformatics.ca/#concept-high-performance-computing> a skos:Concept ;
     rdfs:label "High Performance Computing"@en ;
     mads:authoritativeLabel "High Performance Computing"@en ;
-    owl:sameAs dbr:High-performance_computing,
-        wd:Q189940 ;
     skos:broader <https://blackcatinformatics.ca/#concept-computer-science> ;
     skos:closeMatch <http://www.sac.gov.cn/gbt/13745/5203020>,
         swebok:concurrency ;
@@ -498,8 +487,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
 <https://blackcatinformatics.ca/#concept-large-language-models> a skos:Concept ;
     rdfs:label "Large Language Models"@en ;
     mads:authoritativeLabel "Large Language Models"@en ;
-    owl:sameAs dbr:Large_language_model,
-        wd:Q115305900 ;
     skos:broader <https://blackcatinformatics.ca/#concept-artificial-intelligence> ;
     skos:closeMatch swebok:llm_engineering ;
     skos:exactMatch dbr:Large_language_model,
@@ -514,8 +501,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
 <https://blackcatinformatics.ca/#concept-linked-data> a skos:Concept ;
     rdfs:label "Linked Data"@en ;
     mads:authoritativeLabel "Linked Data"@en ;
-    owl:sameAs dbr:Linked_data,
-        wd:Q515701 ;
     skos:broader <https://blackcatinformatics.ca/#concept-semantic-web> ;
     skos:exactMatch dbr:Linked_data,
         wd:Q515701 ;
@@ -530,8 +515,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     rdfs:label "Public Key Infrastructure"@en ;
     mads:authoritativeLabel "Public Key Infrastructure"@en ;
     mads:hasCloseExternalAuthority lcsh:sh2002004634 ;
-    owl:sameAs dbr:Public_key_infrastructure,
-        wd:Q224049 ;
     skos:broader <https://blackcatinformatics.ca/#concept-cryptography> ;
     skos:closeMatch acm:10002978.10002979.10002981,
         eurovoc:5181,
@@ -550,8 +533,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     rdfs:label "Information Security"@en ;
     mads:authoritativeLabel "Information Security"@en ;
     mads:hasCloseExternalAuthority lcsh:sh90001862 ;
-    owl:sameAs dbr:Information_security,
-        wd:Q3510521 ;
     skos:broader <https://blackcatinformatics.ca/#concept-computer-science> ;
     skos:closeMatch esco:11eebd42-44ab-401d-8a2c-bdb9fc9beb50,
         acm:10002978.10002991,
@@ -574,8 +555,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
 <https://blackcatinformatics.ca/#concept-semantic-analysis> a skos:Concept ;
     rdfs:label "Semantic Analysis"@en ;
     mads:authoritativeLabel "Semantic Analysis"@en ;
-    owl:sameAs dbr:Semantic_analysis_\(linguistics\),
-        wd:Q1144262 ;
     skos:broader <https://blackcatinformatics.ca/#concept-artificial-intelligence> ;
     skos:closeMatch esco:fff0e2cd-d0bd-4b02-9daf-158b79d9688a,
         acm:10010147.10010178.10010179,
@@ -592,7 +571,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
 <https://blackcatinformatics.ca/#concept-solution-architecture> a skos:Concept ;
     rdfs:label "Solution Architecture"@en ;
     mads:authoritativeLabel "Solution Architecture"@en ;
-    owl:sameAs wd:Q7558977 ;
     skos:broader <https://blackcatinformatics.ca/#concept-management-consulting> ;
     skos:closeMatch esco:2450c3b3-e78e-435b-b84d-e05d984e71dc,
         <http://www.sac.gov.cn/gbt/13745/5204070>,
@@ -747,8 +725,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     rdfs:label "C++ (programming language)"@en ;
     mads:authoritativeLabel "C++ (programming language)"@en ;
     mads:hasCloseExternalAuthority lcsh:sh87007505 ;
-    owl:sameAs <http://dbpedia.org/resource/C++>,
-        wd:Q2407 ;
     skos:closeMatch acm:10011007.10011006.10011008,
         eurovoc:1696,
         lcsh:sh87007505,
@@ -766,8 +742,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     rdfs:label "Cryptography"@en ;
     mads:authoritativeLabel "Cryptography"@en ;
     mads:hasCloseExternalAuthority lcsh:sh85034453 ;
-    owl:sameAs dbr:Cryptography,
-        wd:Q41048 ;
     skos:broader <https://blackcatinformatics.ca/#concept-computer-science> ;
     skos:closeMatch esco:d32db06e-bd06-4415-a7ab-1b0ee68caa9a,
         acm:10002978.10002979,
@@ -789,8 +763,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     rdfs:label "Geomatics"@en ;
     mads:authoritativeLabel "Geomatics"@en ;
     mads:hasCloseExternalAuthority lcsh:sh99004272 ;
-    owl:sameAs dbr:Geomatics,
-        wd:Q1399449 ;
     skos:closeMatch acm:10002951.10003227.10003236.10003237,
         lcsh:sh99004272 ;
     skos:exactMatch dbr:Geomatics,
@@ -806,8 +778,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     rdfs:label "Go (programming language)"@en ;
     mads:authoritativeLabel "Go (programming language)"@en ;
     mads:hasCloseExternalAuthority lcsh:sh2012000746 ;
-    owl:sameAs dbr:Go_\(programming_language\),
-        wd:Q37227 ;
     skos:closeMatch acm:10011007.10011006.10011008,
         eurovoc:1696,
         lcsh:sh2012000746,
@@ -825,8 +795,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     rdfs:label "Machine Learning"@en ;
     mads:authoritativeLabel "Machine Learning"@en ;
     mads:hasCloseExternalAuthority lcsh:sh85079324 ;
-    owl:sameAs dbr:Machine_learning,
-        wd:Q2539 ;
     skos:broader <https://blackcatinformatics.ca/#concept-computer-science> ;
     skos:closeMatch esco:8369c2d6-c100-4cf6-bd83-9668d8678433,
         acm:10010147.10010257,
@@ -847,8 +815,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
 <https://blackcatinformatics.ca/#concept-postgresql> a skos:Concept ;
     rdfs:label "PostgreSQL"@en ;
     mads:authoritativeLabel "PostgreSQL"@en ;
-    owl:sameAs dbr:PostgreSQL,
-        wd:Q192490 ;
     skos:closeMatch acm:10002951.10002952,
         eurovoc:435299,
         <http://www.sac.gov.cn/gbt/13745/5204050>,
@@ -866,8 +832,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     rdfs:label "Python (programming language)"@en ;
     mads:authoritativeLabel "Python (programming language)"@en ;
     mads:hasCloseExternalAuthority lcsh:sh96008834 ;
-    owl:sameAs dbr:Python_\(programming_language\),
-        wd:Q28865 ;
     skos:closeMatch acm:10011007.10011006.10011008,
         eurovoc:1696,
         lcsh:sh96008834,
@@ -885,8 +849,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     rdfs:label "Satellite Imagery"@en ;
     mads:authoritativeLabel "Satellite Imagery"@en ;
     mads:hasCloseExternalAuthority lcsh:sh85112798 ;
-    owl:sameAs dbr:Satellite_imagery,
-        wd:Q725252 ;
     skos:closeMatch lcsh:sh85112798 ;
     skos:exactMatch dbr:Satellite_imagery,
         wd:Q725252 ;
@@ -900,8 +862,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
 <https://blackcatinformatics.ca/#concept-topological-data-analysis> a skos:Concept ;
     rdfs:label "Topological Data Analysis"@en ;
     mads:authoritativeLabel "Topological Data Analysis"@en ;
-    owl:sameAs dbr:Topological_data_analysis,
-        wd:Q7825166 ;
     skos:broader <https://blackcatinformatics.ca/#concept-mathematics> ;
     skos:closeMatch acm:10002950.10003741.10003742,
         <http://www.sac.gov.cn/gbt/13745/11045> ;
@@ -1003,8 +963,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     rdfs:label "Ontology Engineering"@en ;
     mads:authoritativeLabel "Ontology Engineering"@en ;
     mads:hasCloseExternalAuthority lcsh:sh2005006014 ;
-    owl:sameAs dbr:Ontology_engineering,
-        wd:Q1414433 ;
     skos:broader <https://blackcatinformatics.ca/#concept-semantic-web> ;
     skos:closeMatch acm:10010147.10010178.10010187.10010195,
         lcsh:sh2005006014,
@@ -1221,8 +1179,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
 <https://blackcatinformatics.ca/#concept-knowledge-graph> a skos:Concept ;
     rdfs:label "Knowledge Graph"@en ;
     mads:authoritativeLabel "Knowledge Graph"@en ;
-    owl:sameAs dbr:Knowledge_graph,
-        wd:Q33002955 ;
     skos:broader <https://blackcatinformatics.ca/#concept-semantic-web> ;
     skos:closeMatch acm:10010147.10010178.10010187,
         <http://www.sac.gov.cn/gbt/13745/5202070> ;
@@ -1238,8 +1194,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
 <https://blackcatinformatics.ca/#concept-manifold-learning> a skos:Concept ;
     rdfs:label "Manifold Learning"@en ;
     mads:authoritativeLabel "Manifold Learning"@en ;
-    owl:sameAs dbr:Nonlinear_dimensionality_reduction,
-        wd:Q1191596 ;
     skos:broader <https://blackcatinformatics.ca/#concept-machine-learning> ;
     skos:closeMatch acm:10010147.10010257.10010258.10010260.10010271,
         swebok:embedding_models ;
@@ -1255,8 +1209,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
 <https://blackcatinformatics.ca/#concept-mathematics> a skos:Concept ;
     rdfs:label "Mathematics"@en ;
     mads:authoritativeLabel "Mathematics"@en ;
-    owl:sameAs dbr:Mathematics,
-        wd:Q395 ;
     skos:closeMatch esco:4339176e-3acd-4f7f-a5d9-445bee3d23f2,
         acm:10002950,
         <http://www.sac.gov.cn/gbt/13745/110>,
@@ -1276,8 +1228,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     rdfs:label "Spectral Graph Theory"@en ;
     mads:authoritativeLabel "Spectral Graph Theory"@en ;
     mads:hasCloseExternalAuthority lcsh:sh85126408 ;
-    owl:sameAs dbr:Spectral_graph_theory,
-        wd:Q1064327 ;
     skos:broader <https://blackcatinformatics.ca/#concept-mathematics> ;
     skos:closeMatch acm:10002950.10003624.10003633,
         acm:10010147.10010257.10010321.10010335,
@@ -1329,8 +1279,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     rdfs:label "Artificial Intelligence"@en ;
     mads:authoritativeLabel "Artificial Intelligence"@en ;
     mads:hasCloseExternalAuthority lcsh:sh85008180 ;
-    owl:sameAs dbr:Artificial_intelligence,
-        wd:Q11660 ;
     skos:broader <https://blackcatinformatics.ca/#concept-computer-science> ;
     skos:closeMatch esco:e465a154-93f7-4973-9ce1-31659fe16dd2,
         acm:10010147.10010178,
@@ -1351,8 +1299,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
 <https://blackcatinformatics.ca/#concept-management-consulting> a skos:Concept ;
     rdfs:label "Management Consulting"@en ;
     mads:authoritativeLabel "Management Consulting"@en ;
-    owl:sameAs dbr:Management_consulting,
-        wd:Q4116214 ;
     skos:closeMatch eurovoc:2602,
         swebok:software_engineering_management,
         <unesco-thesaurus:1183> ;
@@ -1369,8 +1315,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     rdfs:label "Semantic Web"@en ;
     mads:authoritativeLabel "Semantic Web"@en ;
     mads:hasCloseExternalAuthority lcsh:sh2002000569 ;
-    owl:sameAs dbr:Semantic_Web,
-        wd:Q54837 ;
     skos:closeMatch esco:fda917eb-0d6a-4371-8c93-2a10bf950966,
         acm:10002951.10003260.10003309.10003315,
         eurovoc:7219,
@@ -1476,8 +1420,6 @@ ontodm:OntoDM_817888 a rdfs:Class ;
     rdfs:label "Computer Science"@en ;
     mads:authoritativeLabel "Computer Science"@en ;
     mads:hasCloseExternalAuthority lcsh:sh89003285 ;
-    owl:sameAs dbr:Computer_science,
-        wd:Q21198 ;
     skos:closeMatch esco:7b5cce4d-c7fe-4119-b48f-70aa05391787,
         acm:10010147,
         eurovoc:5188,
@@ -1496,10 +1438,9 @@ ontodm:OntoDM_817888 a rdfs:Class ;
         wd:Q21198 .
 
 <https://blackcatinformatics.ca/#service-area> a schema:Country ;
-    owl:sameAs dbr:Canada,
+    skos:exactMatch dbr:Canada,
         tgn:7005685,
-        <https://sws.geonames.org/6251999/>,
-        "wd:Q16"@en ;
+        <https://sws.geonames.org/6251999/> ;
     schema:name "Canada"@en .
 
 <https://blackcatinformatics.ca/#bii-logo> a schema:ImageObject ;

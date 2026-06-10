@@ -2,11 +2,19 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
+import pytest
 from rdflib import RDFS, Graph, Literal, URIRef
 from rdflib.namespace import OWL, SKOS
 
 from gmeow_tools.config import NAMESPACE
-from gmeow_tools.validate import check_syntax, structural_lint, validate_all
+from gmeow_tools.validate import (
+    check_sameas_ban,
+    check_syntax,
+    structural_lint,
+    validate_all,
+)
 
 
 def test_check_syntax_on_sources() -> None:
@@ -99,3 +107,57 @@ def test_structural_lint_accepts_x_gmeow_english_on_label() -> None:
     graph.add((term, RDFS.isDefinedBy, URIRef(NAMESPACE)))
 
     assert structural_lint(graph).ok
+
+
+# --------------------------------------------------------------------------- #
+# owl:sameAs ban (Principle 5)
+# --------------------------------------------------------------------------- #
+
+
+def test_check_sameas_ban_rejects_external_sameas(tmp_path: Path) -> None:
+    path = tmp_path / "bad.ttl"
+    path.write_text(
+        """
+    @prefix ex: <https://example.org/> .
+    @prefix owl: <http://www.w3.org/2002/07/owl#> .
+    ex:a owl:sameAs ex:b .
+    """,
+        encoding="utf-8",
+    )
+    result = check_sameas_ban([path])
+    assert not result.ok
+    assert any("banned owl:sameAs to external entity" in e for e in result.errors)
+
+
+def test_check_sameas_ban_allows_internal_sameas(tmp_path: Path) -> None:
+    path = tmp_path / "ok.ttl"
+    path.write_text(
+        f"""
+    @prefix gmeow: <{NAMESPACE}> .
+    @prefix owl: <http://www.w3.org/2002/07/owl#> .
+    gmeow:A owl:sameAs gmeow:B .
+    """,
+        encoding="utf-8",
+    )
+    result = check_sameas_ban([path])
+    assert result.ok
+
+
+def test_check_sameas_ban_respects_allowlist(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "allowed.ttl"
+    path.write_text(
+        """
+    @prefix ex: <https://example.org/> .
+    @prefix owl: <http://www.w3.org/2002/07/owl#> .
+    ex:a owl:sameAs ex:b .
+    """,
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        "gmeow_tools.validate._SAMEAS_ALLOWLIST",
+        frozenset({("https://example.org/a", "https://example.org/b")}),
+    )
+    result = check_sameas_ban([path])
+    assert result.ok

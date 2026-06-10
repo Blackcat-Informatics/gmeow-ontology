@@ -10,7 +10,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from rdflib import Graph, URIRef
-from rdflib.namespace import OWL
 
 from gmeow_tools.config import MODULES_DIR, PREFIXES
 from gmeow_tools.wikidata import NamespaceMisuse, check_syntax_iri
@@ -100,24 +99,6 @@ def audit_file(path: Path) -> list[AuditFinding]:
                         message=message,
                     )
                 )
-
-        # owl:sameAs overuse involving Wikidata
-        if pred == str(OWL.sameAs) and (
-            obj.startswith(_WD_NS) or obj.startswith(_WDT_NS)
-        ):
-            findings.append(
-                AuditFinding(
-                    file=path,
-                    subject=str(s),
-                    predicate=pred,
-                    object=obj,
-                    severity="warning",
-                    message=(
-                        "owl:sameAs to Wikidata risks standpoint collapse; "
-                        "prefer skos:exactMatch or gmeow:authorityLink"
-                    ),
-                )
-            )
 
         # schema:sameAs with Wikidata entity (acceptable but worth noting)
         if pred == _SCHEMA_SAMEAS and obj.startswith(_WD_NS):
