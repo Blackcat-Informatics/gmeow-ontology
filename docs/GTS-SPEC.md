@@ -110,7 +110,10 @@ GTS-file = [self-describe-tag] header *frame
   never rewrites earlier bytes.
 
 A reader streams items until end of input. Trailing partial bytes (a torn append) MUST be
-detected and the last incomplete item ignored with a diagnostic.
+detected and the last incomplete item ignored with a diagnostic. In particular, if a crash
+occurred while writing an `index` frame (§6.2) the trailing index is torn: a reader MUST ignore
+it and fall back to an earlier intact `index` or to a plain **sequential scan**, so every
+surviving frame remains recoverable. The optional index is an accelerator, never a dependency.
 
 ## 4. CBOR conventions
 
@@ -318,6 +321,13 @@ check:
 - `gts → ttl/nq` must resolve ids to emit text. If the dictionary exceeds memory, the reader
   uses the index `"dict"` locator (§6.2) to load (or memory-map, or spill to an on-disk kv)
   only the `terms` frames first, then streams the quads.
+
+Even O(distinct-terms) can exceed memory for pathologically irregular graphs (e.g. a crawl
+dumping millions of unique UUID IRIs). A Streaming Reader therefore MAY **flush its in-memory
+dictionary to a temporary on-disk key-value store** when a memory limit is reached, trading RAM
+for a local spill file; correctness is unaffected because term-ids are append-order and frozen
+(§7.2). The `gts → duckdb`/`sqlite` transforms get this for free — the target table *is* the
+spill.
 
 A multi-gigabyte log thus transforms to an operating substrate in bounded memory — the
 resolve-and-materialise OOM failure mode is avoided by construction.
