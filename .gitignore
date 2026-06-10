@@ -26,3 +26,6 @@ htmlcov/
 .codex
 .claude
 .worktrees/
+
+# Toolchain temp directories (hard-kill leftovers)
+.gmeow-tmp-*/

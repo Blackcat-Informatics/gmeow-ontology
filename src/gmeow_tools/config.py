@@ -7,6 +7,8 @@ filesystem locations are :class:`pathlib.Path` objects (never bare strings).
 
 from __future__ import annotations
 
+import tempfile
+import time
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
@@ -51,6 +53,47 @@ def version_iri(version: str) -> str:
 
 #: Repository root (this file lives at ``<root>/src/gmeow_tools/config.py``).
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+#: Prefix for GMEOW toolchain temporary directories under PROJECT_ROOT.
+_GMEOW_TMP_PREFIX = ".gmeow-tmp-"
+
+
+def gmeow_temp_dir() -> tempfile.TemporaryDirectory[str]:
+    """Return a TemporaryDirectory under PROJECT_ROOT with a GMEOW prefix.
+
+    Staging inside PROJECT_ROOT lets Docker (which mounts the root at /work)
+    read temp artifacts. The recognisable prefix plus a ``.gitignore`` entry
+    prevents leaked directories from being committed after a hard kill.
+    """
+    return tempfile.TemporaryDirectory(dir=PROJECT_ROOT, prefix=_GMEOW_TMP_PREFIX)
+
+
+def sweep_stale_gmeow_temp_dirs(
+    max_age_seconds: float = 3600.0,
+) -> list[Path]:
+    """Remove stale GMEOW temp directories left behind by hard kills.
+
+    Args:
+        max_age_seconds: Directories younger than this are left alone
+            (they may belong to a concurrent process).
+
+    Returns:
+        The paths of directories that were removed.
+    """
+    removed: list[Path] = []
+    now = time.time()
+    for entry in PROJECT_ROOT.iterdir():
+        if entry.is_dir() and entry.name.startswith(_GMEOW_TMP_PREFIX):
+            try:
+                if now - entry.stat().st_mtime > max_age_seconds:
+                    import shutil
+
+                    shutil.rmtree(entry)
+                    removed.append(entry)
+            except OSError:
+                pass  # best-effort cleanup
+    return removed
+
 
 ONTOLOGY_DIR = PROJECT_ROOT / "ontology"
 MODULES_DIR = ONTOLOGY_DIR / "modules"
