@@ -15,14 +15,24 @@ _RDF_REIFIES = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"
 
 
 def _escape(lex: str) -> str:
-    """Escape a literal lexical form for N-Triples."""
-    return (
-        lex.replace("\\", "\\\\")
-        .replace('"', '\\"')
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
-        .replace("\t", "\\t")
-    )
+    """Escape a literal lexical form for N-Triples (incl. all C0 control chars)."""
+    out: list[str] = []
+    for ch in lex:
+        if ch == "\\":
+            out.append("\\\\")
+        elif ch == '"':
+            out.append('\\"')
+        elif ch == "\n":
+            out.append("\\n")
+        elif ch == "\r":
+            out.append("\\r")
+        elif ch == "\t":
+            out.append("\\t")
+        elif ord(ch) < 0x20:
+            out.append(f"\\u{ord(ch):04X}")
+        else:
+            out.append(ch)
+    return "".join(out)
 
 
 def _render(g: Graph, tid: int) -> str:
@@ -43,7 +53,8 @@ def _render(g: Graph, tid: int) -> str:
     if t.reifier is not None and t.reifier in g.reifiers:
         s, p, o = g.reifiers[t.reifier]
         return f"<<( {_render(g, s)} {_render(g, p)} {_render(g, o)} )>>"
-    return "<<( )>>"
+    # degraded but syntactically valid: an unbound reifier becomes a blank node
+    return f"_:unbound_triple_{tid}"
 
 
 def to_nquads(g: Graph) -> str:

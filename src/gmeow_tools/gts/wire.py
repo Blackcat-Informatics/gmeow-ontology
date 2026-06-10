@@ -77,7 +77,7 @@ def iter_items(data: bytes) -> tuple[list[tuple[int, object]], int | None]:
             break
         try:
             item = dec.decode()
-        except cbor2.CBORDecodeEOF:  # partial trailing item
+        except cbor2.CBORDecodeError:  # partial (EOF) or corrupt trailing item
             torn = start
             break
         out.append((start, item))

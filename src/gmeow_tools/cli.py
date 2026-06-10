@@ -963,7 +963,11 @@ def gts_info(file: Path) -> None:
     """Summarise a GTS file: terms/quads/blobs counts and any diagnostics."""
     from gmeow_tools import gts
 
-    graph = gts.read(file.read_bytes())
+    try:
+        data = file.read_bytes()
+    except OSError as exc:
+        raise _fail(f"cannot read {file}: {exc}") from exc
+    graph = gts.read(data)
     console.print(
         f"[bold]{file.name}[/bold]: {len(graph.terms)} terms, "
         f"{len(graph.quads)} quads, {len(graph.reifiers)} reifiers, "
@@ -984,13 +988,19 @@ def gts_to_nq(file: Path, out: Path | None = _GTS_OUT_OPTION) -> None:
     """Transform a GTS file to N-Quads (§14 of GTS-SPEC.md)."""
     from gmeow_tools import gts
 
-    graph = gts.read(file.read_bytes())
+    try:
+        graph = gts.read(file.read_bytes())
+    except OSError as exc:
+        raise _fail(f"cannot read {file}: {exc}") from exc
     text = gts.to_nquads(graph)
     if out is None:
         console.print(text, end="")
-    else:
+        return
+    try:
         out.write_text(text, encoding="utf-8")
-        console.print(f"[green]✓[/green] {out}")
+    except OSError as exc:
+        raise _fail(f"cannot write {out}: {exc}") from exc
+    console.print(f"[green]✓[/green] {out}")
 
 
 @app.command(name="mcp")

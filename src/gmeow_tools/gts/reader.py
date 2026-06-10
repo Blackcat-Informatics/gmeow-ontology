@@ -277,51 +277,62 @@ class _Folder:
     def _h_snapshot(
         self, payload: object, _f: Mapping[str, object], index: int
     ) -> None:
+        """Fold a self-contained snapshot (§10).
+
+        Shifts the snapshot's local term ids into the outer id space and re-dispatches
+        through the normal handlers, so a snapshot gets the **same** semantic checks
+        (forward-reference, position, conflicting-reifier, annotation-predicate IRI) as
+        the equivalent streamed frames — no silent acceptance of invalid content.
+        """
         if not isinstance(payload, Mapping):
             return
         base = len(self.g.terms)
-        snap_terms = payload.get("terms", []) or []
-        n_snap = len(snap_terms) if isinstance(snap_terms, list) else 0
 
-        def shift(value: object) -> int:
-            """Offset a snapshot-local term id into the outer space (bounds-checked)."""
-            tid = _as_int(value)
-            if tid is None or tid >= n_snap:
-                msg = f"snapshot term id {value!r} out of range"
-                raise ValueError(msg)
-            return tid + base
+        def sh(value: object) -> object:
+            # Shift a valid local id into the outer space; pass non-ints through so the
+            # downstream handler's own checks reject them with diagnostics.
+            iv = _as_int(value)
+            return iv + base if iv is not None else value
 
+        snap_terms = payload.get("terms")
         if isinstance(snap_terms, list):
+            shifted_terms: list[object] = []
             for raw in snap_terms:
                 if isinstance(raw, Mapping):
-                    t = term_from_wire(raw)
-                    self.g.terms.append(
-                        Term(
-                            kind=t.kind,
-                            value=t.value,
-                            datatype=shift(t.datatype)
-                            if t.datatype is not None
-                            else None,
-                            lang=t.lang,
-                            reifier=shift(t.reifier) if t.reifier is not None else None,
-                        )
-                    )
-        for row in payload.get("quads", []) or []:
-            if isinstance(row, list) and len(row) >= 3:
-                g = shift(row[3]) if len(row) >= 4 else None
-                self.g.quads.append((shift(row[0]), shift(row[1]), shift(row[2]), g))
+                    term = dict(raw)
+                    if "dt" in term:
+                        term["dt"] = sh(term["dt"])
+                    if "rf" in term:
+                        term["rf"] = sh(term["rf"])
+                    shifted_terms.append(term)
+                else:
+                    shifted_terms.append(raw)
+            self._h_terms(shifted_terms, _f, index)
+
+        quads = payload.get("quads")
+        if isinstance(quads, list):
+            self._h_quads(
+                [[sh(x) for x in r] if isinstance(r, list) else r for r in quads],
+                _f,
+                index,
+            )
+
         reifies = payload.get("reifies")
         if isinstance(reifies, Mapping):
-            for rid, spo in reifies.items():
-                if isinstance(spo, list) and len(spo) == 3:
-                    self.g.reifiers[shift(rid)] = (
-                        shift(spo[0]),
-                        shift(spo[1]),
-                        shift(spo[2]),
-                    )
-        for row in payload.get("annot", []) or []:
-            if isinstance(row, list) and len(row) == 3:
-                self.g.annotations.append((shift(row[0]), shift(row[1]), shift(row[2])))
+            shifted_reif: dict[object, object] = {
+                sh(rid): ([sh(x) for x in spo] if isinstance(spo, list) else spo)
+                for rid, spo in reifies.items()
+            }
+            self._h_reifies(shifted_reif, _f, index)
+
+        annot = payload.get("annot")
+        if isinstance(annot, list):
+            self._h_annot(
+                [[sh(x) for x in r] if isinstance(r, list) else r for r in annot],
+                _f,
+                index,
+            )
+
         blobs = payload.get("blobs")
         if isinstance(blobs, Mapping):
             for b in blobs.values():

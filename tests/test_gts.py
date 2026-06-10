@@ -323,11 +323,48 @@ def test_robust_invalid_header() -> None:
 
 
 def test_robust_out_of_bounds_snapshot() -> None:
-    """A snapshot with an out-of-range term id folds to damaged, not a crash."""
+    """A snapshot quad with an out-of-range id is diagnosed, not crashed."""
     w = Writer(profile="dist")
     w.add_frame(
         "snapshot",
         payload={"terms": [{"k": 0, "v": "https://ex/a"}], "quads": [[0, 7, 0]]},
     )
     g = read(w.to_bytes())
-    assert "DamagedFrame" in _diag_codes(g)
+    assert "PositionConstraint" in _diag_codes(g)
+    assert g.quads == []  # rejected, not crashed
+
+
+def test_writer_rejects_ambiguous_payload() -> None:
+    """add_frame rejects both-sources and transform-without-source."""
+    import pytest
+
+    w = Writer()
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        w.add_frame("meta", payload={"a": 1}, raw=b"x")
+    with pytest.raises(ValueError, match="transform requires"):
+        w.add_frame("meta", transform=["zstd"])
+
+
+def test_nquads_escapes_control_chars() -> None:
+    """A literal containing control bytes serialises to escaped N-Quads."""
+    w = Writer()
+    w.add_terms(
+        [
+            Term(TermKind.IRI, "https://ex/s"),
+            Term(TermKind.IRI, "https://ex/p"),
+            Term(TermKind.LITERAL, "a\x00b\x07c"),  # NUL + BEL
+        ]
+    )
+    w.add_quads([(0, 1, 2, None)])
+    g = read(w.to_bytes())
+    assert '"a\\u0000b\\u0007c"' in to_nquads(g)
+
+
+def test_corrupt_trailing_item_is_torn() -> None:
+    """A malformed (not merely truncated) trailing CBOR item is treated as torn."""
+    w = Writer()
+    w.add_terms([Term(TermKind.IRI, "https://ex/s")])
+    data = w.to_bytes() + b"\x1c"  # reserved additional-info -> ill-formed CBOR
+    g = read(data)
+    assert "TornAppendError" in _diag_codes(g)
+    assert len(g.terms) == 1  # survivors intact

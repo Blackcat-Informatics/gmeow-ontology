@@ -92,10 +92,20 @@ class Writer:
     ) -> bytes:
         """Append one frame and return its ``"id"``.
 
-        Exactly one of ``payload`` (structured CBOR) or ``raw`` (blob bytes) is the
-        payload source. When ``transform`` is given, the payload is CBOR-encoded (if
+        ``payload`` (structured CBOR) and ``raw`` (blob bytes) are mutually exclusive
+        payload sources. When ``transform`` is given, the payload is CBOR-encoded (if
         structured) and run through the codec chain so ``"d"`` is a byte string (§6.1).
+
+        Raises:
+            ValueError: if both ``payload`` and ``raw`` are given, or if ``transform``
+                is requested with neither source.
         """
+        if payload is not None and raw is not None:
+            msg = "payload and raw are mutually exclusive"
+            raise ValueError(msg)
+        if transform and payload is None and raw is None:
+            msg = "transform requires a payload or raw source"
+            raise ValueError(msg)
         frame: dict[str, object] = {"t": frame_type}
         if transform:
             frame["x"] = self._chain_ids(transform)
