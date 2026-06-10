@@ -4,25 +4,53 @@
 
 # GMEOW — Global Metadata and Entity Ontology for the Web
 
-GMEOW is a **reasoning-centric, OWL 2 DL, upper-ontology-grounded super-vocabulary**
-that unifies document metadata, entity descriptions, legal agreements, contacts,
-person-centric data — *and now scientific observation & measurement* — into one coherent,
-inference-friendly graph. It began as a "super" FOAF + REL + DOAP + GEDCOM + PROV-O; it has
-since grown a universal frame-relative **Location**, **Observation**, and **Quantity** spine
-that locates and measures anything from a contact card to a gene on a genome to a star.
-It is grounded in **gUFO**, **projected** down to 15+ consumer vocabularies (schema.org,
-FOAF, GeoSPARQL, vCard, iCalendar, OWL-Time, ODRL, …) and **aligned by reference** to dozens
-more (PROV-O, ORG, OntoLex-Lemon, Wikidata, BFO, QUDT, FALDO, IVOA, CIDOC-CRM, …) — see the
-[projection](#projection-targets) and [alignment](#aligned-by-reference) tables below. The
-full guide set is indexed in the [documentation map](#documentation-map).
+> **An LLM output is a claim, not a truth.**
 
-**Why does this exist?** GMEOW unifies the sprawl of overlapping vocabularies used to
-record a person's or organization's *digital existence*. See [`docs/RATIONALE.md`](./docs/RATIONALE.md)
-for the reason, the problems it solves, and the solution it offers.
+GMEOW is a substrate for **grounded agent memory and claim provenance**. Every fact an AI
+system stores, recalls, or emits is held as what it actually is: an **attributed,
+time-scoped, confidence-weighted, evidence-linked claim** — open to contradiction (two
+models that disagree *coexist*, standpoint-indexed, never adjudicated by rank), revised by
+**suppression instead of deletion** (the agent that stops believing X keeps an auditable
+record that it believed X, on whose say-so, and why it stopped), and grounded in
+content-addressed evidence spans that make "is this hallucinated?" a *mechanical check*,
+not a vibe.
+
+Today's agent memory is an unattributed text-or-vector blob. GMEOW is the opposite bet:
+durable memory for real personal, organizational, and institutional data is a
+**semantic-substrate problem before it is a retrieval problem** — and the substrate must be
+able to answer the question every institution must answer: *how do you know, and who says?*
+
+**One engine, three products** ([v0.2.0 realignment](./docs/REALIGNMENT-v0.2.0.md), epic
+[#300](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/300)):
+
+| Product | What it is | Status |
+|---|---|---|
+| **`gmeow` (PyPI)** | The five-minute client: `pip install` → store / recall / revise one attributed claim, no Docker, no reasoner, no RDF | in development ([#296](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/296)) |
+| **Grounded-memory MCP server** | `store_claim` / `recall` / `revise_belief` tool-calls for agents, atop the live retrieval tools (`object_search`, `graph_explore`, …) | retrieval live; memory triad in development ([#297](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/297)) |
+| **GTS `ai-package`** | A content-addressed, append-only, signable **single-file agent memory** — belief revision as suppression frames; portable across sessions, models, and vendors ([spec](./docs/GTS-SPEC.md)) | format specified; Python reader/writer shipped; signing in progress ([#272](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/272)) |
+
+**The engine** underneath is a reasoning-centric, OWL 2 DL, upper-ontology-grounded
+super-vocabulary for modelling *digital existence* — people, organizations, documents,
+agreements, contacts, observations, measurements, locations, rights, identity, and
+contested facts — grounded in **gUFO**, **projected** down to 15+ consumer vocabularies
+(schema.org, FOAF, GeoSPARQL, vCard, iCalendar, OWL-Time, ODRL, …) and **aligned by
+reference** to dozens more (PROV-O, ORG, OntoLex-Lemon, Wikidata, BFO, QUDT, FALDO, IVOA,
+CIDOC-CRM, …) — see the [projection](#projection-targets) and
+[alignment](#aligned-by-reference) tables below. No consumer is ever required to learn RDF
+to benefit ([Principle 13](./CONSTITUTION.md)); the deep model is there when you need it —
+typically the first time two models disagree about a fact. The full guide set is indexed in
+the [documentation map](#documentation-map).
+
+**Why does this exist?** Because LLM and RAG outputs are stored as *truth* — no provenance,
+no evidence, no confidence, no time, no way to disagree — and that is a category error with
+compounding costs. See [`docs/RATIONALE.md`](./docs/RATIONALE.md) for the long form, and
+the position paper in progress: *"An LLM Output Is a Claim, Not a Truth: A Substrate for
+Grounded Agent Memory."*
 
 **Principles.** Every design decision and pull request is measured against
-[`CONSTITUTION.md`](./CONSTITUTION.md) — twelve normative principles (RDF-1.2-first,
-one-canonical-source, maximal bridging, greenfield, verified-by-construction, frame-relativity, …).
+[`CONSTITUTION.md`](./CONSTITUTION.md) — sixteen normative principles (claim-not-truth,
+the-product-is-a-tool, RDF-1.2-first, one-canonical-source, maximal bridging, greenfield,
+verified-by-construction, frame-relativity, suppression-never-erasure, …).
 Cite them by number in issues and PRs.
 
 - **Canonical IRI:** <https://blackcatinformatics.ca/gmeow> (slash namespace, term IRIs
@@ -31,22 +59,31 @@ Cite them by number in issues and PRs.
 - **Tooling license:** [Apache-2.0](./LICENSE) (dual-licensed — see [Licensing](#licensing))
 - **Copyright:** © 2026 Blackcat Informatics® Inc.
 
-**Three things GMEOW does that others don't:**
+**Four things GMEOW does that no agent-memory store does:**
 
 - **Statement-level provenance & confidence.** RDF 1.2 / RDF\*-first: every fact is an
   attributed, confidence-weighted, time-scoped claim, downcast losslessly to OWL axiom
   annotations for reasoners ([Principles 2–3](./CONSTITUTION.md); see *RDF 1.2* below).
-- **Contested facts without a winner.** Disputed facts are recorded as coexisting,
-  standpoint-indexed claims — never collapsed to a preferred, ranked, or latest value
-  ([`docs/standpoints.md`](./docs/standpoints.md)).
-- **Identity, naming & display safety.** Names and identity are reified, co-equal and
-  self-asserted — no `primaryName`/`preferredGender`, deadnames suppressed-not-deleted, and a
-  7-axis orthogonality matrix (pronouns ⟂ honorifics ⟂ gender identity ⟂ expression ⟂ sex
-  ⟂ sexual ⟂ romantic orientation) **enforced by tests**
-  ([`docs/names-mapping.md`](./docs/names-mapping.md), [`docs/identity-mapping.md`](./docs/identity-mapping.md)).
+  A sensor reading, a human assertion, and a model output are the *same reified construct*.
+- **Contested facts without a winner.** Disputed facts — including two models disagreeing —
+  are recorded as coexisting, standpoint-indexed claims, never collapsed to a preferred,
+  ranked, or latest value ([`docs/standpoints.md`](./docs/standpoints.md)).
+- **Forgetting with an audit trail.** Belief revision is supersession + suppression
+  (`gmeow:displayable false`), never deletion: the superseded belief is withheld from every
+  projection and recall path, and retained — with when, on whose say-so, and why — forever
+  ([Principle 10](./CONSTITUTION.md)).
+- **Identity, naming & display safety — for human *and* digital subjects.** Names and
+  identity are reified, co-equal and self-asserted — no `primaryName`/`preferredGender`,
+  deadnames suppressed-not-deleted, a 7-axis orthogonality matrix (pronouns ⟂ honorifics ⟂
+  gender identity ⟂ expression ⟂ sex ⟂ sexual ⟂ romantic orientation) **enforced by
+  tests** — and self-assertion outranks any inference, for people and for AI entities alike
+  ([Principles 9 & 16](./CONSTITUTION.md); [`docs/names-mapping.md`](./docs/names-mapping.md),
+  [`docs/identity-mapping.md`](./docs/identity-mapping.md)). Identity and deception
+  epistemics ship in the **core**, by commitment — a memory substrate that makes "what is a
+  person" an optional add-on has already answered the question, badly.
 
 > **Status.** GMEOW is built **incrementally, one slice of digital existence at a time** — and
-> the foundation is now broad. **37 modules** are modelled, aligned, and reasoned: identity
+> the foundation is now broad. **50 modules** are modelled, aligned, and reasoned: identity
 > (entities, names, gender, sexuality, languages), social & contact (genealogy, organization,
 > contacts, email, accounts), content & evidence (documents, sources, software), trust & crypto
 > (trust, messaging-trust), skills & legal (expertise, agreements, rights), place / time / events
@@ -75,8 +112,10 @@ slice's model *and* how it aligns/projects.
 
 | Guide | Kind | What it covers |
 |---|---|---|
-| [`CONSTITUTION.md`](./CONSTITUTION.md) | Governance | The twelve normative principles every design decision and PR is measured against |
+| [`CONSTITUTION.md`](./CONSTITUTION.md) | Governance | The sixteen normative principles every design decision and PR is measured against |
+| [`docs/REALIGNMENT-v0.2.0.md`](./docs/REALIGNMENT-v0.2.0.md) | Governance | The v0.2.0 realignment: one engine, three products — positioning, recast inventory, deliverables D1–D7 |
 | [`docs/RATIONALE.md`](./docs/RATIONALE.md) | Doctrine | Why GMEOW exists — the nine challenges of digital existence and the architectural answers |
+| [`docs/GTS-SPEC.md`](./docs/GTS-SPEC.md) | Specification | The Graph Transport Substrate — the content-addressed, append-only single-file format behind the `ai-package` memory and the narrow-waist exports |
 | [`docs/reasoning.md`](./docs/reasoning.md) | Doctrine | The OWL-infers / SHACL-validates split, the four verification lanes, and why OWL cardinality is avoided |
 | [`docs/projections.md`](./docs/projections.md) | Doctrine | The four-artifact alignment stack (SSSOM / EDOAL / FnO / SPARQL) and how lossy down-projection works |
 | [`docs/foundational-bridging.md`](./docs/foundational-bridging.md) | Doctrine | The gUFO ↔ BFO 2020 foundational-spine bridge, by reference (Principle 5 applied recursively) |
@@ -97,6 +136,12 @@ slice's model *and* how it aligns/projects.
 | [`docs/BRAND.md`](./docs/BRAND.md) | Brand | Logo usage and trademark guidelines |
 
 ## Quick start
+
+**Using GMEOW** (storing/recalling claims, agent memory): the consumer surfaces ship with
+[v0.2.0](./docs/REALIGNMENT-v0.2.0.md) — `pip install gmeow` (#296) and the memory MCP
+server (#297). Watch epic #300; the five-minute quickstart will live right here.
+
+**Working on the engine** (the ontology, compilers, and gates):
 
 ```bash
 make install         # sync the uv environment
@@ -506,6 +551,16 @@ GMEOW grows one slice at a time; the direction is tracked entirely in
 [GitHub issues](https://github.com/Blackcat-Informatics/gmeow-ontology/issues). The current
 themes (cite the issue number in PRs):
 
+- **v0.2.0 — The Realignment Release (the front of the queue)** — the three products of
+  [`docs/REALIGNMENT-v0.2.0.md`](./docs/REALIGNMENT-v0.2.0.md), tracked by epic #300: the
+  `gmeow` PyPI client with the five-minute time-to-first-claim CI gate (#296), the
+  grounded-memory MCP triad + flagship docs (#297), the productised GTS `ai-package` with
+  COSE signing (#267/#272), the claim spine cookbook (#55), and a mechanically-scored
+  claim-extraction eval suite across frontier models (#298).
+- **Compliance-by-construction** — derive enforcement from declarations (epic #278): the
+  generator registry (#279), the core/extensions repository re-layout (#287, Principle 16),
+  constitution-as-code (#280), and annotation-driven invariants for suppression,
+  co-equal facets, and frame-relativity (#281–#284).
 - **Deepen Languages → diachronic, sociolinguistic, symbolic, archaeological** — language
   varieties/states/change events (#170), lexical items, forms, usage attestations & etymology
   (#171), notation and symbolic systems (#172), and archaeological evidence, inscriptions &
@@ -524,17 +579,15 @@ themes (cite the issue number in PRs):
   (#64), Calendar & scheduling (#62), Notes / PKM with Web Annotation (#63), Employment / CV
   (#23), Images as a layered super-ontology (#22), Books (works/releases/serials) (#156), and
   Projects / software / verifiable git provenance (#47).
-- **AI / RAG, hallucination-resistant knowledge graphs** — LLM output as *claim-not-truth*
-  with evidence-bound claims and contradiction-as-standpoint (#54), the
-  Source→Chunk→EvidenceSpan→Claim pattern + a `gmeow audit` CLI (#55), and a
-  maximally-interlinked multi-ontology transpiler from a canonical A-Box (#34).
-- **Broad-consumption tooling & FAIR reach** — developer schemas via LinkML → JSON Schema /
-  Pydantic / TypeScript / GraphQL / OpenAPI (#57), labeled-property-graph export
-  (Neo4j / Memgraph / Kùzu / TinkerPop) where the RDF-1.2-first design pays off (#59),
-  ML-dataset & research-object interop (Croissant + RO-Crate + DataCite/DCAT) (#58), maximal
-  Dublin Core in both layers (#60), a maximal DOI strategy (concept+version chains,
-  Signposting) (#44), broadly-consumable export variants (#12), and a Model Context Protocol
-  (MCP) server interface to the `gmeow` CLI (#113).
+- **AI / RAG, hallucination-resistant knowledge graphs** — the full claim layer beneath the
+  v0.2.0 products: LLM output as *claim-not-truth* with evidence-bound claims and
+  contradiction-as-standpoint (#54), and a maximally-interlinked multi-ontology transpiler
+  from a canonical A-Box (#34).
+- **Broad-consumption tooling & FAIR reach** — ML-dataset & research-object interop
+  (Croissant + RO-Crate + DataCite/DCAT) as `gts→*` surfaces (#58), a maximal DOI strategy
+  (concept+version chains, Signposting) (#44), and broadly-consumable export variants
+  re-triaged as GTS shims (#12). *(Already shipped: LinkML → JSON Schema / Pydantic /
+  TypeScript / GraphQL schemas; labeled-property-graph export; the MCP retrieval server.)*
 
 ## Licensing
 

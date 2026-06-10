@@ -525,6 +525,7 @@ enum EventTypeEnum
     eventTypeDeath
     eventTypeDeception
     eventTypeDestruction
+    eventTypeDisinformation
     eventTypeDissolution
     eventTypeDistortion
     eventTypeDivorce

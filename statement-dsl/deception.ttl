@@ -755,3 +755,288 @@ ex:claim-sockpuppet-counterpart-001 a gmeow:StatementMetadata ;
         [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.7 ] ,
         [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-10T00:00:00Z"^^xsd:dateTime ] ,
         [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+# =============================================================================
+# Disinformation campaign exemplar — issue #217.
+# A 3-hop propagation chain demonstrating the per-node misinfo↔disinfo boundary.
+#
+#   Hop 0 (origin): Deceiver seeds a false claim — held ≠ projected + intent.
+#                   Label: DISINFORMATION at this node.
+#   Hop 1 (dupe):  Sincere believer reshares — held ≈ projected, untrue, no intent.
+#                   Label: MISINFORMATION at this node.
+#   Hop 2 (downstream): Another sincere resharing — held ≈ projected, untrue, no intent.
+#                   Label: MISINFORMATION at this node.
+#
+# The boundary is local to each hop, not a global label on the chain.
+# =============================================================================
+
+# 18. DISINFORMATION CAMPAIGN — the campaign event itself.
+ex:claim-event-disinformation-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation campaign event — coordinated propagated deception"@en ;
+    gmeow:reifier    ex:claim-event-disinformation-001 ;
+    gmeow:qSubject   ex:event-disinformation-001 ;
+    gmeow:qPredicate gmeow:eventType ;
+    gmeow:qObject    gmeow:eventTypeDisinformation ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.9 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+# 18a. Origin node — the deceiver's original deceptive act (held ≠ projected).
+ex:claim-disinformation-origin-held-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation origin held — deceiver knows the claim is false"@en ;
+    gmeow:reifier    ex:claim-disinformation-origin-held-001 ;
+    gmeow:qSubject   ex:event-disinformation-001 ;
+    gmeow:qPredicate gmeow:heldStandpoint ;
+    gmeow:qObject    ex:standpointclaim-disinformation-origin-held-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-disinformation-origin-held-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation origin held modality — refuted"@en ;
+    gmeow:reifier    ex:claim-disinformation-origin-held-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-disinformation-origin-held-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:refuted ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.85 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-disinformation-origin-projected-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation origin projected — false claim presented as true"@en ;
+    gmeow:reifier    ex:claim-disinformation-origin-projected-001 ;
+    gmeow:qSubject   ex:event-disinformation-001 ;
+    gmeow:qPredicate gmeow:projectedStandpoint ;
+    gmeow:qObject    ex:standpointclaim-disinformation-origin-projected-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.9 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-disinformation-origin-projected-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation origin projected modality — unequivocal"@en ;
+    gmeow:reifier    ex:claim-disinformation-origin-projected-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-disinformation-origin-projected-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:unequivocal ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.9 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-deceiver ] .
+
+ex:claim-disinformation-origin-intent-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation origin intent — deceptive intent attributed to originator"@en ;
+    gmeow:reifier    ex:claim-disinformation-origin-intent-001 ;
+    gmeow:qSubject   ex:event-disinformation-001 ;
+    gmeow:qPredicate gmeow:deceptiveIntentClaim ;
+    gmeow:qObject    ex:standpointclaim-disinformation-origin-intent-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.8 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+# 18b. Origin participant — deceiver bears roleDeceiver.
+ex:claim-disinformation-origin-deceiver-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation origin deceiver — roleDeceiver on the campaign event"@en ;
+    gmeow:reifier    ex:claim-disinformation-origin-deceiver-001 ;
+    gmeow:qSubject   ex:event-disinformation-001 ;
+    gmeow:qPredicate gmeow:hasParticipant ;
+    gmeow:qObject    ex:agent-deceiver-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.9 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-disinformation-origin-deceiver-role-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation origin deceiver role — roleDeceiver"@en ;
+    gmeow:reifier    ex:claim-disinformation-origin-deceiver-role-001 ;
+    gmeow:qSubject   ex:participation-disinformation-origin-deceiver-001 ;
+    gmeow:qPredicate gmeow:participationRole ;
+    gmeow:qObject    gmeow:roleDeceiver ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.9 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-disinformation-origin-deceiver-participant-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation origin deceiver participation binding"@en ;
+    gmeow:reifier    ex:claim-disinformation-origin-deceiver-participant-001 ;
+    gmeow:qSubject   ex:participation-disinformation-origin-deceiver-001 ;
+    gmeow:qPredicate gmeow:participationParticipant ;
+    gmeow:qObject    ex:agent-deceiver-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.9 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-disinformation-origin-deceiver-event-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation origin deceiver participation event binding"@en ;
+    gmeow:reifier    ex:claim-disinformation-origin-deceiver-event-001 ;
+    gmeow:qSubject   ex:participation-disinformation-origin-deceiver-001 ;
+    gmeow:qPredicate gmeow:participationEvent ;
+    gmeow:qObject    ex:event-disinformation-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.9 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
+
+# 18c. First propagation — dupe sincerely reshares (held ≈ projected, untrue, no intent).
+# The dupe's telling propagates from the deceiver's telling.
+ex:claim-disinformation-dupe-telling-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation dupe telling — social post derived from origin article"@en ;
+    gmeow:reifier    ex:claim-disinformation-dupe-telling-001 ;
+    gmeow:qSubject   ex:telling-dupe-post-001 ;
+    gmeow:qPredicate gmeow:propagatesFrom ;
+    gmeow:qObject    ex:telling-origin-article-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.75 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-disinformation-dupe-event-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation dupe event — sincere resharing, no deceptive intent"@en ;
+    gmeow:reifier    ex:claim-disinformation-dupe-event-001 ;
+    gmeow:qSubject   ex:event-dupe-reshare-001 ;
+    gmeow:qPredicate gmeow:eventType ;
+    gmeow:qObject    gmeow:eventTypeDeception ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.7 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+# Dupe's held and projected are the SAME claim (sincere belief).
+ex:claim-disinformation-dupe-held-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation dupe held — sincerely believes the false claim"@en ;
+    gmeow:reifier    ex:claim-disinformation-dupe-held-001 ;
+    gmeow:qSubject   ex:event-dupe-reshare-001 ;
+    gmeow:qPredicate gmeow:heldStandpoint ;
+    gmeow:qObject    ex:standpointclaim-dupe-belief-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.7 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-disinformation-dupe-projected-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation dupe projected — same sincere belief reshared"@en ;
+    gmeow:reifier    ex:claim-disinformation-dupe-projected-001 ;
+    gmeow:qSubject   ex:event-dupe-reshare-001 ;
+    gmeow:qPredicate gmeow:projectedStandpoint ;
+    gmeow:qObject    ex:standpointclaim-dupe-belief-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.7 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-disinformation-dupe-belief-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation dupe belief modality — unequivocal (sincere)"@en ;
+    gmeow:reifier    ex:claim-disinformation-dupe-belief-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-dupe-belief-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:unequivocal ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.7 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-dupe ] .
+
+ex:claim-disinformation-dupe-belief-veridicality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation dupe belief veridicality — untrue per universal frame"@en ;
+    gmeow:reifier    ex:claim-disinformation-dupe-belief-veridicality-001 ;
+    gmeow:qSubject   ex:standpointclaim-dupe-belief-001 ;
+    gmeow:qPredicate gmeow:claimVeridicality ;
+    gmeow:qObject    gmeow:veridicalityUntrue ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.8 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+# Dupe bears roleDupe (unwitting intermediary).
+ex:claim-disinformation-dupe-role-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation dupe role — roleDupe participation"@en ;
+    gmeow:reifier    ex:claim-disinformation-dupe-role-001 ;
+    gmeow:qSubject   ex:participation-disinformation-dupe-001 ;
+    gmeow:qPredicate gmeow:participationRole ;
+    gmeow:qObject    gmeow:roleDupe ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.75 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-disinformation-dupe-participant-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation dupe participant binding"@en ;
+    gmeow:reifier    ex:claim-disinformation-dupe-participant-001 ;
+    gmeow:qSubject   ex:participation-disinformation-dupe-001 ;
+    gmeow:qPredicate gmeow:participationParticipant ;
+    gmeow:qObject    ex:agent-dupe-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.75 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-disinformation-dupe-event-binding-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation dupe event binding"@en ;
+    gmeow:reifier    ex:claim-disinformation-dupe-event-binding-001 ;
+    gmeow:qSubject   ex:participation-disinformation-dupe-001 ;
+    gmeow:qPredicate gmeow:participationEvent ;
+    gmeow:qObject    ex:event-dupe-reshare-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.75 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
+
+# 18d. Second propagation — downstream resharing from dupe (also misinformation).
+ex:claim-disinformation-downstream-telling-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation downstream telling — blog post derived from dupe social post"@en ;
+    gmeow:reifier    ex:claim-disinformation-downstream-telling-001 ;
+    gmeow:qSubject   ex:telling-downstream-blog-001 ;
+    gmeow:qPredicate gmeow:propagatesFrom ;
+    gmeow:qObject    ex:telling-dupe-post-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.65 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-disinformation-downstream-event-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation downstream event — another sincere resharing"@en ;
+    gmeow:reifier    ex:claim-disinformation-downstream-event-001 ;
+    gmeow:qSubject   ex:event-downstream-reshare-001 ;
+    gmeow:qPredicate gmeow:eventType ;
+    gmeow:qObject    gmeow:eventTypeDeception ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.6 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .
+
+ex:claim-disinformation-downstream-held-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation downstream held — sincerely believes the false claim"@en ;
+    gmeow:reifier    ex:claim-disinformation-downstream-held-001 ;
+    gmeow:qSubject   ex:event-downstream-reshare-001 ;
+    gmeow:qPredicate gmeow:heldStandpoint ;
+    gmeow:qObject    ex:standpointclaim-downstream-belief-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.6 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-disinformation-downstream-projected-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation downstream projected — same sincere belief reshared"@en ;
+    gmeow:reifier    ex:claim-disinformation-downstream-projected-001 ;
+    gmeow:qSubject   ex:event-downstream-reshare-001 ;
+    gmeow:qPredicate gmeow:projectedStandpoint ;
+    gmeow:qObject    ex:standpointclaim-downstream-belief-001 ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.6 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] .
+
+ex:claim-disinformation-downstream-belief-modality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation downstream belief modality — unequivocal (sincere)"@en ;
+    gmeow:reifier    ex:claim-disinformation-downstream-belief-modality-001 ;
+    gmeow:qSubject   ex:standpointclaim-downstream-belief-001 ;
+    gmeow:qPredicate gmeow:claimModality ;
+    gmeow:qObject    gmeow:unequivocal ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.6 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-downstream ] .
+
+ex:claim-disinformation-downstream-belief-veridicality-001 a gmeow:StatementMetadata ;
+    rdfs:label "Disinformation downstream belief veridicality — untrue per universal frame"@en ;
+    gmeow:reifier    ex:claim-disinformation-downstream-belief-veridicality-001 ;
+    gmeow:qSubject   ex:standpointclaim-downstream-belief-001 ;
+    gmeow:qPredicate gmeow:claimVeridicality ;
+    gmeow:qObject    gmeow:veridicalityUntrue ;
+    gmeow:annotation
+        [ gmeow:annProperty gmeow:confidence ; gmeow:annValue 0.75 ] ,
+        [ gmeow:annProperty gmeow:assertedAt ; gmeow:annValue "2026-06-11T00:00:00Z"^^xsd:dateTime ] ,
+        [ gmeow:annProperty gmeow:accordingTo  ; gmeow:annValue ex:standpoint-investigator ] .

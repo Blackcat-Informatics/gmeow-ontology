@@ -9563,6 +9563,9 @@ enums:
       eventTypeDestruction:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeDestruction
         title: destruction
+      eventTypeDisinformation:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeDisinformation
+        title: disinformation campaign
       eventTypeDissolution:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeDissolution
         title: dissolution

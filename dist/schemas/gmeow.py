@@ -573,6 +573,7 @@ class EventTypeEnum(str, Enum):
     death = "eventTypeDeath"
     deception = "eventTypeDeception"
     destruction = "eventTypeDestruction"
+    disinformation_campaign = "eventTypeDisinformation"
     dissolution = "eventTypeDissolution"
     distortion_SOLIDUS_spin = "eventTypeDistortion"
     divorce = "eventTypeDivorce"

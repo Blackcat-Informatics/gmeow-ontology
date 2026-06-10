@@ -300,6 +300,18 @@ gmeow:eventTypeImpersonation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
+# DISINFORMATION CAMPAIGN — coordinated, propagated deception.
+# Issue #217. Aggregates constituent deception events along a propagation
+# chain; the misinformation↔disinformation boundary is per-node.
+# =========================================================================== #
+
+gmeow:eventTypeDisinformation
+    a gmeow:EventType ;
+    rdfs:label "disinformation campaign"@en ;
+    skos:definition "A coordinated, propagated deception that aggregates many constituent deception events along a prov:wasDerivedFrom / gmeow:propagatesFrom propagation chain. At the originating node the held standpoint diverges from the projected standpoint (held ≠ projected) and deceptive intent is attributed; at unwitting intermediary nodes the projected standpoint is sincerely held (held ≈ projected) and the claim is merely untrue — the misinformation↔disinformation boundary is therefore per-node, not a global label. Unwitting propagators bear gmeow:roleDupe; originating deceivers bear gmeow:roleDeceiver."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
 # AXIOMATIZED DOCTRINE — deception-specific restrictions are scoped to
 # eventTypeDeception via SHACL (DeceptionEventShape), NOT global OWL
 # restrictions on gmeow:Event, keeping the core Event class clean for

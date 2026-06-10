@@ -110,6 +110,186 @@
     gmeow:assertedAt "2026-01-15T00:00:00+00:00"^^xsd:dateTime ;
     gmeow:confidence 0.85 .
 
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-downstream-belief-modality-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimModality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-downstream-belief-001> ;
+    owl:annotatedTarget gmeow:unequivocal ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-downstream> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.6 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-downstream-belief-veridicality-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimVeridicality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-downstream-belief-001> ;
+    owl:annotatedTarget gmeow:veridicalityUntrue ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.75 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-downstream-event-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:eventType ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-downstream-reshare-001> ;
+    owl:annotatedTarget gmeow:eventTypeDeception ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.6 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-downstream-held-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:heldStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-downstream-reshare-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-downstream-belief-001> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.6 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-downstream-projected-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:projectedStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-downstream-reshare-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-downstream-belief-001> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.6 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-downstream-telling-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:propagatesFrom ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/telling-downstream-blog-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/telling-dupe-post-001> ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.65 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-dupe-belief-modality-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimModality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-dupe-belief-001> ;
+    owl:annotatedTarget gmeow:unequivocal ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-dupe> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.7 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-dupe-belief-veridicality-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimVeridicality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-dupe-belief-001> ;
+    owl:annotatedTarget gmeow:veridicalityUntrue ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.8 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-dupe-event-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:eventType ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-dupe-reshare-001> ;
+    owl:annotatedTarget gmeow:eventTypeDeception ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.7 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-dupe-event-binding-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:participationEvent ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/participation-disinformation-dupe-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/event-dupe-reshare-001> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.75 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-dupe-held-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:heldStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-dupe-reshare-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-dupe-belief-001> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.7 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-dupe-participant-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:participationParticipant ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/participation-disinformation-dupe-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/agent-dupe-001> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.75 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-dupe-projected-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:projectedStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-dupe-reshare-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-dupe-belief-001> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.7 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-dupe-role-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:participationRole ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/participation-disinformation-dupe-001> ;
+    owl:annotatedTarget gmeow:roleDupe ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.75 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-dupe-telling-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:propagatesFrom ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/telling-dupe-post-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/telling-origin-article-001> ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.75 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-origin-deceiver-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:hasParticipant ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-disinformation-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/agent-deceiver-001> ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.9 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-origin-deceiver-event-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:participationEvent ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/participation-disinformation-origin-deceiver-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/event-disinformation-001> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.9 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-origin-deceiver-participant-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:participationParticipant ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/participation-disinformation-origin-deceiver-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/agent-deceiver-001> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.9 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-origin-deceiver-role-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:participationRole ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/participation-disinformation-origin-deceiver-001> ;
+    owl:annotatedTarget gmeow:roleDeceiver ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.9 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-origin-held-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:heldStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-disinformation-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-disinformation-origin-held-001> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.85 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-origin-held-modality-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimModality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-disinformation-origin-held-001> ;
+    owl:annotatedTarget gmeow:refuted ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.85 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-origin-intent-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:deceptiveIntentClaim ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-disinformation-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-disinformation-origin-intent-001> ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.8 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-origin-projected-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:projectedStandpoint ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-disinformation-001> ;
+    owl:annotatedTarget <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-disinformation-origin-projected-001> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.9 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-disinformation-origin-projected-modality-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimModality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-disinformation-origin-projected-001> ;
+    owl:annotatedTarget gmeow:unequivocal ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-deceiver> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.9 .
+
 <https://blackcatinformatics.ca/gmeow/examples/claim-distortion-held-001> a owl:Axiom ;
     owl:annotatedProperty gmeow:heldStandpoint ;
     owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-distortion-001> ;
@@ -155,6 +335,14 @@
     gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-analyst> ;
     gmeow:assertedAt "2026-06-05T00:00:00+00:00"^^xsd:dateTime ;
     gmeow:confidence 0.72 .
+
+<https://blackcatinformatics.ca/gmeow/examples/claim-event-disinformation-001> a owl:Axiom ;
+    owl:annotatedProperty gmeow:eventType ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/event-disinformation-001> ;
+    owl:annotatedTarget gmeow:eventTypeDisinformation ;
+    gmeow:accordingTo <https://blackcatinformatics.ca/gmeow/examples/standpoint-investigator> ;
+    gmeow:assertedAt "2026-06-11T00:00:00+00:00"^^xsd:dateTime ;
+    gmeow:confidence 0.9 .
 
 <https://blackcatinformatics.ca/gmeow/examples/claim-event-distortion-001> a owl:Axiom ;
     owl:annotatedProperty gmeow:eventType ;
@@ -665,6 +853,8 @@
 
 <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-001> gmeow:claimModality gmeow:bullshit .
 
+<https://blackcatinformatics.ca/gmeow/examples/telling-downstream-blog-001> gmeow:propagatesFrom <https://blackcatinformatics.ca/gmeow/examples/telling-dupe-post-001> .
+
 <https://blackcatinformatics.ca/gmeow/examples/telling-social-post-001> gmeow:propagatesFrom <https://blackcatinformatics.ca/gmeow/examples/telling-article-001> .
 
 <https://blackcatinformatics.ca/gmeow/examples/territory-x> gmeow:containedInPlace <https://blackcatinformatics.ca/gmeow/examples/polity-y> .
@@ -692,13 +882,29 @@
     gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-held-001> ;
     gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-projected-001> .
 
+<https://blackcatinformatics.ca/gmeow/examples/event-downstream-reshare-001> gmeow:eventType gmeow:eventTypeDeception ;
+    gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-downstream-belief-001> ;
+    gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-downstream-belief-001> .
+
 <https://blackcatinformatics.ca/gmeow/examples/event-lie-001> gmeow:eventType gmeow:eventTypeLie ;
     gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-held-001> ;
     gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-lie-projected-001> .
 
+<https://blackcatinformatics.ca/gmeow/examples/participation-disinformation-dupe-001> gmeow:participationEvent <https://blackcatinformatics.ca/gmeow/examples/event-dupe-reshare-001> ;
+    gmeow:participationParticipant <https://blackcatinformatics.ca/gmeow/examples/agent-dupe-001> ;
+    gmeow:participationRole gmeow:roleDupe .
+
+<https://blackcatinformatics.ca/gmeow/examples/participation-disinformation-origin-deceiver-001> gmeow:participationEvent <https://blackcatinformatics.ca/gmeow/examples/event-disinformation-001> ;
+    gmeow:participationParticipant <https://blackcatinformatics.ca/gmeow/examples/agent-deceiver-001> ;
+    gmeow:participationRole gmeow:roleDeceiver .
+
 <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-held-001> gmeow:claimModality gmeow:bullshit .
 
 <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-bullshit-projected-001> gmeow:claimModality gmeow:unequivocal .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-disinformation-origin-held-001> gmeow:claimModality gmeow:refuted .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-disinformation-origin-projected-001> gmeow:claimModality gmeow:unequivocal .
 
 <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-distortion-held-001> gmeow:claimModality gmeow:probable .
 
@@ -727,6 +933,8 @@
 <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-held-001> gmeow:claimModality gmeow:refuted .
 
 <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-self-deception-projected-001> gmeow:claimModality gmeow:unequivocal .
+
+<https://blackcatinformatics.ca/gmeow/examples/telling-dupe-post-001> gmeow:propagatesFrom <https://blackcatinformatics.ca/gmeow/examples/telling-origin-article-001> .
 
 <https://blackcatinformatics.ca/gmeow/examples/verificationresult-fabrication-001> gmeow:hasVerificationStatus gmeow:verificationStatusFailed .
 
@@ -758,6 +966,10 @@
 
 <https://blackcatinformatics.ca/gmeow/examples/creativework-forged-001> gmeow:counterpartOf <https://blackcatinformatics.ca/gmeow/examples/creativework-genuine-001> .
 
+<https://blackcatinformatics.ca/gmeow/examples/event-dupe-reshare-001> gmeow:eventType gmeow:eventTypeDeception ;
+    gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-dupe-belief-001> ;
+    gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-dupe-belief-001> .
+
 <https://blackcatinformatics.ca/gmeow/examples/event-forgery-001> gmeow:eventType gmeow:eventTypeForgery ;
     gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-forgery-held-001> ;
     gmeow:implicates <https://blackcatinformatics.ca/gmeow/examples/creativework-forged-001>,
@@ -768,3 +980,15 @@
     gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-impersonation-held-001> ;
     gmeow:implicates <https://blackcatinformatics.ca/gmeow/examples/identityfacet-impersonation-001> ;
     gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-impersonation-projected-001> .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-downstream-belief-001> gmeow:claimModality gmeow:unequivocal ;
+    gmeow:claimVeridicality gmeow:veridicalityUntrue .
+
+<https://blackcatinformatics.ca/gmeow/examples/standpointclaim-dupe-belief-001> gmeow:claimModality gmeow:unequivocal ;
+    gmeow:claimVeridicality gmeow:veridicalityUntrue .
+
+<https://blackcatinformatics.ca/gmeow/examples/event-disinformation-001> gmeow:deceptiveIntentClaim <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-disinformation-origin-intent-001> ;
+    gmeow:eventType gmeow:eventTypeDisinformation ;
+    gmeow:hasParticipant <https://blackcatinformatics.ca/gmeow/examples/agent-deceiver-001> ;
+    gmeow:heldStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-disinformation-origin-held-001> ;
+    gmeow:projectedStandpoint <https://blackcatinformatics.ca/gmeow/examples/standpointclaim-disinformation-origin-projected-001> .

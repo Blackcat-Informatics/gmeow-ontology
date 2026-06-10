@@ -2,8 +2,9 @@
 # Expected: eventTypeDeception, eventTypeLie, eventTypePaltering, eventTypeOmission,
 #           eventTypeDistortion, eventTypeBullshit, eventTypeSelfDeception,
 #           eventTypeFabrication, eventTypeForgery, eventTypeImpersonation,
+#           eventTypeDisinformation,
 #           ClaimVeridicality, veridicalityUntrue, veridicalityLicensedFalsehood.
-# Issues #215, #216.
+# Issues #215, #216, #217.
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 
@@ -18,7 +19,8 @@ SELECT ?deceptionType WHERE {
         gmeow:eventTypeSelfDeception,
         gmeow:eventTypeFabrication,
         gmeow:eventTypeForgery,
-        gmeow:eventTypeImpersonation
+        gmeow:eventTypeImpersonation,
+        gmeow:eventTypeDisinformation
     )) }
     UNION
     { BIND(gmeow:ClaimVeridicality AS ?deceptionType) }
