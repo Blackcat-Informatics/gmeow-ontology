@@ -47,6 +47,27 @@ Derived artifacts (text extraction, AI summary, embedding) are separate
 `gmeow:InformationObject`s linked to the attachment/body by `gmeow:wasDerivedFrom`,
 carrying `gmeow:confidence` and `gmeow:wasGeneratedBy` (a `gmeow:SoftwareAgent`).
 
+### MIME body part metadata (issue #133)
+
+GMEOW models the MIME body-part tree using the existing `BodyPart` / `Attachment` / `hasBodyPart` spine, with the universal `hasPart` / `partOf` relation for internal multipart structure (Principle 12: decoding and reconstruction are computations, not OWL entailments).
+
+| Source facet / header | GMEOW term | Object kind |
+|---|---|---|
+| MIME part ID | `gmeow:partId` | literal |
+| `Content-ID` header | `gmeow:contentId` | literal |
+| `Content-Type` charset parameter | `gmeow:charset` | literal |
+| `Content-Disposition` | `gmeow:hasContentDisposition` | → `gmeow:ContentDisposition` (`contentDispositionInline` / `contentDispositionAttachment`) |
+| `Content-Transfer-Encoding` | `gmeow:hasContentTransferEncoding` | → `gmeow:ContentTransferEncoding` (`transferEncodingBase64`, `transferEncodingQuotedPrintable`, `transferEncoding7bit`, `transferEncoding8bit`, `transferEncodingBinary`) |
+| multipart subtype | `gmeow:hasMultipartType` | → `gmeow:MultipartType` (`multipartTypeAlternative`, `multipartTypeMixed`, `multipartTypeRelated`, `multipartTypeSigned`, `multipartTypeEncrypted`, `multipartTypeReport`, `multipartTypeDigest`, `multipartTypeParallel`) |
+
+**Multipart structure.** A `gmeow:MultipartBodyPart` is a `BodyPart` that contains other body parts via `hasPart` / `partOf`. The multipart subtype is recorded with `hasMultipartType`. Child parts may be `BodyPart`, `InlinePart`, or `Attachment` instances.
+
+**Inline parts.** A `gmeow:InlinePart` is a `BodyPart` displayed inline within the message body. It is reached from the message via `hasInlinePart` (a subproperty of `hasBodyPart`). An inline image in an HTML message is an `InlinePart` with `contentDispositionInline` and a `contentId` referenced by a `cid:` URL.
+
+**Disposition.** `InlinePart` and `Attachment` are not declared disjoint (Principle 9). The explicit disposition is recorded with `hasContentDisposition`; the kind is a separate facet that may or may not align with the disposition value.
+
+**Decoded content.** Decoded plain-text or HTML body content is not stored as a literal property on the part. Instead, it is modeled as a derived `gmeow:InformationObject` (typically `gmeow:TextExtraction`) linked to the source `BodyPart` by `gmeow:wasDerivedFrom`, carrying provenance and confidence (Principle 12).
+
 ## Threading
 
 `References` / `In-Reply-To` headers → `gmeow:references` / `gmeow:inReplyTo`

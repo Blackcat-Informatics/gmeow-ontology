@@ -277,3 +277,113 @@ ex:mpBobTo3
     gmeow:participantOrdinal 0 ;
     gmeow:displayName "Bob Jones" ;
     gmeow:rawAddressValue "\"Bob Jones\" <bob@example.com>" .
+# --------------------------------------------------------------------------- #
+# MIME body part metadata fixtures (issue #133)
+# --------------------------------------------------------------------------- #
+
+# A multipart/alternative message with plain-text and HTML body parts.
+ex:msgMultipart
+    a schema:EmailMessage, gmeow:EmailMessage ;
+    gmeow:rfcMessageId "<multipart@example.org>" ;
+    gmeow:subject "Multipart example" ;
+    schema:sender ex:addrAlice ;
+    schema:toRecipient ex:addrBob ;
+    schema:dateSent "2026-06-03T09:00:00Z"^^xsd:dateTime ;
+    gmeow:receivedAt "2026-06-03T09:00:01Z"^^xsd:dateTime ;
+    gmeow:residesIn ex:inbox ;
+    gmeow:hasKeyword gmeow:keywordSeen ;
+    gmeow:hasBodyPart ex:multipartAlt ;
+    gmeow:hasInlinePart ex:htmlPart .
+
+ex:multipartAlt
+    a gmeow:MultipartBodyPart ;
+    gmeow:partId "1" ;
+    gmeow:hasMultipartType gmeow:multipartTypeAlternative ;
+    gmeow:hasPart ex:plainPart ;
+    gmeow:hasPart ex:htmlPart .
+
+ex:plainPart
+    a gmeow:BodyPart ;
+    gmeow:partId "1.1" ;
+    gmeow:mediaType "text/plain" ;
+    gmeow:charset "utf-8" ;
+    gmeow:hasContentTransferEncoding gmeow:transferEncodingQuotedPrintable ;
+    gmeow:hasContentDisposition gmeow:contentDispositionInline .
+
+# Decoded plain text as a derived InformationObject.
+ex:plainText
+    a gmeow:TextExtraction ;
+    gmeow:wasDerivedFrom ex:plainPart .
+
+ex:htmlPart
+    a gmeow:InlinePart ;
+    gmeow:partId "1.2" ;
+    gmeow:mediaType "text/html" ;
+    gmeow:charset "utf-8" ;
+    gmeow:contentId "<html-body@example.org>" ;
+    gmeow:hasContentTransferEncoding gmeow:transferEncodingBase64 ;
+    gmeow:hasContentDisposition gmeow:contentDispositionInline .
+
+# Decoded HTML as a derived InformationObject.
+ex:htmlText
+    a gmeow:InformationObject ;
+    gmeow:wasDerivedFrom ex:htmlPart .
+
+# A message with an attachment, exercising disposition and encoding.
+ex:msgWithAttachment
+    a schema:EmailMessage, gmeow:EmailMessage ;
+    gmeow:rfcMessageId "<attachment@example.org>" ;
+    gmeow:subject "Document attached" ;
+    schema:sender ex:addrBob ;
+    schema:toRecipient ex:addrAlice ;
+    schema:dateSent "2026-06-03T10:00:00Z"^^xsd:dateTime ;
+    gmeow:receivedAt "2026-06-03T10:00:01Z"^^xsd:dateTime ;
+    gmeow:residesIn ex:inbox ;
+    gmeow:hasKeyword gmeow:keywordSeen ;
+    gmeow:hasAttachment ex:att2 .
+
+ex:att2
+    a gmeow:Attachment ;
+    gmeow:partId "2" ;
+    gmeow:filename "image.png" ;
+    gmeow:mediaType "image/png" ;
+    gmeow:hasContentDisposition gmeow:contentDispositionAttachment ;
+    gmeow:hasContentTransferEncoding gmeow:transferEncodingBase64 .
+
+# A multipart/related message with an inline image referenced from HTML.
+ex:msgRelated
+    a schema:EmailMessage, gmeow:EmailMessage ;
+    gmeow:rfcMessageId "<related@example.org>" ;
+    gmeow:subject "Newsletter with inline image" ;
+    schema:sender ex:addrAlice ;
+    schema:toRecipient ex:addrBob ;
+    schema:dateSent "2026-06-03T11:00:00Z"^^xsd:dateTime ;
+    gmeow:receivedAt "2026-06-03T11:00:01Z"^^xsd:dateTime ;
+    gmeow:residesIn ex:inbox ;
+    gmeow:hasKeyword gmeow:keywordSeen ;
+    gmeow:hasBodyPart ex:multipartRel ;
+    gmeow:hasInlinePart ex:htmlPartRelated ;
+    gmeow:hasInlinePart ex:inlineImage .
+
+ex:multipartRel
+    a gmeow:MultipartBodyPart ;
+    gmeow:partId "1" ;
+    gmeow:hasMultipartType gmeow:multipartTypeRelated ;
+    gmeow:hasPart ex:htmlPartRelated ;
+    gmeow:hasPart ex:inlineImage .
+
+ex:htmlPartRelated
+    a gmeow:InlinePart ;
+    gmeow:partId "1.1" ;
+    gmeow:mediaType "text/html" ;
+    gmeow:charset "utf-8" ;
+    gmeow:hasContentTransferEncoding gmeow:transferEncoding8bit ;
+    gmeow:hasContentDisposition gmeow:contentDispositionInline .
+
+ex:inlineImage
+    a gmeow:InlinePart ;
+    gmeow:partId "1.2" ;
+    gmeow:mediaType "image/png" ;
+    gmeow:contentId "<logo@example.org>" ;
+    gmeow:hasContentTransferEncoding gmeow:transferEncodingBase64 ;
+    gmeow:hasContentDisposition gmeow:contentDispositionInline .
