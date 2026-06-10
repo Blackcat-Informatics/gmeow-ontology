@@ -3,7 +3,7 @@
 
 # GTS — Graph Transport Substrate — Specification
 
-> **Status:** Draft `v0.1` (2026-06-09). **Stability:** the wire format below is
+> **Status:** Draft `v0.2` (2026-06-10). **Stability:** the wire format below is
 > a working draft and MAY change before `v1.0`.
 >
 > GTS is a single-file, language-independent transport for an **RDF 1.2** graph
@@ -36,8 +36,9 @@ Four properties define the format:
    this spec, forever) from *density and confidentiality* (swappable codecs).
 3. **Integrity by construction.** Every frame carries an independent **BLAKE3 self-hash** (a
    content-id) and names its predecessor's id — a git-style content-addressed chain.
-   Verification is **parallel**, a damaged frame is **isolated and recoverable**, and the head
-   id transitively commits to all history. Cryptographic signatures and encryption (COSE,
+   Verification is **parallel**, a damaged frame is **independently detectable** (and the
+   survivors recoverable given an intact index, §9.1), and the head id transitively commits to
+   all history. Cryptographic signatures and encryption (COSE,
    RFC 9052) are optional, layered, and algorithm-agile.
 4. **Recursive composition (matryoshka).** A payload, after its transforms are reversed, is
    just bytes — and a GTS file is just bytes. So a payload MAY itself be a complete GTS,
@@ -94,11 +95,28 @@ Graph.to_nquads(out)        # §14
 Every one of these is a few lines over the folded in-memory tables; there is no tokeniser,
 no IRI resolver, and no prefix machinery.
 
+### 2.3 Reader diagnostics
+
+Readers surface machine-observable diagnostics with these canonical classes (an implementation
+MAY map them to error returns or structured warnings):
+
+| class | meaning |
+|---|---|
+| `TornAppendError` | trailing incomplete CBOR item at EOF (§3) |
+| `BrokenChain` | a `"prev"` link or self-`"id"` mismatch (§9.1) |
+| `DamagedFrame` | a frame failed its self-hash; folded as opaque `reason:"damaged"` (§7.6) |
+| `TruncatedLog` | a head commitment is present but does not match the last frame (§9, §17) |
+| `UnknownCodec` | a transform names a codec the reader lacks; opaque `reason:"unknown-codec"` |
+| `MissingKey` | an `encrypt` codec the reader cannot decrypt; opaque `reason:"missing-key"` |
+| `ConflictingReifier` | a reifier rebound to a different triple (§7.8) |
+| `RecursionLimit` | nested-GTS depth or decoded-size budget exceeded (§12.1, §17) |
+
 ## 3. File structure
 
 A GTS file is a **CBOR Sequence** (RFC 8742): zero framing bytes between items, each item a
 well-formed CBOR data item. The file MAY begin with the CBOR self-describe tag `55799`
-(`0xd9 0xd9 0xf7`) as a magic number.
+(`0xd9 0xd9 0xf7`) as a magic number. If present, tag `55799` MUST tag the **Header** data item;
+it is not a separate log item, has no `"id"`, and does not participate in the id/prev chain.
 
 ```text
 GTS-file = [self-describe-tag] header *frame
@@ -158,7 +176,9 @@ codec = {
 The catalog is **closed within a file** (a frame may only reference codec-ids the header
 declares) but **open across the ecosystem** (new codecs may be registered by name). The
 Header carries its own `"id"` (self-hash of its content) and no `"prev"` — it is the genesis,
-and the first frame's `"prev"` is the Header's `"id"`. Dictionaries are stored **uncompressed
+and the first frame's `"prev"` is the Header's `"id"`. The Header `"id"` MUST equal the
+BLAKE3-256 of the deterministic CBOR of the Header map **excluding the `"id"` key**; all other
+keys (including `"meta"`) participate. Dictionaries are stored **uncompressed
 and in-band** — there is no external-dictionary dependency. A codec's `"dct"` value MUST match
 a key in the header `"dct"` map, and the codec MUST use the corresponding byte string as its
 compression/encoding dictionary.
@@ -244,6 +264,10 @@ term = {
 tag) is present and `"dt"` is absent, the datatype is `rdf:langString`; if both `"l"` and
 `"dt"` are absent, the datatype is `xsd:string`.
 
+**Blank-node labels (normative).** A `k:2` (blank node) term's `"v"` label is **local to the
+GTS file** and MUST NOT be treated as a globally stable identifier; transforms MAY relabel blank
+nodes while preserving blank-node isomorphism.
+
 ### 7.2 Term-id assignment (normative)
 
 Term ids are unsigned integers assigned **in append order**, starting at `0`, and are
@@ -264,6 +288,12 @@ reifies-payload = { * term-id => [term-id, term-id, term-id] }  ; reifier => (s,
 
 A quoted triple used as a node is a term with `"k": 3` and `"rf"` pointing at its reifier.
 
+**RDF 1.2 mapping (normative).** A `reifies` binding `R => (S,P,O)` means the triple
+`R rdf:reifies <<( S P O )>>`; a `k:3` term denotes that triple term, reached through its
+reifier `R`; and each `annot` row `(R, P', V')` is the triple `R P' V'`. **Quotation does not
+imply assertion:** referencing a triple term (via a reifier or a `k:3` term) does NOT assert the
+base triple `(S P O)`. The base triple is asserted iff it also appears in a `quads` frame.
+
 ### 7.4 Quads and annotations
 
 ```cddl
@@ -274,6 +304,12 @@ annot-payload = [+ [term-id, term-id, term-id]]             ; reifier, predicate
 Statement-level metadata (confidence, validity interval, standpoint/vantage, modality, …) is
 expressed as `annot` rows on a reifier. **Contested claims coexist**: several `annot` rows on
 one reifier, or several reifiers over one (s,p,o), are all retained — none is privileged.
+
+**Position constraints (normative).** In a `quads` row the predicate `p` MUST be an IRI (`k:0`);
+the subject `s` MUST be an IRI, blank node, or quoted triple (`k:0|2|3`); the object `o` MAY be
+any term; and the graph name `g`, when present, MUST be an IRI or blank node (`k:0|2`) — never a
+literal or quoted triple. A `reifies` triple `(S,P,O)` obeys the same subject/predicate/object
+constraints. In an `annot` row the predicate MUST be an IRI.
 
 ### 7.5 Fold algorithm (normative)
 
@@ -349,6 +385,17 @@ spill.
 A multi-gigabyte log thus transforms to an operating substrate in bounded memory — the
 resolve-and-materialise OOM failure mode is avoided by construction.
 
+### 7.8 Duplicates and conflicts (normative)
+
+- **Duplicate terms.** A writer SHOULD intern terms, but if two term entries are byte-identical
+  they denote the **same RDF term** (each still gets its own id); resolution is unaffected.
+- **Duplicate quads.** The folded graph is a **set**: identical `(s,p,o,g)` rows collapse to one.
+- **Reifier bindings.** A reifier SHOULD have exactly one `reifies` binding. Repeated bindings
+  for the same reifier MUST be identical; a **conflicting** binding is a data-quality error — the
+  reader surfaces a diagnostic and keeps the first binding.
+- **Annotations.** Multiple `annot` rows on a reifier coexist (contested claims, §7.4); they are
+  not deduplicated beyond exact-row identity.
+
 ## 8. Transform catalog
 
 ### 8.1 Classes
@@ -377,11 +424,42 @@ uses the best frame for which it holds the capabilities.
 
 ### 8.4 Mandatory core set and durability
 
-A Baseline Reader MUST implement `identity`, `gzip`, and `zstd`. Writers targeting maximum
-longevity SHOULD restrict to the core set. Density-oriented writers MAY use `lzma2` with an
-in-band dictionary. All core codecs are decades-stable, ubiquitously available primitives.
+A Baseline Reader MUST implement `identity`, `gzip`, and `zstd` — so a conformant reader's full
+dependency set is **CBOR + BLAKE3 + gzip + zstd**. Writers targeting maximum longevity SHOULD
+restrict to the core set. Density-oriented writers MAY use `lzma2` with an in-band dictionary.
+All core codecs are decades-stable, ubiquitously available primitives.
+
+### 8.5 Canonical codec registry (v1)
+
+Catalog entries are referenced by integer id within a file (§5), but each entry's `"name"` MUST
+be a canonical identifier from this registry so writers interoperate:
+
+| name            | cls        | baseline? | parameters                    |
+|-----------------|------------|-----------|-------------------------------|
+| `identity`      | `encode`   | yes       | none                          |
+| `gzip`          | `compress` | yes       | `level`?                      |
+| `zstd`          | `compress` | yes       | `level`?, `window`?, `dct`?   |
+| `lzma2`         | `compress` | no        | `level`?, `dct`?              |
+| `base64url`     | `encode`   | no        | none (unpadded)               |
+| `base85`        | `encode`   | no        | none                          |
+| `cose-encrypt0` | `encrypt`  | no        | `COSE_Encrypt0` (1 recipient) |
+| `cose-encrypt`  | `encrypt`  | no        | `COSE_Encrypt` (n recipients) |
+
+A reader MUST match codecs by canonical `"name"`, not by catalog id (ids are file-local). Later
+spec versions register new codecs by canonical name; an unknown name degrades to an opaque node
+(§8.3).
 
 ## 9. Integrity and confidentiality
+
+GTS keeps four integrity concerns distinct:
+
+1. **Frame integrity** — the per-frame BLAKE3 self-hash `"id"` (§9.1).
+2. **History integrity** — the `"prev"` content-id chain (§9.1).
+3. **Origin / authorship** — optional COSE signatures (§9.2).
+4. **Freshness / non-truncation** — a head commitment: a signature over the head `"id"`, or an
+   index `"mmr"`/`"head"` root (§9.1, §13).
+
+The first two are mandatory and key-free; the last two are optional and profile-driven.
 
 ### 9.1 Per-frame self-hash and content-id chain (mandatory)
 
@@ -395,10 +473,14 @@ git-style content-addressed list in which the **head id transitively commits to 
   O(n) `"prev"`-equality pass. No accumulating dependency forces single-threaded reading. (The
   only inherently sequential step is discovering frame boundaries in a bare CBOR sequence — a
   cheap length-scan the index removes.)
-- **Damage isolation and recovery.** A corrupt or obliterated frame fails *its own* `"id"` (or
-  is simply absent); it does not poison its neighbours. With the index `"off"` table a reader
-  **skips the bad frame and folds the survivors**, surfacing the loss as an opaque node with
-  `reason: "damaged"`. Every frame is self-verifying and the log is rebuildable around gaps.
+- **Damage isolation and recovery.** A corrupt frame fails *its own* `"id"`, so damage is
+  **independently detectable**. Recovery of *subsequent* frames, however, is guaranteed only
+  when their byte offsets are known — from an intact `index` `"off"` table, a checkpoint frame,
+  external framing, or the storage layer. In a bare CBOR Sequence (no per-frame length) arbitrary
+  byte corruption can desynchronise the decoder: a reader **with** offsets skips the bad frame
+  and folds the survivors (`reason: "damaged"`), while a reader **without** offsets MAY be unable
+  to resynchronise past the damage. `evidence` writers SHOULD emit periodic checkpoint indexes
+  (§13) so recovery is robust.
 - **Tamper-evidence.** Any insertion, reordering, or mutation breaks a `"prev"` link or a self-
   hash. **Truncation** (dropping trailing frames) is detected only against a head commitment —
   a signature over the head `"id"`, the index `"head"`/`"mmr"` root (§6.2), or an out-of-band
@@ -417,7 +499,9 @@ is the self-hash of the whole content — `"pub"`, `"d"` (the ciphertext, if enc
 sealed payload and to the chain position, and signing the head `"id"` thereby anchors all prior
 history (§9.1). The signing algorithm is declared in the COSE header (e.g. `EdDSA`/Ed25519,
 `ES256`); readers MUST honour the declared algorithm. The `evidence` and `opaque` profiles
-(§13) REQUIRE signatures.
+(§13) REQUIRE signatures. Key discovery and trust anchoring (which keys are authentic, which
+signers are authorised) are **profile/deployment policy**, not core GTS: `sigstat: "valid"`
+means a signature is cryptographically valid under a *resolved* key, not that the key is trusted.
 
 ### 9.3 Encryption (optional)
 
@@ -520,7 +604,10 @@ A profile is a named set of conventions over the one format (declared in header 
 | `opaque`     | carries `encrypt`-class frames; signatures REQUIRED; selective disclosure.         |
 | `bundle`     | a GTS whose `blob`s are themselves GTS files (`mt: application/gts`); §12.1.        |
 
-Profiles constrain conventions, not the wire format; a `generic` reader reads them all.
+Profiles constrain conventions, not the wire format; a `generic` reader reads them all. The
+`evidence` profile additionally REQUIRES a head commitment (§9, item 4), and writers SHOULD emit
+a checkpoint `index` frame every N frames (implementation-chosen N) so a damaged log recovers
+robustly (§9.1).
 
 ## 14. Transforms out
 
@@ -637,9 +724,12 @@ verifiable subgraph.
 - **Truncation** (dropping trailing frames) is undetectable from the chain alone; an `evidence`
   artifact MUST anchor the head — a signature over the head `"id"`, or the index `"head"`/`"mmr"`
   root (§6.2) — so a verifier can detect a shortened log.
-- **Recovery** is bounded by self-hashes: per-frame `"id"` plus the index `"off"` table localise
-  damage (a corrupt frame is isolated and skipped, not fatal to the file), but GTS defines no
-  parity/erasure coding — durability against bulk loss is the storage layer's concern.
+- **Recovery** of frames *after* a damaged one is guaranteed only with known offsets (an intact
+  index, a checkpoint frame, or external framing); a bare CBOR Sequence can desynchronise on
+  arbitrary corruption (§9.1). GTS defines no parity/erasure coding — durability against bulk
+  loss is the storage layer's concern.
+- `"to"`/`kid` values can leak relationship metadata (who a frame is sealed for); in high-privacy
+  or `opaque` profiles they SHOULD be pairwise or pseudonymous identifiers.
 - A valid signature attests the signer over the frame's bytes; it does **not** assert the truth
   of the claims (consistent with attestation semantics — vouching ≠ correctness).
 - Opaque frames are unreadable but **not** invisible; do not place secrets in `"pub"`,
@@ -650,7 +740,24 @@ verifiable subgraph.
 - Nested GTS (§12.1) MUST be bounded: readers MUST enforce a maximum recursion depth and a
   total decoded-size budget across all nesting levels (matryoshka-bomb resistance).
 
-## 18. References
+## 18. Conformance test vectors
+
+A conformant implementation MUST pass a shared corpus. v1 requires at least these vectors
+(shipped with the reference implementation), each as the GTS bytes plus the expected folded graph
+(N-Quads) and the expected diagnostics:
+
+1. Minimal valid file (header + one `terms` + one `quads`).
+2. A `zstd`-transformed `quads` frame.
+3. An unknown-codec frame → opaque `reason:"unknown-codec"`.
+4. A frame with a wrong self-`"id"` → `DamagedFrame` opaque.
+5. A torn append at EOF → `TornAppendError`, survivors intact.
+6. Header self-hash verification (positive and tampered).
+7. RDF 1.2 reifier + `annot` round-trip (`gts → nq → gts`), including quotation-without-assertion.
+8. A nested GTS blob (`mt: application/gts`), recursed and folded.
+9. Suppression over a term-id and over a frame digest.
+10. Truncation detection against a signed head / index `"mmr"` root.
+
+## 19. References
 
 - **RFC 8949** — Concise Binary Object Representation (CBOR).
 - **RFC 8742** — CBOR Sequences.
