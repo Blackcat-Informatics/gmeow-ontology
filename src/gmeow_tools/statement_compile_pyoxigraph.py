@@ -1,10 +1,11 @@
-"""Compile the statement DSL → RDF 1.2 + OWL downcast (pyoxigraph cross-check).
+"""Cross-check the statement DSL → RDF 1.2 + OWL downcast (pyoxigraph).
 
-A non-authoritative mirror of :mod:`gmeow_tools.statement_compile` that uses
-pyoxigraph for the RDF 1.2 projection and normalization instead of Apache Jena.
-This proves the round-trip is engine-independent (CONSTITUTION Principle 7).
+A non-authoritative read-only mirror of :mod:`gmeow_tools.statement_compile` that
+uses pyoxigraph for the RDF 1.2 projection and normalization instead of Apache
+Jena. This proves the round-trip is engine-independent (CONSTITUTION Principle 7).
 
-Jena remains the canonical artifact writer (Principle 4).
+Jena remains the canonical artifact writer (Principle 4). This module never
+writes to the committed artifact paths.
 """
 
 from __future__ import annotations
@@ -19,7 +20,6 @@ from gmeow_tools.config import (
     PROJECT_ROOT,
     STATEMENT_OWL_FILE,
     STATEMENT_RDF12_FILE,
-    STATEMENTS_DIR,
 )
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.mapping_dsl import CompileError
@@ -66,11 +66,12 @@ def assert_lossless_pyoxigraph(owl_graph: Graph, rdf12_path: Path) -> list[str]:
     return problems
 
 
-def compile_statements_pyoxigraph(check: bool = False) -> StatementReport:
-    """Compile statement-dsl/ → RDF 1.2 + OWL downcast; verify, then write/--check.
+def compile_statements_pyoxigraph() -> StatementReport:
+    """Cross-check statement-dsl/ → RDF 1.2 + OWL downcast (pyoxigraph, read-only).
 
     Identical logic to :func:`gmeow_tools.statement_compile.compile_statements`,
     but the RDF 1.2 projection and normalization use pyoxigraph instead of Jena.
+    Always runs in drift-check mode; never writes to the committed artifact paths.
 
     Raises:
         CompileError: On an invariant violation or a lossy round-trip.
@@ -97,12 +98,4 @@ def compile_statements_pyoxigraph(check: bool = False) -> StatementReport:
                 "RDF 1.2 / OWL round-trip is lossy (emit blocked):\n  "
                 + "\n  ".join(lossy)
             )
-        if check:
-            return StatementReport(drifted=_drift_pyoxigraph(owl, rdf12_tmp))
-
-        STATEMENTS_DIR.mkdir(parents=True, exist_ok=True)
-        _write_ttl(owl, STATEMENT_OWL_FILE, _OWL_BANNER)
-        STATEMENT_RDF12_FILE.write_text(
-            rdf12_tmp.read_text(encoding="utf-8"), encoding="utf-8"
-        )
-    return StatementReport(written=[STATEMENT_OWL_FILE, STATEMENT_RDF12_FILE])
+        return StatementReport(drifted=_drift_pyoxigraph(owl, rdf12_tmp))
