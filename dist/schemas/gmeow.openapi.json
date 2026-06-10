@@ -20198,6 +20198,121 @@
             "title": "EmailMessage",
             "type": "object"
           },
+          "Employment": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+              "employmentCompensation": {
+                "items": {
+                  "$ref": "#/$defs/MonetaryAmount"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "employmentInterval": {
+                "items": {
+                  "$ref": "#/$defs/TimeInterval"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "employmentOccupation": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Occupation"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "employmentRole": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Role"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "employmentSeniority": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/SeniorityLevel"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "employmentType": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/EmploymentType"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "hasRole": {
+                "items": {
+                  "$ref": "#/$defs/Role"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "membershipMember": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "membershipOrganization": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Organization"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "title": "Employment",
+            "type": "object"
+          },
+          "EmploymentType": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "EmploymentType",
+            "type": "object"
+          },
+          "EmploymentTypeEnum": {
+            "description": "",
+            "enum": [
+              "employmentTypeApprentice",
+              "employmentTypeContract",
+              "employmentTypeFreelance",
+              "employmentTypeFullTime",
+              "employmentTypeIntern",
+              "employmentTypePartTime",
+              "employmentTypeVolunteer"
+            ],
+            "title": "EmploymentTypeEnum",
+            "type": "string"
+          },
           "Entity": {
             "additionalProperties": false,
             "description": "",
@@ -21518,6 +21633,7 @@
               "eventTypeFirstCommunion",
               "eventTypeFuneral",
               "eventTypeGraduation",
+              "eventTypeHiring",
               "eventTypeImageAnnotation",
               "eventTypeImageCapture",
               "eventTypeImageProcessing",
@@ -21534,14 +21650,18 @@
               "eventTypeOrdination",
               "eventTypePaltering",
               "eventTypeProbate",
+              "eventTypePromotion",
               "eventTypePush",
               "eventTypeRelease",
               "eventTypeResidence",
+              "eventTypeResignation",
               "eventTypeRetirement",
               "eventTypeSelfDeception",
               "eventTypeSeparation",
               "eventTypeSupersession",
               "eventTypeSurvey",
+              "eventTypeTermination",
+              "eventTypeTransfer",
               "eventTypeWill",
               "eventTypeWorkConception"
             ],
@@ -51302,6 +51422,8 @@
               "roleDeceived",
               "roleDeceiver",
               "roleDupe",
+              "roleEmployee",
+              "roleEmployer",
               "roleIntermediary",
               "roleOfficiant",
               "roleOrganizer",
@@ -65884,6 +66006,24 @@
               "selectorTypeWebAnnotationFragment"
             ],
             "title": "SelectorTypeEnum",
+            "type": "string"
+          },
+          "SeniorityLevel": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "SeniorityLevel",
+            "type": "object"
+          },
+          "SeniorityLevelEnum": {
+            "description": "",
+            "enum": [
+              "seniorityEntry",
+              "seniorityExecutive",
+              "seniorityLead",
+              "seniorityMid",
+              "senioritySenior"
+            ],
+            "title": "SeniorityLevelEnum",
             "type": "string"
           },
           "SensitivityLevel": {
