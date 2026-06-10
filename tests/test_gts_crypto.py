@@ -108,3 +108,58 @@ def test_encrypt0_round_trip_and_missing_key() -> None:
     with pytest.raises(CodecUnavailableError) as exc:
         decrypt0(sealed, InMemoryKeys())  # no key -> missing-key
     assert exc.value.reason == "missing-key"
+
+
+# -- COSE encryption wired through writer/reader (opaque profile, §9.3) -------
+
+
+def test_encrypted_frame_decrypts_with_key() -> None:
+    """A frame encrypted (zstd then COSE_Encrypt0) decrypts and folds when keyed."""
+    key = os.urandom(32)
+    w = Writer(profile="opaque")
+    w.add_frame(
+        "meta",
+        payload={"sealed": "value"},
+        transform=["zstd"],
+        encrypt=("did:court", key),
+    )
+    holder = InMemoryKeys(content={"did:court": key})
+    g = read(w.to_bytes(), keys=holder)
+    assert [d.code for d in g.diagnostics] == []
+    assert g.meta.get("sealed") == "value"
+    assert not g.opaque  # decrypted in place, not opaque
+
+
+def test_encrypted_frame_opaque_without_key() -> None:
+    """Without the key the sealed frame is opaque: content hidden, recipient shown."""
+    key = os.urandom(32)
+    w = Writer(profile="opaque")
+    w.add_frame("meta", payload={"sealed": "value"}, encrypt=("did:court", key))
+    g = read(w.to_bytes())  # no keys
+    assert "MissingKey" in [d.code for d in g.diagnostics]
+    assert g.opaque and g.opaque[0].reason == "missing-key"
+    assert g.opaque[0].recipients is not None
+    assert g.opaque[0].recipients[0]["kid"] == "did:court"  # opacity invariant
+    assert "sealed" not in g.meta  # content not leaked
+
+
+def test_selective_disclosure() -> None:
+    """A reader without the key reads the public frame; the sealed one is opaque."""
+    key = os.urandom(32)
+    w = Writer(profile="opaque")
+    w.add_terms(_terms())
+    w.add_quads([(0, 1, 2, None)])  # public
+    w.add_frame("meta", payload={"private": True}, encrypt=("did:court", key))  # sealed
+    g = read(w.to_bytes())  # no key
+    assert g.quads == [(0, 1, 2, None)]  # public part readable
+    assert g.opaque and g.opaque[0].reason == "missing-key"  # sealed part opaque
+    assert "private" not in g.meta
+
+
+def test_decrypt_with_wrong_key_is_opaque() -> None:
+    """A held-but-wrong key fails AEAD auth and degrades to missing-key, not a crash."""
+    w = Writer(profile="opaque")
+    w.add_frame("meta", payload={"x": 1}, encrypt=("did:court", os.urandom(32)))
+    wrong = InMemoryKeys(content={"did:court": os.urandom(32)})
+    g = read(w.to_bytes(), keys=wrong)
+    assert g.opaque and g.opaque[0].reason == "missing-key"

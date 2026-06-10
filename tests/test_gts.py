@@ -341,7 +341,7 @@ def test_writer_rejects_ambiguous_payload() -> None:
     w = Writer()
     with pytest.raises(ValueError, match="mutually exclusive"):
         w.add_frame("meta", payload={"a": 1}, raw=b"x")
-    with pytest.raises(ValueError, match="transform requires"):
+    with pytest.raises(ValueError, match="requires a payload"):
         w.add_frame("meta", transform=["zstd"])
 
 

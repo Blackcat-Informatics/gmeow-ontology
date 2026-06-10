@@ -4,9 +4,9 @@
 
 Implements the Baseline Reader contract (§2.1): chain verification (§9.1), the
 four-table fold (§7.5), opaque/damaged degradation (§7.6), torn-append detection
-(§3), and the canonical diagnostics (§2.3). Signatures and encryption are not
-verified here (baseline); an ``encrypt`` codec degrades to a ``missing-key`` opaque
-node.
+(§3), and the canonical diagnostics (§2.3). When a ``keys`` provider is supplied,
+``sig`` frames are verified (§9.2) and ``encrypt``-class frames are decrypted (§9.3);
+without it, an ``encrypt`` codec degrades to a ``missing-key`` opaque node.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from collections.abc import Mapping
 import cbor2
 
 from gmeow_tools.gts.codec import Codec, CodecUnavailableError, decode_chain
-from gmeow_tools.gts.crypto import KeyProvider, verify_sig
+from gmeow_tools.gts.crypto import KeyProvider, decrypt0, verify_sig
 from gmeow_tools.gts.model import (
     Diagnostic,
     Graph,
@@ -81,9 +81,14 @@ def _catalog(header: Mapping[str, object]) -> dict[int, Codec]:
 class _Folder:
     """Mutable fold state; one per :func:`read` call (and per nested snapshot)."""
 
-    def __init__(self, graph: Graph, catalog: dict[int, Codec]) -> None:
+    def __init__(
+        self, graph: Graph, catalog: dict[int, Codec], keys: KeyProvider | None = None
+    ) -> None:
         self.g = graph
         self.catalog = catalog
+        self.keys = keys
+        # A key-bound decryptor for encrypt-class codecs; None ⇒ encrypt → missing-key.
+        self._decryptor = (lambda b: decrypt0(b, keys)) if keys is not None else None
 
     def _resolve_codecs(self, ids: list[object]) -> list[Codec]:
         chain: list[Codec] = []
@@ -104,7 +109,7 @@ class _Folder:
             if not isinstance(d, bytes):
                 msg = "transformed frame 'd' must be a byte string"
                 raise ValueError(msg)
-            decoded = decode_chain(self._resolve_codecs(x), d)
+            decoded = decode_chain(self._resolve_codecs(x), d, decrypt=self._decryptor)
             return decoded if blob else cbor2.loads(decoded)
         return d
 
@@ -466,7 +471,7 @@ def read(
     stored_hid = header.get("id")
     if blake3_256_header(header) != stored_hid:
         g.diagnostics.append(Diagnostic("DamagedFrame", "header self-hash mismatch", 0))
-    folder = _Folder(g, _catalog(header))
+    folder = _Folder(g, _catalog(header), keys)
     expected_prev = stored_hid if isinstance(stored_hid, bytes) else b""
 
     for index, (_, raw) in enumerate(items[1:], start=1):
