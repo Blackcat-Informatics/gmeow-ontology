@@ -2,27 +2,34 @@
 # SPDX-License-Identifier: Apache-2.0
 """The ``RDF → GTS`` producer (issue #271).
 
-Interns an rdflib ``Graph``/``Dataset`` into the GTS term dictionary and emits a
-single ``dist``-profile ``snapshot`` frame (§10, §13). This is the encoder side of
-the narrow waist: one producer, many ``GTS → *`` shims.
+The encoder side of the narrow waist. Two ingest paths feed a single term
+dictionary:
 
-Scope: RDF 1.1 terms — IRIs, blank nodes, and literals (datatype + language),
-plus named graphs (quads). RDF 1.2 triple-terms / statement metadata (reifier +
-annot) require the RDF-star source and are a follow-up under #267.
+* **rdflib** ``Graph``/``Dataset`` — the RDF 1.1 base graph (IRIs, blank nodes,
+  literals, named-graph quads).
+* **pyoxigraph** over an RDF 1.2 artifact (``statements/gmeow.rdf12.ttl``) — the
+  statement layer: ``reifier rdf:reifies <<( s p o )>>`` becomes a GTS ``reifies``
+  binding and the reifier's other triples become ``annot`` rows (§7.3). rdflib 7.6
+  has no triple-term API, so the RDF-star source must be read with pyoxigraph.
+
+Both feed :class:`_Builder`, which emits one ``dist``-profile ``snapshot`` (§10).
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from rdflib import BNode, Dataset, Graph, Literal, URIRef
 
-from gmeow_tools.gts.model import Quad, Term, TermKind
+from gmeow_tools.gts.model import XSD_STRING, Quad, Term, TermKind, Triple
 from gmeow_tools.gts.writer import Writer, term_to_wire
 
 if TYPE_CHECKING:
     from rdflib.term import Node
+
+_RDF_REIFIES = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"
 
 
 class _Interner:
@@ -48,7 +55,6 @@ class _Interner:
         return self._intern(("bnode", label), lambda: Term(TermKind.BNODE, label))
 
     def literal(self, lex: str, datatype: str | None, lang: str | None) -> int:
-        # Datatype IRI must be interned first so its id precedes the literal (§7.5).
         dt_id = self.iri(datatype) if datatype is not None else None
         key = ("lit", lex, datatype or "", lang or "")
         return self._intern(
@@ -56,16 +62,118 @@ class _Interner:
         )
 
 
-def _intern_node(interner: _Interner, node: Node) -> int | None:
-    """Intern a single rdflib node; ``None`` for an unsupported term kind."""
-    if isinstance(node, URIRef):
-        return interner.iri(str(node))
-    if isinstance(node, BNode):
-        return interner.bnode(str(node))
-    if isinstance(node, Literal):
-        dt = str(node.datatype) if node.datatype is not None else None
-        return interner.literal(str(node), dt, node.language)
-    return None  # quoted triples (RDF 1.2) are out of scope here
+class _Builder:
+    """Accumulates terms/quads/reifies/annot from one or more RDF sources."""
+
+    def __init__(self) -> None:
+        self.terms = _Interner()
+        self.quads: list[Quad] = []
+        self.reifies: dict[int, Triple] = {}
+        self.annot: list[Triple] = []
+
+    # -- rdflib (RDF 1.1) -----------------------------------------------------
+
+    def add_graph(self, graph: Graph) -> None:
+        """Ingest an rdflib ``Graph``/``Dataset`` base graph."""
+        for s, p, o, name in _iter_quads(graph):
+            sid, pid, oid = self._rdflib(s), self._rdflib(p), self._rdflib(o)
+            gid = self._rdflib(name) if name is not None else None
+            if sid is None or pid is None or oid is None:
+                continue
+            self.quads.append((sid, pid, oid, gid))
+
+    def _rdflib(self, node: Node) -> int | None:
+        if isinstance(node, URIRef):
+            return self.terms.iri(str(node))
+        if isinstance(node, BNode):
+            return self.terms.bnode(str(node))
+        if isinstance(node, Literal):
+            dt = str(node.datatype) if node.datatype is not None else None
+            return self.terms.literal(str(node), dt, node.language)
+        return None  # quoted triples handled via the RDF 1.2 path
+
+    # -- pyoxigraph (RDF 1.2 statement layer) ---------------------------------
+
+    def add_rdf12(self, path: Path) -> None:
+        """Ingest an RDF 1.2 artifact: ``rdf:reifies`` triple-terms + annotations."""
+        import pyoxigraph as ox
+
+        statements = list(ox.parse(path.read_bytes(), format=ox.RdfFormat.TURTLE))
+        reifier_ids: set[int] = set()
+        pending: list[tuple[object, object, object]] = []
+        # Pass 1: reifies bindings establish which subjects are reifiers.
+        for st in statements:
+            s, p, o = st.subject, st.predicate, st.object
+            if (
+                isinstance(p, ox.NamedNode)
+                and p.value == _RDF_REIFIES
+                and isinstance(o, ox.Triple)
+            ):
+                rid = self._ox(s)
+                qs, qp, qo = (
+                    self._ox(o.subject),
+                    self._ox(o.predicate),
+                    self._ox(o.object),
+                )
+                if None not in (rid, qs, qp, qo):
+                    assert (
+                        rid is not None
+                        and qs is not None
+                        and qp is not None
+                        and qo is not None
+                    )
+                    self.reifies[rid] = (qs, qp, qo)
+                    reifier_ids.add(rid)
+            else:
+                pending.append((s, p, o))
+        # Pass 2: a reifier's other triples are annotations; the rest are base quads.
+        for s, p, o in pending:
+            sid, pid, oid = self._ox(s), self._ox(p), self._ox(o)
+            if sid is None or pid is None or oid is None:
+                continue
+            if sid in reifier_ids:
+                self.annot.append((sid, pid, oid))
+            else:
+                self.quads.append((sid, pid, oid, None))
+
+    def _ox(self, node: object) -> int | None:
+        import pyoxigraph as ox
+
+        if isinstance(node, ox.NamedNode):
+            return self.terms.iri(node.value)
+        if isinstance(node, ox.BlankNode):
+            return self.terms.bnode(node.value)
+        if isinstance(node, ox.Literal):
+            # pyoxigraph always sets a datatype (xsd:string / rdf:langString implied).
+            if node.language is not None:
+                return self.terms.literal(node.value, None, node.language)
+            dt = node.datatype.value
+            return self.terms.literal(
+                node.value, None if dt == XSD_STRING else dt, None
+            )
+        return None
+
+    # -- emit -----------------------------------------------------------------
+
+    def to_gts(
+        self, *, profile: str = "dist", transform: list[str] | None = None
+    ) -> bytes:
+        """Emit a single ``dist`` snapshot frame from the accumulated tables."""
+        chain = ["zstd"] if transform is None else transform
+        writer = Writer(profile=profile)
+        snapshot: dict[str, object] = {
+            "terms": [term_to_wire(t) for t in self.terms.terms],
+            "quads": [
+                [q[0], q[1], q[2], *([q[3]] if q[3] is not None else [])]
+                for q in self.quads
+            ],
+        }
+        if self.reifies:
+            snapshot["reifies"] = {rid: list(spo) for rid, spo in self.reifies.items()}
+        if self.annot:
+            snapshot["annot"] = [list(row) for row in self.annot]
+        writer.add_frame("snapshot", payload=snapshot, transform=chain)
+        return writer.to_bytes()
 
 
 def _iter_quads(graph: Graph) -> list[tuple[Node, Node, Node, Node | None]]:
@@ -88,33 +196,33 @@ def gts_from_graph(
     profile: str = "dist",
     transform: list[str] | None = None,
 ) -> bytes:
-    """Produce a GTS ``dist`` snapshot from an rdflib ``Graph``/``Dataset``.
+    """Produce a GTS ``dist`` snapshot from an rdflib graph/dataset (RDF 1.1)."""
+    builder = _Builder()
+    builder.add_graph(graph)
+    return builder.to_gts(profile=profile, transform=transform)
 
-    Args:
-        graph: the source graph (or dataset for quads).
-        profile: the GTS profile (``dist`` by default).
-        transform: codec chain for the snapshot payload (default ``["zstd"]``).
-    """
-    chain = ["zstd"] if transform is None else transform
-    interner = _Interner()
-    quads: list[Quad] = []
-    for s, p, o, name in _iter_quads(graph):
-        sid, pid, oid = (
-            _intern_node(interner, s),
-            _intern_node(interner, p),
-            _intern_node(interner, o),
-        )
-        gid = _intern_node(interner, name) if name is not None else None
-        if sid is None or pid is None or oid is None:
-            continue  # skip rows with an unsupported (e.g. quoted-triple) term
-        quads.append((sid, pid, oid, gid))
 
-    writer = Writer(profile=profile)
-    snapshot: dict[str, object] = {
-        "terms": [term_to_wire(t) for t in interner.terms],
-        "quads": [
-            [q[0], q[1], q[2], *([q[3]] if q[3] is not None else [])] for q in quads
-        ],
-    }
-    writer.add_frame("snapshot", payload=snapshot, transform=chain)
-    return writer.to_bytes()
+def gts_from_rdf12(
+    path: Path,
+    *,
+    profile: str = "dist",
+    transform: list[str] | None = None,
+) -> bytes:
+    """Produce a GTS snapshot from an RDF 1.2 artifact (statement layer; pyoxigraph)."""
+    builder = _Builder()
+    builder.add_rdf12(path)
+    return builder.to_gts(profile=profile, transform=transform)
+
+
+def compile_gts(
+    graph: Graph,
+    rdf12_path: Path | None = None,
+    *,
+    transform: list[str] | None = None,
+) -> bytes:
+    """Compile a statement-complete ``dist`` GTS: base graph + RDF 1.2 statements."""
+    builder = _Builder()
+    builder.add_graph(graph)
+    if rdf12_path is not None and rdf12_path.exists():
+        builder.add_rdf12(rdf12_path)
+    return builder.to_gts(profile="dist", transform=transform)

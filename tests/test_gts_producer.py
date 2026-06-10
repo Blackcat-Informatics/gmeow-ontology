@@ -121,3 +121,24 @@ def test_producer_default_graph_is_unnamed() -> None:
     folded = read(gts_from_graph(ds))
     assert len(folded.quads) == 1
     assert folded.quads[0][3] is None  # default graph, not a spurious named graph
+
+
+def test_rdf12_producer_reifier_and_annotation(tmp_path: Path) -> None:
+    """The RDF 1.2 path (pyoxigraph) ingests reifier triple-terms + annotations."""
+    from gmeow_tools.gts import gts_from_rdf12
+
+    ttl = (
+        "@prefix g: <https://example.org/> .\n"
+        "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
+        "g:alice g:knows g:bob .\n"
+        "g:r1 rdf:reifies <<( g:alice g:knows g:bob )>> ; g:confidence 0.9 .\n"
+    )
+    src = tmp_path / "stmt.ttl"
+    src.write_text(ttl, encoding="utf-8")
+    g = read(gts_from_rdf12(src))
+    assert [d.code for d in g.diagnostics] == []
+    assert len(g.reifiers) == 1  # reifier bound to the quoted triple
+    assert len(g.annotations) == 1  # the g:confidence statement metadata
+    _reifier, pred_id, value_id = g.annotations[0]
+    assert g.term(pred_id).value == "https://example.org/confidence"
+    assert g.term(value_id).value == "0.9"

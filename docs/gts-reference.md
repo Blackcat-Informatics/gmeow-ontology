@@ -20,18 +20,20 @@ narrow-waist `RDF 1.2 → GTS → *` toolchain.
 - **Robustness** — torn-append detection (§3), damaged-frame isolation, and the
   canonical diagnostics (§2.3): `TornAppendError`, `DamagedFrame`, `BrokenChain`,
   `UnknownCodec`, `MissingKey`, `ConflictingReifier`, `PositionConstraint`, …
-- **`RDF → GTS` producer** — interns an rdflib `Graph`/`Dataset` into the term
-  dictionary and emits a `dist` snapshot; `gmeow gts compile` builds `dist/gmeow.gts`
-  from the merged ontology (#271).
+- **`RDF → GTS` producer** — interns an rdflib `Graph`/`Dataset` (RDF 1.1 base graph)
+  **and** an RDF 1.2 artifact read via pyoxigraph (the statement layer:
+  `rdf:reifies` triple-terms → `reifies`, annotations → `annot`) into one dictionary.
+  `gmeow gts compile` builds a **statement-complete** `dist/gmeow.gts` from the merged
+  ontology + `statements/gmeow.rdf12.ttl` (#271).
 - **Transforms out** — `gts → nquads` (§14) and `gts → {sqlite,duckdb}` (the
   integer-id, dictionary-encoded relational load; the engine resolves ids via join).
 
 ## Not yet (follow-ups under #267)
 
 COSE signing/encryption and the crypto opaque paths (§9.2–9.3, #272); nested-GTS
-recursion (§12.1); the `index`/MMR acceleration (§6.2); RDF 1.2 triple-term /
-statement-metadata ingestion in the producer (needs the RDF-star source); the
-transport/packaging ontology vocabulary.
+recursion (§12.1); the `index`/MMR acceleration (§6.2); a frame-streaming (vs
+folded-graph) DB load for very large inputs; the transport/packaging ontology
+vocabulary.
 
 ## Use
 

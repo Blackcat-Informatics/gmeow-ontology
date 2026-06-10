@@ -21,7 +21,7 @@ from gmeow_tools.gts.model import (
     TermKind,
 )
 from gmeow_tools.gts.nquads import to_nquads
-from gmeow_tools.gts.producer import gts_from_graph
+from gmeow_tools.gts.producer import compile_gts, gts_from_graph, gts_from_rdf12
 from gmeow_tools.gts.reader import read
 from gmeow_tools.gts.writer import Writer
 
@@ -32,7 +32,9 @@ __all__ = [
     "Term",
     "TermKind",
     "Writer",
+    "compile_gts",
     "gts_from_graph",
+    "gts_from_rdf12",
     "read",
     "to_duckdb",
     "to_nquads",
