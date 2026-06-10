@@ -509,7 +509,9 @@ enum EventTypeEnum
     eventTypeEngagement
     eventTypeExcavation
     eventTypeExpressionCreation
+    eventTypeFabrication
     eventTypeFirstCommunion
+    eventTypeForgery
     eventTypeFuneral
     eventTypeGraduation
     eventTypeHiring
@@ -518,6 +520,7 @@ enum EventTypeEnum
     eventTypeImageProcessing
     eventTypeImageScanning
     eventTypeImmigration
+    eventTypeImpersonation
     eventTypeLie
     eventTypeManifestationProduction
     eventTypeMarriage

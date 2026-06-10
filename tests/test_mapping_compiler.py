@@ -225,7 +225,10 @@ def test_dsl_parses() -> None:
     # organizationTypeCompany/Collaboration→org, ChangeEvent→Event,
     # postIn/fillsPost/hasSite/predecessorOrganization/successorOrganization/
     # organizationPurpose/industryClassification→org).
-    assert len(dsl.equivalences) == 1507
+    # Issue #216 carrier deceptions: +5 (fabrication→Wikidata x2, forgery→Wikidata x2,
+    # impersonation→Wikidata x1). PAPO/ROSE mappings removed — no stable resolvable
+    # RDF namespaces for those OntoUML models.
+    assert len(dsl.equivalences) == 1512
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

@@ -1,8 +1,9 @@
 # Competency question: "What deception-related event types and veridicality values does GMEOW model?"
 # Expected: eventTypeDeception, eventTypeLie, eventTypePaltering, eventTypeOmission,
 #           eventTypeDistortion, eventTypeBullshit, eventTypeSelfDeception,
+#           eventTypeFabrication, eventTypeForgery, eventTypeImpersonation,
 #           ClaimVeridicality, veridicalityUntrue, veridicalityLicensedFalsehood.
-# Issue #215.
+# Issues #215, #216.
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 
@@ -14,7 +15,10 @@ SELECT ?deceptionType WHERE {
         gmeow:eventTypeOmission,
         gmeow:eventTypeDistortion,
         gmeow:eventTypeBullshit,
-        gmeow:eventTypeSelfDeception
+        gmeow:eventTypeSelfDeception,
+        gmeow:eventTypeFabrication,
+        gmeow:eventTypeForgery,
+        gmeow:eventTypeImpersonation
     )) }
     UNION
     { BIND(gmeow:ClaimVeridicality AS ?deceptionType) }

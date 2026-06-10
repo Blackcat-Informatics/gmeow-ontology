@@ -1,0 +1,20 @@
+# Competency question: "Which events are fabrications?"
+# A fabrication = deception event with a false CreativeWork whose provenance is refuted.
+# Expected: event-fabrication-001 (from statement-dsl/deception.ttl).
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?event WHERE {
+    ?event gmeow:eventType gmeow:eventTypeFabrication .
+    ?event gmeow:heldStandpoint ?heldClaim .
+    ?event gmeow:projectedStandpoint ?projectedClaim .
+    ?heldClaim gmeow:claimModality gmeow:refuted .
+    ?projectedClaim gmeow:claimModality gmeow:unequivocal .
+    OPTIONAL {
+        ?event gmeow:implicates ?work .
+        ?work a gmeow:CreativeWork .
+        ?verification a gmeow:VerificationResult .
+        ?verification gmeow:hasVerificationStatus gmeow:verificationStatusFailed .
+    }
+}
+ORDER BY ?event
