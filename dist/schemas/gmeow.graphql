@@ -299,6 +299,12 @@ enum ConstraintOperatorEnum
     operatorNeq
   }
 
+enum ContentDispositionEnum
+  {
+    contentDispositionAttachment
+    contentDispositionInline
+  }
+
 enum ContentSegmentTypeEnum
   {
     segmentTypeBackMatter
@@ -307,6 +313,15 @@ enum ContentSegmentTypeEnum
     segmentTypeParagraph
     segmentTypeScene
     segmentTypeSection
+  }
+
+enum ContentTransferEncodingEnum
+  {
+    transferEncoding7bit
+    transferEncoding8bit
+    transferEncodingBase64
+    transferEncodingBinary
+    transferEncodingQuotedPrintable
   }
 
 enum ContributionDegreeEnum
@@ -1032,6 +1047,18 @@ enum MetricKindEnum
     metricGraphHops
     metricPositionalDistance
     metricSymplectic
+  }
+
+enum MultipartTypeEnum
+  {
+    multipartTypeAlternative
+    multipartTypeDigest
+    multipartTypeEncrypted
+    multipartTypeMixed
+    multipartTypeParallel
+    multipartTypeRelated
+    multipartTypeReport
+    multipartTypeSigned
   }
 
 enum NamedPeriodEnum
@@ -2353,7 +2380,12 @@ type Attachment
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    charset: String
+    contentId: String
+    hasContentDisposition: ContentDisposition
+    hasContentTransferEncoding: ContentTransferEncoding
     mediaType: String
+    partId: String
     filename: String
   }
 
@@ -2907,7 +2939,12 @@ type BodyPart
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    charset: String
+    contentId: String
+    hasContentDisposition: ContentDisposition
+    hasContentTransferEncoding: ContentTransferEncoding
     mediaType: String
+    partId: String
   }
 
 type Bookmark
@@ -3683,6 +3720,10 @@ type ContainmentTenure
     containmentParent: Place
   }
 
+type ContentDisposition
+  {
+  }
+
 type ContentSegment
   {
     acquireLicensePage: String
@@ -3741,6 +3782,10 @@ type ContentSegment
   }
 
 type ContentSegmentType
+  {
+  }
+
+type ContentTransferEncoding
   {
   }
 
@@ -4666,6 +4711,7 @@ type EmailMessage
     hasAuthenticationResult: [AuthenticationResult]
     hasBodyPart: [BodyPart]
     hasHeader: [MessageHeader]
+    hasInlinePart: [InlinePart]
     hasKeyword: [MessageKeyword]
     hasMessageKind: [MessageKind]
     hasRelayHop: [RelayHop]
@@ -5876,6 +5922,66 @@ type InformationObject
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+  }
+
+type InlinePart
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    charset: String
+    contentId: String
+    hasContentDisposition: ContentDisposition
+    hasContentTransferEncoding: ContentTransferEncoding
+    mediaType: String
+    partId: String
   }
 
 type Inscription
@@ -7786,6 +7892,7 @@ type Message
     hasAuthenticationResult: [AuthenticationResult]
     hasBodyPart: [BodyPart]
     hasHeader: [MessageHeader]
+    hasInlinePart: [InlinePart]
     hasKeyword: [MessageKeyword]
     hasMessageKind: [MessageKind]
     hasRelayHop: [RelayHop]
@@ -7937,6 +8044,71 @@ type MonetaryAmount
     wasGeneratedBy: [Activity]
     currency: ReferenceFrame
     monetaryValue: Float
+  }
+
+type MultipartBodyPart
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    charset: String
+    contentId: String
+    hasContentDisposition: ContentDisposition
+    hasContentTransferEncoding: ContentTransferEncoding
+    mediaType: String
+    partId: String
+    hasMultipartType: MultipartType
+  }
+
+type MultipartType
+  {
   }
 
 type Myth

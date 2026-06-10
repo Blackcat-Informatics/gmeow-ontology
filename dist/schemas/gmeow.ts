@@ -299,6 +299,12 @@ export enum ConstraintOperatorEnum {
     not_equal_to = "operatorNeq",
 };
 
+export enum ContentDispositionEnum {
+
+    attachment = "contentDispositionAttachment",
+    inline = "contentDispositionInline",
+};
+
 export enum ContentSegmentTypeEnum {
 
     back_matter = "segmentTypeBackMatter",
@@ -307,6 +313,15 @@ export enum ContentSegmentTypeEnum {
     paragraph = "segmentTypeParagraph",
     scene = "segmentTypeScene",
     section = "segmentTypeSection",
+};
+
+export enum ContentTransferEncodingEnum {
+
+    number_7bit = "transferEncoding7bit",
+    number_8bit = "transferEncoding8bit",
+    base64 = "transferEncodingBase64",
+    binary = "transferEncodingBinary",
+    quoted_printable = "transferEncodingQuotedPrintable",
 };
 
 export enum ContributionDegreeEnum {
@@ -1032,6 +1047,18 @@ export enum MetricKindEnum {
     graph_hops = "metricGraphHops",
     positional_distance = "metricPositionalDistance",
     phase_space_Euclidean = "metricSymplectic",
+};
+
+export enum MultipartTypeEnum {
+
+    alternative = "multipartTypeAlternative",
+    digest = "multipartTypeDigest",
+    encrypted = "multipartTypeEncrypted",
+    mixed = "multipartTypeMixed",
+    parallel = "multipartTypeParallel",
+    related = "multipartTypeRelated",
+    report = "multipartTypeReport",
+    signed = "multipartTypeSigned",
 };
 
 export enum NamePartTypeEnum {
@@ -2245,7 +2272,12 @@ export interface BlockchainNetwork extends Entity {
 
 
 export interface BodyPart extends InformationObject {
+    charset?: string,
+    contentId?: string,
+    hasContentDisposition?: ContentDisposition,
+    hasContentTransferEncoding?: ContentTransferEncoding,
     mediaType?: string,
+    partId?: string,
 }
 
 
@@ -2460,6 +2492,11 @@ export interface ContainmentTenure extends TimeScopedRelation {
 
 
 
+export interface ContentDisposition {
+}
+
+
+
 export interface ContentSegment extends InformationObject {
     segmentIndex?: number,
     segmentOf?: Entity[],
@@ -2469,6 +2506,11 @@ export interface ContentSegment extends InformationObject {
 
 
 export interface ContentSegmentType {
+}
+
+
+
+export interface ContentTransferEncoding {
 }
 
 
@@ -3153,6 +3195,11 @@ export interface InformationObject extends Entity {
 
 
 
+export interface InlinePart extends BodyPart {
+}
+
+
+
 export interface Inscription extends InformationObject {
     inscriptionCarrier?: PhysicalObject,
 }
@@ -3572,6 +3619,7 @@ export interface Message extends InformationObject {
     hasAuthenticationResult?: AuthenticationResult[],
     hasBodyPart?: BodyPart[],
     hasHeader?: MessageHeader[],
+    hasInlinePart?: InlinePart[],
     hasKeyword?: MessageKeyword[],
     hasMessageKind?: MessageKind[],
     hasRelayHop?: RelayHop[],
@@ -3632,6 +3680,17 @@ export interface MetricKind {
 export interface MonetaryAmount extends Entity {
     currency?: ReferenceFrame,
     monetaryValue?: string,
+}
+
+
+
+export interface MultipartBodyPart extends BodyPart {
+    hasMultipartType?: MultipartType,
+}
+
+
+
+export interface MultipartType {
 }
 
 
