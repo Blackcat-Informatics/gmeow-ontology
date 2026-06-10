@@ -368,6 +368,65 @@ gmeow:mailboxName
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
+# Mailbox hierarchy and provider-derived state (issue #132)
+# --------------------------------------------------------------------------- #
+# Hierarchy is the canonical spine; path, sort order, and counts are derived
+# provider state (Principles 4, 12). Destruction uses the lifecycle module
+# (hasDestructionEvent + displayable false) per Principle 10.
+# --------------------------------------------------------------------------- #
+
+gmeow:parentMailbox
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:partOf ;
+    rdfs:domain gmeow:Mailbox ;
+    rdfs:range gmeow:Mailbox ;
+    rdfs:label "parent mailbox"@en ;
+    skos:definition "The parent mailbox in a folder hierarchy. A specialization of the universal gmeow:partOf spine for mailbox containment."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:childMailbox
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasPart ;
+    owl:inverseOf gmeow:parentMailbox ;
+    rdfs:domain gmeow:Mailbox ;
+    rdfs:range gmeow:Mailbox ;
+    rdfs:label "child mailbox"@en ;
+    skos:definition "A child mailbox in a folder hierarchy. Inverse of gmeow:parentMailbox; a specialization of the universal gmeow:hasPart spine."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:mailboxSortOrder
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Mailbox ;
+    rdfs:range xsd:integer ;
+    rdfs:label "mailbox sort order"@en ;
+    skos:definition "The display ordering of a mailbox among its siblings in a provider's UI. Provider-derived mutable state, not a logical core fact. Intentionally non-functional: different sources or UIs may assign different sort orders to the same mailbox (Principle 9)."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:mailboxPath
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Mailbox ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "mailbox path"@en ;
+    skos:definition "A display path string for a mailbox (e.g. 'INBOX/Work/Projects'). Derived from the transitive parentMailbox spine; a projection-layer convenience, not a canonical fact."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:mailboxTotalMessages
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Mailbox ;
+    rdfs:range xsd:integer ;
+    rdfs:label "mailbox total messages"@en ;
+    skos:definition "The total number of messages residing in a mailbox. A derived rollup over gmeow:MailboxResidence / gmeow:residesIn, computed in the solver/projection layer (Principle 12), not asserted as a canonical fact."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:mailboxUnreadMessages
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Mailbox ;
+    rdfs:range xsd:integer ;
+    rdfs:label "mailbox unread messages"@en ;
+    skos:definition "The number of unread messages in a mailbox. A derived rollup over message residence and keyword state (absence of gmeow:keywordSeen), computed in the solver/projection layer (Principle 12), not asserted as a canonical fact."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
 # Stable address decomposition (on EmailAddress, not on occurrence)
 # --------------------------------------------------------------------------- #
 

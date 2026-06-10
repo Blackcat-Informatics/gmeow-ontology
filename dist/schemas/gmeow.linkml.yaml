@@ -1320,9 +1320,15 @@ classes:
     title: Mailbox
     is_a: InformationObject
     slots:
+    - childMailbox
     - mailboxName
     - mailboxOfAccount
+    - mailboxPath
     - mailboxRole
+    - mailboxSortOrder
+    - mailboxTotalMessages
+    - mailboxUnreadMessages
+    - parentMailbox
   MailboxResidence:
     class_uri: https://blackcatinformatics.ca/gmeow/MailboxResidence
     title: Mailbox Residence
@@ -3259,6 +3265,12 @@ slots:
     title: charset
     range: string
     domain: BodyPart
+  childMailbox:
+    slot_uri: https://blackcatinformatics.ca/gmeow/childMailbox
+    title: child mailbox
+    range: Mailbox
+    domain: Mailbox
+    multivalued: true
   citationIntent:
     slot_uri: https://blackcatinformatics.ca/gmeow/citationIntent
     title: citation intent
@@ -5790,12 +5802,32 @@ slots:
     range: OnlineAccount
     domain: Mailbox
     multivalued: false
+  mailboxPath:
+    slot_uri: https://blackcatinformatics.ca/gmeow/mailboxPath
+    title: mailbox path
+    range: string
+    domain: Mailbox
   mailboxRole:
     slot_uri: https://blackcatinformatics.ca/gmeow/mailboxRole
     title: mailbox role
     range: string
     domain: Mailbox
     multivalued: false
+  mailboxSortOrder:
+    slot_uri: https://blackcatinformatics.ca/gmeow/mailboxSortOrder
+    title: mailbox sort order
+    range: integer
+    domain: Mailbox
+  mailboxTotalMessages:
+    slot_uri: https://blackcatinformatics.ca/gmeow/mailboxTotalMessages
+    title: mailbox total messages
+    range: integer
+    domain: Mailbox
+  mailboxUnreadMessages:
+    slot_uri: https://blackcatinformatics.ca/gmeow/mailboxUnreadMessages
+    title: mailbox unread messages
+    range: integer
+    domain: Mailbox
   mailmapEntry:
     slot_uri: https://blackcatinformatics.ca/gmeow/mailmapEntry
     title: mailmap entry
@@ -6288,6 +6320,12 @@ slots:
     range: ReferenceFrame
     domain: ReferenceFrame
     multivalued: false
+  parentMailbox:
+    slot_uri: https://blackcatinformatics.ca/gmeow/parentMailbox
+    title: parent mailbox
+    range: Mailbox
+    domain: Mailbox
+    multivalued: true
   partExpansion:
     slot_uri: https://blackcatinformatics.ca/gmeow/partExpansion
     title: part expansion

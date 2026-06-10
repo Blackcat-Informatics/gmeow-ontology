@@ -7332,9 +7332,15 @@ type Mailbox
     wasGeneratedBy: [Activity]
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: String
+    childMailbox: [Mailbox]
     mailboxName: String
     mailboxOfAccount: OnlineAccount
+    mailboxPath: String
     mailboxRole: String
+    mailboxSortOrder: Int
+    mailboxTotalMessages: Int
+    mailboxUnreadMessages: Int
+    parentMailbox: [Mailbox]
   }
 
 type MailboxResidence
