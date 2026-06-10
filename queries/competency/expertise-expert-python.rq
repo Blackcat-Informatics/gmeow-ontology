@@ -1,0 +1,18 @@
+# Competency question: "Which agents have expert-level proficiency in a given skill?"
+# Expected: agent IRIs for proficiencies whose level is one of the expert-level
+# individuals across the Dreyfus, NIH, and assessed skill scales.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?agent ?skill ?level WHERE {
+    ?proficiency a gmeow:SkillProficiency ;
+                 gmeow:skillProficiencyAgent ?agent ;
+                 gmeow:skillProficiencyOf ?skill ;
+                 gmeow:skillProficiencyLevel ?level .
+    VALUES ?level {
+        gmeow:dreyfusExpert
+        gmeow:nihExpert
+        gmeow:assessedExpert
+    }
+}
+ORDER BY ?agent ?skill

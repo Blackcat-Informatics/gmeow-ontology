@@ -189,3 +189,20 @@ def test_malformed_proximity_fixture_is_flagged() -> None:
     assert "exactly one starting entity (gmeow:observedFeature)" in report
     assert "exactly one target entity (gmeow:proximityTo)" in report
     assert "exactly one scalar quantity result" in report
+
+
+def test_wellformed_expertise_fixture_conforms() -> None:
+    """Well-formed SkillProficiency + Credential graph passes expertise shapes."""
+    result = run_shacl(_fixture("expertise-wellformed"))
+    assert result.ok, "\n".join(result.errors)
+
+
+def test_malformed_expertise_fixture_is_flagged() -> None:
+    """A malformed expertise graph is rejected by the new SHACL shapes (#263)."""
+    result = run_shacl(_fixture("expertise-malformed"))
+    assert not result.ok
+    report = "\n".join(result.errors + result.warnings)
+    assert "must reference exactly one Skill" in report
+    assert "levelScale should match" in report
+    assert "must be an Organization" in report
+    assert "should reference a gmeow:Attestation" in report

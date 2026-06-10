@@ -1317,14 +1317,26 @@ enum ProcedureTypeEnum
 
 enum ProficiencyLevelEnum
   {
+    assessedBeginner
+    assessedCompetent
+    assessedExpert
     cefrA1
     cefrA2
     cefrB1
     cefrB2
     cefrC1
     cefrC2
+    dreyfusAdvancedBeginner
+    dreyfusCompetent
+    dreyfusExpert
+    dreyfusNovice
+    dreyfusProficient
     levelHeritage
     levelNative
+    nihAdvanced
+    nihBeginner
+    nihExpert
+    nihIntermediate
   }
 
 enum ProficiencyModalityEnum
@@ -1341,8 +1353,11 @@ enum ProficiencyModalityEnum
 enum ProficiencyScaleEnum
   {
     scaleACTFL
+    scaleAssessed
     scaleCEFR
+    scaleDreyfus
     scaleILR
+    scaleNIH
     scaleSelfReported
   }
 
@@ -2066,6 +2081,7 @@ type Agent
     hasUsed: [Entity]
     hasWorkedWith: [Agent]
     holdsAccount: [OnlineAccount]
+    holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
     mailmapEntry: String
@@ -3108,6 +3124,7 @@ type Builder
     hasUsed: [Entity]
     hasWorkedWith: [Agent]
     holdsAccount: [OnlineAccount]
+    holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
     mailmapEntry: String
@@ -3955,6 +3972,8 @@ type Credential
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    credentialFor: [String]
+    credentialIssuer: Organization
   }
 
 type CryptographicKey
@@ -8520,6 +8539,7 @@ type Occupation
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+    occupationClassification: String
   }
 
 type OnlineAccount
@@ -8606,6 +8626,7 @@ type Organization
     hasUsed: [Entity]
     hasWorkedWith: [Agent]
     holdsAccount: [OnlineAccount]
+    holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
     mailmapEntry: String
@@ -8938,6 +8959,7 @@ type Person
     hasUsed: [Entity]
     hasWorkedWith: [Agent]
     holdsAccount: [OnlineAccount]
+    holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
     mailmapEntry: String
@@ -10755,6 +10777,7 @@ type Sensor
     hasUsed: [Entity]
     hasWorkedWith: [Agent]
     holdsAccount: [OnlineAccount]
+    holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
     mailmapEntry: String
@@ -11413,6 +11436,15 @@ type Skill
     wasGeneratedBy: [Activity]
   }
 
+type SkillProficiency
+  {
+    skillProficiencyAgent: Agent
+    skillProficiencyInterval: [TimeInterval]
+    skillProficiencyLevel: ProficiencyLevel
+    skillProficiencyOf: Skill
+    skillProficiencyScale: ProficiencyScale
+  }
+
 type SLSALevel
   {
   }
@@ -11593,6 +11625,7 @@ type SoftwareAgent
     hasUsed: [Entity]
     hasWorkedWith: [Agent]
     holdsAccount: [OnlineAccount]
+    holdsCredential: [Credential]
     holdsKey: [CryptographicKey]
     knowsLanguage: [Language]
     mailmapEntry: String

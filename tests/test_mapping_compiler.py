@@ -230,7 +230,10 @@ def test_dsl_parses() -> None:
     # RDF namespaces for those OntoUML models.
     # Issue #62 calendar / scheduling slice: +22 (iCalendar x13, schema.org
     # Schedule x4, Wikidata x5).
-    assert len(dsl.equivalences) == 1534
+    # Issue #263 expertise depth: +10 (ESCO skill/occupation x2, CTDL credential x1,
+    # schema.org hasSkill/skills/knowsAbout x2, schema.org hasCredential/
+    # competencyRequired/recognizedBy/sourceOrganization x4, CTDL ownedBy x1).
+    assert len(dsl.equivalences) == 1544
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

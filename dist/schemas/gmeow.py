@@ -1306,14 +1306,26 @@ class ProcedureTypeEnum(str, Enum):
 
 
 class ProficiencyLevelEnum(str, Enum):
+    assessed_beginner = "assessedBeginner"
+    assessed_competent = "assessedCompetent"
+    assessed_expert = "assessedExpert"
     CEFR_A1 = "cefrA1"
     CEFR_A2 = "cefrA2"
     CEFR_B1 = "cefrB1"
     CEFR_B2 = "cefrB2"
     CEFR_C1 = "cefrC1"
     CEFR_C2 = "cefrC2"
+    Dreyfus_advanced_beginner = "dreyfusAdvancedBeginner"
+    Dreyfus_competent = "dreyfusCompetent"
+    Dreyfus_expert = "dreyfusExpert"
+    Dreyfus_novice = "dreyfusNovice"
+    Dreyfus_proficient = "dreyfusProficient"
     heritage = "levelHeritage"
     native = "levelNative"
+    NIH_advanced = "nihAdvanced"
+    NIH_beginner = "nihBeginner"
+    NIH_expert = "nihExpert"
+    NIH_intermediate = "nihIntermediate"
 
 
 class ProficiencyModalityEnum(str, Enum):
@@ -1328,8 +1340,11 @@ class ProficiencyModalityEnum(str, Enum):
 
 class ProficiencyScaleEnum(str, Enum):
     ACTFL = "scaleACTFL"
+    assessed = "scaleAssessed"
     CEFR = "scaleCEFR"
+    Dreyfus = "scaleDreyfus"
     ILR = "scaleILR"
+    NIH = "scaleNIH"
     self_reported = "scaleSelfReported"
 
 
@@ -1977,6 +1992,9 @@ class Agent(ConfiguredBaseModel):
     holdsAccount: Optional[list[OnlineAccount]] = Field(default=None, title="holds account", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsAccount'} })
+    holdsCredential: Optional[list[Credential]] = Field(default=None, title="holds credential", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsCredential'} })
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
@@ -3364,6 +3382,12 @@ class Credential(Entity):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Credential'})
 
+    credentialFor: Optional[list[str]] = Field(default=None, title="credential for", json_schema_extra = { "linkml_meta": {'domain': 'Credential',
+         'domain_of': ['Credential'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credentialFor'} })
+    credentialIssuer: Optional[Organization] = Field(default=None, title="credential issuer", json_schema_extra = { "linkml_meta": {'domain': 'Credential',
+         'domain_of': ['Credential'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/credentialIssuer'} })
     acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
@@ -17591,6 +17615,9 @@ class Occupation(Entity):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Occupation'})
 
+    occupationClassification: Optional[str] = Field(default=None, title="occupation classification", json_schema_extra = { "linkml_meta": {'domain': 'Occupation',
+         'domain_of': ['Occupation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/occupationClassification'} })
     acquireLicensePage: Optional[str] = Field(default=None, title="acquire license page", json_schema_extra = { "linkml_meta": {'domain': 'Entity',
          'domain_of': ['Entity'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/acquireLicensePage'} })
@@ -18001,6 +18028,9 @@ class Organization(Agent):
     holdsAccount: Optional[list[OnlineAccount]] = Field(default=None, title="holds account", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsAccount'} })
+    holdsCredential: Optional[list[Credential]] = Field(default=None, title="holds credential", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsCredential'} })
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
@@ -18902,6 +18932,9 @@ class Person(Agent):
     holdsAccount: Optional[list[OnlineAccount]] = Field(default=None, title="holds account", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsAccount'} })
+    holdsCredential: Optional[list[Credential]] = Field(default=None, title="holds credential", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsCredential'} })
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
@@ -24231,6 +24264,9 @@ class Sensor(Agent):
     holdsAccount: Optional[list[OnlineAccount]] = Field(default=None, title="holds account", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsAccount'} })
+    holdsCredential: Optional[list[Credential]] = Field(default=None, title="holds credential", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsCredential'} })
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
@@ -25562,6 +25598,28 @@ class Skill(Entity):
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/wasGeneratedBy'} })
 
 
+class SkillProficiency(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SkillProficiency',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Skill Proficiency'})
+
+    skillProficiencyAgent: Optional[Agent] = Field(default=None, title="skill proficiency agent", json_schema_extra = { "linkml_meta": {'domain': 'SkillProficiency',
+         'domain_of': ['SkillProficiency'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/skillProficiencyAgent'} })
+    skillProficiencyInterval: Optional[list[TimeInterval]] = Field(default=None, title="skill proficiency interval", json_schema_extra = { "linkml_meta": {'domain': 'SkillProficiency',
+         'domain_of': ['SkillProficiency'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/skillProficiencyInterval'} })
+    skillProficiencyLevel: Optional[ProficiencyLevel] = Field(default=None, title="skill proficiency level", json_schema_extra = { "linkml_meta": {'domain': 'SkillProficiency',
+         'domain_of': ['SkillProficiency'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/skillProficiencyLevel'} })
+    skillProficiencyOf: Optional[Skill] = Field(default=None, title="skill proficiency of", json_schema_extra = { "linkml_meta": {'domain': 'SkillProficiency',
+         'domain_of': ['SkillProficiency'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/skillProficiencyOf'} })
+    skillProficiencyScale: Optional[ProficiencyScale] = Field(default=None, title="skill proficiency scale", json_schema_extra = { "linkml_meta": {'domain': 'SkillProficiency',
+         'domain_of': ['SkillProficiency'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/skillProficiencyScale'} })
+
+
 class SmartContract(Entity):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/SmartContract',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
@@ -26062,6 +26120,9 @@ class SoftwareAgent(Agent):
     holdsAccount: Optional[list[OnlineAccount]] = Field(default=None, title="holds account", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsAccount'} })
+    holdsCredential: Optional[list[Credential]] = Field(default=None, title="holds credential", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsCredential'} })
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
@@ -26114,6 +26175,9 @@ class Builder(SoftwareAgent):
     holdsAccount: Optional[list[OnlineAccount]] = Field(default=None, title="holds account", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsAccount'} })
+    holdsCredential: Optional[list[Credential]] = Field(default=None, title="holds credential", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
+         'domain_of': ['Agent'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsCredential'} })
     holdsKey: Optional[list[CryptographicKey]] = Field(default=None, title="holds key", json_schema_extra = { "linkml_meta": {'domain': 'Agent',
          'domain_of': ['Agent'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/holdsKey'} })
@@ -35972,6 +36036,7 @@ SexualOrientationValue.model_rebuild()
 SignatureScheme.model_rebuild()
 SiteType.model_rebuild()
 Skill.model_rebuild()
+SkillProficiency.model_rebuild()
 SmartContract.model_rebuild()
 SocialObject.model_rebuild()
 Myth.model_rebuild()
