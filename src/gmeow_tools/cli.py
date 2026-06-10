@@ -898,6 +898,9 @@ def quality(
     foops_url: str = typer.Option(
         "", "--foops-url", help="Published ontology URL to assess with FOOPS!."
     ),
+    strict: bool = typer.Option(
+        False, "--strict", help="Fail if OOPS! or FOOPS! cannot be reached."
+    ),
 ) -> None:
     """Run OOPS! (pitfalls) and optionally FOOPS! (FAIR) — network, best-effort."""
     from gmeow_tools import reason as reasoning
@@ -913,6 +916,8 @@ def quality(
         report = run_oops(merged.read_text(encoding="utf-8"))
         console.print(f"[green]✓ OOPS! returned {len(report)} bytes[/green]")
     except Exception as exc:  # network/service failure → visible skip
+        if strict:
+            raise _fail(f"OOPS! failed: {exc}") from exc
         err_console.print(f"[yellow]OOPS! skipped: {exc}[/yellow]")
 
     if foops_url:
@@ -923,6 +928,8 @@ def quality(
                 f"({result.checks_passed}/{result.checks_total})[/green]"
             )
         except Exception as exc:
+            if strict:
+                raise _fail(f"FOOPS! failed: {exc}") from exc
             err_console.print(f"[yellow]FOOPS! skipped: {exc}[/yellow]")
 
 

@@ -16,9 +16,11 @@ Two failure modes are distinguished:
 
 from __future__ import annotations
 
+import contextlib
 import os
 import shutil
 import subprocess
+import time
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -42,42 +44,56 @@ class ToolExecutionError(RuntimeError):
         )
 
 
-def docker_available() -> bool:
+def docker_available(timeout: float = 15.0) -> bool:
     """Return whether the Docker CLI is on PATH and the daemon responds."""
     if shutil.which("docker") is None:
         return False
-    result = subprocess.run(
-        ["docker", "info"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    try:
+        result = subprocess.run(
+            ["docker", "info"],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired:
+        return False
     return result.returncode == 0
 
 
-def image_available(image: str) -> bool:
+def image_available(image: str, timeout: float = 15.0) -> bool:
     """Return whether a Docker image is present locally (does not pull)."""
     if shutil.which("docker") is None:
         return False
-    result = subprocess.run(
-        ["docker", "image", "inspect", image],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    try:
+        result = subprocess.run(
+            ["docker", "image", "inspect", image],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired:
+        return False
     return result.returncode == 0
 
 
-def pull_image(image: str) -> None:
+def pull_image(image: str, timeout: float = 300.0) -> None:
     """Pull a Docker image, raising :class:`ToolUnavailableError` on failure."""
     if not docker_available():
         raise ToolUnavailableError("Docker is not available")
-    result = subprocess.run(
-        ["docker", "pull", image],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    try:
+        result = subprocess.run(
+            ["docker", "pull", image],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise ToolUnavailableError(
+            f"could not pull {image}: timed out after {timeout}s"
+        ) from exc
     if result.returncode != 0:
         raise ToolUnavailableError(f"could not pull {image}: {result.stderr.strip()}")
 
@@ -85,6 +101,11 @@ def pull_image(image: str) -> None:
 def _user_spec() -> str:
     """Return the ``uid:gid`` of the current process for ``docker --user``."""
     return f"{os.getuid()}:{os.getgid()}"
+
+
+def _container_name() -> str:
+    """Return a unique container name for the current process."""
+    return f"gmeow-{os.getpid()}-{time.monotonic_ns()}"
 
 
 def run_container(
@@ -119,17 +140,21 @@ def run_container(
 
     Raises:
         ToolUnavailableError: If Docker or the image is unavailable.
-        ToolExecutionError: If ``check`` is set and the command exits non-zero.
+        ToolExecutionError: If ``check`` is set and the command exits non-zero,
+            or if the container times out.
     """
     if not docker_available():
         raise ToolUnavailableError("Docker is not available")
     if not image_available(image):
         raise ToolUnavailableError(f"Docker image not present locally: {image}")
 
+    name = _container_name()
     docker_cmd = [
         "docker",
         "run",
         "--rm",
+        "--name",
+        name,
         "--user",
         _user_spec(),
         "--volume",
@@ -144,13 +169,48 @@ def run_container(
     docker_cmd.append(image)
     docker_cmd += list(args)
 
-    result = subprocess.run(
-        docker_cmd,
-        capture_output=True,
-        text=True,
-        check=False,
-        timeout=timeout,
-    )
+    try:
+        result = subprocess.run(
+            docker_cmd,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired as exc:
+        # The docker client died but the container keeps running.
+        # Kill it explicitly so --rm fires.
+        with contextlib.suppress(subprocess.TimeoutExpired):
+            subprocess.run(
+                ["docker", "kill", name],
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=10.0,
+            )
+        # Ensure removal even if kill failed.
+        with contextlib.suppress(subprocess.TimeoutExpired):
+            subprocess.run(
+                ["docker", "rm", "-f", name],
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=10.0,
+            )
+        _stdout = (
+            exc.stdout.decode() if isinstance(exc.stdout, bytes) else (exc.stdout or "")
+        )
+        _stderr = (
+            exc.stderr.decode() if isinstance(exc.stderr, bytes) else (exc.stderr or "")
+        )
+        raise ToolExecutionError(
+            docker_cmd,
+            -1,
+            f"container timed out after {timeout}s: {exc}\n"
+            f"stdout: {_stdout}\n"
+            f"stderr: {_stderr}",
+        ) from exc
+
     if check and result.returncode != 0:
         raise ToolExecutionError(
             docker_cmd, result.returncode, result.stdout + result.stderr

@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from rdflib import RDF, Graph, URIRef
+from rdflib.compare import isomorphic
 from rdflib.namespace import OWL
 
 from gmeow_tools.config import NAMESPACE
@@ -26,11 +27,12 @@ def test_serialize_all_formats(tmp_path: Path) -> None:
 
 
 def test_serializations_round_trip(tmp_path: Path) -> None:
-    written = serialize_graph(_sample_graph(), stem="gmeow", dist_dir=tmp_path)
+    original = _sample_graph()
+    written = serialize_graph(original, stem="gmeow", dist_dir=tmp_path)
     readers = {"ttl": "turtle", "rdf": "xml", "nt": "nt", "jsonld": "json-ld"}
     for ext, reader in readers.items():
         reparsed = Graph().parse(written[ext], format=reader)
-        assert len(reparsed) == 1
+        assert isomorphic(original, reparsed), f"{ext} round-trip is not isomorphic"
 
 
 def test_jsonld_context_structure() -> None:
