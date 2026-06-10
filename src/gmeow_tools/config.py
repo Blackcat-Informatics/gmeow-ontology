@@ -21,6 +21,14 @@ ONTOLOGY_IRI = "https://blackcatinformatics.ca/gmeow"
 #: Vocabulary namespace (term IRIs are NAMESPACE + local name).
 NAMESPACE = ONTOLOGY_IRI + "/"
 
+#: Explicit allowlist for ``owl:sameAs`` assertions whose object is outside the
+#: GMEOW namespace. GMEOW's default policy (Principle 5) forbids such triples
+#: because they collapse contested or standpoint-indexed identity. Entries here
+#: are ``(subject_iri, object_iri)`` string pairs and must be individually
+#: justified in a code comment; the list is empty until a legitimate exception
+#: is demonstrated.
+_SAMEAS_ALLOWLIST: frozenset[tuple[str, str]] = frozenset()
+
 #: VoID dataset node IRI (subject of linkset descriptions).
 VOID_DATASET_IRI = ONTOLOGY_IRI + "/.well-known/void.ttl#dataset"
 
