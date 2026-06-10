@@ -9,8 +9,8 @@
 > GTS is a single-file, language-independent transport for an **RDF 1.2** graph
 > (statements *and* statement-level metadata) together with any **content-addressed
 > binary** the graph references. Its lodestar is **reader simplicity**: a conformant
-> baseline reader — "the rdflib of GTS" — is a weekend of work in any language with a
-> CBOR library, and a consumer can do ~90% of what they would do with an RDF library
+> baseline reader — "the rdflib of GTS" — is small enough to prototype in a weekend in any
+> language with a CBOR library, and a consumer can do ~90% of what they would do with an RDF library
 > *without parsing RDF text*. The remaining 10% is delegated to **transforms** that
 > convert GTS to an operating substrate (`.ttl`, `.nq`, DuckDB, SQLite, …).
 >
@@ -29,7 +29,8 @@ Four properties define the format:
 
 1. **CBOR all the way down** (RFC 8949). One ubiquitous, IETF-standardised binary encoding
    with native byte strings (no base64 tax), deterministic encoding (clean content hashes),
-   and indefinite-length sequences (cheap append). A reader needs only a CBOR library.
+   and CBOR Sequences — concatenated data items with no enclosing length, so append is cheap. A
+   reader needs only a CBOR library.
 2. **A durable transform catalog.** Each frame's payload carries a *stackable* chain of
    codecs drawn from an open, long-lived catalog (`identity`, `base64`, `base85`, `gzip`,
    `zstd`, `lzma2`, `cose-encrypt`, …). The catalog separates *structure durability* (CBOR +
@@ -103,9 +104,9 @@ MAY map them to error returns or structured warnings):
 | class | meaning |
 |---|---|
 | `TornAppendError` | trailing incomplete CBOR item at EOF (§3) |
-| `BrokenChain` | a `"prev"` link or self-`"id"` mismatch (§9.1) |
-| `DamagedFrame` | a frame failed its self-hash; folded as opaque `reason:"damaged"` (§7.6) |
-| `TruncatedLog` | a head commitment is present but does not match the last frame (§9, §17) |
+| `DamagedFrame` | self-`"id"` mismatch / invalid frame hash (content corruption); opaque `reason:"damaged"` (§7.6) |
+| `BrokenChain` | valid frame hash, but `"prev"` ≠ the previous item's `"id"` (insertion / reorder / splice) (§9.1) |
+| `TruncatedLog` | a head commitment is present but the observed head differs (§9, §17) |
 | `UnknownCodec` | a transform names a codec the reader lacks; opaque `reason:"unknown-codec"` |
 | `MissingKey` | an `encrypt` codec the reader cannot decrypt; opaque `reason:"missing-key"` |
 | `ConflictingReifier` | a reifier rebound to a different triple (§7.8) |
@@ -152,7 +153,9 @@ content-id   = digest          ; a frame's self-hash (§9.1)
 codec-id     = uint            ; index into the header codec catalog (§8)
 ```
 
-## 5. Header frame
+## 5. Header
+
+The Header is the first data item and the chain genesis; it is not a frame (it has no `"prev"`).
 
 ```cddl
 header = {
@@ -214,10 +217,12 @@ hashed content, each `"id"` transitively commits to all prior frames (§9.1).
 
 To obtain a frame's logical payload:
 
-1. If `"x"` is absent or `[identity]`, the payload is `"d"` directly (structured CBOR).
-2. Otherwise `"d"` is a byte string; apply the **reverse** of each codec in `"x"`, last to
-   first. Each step requires a **capability** (§8.3). On any missing capability, stop and treat
-   the frame as **opaque** (§7.6).
+1. If `"x"` is absent, the payload is `"d"` directly (structured CBOR) — equivalent to a single
+   `identity` transform; a chain resolving to only `identity` likewise leaves `"d"` unchanged.
+2. If `"x"` is present, `"d"` MUST be a byte string and every codec-id MUST resolve through the
+   header `"cat"`; apply the **reverse** of each codec, last to first. Each step requires a
+   **capability** (§8.3). On any missing capability (unknown codec or missing key), stop and
+   treat the frame as **opaque** (§7.6).
 3. The fully-decoded bytes are a CBOR item; decode them to the type-specific structure (§7).
 
 ### 6.2 Index frame (optional)
@@ -239,7 +244,9 @@ index-payload = {
 
 Given `"off"`, a Full Reader dispatches frame-hash verification across threads and seeks to any
 frame; given `"dict"`, a Streaming Reader loads only the dictionary (§7.7); given `"head"`/
-`"mmr"`, it detects truncation and produces O(log n) inclusion proofs.
+`"mmr"`, it detects truncation and produces O(log n) inclusion proofs. A **checkpoint** index is
+simply an `index` emitted periodically rather than only as a footer; an earlier `index` MAY still
+serve as a recovery anchor even though the last intact `index` is preferred for acceleration.
 
 ## 7. Graph data model and fold
 
@@ -357,7 +364,9 @@ opaque-node = {
 Most opaque nodes are produced by a reader at decode time; a writer MAY also emit an explicit
 `opaque` frame (e.g. a redaction placeholder) whose payload is the structure above, in which
 case `"sigstat"` is omitted (a reader determines it). A `damaged` frame (failed self-hash, or
-absent) is isolated and folded as an opaque node too (§9.1). The frame still participates in the
+absent) is isolated and folded as an opaque node too (§9.1): a reader MAY surface its cleartext
+fields as **untrusted** diagnostic metadata, but MUST set `"sigstat"` to `invalid`/`unverified`
+and `"reason": "damaged"` — the bytes are not trustworthy. The frame still participates in the
 id/prev chain, so it cannot be silently stripped.
 
 ### 7.7 Streaming fold and bounded memory
@@ -427,7 +436,7 @@ uses the best frame for which it holds the capabilities.
 A Baseline Reader MUST implement `identity`, `gzip`, and `zstd` — so a conformant reader's full
 dependency set is **CBOR + BLAKE3 + gzip + zstd**. Writers targeting maximum longevity SHOULD
 restrict to the core set. Density-oriented writers MAY use `lzma2` with an in-band dictionary.
-All core codecs are decades-stable, ubiquitously available primitives.
+All core codecs are stable, widely deployed primitives.
 
 ### 8.5 Canonical codec registry (v1)
 
@@ -526,8 +535,24 @@ neither can read.
 
 Compaction folds a log and re-emits it as a single self-contained `snapshot` frame (re-interned
 dictionary, deduplicated quads, dropped self-loops, optionally a materialised entailment
-closure). Compaction is **lossy by definition**: it discards the original per-frame signatures
-and the temporal stacking of the log. A compactor:
+closure). A `snapshot`'s payload is a self-contained fold — the four tables plus inline blobs
+and meta:
+
+```cddl
+snapshot-payload = {
+  "terms"    : terms-payload,
+  ? "quads"  : quads-payload,
+  ? "reifies": reifies-payload,
+  ? "annot"  : annot-payload,
+  ? "blobs"  : { * digest => bstr },   ; inline content-addressed blobs
+  ? "meta"   : any,
+}
+```
+
+A reader folds a `snapshot` exactly as it would fold the equivalent sequence of `terms`/`quads`/
+`reifies`/`annot`/`blob` frames; term-ids restart at `0` within the snapshot's own dictionary.
+Compaction is **lossy by definition**: it discards the original per-frame signatures and the
+temporal stacking of the log. A compactor:
 
 - MUST record the provenance of the fold (source log digest, time, agent) as quads in the
   snapshot, and
@@ -545,8 +570,20 @@ and hash-linked; suppression is a **display/precedence contract**, interpreted b
 not an erasure. This preserves a complete, tamper-evident history.
 
 ```cddl
-suppress-payload = { "targets": [+ (digest / term-id)], ? "reason": tstr, ? "by": term-id }
+suppress-payload = { "targets": [+ suppress-target], ? "reason": tstr, ? "by": term-id }
+suppress-target =
+    { "kind": "frame",   "id": digest } /                                ; a frame, by its "id"
+    { "kind": "blob",    "digest": digest } /                            ; a content-addressed blob
+    { "kind": "term",    "id": term-id } /                               ; a term + quads it appears in
+    { "kind": "quad",    "q": [term-id, term-id, term-id, ? term-id] } / ; one specific quad
+    { "kind": "reifier", "id": term-id }                                 ; a reifier + its annotations
 ```
+
+Suppression is **monotonic and additive**: a matched target is hidden from default resolution (a
+`term` target also hides every quad in which the term appears); the bytes remain present and
+hash-linked, and a consumer MAY surface suppressed content explicitly. There is no un-suppress in
+v1 — later frames may add further suppressions, and a later identical assertion does not revive a
+suppressed target.
 
 ## 12. Binary and content-addressing
 
@@ -606,8 +643,8 @@ A profile is a named set of conventions over the one format (declared in header 
 
 Profiles constrain conventions, not the wire format; a `generic` reader reads them all. The
 `evidence` profile additionally REQUIRES a head commitment (§9, item 4), and writers SHOULD emit
-a checkpoint `index` frame every N frames (implementation-chosen N) so a damaged log recovers
-robustly (§9.1).
+a checkpoint `index` at least every 1024 frames or 64 MiB, whichever comes first, so a damaged
+log recovers robustly (§9.1).
 
 ## 14. Transforms out
 
