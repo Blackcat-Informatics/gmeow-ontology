@@ -1,0 +1,22 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/test/> .
+
+# A malformed expertise data graph that should fail shapes/expertise-shapes.ttl
+
+ex:alice a gmeow:Agent .
+ex:python a gmeow:Skill .
+
+# Missing skillProficiencyOf and skillProficiencyScale mismatches level scale
+# (Level metadata is included so the cross-check SPARQL shape can fire.)
+gmeow:dreyfusExpert gmeow:levelScale gmeow:scaleDreyfus .
+
+ex:alicePython a gmeow:SkillProficiency ;
+    gmeow:skillProficiencyAgent ex:alice ;
+    gmeow:skillProficiencyLevel gmeow:dreyfusExpert ;
+    gmeow:skillProficiencyScale gmeow:scaleAssessed .
+
+# credentialIssuer points at an Agent, not an Organization
+ex:bob a gmeow:Agent .
+ex:badCert a gmeow:Credential ;
+    gmeow:credentialIssuer ex:bob ;
+    gmeow:credentialFor ex:python .

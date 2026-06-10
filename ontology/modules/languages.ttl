@@ -538,19 +538,22 @@ gmeow:ProficiencyScale
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Proficiency Scale"@en ;
-    skos:definition "A framework for rating language proficiency (CEFR, ILR, ACTFL, self-reported). A value carried by gmeow:proficiencyScale and gmeow:levelScale."@en ;
+    skos:definition "A framework for rating proficiency — language, skill, or any competency domain (CEFR, ILR, ACTFL, Dreyfus, NIH, assessed, self-reported). A value carried by gmeow:proficiencyScale, gmeow:skillProficiencyScale, and gmeow:levelScale."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:scaleCEFR         a gmeow:ProficiencyScale ; rdfs:label "CEFR"@en .
 gmeow:scaleILR          a gmeow:ProficiencyScale ; rdfs:label "ILR"@en .
 gmeow:scaleACTFL        a gmeow:ProficiencyScale ; rdfs:label "ACTFL"@en .
 gmeow:scaleSelfReported a gmeow:ProficiencyScale ; rdfs:label "self-reported"@en .
+gmeow:scaleDreyfus      a gmeow:ProficiencyScale ; rdfs:label "Dreyfus"@en .
+gmeow:scaleNIH          a gmeow:ProficiencyScale ; rdfs:label "NIH"@en .
+gmeow:scaleAssessed     a gmeow:ProficiencyScale ; rdfs:label "assessed"@en .
 
 gmeow:ProficiencyLevel
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Proficiency Level"@en ;
-    skos:definition "An attained proficiency level on a scale (CEFR A1–C2; native; heritage). A value carried by gmeow:proficiencyLevel; gmeow:levelScale ties it to its scale. ILR (0–5) and ACTFL levels are added as further individuals."@en ;
+    skos:definition "An attained proficiency level on a scale (CEFR A1–C2; Dreyfus novice→expert; NIH beginner→expert; assessed; native; heritage). A value carried by gmeow:proficiencyLevel and gmeow:skillProficiencyLevel; gmeow:levelScale ties it to its scale. ILR (0–5) and ACTFL levels are added as further individuals."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:cefrA1 a gmeow:ProficiencyLevel ; rdfs:label "CEFR A1"@en ; gmeow:levelScale gmeow:scaleCEFR .
@@ -561,6 +564,24 @@ gmeow:cefrC1 a gmeow:ProficiencyLevel ; rdfs:label "CEFR C1"@en ; gmeow:levelSca
 gmeow:cefrC2 a gmeow:ProficiencyLevel ; rdfs:label "CEFR C2"@en ; gmeow:levelScale gmeow:scaleCEFR .
 gmeow:levelNative   a gmeow:ProficiencyLevel ; rdfs:label "native"@en .
 gmeow:levelHeritage a gmeow:ProficiencyLevel ; rdfs:label "heritage"@en .
+
+# Dreyfus model (skill scale)
+gmeow:dreyfusNovice          a gmeow:ProficiencyLevel ; rdfs:label "Dreyfus novice"@en ;          gmeow:levelScale gmeow:scaleDreyfus .
+gmeow:dreyfusAdvancedBeginner a gmeow:ProficiencyLevel ; rdfs:label "Dreyfus advanced beginner"@en ; gmeow:levelScale gmeow:scaleDreyfus .
+gmeow:dreyfusCompetent       a gmeow:ProficiencyLevel ; rdfs:label "Dreyfus competent"@en ;       gmeow:levelScale gmeow:scaleDreyfus .
+gmeow:dreyfusProficient      a gmeow:ProficiencyLevel ; rdfs:label "Dreyfus proficient"@en ;      gmeow:levelScale gmeow:scaleDreyfus .
+gmeow:dreyfusExpert          a gmeow:ProficiencyLevel ; rdfs:label "Dreyfus expert"@en ;          gmeow:levelScale gmeow:scaleDreyfus .
+
+# NIH proficiency scale (skill scale)
+gmeow:nihBeginner     a gmeow:ProficiencyLevel ; rdfs:label "NIH beginner"@en ;     gmeow:levelScale gmeow:scaleNIH .
+gmeow:nihIntermediate a gmeow:ProficiencyLevel ; rdfs:label "NIH intermediate"@en ; gmeow:levelScale gmeow:scaleNIH .
+gmeow:nihAdvanced     a gmeow:ProficiencyLevel ; rdfs:label "NIH advanced"@en ;     gmeow:levelScale gmeow:scaleNIH .
+gmeow:nihExpert       a gmeow:ProficiencyLevel ; rdfs:label "NIH expert"@en ;       gmeow:levelScale gmeow:scaleNIH .
+
+# Generic assessed scale (skill scale)
+gmeow:assessedBeginner  a gmeow:ProficiencyLevel ; rdfs:label "assessed beginner"@en ;  gmeow:levelScale gmeow:scaleAssessed .
+gmeow:assessedCompetent a gmeow:ProficiencyLevel ; rdfs:label "assessed competent"@en ; gmeow:levelScale gmeow:scaleAssessed .
+gmeow:assessedExpert    a gmeow:ProficiencyLevel ; rdfs:label "assessed expert"@en ;    gmeow:levelScale gmeow:scaleAssessed .
 
 gmeow:TransliterationScheme
     a owl:Class, gufo:AbstractIndividualType ;

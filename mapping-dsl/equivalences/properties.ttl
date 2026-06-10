@@ -18,6 +18,7 @@
 @prefix dpv: <https://w3id.org/dpv#> .
 @prefix time: <http://www.w3.org/2006/time#> .
 @prefix qudt: <http://qudt.org/schema/qudt/> .
+@prefix ceterms: <https://purl.org/ctdl/terms/> .
 
 # Term equivalences for the properties domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-properties.sssom.tsv by `gmeow compile-mappings`.
@@ -590,4 +591,68 @@ gmeow:eqProperties067 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:comment "industryClassification carries open codes (NAICS/ISIC); org:classification is broader" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+# --- Expertise / CV depth (issue #263) ------------------------------------- #
+
+gmeow:eqProperties068 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasSkill ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:skills ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "schema.org skills — the leveled SkillProficiency relator collapses to a flat skill link" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties069 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasSkill ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:knowsAbout ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "schema.org knowsAbout — broader, lossy flattening of SkillProficiency" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties070 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:holdsCredential ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:hasCredential ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties071 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:credentialFor ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:competencyRequired ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "schema.org competencyRequired — the credential-to-skill/occupation link downcasts lossily" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties072 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:credentialIssuer ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:recognizedBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "schema.org recognizedBy — the credential issuer" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties073 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:credentialIssuer ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:sourceOrganization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "schema.org sourceOrganization — the organization that issued the credential" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties074 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:credentialIssuer ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject ceterms:ownedBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "CTDL ownedBy — the organization that owns/issued the credential" ;
     gmeow:sssomFile "gmeow-properties.sssom.tsv" .

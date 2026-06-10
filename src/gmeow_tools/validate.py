@@ -17,9 +17,8 @@ from rdflib.term import Node
 from gmeow_tools.config import (
     MAPPING_DSL_DIR,
     NAMESPACE,
-    ORGANIZATION_SHAPES_FILE,
+    SHAPES_DIR,
     SHAPES_FILE,
-    SOFTWARE_SHAPES_FILE,
     STATEMENT_DSL_DIR,
 )
 from gmeow_tools.graph import iter_source_files, load_merged_graph
@@ -35,12 +34,21 @@ def _shapes_graph(shapes_path: Path) -> Graph:
     ``run_shacl`` runs ~150 times across the test suite; re-parsing the shapes
     Turtle each call wastes ~30 ms apiece. pyshacl does not mutate the shapes
     graph it is handed, so one shared cached parse per path is safe.
+
+    Loads the requested base shapes file plus every other modular ``*.ttl``
+    shape file in ``shapes/`` except the DSL-specific lints, so new domain
+    shape files (e.g. ``expertise-shapes.ttl``) are picked up automatically.
     """
     graph = Graph().parse(shapes_path, format="turtle")
-    if SOFTWARE_SHAPES_FILE.exists():
-        graph.parse(SOFTWARE_SHAPES_FILE, format="turtle")
-    if ORGANIZATION_SHAPES_FILE.exists():
-        graph.parse(ORGANIZATION_SHAPES_FILE, format="turtle")
+    dsl_shapes = {
+        "mapping-dsl-shapes.ttl",
+        "statement-dsl-shapes.ttl",
+        shapes_path.name,
+    }
+    for extra in sorted(SHAPES_DIR.glob("*.ttl")):
+        if extra.name in dsl_shapes:
+            continue
+        graph.parse(extra, format="turtle")
     return graph
 
 

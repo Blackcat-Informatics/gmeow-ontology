@@ -257,6 +257,7 @@ PREFIXES: dict[str, str] = {
     "as": "https://www.w3.org/ns/activitystreams#",
     "mads": "http://www.loc.gov/mads/rdf/v1#",
     "esco": "http://data.europa.eu/esco/model#",
+    "ceterms": "https://purl.org/ctdl/terms/",
     "nmo": "http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#",
     "wot": "http://xmlns.com/wot/0.1/",
     # Verifiable Credentials / DID (the attestation module, #162)

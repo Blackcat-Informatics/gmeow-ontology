@@ -14,10 +14,12 @@ present after materialization.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
 from functools import lru_cache
 
 import owlrl
-from rdflib import RDF, Graph, Namespace
+from rdflib import RDF, Graph, Literal, Namespace
+from rdflib.namespace import XSD
 from rdflib.query import ResultRow
 
 from gmeow_tools.config import COMPETENCY_DIR, NAMESPACE, ONTOLOGY_DIR, QC_DIR
@@ -639,3 +641,91 @@ def test_competency_research_inquiries_query() -> None:
     # there are no open inquiry instances, so the query returns an empty set.
     terms = _query_terms("research-inquiries.rq")
     assert terms == set()
+
+
+# --------------------------------------------------------------------------- #
+# Issue #263 — Expertise depth competency queries
+# --------------------------------------------------------------------------- #
+
+
+def test_competency_expertise_expert_python_query() -> None:
+    """Expert-level proficiency query returns the agent."""
+    g = Graph()
+    g.add((EX.agent1, RDF.type, GMEOW.Agent))
+    g.add((EX.python, RDF.type, GMEOW.Skill))
+    g.add((EX.prof1, RDF.type, GMEOW.SkillProficiency))
+    g.add((EX.prof1, GMEOW.skillProficiencyAgent, EX.agent1))
+    g.add((EX.prof1, GMEOW.skillProficiencyOf, EX.python))
+    g.add((EX.prof1, GMEOW.skillProficiencyLevel, GMEOW.dreyfusExpert))
+    terms = _query_terms_on_graph("expertise-expert-python.rq", g)
+    assert str(EX.agent1) in terms
+
+
+def test_competency_expertise_expiring_credentials_query() -> None:
+    """Expiring-credentials query returns credentials with a future expiry."""
+    g = Graph()
+    g.add((EX.cred1, RDF.type, GMEOW.Credential))
+    g.add((EX.cred1, GMEOW.credentialIssuer, EX.amazon))
+    g.add((EX.amazon, RDF.type, GMEOW.Organization))
+    # Use a timezone-aware future date so rdflib can compare with NOW().
+    expires_soon = datetime.now(UTC) + timedelta(days=180)
+    expires_str = expires_soon.isoformat().replace("+00:00", "Z")
+    g.add(
+        (
+            EX.cred1,
+            GMEOW.validUntil,
+            Literal(expires_str, datatype=XSD.dateTime),
+        )
+    )
+    terms = _query_terms_on_graph("expertise-expiring-credentials.rq", g)
+    assert str(EX.cred1) in terms
+
+
+def test_competency_expertise_endorsed_vs_self_asserted_query() -> None:
+    """Endorsed-vs-self-asserted query classifies proficiencies correctly."""
+    g = Graph()
+    g.add((EX.agent1, RDF.type, GMEOW.Agent))
+    g.add((EX.peer, RDF.type, GMEOW.Agent))
+    g.add((EX.python, RDF.type, GMEOW.Skill))
+
+    # Self-asserted proficiency (no attestation)
+    g.add((EX.profSelf, RDF.type, GMEOW.SkillProficiency))
+    g.add((EX.profSelf, GMEOW.skillProficiencyAgent, EX.agent1))
+    g.add((EX.profSelf, GMEOW.skillProficiencyOf, EX.python))
+    g.add((EX.profSelf, GMEOW.skillProficiencyLevel, GMEOW.assessedCompetent))
+
+    # Endorsed proficiency (third-party attestation)
+    g.add((EX.profEndorsed, RDF.type, GMEOW.SkillProficiency))
+    g.add((EX.profEndorsed, GMEOW.skillProficiencyAgent, EX.agent1))
+    g.add((EX.profEndorsed, GMEOW.skillProficiencyOf, EX.python))
+    g.add((EX.profEndorsed, GMEOW.skillProficiencyLevel, GMEOW.dreyfusExpert))
+    g.add((EX.att1, RDF.type, GMEOW.Attestation))
+    g.add((EX.att1, GMEOW.attestedSubject, EX.profEndorsed))
+    g.add((EX.att1, GMEOW.attester, EX.peer))
+
+    # Self-attested proficiency with self-attestation (should stay self-asserted)
+    g.add((EX.profSelfAttested, RDF.type, GMEOW.SkillProficiency))
+    g.add((EX.profSelfAttested, GMEOW.skillProficiencyAgent, EX.agent1))
+    g.add((EX.profSelfAttested, GMEOW.skillProficiencyOf, EX.python))
+    g.add((EX.att2, RDF.type, GMEOW.Attestation))
+    g.add((EX.att2, GMEOW.attestedSubject, EX.profSelfAttested))
+    g.add((EX.att2, GMEOW.attester, EX.agent1))
+
+    terms = _query_terms_on_graph("expertise-endorsed-vs-self-asserted.rq", g)
+    assert str(EX.profSelf) in terms
+    assert str(EX.profEndorsed) in terms
+    assert str(EX.profSelfAttested) in terms
+
+
+def test_competency_expertise_employment_credentials_query() -> None:
+    """Employment-credentials query links employment to certifying credentials."""
+    g = Graph()
+    g.add((EX.emp1, RDF.type, GMEOW.Employment))
+    g.add((EX.sweOcc, RDF.type, GMEOW.Occupation))
+    g.add((EX.emp1, GMEOW.employmentOccupation, EX.sweOcc))
+    g.add((EX.cred1, RDF.type, GMEOW.Credential))
+    g.add((EX.cred1, GMEOW.credentialFor, EX.sweOcc))
+    g.add((EX.cred1, GMEOW.credentialIssuer, EX.org1))
+    g.add((EX.org1, RDF.type, GMEOW.Organization))
+    terms = _query_terms_on_graph("expertise-employment-credentials.rq", g)
+    assert str(EX.emp1) in terms

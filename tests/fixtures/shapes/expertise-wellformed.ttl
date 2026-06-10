@@ -1,0 +1,26 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/test/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# A well-formed expertise data graph that should pass shapes/expertise-shapes.ttl
+
+ex:alice a gmeow:Agent .
+ex:python a gmeow:Skill .
+
+ex:alicePython a gmeow:SkillProficiency ;
+    gmeow:skillProficiencyAgent ex:alice ;
+    gmeow:skillProficiencyOf ex:python ;
+    gmeow:skillProficiencyLevel gmeow:dreyfusExpert ;
+    gmeow:skillProficiencyScale gmeow:scaleDreyfus .
+
+ex:amazon a gmeow:Organization .
+
+ex:awsCert a gmeow:Credential ;
+    gmeow:credentialIssuer ex:amazon ;
+    gmeow:credentialFor ex:python ;
+    gmeow:validUntil "2027-06-01T00:00:00"^^xsd:dateTime .
+
+ex:att1 a gmeow:Attestation ;
+    gmeow:attestedSubject ex:awsCert ;
+    gmeow:attester ex:amazon ;
+    gmeow:issuedAt "2026-01-01T00:00:00"^^xsd:dateTime .
