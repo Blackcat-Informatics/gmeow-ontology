@@ -950,6 +950,59 @@ def quality(
             err_console.print(f"[yellow]FOOPS! skipped: {exc}[/yellow]")
 
 
+gts_app = typer.Typer(
+    name="gts",
+    help="Graph Transport Substrate (GTS) reference reader and transforms.",
+    no_args_is_help=True,
+)
+app.add_typer(gts_app, name="gts")
+
+
+@gts_app.command("info")
+def gts_info(file: Path) -> None:
+    """Summarise a GTS file: terms/quads/blobs counts and any diagnostics."""
+    from gmeow_tools import gts
+
+    try:
+        data = file.read_bytes()
+    except OSError as exc:
+        raise _fail(f"cannot read {file}: {exc}") from exc
+    graph = gts.read(data)
+    console.print(
+        f"[bold]{file.name}[/bold]: {len(graph.terms)} terms, "
+        f"{len(graph.quads)} quads, {len(graph.reifiers)} reifiers, "
+        f"{len(graph.annotations)} annotations, {len(graph.blobs)} blobs, "
+        f"{len(graph.opaque)} opaque"
+    )
+    for diag in graph.diagnostics:
+        err_console.print(f"[yellow]{diag.code}[/yellow]: {diag.detail}")
+
+
+_GTS_OUT_OPTION = typer.Option(
+    None, "--out", "-o", help="Write N-Quads here (else stdout)."
+)
+
+
+@gts_app.command("to-nq")
+def gts_to_nq(file: Path, out: Path | None = _GTS_OUT_OPTION) -> None:
+    """Transform a GTS file to N-Quads (§14 of GTS-SPEC.md)."""
+    from gmeow_tools import gts
+
+    try:
+        graph = gts.read(file.read_bytes())
+    except OSError as exc:
+        raise _fail(f"cannot read {file}: {exc}") from exc
+    text = gts.to_nquads(graph)
+    if out is None:
+        console.print(text, end="")
+        return
+    try:
+        out.write_text(text, encoding="utf-8")
+    except OSError as exc:
+        raise _fail(f"cannot write {out}: {exc}") from exc
+    console.print(f"[green]✓[/green] {out}")
+
+
 @app.command(name="mcp")
 def mcp_start() -> None:
     """Start the GMEOW MCP server (stdio transport).
