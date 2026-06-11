@@ -16,10 +16,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from gmeow_tools.gts.codec import Codec
-from gmeow_tools.gts.model import Term, TermKind
-from gmeow_tools.gts.wire import canonical, content_id
-from gmeow_tools.gts.writer import Writer
+from gts.codec import Codec
+from gts.model import Term, TermKind
+from gts.wire import canonical, content_id
+from gts.writer import Writer
 
 CAT = "https://example.org/Cat"
 DOG = "https://example.org/Dog"
@@ -259,6 +259,21 @@ def _profile_union_opacity() -> bytes:
     return _segment_one() + bytes(w.to_bytes()) + canonical(frame)
 
 
+def _inline_blob() -> bytes:
+    """Vector 22: an inline content-addressed blob with declared media type."""
+    w = Writer()
+    w.add_terms(
+        [
+            Term(TermKind.IRI, CAT),
+            Term(TermKind.IRI, LABEL),
+            Term(TermKind.LITERAL, "Cat", lang="en"),
+        ]
+    )
+    w.add_quads([(0, 1, 2, None)])
+    w.add_blob(b"not really webp bytes", mt="image/webp")
+    return bytes(w.to_bytes())
+
+
 def corpus() -> list[VectorCase]:
     """The full exportable corpus, in spec §18 order."""
     return [
@@ -281,6 +296,7 @@ def corpus() -> list[VectorCase]:
         ),
         VectorCase("18-cross-segment-suppression", _cross_segment_suppression()),
         VectorCase("19-profile-union-opacity", _profile_union_opacity()),
+        VectorCase("22-inline-blob", _inline_blob()),
     ]
 
 
@@ -294,8 +310,8 @@ def corpus() -> list[VectorCase]:
 
 def expected_for(case: VectorCase) -> dict[str, object]:
     """Run the reference oracle over a case and summarize the outcome."""
-    from gmeow_tools.gts.nquads import to_nquads
-    from gmeow_tools.gts.reader import read
+    from gts.nquads import to_nquads
+    from gts.reader import read
 
     g = read(case.data, allow_segments=(case.mode != "pre-segment"))
     return {
@@ -308,6 +324,19 @@ def expected_for(case: VectorCase) -> dict[str, object]:
         "profiles": list(g.segment_profiles),
         "opaque_reasons": sorted(o.reason for o in g.opaque),
         "suppressions": len(g.suppressions),
+        # Inline blobs: digest -> {size, declared media type} — pins blob
+        # folding and metadata retention (§12) across implementations.
+        "blobs": {
+            digest: {
+                "size": len(data),
+                "mt": (
+                    mt
+                    if isinstance(mt := g.blob_meta.get(digest, {}).get("mt"), str)
+                    else None
+                ),
+            }
+            for digest, data in g.blobs.items()
+        },
         # Sorted N-Quads lines; cross-implementation comparison is modulo
         # blank-node labelling (compare bnode-free lines exactly, bnode lines
         # by isomorphism or count).

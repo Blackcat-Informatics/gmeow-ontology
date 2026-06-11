@@ -163,7 +163,7 @@ impl Folder<'_> {
             "quads" => self.h_quads(&payload, index),
             "reifies" => self.h_reifies(&payload, index),
             "annot" => self.h_annot(&payload, index),
-            "blob" => self.h_blob(&payload),
+            "blob" => self.h_blob(&payload, frame),
             "meta" => self.h_meta(&payload),
             "suppress" => self.h_suppress(&payload),
             "snapshot" => self.h_snapshot(&payload, index),
@@ -309,9 +309,15 @@ impl Folder<'_> {
         }
     }
 
-    fn h_blob(&mut self, payload: &Value) {
+    fn h_blob(&mut self, payload: &Value, frame: &[(Value, Value)]) {
         if let Value::Bytes(b) = payload {
-            self.g.set_blob(digest_str(b), b.clone());
+            let digest = digest_str(b);
+            if let Some(pub_meta) = map_get(frame, "pub") {
+                if matches!(pub_meta, Value::Map(_)) {
+                    self.g.set_blob_meta(digest.clone(), pub_meta.clone());
+                }
+            }
+            self.g.set_blob(digest, b.clone());
         }
         // else: external blob — bytes live elsewhere, referenced by "pub".digest (§12).
     }
@@ -954,6 +960,9 @@ fn union_segments(segments: &[Graph]) -> Graph {
         }
         for (digest, bytes) in &seg.blobs {
             u.out.set_blob(digest.clone(), bytes.clone());
+        }
+        for (digest, meta) in &seg.blob_meta {
+            u.out.set_blob_meta(digest.clone(), meta.clone());
         }
         for (k, v) in &seg.meta {
             // file-level shallow merge; later segments win

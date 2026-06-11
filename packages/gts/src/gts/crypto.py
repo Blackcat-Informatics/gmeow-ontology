@@ -32,7 +32,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
 )
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-from gmeow_tools.gts.codec import CodecUnavailableError
+from gts.codec import CodecUnavailableError
 
 # COSE header labels / algorithm ids (RFC 9052 §3.1, IANA COSE registries).
 _ALG, _KID, _IV = 1, 4, 5

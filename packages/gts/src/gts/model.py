@@ -104,6 +104,10 @@ class Graph:
     reifiers: dict[int, Triple] = field(default_factory=dict)
     annotations: list[Triple] = field(default_factory=list)
     blobs: dict[str, bytes] = field(default_factory=dict)
+    #: Declared blob metadata by digest — the blob frame's ``"pub"`` map
+    #: (``mt``, ``rep``, …) retained through the fold so tooling can list
+    #: contents and assert media types without re-walking frames (§12).
+    blob_meta: dict[str, dict[str, object]] = field(default_factory=dict)
     meta: dict[str, object] = field(default_factory=dict)
     suppressions: list[Suppression] = field(default_factory=list)
     opaque: list[OpaqueNode] = field(default_factory=list)

@@ -105,6 +105,10 @@ pub struct Graph {
     pub annotations: Vec<Triple3>,
     /// `blake3:<hex>` digest → inline bytes, insertion-ordered.
     pub blobs: Vec<(String, Vec<u8>)>,
+    /// Declared blob metadata by digest — the blob frame's `"pub"` map
+    /// (`mt`, `rep`, …) retained through the fold so tooling can list
+    /// contents and assert media types without re-walking frames (§12).
+    pub blob_meta: Vec<(String, Value)>,
     /// File-level shallow-merged metadata, insertion-ordered.
     pub meta: Vec<(String, Value)>,
     pub suppressions: Vec<Suppression>,
@@ -144,6 +148,15 @@ impl Graph {
             slot.1 = value;
         } else {
             self.meta.push((key, value));
+        }
+    }
+
+    /// Record a blob's declared metadata, replacing in place.
+    pub fn set_blob_meta(&mut self, digest: String, meta: Value) {
+        if let Some(slot) = self.blob_meta.iter_mut().find(|(d, _)| *d == digest) {
+            slot.1 = meta;
+        } else {
+            self.blob_meta.push((digest, meta));
         }
     }
 
