@@ -16,7 +16,7 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/attestation> ,
-        <https://blackcatinformatics.ca/gmeow/slices/core> ,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     gmeow:sliceConsumer "Graph-native epistemics of the lie (P16: core by commitment); the claim layer's refutations."@x-gmeow-english .

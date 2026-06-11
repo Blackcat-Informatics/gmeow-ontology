@@ -16,7 +16,7 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/agreements> ,
-        <https://blackcatinformatics.ca/gmeow/slices/core> ,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     gmeow:sliceConsumer "Licensing of every artifact: the ontology's own dual licence, images, software, the mail corpus."@x-gmeow-english .

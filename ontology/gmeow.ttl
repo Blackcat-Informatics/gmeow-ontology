@@ -36,7 +36,7 @@
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow> ;
     owl:imports
         <http://purl.org/nemo/gufo#> ,
-        <https://blackcatinformatics.ca/gmeow/slices/core> ,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/profiles> ,
         <https://blackcatinformatics.ca/gmeow/slices/entities> ,
         <https://blackcatinformatics.ca/gmeow/slices/organization> ,

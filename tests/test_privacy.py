@@ -138,7 +138,7 @@ def test_sensitivity_orthogonal_to_granularity() -> None:
 def test_no_preferred_or_primary_sensitivity_term() -> None:
     """No gmeow:primary* / gmeow:preferred* privacy term."""
     module = Graph().parse(
-        module_path("core"),
+        module_path("kernel"),
         format="turtle",
     )
     offenders = []

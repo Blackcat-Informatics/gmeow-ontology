@@ -97,7 +97,7 @@ def test_sensory_observation_specialises_observation() -> None:
 def test_sensor_specialises_agent() -> None:
     """Sensor is inferred as an Agent under OWL RL."""
     graph = Graph()
-    graph.parse(module_path("core"), format="turtle")
+    graph.parse(module_path("kernel"), format="turtle")
     graph.parse(module_path("observations"), format="turtle")
     graph.parse(module_path("sensory"), format="turtle")
     graph.add((EX.sensor1, RDF.type, GMEOW.Sensor))
@@ -163,7 +163,7 @@ def test_has_sensory_observation_is_inverse() -> None:
 def test_sensory_observation_el_axioms() -> None:
     """A SensoryObservation individual with required properties stays consistent."""
     graph = Graph()
-    graph.parse(module_path("core"), format="turtle")
+    graph.parse(module_path("kernel"), format="turtle")
     graph.parse(module_path("places"), format="turtle")
     graph.parse(module_path("observations"), format="turtle")
     graph.parse(module_path("sensory"), format="turtle")
@@ -235,7 +235,7 @@ def test_has_sensory_quantity_property_chain() -> None:
 def test_contested_sensory_readings_coexist() -> None:
     """Two sensors observing the same feature with different results coexist."""
     graph = Graph()
-    graph.parse(module_path("core"), format="turtle")
+    graph.parse(module_path("kernel"), format="turtle")
     graph.parse(module_path("places"), format="turtle")
     graph.parse(module_path("observations"), format="turtle")
     graph.parse(module_path("sensory"), format="turtle")

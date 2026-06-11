@@ -15,6 +15,6 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
-        <https://blackcatinformatics.ca/gmeow/slices/core> ,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     gmeow:sliceConsumer "Folksonomy tagging reused by images and software (forced core by dual extension use)."@x-gmeow-english .

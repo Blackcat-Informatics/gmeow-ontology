@@ -15,6 +15,6 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierExtension ;
     gmeow:sliceDependsOn
-        <https://blackcatinformatics.ca/gmeow/slices/core> ,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/places> ;
     gmeow:sliceConsumer "Network/route topology for places and the virtual-location realm."@x-gmeow-english .

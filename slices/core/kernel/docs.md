@@ -1,9 +1,9 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# core
+# kernel
 
-> **Slice:** `https://blackcatinformatics.ca/gmeow/slices/core` · **tier: core**
+> **Slice:** `https://blackcatinformatics.ca/gmeow/slices/kernel` · **tier: core**
 
 Foundational GMEOW categories grounded in gUFO, plus the annotation properties used across all modules.
 

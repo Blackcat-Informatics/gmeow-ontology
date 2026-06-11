@@ -69,7 +69,7 @@ def test_existing_part_like_relations_specialize_the_spine() -> None:
 
 def test_specialized_part_relations_entail_generic_parthood() -> None:
     g = _materialize(
-        "core",
+        "kernel",
         "places",
         "organization",
         "events",
@@ -89,7 +89,7 @@ def test_specialized_part_relations_entail_generic_parthood() -> None:
 
 def test_member_of_propagates_through_suborganization() -> None:
     g = _materialize(
-        "core",
+        "kernel",
         "organization",
         abox=(
             (EX.alex, GM.memberOf, EX.team),
@@ -103,7 +103,7 @@ def test_member_of_propagates_through_suborganization() -> None:
 
 def test_event_location_propagates_through_spatial_containment_only() -> None:
     g = _materialize(
-        "core",
+        "kernel",
         "places",
         "events",
         abox=(

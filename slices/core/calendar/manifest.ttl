@@ -16,7 +16,7 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/agreements> ,
-        <https://blackcatinformatics.ca/gmeow/slices/core> ,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     gmeow:sliceConsumer "Scheduling atop events: the mail corpus's invitations (#139), the >25%-usage floor (named in #287)."@x-gmeow-english .

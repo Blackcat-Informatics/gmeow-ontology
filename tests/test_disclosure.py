@@ -143,7 +143,7 @@ def test_disclosure_orthogonal_to_granularity() -> None:
 def test_no_preferred_or_primary_disclosure_term() -> None:
     """No gmeow:primary* / gmeow:preferred* disclosure term."""
     module = Graph().parse(
-        module_path("core"),
+        module_path("kernel"),
         format="turtle",
     )
     offenders = []

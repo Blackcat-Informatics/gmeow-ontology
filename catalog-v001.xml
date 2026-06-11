@@ -8,7 +8,7 @@
     <uri name="http://purl.org/nemo/gufo#" uri="imports/gufo.ttl"/>
 
     <!-- GMEOW modules -->
-    <uri name="https://blackcatinformatics.ca/gmeow/slices/core" uri="slices/core/core/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/kernel" uri="slices/core/kernel/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/profiles" uri="slices/core/profiles/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/entities" uri="slices/core/entities/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/organization" uri="slices/core/organization/module.ttl"/>

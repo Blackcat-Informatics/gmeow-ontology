@@ -8,11 +8,11 @@
 @prefix vann:    <http://purl.org/vocab/vann/> .
 @prefix qudt:    <http://qudt.org/schema/qudt/> .
 
-<https://blackcatinformatics.ca/gmeow/slices/core>
+<https://blackcatinformatics.ca/gmeow/slices/kernel>
     a owl:Ontology ;
     rdfs:label "GMEOW Core Module"@x-gmeow-english ;
     skos:definition "The GMEOW Core Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/core> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:comment "Foundational GMEOW categories grounded in gUFO, plus the annotation properties used across all modules."@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
@@ -183,16 +183,16 @@ gmeow:hasDeterminacy
 # Seeds
 gmeow:determinacyCrisp         a gmeow:Determinacy ; rdfs:label "crisp"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:determinacyCrisp skos:definition "The crisp determinacy — a characterization of whether a value is crisp, vague, fuzzy, probabilistic, or disputed (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/core> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 gmeow:determinacyVague         a gmeow:Determinacy ; rdfs:label "vague"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:determinacyVague skos:definition "The vague determinacy — a characterization of whether a value is crisp, vague, fuzzy, probabilistic, or disputed (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/core> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 gmeow:determinacyFuzzy         a gmeow:Determinacy ; rdfs:label "fuzzy"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:determinacyFuzzy skos:definition "The fuzzy determinacy — a characterization of whether a value is crisp, vague, fuzzy, probabilistic, or disputed (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/core> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 gmeow:determinacyProbabilistic a gmeow:Determinacy ; rdfs:label "probabilistic"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 gmeow:determinacyProbabilistic skos:definition "The probabilistic determinacy — a characterization of whether a value is crisp, vague, fuzzy, probabilistic, or disputed (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/core> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 gmeow:determinacyDisputed      a gmeow:Determinacy ; rdfs:label "disputed"@x-gmeow-english ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 # --------------------------------------------------------------------------- #
 # Sensitivity — universal privacy-classification vocabulary (#73, PRIV-GEN).
@@ -202,7 +202,7 @@ gmeow:determinacyDisputed      a gmeow:Determinacy ; rdfs:label "disputed"@x-gme
 # The sensitivity axis is orthogonal to determinacy, confidence, and granularity.
 # --------------------------------------------------------------------------- #
 gmeow:determinacyDisputed skos:definition "The disputed determinacy — a characterization of whether a value is crisp, vague, fuzzy, probabilistic, or disputed (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/core> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
 gmeow:SensitivityLevel
     a owl:Class, gufo:AbstractIndividualType ;
