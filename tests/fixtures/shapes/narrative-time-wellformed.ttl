@@ -1,0 +1,75 @@
+# Well-formed narrative-time fixture (#359, EPIC #358). One creative work, two
+# narrative time frames (discourse + story), and a flashback: the same diegetic
+# event carries coexisting positions in both frames whose orders disagree —
+# queryable, not contradictory. Every frame declares exactly one axis, the
+# narrative realm, and the standard ReferenceFrame boilerplate; every position
+# names its frame and carries an ordinal, a label, or both. run_shacl over this
+# graph MUST conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:novel a gmeow:CreativeWork ; rdfs:label "Kushiel's Dart (first edition)"@en .
+
+ex:canon a gmeow:NarrativeReferenceFrame ;
+    rdfs:label "Kushiel's Legacy canon"@en ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ;
+    gmeow:frameKind gmeow:frameKindNarrative ;
+    gmeow:hasAxis ex:canonAxis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+# Discourse-time frame: owned by the telling (the first edition's chaptering).
+ex:discourseFrame a gmeow:NarrativeTimeFrame ;
+    rdfs:label "first-edition chapter order"@en ;
+    gmeow:narrativeTimeAxis gmeow:axisDiscourseTime ;
+    gmeow:discourseTimeOf ex:novel ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ;
+    gmeow:frameKind gmeow:frameKindNarrative ;
+    gmeow:hasAxis ex:discourseAxis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+# Story-time frame: owned by the canon (the fabula).
+ex:storyFrame a gmeow:NarrativeTimeFrame ;
+    rdfs:label "canon fabula order"@en ;
+    gmeow:narrativeTimeAxis gmeow:axisStoryTime ;
+    gmeow:storyTimeOf ex:canon ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ;
+    gmeow:frameKind gmeow:frameKindNarrative ;
+    gmeow:hasAxis ex:storyAxis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+# The flashback: chapter 31 of the telling narrates an event that happened
+# FIRST in the fabula. Discourse position 31 vs story position 1 — the two
+# orders disagree, and both claims stand (Principle 9).
+ex:posChapter31 a gmeow:NarrativePosition ;
+    gmeow:positionFrame ex:discourseFrame ;
+    gmeow:positionOrdinal 31 ;
+    gmeow:positionLabel "Thirty-Three" .
+
+ex:posStoryFirst a gmeow:NarrativePosition ;
+    gmeow:positionFrame ex:storyFrame ;
+    gmeow:positionOrdinal 1 .
+
+# A label-only position is legal (named story moment, no ordinal).
+ex:posLongestNight a gmeow:NarrativePosition ;
+    gmeow:positionFrame ex:storyFrame ;
+    gmeow:positionLabel "the Longest Night" .
+
+# A diegetic event: typed (EventShape; EventType is an open vocabulary, so the
+# fixture mints a narrative-domain value) but placed only in narrative time —
+# its in-universe occurrence is a claim accordingTo ex:canon, never a
+# real-world temporal placement.
+ex:eventTypeRevelation a gmeow:EventType ; rdfs:label "revelation"@en .
+
+ex:betrayalEvent a gmeow:Event ;
+    rdfs:label "Delaunay reveals his oath"@en ;
+    gmeow:eventType ex:eventTypeRevelation ;
+    gmeow:atNarrativePosition ex:posChapter31 , ex:posStoryFirst .

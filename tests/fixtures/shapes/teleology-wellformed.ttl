@@ -1,0 +1,49 @@
+# Well-formed teleology fixture (#350, EPIC #348). The commitment-graded
+# trichotomy end to end: a desire (wanted), an intention (internally
+# committed), and a commitment (socially committed, toward a distinct
+# beneficiary), all aiming at goals; one goal pair in constitutive opposition;
+# one tenure recording adoption of the intention over an interval.
+# run_shacl over this graph MUST conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:ada  a gmeow:Person ; rdfs:label "Ada"@en .
+ex:basil a gmeow:Person ; rdfs:label "Basil"@en .
+
+# Goals — propositional content, with the named shadow.
+ex:goalShipOntology a gmeow:Goal ;
+    rdfs:label "the ontology ships"@en .
+
+ex:goalKeepOath a gmeow:Goal ;
+    rdfs:label "the oath holds"@en ;
+    gmeow:counterGoal ex:goalBreakOath .
+
+ex:goalBreakOath a gmeow:Goal ;
+    rdfs:label "the oath is broken"@en .
+
+# Wanted: a desire, one bearer, one goal.
+ex:adaWantsToShip a gmeow:Desire ;
+    gmeow:intentBearer ex:ada ;
+    gmeow:intentionGoal ex:goalShipOntology .
+
+# Internally committed: an intention.
+ex:adaIntendsToShip a gmeow:Intention ;
+    gmeow:intentBearer ex:ada ;
+    gmeow:intentionGoal ex:goalShipOntology .
+
+# Socially committed: toward a DISTINCT beneficiary.
+ex:adaPromisesBasil a gmeow:Commitment ;
+    gmeow:committedAgent ex:ada ;
+    gmeow:commitmentBeneficiary ex:basil ;
+    gmeow:intentionGoal ex:goalKeepOath .
+
+# Flat shortcut for the 80% case.
+ex:basil gmeow:hasGoal ex:goalShipOntology .
+
+# Tenure: the intention was held over an interval (adoption is the fact).
+ex:adaIntentionTenure a gmeow:IntentionTenure ;
+    gmeow:tenureAgent ex:ada ;
+    gmeow:tenureIntention ex:adaIntendsToShip .

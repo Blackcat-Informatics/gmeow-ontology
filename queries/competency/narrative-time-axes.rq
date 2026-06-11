@@ -1,0 +1,13 @@
+# Competency question: "Which narrative time axes exist, and is the
+# fabula/syuzhet space spanned with no privileged winner?"
+# Expected: exactly gmeow:axisDiscourseTime (syuzhet — the order of telling)
+# and gmeow:axisStoryTime (fabula — the order of happening in-universe).
+# The chapter sequence is the syuzhet projection of frame-relative story
+# content (#359, EPIC #358); neither axis is the truth of the other.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?axis WHERE {
+    ?axis a gmeow:NarrativeTimeAxis .
+}
+ORDER BY ?axis

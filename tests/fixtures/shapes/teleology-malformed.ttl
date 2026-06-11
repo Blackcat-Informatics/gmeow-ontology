@@ -1,0 +1,34 @@
+# Malformed teleology fixture (#350, EPIC #348). Four violations:
+#   1. ex:bearerlessDesire — a Desire with no intentBearer and no goal.
+#   2. ex:selfCommitment — a Commitment whose beneficiary IS the committed
+#      agent (a resolution to oneself is an Intention, not a Commitment).
+#   3. ex:narcissusGoal — a goal that is its own counter-goal.
+#   4. ex:emptyTenure — an IntentionTenure with neither agent nor intention.
+# run_shacl over this graph MUST NOT conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:ada a gmeow:Person ; rdfs:label "Ada"@en .
+
+ex:someGoal a gmeow:Goal ; rdfs:label "a goal"@en .
+
+# Violation 1: no bearer, no goal.
+ex:bearerlessDesire a gmeow:Desire ;
+    rdfs:label "free-floating want"@en .
+
+# Violation 2: self-directed commitment.
+ex:selfCommitment a gmeow:Commitment ;
+    gmeow:committedAgent ex:ada ;
+    gmeow:commitmentBeneficiary ex:ada ;
+    gmeow:intentionGoal ex:someGoal .
+
+# Violation 3: its own shadow.
+ex:narcissusGoal a gmeow:Goal ;
+    rdfs:label "self-opposed goal"@en ;
+    gmeow:counterGoal ex:narcissusGoal .
+
+# Violation 4: empty tenure.
+ex:emptyTenure a gmeow:IntentionTenure ;
+    rdfs:label "tenure of nothing"@en .

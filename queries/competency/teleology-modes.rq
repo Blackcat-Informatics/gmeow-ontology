@@ -1,0 +1,17 @@
+# Competency question: "What grades of intentional commitment can GMEOW
+# record, and how do they divide between intrinsic modes and relators?"
+# Expected: gmeow:Desire and gmeow:Intention as subclasses of
+# gmeow:IntentionalMode (intrinsic — one bearer), and gmeow:Commitment as a
+# gufo:Relator (social — committed agent + distinct beneficiaries). The
+# commitment-graded trichotomy of the teleology core slice (#350, EPIC #348).
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?mode WHERE {
+    { ?mode rdfs:subClassOf gmeow:IntentionalMode . }
+    UNION
+    { ?mode rdfs:subClassOf <http://purl.org/nemo/gufo#Relator> .
+      FILTER(?mode = gmeow:Commitment) }
+}
+ORDER BY ?mode
