@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Competency (#267): which transform codecs (and capability classes) does each
+# GTS document use — i.e. what must a reader hold to fold it fully?
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?document ?codec ?codecClass WHERE {
+    ?segment gmeow:gtsSegmentOf ?document ;
+             gmeow:usesTransformCodec ?codec .
+    ?codec gmeow:codecClass ?codecClass .
+}
+ORDER BY ?document ?codec
