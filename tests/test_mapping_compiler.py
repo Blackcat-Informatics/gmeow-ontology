@@ -606,7 +606,7 @@ def test_sssom_object_label_and_provenance() -> None:
     header = next(ln for ln in wikidata.splitlines() if ln.startswith("subject_id"))
     assert "object_label" in header.split("\t")
     assert "\thuman\t" in wikidata  # wd:Q5's label, now in object_label
-    assert "# mapping_tool: gmeow compile-mappings" in wikidata
+    assert "# mapping_tool: gmeow regenerate (mappings)" in wikidata
     assert "# mapping_date:" in wikidata
     assert "# curie_map:" in wikidata
 
@@ -620,7 +620,7 @@ def test_sssom_validates_with_sssom_toolkit() -> None:
 def test_malformed_sssom_fails_validation() -> None:
     """An invalid SSSOM TSV (unknown prefix) is caught by the validation gate."""
     bad = (
-        "# mapping_tool: gmeow compile-mappings\n"
+        "# mapping_tool: gmeow regenerate (mappings)\n"
         "# curie_map:\n"
         "#   gmeow: https://example.org/\n"
         "subject_id\tpredicate_id\tobject_id\n"
@@ -634,15 +634,16 @@ def test_malformed_sssom_fails_validation() -> None:
 def test_compile_all_check_stops_on_sssom_validation_failure(  # type: ignore[no-untyped-def]
     monkeypatch,
 ) -> None:
-    """``compile_all()`` aborts when ``_validate_sssom`` reports errors."""
+    """Generator run aborts when ``_validate_sssom`` reports errors."""
     from gmeow_tools import mapping_compile as mc
+    from gmeow_tools.generator import run
 
     def _bad_validate(_: dict[str, str]) -> list[str]:
         return ["mappings/x.sssom.tsv: synthetic validation failure"]
 
     monkeypatch.setattr(mc, "_validate_sssom", _bad_validate)
     with pytest.raises(CompileError, match="SSSOM validation failed"):
-        mc.compile_all()
+        run("mappings")
 
 
 def test_drift_flags_orphaned_sssom(tmp_path: Path, monkeypatch) -> None:  # type: ignore[no-untyped-def]

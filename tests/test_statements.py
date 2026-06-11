@@ -22,9 +22,10 @@ from gmeow_tools.config import (
     PROJECT_ROOT,
     STATEMENT_RDF12_FILE,
 )
+from gmeow_tools.generator import run
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.runner import image_available
-from gmeow_tools.statement_compile import assert_lossless, compile_statements, emit_owl
+from gmeow_tools.statement_compile import assert_lossless, emit_owl
 from gmeow_tools.statement_dsl import (
     Annotation,
     QuotedTriple,
@@ -219,8 +220,10 @@ def test_rdf12_hard_fails_without_jena(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(runner, "image_available", lambda _image, **_kw: False)
     from gmeow_tools.cli import app
 
-    result = CliRunner().invoke(app, ["compile-statements"])
-    assert result.exit_code == 2  # ToolUnavailableError → no degraded fallback
+    result = CliRunner().invoke(app, ["regenerate", "statements"])
+    assert result.exit_code != 0  # ToolUnavailableError → no degraded fallback
+    assert result.exception is not None
+    assert "ToolUnavailableError" in type(result.exception).__name__
 
 
 # --------------------------------------------------------------------------- #
@@ -231,10 +234,14 @@ def test_rdf12_hard_fails_without_jena(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.mark.docker
 @requires_jena
 def test_committed_artifacts_match_dsl() -> None:
-    report = compile_statements(check=True)
+    report = run("statements", check=True)
     assert report.drifted == [], (
-        "committed statement artifacts are stale — run `gmeow compile-statements`:\n  "
+        "committed statement artifacts are stale — run `gmeow regenerate`:\n  "
         + "\n  ".join(report.drifted)
+    )
+    assert report.orphans == [], (
+        "committed statement artifacts include orphaned generated files:\n  "
+        + "\n  ".join(report.orphans)
     )
 
 

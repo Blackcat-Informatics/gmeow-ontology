@@ -16,7 +16,15 @@ from rdflib import OWL, RDF, RDFS, Graph, Literal, URIRef
 from rdflib.namespace import SKOS
 
 from gmeow_tools.config import NAMESPACE
-from gmeow_tools.export import collect_terms, curie, export_all
+from gmeow_tools.export import (
+    collect_terms,
+    curie,
+    write_csvs,
+    write_csvw,
+    write_jsonl,
+    write_llms_txt,
+    write_markdown,
+)
 
 pytestmark = pytest.mark.ci_only
 
@@ -58,8 +66,20 @@ def test_term_attributes_are_populated() -> None:
     assert signing_key.functional is True
 
 
+def _write_all_exports(dist_dir: Path) -> list[Path]:
+    """Write all export views into *dist_dir* (test helper)."""
+    terms = collect_terms()
+    written: list[Path] = []
+    written.extend(write_csvs(terms, dist_dir))
+    written.append(write_csvw(dist_dir))
+    written.append(write_jsonl(terms, dist_dir))
+    written.append(write_markdown(terms, dist_dir))
+    written.append(write_llms_txt(terms, dist_dir))
+    return written
+
+
 def test_export_all_writes_every_view(tmp_path: Path) -> None:
-    written = export_all(dist_dir=tmp_path)
+    written = _write_all_exports(tmp_path)
     names = {p.name for p in written}
     assert names == {
         "gmeow-classes.csv",
@@ -75,7 +95,7 @@ def test_export_all_writes_every_view(tmp_path: Path) -> None:
 
 
 def test_classes_csv_is_well_formed(tmp_path: Path) -> None:
-    export_all(dist_dir=tmp_path)
+    _write_all_exports(tmp_path)
     with (tmp_path / "gmeow-classes.csv").open(encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
     by_curie = {r["curie"]: r for r in rows}
@@ -85,7 +105,7 @@ def test_classes_csv_is_well_formed(tmp_path: Path) -> None:
 
 
 def test_properties_csv_records_functionality(tmp_path: Path) -> None:
-    export_all(dist_dir=tmp_path)
+    _write_all_exports(tmp_path)
     with (tmp_path / "gmeow-properties.csv").open(encoding="utf-8") as handle:
         rows = {r["curie"]: r for r in csv.DictReader(handle)}
     assert rows["gmeow:signingKey"]["functional"] == "true"
@@ -93,7 +113,7 @@ def test_properties_csv_records_functionality(tmp_path: Path) -> None:
 
 
 def test_jsonl_catalog_parses(tmp_path: Path) -> None:
-    export_all(dist_dir=tmp_path)
+    _write_all_exports(tmp_path)
     lines = (tmp_path / "gmeow-terms.jsonl").read_text(encoding="utf-8").splitlines()
     records = [json.loads(line) for line in lines]
     assert records, "catalog should not be empty"
@@ -104,7 +124,7 @@ def test_jsonl_catalog_parses(tmp_path: Path) -> None:
 
 
 def test_csvw_descriptor_is_valid(tmp_path: Path) -> None:
-    export_all(dist_dir=tmp_path)
+    _write_all_exports(tmp_path)
     descriptor = json.loads((tmp_path / "gmeow-terms.csvw.json").read_text("utf-8"))
     assert descriptor["@context"] == "http://www.w3.org/ns/csvw"
     assert {t["url"] for t in descriptor["tables"]} == {
@@ -115,7 +135,7 @@ def test_csvw_descriptor_is_valid(tmp_path: Path) -> None:
 
 
 def test_markdown_reference_has_all_sections(tmp_path: Path) -> None:
-    export_all(dist_dir=tmp_path)
+    _write_all_exports(tmp_path)
     md = (tmp_path / "gmeow-terms.md").read_text(encoding="utf-8")
     # The header counts individuals, so the section must actually be emitted.
     for section in ("## Classes", "## Properties", "## Individuals"):
@@ -124,7 +144,7 @@ def test_markdown_reference_has_all_sections(tmp_path: Path) -> None:
 
 
 def test_llms_txt_bundle(tmp_path: Path) -> None:
-    export_all(dist_dir=tmp_path)
+    _write_all_exports(tmp_path)
     text = (tmp_path / "llms.txt").read_text(encoding="utf-8")
     assert text.startswith("# GMEOW")
     assert "## Classes" in text and "## Properties" in text
@@ -132,7 +152,7 @@ def test_llms_txt_bundle(tmp_path: Path) -> None:
 
 
 def test_llms_txt_has_no_blank_nodes(tmp_path: Path) -> None:
-    export_all(dist_dir=tmp_path)
+    _write_all_exports(tmp_path)
     fresh_content = (tmp_path / "llms.txt").read_text(encoding="utf-8")
     assert "_:" not in fresh_content, (
         "Found raw blank node ID in freshly generated llms.txt"
