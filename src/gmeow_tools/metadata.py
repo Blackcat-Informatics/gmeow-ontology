@@ -1,22 +1,28 @@
 """Generate VoID and DCAT dataset descriptions.
 
 VoID (with linksets) is what the LOD-Cloud submission consumes; DCAT gives a
-FAIR-friendly dataset/distribution view. Linksets are pulled from the SSSOM
-mappings so the cross-dataset links stay in sync with the alignment axioms.
+FAIR-friendly dataset/distribution view. Every data-derived value comes from
+the GTS snapshot (the narrow waist, #267): the version from the ontology
+header in the default graph, the linksets from the alignments named graph.
+rdflib appears here ONLY as the output serializer for the freshly
+constructed description graphs — never as a reader of canonical sources.
 """
 
 from __future__ import annotations
 
+import hashlib
+from collections import defaultdict
 from collections.abc import Sequence
 from pathlib import Path
 
-from rdflib import RDF, Graph, Literal, URIRef
+from rdflib import RDF, RDFS, Graph, Literal, URIRef
 from rdflib.namespace import DCAT, DCTERMS, FOAF, VOID, XSD
 
 from gmeow_tools.config import (
     ALIGNMENT_TARGETS,
     DCAT_FILE,
-    MAPPINGS_DIR,
+    GTS_GRAPH_ALIGNMENTS,
+    GTS_SNAPSHOT_FILE,
     NAMESPACE,
     ONTOLOGY_IRI,
     PREFIXES,
@@ -25,9 +31,9 @@ from gmeow_tools.config import (
     VOID_FILE,
 )
 from gmeow_tools.generator import Generator, register, write_turtle
-from gmeow_tools.graph import bind_prefixes, iter_module_files
-from gmeow_tools.mappings import build_linksets, load_mappings
-from gmeow_tools.self_desc import load_self_description
+from gmeow_tools.graph import bind_prefixes
+from gmeow_tools.gts_views import FoldView, load_fold
+from gmeow_tools.mappings import object_namespace
 
 _CC_BY = URIRef("https://creativecommons.org/licenses/by/4.0/")
 _PUBLISHER = URIRef("https://blackcatinformatics.ca/#bii")
@@ -47,8 +53,63 @@ _MEDIA_TYPE: dict[str, str] = {
 }
 
 
-def build_void_graph() -> Graph:
+_OWL_VERSION_INFO = "http://www.w3.org/2002/07/owl#versionInfo"
+
+
+def _fold_version(view: FoldView) -> str:
+    """The ontology version from the snapshot's header (owl:versionInfo)."""
+    onto = view.tid_of_iri(ONTOLOGY_IRI)
+    version = view.value(onto, _OWL_VERSION_INFO) if onto is not None else None
+    if version is None:
+        msg = f"snapshot lacks owl:versionInfo on {ONTOLOGY_IRI}"
+        raise ValueError(msg)
+    return view.lex(version)
+
+
+def _fold_linksets(view: FoldView) -> Graph:
+    """VoID linksets from the snapshot's alignments graph.
+
+    Same bucketing as the retired SSSOM-row path: one ``void:Linkset`` per
+    (target namespace, predicate) pair with its triple count — but counted
+    over the alignment AXIOMS the snapshot actually carries (§7.8 set
+    semantics), which is what the published links are.
+    """
+    graph = Graph()
+    bind_prefixes(graph)
+    dataset = URIRef(VOID_DATASET_IRI)
+    buckets: dict[tuple[str, str], int] = defaultdict(int)
+    for _s, p, o, _g in view.quads(scope=GTS_GRAPH_ALIGNMENTS):
+        if not (view.is_iri(p) and view.is_iri(o)):
+            continue  # defensive: alignment axioms are IRI→IRI by construction
+        target_ns = object_namespace(URIRef(view.lex(o)))
+        buckets[(target_ns, view.lex(p))] += 1
+
+    for (target_ns, predicate_iri), count in sorted(buckets.items()):
+        predicate = URIRef(predicate_iri)
+        predicate_id = view.curie(predicate_iri)
+        slug = predicate_id.replace(":", "_")
+        target_slug = target_ns.rstrip("#/").rsplit("/", 1)[-1] or "target"
+        ns_hash = hashlib.sha256(target_ns.encode()).hexdigest()[:6]
+        linkset = URIRef(f"{VOID_DATASET_IRI}-linkset-{target_slug}-{ns_hash}-{slug}")
+        graph.add((linkset, RDF.type, VOID.Linkset))
+        graph.add((linkset, VOID.subjectsTarget, dataset))
+        graph.add((linkset, VOID.objectsTarget, URIRef(target_ns)))
+        graph.add((linkset, VOID.linkPredicate, predicate))
+        graph.add((linkset, VOID.triples, Literal(count)))
+        graph.add(
+            (
+                linkset,
+                RDFS.label,
+                Literal(f"GMEOW {predicate_id} links to {target_ns} ({count})"),
+            )
+        )
+    return graph
+
+
+def build_void_graph(view: FoldView | None = None) -> Graph:
     """Build the VoID dataset description, including mapping linksets."""
+    if view is None:
+        view = load_fold()
     graph = Graph()
     bind_prefixes(graph)
     dataset = URIRef(VOID_DATASET_IRI)
@@ -80,7 +141,7 @@ def build_void_graph() -> Graph:
     graph.add((dataset, DCTERMS.publisher, _PUBLISHER))
     graph.add((dataset, DCTERMS.creator, _PUBLISHER))
     graph.add((dataset, FOAF.homepage, URIRef(ONTOLOGY_IRI)))
-    graph.add((dataset, DCTERMS.hasVersion, Literal(load_self_description().version)))
+    graph.add((dataset, DCTERMS.hasVersion, Literal(_fold_version(view))))
     graph.add((dataset, VOID.uriSpace, Literal(NAMESPACE)))
     graph.add((dataset, VOID.exampleResource, URIRef(NAMESPACE + "Person")))
 
@@ -95,16 +156,18 @@ def build_void_graph() -> Graph:
     for target in ALIGNMENT_TARGETS.values():
         graph.add((dataset, VOID.vocabulary, URIRef(target.namespace)))
 
-    # Linksets derived from the SSSOM mappings.
-    linksets = build_linksets(load_mappings())
+    # Linksets derived from the snapshot's alignments graph.
+    linksets = _fold_linksets(view)
     for subj, _pred, _obj in linksets.triples((None, RDF.type, VOID.Linkset)):
         graph.add((dataset, VOID.subset, subj))
     graph += linksets
     return graph
 
 
-def build_dcat_graph() -> Graph:
+def build_dcat_graph(view: FoldView | None = None) -> Graph:
     """Build a DCAT dataset description with one distribution per format."""
+    if view is None:
+        view = load_fold()
     graph = Graph()
     bind_prefixes(graph)
     dataset = URIRef(ONTOLOGY_IRI)
@@ -113,7 +176,7 @@ def build_dcat_graph() -> Graph:
     graph.add((dataset, DCTERMS.license, _CC_BY))
     graph.add((dataset, DCTERMS.publisher, _PUBLISHER))
     graph.add((dataset, DCAT.landingPage, URIRef(ONTOLOGY_IRI)))
-    graph.add((dataset, DCTERMS.hasVersion, Literal(load_self_description().version)))
+    graph.add((dataset, DCTERMS.hasVersion, Literal(_fold_version(view))))
     for ext, media in _MEDIA_TYPE.items():
         dist = URIRef(f"{ONTOLOGY_IRI}#dist-{ext}")
         graph.add((dist, RDF.type, DCAT.Distribution))
@@ -137,11 +200,7 @@ class MetadataGenerator(Generator):
     @property
     def inputs(self) -> Sequence[Path]:
         """Canonical inputs for the metadata generator."""
-        return [
-            PROJECT_ROOT / "ontology" / "gmeow.ttl",
-            *iter_module_files(),
-            *list(MAPPINGS_DIR.glob("*.sssom.tsv")),
-        ]
+        return [GTS_SNAPSHOT_FILE]
 
     @property
     def outputs(self) -> Sequence[Path]:
@@ -152,15 +211,16 @@ class MetadataGenerator(Generator):
         """Render VoID and DCAT dataset descriptions."""
         void_path = staging / VOID_FILE.relative_to(PROJECT_ROOT)
         dcat_path = staging / DCAT_FILE.relative_to(PROJECT_ROOT)
+        view = load_fold()
         write_turtle(
             void_path,
-            build_void_graph(),
+            build_void_graph(view),
             name=self.name,
             source_hash=getattr(self, "_source_hash", ""),
         )
         write_turtle(
             dcat_path,
-            build_dcat_graph(),
+            build_dcat_graph(view),
             name=self.name,
             source_hash=getattr(self, "_source_hash", ""),
         )
