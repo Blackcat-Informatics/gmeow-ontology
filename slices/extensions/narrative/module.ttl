@@ -269,3 +269,106 @@ gmeow:affectedConsumerSurface
     rdfs:label "affected consumer surface"@x-gmeow-english ;
     skos:definition "The projection consumer surfaces that a myth tends to leak into — e.g. Wikipedia, public site, agent memory — so that a correction can be scoped to the surfaces that actually carry the bad claim. Reuses the gmeow:ProjectionContext vocabulary (#225)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+# =========================================================================== #
+# NARRATIVE TIME — story-time & discourse-time frames (issue #359, EPIC #358)
+#
+# DOCTRINE: the chapter sequence is the syuzhet projection of frame-relative
+# story content. Discourse time (the order of telling: segment ordinals,
+# chapter indices) and story time (the order of happening in-universe: the
+# fabula) are distinct coordinate systems that disagree by design — a
+# flashback is a local inversion between the two axes; a retcon is a
+# frame-scoped story-time remapping, preserved by suppression like every
+# canon revision above. A position without its frame is meaningless: no bare
+# chapter indices. Allen relations between diegetic events are frame-relative
+# claims asserted gmeow:accordingTo the narrative frame via the statement
+# layer — never global facts. Discourse↔story mappings (the flashback
+# structure itself) are expressed as coexisting positions of one event in
+# both frames; a reified mapping construct is deliberately deferred to
+# coordinate with the music extension's TimeMapping (#306) so the repo grows
+# one frame-mapping idiom, not two.
+# =========================================================================== #
+
+gmeow:NarrativeTimeFrame
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:ReferenceFrame ;
+    rdfs:label "Narrative Time Frame"@x-gmeow-english ;
+    skos:definition "A coordinate system for narrative position — the reference frame in which 'where in the story' is expressed. Exactly one axis kind per frame: discourse time (the order of telling — chapter indices, scene ordinals — owned by the telling work, since different editions may re-segment) or story time (the order of happening in-universe — the fabula — owned by a NarrativeReferenceFrame, since continuities can reorder it). The same diegetic event may carry coexisting positions in a discourse frame and a story frame; their disagreement IS the flashback, made queryable rather than contradictory."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:NarrativeTimeAxis
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Narrative Time Axis"@x-gmeow-english ;
+    skos:definition "The axis kind of a narrative time frame — a value vocabulary (individuals, never subclasses) of exactly two members: discourse time (syuzhet, the order of telling) and story time (fabula, the order of happening). Both are first-class and neither wins (Principle 9): the discourse order is not an approximation of the story order, and the story order is not the truth of the discourse order."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+# Seeds
+gmeow:axisDiscourseTime a gmeow:NarrativeTimeAxis ; rdfs:label "discourse time (syuzhet)"@x-gmeow-english ;
+    skos:definition "The discourse-time axis — narrative position in the order of telling: chapter indices, scene ordinals, page positions. Owned by the telling work or expression; a re-segmented edition is a different discourse frame."@x-gmeow-english .
+gmeow:axisDiscourseTime rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:axisStoryTime     a gmeow:NarrativeTimeAxis ; rdfs:label "story time (fabula)"@x-gmeow-english ;
+    skos:definition "The story-time axis — narrative position in the order of happening in-universe: the fabula. Owned by a narrative reference frame; a continuity may reorder story time, and the reordering (a retcon) is a frame-scoped claim revision preserved by suppression (Principle 10)."@x-gmeow-english .
+gmeow:axisStoryTime rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:narrativeTimeAxis
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NarrativeTimeFrame ;
+    rdfs:range gmeow:NarrativeTimeAxis ;
+    rdfs:label "narrative time axis"@x-gmeow-english ;
+    skos:definition "The axis kind of this narrative time frame — discourse time or story time. Functional: a frame measures exactly one axis; a work and its fabula are two frames, not one frame with two moods."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:discourseTimeOf
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NarrativeTimeFrame ;
+    rdfs:range gmeow:CreativeWork ;
+    rdfs:label "discourse time of"@x-gmeow-english ;
+    skos:definition "Anchors a discourse-time frame to the creative work (expression or manifestation tier) whose telling order it coordinatizes. Functional: one frame, one telling. Different editions or translations that re-segment the text own different discourse frames; positions do not transfer between them without an explicit mapping claim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:storyTimeOf
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NarrativeTimeFrame ;
+    rdfs:range gmeow:NarrativeReferenceFrame ;
+    rdfs:label "story time of"@x-gmeow-english ;
+    skos:definition "Anchors a story-time frame to the narrative reference frame (canon, continuity) whose in-universe chronology it coordinatizes. Functional: one anchoring per frame; competing continuities carry their own story-time frames, and the same event may hold different story positions in each (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:NarrativePosition
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Narrative Position"@x-gmeow-english ;
+    skos:definition "A frame-relative position in a narrative — the narrative analogue of SpatialCoordinates. Carries its frame (mandatory: a position without a frame is the bare-integer anti-pattern this class exists to forbid), an ordinal (chapter_index 31), a label ('Thirty-Three', 'the Longest Night'), or both. Ranges are expressed as paired positions. Comparison, ordering, and discourse↔story reconciliation are solver-layer computations (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:positionFrame
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NarrativePosition ;
+    rdfs:range gmeow:NarrativeTimeFrame ;
+    rdfs:label "position frame"@x-gmeow-english ;
+    skos:definition "The narrative time frame in which this position is expressed. Functional and mandatory (SHACL): every narrative position names its frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:positionOrdinal
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NarrativePosition ;
+    rdfs:range xsd:integer ;
+    rdfs:label "position ordinal"@x-gmeow-english ;
+    skos:definition "The ordinal coordinate of this position within its frame — a chapter index, scene number, or fabula sequence number. Functional within one position; ordering semantics belong to the frame, and comparisons to the solver layer (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:positionLabel
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:NarrativePosition ;
+    rdfs:range xsd:string ;
+    rdfs:label "position label"@x-gmeow-english ;
+    skos:definition "A human-oriented label for this position — a chapter title ('Thirty-Three'), a named story moment ('the Longest Night'). Non-functional: co-equal labels coexist (Principle 9). A position must carry an ordinal or a label or both (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:atNarrativePosition
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:NarrativePosition ;
+    rdfs:label "at narrative position"@x-gmeow-english ;
+    skos:definition "Anchors a thing — a content segment, a diegetic event, an arc sample, a motif occurrence — to a narrative position. Domain-free: the depiction seam (#360), arc samples (#361), and motif occurrences (#363) all reuse this one anchor. NOT functional, and deliberately so: the same diegetic event carries coexisting positions in a discourse frame and a story frame, and their disagreement is the flashback made queryable rather than a contradiction (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .

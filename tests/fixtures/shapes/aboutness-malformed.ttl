@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/aboutness/> .
+
+# hasAboutness must target an AboutnessMode individual, not a free literal.
+ex:essay-on-dark-patterns gmeow:hasAboutness "describes" .

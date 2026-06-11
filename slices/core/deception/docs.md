@@ -11,3 +11,13 @@ Cross-cutting deception, falsehood, and misinformation facility. Builds on the s
 reasoned, but its narrative documentation has not been written yet. The
 module-status matrix tracks the gap; term-level documentation (labels,
 definitions) lives in `module.ttl` and renders via `gmeow describe`.*
+
+## Bridge: aboutness (kernel, #349)
+
+`gmeow:veridicalityLicensedFalsehood` (fiction, satire, sarcasm) is the
+special case where the kernel's aboutness axis meets veridicality: a fictional
+carrier *enacts* its content (`gmeow:hasAboutness gmeow:aboutnessEnacts`)
+while asserting nothing — enactment without assertion is licensed, not
+deceptive. The bridge is documentation only, deliberately: no axiom couples
+`hasAboutness` to veridicality or standpoint modality, so enactment never
+entails assertion (and text *about* deception is never inferred to deceive).

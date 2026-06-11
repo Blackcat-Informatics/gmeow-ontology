@@ -67,6 +67,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/citations> ,
         <https://blackcatinformatics.ca/gmeow/slices/evidence> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
+        <https://blackcatinformatics.ca/gmeow/slices/teleology> ,
         <https://blackcatinformatics.ca/gmeow/slices/email> ,
         <https://blackcatinformatics.ca/gmeow/slices/narrative> ,
         <https://blackcatinformatics.ca/gmeow/slices/trust> ,
