@@ -3710,8 +3710,8 @@ export interface MediaObject extends Manifestation {
     depicts?: Entity[],
     hasRegion?: ImageRegion[],
     imageOrientation?: string,
-    pixelHeight?: string,
-    pixelWidth?: string,
+    pixelHeight?: number,
+    pixelWidth?: number,
 }
 
 
@@ -3789,7 +3789,7 @@ export interface MessageParticipant {
     participantGroup?: string,
     participantHeader?: MessageHeader,
     participantMessage?: EmailMessage,
-    participantOrdinal?: string,
+    participantOrdinal?: number,
     participantRole?: MessageParticipantRole,
     rawAddressValue?: string,
 }
@@ -3836,7 +3836,7 @@ export interface Myth extends SocialObject {
 export interface NamePart extends InformationObject {
     namePartType?: NamePartType,
     partExpansion?: string,
-    partOrder?: string,
+    partOrder?: number,
     partText?: string,
 }
 
@@ -4392,7 +4392,7 @@ export interface Ref extends InformationObject {
 
 export interface ReferenceFrame extends Entity {
     determinacyModel?: Determinacy,
-    dimensionCount?: string,
+    dimensionCount?: number,
     frameKind?: FrameKind,
     frameRealm?: FrameRealm,
     frameSolver?: string,
@@ -4473,7 +4473,7 @@ export interface ReminderAction {
 export interface Repository extends InformationObject {
     cloneUrl?: string,
     hostedAt?: ForgePlatform[],
-    materializationDepth?: string,
+    materializationDepth?: number,
     repositoryType?: RepositoryType,
     webUrl?: string,
 }
@@ -4684,8 +4684,8 @@ export interface SensoryQuantity extends Entity {
 
 export interface SequenceCoordinates extends Entity {
     inReferenceAssembly?: ReferenceFrame,
-    sequenceEnd?: string,
-    sequenceStart?: string,
+    sequenceEnd?: number,
+    sequenceStart?: number,
     sequenceStrand?: StrandOrientation,
 }
 
@@ -4828,7 +4828,7 @@ export interface SourceTree extends SourceNode {
 export interface SpatialAggregation extends Measurement {
     aggregationFunction?: AggregationFunction,
     hasBin?: SpatialBin[],
-    minimumPopulation?: string,
+    minimumPopulation?: number,
 }
 
 

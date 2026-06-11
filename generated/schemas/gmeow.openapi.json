@@ -28527,6 +28527,7 @@
                 ]
               },
               "gtsSegmentIndex": {
+                "minimum": 0,
                 "type": [
                   "integer",
                   "null"
@@ -46368,14 +46369,16 @@
                 ]
               },
               "pixelHeight": {
+                "minimum": 0,
                 "type": [
-                  "string",
+                  "integer",
                   "null"
                 ]
               },
               "pixelWidth": {
+                "minimum": 0,
                 "type": [
-                  "string",
+                  "integer",
                   "null"
                 ]
               },
@@ -46688,8 +46691,9 @@
                 ]
               },
               "dimensionCount": {
+                "minimum": 0,
                 "type": [
-                  "string",
+                  "integer",
                   "null"
                 ]
               },
@@ -49101,8 +49105,9 @@
                 ]
               },
               "participantOrdinal": {
+                "minimum": 0,
                 "type": [
-                  "string",
+                  "integer",
                   "null"
                 ]
               },
@@ -50894,8 +50899,9 @@
                 ]
               },
               "partOrder": {
+                "minimum": 0,
                 "type": [
-                  "string",
+                  "integer",
                   "null"
                 ]
               },
@@ -51798,8 +51804,9 @@
                 ]
               },
               "dimensionCount": {
+                "minimum": 0,
                 "type": [
-                  "string",
+                  "integer",
                   "null"
                 ]
               },
@@ -67174,8 +67181,9 @@
                 ]
               },
               "dimensionCount": {
+                "minimum": 0,
                 "type": [
-                  "string",
+                  "integer",
                   "null"
                 ]
               },
@@ -69891,8 +69899,9 @@
                 ]
               },
               "materializationDepth": {
+                "minimum": 0,
                 "type": [
-                  "string",
+                  "integer",
                   "null"
                 ]
               },
@@ -75092,14 +75101,16 @@
                 ]
               },
               "sequenceEnd": {
+                "minimum": 1,
                 "type": [
-                  "string",
+                  "integer",
                   "null"
                 ]
               },
               "sequenceStart": {
+                "minimum": 1,
                 "type": [
-                  "string",
+                  "integer",
                   "null"
                 ]
               },
@@ -82967,8 +82978,9 @@
                 ]
               },
               "minimumPopulation": {
+                "minimum": 0,
                 "type": [
-                  "string",
+                  "integer",
                   "null"
                 ]
               },
@@ -88388,8 +88400,9 @@
                 ]
               },
               "dimensionCount": {
+                "minimum": 0,
                 "type": [
-                  "string",
+                  "integer",
                   "null"
                 ]
               },

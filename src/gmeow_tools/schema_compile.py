@@ -59,6 +59,15 @@ _XSD_TO_LINKML: Mapping[str, str] = {
     str(_XSD.int): "integer",
     str(_XSD.long): "integer",
     str(_XSD.short): "integer",
+    str(_XSD.byte): "integer",
+    str(_XSD.nonNegativeInteger): "integer",
+    str(_XSD.positiveInteger): "integer",
+    str(_XSD.nonPositiveInteger): "integer",
+    str(_XSD.negativeInteger): "integer",
+    str(_XSD.unsignedByte): "integer",
+    str(_XSD.unsignedShort): "integer",
+    str(_XSD.unsignedInt): "integer",
+    str(_XSD.unsignedLong): "integer",
     str(_XSD.decimal): "decimal",
     str(_XSD.float): "float",
     str(_XSD.double): "double",
@@ -68,6 +77,23 @@ _XSD_TO_LINKML: Mapping[str, str] = {
     str(_XSD.duration): "duration",
     str(_XSD.anyURI): "uri",
     str(RDFS.Literal): "string",
+}
+
+
+#: Bounds implied by the bounded XSD integer family, carried into the slot as
+#: LinkML minimum_value/maximum_value so the generated targets keep the
+#: constraint instead of merely the integer-ness (#345). unsignedLong's upper
+#: bound exceeds what JSON consumers represent exactly and is omitted.
+_XSD_INTEGER_BOUNDS: Mapping[str, tuple[int | None, int | None]] = {
+    str(_XSD.nonNegativeInteger): (0, None),
+    str(_XSD.positiveInteger): (1, None),
+    str(_XSD.nonPositiveInteger): (None, 0),
+    str(_XSD.negativeInteger): (None, -1),
+    str(_XSD.byte): (-128, 127),
+    str(_XSD.unsignedByte): (0, 255),
+    str(_XSD.unsignedShort): (0, 65535),
+    str(_XSD.unsignedInt): (0, 4294967295),
+    str(_XSD.unsignedLong): (0, None),
 }
 
 
@@ -258,6 +284,13 @@ def emit_linkml(graph: Graph) -> tuple[dict[str, Any], list[str]]:
             slot["range"] = _iri_to_linkml_range(
                 ranges[0], class_names, warnings, local
             )
+            bounds = _XSD_INTEGER_BOUNDS.get(str(ranges[0]))
+            if bounds is not None:
+                minimum, maximum = bounds
+                if minimum is not None:
+                    slot["minimum_value"] = minimum
+                if maximum is not None:
+                    slot["maximum_value"] = maximum
             if len(ranges) > 1:
                 warnings.append(f"{local}: multiple ranges — keeping {slot['range']}")
         else:
