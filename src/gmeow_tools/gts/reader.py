@@ -11,7 +11,7 @@ without it, an ``encrypt`` codec degrades to a ``missing-key`` opaque node.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 
 import cbor2
 
@@ -21,6 +21,7 @@ from gmeow_tools.gts.model import (
     Diagnostic,
     Graph,
     OpaqueNode,
+    Quad,
     Signature,
     Suppression,
     Term,
@@ -437,31 +438,102 @@ _HANDLERS = {
 _REASON_DIAG = {"unknown-codec": "UnknownCodec", "missing-key": "MissingKey"}
 
 
+def _is_header_item(item: object) -> bool:
+    """§3.1 boundary rule: a map carrying ``"gts"`` and lacking ``"t"``.
+
+    The optional self-describe tag is unwrapped by :func:`unwrap_header`-style
+    handling in :func:`iter_items` consumers; here a tagged item's value is
+    inspected.
+    """
+    import cbor2 as _c
+
+    if isinstance(item, _c.CBORTag):
+        item = item.value
+    return isinstance(item, Mapping) and "gts" in item and "t" not in item
+
+
 def read(
     data: bytes,
     *,
     keys: KeyProvider | None = None,
     expected_head: bytes | None = None,
+    allow_segments: bool = True,
 ) -> Graph:
     """Read and fold a GTS file into a :class:`Graph`.
 
-    Verifies the header genesis hash, every frame's self-``id``, and the ``prev``
-    chain, recording diagnostics; damaged frames and undecodable frames fold to
-    opaque nodes (§7.6) rather than aborting the read.
+    Verifies each segment's header genesis hash, every frame's self-``id``, and
+    the per-segment ``prev`` chain, recording diagnostics; damaged frames and
+    undecodable frames fold to opaque nodes (§7.6) rather than aborting the read.
+    Multi-segment files (§3.1) fold per segment and union **by term value**
+    (term-ids are segment-scoped; blank nodes stay segment-local).
 
     Args:
         data: the GTS file bytes.
         keys: optional :class:`~gmeow_tools.gts.crypto.KeyProvider` — when given,
             ``sig`` frames are verified (§9.2) and recorded in ``Graph.signatures``.
-        expected_head: optional head commitment — if the observed head id differs,
-            a ``TruncatedLog`` diagnostic is raised (§9, §17).
+        expected_head: optional head commitment — compared against the LAST
+            segment's head; on mismatch a ``TruncatedLog`` diagnostic is recorded.
+        allow_segments: when ``False``, emulate a pre-§3.1 reader: a segment
+            boundary is a FATAL diagnostic (``SegmentBoundary``) and nothing past
+            it is folded — the hard-fail the spec mandates instead of a silent
+            file-global-id misfold (§16, vector 17).
     """
-    g = Graph()
     items, torn = iter_items(data)
     if not items:
+        g = Graph()
         g.diagnostics.append(Diagnostic("EmptyFile", "no CBOR items", None))
         return g
 
+    # Split into segments at header-shaped items (§3.1).
+    bounds = [i for i, (_, item) in enumerate(items) if _is_header_item(item)]
+    if not bounds or bounds[0] != 0:
+        g = Graph()
+        g.diagnostics.append(
+            Diagnostic("DamagedFrame", "first item is not a header", 0)
+        )
+        return g
+    if len(bounds) > 1 and not allow_segments:
+        g = _read_segment(items[: bounds[1]], keys=keys)
+        g.diagnostics.append(
+            Diagnostic(
+                "SegmentBoundary",
+                "segment boundary at item "
+                f"{bounds[1]} but reader is in pre-segment mode; remainder of "
+                "file NOT folded (folding it with file-global term-ids would "
+                "silently misfold — §16)",
+                bounds[1],
+            )
+        )
+        return g
+
+    segment_slices = [
+        items[a:b] for a, b in zip(bounds, [*bounds[1:], len(items)], strict=False)
+    ]
+    folded = [_read_segment(seg, keys=keys) for seg in segment_slices]
+
+    g = folded[0] if len(folded) == 1 else _union_segments(folded)
+
+    last_head = g.segment_heads[-1] if g.segment_heads else b""
+    if expected_head is not None and last_head != expected_head:
+        g.diagnostics.append(
+            Diagnostic(
+                "TruncatedLog", "observed head does not match expected head", None
+            )
+        )
+    if torn is not None:
+        g.diagnostics.append(
+            Diagnostic("TornAppendError", f"torn at offset {torn}", None)
+        )
+    return g
+
+
+def _read_segment(
+    items: list[tuple[int, object]],
+    *,
+    keys: KeyProvider | None = None,
+) -> Graph:
+    """Fold ONE segment (header + frames) into a :class:`Graph` (§7.5)."""
+    g = Graph()
     _, raw_header = items[0]
     try:
         header = unwrap_header(raw_header)
@@ -507,20 +579,129 @@ def read(
                 g.signatures.append(Signature(computed, None, "unverified"))
         folder.fold_frame(frame, index)
 
-    if expected_head is not None and expected_prev != expected_head:
-        g.diagnostics.append(
-            Diagnostic(
-                "TruncatedLog", "observed head does not match expected head", None
-            )
-        )
-
-    if torn is not None:
-        g.diagnostics.append(
-            Diagnostic("TornAppendError", f"torn at offset {torn}", None)
-        )
+    g.segment_heads.append(expected_prev)
+    g.segment_meta.append(dict(g.meta))
+    prof = header.get("prof")
+    g.segment_profiles.append(prof if isinstance(prof, str) else "generic")
     return g
 
 
 def blake3_256_header(header: Mapping[str, object]) -> bytes:
     """Recompute the Header genesis id for verification (§5)."""
     return header_id(header)
+
+
+# --------------------------------------------------------------------------- #
+# Multi-segment union (§3.1, §7.5): term-ids are segment-scoped compression
+# artifacts; the union re-interns BY TERM VALUE. Blank nodes carry a segment
+# discriminator (labels are segment-local and never merge); quoted-triple
+# terms intern recursively through their reifier's interned identity. Because
+# the union is value-interned, "apply suppression value-wise" (§11) reduces to
+# applying it by result-id.
+# --------------------------------------------------------------------------- #
+
+
+def _union_segments(segments: list[Graph]) -> Graph:
+    """Union per-segment folds into one value-interned :class:`Graph`."""
+    out = Graph()
+    intern: dict[tuple[object, ...], int] = {}
+
+    def _key(seg: Graph, seg_idx: int, tid: int) -> tuple[object, ...]:
+        t = seg.terms[tid]
+        if t.kind is TermKind.IRI:
+            return ("iri", t.value)
+        if t.kind is TermKind.LITERAL:
+            return ("lit", t.value, seg.datatype_iri(t), t.lang)
+        if t.kind is TermKind.BNODE:
+            return ("bnode", seg_idx, t.value)  # segment-local, never merged
+        # Quoted triple: identity is the reifier's interned identity.
+        rf = t.reifier
+        return ("qt", _map(seg, seg_idx, rf) if rf is not None else None)
+
+    def _map(seg: Graph, seg_idx: int, tid: int) -> int:
+        key = _key(seg, seg_idx, tid)
+        got = intern.get(key)
+        if got is not None:
+            return got
+        t = seg.terms[tid]
+        new = Term(
+            kind=t.kind,
+            value=t.value,
+            datatype=(
+                _map(seg, seg_idx, t.datatype) if t.datatype is not None else None
+            ),
+            lang=t.lang,
+            reifier=(_map(seg, seg_idx, t.reifier) if t.reifier is not None else None),
+        )
+        out.terms.append(new)
+        new_id = len(out.terms) - 1
+        intern[key] = new_id
+        return new_id
+
+    seen_quads: set[Quad] = set()
+    for seg_idx, seg in enumerate(segments):
+        for s_, p_, o_, g_ in seg.quads:
+            q: Quad = (
+                _map(seg, seg_idx, s_),
+                _map(seg, seg_idx, p_),
+                _map(seg, seg_idx, o_),
+                _map(seg, seg_idx, g_) if g_ is not None else None,
+            )
+            if q not in seen_quads:  # the folded graph is a set (§7.8)
+                seen_quads.add(q)
+                out.quads.append(q)
+        for rf, (s_, p_, o_) in seg.reifiers.items():
+            out.reifiers[_map(seg, seg_idx, rf)] = (
+                _map(seg, seg_idx, s_),
+                _map(seg, seg_idx, p_),
+                _map(seg, seg_idx, o_),
+            )
+        for rf, p_, v_ in seg.annotations:
+            out.annotations.append(
+                (_map(seg, seg_idx, rf), _map(seg, seg_idx, p_), _map(seg, seg_idx, v_))
+            )
+        out.blobs.update(seg.blobs)
+        out.meta.update(seg.meta)  # file-level shallow merge; later segments win
+        out.segment_meta.extend(seg.segment_meta)
+        for sup in seg.suppressions:
+            out.suppressions.append(_remap_suppression(sup, seg, seg_idx, _map))
+        out.opaque.extend(seg.opaque)
+        out.signatures.extend(seg.signatures)
+        out.diagnostics.extend(seg.diagnostics)
+        out.segment_heads.extend(seg.segment_heads)
+        out.segment_profiles.extend(seg.segment_profiles)
+    return out
+
+
+def _remap_suppression(
+    sup: Suppression,
+    seg: Graph,
+    seg_idx: int,
+    map_fn: Callable[[Graph, int, int], int],
+) -> Suppression:
+    """Re-intern a suppression's id-addressed targets (§11).
+
+    Digest-addressed targets (``frame``, ``blob``) pass through unchanged
+    (content-ids are file-global). Id-addressed targets (``term``, ``quad``,
+    ``reifier``) resolve in their OWN segment and re-intern into the union —
+    which is exactly the value-wise application the spec requires, because the
+    union graph is value-interned.
+    """
+    new_targets: list[Mapping[str, object]] = []
+    for target in sup.targets:
+        kind = target.get("kind")
+        if kind in ("frame", "blob"):
+            new_targets.append(target)
+            continue
+        t = dict(target)
+        tid = t.get("id")
+        if kind in ("term", "reifier") and isinstance(tid, int):
+            t["id"] = map_fn(seg, seg_idx, tid)
+        elif kind == "quad" and isinstance(t.get("q"), list):
+            raw_q = t["q"]
+            assert isinstance(raw_q, list)
+            t["q"] = [
+                map_fn(seg, seg_idx, x) if isinstance(x, int) else x for x in raw_q
+            ]
+        new_targets.append(t)
+    return Suppression(targets=new_targets, reason=sup.reason, by=sup.by)
