@@ -280,6 +280,13 @@ enum ClaimVeridicalityEnum
     veridicalityUntrue
   }
 
+enum CodecClassEnum
+  {
+    codecClassCompress
+    codecClassEncode
+    codecClassEncrypt
+  }
+
 enum ConflictStrategyEnum
   {
     conflictInvalid
@@ -744,6 +751,17 @@ enum GranularityLevelEnum
     granularityPoint
     granularityRegion
     granularityYear
+  }
+
+enum GTSProfileEnum
+  {
+    gtsProfileAiPackage
+    gtsProfileBundle
+    gtsProfileDist
+    gtsProfileEvidence
+    gtsProfileGeneric
+    gtsProfileImage
+    gtsProfileOpaque
   }
 
 enum HonorificClassEnum
@@ -1226,6 +1244,13 @@ enum ObservationTypeEnum
     observationTypeSimulation
     observationTypeStandpoint
     observationTypeStreaming
+  }
+
+enum OpacityReasonEnum
+  {
+    opacityDamaged
+    opacityMissingKey
+    opacityUnknownCodec
   }
 
 enum OrderStatusEnum
@@ -1952,6 +1977,17 @@ enum TransactionTypeEnum
     transactionTypeRefund
     transactionTypeTransfer
     transactionTypeWithdrawal
+  }
+
+enum TransformCodecEnum
+  {
+    codecBase64
+    codecBase85
+    codecCoseEncrypt0
+    codecGzip
+    codecIdentity
+    codecLzma2
+    codecZstd
   }
 
 enum TransliterationSchemeEnum
@@ -3471,6 +3507,10 @@ type CitationIntent
   }
 
 type ClaimVeridicality
+  {
+  }
+
+type CodecClass
   {
   }
 
@@ -5854,6 +5894,241 @@ type Group
     versionOf: Entity
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
+  }
+
+type GTSCompaction
+  {
+    after: [Event]
+    before: [Event]
+    coincidesWith: [Event]
+    contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
+    during: [Event]
+    earliestStart: String
+    eventAspect: [GrammaticalAspect]
+    eventDescribedBy: [EmailMessage]
+    eventInterval: [TimeInterval]
+    eventLocation: [Location]
+    eventObservation: [Observation]
+    eventSpacetime: [LocationState]
+    eventTemporalFrame: TemporalFrame
+    eventTense: [GrammaticalTense]
+    eventTime: String
+    eventTimeZone: TimeZone
+    eventTrajectory: [Trajectory]
+    eventType: [EventType]
+    finishedBy: [Event]
+    finishes: [Event]
+    hasDuration: [Duration]
+    hasParticipant: [Agent]
+    hasSubEvent: [Event]
+    heldStandpoint: [StandpointClaim]
+    implicates: [Entity]
+    latestEnd: String
+    maximViolationType: [MaximViolationType]
+    meets: [Event]
+    metBy: [Event]
+    occurrenceOfSeries: [EventSeries]
+    overlappedBy: [Event]
+    overlaps: [Event]
+    predecessorOrganization: [Organization]
+    projectedStandpoint: [StandpointClaim]
+    propagationMutationDistance: Int
+    startedBy: [Event]
+    starts: [Event]
+    subEventOf: [Event]
+    successorOrganization: [Organization]
+    temporalPrecision: [TemporalPrecision]
+    wasAssociatedWith: [Agent]
+  }
+
+type GTSDocument
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    writtenInLanguage: [Language]
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
+    datePublished: String
+    dateSubmitted: String
+    editionOf: CreativeWork
+    extent: String
+    hasAuthor: [Agent]
+    hasContributor: [Agent]
+    hasEditor: [Agent]
+    hasIllustrator: [Agent]
+    hasNarrator: [Agent]
+    hasTitle: [CreativeWorkTitle]
+    hasTranslator: [Agent]
+    identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
+    requires: [CreativeWork]
+    sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
+    title: String
+    embodies: [Expression]
+    exemplifiedBy: [Item]
+    hasManifestationFormat: ManifestationFormat
+    gtsSegment: [GTSSegment]
+  }
+
+type GTSProfile
+  {
+  }
+
+type GTSSegment
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    writtenInLanguage: [Language]
+    abstract: String
+    audience: [Agent]
+    bibliographicCitation: String
+    conformsTo: [Entity]
+    dateAccepted: String
+    dateAvailable: String
+    dateCreated: String
+    dateModified: String
+    datePublished: String
+    dateSubmitted: String
+    editionOf: CreativeWork
+    extent: String
+    hasAuthor: [Agent]
+    hasContributor: [Agent]
+    hasEditor: [Agent]
+    hasIllustrator: [Agent]
+    hasNarrator: [Agent]
+    hasTitle: [CreativeWorkTitle]
+    hasTranslator: [Agent]
+    identifier: String
+    isRequiredBy: [CreativeWork]
+    medium: [CarrierMedium]
+    propagatesFrom: [CreativeWork]
+    requires: [CreativeWork]
+    sourceFor: [NarrativeReferenceFrame]
+    sourceLocation: String
+    sourceModifiedAt: String
+    spatialCoverage: [Place]
+    tableOfContents: String
+    temporalCoverage: [TimeInterval]
+    title: String
+    embodies: [Expression]
+    exemplifiedBy: [Item]
+    hasManifestationFormat: ManifestationFormat
+    gtsHeadId: String
+    gtsProfile: GTSProfile
+    gtsSegmentIndex: Int
+    gtsSegmentOf: GTSDocument
+    usesTransformCodec: [TransformCodec]
   }
 
 type Highlight
@@ -8945,6 +9220,68 @@ type OnlineAccount
     activityPubActor: String
     nip05: String
     nostrPubkey: String
+  }
+
+type OpacityReason
+  {
+  }
+
+type OpaqueFrame
+  {
+    acquireLicensePage: String
+    attributionText: String
+    attributionUrl: String
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: String
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: String
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: Boolean
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: String
+    provenance: String
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: String
+    versionFingerprint: String
+    versionLabel: String
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: String
+    writtenInLanguage: [Language]
+    opacityReason: OpacityReason
+    opaqueFrameIn: GTSSegment
+    sealedRecipient: [Agent]
   }
 
 type Order
@@ -13611,6 +13948,11 @@ type TransactionStatus
 
 type TransactionType
   {
+  }
+
+type TransformCodec
+  {
+    codecClass: CodecClass
   }
 
 type TransliterationScheme
