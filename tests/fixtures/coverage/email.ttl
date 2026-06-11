@@ -443,3 +443,72 @@ ex:inlineImage
     gmeow:contentId "<logo@example.org>" ;
     gmeow:hasContentTransferEncoding gmeow:transferEncodingBase64 ;
     gmeow:hasContentDisposition gmeow:contentDispositionInline .
+
+# --------------------------------------------------------------------------- #
+# Calendar invitation fixtures (issue #139)
+# --------------------------------------------------------------------------- #
+
+# A calendar invitation email with a text/calendar attachment.
+ex:msgCalendarInvite
+    a schema:EmailMessage, gmeow:EmailMessage ;
+    gmeow:rfcMessageId "<invite-123@example.org>" ;
+    gmeow:subject "Team stand-up — Monday 9am" ;
+    schema:sender ex:addrAlice ;
+    schema:toRecipient ex:addrBob ;
+    schema:dateSent "2026-06-04T09:00:00Z"^^xsd:dateTime ;
+    gmeow:receivedAt "2026-06-04T09:00:01Z"^^xsd:dateTime ;
+    gmeow:partOfThread ex:thread2 ;
+    gmeow:residesIn ex:inbox ;
+    gmeow:hasKeyword gmeow:keywordSeen ;
+    gmeow:describesEvent ex:meetingEvent ;
+    gmeow:calendarAttachment ex:calendarAtt ;
+    gmeow:hasCalendarMethod gmeow:calendarMethodRequest ;
+    gmeow:calendarUid "meeting-123@example.org" ;
+    gmeow:hasMessageKind gmeow:messageKindCalendarInvitation ;
+    gmeow:hasMessageParticipant ex:mpAliceFromInvite ;
+    gmeow:hasMessageParticipant ex:mpBobToInvite .
+
+# The calendar attachment itself.
+ex:calendarAtt
+    a gmeow:Attachment ;
+    gmeow:partId "2" ;
+    gmeow:filename "meeting.ics" ;
+    gmeow:mediaType "text/calendar" ;
+    gmeow:hasContentDisposition gmeow:contentDispositionAttachment .
+
+# The event described in the attachment — reuses the events module spine.
+ex:meetingEvent
+    a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeCreation ;
+    gmeow:eventTime "2026-06-08T14:00:00Z"^^xsd:dateTime .
+
+# Participant occurrences for the invitation email.
+ex:hdrFromInvite
+    a gmeow:MessageHeader ;
+    gmeow:headerName "From" ;
+    gmeow:headerValue "\"Alice Smith\" <alice@example.org>" .
+
+ex:hdrToInvite
+    a gmeow:MessageHeader ;
+    gmeow:headerName "To" ;
+    gmeow:headerValue "\"Bob Jones\" <bob@example.com>" .
+
+ex:mpAliceFromInvite
+    a gmeow:MessageParticipant ;
+    gmeow:participantMessage ex:msgCalendarInvite ;
+    gmeow:participantAddress ex:addrAlice ;
+    gmeow:participantRole gmeow:messageRoleFrom ;
+    gmeow:participantHeader ex:hdrFromInvite ;
+    gmeow:participantOrdinal 0 ;
+    gmeow:displayName "Alice Smith" ;
+    gmeow:rawAddressValue "\"Alice Smith\" <alice@example.org>" .
+
+ex:mpBobToInvite
+    a gmeow:MessageParticipant ;
+    gmeow:participantMessage ex:msgCalendarInvite ;
+    gmeow:participantAddress ex:addrBob ;
+    gmeow:participantRole gmeow:messageRoleTo ;
+    gmeow:participantHeader ex:hdrToInvite ;
+    gmeow:participantOrdinal 0 ;
+    gmeow:displayName "Bob Jones" ;
+    gmeow:rawAddressValue "\"Bob Jones\" <bob@example.com>" .

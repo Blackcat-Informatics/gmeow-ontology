@@ -36,8 +36,8 @@ def test_dsl_parses() -> None:
     Validate that the mapping DSL loads correctly and contains the expected
     counts and profiles.
 
-    Asserts that the loaded DSL has 1487 term equivalences, 36 functions,
-    47 mapping sets, more than 30 projection cells, and that the set of
+    Asserts that the loaded DSL has 1554 term equivalences, 38 functions,
+    49 mapping sets, more than 30 projection cells, and that the set of
     profiles used in projection bindings equals the module-level `_PROFILES`.
     """
     dsl = load_dsl()
@@ -236,7 +236,7 @@ def test_dsl_parses() -> None:
     # Issue #217 disinformation campaign: +5 (disinformation→Wikidata x1,
     # misinformation→Wikidata x1, propaganda→Wikidata x1, rumor→Wikidata x1,
     # fake news→Wikidata x1).
-    assert len(dsl.equivalences) == 1549
+    assert len(dsl.equivalences) == 1554
     # 27 projection transforms declared (incl. fnPronounSetToText #46,
     # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
     # fnTagToKeyword + fnTaggingToAnnotation #27,

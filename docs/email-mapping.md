@@ -260,3 +260,42 @@ System/user origin is a **projection concern**; the canonical signal is
 `gmeow:mailboxRole` for JMAP special-use roles (`inbox`, `archive`, `drafts`,
 `sent`, `trash`, `junk`, `templates`). A mailbox without a role is treated as
 user-created by convention.
+
+## Calendar invitations and event descriptions (issue #139)
+
+When gmeow ingests an email with a `text/calendar` MIME part or a `.ics`
+attachment, the message and the event it describes are structurally linked in
+GMEOW without duplicating the event model.
+
+### Event description bridge
+
+| Source | GMEOW term | Object kind | Notes |
+|---|---|---|---|
+| `text/calendar` attachment | `gmeow:calendarAttachment` | → `gmeow:Attachment` | Subproperty of `hasAttachment`; keeps the attachment first-class |
+| Parsed iCalendar VEVENT | `gmeow:describesEvent` | → `gmeow:Event` | Reuses `events.ttl` event spine; non-functional |
+| iCalendar `UID` | `gmeow:calendarUid` | Literal | Non-functional; competing UIDs may coexist |
+| iCalendar `METHOD` | `gmeow:hasCalendarMethod` | → `gmeow:CalendarMethod` | Value vocabulary: request, reply, cancel, publish, counter, decline-counter |
+| Message kind | `gmeow:hasMessageKind` | → `gmeow:messageKindCalendarInvitation` | Overlaps with other kinds (auto-generated, etc.) per Principle 9 |
+
+The social act of invitation — organizer, invitee, acceptance/decline status,
+RSVP — is modeled via `gmeow:EventInvitation` from the calendar module
+(`calendar.ttl`). The email is the **carrier**; the `EventInvitation` is the
+social act. An email may carry zero, one, or many `EventInvitation` relators
+(a group invitation parsed into multiple per-invitee relators, or a single
+message carrying both an invitation and a cancellation).
+
+### iCalendar alignment
+
+| GMEOW | iCalendar (RFC 5545/5546) | Relationship |
+|---|---|---|
+| `gmeow:describesEvent` | `VEVENT` component | The email describes the event the VEVENT represents |
+| `gmeow:calendarUid` | `UID` | Direct correspondence |
+| `gmeow:hasCalendarMethod` | `METHOD` | Value vocabulary aligned to iTIP METHOD values |
+| `gmeow:calendarAttachment` | `ATTACH` with `VALUE=URI` or inline | The attachment carrying the calendar data |
+
+### Cancelled invitations
+
+A cancelled invitation is **retained, not erased** (Principle 10). The email
+remains in the store with its `hasCalendarMethod gmeow:calendarMethodCancel`
+and the original `describesEvent` link intact. Suppression (hiding from UI)
+is handled through the projection layer, never by deletion.
