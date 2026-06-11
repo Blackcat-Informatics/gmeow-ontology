@@ -124,7 +124,7 @@ def build_alignment_graph(mappings: list[Mapping]) -> Graph:
     return graph
 
 
-def _object_namespace(object_iri: URIRef) -> str:
+def object_namespace(object_iri: URIRef) -> str:
     """Return the namespace of an IRI (split on the last ``#`` or ``/``)."""
     iri = str(object_iri)
     for sep in ("#", "/"):
@@ -148,7 +148,7 @@ def build_linksets(mappings: list[Mapping]) -> Graph:
     dataset = URIRef(VOID_DATASET_IRI)
     buckets: dict[tuple[str, str], int] = defaultdict(int)
     for mapping in mappings:
-        target_ns = _object_namespace(expand_curie(mapping.object_id))
+        target_ns = object_namespace(expand_curie(mapping.object_id))
         buckets[(target_ns, mapping.predicate_id)] += 1
 
     for (target_ns, predicate_id), count in sorted(buckets.items()):
