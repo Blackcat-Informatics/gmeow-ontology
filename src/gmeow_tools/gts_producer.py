@@ -73,11 +73,18 @@ class _Builder:
 
     # -- rdflib (RDF 1.1) -----------------------------------------------------
 
-    def add_graph(self, graph: Graph) -> None:
-        """Ingest an rdflib ``Graph``/``Dataset`` base graph."""
+    def add_graph(self, graph: Graph, *, graph_name: str | None = None) -> None:
+        """Ingest an rdflib ``Graph``/``Dataset`` base graph.
+
+        ``graph_name`` assigns rows that carry no name of their own to a named
+        graph — the snapshot's source-partitioning hook (§3.1 of the plan:
+        statements and alignments ride in their own graphs so consumers can
+        scope to exactly the layer they need).
+        """
+        default_gid = self.terms.iri(graph_name) if graph_name is not None else None
         for s, p, o, name in _iter_quads(graph):
             sid, pid, oid = self._rdflib(s), self._rdflib(p), self._rdflib(o)
-            gid = self._rdflib(name) if name is not None else None
+            gid = self._rdflib(name) if name is not None else default_gid
             if sid is None or pid is None or oid is None:
                 continue
             self.quads.append((sid, pid, oid, gid))
@@ -94,10 +101,15 @@ class _Builder:
 
     # -- pyoxigraph (RDF 1.2 statement layer) ---------------------------------
 
-    def add_rdf12(self, path: Path) -> None:
-        """Ingest an RDF 1.2 artifact: ``rdf:reifies`` triple-terms + annotations."""
+    def add_rdf12(self, path: Path, *, graph_name: str | None = None) -> None:
+        """Ingest an RDF 1.2 artifact: ``rdf:reifies`` triple-terms + annotations.
+
+        Base (non-reifier) triples land in ``graph_name`` when given; the
+        ``reifies``/``annot`` tables are global (§7.3).
+        """
         import pyoxigraph as ox
 
+        default_gid = self.terms.iri(graph_name) if graph_name is not None else None
         statements = list(ox.parse(path.read_bytes(), format=ox.RdfFormat.TURTLE))
         reifier_ids: set[int] = set()
         pending: list[tuple[object, object, object]] = []
@@ -122,9 +134,16 @@ class _Builder:
                     and qo is not None
                 ):
                     reifier_ids.add(rid)
-                    # Keep the first binding; a conflicting rebind is ignored
-                    # (matches the reader's conflicting-reifier rule, §7.8).
-                    self.reifies.setdefault(rid, (qs, qp, qo))
+                    existing = self.reifies.get(rid)
+                    if existing is not None and existing != (qs, qp, qo):
+                        # The canonical artifact demands clean input: with
+                        # content-sorted emission, "first wins" would be
+                        # order-defined — so a conflicting rebind is an error
+                        # here, never a silent pick (the READER's tolerance
+                        # rule, §7.8, is for foreign files, not our producer).
+                        msg = f"conflicting reifier rebind for term {rid}"
+                        raise ValueError(msg)
+                    self.reifies[rid] = (qs, qp, qo)
             else:
                 pending.append((s, p, o))
         # Pass 2: a reifier's other triples are annotations; the rest are base quads.
@@ -135,7 +154,7 @@ class _Builder:
             if sid in reifier_ids:
                 self.annot.append((sid, pid, oid))
             else:
-                self.quads.append((sid, pid, oid, None))
+                self.quads.append((sid, pid, oid, default_gid))
 
     def _ox(self, node: object) -> int | None:
         import pyoxigraph as ox
@@ -154,6 +173,55 @@ class _Builder:
             )
         return None
 
+    # -- canonical finalize ----------------------------------------------------
+
+    def _canonical_tables(
+        self,
+    ) -> tuple[list[Term], list[Quad], dict[int, Triple], list[Triple]]:
+        """Re-id every term by content and sort every row (determinism).
+
+        Interning order is ingestion order — which for rdflib sources is
+        process-unstable. Term-ids in the emitted snapshot must be a pure
+        function of CONTENT, so: sort terms by (kind, value, datatype-IRI,
+        lang) — IRIs first, so every literal's datatype IRI precedes it
+        (§7.5's already-introduced rule holds by construction) — remap all
+        tables through the permutation, then sort and de-duplicate rows
+        (the folded graph is a set, §7.8).
+        """
+        terms = self.terms.terms
+
+        def key(tid: int) -> tuple[int, str, str, str]:
+            t = terms[tid]
+            dt = terms[t.datatype].value or "" if t.datatype is not None else ""
+            return (int(t.kind), t.value or "", dt, t.lang or "")
+
+        order = sorted(range(len(terms)), key=key)
+        remap = {old_id: new_id for new_id, old_id in enumerate(order)}
+
+        def remap_term(t: Term) -> Term:
+            return Term(
+                kind=t.kind,
+                value=t.value,
+                datatype=remap[t.datatype] if t.datatype is not None else None,
+                lang=t.lang,
+                reifier=remap[t.reifier] if t.reifier is not None else None,
+            )
+
+        new_terms = [remap_term(terms[old_id]) for old_id in order]
+        new_quads = sorted(
+            {
+                (remap[s], remap[p], remap[o], remap[g] if g is not None else None)
+                for s, p, o, g in self.quads
+            },
+            key=lambda q: (-1 if q[3] is None else q[3], q[0], q[1], q[2]),
+        )
+        new_reifies = {
+            remap[rid]: (remap[s], remap[p], remap[o])
+            for rid, (s, p, o) in sorted(self.reifies.items())
+        }
+        new_annot = sorted({(remap[r], remap[p], remap[v]) for r, p, v in self.annot})
+        return new_terms, new_quads, new_reifies, new_annot
+
     # -- emit -----------------------------------------------------------------
 
     def to_gts(
@@ -161,18 +229,18 @@ class _Builder:
     ) -> bytes:
         """Emit a single ``dist`` snapshot frame from the accumulated tables."""
         chain = ["zstd"] if transform is None else transform
+        terms, quads, reifies, annot = self._canonical_tables()
         writer = Writer(profile=profile)
         snapshot: dict[str, object] = {
-            "terms": [term_to_wire(t) for t in self.terms.terms],
+            "terms": [term_to_wire(t) for t in terms],
             "quads": [
-                [q[0], q[1], q[2], *([q[3]] if q[3] is not None else [])]
-                for q in self.quads
+                [q[0], q[1], q[2], *([q[3]] if q[3] is not None else [])] for q in quads
             ],
         }
-        if self.reifies:
-            snapshot["reifies"] = {rid: list(spo) for rid, spo in self.reifies.items()}
-        if self.annot:
-            snapshot["annot"] = [list(row) for row in self.annot]
+        if reifies:
+            snapshot["reifies"] = {rid: list(spo) for rid, spo in reifies.items()}
+        if annot:
+            snapshot["annot"] = [list(row) for row in annot]
         writer.add_frame("snapshot", payload=snapshot, transform=chain)
         return writer.to_bytes()
 
@@ -221,19 +289,37 @@ def compile_gts(
     graph: Graph,
     rdf12_path: Path | None = None,
     *,
+    alignment_graph: Graph | None = None,
     transform: list[str] | None = None,
 ) -> bytes:
-    """Compile a statement-complete ``dist`` GTS: base graph + RDF 1.2 statements.
+    """Compile the statement-complete, byte-deterministic ``dist`` GTS snapshot.
+
+    The narrow waist's producer: the RDF 1.1 base graph rides in the default
+    graph, the RDF 1.2 statement layer in ``gmeow:graph/statements`` (its
+    reifies/annot tables are global), and the SSSOM alignment axioms in
+    ``gmeow:graph/alignments``. rdflib blank-node labels are per-process
+    UUIDs, so both rdflib sources are canonicalized
+    (:func:`rdflib.compare.to_canonical_graph`) — together with the
+    content-sorted term table this makes the emitted bytes a pure function
+    of the inputs (the drift-gate requirement).
 
     Raises:
         FileNotFoundError: if ``rdf12_path`` is given but does not exist (a missing
             statement layer is an error, not a silent RDF-1.1-only fallback).
     """
+    from rdflib.compare import to_canonical_graph
+
+    from gmeow_tools.config import GTS_GRAPH_ALIGNMENTS, GTS_GRAPH_STATEMENTS
+
     builder = _Builder()
-    builder.add_graph(graph)
+    builder.add_graph(to_canonical_graph(graph))
     if rdf12_path is not None:
         if not rdf12_path.exists():
             msg = f"RDF 1.2 statement artifact not found: {rdf12_path}"
             raise FileNotFoundError(msg)
-        builder.add_rdf12(rdf12_path)
+        builder.add_rdf12(rdf12_path, graph_name=GTS_GRAPH_STATEMENTS)
+    if alignment_graph is not None:
+        builder.add_graph(
+            to_canonical_graph(alignment_graph), graph_name=GTS_GRAPH_ALIGNMENTS
+        )
     return builder.to_gts(profile="dist", transform=transform)

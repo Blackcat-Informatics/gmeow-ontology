@@ -60,6 +60,7 @@ def regenerate(
     from gmeow_tools import (  # noqa: F401
         apache,
         export,
+        gts_gen,
         gts_vectors_gen,
         lpg,
         mapping_compile,
@@ -97,6 +98,7 @@ def check_generated(
     from gmeow_tools import (  # noqa: F401
         apache,
         export,
+        gts_gen,
         gts_vectors_gen,
         lpg,
         mapping_compile,
@@ -869,29 +871,29 @@ def gts_to_duckdb(file: Path, out: Path | None = _GTS_DB_OUT) -> None:
 
 @gts_app.command("compile")
 def gts_compile(out: Path | None = _GTS_GTS_OUT) -> None:
-    """Compile a statement-complete GTS dist snapshot (dist/gmeow.gts).
+    """Compile the statement-complete GTS dist snapshot (generated/gmeow.gts).
 
-    Merges the RDF 1.1 base graph with the RDF 1.2 statement layer
-    (``statements/gmeow.rdf12.ttl``, via pyoxigraph) so confidence / standpoint /
-    provenance survive into the shipped artifact.
+    The CLI face of the registered ``gts`` generator — the committed,
+    drift-gated snapshot every exporter consumes (the narrow waist). With
+    ``--out``, writes an ad-hoc copy of the identical bytes instead.
     """
-    from gmeow_tools import config
-    from gmeow_tools.graph import load_merged_graph
-    from gmeow_tools.gts_producer import compile_gts
+    from gmeow_tools import config, gts_gen  # noqa: F401  (register side effect)
+    from gmeow_tools.generator import run
 
-    source = load_merged_graph(include_imports=False)
-    rdf12 = config.STATEMENTS_DIR / "gmeow.rdf12.ttl"
+    rdf12 = config.STATEMENT_RDF12_FILE
     if not rdf12.exists():
         raise _fail(
             f"RDF 1.2 statement artifact not found: {rdf12}\n"
             "run 'gmeow regenerate' first (a statement-less dist would drop "
             "confidence/standpoint/provenance)."
         )
-    data = compile_gts(source, rdf12)
-    target = out or (config.DIST_DIR / "gmeow.gts")
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_bytes(data)
-    console.print(f"[green]✓[/green] {target} ({len(data)} bytes)")
+    run("gts")
+    if out is not None:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_bytes(config.GTS_SNAPSHOT_FILE.read_bytes())
+        console.print(f"[green]✓[/green] {out}")
+    size = config.GTS_SNAPSHOT_FILE.stat().st_size
+    console.print(f"[green]✓[/green] {config.GTS_SNAPSHOT_FILE} ({size} bytes)")
 
 
 @app.command(name="mcp")
