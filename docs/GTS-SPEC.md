@@ -761,6 +761,12 @@ Raw `cat` always works (§3.1); a conformant **validating composer** (`gts cat`)
   able to rot against the content they describe.
 - **`gts verify` SHOULD report per-segment**: head id, signer set, profile, term/quad counts,
   opaque-node count with reasons — the composition ledger of the file.
+- **Blob extraction is verification, never conversion** (`gts ls`, `gts extract`): blobs are
+  addressed by content digest (frame indices are physical accidents that shift under `cat`);
+  extraction re-hashes the bytes against the requested digest; a blob suppressed by digest
+  (§11) is refused by default (suppression is a display contract and extraction is display) with
+  an explicit override; a media-type flag is an **assertion** against the blob's declared
+  `pub.mt` — a publish-class tool refuses a mismatch rather than transcoding.
 
 ## 15. Worked examples
 
@@ -941,6 +947,9 @@ A conformant implementation MUST pass a shared corpus. v1 requires at least thes
 21. **Degenerate composition refused (§14.1, negative)**: `gts cat` refuses an empty-fold
     segment and a suppress-everything composition; raw byte `cat` of the same inputs still
     yields a structurally valid file (the tool is stricter than the format, by design).
+22. **Inline blob (§12, §14.1)**: an inline blob folds to its `blake3:<hex>` digest with
+    declared metadata (`pub.mt`) retained; extraction by digest re-verifies the bytes;
+    a digest-suppressed blob is refused by default.
 
 ## 19. References
 

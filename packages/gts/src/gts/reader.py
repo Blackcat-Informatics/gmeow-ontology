@@ -255,7 +255,11 @@ class _Folder:
         self, payload: object, frame: Mapping[str, object], _index: int
     ) -> None:
         if isinstance(payload, bytes):
-            self.g.blobs[digest_str(payload)] = payload
+            digest = digest_str(payload)
+            self.g.blobs[digest] = payload
+            pub = frame.get("pub")
+            if isinstance(pub, Mapping):
+                self.g.blob_meta[digest] = {str(k): v for k, v in pub.items()}
         # else: external blob — bytes live elsewhere, referenced by "pub".digest (§12).
 
     def _h_meta(self, payload: object, _f: Mapping[str, object], _index: int) -> None:
@@ -712,6 +716,7 @@ def _union_segments(segments: list[Graph]) -> Graph:
                 (_map(seg, seg_idx, rf), _map(seg, seg_idx, p_), _map(seg, seg_idx, v_))
             )
         out.blobs.update(seg.blobs)
+        out.blob_meta.update(seg.blob_meta)
         out.meta.update(seg.meta)  # file-level shallow merge; later segments win
         out.segment_meta.extend(seg.segment_meta)
         for sup in seg.suppressions:

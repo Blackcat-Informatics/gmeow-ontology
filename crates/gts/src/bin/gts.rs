@@ -16,7 +16,7 @@ use ciborium::value::Value;
 use gts::model::{Graph, Suppression};
 use gts::nquads::to_nquads;
 use gts::reader::{read, read_file_segments, FileSegments};
-use gts::wire::hex;
+use gts::wire::{digest_str, hex};
 
 const USAGE: &str = "usage: gts <command> [args]
 
@@ -24,6 +24,10 @@ commands:
   info <file>...            per-segment composition ledger (§14.1)
   fold <file>               fold to N-Quads on stdout
   verify <file>...          verify chains; ledger + diagnostics; exit 1 on any
+  ls <file>                 list inline blobs: digest, size, declared media type
+  extract <file> <digest> [-o out] [--mt TYPE] [--include-suppressed]
+                            extract one blob by content digest; --mt asserts
+                            the declared media type (never converts)
   cat -o <out> <file>...    validating composer: refuse degenerate inputs,
                             then byte-concatenate (§3.1, §14.1)";
 
@@ -37,6 +41,8 @@ fn main() -> ExitCode {
         "info" => cmd_info(&args[1..]),
         "fold" => cmd_fold(&args[1..]),
         "verify" => cmd_verify(&args[1..]),
+        "ls" => cmd_ls(&args[1..]),
+        "extract" => cmd_extract(&args[1..]),
         "cat" => cmd_cat(&args[1..]),
         "-h" | "--help" | "help" => {
             println!("{USAGE}");
@@ -176,6 +182,162 @@ fn cmd_verify(paths: &[String]) -> ExitCode {
     } else {
         ExitCode::SUCCESS
     }
+}
+
+fn blob_mt(g: &Graph, digest: &str) -> Option<String> {
+    g.blob_meta
+        .iter()
+        .find(|(d, _)| d == digest)
+        .and_then(|(_, meta)| {
+            if let Value::Map(entries) = meta {
+                entries.iter().find_map(|(k, v)| match (k, v) {
+                    (Value::Text(key), Value::Text(text)) if key == "mt" => Some(text.clone()),
+                    _ => None,
+                })
+            } else {
+                None
+            }
+        })
+}
+
+/// List inline blobs: digest, size, declared media type (tar's `t`).
+fn cmd_ls(paths: &[String]) -> ExitCode {
+    let [path] = paths else {
+        eprintln!("{USAGE}");
+        return ExitCode::from(2);
+    };
+    let data = match load(path) {
+        Ok(d) => d,
+        Err(code) => return code,
+    };
+    let g = read(&data, true, None);
+    for d in &g.diagnostics {
+        eprintln!("gts: diagnostic {}: {}", d.code, d.detail);
+    }
+    for (digest, bytes) in &g.blobs {
+        let mt = blob_mt(&g, digest).unwrap_or_else(|| "-".to_string());
+        println!("{digest}  {:>10}  {mt}", bytes.len());
+    }
+    ExitCode::SUCCESS
+}
+
+fn normalize_digest(digest: &str) -> String {
+    if digest.starts_with("blake3:") {
+        digest.to_string()
+    } else {
+        format!("blake3:{digest}")
+    }
+}
+
+/// Digests hidden by `{"kind": "blob", "digest": …}` targets (§11).
+fn suppressed_blob_digests(g: &Graph) -> HashSet<String> {
+    let mut out = HashSet::new();
+    for sup in &g.suppressions {
+        for target in &sup.targets {
+            if target_kind(target) != "blob" {
+                continue;
+            }
+            if let Value::Map(entries) = target {
+                for (k, v) in entries {
+                    if matches!(k, Value::Text(t) if t == "digest") {
+                        match v {
+                            Value::Bytes(b) => {
+                                out.insert(format!("blake3:{}", hex(b)));
+                            }
+                            Value::Text(t) => {
+                                out.insert(normalize_digest(t));
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+        }
+    }
+    out
+}
+
+/// Extract one blob by content digest (tar's `x`), refuse-don't-trust:
+/// verify bytes against the digest, honour §11 suppression unless overridden,
+/// and treat `--mt` as an ASSERTION against the declared media type — never
+/// a conversion.
+fn cmd_extract(args: &[String]) -> ExitCode {
+    let mut out_path: Option<&str> = None;
+    let mut mt: Option<&str> = None;
+    let mut include_suppressed = false;
+    let mut positional: Vec<&str> = Vec::new();
+    let mut it = args.iter();
+    while let Some(a) = it.next() {
+        match a.as_str() {
+            "-o" | "--out" => match it.next() {
+                Some(p) => out_path = Some(p),
+                None => {
+                    eprintln!("gts: -o requires a path\n{USAGE}");
+                    return ExitCode::from(2);
+                }
+            },
+            "--mt" => match it.next() {
+                Some(m) => mt = Some(m),
+                None => {
+                    eprintln!("gts: --mt requires a media type\n{USAGE}");
+                    return ExitCode::from(2);
+                }
+            },
+            "--include-suppressed" => include_suppressed = true,
+            other => positional.push(other),
+        }
+    }
+    let [path, digest] = positional[..] else {
+        eprintln!("{USAGE}");
+        return ExitCode::from(2);
+    };
+    let data = match load(path) {
+        Ok(d) => d,
+        Err(code) => return code,
+    };
+    let g = read(&data, true, None);
+    let digest = normalize_digest(digest);
+    let Some((_, bytes)) = g.blobs.iter().find(|(d, _)| *d == digest) else {
+        eprintln!("gts: no inline blob {digest} in {path}");
+        return ExitCode::from(1);
+    };
+    if !include_suppressed && suppressed_blob_digests(&g).contains(&digest) {
+        eprintln!(
+            "gts: refusing {digest}: suppressed (§11); pass \
+             --include-suppressed to extract anyway"
+        );
+        return ExitCode::from(1);
+    }
+    if let Some(asserted) = mt {
+        let declared = blob_mt(&g, &digest);
+        if declared.as_deref() != Some(asserted) {
+            eprintln!(
+                "gts: refusing {digest}: declared media type {declared:?} \
+                 does not match asserted {asserted:?}"
+            );
+            return ExitCode::from(1);
+        }
+    }
+    if digest_str(bytes) != digest {
+        eprintln!("gts: integrity failure: {digest} bytes re-hash differently");
+        return ExitCode::from(1);
+    }
+    match out_path {
+        Some(p) => {
+            if let Err(e) = std::fs::write(p, bytes) {
+                eprintln!("gts: cannot write {p}: {e}");
+                return ExitCode::from(2);
+            }
+        }
+        None => {
+            use std::io::Write;
+            if let Err(e) = std::io::stdout().write_all(bytes) {
+                eprintln!("gts: cannot write stdout: {e}");
+                return ExitCode::from(2);
+            }
+        }
+    }
+    ExitCode::SUCCESS
 }
 
 /// The validating composer (§14.1): refuse-don't-trust, then `cat`.

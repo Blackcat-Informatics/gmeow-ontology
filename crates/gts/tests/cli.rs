@@ -82,3 +82,47 @@ fn cat_refuses_fewer_than_two_inputs() {
     let out = gts(&["cat", a.to_str().unwrap()]);
     assert_eq!(out.status.code(), Some(2));
 }
+
+#[test]
+fn ls_lists_digest_size_and_media_type() {
+    let v = vectors().join("22-inline-blob.gts");
+    let out = gts(&["ls", v.to_str().unwrap()]);
+    assert!(out.status.success());
+    let text = String::from_utf8(out.stdout).unwrap();
+    assert!(text.contains("blake3:"), "digest listed");
+    assert!(text.contains("21"), "size listed");
+    assert!(text.contains("image/webp"), "declared media type listed");
+}
+
+#[test]
+fn extract_verifies_and_asserts_media_type() {
+    // the frozen expectation carries the digest — read it from the corpus
+    let expected: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(vectors().join("22-inline-blob.expected.json")).unwrap(),
+    )
+    .unwrap();
+    let digest = expected["blobs"]
+        .as_object()
+        .unwrap()
+        .keys()
+        .next()
+        .unwrap()
+        .clone();
+    let v = vectors().join("22-inline-blob.gts");
+
+    let out = gts(&["extract", v.to_str().unwrap(), &digest]);
+    assert!(out.status.success());
+    assert_eq!(out.stdout, b"not really webp bytes");
+
+    // --mt is an assertion, never a conversion: mismatch refuses
+    let out = gts(&["extract", v.to_str().unwrap(), &digest, "--mt", "image/png"]);
+    assert_eq!(out.status.code(), Some(1));
+    let out = gts(&[
+        "extract",
+        v.to_str().unwrap(),
+        &digest,
+        "--mt",
+        "image/webp",
+    ]);
+    assert!(out.status.success());
+}

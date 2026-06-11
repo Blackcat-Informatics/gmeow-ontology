@@ -125,6 +125,87 @@ def _all_quads_suppressed(g: Graph) -> bool:
     )
 
 
+def _cmd_ls(path: str) -> int:
+    """List inline blobs: digest, size, declared media type (tar's ``t``)."""
+    g = read(_load(path))
+    for d in g.diagnostics:
+        print(f"gts: diagnostic {d.code}: {d.detail}", file=sys.stderr)
+    for digest, data in g.blobs.items():
+        mt = g.blob_meta.get(digest, {}).get("mt")
+        mt_text = mt if isinstance(mt, str) else "-"
+        print(f"{digest}  {len(data):>10}  {mt_text}")
+    return 0
+
+
+def _normalize_digest(digest: str) -> str:
+    return digest if digest.startswith("blake3:") else f"blake3:{digest}"
+
+
+def _suppressed_blob_digests(g: Graph) -> set[str]:
+    """Digests hidden by ``{"kind": "blob", "digest": …}`` targets (§11)."""
+    out: set[str] = set()
+    for sup in g.suppressions:
+        for target in sup.targets:
+            if target.get("kind") != "blob":
+                continue
+            d = target.get("digest")
+            if isinstance(d, bytes):
+                out.add(f"blake3:{d.hex()}")
+            elif isinstance(d, str):
+                out.add(_normalize_digest(d))
+    return out
+
+
+def _cmd_extract(
+    path: str,
+    digest: str,
+    out: str | None,
+    mt: str | None,
+    include_suppressed: bool,
+) -> int:
+    """Extract one blob by content digest (tar's ``x``), refuse-don't-trust.
+
+    Verifies the bytes against the requested digest on the way out, honours
+    blob suppression (§11) unless overridden, and treats ``--mt`` as an
+    ASSERTION against the blob's declared media type — never a conversion.
+    """
+    g = read(_load(path))
+    digest = _normalize_digest(digest)
+    data = g.blobs.get(digest)
+    if data is None:
+        print(f"gts: no inline blob {digest} in {path}", file=sys.stderr)
+        return 1
+    if digest in _suppressed_blob_digests(g) and not include_suppressed:
+        print(
+            f"gts: refusing {digest}: suppressed (§11); "
+            "pass --include-suppressed to extract anyway",
+            file=sys.stderr,
+        )
+        return 1
+    if mt is not None:
+        declared = g.blob_meta.get(digest, {}).get("mt")
+        if declared != mt:
+            print(
+                f"gts: refusing {digest}: declared media type "
+                f"{declared!r} does not match asserted {mt!r}",
+                file=sys.stderr,
+            )
+            return 1
+    from gts.wire import digest_str
+
+    if digest_str(data) != digest:
+        print(
+            f"gts: integrity failure: {digest} bytes re-hash differently",
+            file=sys.stderr,
+        )
+        return 1
+    if out is not None:
+        Path(out).write_bytes(data)
+    else:
+        sys.stdout.buffer.write(data)
+    return 0
+
+
 def _cmd_cat(paths: list[str], out: str | None) -> int:
     """The validating composer (§14.1): refuse-don't-trust, then ``cat``."""
     if len(paths) < 2:
@@ -193,6 +274,22 @@ def main(argv: list[str] | None = None) -> int:
     )
     p_verify.add_argument("files", nargs="+")
 
+    p_ls = sub.add_parser(
+        "ls", help="list inline blobs: digest, size, declared media type"
+    )
+    p_ls.add_argument("file")
+
+    p_extract = sub.add_parser(
+        "extract",
+        help="extract one blob by content digest; --mt asserts the declared "
+        "media type (never converts)",
+    )
+    p_extract.add_argument("file")
+    p_extract.add_argument("digest")
+    p_extract.add_argument("-o", "--out", default=None)
+    p_extract.add_argument("--mt", default=None)
+    p_extract.add_argument("--include-suppressed", action="store_true")
+
     p_cat = sub.add_parser(
         "cat",
         help="validating composer: refuse degenerate inputs, then "
@@ -208,6 +305,12 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_fold(args.file)
     if args.command == "verify":
         return _cmd_verify(args.files)
+    if args.command == "ls":
+        return _cmd_ls(args.file)
+    if args.command == "extract":
+        return _cmd_extract(
+            args.file, args.digest, args.out, args.mt, args.include_suppressed
+        )
     return _cmd_cat(args.files, args.out)
 
 

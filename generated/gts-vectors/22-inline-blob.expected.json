@@ -1,5 +1,10 @@
 {
- "blobs": {},
+ "blobs": {
+  "blake3:2f5db56b69f8fe7a63e8c0a2dd683297b7eab80fcdcefb782cab97ab00d9a252": {
+   "mt": "image/webp",
+   "size": 21
+  }
+ },
  "diagnostics": [],
  "mode": "default",
  "nquads": [
@@ -11,7 +16,7 @@
  ],
  "quads": 1,
  "segment_heads": [
-  "8953ecab9072ea444fcf98e7e482318d16292bc76c03273cd1b42ed4bd3211d6"
+  "513a178707eae32955b5759074f1cd36aabb2cd1b4e3ea72c18750f4b84fe40d"
  ],
  "segments": 1,
  "suppressions": 0,
