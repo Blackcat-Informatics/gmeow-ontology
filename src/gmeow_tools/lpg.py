@@ -583,9 +583,9 @@ def build_lpg_fold(
         _accumulate(reifier_meta[reifier], view.lex(p), _fold_value(view, v))
 
     triple_meta: dict[tuple[str, str, str], list[dict[str, object]]] = defaultdict(list)
-    for reifier, (qs, qp, qo) in reifier_triple.items():
-        meta = reifier_meta.get(reifier, {})
-        triple_meta[(qs, qp, qo)].append({_short_key(k): v for k, v in meta.items()})
+    for reifier_key, (ts, tp, to_) in reifier_triple.items():
+        meta = reifier_meta.get(reifier_key, {})
+        triple_meta[(ts, tp, to_)].append({_short_key(k): v for k, v in meta.items()})
 
     # --- One pass over the scoped quads, bucketed by object kind ---
     type_tid = view.tid_of_iri(_RDF_TYPE_IRI)
