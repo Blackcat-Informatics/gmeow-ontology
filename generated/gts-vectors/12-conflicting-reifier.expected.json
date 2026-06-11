@@ -1,0 +1,20 @@
+{
+ "diagnostics": [
+  "ConflictingReifier"
+ ],
+ "mode": "default",
+ "nquads": [
+  "<https://example.org/r1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://example.org/Cat> <http://www.w3.org/2000/01/rdf-schema#label> \"Cat\"@en )>> ."
+ ],
+ "opaque_reasons": [],
+ "profiles": [
+  "generic"
+ ],
+ "quads": 0,
+ "segment_heads": [
+  "5187099247ffb85113710195c7a0e8b4d0eda7c533068516d7e4e60baee93e20"
+ ],
+ "segments": 1,
+ "suppressions": 0,
+ "terms": 5
+}

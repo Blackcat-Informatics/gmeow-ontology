@@ -445,9 +445,7 @@ def _is_header_item(item: object) -> bool:
     handling in :func:`iter_items` consumers; here a tagged item's value is
     inspected.
     """
-    import cbor2 as _c
-
-    if isinstance(item, _c.CBORTag):
+    if isinstance(item, cbor2.CBORTag):
         item = item.value
     return isinstance(item, Mapping) and "gts" in item and "t" not in item
 
@@ -493,7 +491,7 @@ def read(
         )
         return g
     if len(bounds) > 1 and not allow_segments:
-        g = _read_segment(items[: bounds[1]], keys=keys)
+        g = _read_segment(items[: bounds[1]], keys=keys, index_offset=0)
         g.diagnostics.append(
             Diagnostic(
                 "SegmentBoundary",
@@ -509,7 +507,10 @@ def read(
     segment_slices = [
         items[a:b] for a, b in zip(bounds, [*bounds[1:], len(items)], strict=False)
     ]
-    folded = [_read_segment(seg, keys=keys) for seg in segment_slices]
+    folded = [
+        _read_segment(seg, keys=keys, index_offset=a)
+        for a, seg in zip(bounds, segment_slices, strict=False)
+    ]
 
     g = folded[0] if len(folded) == 1 else _union_segments(folded)
 
@@ -531,6 +532,7 @@ def _read_segment(
     items: list[tuple[int, object]],
     *,
     keys: KeyProvider | None = None,
+    index_offset: int = 0,
 ) -> Graph:
     """Fold ONE segment (header + frames) into a :class:`Graph` (§7.5)."""
     g = Graph()
@@ -538,18 +540,23 @@ def _read_segment(
     try:
         header = unwrap_header(raw_header)
     except ValueError as exc:
-        g.diagnostics.append(Diagnostic("DamagedFrame", f"invalid header: {exc}", 0))
+        g.diagnostics.append(
+            Diagnostic("DamagedFrame", f"invalid header: {exc}", index_offset)
+        )
         return g
     stored_hid = header.get("id")
     if blake3_256_header(header) != stored_hid:
-        g.diagnostics.append(Diagnostic("DamagedFrame", "header self-hash mismatch", 0))
+        g.diagnostics.append(
+            Diagnostic("DamagedFrame", "header self-hash mismatch", index_offset)
+        )
     folder = _Folder(g, _catalog(header), keys)
     expected_prev = stored_hid if isinstance(stored_hid, bytes) else b""
 
     for index, (_, raw) in enumerate(items[1:], start=1):
+        abs_index = index + index_offset
         if not isinstance(raw, Mapping):
             g.diagnostics.append(
-                Diagnostic("DamagedFrame", "frame is not a map", index)
+                Diagnostic("DamagedFrame", "frame is not a map", abs_index)
             )
             continue
         frame: Mapping[str, object] = raw
@@ -557,14 +564,14 @@ def _read_segment(
         computed = content_id(frame)
         if computed != stored_id:
             g.diagnostics.append(
-                Diagnostic("DamagedFrame", "frame self-hash mismatch", index)
+                Diagnostic("DamagedFrame", "frame self-hash mismatch", abs_index)
             )
             folder._opaque(frame, str(frame.get("t", "")), "damaged")
             expected_prev = stored_id if isinstance(stored_id, bytes) else computed
             continue
         if frame.get("prev") != expected_prev:
             g.diagnostics.append(
-                Diagnostic("BrokenChain", "prev does not match", index)
+                Diagnostic("BrokenChain", "prev does not match", abs_index)
             )
         expected_prev = stored_id if isinstance(stored_id, bytes) else computed
         if "sig" in frame:
@@ -577,7 +584,7 @@ def _read_segment(
                 g.signatures.append(Signature(computed, kid, status))
             else:
                 g.signatures.append(Signature(computed, None, "unverified"))
-        folder.fold_frame(frame, index)
+        folder.fold_frame(frame, abs_index)
 
     g.segment_heads.append(expected_prev)
     g.segment_meta.append(dict(g.meta))
@@ -624,9 +631,15 @@ def _union_segments(segments: list[Graph]) -> Graph:
         if got is not None:
             return got
         t = seg.terms[tid]
+        # Blank nodes are relabelled with a segment prefix (§7.1 permits
+        # isomorphism-preserving relabeling): within a segment, byte-identical
+        # entries already intern to one union term (§7.8); ACROSS segments the
+        # same label names DIFFERENT nodes, and emitting the raw label from
+        # the union would merge them.
+        value = f"s{seg_idx}.{t.value or 'b'}" if t.kind is TermKind.BNODE else t.value
         new = Term(
             kind=t.kind,
-            value=t.value,
+            value=value,
             datatype=(
                 _map(seg, seg_idx, t.datatype) if t.datatype is not None else None
             ),
@@ -704,4 +717,8 @@ def _remap_suppression(
                 map_fn(seg, seg_idx, x) if isinstance(x, int) else x for x in raw_q
             ]
         new_targets.append(t)
-    return Suppression(targets=new_targets, reason=sup.reason, by=sup.by)
+    return Suppression(
+        targets=new_targets,
+        reason=sup.reason,
+        by=map_fn(seg, seg_idx, sup.by) if sup.by is not None else None,
+    )

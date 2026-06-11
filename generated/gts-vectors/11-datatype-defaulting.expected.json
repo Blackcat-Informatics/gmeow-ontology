@@ -1,0 +1,20 @@
+{
+ "diagnostics": [],
+ "mode": "default",
+ "nquads": [
+  "<https://example.org/Cat> <http://www.w3.org/2000/01/rdf-schema#label> \"42\"^^<http://www.w3.org/2001/XMLSchema#integer> .",
+  "<https://example.org/Cat> <http://www.w3.org/2000/01/rdf-schema#label> \"hi\"@en .",
+  "<https://example.org/Cat> <http://www.w3.org/2000/01/rdf-schema#label> \"plain\" ."
+ ],
+ "opaque_reasons": [],
+ "profiles": [
+  "generic"
+ ],
+ "quads": 3,
+ "segment_heads": [
+  "bfb2652bf55bfc1e086ab00c0b38dceca1a39962b1d8cd0f5be2ec52bc172150"
+ ],
+ "segments": 1,
+ "suppressions": 0,
+ "terms": 6
+}

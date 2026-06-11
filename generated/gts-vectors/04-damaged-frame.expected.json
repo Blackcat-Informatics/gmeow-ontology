@@ -1,0 +1,20 @@
+{
+ "diagnostics": [
+  "DamagedFrame"
+ ],
+ "mode": "default",
+ "nquads": [],
+ "opaque_reasons": [
+  "damaged"
+ ],
+ "profiles": [
+  "generic"
+ ],
+ "quads": 0,
+ "segment_heads": [
+  "943beeb72ef669435c9772f025a853eca430d39e0fc0a386e42644aa7bc05d78"
+ ],
+ "segments": 1,
+ "suppressions": 0,
+ "terms": 0
+}

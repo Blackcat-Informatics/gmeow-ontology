@@ -182,7 +182,12 @@ surviving frame remains recoverable. The optional index is an accelerator, never
 - Maps use **short text-string keys** (e.g. `"t"`, `"d"`) for self-description and eyeball
   debuggability; compactness is the transform layer's job, not the schema's.
 - Any bytes that are **hashed or signed** MUST use **Deterministic Encoding** (RFC 8949 §4.2):
-  shortest-form integers, definite-length items, sorted map keys.
+  shortest-form integers, definite-length items, and map keys sorted **bytewise on their
+  encoded form** — explicitly the RFC 8949 rule, NOT RFC 7049's length-first canonical
+  ordering. (For the short text keys GTS itself uses the two coincide, because a CBOR text
+  string's initial byte embeds its length; the rules diverge on mixed-type keys, so
+  implementations MUST NOT rely on a CBOR library's legacy "canonical" mode without checking
+  which ordering it implements.)
 - Unsigned integers are used for all ids. BLAKE3 digests are 32-byte (256-bit) byte strings.
 - The grammar below is given in **CDDL** (RFC 8610).
 

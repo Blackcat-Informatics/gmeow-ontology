@@ -1,0 +1,18 @@
+{
+ "diagnostics": [],
+ "mode": "default",
+ "nquads": [
+  "_:b0 <http://www.w3.org/2000/01/rdf-schema#label> \"anonymous\" ."
+ ],
+ "opaque_reasons": [],
+ "profiles": [
+  "generic"
+ ],
+ "quads": 1,
+ "segment_heads": [
+  "df2b8e112c5e71c3915d2778fd20e0908f405359a6d0c40bde07aee9492e36f9"
+ ],
+ "segments": 1,
+ "suppressions": 0,
+ "terms": 3
+}

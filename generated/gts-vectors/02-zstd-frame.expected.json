@@ -1,0 +1,18 @@
+{
+ "diagnostics": [],
+ "mode": "default",
+ "nquads": [
+  "<https://example.org/Cat> <http://www.w3.org/2000/01/rdf-schema#label> \"Cat\"@en ."
+ ],
+ "opaque_reasons": [],
+ "profiles": [
+  "generic"
+ ],
+ "quads": 1,
+ "segment_heads": [
+  "8953ecab9072ea444fcf98e7e482318d16292bc76c03273cd1b42ed4bd3211d6"
+ ],
+ "segments": 1,
+ "suppressions": 0,
+ "terms": 3
+}

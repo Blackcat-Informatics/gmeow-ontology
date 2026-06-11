@@ -482,3 +482,42 @@ def test_vector_19_profile_union_graceful_opacity() -> None:
     assert CAT in values
     assert any(o.reason == "unknown-codec" for o in g.opaque)
     assert len(g.segment_heads) == 2
+
+
+def test_rfc8949_deterministic_key_order() -> None:
+    """§4: map keys sort BYTEWISE on their encoded form (RFC 8949 §4.2).
+
+    For short text keys the CBOR initial byte embeds the length, so RFC 8949
+    bytewise ordering coincides with RFC 7049 length-first ordering — every
+    GTS wire map (frames, headers, codec catalogs) therefore hashes the same
+    under both, and no compatibility break occurred when the encoder moved to
+    true 8949. The orderings DIVERGE on mixed-type keys; pin the divergent
+    case so the Rust implementation (#277) matches the right one.
+    """
+    # {"z": 1, 1000: 2}: "z" encodes 61 7a (2 bytes); 1000 encodes 19 03 e8
+    # (3 bytes). RFC 7049 length-first puts "z" first; RFC 8949 bytewise puts
+    # 1000 first (0x19 < 0x61). The spec mandates 8949.
+    assert canonical({"z": 1, 1000: 2}).hex() == "a21903e802617a01"
+    # And the coincident text-key case stays stable (hash compatibility):
+    assert canonical({"x": 1, "id": 2}).hex() == "a261780162696402"
+
+
+def test_corpus_matches_committed_expectations() -> None:
+    """The frozen corpus (generated/gts-vectors/) is the cross-implementation
+    truth: the oracle must reproduce every committed .expected.json exactly.
+    The Rust core (#277) runs the same gate from the same files."""
+    import json
+
+    from gmeow_tools.config import GENERATED_DIR
+    from gmeow_tools.gts.vectors import corpus, expected_for
+
+    vdir = GENERATED_DIR / "gts-vectors"
+    cases = corpus()
+    assert cases, "corpus must not be empty"
+    for case in cases:
+        committed_bytes = (vdir / f"{case.name}.gts").read_bytes()
+        assert committed_bytes == case.data, f"{case.name}: input bytes drifted"
+        committed = json.loads(
+            (vdir / f"{case.name}.expected.json").read_text(encoding="utf-8")
+        )
+        assert committed == expected_for(case), f"{case.name}: expectations drifted"
