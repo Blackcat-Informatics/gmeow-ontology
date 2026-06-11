@@ -86,6 +86,14 @@ export enum AttestationTypeEnum {
     verifiable_credential = "attestationTypeVerifiableCredential",
 };
 
+export enum AuthorityLevelEnum {
+
+    absolute = "authorityAbsolute",
+    conditional = "authorityConditional",
+    high = "authorityHigh",
+    medium = "authorityMedium",
+};
+
 export enum AvailabilityStatusEnum {
 
     busy = "availabilityStatusBusy",
@@ -456,6 +464,14 @@ export enum DatingMethodEnum {
     uranium_lead_LEFT_PARENTHESISU_PbRIGHT_PARENTHESIS = "datingMethodUraniumLead",
 };
 
+export enum DeonticModalityEnum {
+
+    obligation_LEFT_PARENTHESISmustRIGHT_PARENTHESIS = "deonticObligation",
+    permission_LEFT_PARENTHESISmayRIGHT_PARENTHESIS = "deonticPermission",
+    prohibition_LEFT_PARENTHESISmust_notRIGHT_PARENTHESIS = "deonticProhibition",
+    recommendation_LEFT_PARENTHESISshouldRIGHT_PARENTHESIS = "deonticRecommendation",
+};
+
 export enum DepictionContextEnum {
 
     action_shot = "depictionContextActionShot",
@@ -523,6 +539,13 @@ export enum EmploymentTypeEnum {
 export enum EntityEnum {
 
     raw_root_data_source = "procedureIngestionRawRoot",
+};
+
+export enum EvaluationVerdictEnum {
+
+    held = "verdictHeld",
+    not_held = "verdictNotHeld",
+    undetermined = "verdictUndetermined",
 };
 
 export enum EventTypeEnum {
@@ -636,6 +659,17 @@ export enum ExecutionStatusEnum {
     running = "executionStatusRunning",
     skipped = "executionStatusSkipped",
     succeeded = "executionStatusSucceeded",
+};
+
+export enum ExpressionLanguageEnum {
+
+    Cedar = "exprLangCedar",
+    CEL = "exprLangCel",
+    prose = "exprLangProse",
+    Rego_LEFT_PARENTHESISOPARIGHT_PARENTHESIS = "exprLangRego",
+    SHACL = "exprLangShacl",
+    SPARQL_ASK = "exprLangSparqlAsk",
+    XACML = "exprLangXacml",
 };
 
 export enum FinancialAccountTypeEnum {
@@ -768,6 +802,13 @@ export enum GranularityLevelEnum {
     point_SOLIDUS_exact_coordinate_level = "granularityPoint",
     region_level = "granularityRegion",
     year_level = "granularityYear",
+};
+
+export enum GroupOperatorEnum {
+
+    all_of_LEFT_PARENTHESISandRIGHT_PARENTHESIS = "operatorAll",
+    any_of_LEFT_PARENTHESISorRIGHT_PARENTHESIS = "operatorAny",
+    none_of_LEFT_PARENTHESISnotRIGHT_PARENTHESIS = "operatorNone",
 };
 
 export enum HonorificEnum {
@@ -2294,6 +2335,12 @@ export interface AuthorIdentity extends InformationObject {
 
 
 
+export interface AuthorityLevel {
+    strongerThan?: AuthorityLevel[],
+}
+
+
+
 export interface Availability {
     availabilityAgent?: Agent[],
     availabilitySlot?: TimeInterval,
@@ -2550,6 +2597,51 @@ export interface Commitment {
 
 
 
+export interface ComplianceAssessment extends Observation {
+    assessedEvent?: Event,
+    assessedNorm?: Norm,
+    complianceVerdict?: EvaluationVerdict,
+}
+
+
+
+export interface Condition extends InformationObject {
+    conditionParameter?: ConditionParameter[],
+    conditionText?: string,
+    formalizedAs?: ConditionExpression[],
+}
+
+
+
+export interface ConditionEvaluation extends Observation {
+    evaluatedCondition?: Condition,
+    evaluationVerdict?: EvaluationVerdict,
+}
+
+
+
+export interface ConditionExpression extends InformationObject {
+    expressionLanguage?: ExpressionLanguage,
+    expressionText?: string,
+}
+
+
+
+export interface ConditionGroup extends Condition {
+    groupMember?: Condition[],
+    groupOperator?: GroupOperator,
+}
+
+
+
+export interface ConditionParameter extends InformationObject {
+    parameterEntity?: string,
+    parameterName?: string,
+    parameterValue?: string,
+}
+
+
+
 export interface ConflictStrategy {
 }
 
@@ -2793,6 +2885,11 @@ export interface DatingMethod {
 
 
 
+export interface DeonticModality {
+}
+
+
+
 export interface DepictionContext {
 }
 
@@ -3000,10 +3097,16 @@ export interface EtymologicalDerivation {
 
 
 
+export interface EvaluationVerdict {
+}
+
+
+
 export interface Event {
     after?: Event[],
     before?: Event[],
     coincidesWith?: Event[],
+    complies?: Norm[],
     contains?: Event[],
     deceptionCue?: Observation[],
     deceptiveIntentClaim?: StandpointClaim[],
@@ -3043,6 +3146,7 @@ export interface Event {
     subEventOf?: Event[],
     successorOrganization?: Organization[],
     temporalPrecision?: TemporalPrecision[],
+    violates?: Norm[],
 }
 
 
@@ -3109,6 +3213,11 @@ export interface ExecutionStatus {
 export interface Expression extends CreativeWork {
     embodiedIn?: Manifestation[],
     realizes?: Work[],
+}
+
+
+
+export interface ExpressionLanguage {
 }
 
 
@@ -3286,6 +3395,11 @@ export interface GranularityLevel {
 
 
 export interface Group extends Entity {
+}
+
+
+
+export interface GroupOperator {
 }
 
 
@@ -4004,6 +4118,23 @@ export interface NetworkAddressType {
 
 
 
+export interface Norm extends Entity {
+    deonticModality?: DeonticModality,
+    hasAuthorityLevel?: AuthorityLevel[],
+    normBearer?: Agent[],
+    normCondition?: Condition[],
+    overrides?: Norm[],
+    prescribedConduct?: string[],
+}
+
+
+
+export interface NormativeSystem extends SocialObject {
+    systemIssuer?: string[],
+}
+
+
+
 export interface NotationSystem extends SymbolicSystem {
     notationSystemFor?: Language[],
     notationSystemKind?: SymbolicSystemKind[],
@@ -4335,6 +4466,14 @@ export interface PostingDirection {
 
 
 
+export interface PrecedenceTenure extends TimeScopedRelation {
+    precedenceHigher?: Norm,
+    precedenceLower?: Norm,
+    precedenceScope?: NormativeSystem,
+}
+
+
+
 export interface PrivacyNotice extends InformationObject {
 }
 
@@ -4639,7 +4778,7 @@ export interface RsvpStatus {
 
 
 
-export interface Rule {
+export interface Rule extends Norm {
     ruleAction?: RightsAction,
     ruleAssignee?: Agent[],
     ruleConsequence?: Duty[],

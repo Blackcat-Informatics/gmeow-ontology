@@ -70,6 +70,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/teleology> ,
         <https://blackcatinformatics.ca/gmeow/slices/email> ,
         <https://blackcatinformatics.ca/gmeow/slices/narrative> ,
+        <https://blackcatinformatics.ca/gmeow/slices/norms> ,
         <https://blackcatinformatics.ca/gmeow/slices/trust> ,
         <https://blackcatinformatics.ca/gmeow/slices/versions> ,
         <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
