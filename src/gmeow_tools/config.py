@@ -158,6 +158,16 @@ STATEMENT_DSL_DIR = PROJECT_ROOT / "dsl" / "statements"
 STATEMENTS_DIR = GENERATED_DIR / "statements"
 #: The RDF 1.2 / RDF* lead serialization (canonical statement-metadata form).
 STATEMENT_RDF12_FILE = STATEMENTS_DIR / "gmeow.rdf12.ttl"
+
+# The committed, drift-gated GTS dist snapshot — the narrow waist (#267, #12):
+# every data-graph exporter consumes this fold instead of re-reading sources.
+# Own directory: the generator framework gives each generator exclusive
+# ownership of its output directories (orphans there are DELETED).
+GTS_SNAPSHOT_FILE = GENERATED_DIR / "dist" / "gmeow.gts"
+# Named graphs partitioning the snapshot's sources (the fold keeps them apart
+# so consumers can scope to exactly the layer they need):
+GTS_GRAPH_STATEMENTS = NAMESPACE + "graph/statements"
+GTS_GRAPH_ALIGNMENTS = NAMESPACE + "graph/alignments"
 #: The OWL 2 axiom-annotation downcast (generated; consumed by the reasoner).
 STATEMENT_OWL_FILE = STATEMENTS_DIR / "gmeow-statements.owl.ttl"
 #: Vendored coverage fixtures (public site graphs) used by the coverage harness.
