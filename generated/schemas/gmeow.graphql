@@ -1220,6 +1220,16 @@ enum NameRegisterEnum
     registerProfessional
   }
 
+enum NarrationModeEnum
+  {
+    narrationDirect
+    narrationDream
+    narrationFlashback
+    narrationHypothetical
+    narrationMentioned
+    narrationUnreliable
+  }
+
 enum NarrativeFrameRelationEnum
   {
     relationAdaptationOf
@@ -4259,6 +4269,7 @@ type ContentSegment
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: [String]
     writtenInLanguage: [Language]
+    narrates: [String]
     segmentIndex: Int
     segmentOf: [Entity]
     segmentType: ContentSegmentType
@@ -9435,6 +9446,17 @@ type NameUsage
     usageNamer: [Agent]
     usageRegister: NameRegister
     usageRelationshipScope: InterpersonalRelationship
+  }
+
+type NarrationMode
+  {
+  }
+
+type NarrationUsage
+  {
+    narrationMode: [NarrationMode]
+    narrationSegment: ContentSegment
+    narrationSubject: String
   }
 
 type NarrativeFrameLink

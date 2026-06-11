@@ -1220,6 +1220,16 @@ export enum NamedPeriodEnum {
     Quaternary_Period = "periodQuaternary",
 };
 
+export enum NarrationModeEnum {
+
+    narrated = "narrationDirect",
+    dream = "narrationDream",
+    flashback = "narrationFlashback",
+    hypothetical = "narrationHypothetical",
+    mentioned = "narrationMentioned",
+    unreliable = "narrationUnreliable",
+};
+
 export enum NarrativeFrameRelationEnum {
 
     adaptation_of = "relationAdaptationOf",
@@ -2687,6 +2697,7 @@ export interface ContentDisposition {
 
 
 export interface ContentSegment extends InformationObject {
+    narrates?: string[],
     segmentIndex?: number,
     segmentOf?: Entity[],
     segmentType?: ContentSegmentType,
@@ -4060,6 +4071,19 @@ export interface NamedPeriod extends Entity {
     periodPartOf?: NamedPeriod[],
     periodStart?: Instant[],
     periodType?: PeriodType[],
+}
+
+
+
+export interface NarrationMode {
+}
+
+
+
+export interface NarrationUsage {
+    narrationMode?: NarrationMode[],
+    narrationSegment?: ContentSegment,
+    narrationSubject?: string,
 }
 
 

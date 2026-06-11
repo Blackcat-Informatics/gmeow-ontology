@@ -372,3 +372,106 @@ gmeow:atNarrativePosition
     rdfs:label "at narrative position"@x-gmeow-english ;
     skos:definition "Anchors a thing — a content segment, a diegetic event, an arc sample, a motif occurrence — to a narrative position. Domain-free: the depiction seam (#360), arc samples (#361), and motif occurrences (#363) all reuse this one anchor. NOT functional, and deliberately so: the same diegetic event carries coexisting positions in a discourse frame and a story frame, and their disagreement is the flashback made queryable rather than a contradiction (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+# =========================================================================== #
+# THE NARRATION SEAM (issue #360, EPIC #358)
+#
+# NOnt's reference function: the relation between the carrying text and the
+# story it tells — neither mereology (a depicted event is not part of a
+# chapter) nor participation (a chapter does not take part in a betrayal).
+# "Chapter 31 depicts event E; character C appears in segment S."
+#
+# EFFICIENCY DOCTRINE (codified, CI-gated in the consumer child #364): the
+# foundation corpus carries 38,413 character-segment links + 23,962 depicted
+# events + 12,354 appearances. Flat quads by default (one statement per
+# link); promote to a reified gmeow:NarrationUsage ONLY when mode, vantage, or
+# confidence rides on the link. Budget arithmetic: flat ≈ 1 quad/link;
+# reified ≈ 6–8 statements/link; full reification of one corpus ≈ 1.5–2M
+# statements. Silent full reification is a defect, not thoroughness.
+#
+# Diegetic events stay ordinary gmeow:Event instances claims-scoped
+# accordingTo their NarrativeReferenceFrame (existing module doctrine) —
+# nothing here asserts real-world occurrence, and the events module's
+# Participation machinery is reused untouched for who-did-what IN the story.
+# Unreliable narration is where depiction mode meets the deception module
+# (#212): a depiction whose mode misleads is narrator-level held≠projected —
+# documented bridge, no axiom coupling.
+# =========================================================================== #
+
+gmeow:narrationLink
+    a owl:ObjectProperty ;
+    rdfs:label "narration link"@x-gmeow-english ;
+    skos:definition "The abstract ancestor of the depiction seam — any link between carrying text (an InformationObject side: segment, document, panel) and diegetic content (an entity, event, or situation in the story). Never asserted directly: use gmeow:narrates (segment → content) or gmeow:narratedIn (content → segment). Domain- and range-free at this level so media-specific seams (panel, shot, verse) can specialize without re-plumbing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:narrates
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:narrationLink ;
+    rdfs:domain gmeow:ContentSegment ;
+    rdfs:label "depicts"@x-gmeow-english ;
+    skos:definition "Flat 80% seam link: the segment shows, narrates, or mentions the diegetic entity, event, or situation. Range intentionally open (entities, events, situations, motifs). NOT functional: a chapter depicts many things. Promote to a gmeow:NarrationUsage relator ONLY when mode, vantage, or confidence rides on the link (the efficiency doctrine — flat is the default at corpus scale)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:narratedIn
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:narrationLink ;
+    rdfs:range gmeow:ContentSegment ;
+    rdfs:label "appears in"@x-gmeow-english ;
+    skos:definition "Flat 80% seam link, content-side orientation: the diegetic entity or event appears in the segment. The projection-friendly direction — Wikidata P1441 'present in work' is exactly this edge (SSSOM row deferred to the alignment window). Domain intentionally open. NOT the inverse-axiom twin of gmeow:narrates: no owl:inverseOf is asserted, so EL stays clean and either orientation can be used without entailing the other; consumers query both (the connectsTo convention)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:NarrationUsage
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Depiction"@x-gmeow-english ;
+    skos:definition "The reified seam link — segment × depicted subject × mode, for when HOW the text carries the content matters: flashback, dream, hypothetical, unreliable narration. Mint one per (segment, subject) pair needing mode/vantage/confidence; the 80% case stays flat gmeow:narrates (efficiency doctrine — reify-on-demand, Principle 4). Whose reading of the mode it is rides the statement layer; competing modes for one depiction are coexisting relators, none privileged (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:narrationSegment
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NarrationUsage ;
+    rdfs:range gmeow:ContentSegment ;
+    rdfs:label "depiction segment"@x-gmeow-english ;
+    skos:definition "The carrying segment. Functional and mandatory (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:narrationSubject
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NarrationUsage ;
+    rdfs:label "depiction subject"@x-gmeow-english ;
+    skos:definition "The depicted diegetic entity, event, or situation. Range intentionally open (the depicts convention). Functional and mandatory (SHACL): one relator per (segment, subject) pair — a chapter depicting four events with modes is four Depictions."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:NarrationMode
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Depiction Mode"@x-gmeow-english ;
+    skos:definition "HOW a segment carries its content — an OPEN value vocabulary (individuals, never subclasses) seeded with the diegetic-level ladder: narrated (direct), mentioned (referenced without narration), flashback (narrated out of story order), dream (framed as a character's dream), hypothetical (framed as possibility), unreliable (narrator credibility in question — the deception-module boundary, #212: documented bridge, no axiom coupling)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:narrationDirect     a gmeow:NarrationMode ; rdfs:label "narrated"@x-gmeow-english ;
+    skos:definition "The segment narrates the content directly, in the story's main register."@x-gmeow-english .
+gmeow:narrationDirect rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:narrationMentioned    a gmeow:NarrationMode ; rdfs:label "mentioned"@x-gmeow-english ;
+    skos:definition "The segment references the content without narrating it (reported, recalled, alluded to)."@x-gmeow-english .
+gmeow:narrationMentioned rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:narrationFlashback    a gmeow:NarrationMode ; rdfs:label "flashback"@x-gmeow-english ;
+    skos:definition "The segment narrates content from earlier in story time than its discourse position — the two-axes disagreement (#359) made a mode."@x-gmeow-english .
+gmeow:narrationFlashback rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:narrationDream        a gmeow:NarrationMode ; rdfs:label "dream"@x-gmeow-english ;
+    skos:definition "The segment frames the content as a character's dream or vision — diegesis one level down."@x-gmeow-english .
+gmeow:narrationDream rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:narrationHypothetical a gmeow:NarrationMode ; rdfs:label "hypothetical"@x-gmeow-english ;
+    skos:definition "The segment frames the content as possibility, counterfactual, or speculation within the story."@x-gmeow-english .
+gmeow:narrationHypothetical rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+gmeow:narrationUnreliable   a gmeow:NarrationMode ; rdfs:label "unreliable"@x-gmeow-english ;
+    skos:definition "The narrator's credibility for this content is in question — the seam's boundary with the deception module (#212): narrator-level held ≠ projected, asserted by a critic's vantage through the statement layer. Documented bridge; no axiom coupling."@x-gmeow-english .
+gmeow:narrationUnreliable rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
+
+gmeow:narrationMode
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NarrationUsage ;
+    rdfs:range gmeow:NarrationMode ;
+    rdfs:label "depiction mode"@x-gmeow-english ;
+    skos:definition "The mode(s) of this depiction. At least one (SHACL): if you reified, you had a reason. NOT functional: a flashback can also be a dream; coexisting critical readings ride the statement layer (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
