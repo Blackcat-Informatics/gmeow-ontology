@@ -3278,12 +3278,270 @@ gmeow:AboutnessTargetShape
     ] .
 
 # --------------------------------------------------------------------------- #
+# Norms shapes (#351 / #352, EPIC #348) — indexed authority, condition
+# machinery, and the rights-graft modality invariants.
+# --------------------------------------------------------------------------- #
+
+gmeow:NormIssuerShape
+    a sh:NodeShape ;
+    rdfs:label "Norm Issuer Shape" ;
+    sh:targetClass gmeow:Norm ;
+    sh:property [
+        sh:path gmeow:deonticModality ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Norm states at most one gmeow:deonticModality — a rule that both permits and obliges is two norms (functional, closed-world)." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A norm carrying a deontic modality must name at least one gmeow:normIssuer — there is no ought, only ought-according-to (no anonymous oughts, Principles 1/9)." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/deonticModality> ?m .
+                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/normIssuer> ?issuer . }
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A norm never overrides itself (gmeow:overrides is irreflexive)." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/overrides> $this .
+            }
+        """ ;
+    ] .
+
+gmeow:ConditionShape
+    a sh:NodeShape ;
+    rdfs:label "Condition Shape" ;
+    sh:targetClass gmeow:Condition ;
+    sh:property [
+        sh:path gmeow:conditionText ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A Condition must carry exactly one gmeow:conditionText — prose is the canonical form." ;
+    ] .
+
+gmeow:ConditionGroupShape
+    a sh:NodeShape ;
+    rdfs:label "Condition Group Shape" ;
+    sh:targetClass gmeow:ConditionGroup ;
+    sh:property [
+        sh:path gmeow:groupOperator ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:in ( gmeow:operatorAll gmeow:operatorAny gmeow:operatorNone ) ;
+        sh:severity sh:Violation ;
+        sh:message "A ConditionGroup must declare exactly one gmeow:groupOperator (all / any / none — a CLOSED vocabulary, hence sh:in)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:groupMember ;
+        sh:minCount 2 ;
+        sh:severity sh:Violation ;
+        sh:message "A ConditionGroup must have at least two gmeow:groupMember conditions — a one-member group is just the member." ;
+    ] .
+
+gmeow:ConditionExpressionShape
+    a sh:NodeShape ;
+    rdfs:label "Condition Expression Shape" ;
+    sh:targetClass gmeow:ConditionExpression ;
+    sh:property [
+        sh:path gmeow:expressionText ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ConditionExpression must carry exactly one gmeow:expressionText." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:expressionLanguage ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A ConditionExpression must name exactly one gmeow:expressionLanguage as an IRI. DELIBERATELY no sh:in (PR #369 review): the language vocabulary is OPEN (new engines join without schema change, Principle 9) — the aboutness-guard convention." ;
+    ] .
+
+gmeow:ConditionParameterShape
+    a sh:NodeShape ;
+    rdfs:label "Condition Parameter Shape" ;
+    sh:targetClass gmeow:ConditionParameter ;
+    sh:property [
+        sh:path gmeow:parameterName ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ConditionParameter must carry exactly one gmeow:parameterName." ;
+    ] ;
+    sh:xone (
+        [ sh:property [ sh:path gmeow:parameterValue ;  sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:Literal ] ;
+          sh:property [ sh:path gmeow:parameterEntity ; sh:maxCount 0 ] ]
+        [ sh:property [ sh:path gmeow:parameterEntity ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ;
+          sh:property [ sh:path gmeow:parameterValue ;  sh:maxCount 0 ] ]
+    ) ;
+    sh:message "A ConditionParameter binds exactly one of gmeow:parameterValue (literal) or gmeow:parameterEntity (IRI)." .
+
+gmeow:PrecedenceTenureShape
+    a sh:NodeShape ;
+    rdfs:label "Precedence Tenure Shape" ;
+    sh:targetClass gmeow:PrecedenceTenure ;
+    sh:property [
+        sh:path gmeow:precedenceHigher ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:Norm ;
+        sh:severity sh:Violation ;
+        sh:message "A PrecedenceTenure must record exactly one gmeow:precedenceHigher norm." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:precedenceLower ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:Norm ;
+        sh:severity sh:Violation ;
+        sh:message "A PrecedenceTenure must record exactly one gmeow:precedenceLower norm." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:precedenceScope ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:NormativeSystem ;
+        sh:severity sh:Violation ;
+        sh:message "A PrecedenceTenure must be scoped to exactly one gmeow:precedenceScope normative system — precedence is always scoped." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A PrecedenceTenure's higher and lower norms must be distinct." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/precedenceHigher> ?n .
+                $this <https://blackcatinformatics.ca/gmeow/precedenceLower> ?n .
+            }
+        """ ;
+    ] .
+
+gmeow:ConditionEvaluationShape
+    a sh:NodeShape ;
+    rdfs:label "Condition Evaluation Shape" ;
+    sh:targetClass gmeow:ConditionEvaluation ;
+    sh:property [
+        sh:path gmeow:evaluatedCondition ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ConditionEvaluation must report on exactly one gmeow:evaluatedCondition." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:evaluationVerdict ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ConditionEvaluation must carry exactly one gmeow:evaluationVerdict." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:vantage ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ConditionEvaluation must name its vantage — the verdict is somebody's observation, never a graph fact (Principle 9)." ;
+    ] .
+
+gmeow:ComplianceAssessmentShape
+    a sh:NodeShape ;
+    rdfs:label "Compliance Assessment Shape" ;
+    sh:targetClass gmeow:ComplianceAssessment ;
+    sh:property [
+        sh:path gmeow:assessedEvent ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ComplianceAssessment must assess exactly one gmeow:assessedEvent." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:assessedNorm ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ComplianceAssessment must assess against exactly one gmeow:assessedNorm." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:complianceVerdict ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ComplianceAssessment must carry exactly one gmeow:complianceVerdict." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:vantage ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ComplianceAssessment must name its assessor vantage — violation is always somebody's judgement (Principle 9)." ;
+    ] .
+
+# Rights-graft modality invariants (#352): each subkind of the deontic trio
+# fixes its effective modality. Carrying none is fine (the subkind IS the
+# modality); carrying the wrong one is a contradiction-in-data. These shapes
+# only ever fire when the norms extension's vocabulary is in use, so the
+# core-only behaviour of the rights slice is untouched.
+gmeow:GraftPermissionModalityShape
+    a sh:NodeShape ;
+    rdfs:label "Graft: Permission Modality Invariant" ;
+    sh:targetClass gmeow:Permission ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A Permission's deontic modality, when stated, must be gmeow:deonticPermission — the subkind fixes the modality (#352)." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/deonticModality> ?m .
+                FILTER(?m != <https://blackcatinformatics.ca/gmeow/deonticPermission>)
+            }
+        """ ;
+    ] .
+
+gmeow:GraftProhibitionModalityShape
+    a sh:NodeShape ;
+    rdfs:label "Graft: Prohibition Modality Invariant" ;
+    sh:targetClass gmeow:Prohibition ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A Prohibition's deontic modality, when stated, must be gmeow:deonticProhibition — the subkind fixes the modality (#352)." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/deonticModality> ?m .
+                FILTER(?m != <https://blackcatinformatics.ca/gmeow/deonticProhibition>)
+            }
+        """ ;
+    ] .
+
+gmeow:GraftDutyModalityShape
+    a sh:NodeShape ;
+    rdfs:label "Graft: Duty Modality Invariant" ;
+    sh:targetClass gmeow:Duty ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A Duty's deontic modality, when stated, must be gmeow:deonticObligation — the subkind fixes the modality (#352)." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/deonticModality> ?m .
+                FILTER(?m != <https://blackcatinformatics.ca/gmeow/deonticObligation>)
+            }
+        """ ;
+    ] .
+
+# --------------------------------------------------------------------------- #
 # Narration seam shapes (#360, EPIC #358) — reify only with a reason.
 # --------------------------------------------------------------------------- #
 
 gmeow:NarrationUsageShape
     a sh:NodeShape ;
-    rdfs:label "Depiction Shape" ;
+    rdfs:label "Narration Usage Shape" ;
     sh:targetClass gmeow:NarrationUsage ;
     sh:property [
         sh:path gmeow:narrationSegment ;
@@ -3291,18 +3549,19 @@ gmeow:NarrationUsageShape
         sh:maxCount 1 ;
         sh:class gmeow:ContentSegment ;
         sh:severity sh:Violation ;
-        sh:message "A Depiction must carry exactly one gmeow:narrationSegment." ;
+        sh:message "A NarrationUsage must carry exactly one gmeow:narrationSegment." ;
     ] ;
     sh:property [
         sh:path gmeow:narrationSubject ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:severity sh:Violation ;
-        sh:message "A Depiction must carry exactly one gmeow:narrationSubject — one relator per (segment, subject) pair." ;
+        sh:message "A NarrationUsage must carry exactly one gmeow:narrationSubject — one relator per (segment, subject) pair." ;
     ] ;
     sh:property [
         sh:path gmeow:narrationMode ;
         sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
-        sh:message "A Depiction must state at least one gmeow:narrationMode — if you reified, you had a reason; the modeless case is the flat gmeow:narrates shortcut (efficiency doctrine, #360)." ;
+        sh:message "A NarrationUsage must state at least one gmeow:narrationMode (an IRI — the vocabulary is OPEN per Principle 9, so no sh:class/sh:in: the aboutness-guard convention) — if you reified, you had a reason; the modeless case is the flat gmeow:narrates shortcut (efficiency doctrine, #360)." ;
     ] .

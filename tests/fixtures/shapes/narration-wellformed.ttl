@@ -1,8 +1,8 @@
 # Well-formed narration-seam fixture (#360, EPIC #358), at chapter scale:
 # one chapter segment with positions (#359), twelve flat character links and
 # four flat event links (the efficiency doctrine's default), ONE promoted
-# Depiction carrying flashback+dream modes (the reify-with-a-reason case),
-# and one appearsIn in the projection-friendly orientation.
+# NarrationUsage carrying flashback+mentioned modes (the reify-with-a-reason case),
+# and one narratedIn in the projection-friendly orientation.
 # run_shacl over this graph MUST conform.
 
 @prefix ex:    <https://example.org/shapes/> .

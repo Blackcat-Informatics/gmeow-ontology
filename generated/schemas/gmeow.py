@@ -9234,7 +9234,7 @@ class ContentSegment(InformationObject):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Content Segment'})
 
-    narrates: Optional[list[str]] = Field(default=None, title="depicts", json_schema_extra = { "linkml_meta": {'domain': 'ContentSegment',
+    narrates: Optional[list[str]] = Field(default=None, title="narrates", json_schema_extra = { "linkml_meta": {'domain': 'ContentSegment',
          'domain_of': ['ContentSegment'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/narrates'} })
     segmentIndex: Optional[int] = Field(default=None, title="segment index", json_schema_extra = { "linkml_meta": {'domain': 'ContentSegment',
@@ -19747,7 +19747,7 @@ class NamedPeriod(Entity):
 class NarrationMode(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/NarrationMode',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Depiction Mode'})
+         'title': 'Narration Mode'})
 
     pass
 
@@ -19755,15 +19755,15 @@ class NarrationMode(ConfiguredBaseModel):
 class NarrationUsage(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/NarrationUsage',
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
-         'title': 'Depiction'})
+         'title': 'Narration Usage'})
 
-    narrationMode: Optional[list[NarrationMode]] = Field(default=None, title="depiction mode", json_schema_extra = { "linkml_meta": {'domain': 'NarrationUsage',
+    narrationMode: Optional[list[NarrationMode]] = Field(default=None, title="narration mode", json_schema_extra = { "linkml_meta": {'domain': 'NarrationUsage',
          'domain_of': ['NarrationUsage'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/narrationMode'} })
-    narrationSegment: Optional[ContentSegment] = Field(default=None, title="depiction segment", json_schema_extra = { "linkml_meta": {'domain': 'NarrationUsage',
+    narrationSegment: Optional[ContentSegment] = Field(default=None, title="narration segment", json_schema_extra = { "linkml_meta": {'domain': 'NarrationUsage',
          'domain_of': ['NarrationUsage'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/narrationSegment'} })
-    narrationSubject: Optional[str] = Field(default=None, title="depiction subject", json_schema_extra = { "linkml_meta": {'domain': 'NarrationUsage',
+    narrationSubject: Optional[str] = Field(default=None, title="narration subject", json_schema_extra = { "linkml_meta": {'domain': 'NarrationUsage',
          'domain_of': ['NarrationUsage'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/narrationSubject'} })
 

@@ -4,7 +4,7 @@
 
 NOnt's reference function between text and story: neither mereology nor
 participation. Flat narrates/narratedIn by default (one quad per link — the
-efficiency doctrine at 38k-link corpus scale); a reified Depiction ONLY when
+efficiency doctrine at 38k-link corpus scale); a reified NarrationUsage ONLY when
 mode/vantage/confidence rides on the link, and then it must say why (mode
 required). No inverseOf between the orientations — EL-clean, query both.
 """
@@ -92,7 +92,7 @@ def test_narration_mode_vocab_seeds() -> None:
 
 
 def test_no_truth_bridge_from_unreliable_mode() -> None:
-    """depictionUnreliable is a plain vocabulary individual — no axiom links
+    """narrationUnreliable is a plain vocabulary individual — no axiom links
     it to the deception module (documented bridge only, #212)."""
     g = _graph()
     types = set(g.objects(GM.narrationUnreliable, RDF.type))
@@ -127,9 +127,10 @@ def test_fixture_obeys_the_efficiency_budget() -> None:
     reified = list(g.subjects(RDF.type, GM.NarrationUsage))
     assert len(flat) >= 14
     assert len(reified) == 1
-    # No duplication: the reified subject has no flat depicts edge.
+    # No duplication: the reified subject has no flat narrates edge.
     promoted_subject = g.value(reified[0], GM.narrationSubject)
     assert (EX.chapter31, GM.narrates, promoted_subject) not in g
+    assert (promoted_subject, GM.narratedIn, EX.chapter31) not in g
 
 
 def test_competency_cooccurrence_query_over_fixture() -> None:
@@ -143,7 +144,7 @@ def test_competency_cooccurrence_query_over_fixture() -> None:
     for row in rows:
         assert isinstance(row, ResultRow)
         pairs.add((row[1], row[2]))
-    # Guy entered via appearsIn; the oath event via the promoted NarrationUsage —
+    # Guy entered via narratedIn; the oath event via the promoted NarrationUsage —
     # both must still pair with flat-linked Phèdre.
     flat_pairs = {tuple(sorted([str(EX.phedre), str(EX.guy)]))}
     seen = {tuple(sorted([str(a), str(b)])) for a, b in pairs}
