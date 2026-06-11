@@ -287,6 +287,9 @@ classes:
     slots:
     - calendarMember
     - calendarTimeZone
+  CalendarMethod:
+    class_uri: https://blackcatinformatics.ca/gmeow/CalendarMethod
+    title: Calendar Method
   CalendarSystem:
     class_uri: https://blackcatinformatics.ca/gmeow/CalendarSystem
     title: Calendar System
@@ -658,9 +661,13 @@ classes:
     slots:
     - autoSubmitted
     - bcc
+    - calendarAttachment
+    - calendarUid
     - cc
+    - describesEvent
     - dispositionNotificationTo
     - from
+    - hasCalendarMethod
     - hasMessageParticipant
     - importance
     - precedence
@@ -767,6 +774,7 @@ classes:
     - during
     - earliestStart
     - eventAspect
+    - eventDescribedBy
     - eventInterval
     - eventLocation
     - eventObservation
@@ -3160,6 +3168,12 @@ slots:
     range: string
     domain: BuildActivity
     multivalued: true
+  calendarAttachment:
+    slot_uri: https://blackcatinformatics.ca/gmeow/calendarAttachment
+    title: calendar attachment
+    range: Attachment
+    domain: EmailMessage
+    multivalued: true
   calendarMember:
     slot_uri: https://blackcatinformatics.ca/gmeow/calendarMember
     title: calendar member
@@ -3172,6 +3186,11 @@ slots:
     range: TimeZone
     domain: Calendar
     multivalued: false
+  calendarUid:
+    slot_uri: https://blackcatinformatics.ca/gmeow/calendarUid
+    title: calendar UID
+    range: string
+    domain: EmailMessage
   canonicalizedIdentity:
     slot_uri: https://blackcatinformatics.ca/gmeow/canonicalizedIdentity
     title: canonicalized identity
@@ -3771,6 +3790,12 @@ slots:
     range: InformationObject
     domain: EtymologicalDerivation
     multivalued: false
+  describesEvent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/describesEvent
+    title: describes event
+    range: Event
+    domain: EmailMessage
+    multivalued: true
   description:
     slot_uri: https://blackcatinformatics.ca/gmeow/description
     title: description
@@ -3972,6 +3997,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/eventAspect
     title: event aspect
     range: GrammaticalAspect
+    domain: Event
+    multivalued: true
+  eventDescribedBy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/eventDescribedBy
+    title: event described by
+    range: EmailMessage
     domain: Event
     multivalued: true
   eventInterval:
@@ -4454,6 +4485,12 @@ slots:
     title: has cadastral reference
     range: CadastralReference
     domain: Place
+    multivalued: true
+  hasCalendarMethod:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasCalendarMethod
+    title: has calendar method
+    range: CalendarMethod
+    domain: EmailMessage
     multivalued: true
   hasCapacity:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasCapacity
@@ -8880,6 +8917,33 @@ enums:
       referenceTypeTitle:
         meaning: https://blackcatinformatics.ca/gmeow/referenceTypeTitle
         title: title number
+  CalendarMethodEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/CalendarMethod
+    permissible_values:
+      calendarMethodAdd:
+        meaning: https://blackcatinformatics.ca/gmeow/calendarMethodAdd
+        title: add
+      calendarMethodCancel:
+        meaning: https://blackcatinformatics.ca/gmeow/calendarMethodCancel
+        title: cancel
+      calendarMethodCounter:
+        meaning: https://blackcatinformatics.ca/gmeow/calendarMethodCounter
+        title: counter
+      calendarMethodDeclineCounter:
+        meaning: https://blackcatinformatics.ca/gmeow/calendarMethodDeclineCounter
+        title: decline counter
+      calendarMethodPublish:
+        meaning: https://blackcatinformatics.ca/gmeow/calendarMethodPublish
+        title: publish
+      calendarMethodRefresh:
+        meaning: https://blackcatinformatics.ca/gmeow/calendarMethodRefresh
+        title: refresh
+      calendarMethodReply:
+        meaning: https://blackcatinformatics.ca/gmeow/calendarMethodReply
+        title: reply
+      calendarMethodRequest:
+        meaning: https://blackcatinformatics.ca/gmeow/calendarMethodRequest
+        title: request
   CalendarSystemEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CalendarSystem
     permissible_values:
@@ -10752,6 +10816,9 @@ enums:
       messageKindBounce:
         meaning: https://blackcatinformatics.ca/gmeow/messageKindBounce
         title: bounce
+      messageKindCalendarInvitation:
+        meaning: https://blackcatinformatics.ca/gmeow/messageKindCalendarInvitation
+        title: calendar invitation
       messageKindDeliveryStatusNotification:
         meaning: https://blackcatinformatics.ca/gmeow/messageKindDeliveryStatusNotification
         title: delivery status notification

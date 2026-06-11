@@ -823,18 +823,18 @@
     void:triples 6 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-icaltzd-ae81a5-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to http://www.w3.org/2002/12/cal/icaltzd# (16)" ;
+    rdfs:label "GMEOW skos:closeMatch links to http://www.w3.org/2002/12/cal/icaltzd# (18)" ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget ical: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 16 .
+    void:triples 18 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-icaltzd-ae81a5-skos_relatedMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:relatedMatch links to http://www.w3.org/2002/12/cal/icaltzd# (8)" ;
+    rdfs:label "GMEOW skos:relatedMatch links to http://www.w3.org/2002/12/cal/icaltzd# (10)" ;
     void:linkPredicate skos:relatedMatch ;
     void:objectsTarget ical: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 8 .
+    void:triples 10 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-icf-b8af36-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to http://hl7.org/fhir/sid/icf# (11)" ;
@@ -1376,11 +1376,11 @@
     void:triples 1 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-schema.org-5d26ac-skos_relatedMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:relatedMatch links to https://schema.org/ (17)" ;
+    rdfs:label "GMEOW skos:relatedMatch links to https://schema.org/ (18)" ;
     void:linkPredicate skos:relatedMatch ;
     void:objectsTarget schema: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 17 .
+    void:triples 18 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-sem-b5d94e-skos_closeMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:closeMatch links to http://semanticweb.cs.vu.nl/2009/11/sem/ (4)" ;

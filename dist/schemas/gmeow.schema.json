@@ -183,6 +183,15 @@
                         "null"
                     ]
                 },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "eventInterval": {
                     "items": {
                         "$ref": "#/$defs/TimeInterval"
@@ -8336,6 +8345,15 @@
                         "null"
                     ]
                 },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "eventInterval": {
                     "items": {
                         "$ref": "#/$defs/TimeInterval"
@@ -9279,6 +9297,27 @@
             },
             "title": "Calendar",
             "type": "object"
+        },
+        "CalendarMethod": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "CalendarMethod",
+            "type": "object"
+        },
+        "CalendarMethodEnum": {
+            "description": "",
+            "enum": [
+                "calendarMethodAdd",
+                "calendarMethodCancel",
+                "calendarMethodCounter",
+                "calendarMethodDeclineCounter",
+                "calendarMethodPublish",
+                "calendarMethodRefresh",
+                "calendarMethodReply",
+                "calendarMethodRequest"
+            ],
+            "title": "CalendarMethodEnum",
+            "type": "string"
         },
         "CalendarSystem": {
             "additionalProperties": false,
@@ -10789,6 +10828,15 @@
                 "eventAspect": {
                     "items": {
                         "$ref": "#/$defs/GrammaticalAspect"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
                     },
                     "type": [
                         "array",
@@ -12436,6 +12484,15 @@
                 "eventAspect": {
                     "items": {
                         "$ref": "#/$defs/GrammaticalAspect"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
                     },
                     "type": [
                         "array",
@@ -19945,6 +20002,21 @@
                         "null"
                     ]
                 },
+                "calendarAttachment": {
+                    "items": {
+                        "$ref": "#/$defs/Attachment"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "calendarUid": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "cc": {
                     "items": {
                         "$ref": "#/$defs/EmailAddress"
@@ -19990,6 +20062,15 @@
                 "depictedIn": {
                     "items": {
                         "$ref": "#/$defs/MediaObject"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "describesEvent": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
                     },
                     "type": [
                         "array",
@@ -20083,6 +20164,15 @@
                 "hasBodyPart": {
                     "items": {
                         "$ref": "#/$defs/BodyPart"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasCalendarMethod": {
+                    "items": {
+                        "$ref": "#/$defs/CalendarMethod"
                     },
                     "type": [
                         "array",
@@ -21298,6 +21388,15 @@
                 "eventAspect": {
                     "items": {
                         "$ref": "#/$defs/GrammaticalAspect"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
                     },
                     "type": [
                         "array",
@@ -22760,6 +22859,15 @@
                 "eventAspect": {
                     "items": {
                         "$ref": "#/$defs/GrammaticalAspect"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
                     },
                     "type": [
                         "array",
@@ -24858,6 +24966,15 @@
                 "eventAspect": {
                     "items": {
                         "$ref": "#/$defs/GrammaticalAspect"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
                     },
                     "type": [
                         "array",
@@ -28866,6 +28983,15 @@
                         "null"
                     ]
                 },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "eventInterval": {
                     "items": {
                         "$ref": "#/$defs/TimeInterval"
@@ -32583,6 +32709,15 @@
                         "null"
                     ]
                 },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "eventInterval": {
                     "items": {
                         "$ref": "#/$defs/TimeInterval"
@@ -33627,6 +33762,15 @@
                         "null"
                     ]
                 },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "eventInterval": {
                     "items": {
                         "$ref": "#/$defs/TimeInterval"
@@ -34026,6 +34170,15 @@
                 "eventAspect": {
                     "items": {
                         "$ref": "#/$defs/GrammaticalAspect"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
                     },
                     "type": [
                         "array",
@@ -36094,6 +36247,15 @@
                         "null"
                     ]
                 },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "eventInterval": {
                     "items": {
                         "$ref": "#/$defs/TimeInterval"
@@ -37990,6 +38152,15 @@
                 "eventAspect": {
                     "items": {
                         "$ref": "#/$defs/GrammaticalAspect"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
                     },
                     "type": [
                         "array",
@@ -43670,6 +43841,15 @@
                         "null"
                     ]
                 },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "eventInterval": {
                     "items": {
                         "$ref": "#/$defs/TimeInterval"
@@ -45454,6 +45634,7 @@
             "enum": [
                 "messageKindAutoGenerated",
                 "messageKindBounce",
+                "messageKindCalendarInvitation",
                 "messageKindDeliveryStatusNotification",
                 "messageKindFeedbackReport",
                 "messageKindReadReceipt"
@@ -50351,6 +50532,15 @@
                         "null"
                     ]
                 },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "eventInterval": {
                     "items": {
                         "$ref": "#/$defs/TimeInterval"
@@ -54284,6 +54474,15 @@
                 "eventAspect": {
                     "items": {
                         "$ref": "#/$defs/GrammaticalAspect"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
                     },
                     "type": [
                         "array",
@@ -60714,6 +60913,15 @@
                         "null"
                     ]
                 },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "eventInterval": {
                     "items": {
                         "$ref": "#/$defs/TimeInterval"
@@ -64529,6 +64737,15 @@
                 "eventAspect": {
                     "items": {
                         "$ref": "#/$defs/GrammaticalAspect"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
                     },
                     "type": [
                         "array",
@@ -83553,6 +83770,15 @@
                         "null"
                     ]
                 },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "eventInterval": {
                     "items": {
                         "$ref": "#/$defs/TimeInterval"
@@ -88607,6 +88833,15 @@
                 "eventAspect": {
                     "items": {
                         "$ref": "#/$defs/GrammaticalAspect"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "eventDescribedBy": {
+                    "items": {
+                        "$ref": "#/$defs/EmailMessage"
                     },
                     "type": [
                         "array",
