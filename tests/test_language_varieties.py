@@ -15,6 +15,7 @@ from rdflib.namespace import XSD
 from rdflib.query import ResultRow
 from rdflib.term import Identifier
 
+from gmeow_tools.config import TEMPORAL_QUERY_DIR
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
@@ -108,9 +109,7 @@ def test_language_state_bitemporal_query() -> None:
     """LanguageState inherits Observation machinery, so the existing bitemporal
     query works out of the box."""
     data = Graph().parse(COVERAGE_FIXTURES / "language-varieties.ttl", format="turtle")
-    query_text = (
-        Path(__file__).parent.parent / "queries" / "temporal" / "bitemporal.rq"
-    ).read_text(encoding="utf-8")
+    query_text = (TEMPORAL_QUERY_DIR / "bitemporal.rq").read_text(encoding="utf-8")
     # Middle English spans 1150-1500; 1200 CE falls inside it.
     result = data.query(
         query_text,

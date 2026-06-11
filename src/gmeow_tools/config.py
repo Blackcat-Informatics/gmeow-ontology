@@ -125,7 +125,10 @@ VERIFY_DIR = QUERIES_DIR / "verify"
 #: queries (Allen-relation closures, timeline, overlap, bitemporal four-clocks)
 #: over the events model. A query algebra realized in standard SPARQL, not a
 #: bespoke engine (Principle 5: align to T-SPARQL/stSPARQL by reference).
-TEMPORAL_QUERY_DIR = QUERIES_DIR / "temporal"
+#: TQL parameterized temporal queries — owned by the temporal slice (#287).
+#: NOTE: encodes the slice's checkout location for constant-import ergonomics;
+#: identity/tier still live solely in the manifest.
+TEMPORAL_QUERY_DIR = PROJECT_ROOT / "slices" / "core" / "temporal" / "queries" / "tql"
 #: Per-profile projection CONSTRUCT queries (the FnO/EDOAL executors).
 PROJECTION_QUERY_DIR = QUERIES_DIR / "projections"
 #: FnO function catalog + EDOAL complex-alignment specs (consumable, not reasoned).
@@ -134,6 +137,13 @@ PROJECTIONS_DIR = PROJECT_ROOT / "projections"
 #: compile-mappings`` renders these cells into the SSSOM / EDOAL / FnO / SPARQL
 #: artifacts. Authored, never generated; not in the reasoned import closure.
 MAPPING_DSL_DIR = PROJECT_ROOT / "mapping-dsl"
+#: Slice root (CONSTITUTION Principles 15-16): every ontology unit is a
+#: self-contained slice at ``slices/<group>/<name>/`` whose ``manifest.ttl``
+#: is the sole source of identity (IRI) and tier (core/extension). The
+#: ``<group>`` segment is human organization with no build semantics.
+SLICES_DIR = PROJECT_ROOT / "slices"
+#: Authoring vocabulary for slice manifests (a spec layer, never reasoned).
+SLICE_VOCABULARY_FILE = SLICES_DIR / "vocabulary.ttl"
 #: Single-source statement DSL (the canonical RDF 1.2 / RDF* statement-metadata
 #: layer — provenance, confidence, temporal scope). ``gmeow compile-statements``
 #: renders these cells to the RDF 1.2 lead artifact + the OWL axiom-annotation

@@ -10,7 +10,7 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from gmeow_tools.config import MAPPINGS_DIR, MODULES_DIR, PREFIXES
+from gmeow_tools.config import MAPPINGS_DIR, PREFIXES
 from gmeow_tools.mappings import (
     Mapping,
     collect_ontology_terms,
@@ -67,20 +67,18 @@ class CoverageReport:
 
     def gap_classes(self) -> set[str]:
         """Return the set of unmapped classes."""
-        all_classes = self.all_classes or collect_ontology_terms(MODULES_DIR)["classes"]
+        all_classes = self.all_classes or collect_ontology_terms()["classes"]
         return all_classes - self.mapped_classes
 
     def gap_properties(self) -> set[str]:
         """Return the set of unmapped properties."""
-        all_properties = (
-            self.all_properties or collect_ontology_terms(MODULES_DIR)["properties"]
-        )
+        all_properties = self.all_properties or collect_ontology_terms()["properties"]
         return all_properties - self.mapped_properties
 
     def gap_individuals(self) -> set[str]:
         """Return the set of unmapped individuals."""
         all_individuals = (
-            self.all_individuals or collect_ontology_terms(MODULES_DIR)["individuals"]
+            self.all_individuals or collect_ontology_terms()["individuals"]
         )
         return all_individuals - self.mapped_individuals
 
@@ -94,7 +92,7 @@ def _is_wikidata_mapping(mapping: Mapping) -> bool:
 def _term_type(iri: str, terms: dict[str, set[str]] | None = None) -> str | None:
     """Return the kind of ontology term (class, property, individual)."""
     if terms is None:
-        terms = collect_ontology_terms(MODULES_DIR)
+        terms = collect_ontology_terms()
     if iri in terms["classes"]:
         return "class"
     if iri in terms["properties"]:
@@ -129,7 +127,7 @@ def run_coverage(
     wd_mappings = [m for m in mappings if _is_wikidata_mapping(m)]
     groups = group_mappings_by_source(wd_mappings)
 
-    all_terms = collect_ontology_terms(MODULES_DIR)
+    all_terms = collect_ontology_terms()
     report = CoverageReport(
         total_classes=len(all_terms["classes"]),
         total_properties=len(all_terms["properties"]),

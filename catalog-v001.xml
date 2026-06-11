@@ -36,7 +36,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/modules/sources" uri="ontology/modules/sources.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/citations" uri="ontology/modules/citations.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/evidence" uri="ontology/modules/evidence.ttl"/>
-    <uri name="https://blackcatinformatics.ca/gmeow/modules/temporal" uri="ontology/modules/temporal.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/temporal" uri="slices/core/temporal/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/email" uri="ontology/modules/email.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/messaging-trust" uri="ontology/modules/messaging-trust.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/modules/narrative" uri="ontology/modules/narrative.ttl"/>

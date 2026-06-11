@@ -34,7 +34,6 @@ from sssom.validators import validate
 
 from gmeow_tools.config import (
     MAPPINGS_DIR,
-    MODULES_DIR,
     ONTOLOGY_IRI,
     PREFIXES,
     PROJECT_ROOT,
@@ -42,7 +41,7 @@ from gmeow_tools.config import (
     PROJECTIONS_DIR,
 )
 from gmeow_tools.generator import Generator, rdf_compare, register
-from gmeow_tools.graph import bind_prefixes, load_merged_graph
+from gmeow_tools.graph import bind_prefixes, iter_module_files, load_merged_graph
 from gmeow_tools.mapping_dsl import (
     Atom,
     CompileError,
@@ -63,6 +62,7 @@ from gmeow_tools.projection_lint import (
     projection_spec_drift,
 )
 from gmeow_tools.self_desc import load_self_description
+from gmeow_tools.slices import iter_slice_mapping_files
 
 GM = Namespace(PREFIXES["gmeow"])
 FNO = Namespace(PREFIXES["fno"])
@@ -1691,8 +1691,9 @@ class MappingGenerator(Generator):
         return [
             *list((PROJECT_ROOT / "mapping-dsl").glob("*.ttl")),
             *list((PROJECT_ROOT / "mapping-dsl").glob("*/*.ttl")),
+            *iter_slice_mapping_files(),
             PROJECT_ROOT / "ontology" / "gmeow.ttl",
-            *list(MODULES_DIR.glob("*.ttl")),
+            *iter_module_files(),
             *list((PROJECT_ROOT / "imports").glob("*.ttl")),
         ]
 

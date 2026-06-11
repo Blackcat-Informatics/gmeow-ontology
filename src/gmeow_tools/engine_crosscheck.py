@@ -43,6 +43,7 @@ from gmeow_tools.config import (
     VERIFY_DIR,
 )
 from gmeow_tools.graph import load_merged_graph, shared_merged_graph
+from gmeow_tools.slices import iter_slice_query_files
 
 #: Example instance fixtures the projection CONSTRUCTs need to produce output.
 _PROJECTION_FIXTURES = (
@@ -259,6 +260,11 @@ def crosscheck_all() -> list[CrosscheckResult]:
         plan: list[tuple[Path, Graph, pyoxigraph.Store]] = []
         for directory in (COMPETENCY_DIR, QC_DIR, VERIFY_DIR, TEMPORAL_QUERY_DIR):
             for rq in sorted(directory.glob("*.rq")):
+                plan.append((rq, base_graph, base_store))
+        # Slice-owned queries (slices/*/*/queries/<kind>/, #287). TQL is
+        # covered above via TEMPORAL_QUERY_DIR (which points into its slice).
+        for kind in ("competency", "verify"):
+            for rq in iter_slice_query_files(kind):
                 plan.append((rq, base_graph, base_store))
         for rq in sorted(PROJECTION_QUERY_DIR.glob("*.rq")):
             plan.append((rq, proj_graph, proj_store))

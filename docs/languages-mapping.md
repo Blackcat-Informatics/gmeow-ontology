@@ -224,7 +224,7 @@ ex:greatVowelShift a gmeow:LanguageChangeEvent ;
     gmeow:eventInterval ex:greatVowelShiftInterval .
 ```
 
-Because `LanguageState` is an `Observation`, the existing **bitemporal query** (`queries/temporal/bitemporal.rq`) works out of the box: ask "what was the status of English as of 1200 CE?" and receive the Middle English state with its standpoint and confidence.
+Because `LanguageState` is an `Observation`, the existing **bitemporal query** (`slices/core/temporal/queries/tql/bitemporal.rq`) works out of the box: ask "what was the status of English as of 1200 CE?" and receive the Middle English state with its standpoint and confidence.
 
 ## Interoperability — the four-layer stack
 

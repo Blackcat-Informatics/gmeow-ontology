@@ -1,4 +1,8 @@
-"""pytest configuration for the GMEOW test suite.
+"""Root pytest configuration for the GMEOW test suite.
+
+Lives at the repository root so the session fixtures and the docker
+hard-fail hook apply to every test path — tests/ and the slice-local
+tests (slices/*/*/tests/, #287) alike.
 
 Docker-marked tests that require pinned images (ROBOT, Jena) fail hard when
 the image is absent rather than silently skipping.  Missing infrastructure is

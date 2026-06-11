@@ -19,11 +19,17 @@ from gmeow_tools.config import (
     ONTOLOGY_FILE,
     PREFIXES,
 )
+from gmeow_tools.slices import iter_slice_module_files
 
 
 def iter_module_files() -> list[Path]:
-    """Return the GMEOW module Turtle files in sorted order."""
-    return sorted(MODULES_DIR.glob("*.ttl"))
+    """Return the GMEOW module Turtle files in sorted order.
+
+    Modules live in slices (``slices/*/*/module.ttl``, #287); the flat
+    ``ontology/modules/*.ttl`` glob remains only while the migration is in
+    flight and dies with the last unmigrated module.
+    """
+    return sorted(MODULES_DIR.glob("*.ttl")) + iter_slice_module_files()
 
 
 def iter_import_files() -> list[Path]:

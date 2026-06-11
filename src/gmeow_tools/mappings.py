@@ -26,11 +26,10 @@ from rdflib.namespace import OWL, VOID
 
 from gmeow_tools.config import (
     MAPPINGS_DIR,
-    MODULES_DIR,
     PREFIXES,
     VOID_DATASET_IRI,
 )
-from gmeow_tools.graph import bind_prefixes
+from gmeow_tools.graph import bind_prefixes, iter_module_files
 from gmeow_tools.wikidata import local_name, local_name_wdt
 
 #: Required SSSOM columns this tool consumes.
@@ -197,8 +196,13 @@ def group_mappings_by_source(mappings: list[Mapping]) -> dict[str, list[Mapping]
     return dict(groups)
 
 
-def collect_ontology_terms(modules_dir: Path = MODULES_DIR) -> dict[str, set[str]]:
+def collect_ontology_terms(
+    modules_dir: Path | None = None,
+) -> dict[str, set[str]]:
     """Scan ontology modules for declared classes, properties, and individuals.
+
+    Defaults to the canonical module enumeration (flat modules + slice
+    modules, #287); pass a directory to scan an explicit tree instead.
 
     Returns a dict of {term_type: {curie, ...}} where term_type is one of
     ``classes``, ``properties``, ``individuals``.
@@ -208,7 +212,8 @@ def collect_ontology_terms(modules_dir: Path = MODULES_DIR) -> dict[str, set[str
         "properties": set(),
         "individuals": set(),
     }
-    for path in sorted(modules_dir.glob("*.ttl")):
+    paths = sorted(modules_dir.glob("*.ttl")) if modules_dir else iter_module_files()
+    for path in paths:
         graph = Graph()
         graph.parse(path, format="turtle")
         for s in graph.subjects(RDF.type, OWL.Class):

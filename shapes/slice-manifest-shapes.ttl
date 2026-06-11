@@ -1,0 +1,61 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# =============================================================================
+# Slice manifest shapes — validate every slices/*/*/manifest.ttl.
+#
+# Structural validation only (cardinality, datatypes, tier values). The
+# SEMANTIC gates — declared deps match the computed reference graph, no
+# extension→extension edge, guide term-anchors resolve, consumer non-vacuous —
+# live in the slice gate (gmeow_tools), which has the whole graph in view.
+# Sibling of mapping-dsl-shapes.ttl / statement-dsl-shapes.ttl.
+# =============================================================================
+
+gmeow:SliceManifestShape
+    a sh:NodeShape ;
+    sh:targetClass gmeow:Slice ;
+    rdfs:label "slice manifest shape"@x-gmeow-english ;
+    sh:property [
+        sh:path gmeow:sliceTier ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:in ( gmeow:tierCore gmeow:tierExtension ) ;
+        sh:message "A slice declares exactly one tier: gmeow:tierCore or gmeow:tierExtension (Principle 16)."@x-gmeow-english ;
+    ] ;
+    sh:property [
+        sh:path gmeow:sliceConsumer ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 8 ;
+        sh:message "A slice names at least one consumer — who uses this, through which surface, in which product (Principle 15)."@x-gmeow-english ;
+    ] ;
+    sh:property [
+        sh:path gmeow:sliceDependsOn ;
+        sh:nodeKind sh:IRI ;
+        sh:message "Slice dependencies are slice IRIs."@x-gmeow-english ;
+    ] ;
+    sh:property [
+        sh:path dcterms:title ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A slice carries one dcterms:title (projected to its CITATION.cff)."@x-gmeow-english ;
+    ] ;
+    sh:property [
+        sh:path dcterms:creator ;
+        sh:minCount 1 ;
+        sh:message "A slice names at least one creator (projected to its CITATION.cff — third-party slice authors get citability from the manifest)."@x-gmeow-english ;
+    ] ;
+    sh:property [
+        sh:path gmeow:sliceProfile ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path gmeow:builtAgainstCore ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+    ] .

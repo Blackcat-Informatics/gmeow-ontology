@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# Slice manifest — authored in slices/vocabulary.ttl terms; validated by
+# shapes/slice-manifest-shapes.ttl + the slice gates. Anatomy is convention:
+# module.ttl, shapes.ttl, mappings/, queries/, tests/, docs.md live beside
+# this file and are discovered, never pointed at.
+
+<https://blackcatinformatics.ca/gmeow/slices/temporal>
+    a gmeow:Slice ;
+    rdfs:label "temporal"@x-gmeow-english ;
+    dcterms:title "GMEOW Temporal — intervals, instants, temporal frames, time-scoped relations"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/core> ,
+        <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
+    gmeow:sliceConsumer "Every slice carrying time-scoped facts (tenures, residences, validity); the statement layer's validFrom/validUntil; the calendar slice; the mail corpus."@x-gmeow-english .

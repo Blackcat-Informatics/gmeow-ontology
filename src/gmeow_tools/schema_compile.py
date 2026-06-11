@@ -34,9 +34,9 @@ import yaml
 from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
 from rdflib.term import BNode
 
-from gmeow_tools.config import MODULES_DIR, PREFIXES, PROJECT_ROOT, SCHEMAS_DIR
+from gmeow_tools.config import PREFIXES, PROJECT_ROOT, SCHEMAS_DIR
 from gmeow_tools.generator import Generator, register, write_text
-from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.graph import iter_module_files, load_merged_graph
 from gmeow_tools.self_desc import load_self_description
 
 _GMEOW = Namespace(PREFIXES["gmeow"])
@@ -480,7 +480,7 @@ class SchemaGenerator(Generator):
         """Canonical inputs for the schema generator."""
         return [
             PROJECT_ROOT / "ontology" / "gmeow.ttl",
-            *list(MODULES_DIR.glob("*.ttl")),
+            *iter_module_files(),
             *list((PROJECT_ROOT / "imports").glob("*.ttl")),
         ]
 

@@ -30,14 +30,13 @@ from rdflib.compare import graph_diff, isomorphic
 from rdflib.namespace import OWL
 
 from gmeow_tools.config import (
-    MODULES_DIR,
     PROJECT_ROOT,
     STATEMENT_DSL_DIR,
     STATEMENT_OWL_FILE,
     STATEMENT_RDF12_FILE,
 )
 from gmeow_tools.generator import Generator, rdf_compare, register
-from gmeow_tools.graph import bind_prefixes, load_merged_graph
+from gmeow_tools.graph import bind_prefixes, iter_module_files, load_merged_graph
 from gmeow_tools.mapping_dsl import CompileError
 from gmeow_tools.rdf12 import normalize_rdf12_to_owl, project_owl_to_rdf12
 from gmeow_tools.statement_dsl import StatementDsl, load_statement_dsl
@@ -160,7 +159,7 @@ class StatementGenerator(Generator):
         return [
             *list(STATEMENT_DSL_DIR.glob("*.ttl")),
             PROJECT_ROOT / "ontology" / "gmeow.ttl",
-            *list(MODULES_DIR.glob("*.ttl")),
+            *iter_module_files(),
             *list((PROJECT_ROOT / "imports").glob("*.ttl")),
         ]
 

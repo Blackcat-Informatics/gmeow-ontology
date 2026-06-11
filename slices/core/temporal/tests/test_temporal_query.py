@@ -10,7 +10,6 @@ the path, and that the subclass-aware type test reaches gmeow:LifeEvent occurren
 from __future__ import annotations
 
 from functools import lru_cache
-from pathlib import Path
 
 import pytest
 from rdflib import Graph, Literal, Namespace
@@ -18,11 +17,12 @@ from rdflib.namespace import XSD
 from rdflib.query import ResultRow
 from rdflib.term import Identifier
 
+from gmeow_tools.config import FIXTURES_DIR
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.temporal_query import TEMPORAL_QUERIES, run_temporal_query
 
 EX = Namespace("https://blackcatinformatics.ca/gmeow/examples/events/")
-COVERAGE = Path(__file__).parent / "fixtures" / "coverage"
+COVERAGE = FIXTURES_DIR  # the shared coverage corpus (tests/fixtures/coverage/)
 
 
 @lru_cache(maxsize=2)
@@ -50,7 +50,8 @@ def test_registry_covers_every_query_file() -> None:
 
 def test_allen_closure_is_transitive() -> None:
     """The property path computes the transitive ordering closure with no reasoner:
-    dawn before noon, noon before dusk ⊢ dawn before dusk."""
+    dawn before noon, noon before dusk ⊢ dawn before dusk.
+    """
     rows = run_temporal_query("allen-closure", _source())
     pairs = {(r[0], r[1]) for r in rows}
     assert (EX.dawn, EX.noon) in pairs
@@ -60,7 +61,8 @@ def test_allen_closure_is_transitive() -> None:
 
 def test_before_event_reaches_lifeevents_and_orders_by_time() -> None:
     """before-event(reception) includes the gmeow:LifeEvent birth (subclass-aware
-    type test) and the interval/fuzzy events, and excludes later events."""
+    type test) and the interval/fuzzy events, and excludes later events.
+    """
     rows = run_temporal_query("before-event", _source(), {"focus": EX.reception})
     events = _events(rows)
     assert EX.alexBirth in events  # a LifeEvent, reached via rdfs:subClassOf*
@@ -71,7 +73,8 @@ def test_before_event_reaches_lifeevents_and_orders_by_time() -> None:
 
 def test_during_event_follows_relation_and_inverse() -> None:
     """during-event(conference) finds the directly-asserted during (talk) AND the
-    inverse of an asserted contains (keynote), both over the asserted graph."""
+    inverse of an asserted contains (keynote), both over the asserted graph.
+    """
     rows = run_temporal_query("during-event", _source(), {"focus": EX.conference})
     events = _events(rows)
     assert {EX.talk, EX.keynote} <= events
@@ -101,7 +104,8 @@ def test_overlapping_window_matches_crisp_point_and_fuzzy() -> None:
 
 def test_bitemporal_four_clocks_returns_standpoint_indexed_claims() -> None:
     """Over the contested fixture: a claim valid at 1895 and asserted by 2020 is
-    returned with its standpoint, and coexisting frames are NOT collapsed (#43)."""
+    returned with its standpoint, and coexisting frames are NOT collapsed (#43).
+    """
     rows = run_temporal_query(
         "bitemporal",
         _source("events-contested.ttl"),

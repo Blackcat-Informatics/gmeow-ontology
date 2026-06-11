@@ -26,6 +26,7 @@ from rdflib.term import Node
 
 from gmeow_tools.config import MAPPING_DSL_DIR, PREFIXES
 from gmeow_tools.dsl_validate import validate_mapping_dsl
+from gmeow_tools.slices import iter_slice_mapping_files
 
 GM = Namespace(PREFIXES["gmeow"])
 
@@ -608,7 +609,12 @@ def load_dsl(src: Path = MAPPING_DSL_DIR) -> Dsl:
     """
     graph = Graph()
     node_to_file: dict[Node, Path] = {}
-    for path in sorted(src.rglob("*.ttl")):
+    sources = sorted(src.rglob("*.ttl"))
+    if src == MAPPING_DSL_DIR:
+        # Slices carry their own mapping cells (slices/*/*/mappings/*.ttl,
+        # #287); the compiler merges them with the shared DSL tree.
+        sources += iter_slice_mapping_files()
+    for path in sources:
         graph.parse(path, format="turtle")
         # Track source file for named IRIs (second parse is harmless).
         file_graph = Graph().parse(path, format="turtle")

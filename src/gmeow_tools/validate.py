@@ -27,6 +27,7 @@ from gmeow_tools.config import (
 from gmeow_tools.graph import iter_source_files, load_merged_graph
 from gmeow_tools.language_tags import check_annotation_literal
 from gmeow_tools.reasoning_lint import reasoning_invariants
+from gmeow_tools.slices import iter_slice_shape_files
 
 _DEFINITION = SKOS.definition
 
@@ -47,12 +48,15 @@ def _shapes_graph(shapes_path: Path) -> Graph:
     dsl_shapes = {
         "mapping-dsl-shapes.ttl",
         "statement-dsl-shapes.ttl",
+        "slice-manifest-shapes.ttl",  # targets manifests, not the data graph
         shapes_path.name,
     }
     for extra in sorted(SHAPES_DIR.glob("*.ttl")):
         if extra.name in dsl_shapes:
             continue
         graph.parse(extra, format="turtle")
+    for slice_shapes in iter_slice_shape_files():
+        graph.parse(slice_shapes, format="turtle")
     return graph
 
 
