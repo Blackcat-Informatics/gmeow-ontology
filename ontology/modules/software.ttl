@@ -806,3 +806,17 @@ gmeow:BuildActivity rdfs:subClassOf
 # have multiple parents, and the initial commit has zero. The someValuesFrom
 # restriction above is also deliberately omitted for parentCommit to allow
 # the root commit case.
+
+# =========================================================================== #
+# WRITTEN-IN LANGUAGE (#287 surgery — from the languages extension)
+# The property's domain is SoftwareProject: it belongs to the slice that
+# owns its subject; ProgrammingLanguage (its range) is core language.
+# =========================================================================== #
+
+gmeow:writtenInLanguage
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:SoftwareProject ;
+    rdfs:range gmeow:ProgrammingLanguage ;
+    rdfs:label "written in language"@x-gmeow-english ;
+    skos:definition "Relates a software project to a first-class gmeow:ProgrammingLanguage it is written in. Non-functional — a project uses several languages."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

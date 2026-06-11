@@ -822,7 +822,7 @@ export enum LandTenureTypeEnum {
 export enum LanguageEnum {
 
     English = "languageEnglish",
-    français = "languageFrench",
+    French = "languageFrench",
     普通话 = "languageMandarin",
 };
 
@@ -3251,21 +3251,21 @@ export interface Inscription extends InformationObject {
 
 export interface InscriptionReading {
     readingOf?: Inscription,
-    readingResult?: LexicalForm[],
+    readingResult?: InformationObject[],
 }
 
 
 
 export interface InscriptionTranslation {
     translationOf?: Inscription,
-    translationResult?: LexicalForm[],
+    translationResult?: InformationObject[],
 }
 
 
 
 export interface InscriptionTransliteration {
     transliterationOf?: Inscription,
-    transliterationResult?: LexicalForm[],
+    transliterationResult?: InformationObject[],
 }
 
 
@@ -4507,7 +4507,7 @@ export interface ScheduleException {
 
 export interface ScriptLanguageAttribution extends Observation {
     attributedLanguage?: Language[],
-    attributedNotation?: NotationSystem[],
+    attributedNotation?: InformationObject[],
     attributedScript?: WritingSystem[],
     attributionTarget?: Inscription,
 }

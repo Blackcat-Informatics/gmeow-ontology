@@ -31192,7 +31192,7 @@
               },
               "readingResult": {
                 "items": {
-                  "$ref": "#/$defs/LexicalForm"
+                  "$ref": "#/$defs/InformationObject"
                 },
                 "type": [
                   "array",
@@ -31219,7 +31219,7 @@
               },
               "translationResult": {
                 "items": {
-                  "$ref": "#/$defs/LexicalForm"
+                  "$ref": "#/$defs/InformationObject"
                 },
                 "type": [
                   "array",
@@ -31246,7 +31246,7 @@
               },
               "transliterationResult": {
                 "items": {
-                  "$ref": "#/$defs/LexicalForm"
+                  "$ref": "#/$defs/InformationObject"
                 },
                 "type": [
                   "array",
@@ -68870,7 +68870,7 @@
               },
               "attributedNotation": {
                 "items": {
-                  "$ref": "#/$defs/NotationSystem"
+                  "$ref": "#/$defs/InformationObject"
                 },
                 "type": [
                   "array",

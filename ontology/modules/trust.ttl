@@ -238,3 +238,73 @@ gmeow:Certification rdfs:subClassOf
 gmeow:TrustAssertion rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:trustor ; owl:someValuesFrom gmeow:Agent ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:trustee ; owl:someValuesFrom gmeow:Agent ] .
+
+# =========================================================================== #
+# CRYPTOGRAPHIC SIGNATURES (from the dissolved messaging-trust module —
+# #287 dependency surgery)
+# Generic signature machinery beside the keys it references: a
+# CryptographicSignature (PGP, S/MIME) signs any artifact, not only mail.
+# The email-wire half (DKIM, Authentication-Results, relay hops) lives in
+# the email extension.
+# =========================================================================== #
+
+gmeow:CryptographicSignature
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Cryptographic Signature"@x-gmeow-english ;
+    skos:definition "A cryptographic signature over a message or its headers, asserting origin and integrity."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:PGPSignature
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:CryptographicSignature ;
+    rdfs:label "PGP Signature"@x-gmeow-english ;
+    skos:definition "An OpenPGP signature (RFC 4880/9580, PGP-MIME RFC 3156) over a message, bound to a PGP key."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:SMIMESignature
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:CryptographicSignature ;
+    rdfs:label "S/MIME Signature"@x-gmeow-english ;
+    skos:definition "An S/MIME signature (RFC 8551) over a message, bound to an X.509 certificate."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:signedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CryptographicSignature ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "signed by"@x-gmeow-english ;
+    skos:definition "The agent (or signing identity) that produced a signature."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:signingKey
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:CryptographicSignature ;
+    rdfs:range gmeow:CryptographicKey ;
+    rdfs:label "signing key"@x-gmeow-english ;
+    skos:definition "The cryptographic key that produced a signature (the trust module's CryptographicKey). Complements gmeow:signedBy: signedBy gives the identity, signingKey gives the key — the pair a gmeow:Certification attests."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:signatureAlgorithm
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:CryptographicSignature ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "signature algorithm"@x-gmeow-english ;
+    skos:definition "The algorithm used for a signature (e.g. rsa-sha256, ed25519)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:signingDomain
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:CryptographicSignature ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "signing domain"@x-gmeow-english ;
+    skos:definition "The domain asserted by a signature (e.g. the DKIM d= tag)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:verificationStatus
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:CryptographicSignature ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "verification status"@x-gmeow-english ;
+    skos:definition "The verification outcome of a signature: verified, failed, or unverified."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

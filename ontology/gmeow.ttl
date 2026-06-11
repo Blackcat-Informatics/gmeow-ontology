@@ -68,7 +68,6 @@
         <https://blackcatinformatics.ca/gmeow/modules/evidence> ,
         <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
         <https://blackcatinformatics.ca/gmeow/modules/email> ,
-        <https://blackcatinformatics.ca/gmeow/modules/messaging-trust> ,
         <https://blackcatinformatics.ca/gmeow/modules/narrative> ,
         <https://blackcatinformatics.ca/gmeow/modules/trust> ,
         <https://blackcatinformatics.ca/gmeow/modules/versions> ,

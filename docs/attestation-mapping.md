@@ -75,7 +75,7 @@ assertion is true.
 | `gmeow:confirmationDepth` | *(universal)* | `xsd:integer` | Number of confirming blocks (domain-free). |
 | `gmeow:finalityStatus` | *(universal)* | `LedgerFinalityStatus` | Finality state (domain-free). |
 
-### Signature (reused from messaging-trust)
+### Signature (reused from the trust module)
 
 | Property | Domain | Range | Meaning |
 |---|---|---|---|
@@ -106,7 +106,7 @@ transparency-log entry — uses the same property.  The *kind* of signature is e
 through the range class:
 
 - `gmeow:CryptographicSignature` — abstract superclass.
-- `gmeow:DKIMSignature` — email domain-key signature (lives in `messaging-trust`).
+- `gmeow:DKIMSignature` — email domain-key signature (lives in the email slice; specializes trust's `CryptographicSignature`).
 - `gmeow:SMIMESignature` — S/MIME email signature.
 - `gmeow:PGPSignature` — OpenPGP signature.
 

@@ -351,3 +351,30 @@ gmeow:Service
     rdfs:label "Service"@x-gmeow-english ;
     skos:definition "A system that provides one or more functions. A specialization of gmeow:Work."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# FLAT DEPICTION (from the images module — #287 dependency surgery)
+# The slim depiction foundation lives in core beside gmeow:MediaObject: any
+# entity (a contact, a place) can carry a binary depiction with zero image
+# machinery. The images extension provides the high-fidelity model
+# (gmeow:DepictionUsage relator, regions, scene graphs) that stands in for
+# a flat depiction when context, audience, period, or evidence matters.
+# =========================================================================== #
+
+gmeow:depicts
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:isAbout ;
+    rdfs:domain gmeow:MediaObject ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "depicts"@x-gmeow-english ;
+    skos:definition "Relates an image (MediaObject) to an entity it depicts — the flat 80%-case shortcut, subproperty of gmeow:isAbout. Non-functional: an image may depict many entities. Promote to a gmeow:DepictionUsage relator when the context, audience, period, confidence, or evidence of the depiction must be recorded."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:depictedIn
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:depicts ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:range gmeow:MediaObject ;
+    rdfs:label "depicted in"@x-gmeow-english ;
+    skos:definition "Relates an entity to an image that depicts it. Inverse of gmeow:depicts. Non-functional: an entity may be depicted in many images."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

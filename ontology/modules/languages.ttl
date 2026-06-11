@@ -23,20 +23,6 @@
 # =========================================================================== #
 
 
-gmeow:FormalLanguage
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:Language ;
-    rdfs:label "Formal Language"@x-gmeow-english ;
-    skos:definition "A grammar-defined language with a machine modality and no human native speakers — programming, markup, query, logic, schema, and configuration languages. A thin structural split from gmeow:Language (the sociolinguistic facets — endonym/exonym, co-mingled scripts, native-speaker status — do not apply), complemented by the gmeow:languageOrigin value for fine-grained classification."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:ProgrammingLanguage
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:FormalLanguage ;
-    rdfs:label "Programming Language"@x-gmeow-english ;
-    skos:definition "A formal language for expressing executable computation (Python, Rust, SQL-as-implemented). The first-class target of gmeow:writtenInLanguage, by which a software project declares the languages it is written in."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
 gmeow:LanguageVersion
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Language ;
@@ -279,14 +265,6 @@ gmeow:versionLabel
     skos:definition "The version designation of an entity as a literal (\"1993\", \"2011\", \"v2.1.0-beta\", \"3rd Edition\"). Domain is gmeow:Entity so any versioned artifact — a language, a software release, a book edition, a dataset, an email variant — may carry its designation. Non-functional."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:writtenInLanguage
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:SoftwareProject ;
-    rdfs:range gmeow:ProgrammingLanguage ;
-    rdfs:label "written in language"@x-gmeow-english ;
-    skos:definition "Relates a software project to a first-class gmeow:ProgrammingLanguage it is written in. Non-functional — a project uses several languages."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
 # =========================================================================== #
 # Proficiency relator roles (functional, constitutive) + base relations.
 # =========================================================================== #
@@ -369,14 +347,6 @@ gmeow:nativeLanguage
 # (the names-module retrofit). Each scheme is also catalogued as an FnO function
 # in the projection layer (projections/functions.fno.ttl) via rdfs:seeAlso.
 # =========================================================================== #
-
-gmeow:transliterationScheme
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Appellation ;
-    rdfs:range gmeow:TransliterationScheme ;
-    rdfs:label "transliteration scheme"@x-gmeow-english ;
-    skos:definition "The named transliteration/romanization system that produced an appellation's gmeow:romanization (Hepburn vs Kunrei for Japanese; Pinyin vs Wade-Giles for Mandarin). Records HOW the romanization was derived. Non-functional. Domain gmeow:Appellation retrofits the names module; the scheme individuals are catalogued as FnO functions in the projection layer."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # =========================================================================== #
 # VALUE VOCABULARIES (open; individuals carry rdfs:label only — the structural
@@ -593,13 +563,6 @@ gmeow:scriptRoleDecorative         a gmeow:ScriptRole ; rdfs:label "decorative"@
 gmeow:scriptRoleDecorative skos:definition "The decorative script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 
-gmeow:ProficiencyModality
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Proficiency Modality"@x-gmeow-english ;
-    skos:definition "The skill channel a language proficiency rates (speaking, listening, reading, writing, signing, comprehension, overall). A value carried by gmeow:proficiencyModality."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
 gmeow:profModalitySpeaking      a gmeow:ProficiencyModality ; rdfs:label "speaking"@x-gmeow-english .
 gmeow:profModalitySpeaking skos:definition "The speaking proficiency modality — a specific skill channel (receptive, productive, signing, etc.) on which proficiency is assessed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
@@ -622,13 +585,6 @@ gmeow:profModalityOverall       a gmeow:ProficiencyModality ; rdfs:label "overal
 gmeow:profModalityOverall skos:definition "The overall proficiency modality — a specific skill channel (receptive, productive, signing, etc.) on which proficiency is assessed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
 
-gmeow:ProficiencyScale
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Proficiency Scale"@x-gmeow-english ;
-    skos:definition "A framework for rating proficiency — language, skill, or any competency domain (CEFR, ILR, ACTFL, Dreyfus, NIH, assessed, self-reported). A value carried by gmeow:proficiencyScale, gmeow:skillProficiencyScale, and gmeow:levelScale."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
 gmeow:scaleCEFR         a gmeow:ProficiencyScale ; rdfs:label "CEFR"@x-gmeow-english .
 gmeow:scaleCEFR skos:definition "The cefr proficiency scale — a named framework that defines ordered levels of language or skill competence."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
@@ -650,13 +606,6 @@ gmeow:scaleNIH skos:definition "The nih proficiency scale — a named framework 
 gmeow:scaleAssessed     a gmeow:ProficiencyScale ; rdfs:label "assessed"@x-gmeow-english .
 gmeow:scaleAssessed skos:definition "The assessed proficiency scale — a named framework that defines ordered levels of language or skill competence."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
-
-gmeow:ProficiencyLevel
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Proficiency Level"@x-gmeow-english ;
-    skos:definition "An attained proficiency level on a scale (CEFR A1–C2; Dreyfus novice→expert; NIH beginner→expert; assessed; native; heritage). A value carried by gmeow:proficiencyLevel and gmeow:skillProficiencyLevel; gmeow:levelScale ties it to its scale. ILR (0–5) and ACTFL levels are added as further individuals."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:cefrA1 a gmeow:ProficiencyLevel ; rdfs:label "CEFR A1"@x-gmeow-english ; gmeow:levelScale gmeow:scaleCEFR .
 gmeow:cefrA1 skos:definition "The a 1 proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
@@ -724,13 +673,6 @@ gmeow:assessedCompetent skos:definition "The assessed competent proficiency leve
 gmeow:assessedExpert    a gmeow:ProficiencyLevel ; rdfs:label "assessed expert"@x-gmeow-english ;    gmeow:levelScale gmeow:scaleAssessed .
 gmeow:assessedExpert skos:definition "The assessed expert proficiency level — a milestone on a scale that describes how well an agent commands a language or skill."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/languages> .
-
-gmeow:TransliterationScheme
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Transliteration Scheme"@x-gmeow-english ;
-    skos:definition "A named transliteration/romanization/transcription system (Hepburn, Pinyin, ISO 233, IPA, …). A value carried by gmeow:transliterationScheme; the major schemes are catalogued as FnO functions in the projection layer (projections/transforms.fno.ttl)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:schemeHepburn              a gmeow:TransliterationScheme ; rdfs:label "Hepburn (Japanese → Latin)"@x-gmeow-english .
 gmeow:schemeHepburn skos:definition "The hepburn transliteration scheme — a rule set for converting text from one writing system into another while preserving phonemic or orthographic structure."@x-gmeow-english ;

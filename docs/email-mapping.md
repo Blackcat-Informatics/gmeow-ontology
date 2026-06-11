@@ -93,7 +93,7 @@ asserts the result.
 ## Trust indicators (forward-looking)
 
 These headers are preserved in `rfc822_headers` but not yet parsed by gmeow. When
-parsed, map per the `messaging-trust` module:
+parsed, map per the wire-authentication terms (DKIM, Authentication-Results, relay hops — now in the email slice, atop trust's generic signatures):
 
 | Source | GMEOW term |
 |---|---|

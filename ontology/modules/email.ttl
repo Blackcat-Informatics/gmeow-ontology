@@ -948,3 +948,112 @@ gmeow:analysisInputBodyLine
     rdfs:label "analysis input body line"@x-gmeow-english ;
     skos:definition "The specific body line used as input for line-based fingerprinting, when the importer performs line-scoped analysis."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# WIRE AUTHENTICATION & TRANSIT (from the dissolved messaging-trust module —
+# #287 dependency surgery)
+# Email-specific trust machinery: DKIM signatures, RFC 8601
+# Authentication-Results, and Received-header relay hops. The generic
+# cryptographic-signature classes these specialize live in the trust core.
+# =========================================================================== #
+
+gmeow:DKIMSignature
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:CryptographicSignature ;
+    rdfs:label "DKIM Signature"@x-gmeow-english ;
+    skos:definition "A DomainKeys Identified Mail signature (RFC 6376) over selected headers and the body."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:AuthenticationResult
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Authentication Result"@x-gmeow-english ;
+    skos:definition "The outcome of an email authentication check (RFC 8601 Authentication-Results) — a method (DKIM, SPF, DMARC, ARC), a verdict, and the verifying server."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:RelayHop
+    a owl:Class, gufo:EventType ;
+    rdfs:subClassOf gufo:Event ;
+    rdfs:label "Relay Hop"@x-gmeow-english ;
+    skos:definition "One hop in a message's delivery path, recorded by a Received header: a relaying server, the host it received from, a server timestamp, and the protocol used."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasAuthenticationResult
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Message ;
+    rdfs:range gmeow:AuthenticationResult ;
+    rdfs:label "has authentication result"@x-gmeow-english ;
+    skos:definition "Relates a message to an authentication check performed on it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasRelayHop
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Message ;
+    rdfs:range gmeow:RelayHop ;
+    rdfs:label "has relay hop"@x-gmeow-english ;
+    skos:definition "Relates a message to a hop in its delivery path."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:authMethod
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:AuthenticationResult ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "authentication method"@x-gmeow-english ;
+    skos:definition "The authentication method checked: dkim, spf, dmarc, arc, iprev, or auth."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:authResult
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:AuthenticationResult ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "authentication result"@x-gmeow-english ;
+    skos:definition "The verdict of an authentication check: pass, fail, none, softfail, neutral, temperror, or permerror."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:authServer
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:AuthenticationResult ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "authentication server"@x-gmeow-english ;
+    skos:definition "The authentication-serv-id (authserv-id) that performed the check."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hopOrdinal
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:RelayHop ;
+    rdfs:range xsd:integer ;
+    rdfs:label "hop ordinal"@x-gmeow-english ;
+    skos:definition "The position of a hop within the message path (1 = closest to the origin)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:relayAt
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:RelayHop ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "relay at"@x-gmeow-english ;
+    skos:definition "The server timestamp recorded for a relay hop."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:relayBy
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:RelayHop ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "relay by"@x-gmeow-english ;
+    skos:definition "The server that performed a relay hop."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:relayFrom
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:RelayHop ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "relay from"@x-gmeow-english ;
+    skos:definition "The host a relay hop received the message from."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:relayProtocol
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:RelayHop ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "relay protocol"@x-gmeow-english ;
+    skos:definition "The protocol used for a relay hop (e.g. ESMTP, ESMTPS)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

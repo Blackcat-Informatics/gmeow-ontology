@@ -848,7 +848,7 @@ class LandTenureTypeEnum(str, Enum):
 
 class LanguageEnum(str, Enum):
     English = "languageEnglish"
-    français = "languageFrench"
+    French = "languageFrench"
     普通话 = "languageMandarin"
 
 
@@ -10727,7 +10727,7 @@ class InscriptionReading(ConfiguredBaseModel):
     readingOf: Optional[Inscription] = Field(default=None, title="reading of", json_schema_extra = { "linkml_meta": {'domain': 'InscriptionReading',
          'domain_of': ['InscriptionReading'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/readingOf'} })
-    readingResult: Optional[list[LexicalForm]] = Field(default=None, title="reading result", json_schema_extra = { "linkml_meta": {'domain': 'InscriptionReading',
+    readingResult: Optional[list[InformationObject]] = Field(default=None, title="reading result", json_schema_extra = { "linkml_meta": {'domain': 'InscriptionReading',
          'domain_of': ['InscriptionReading'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/readingResult'} })
 
@@ -10740,7 +10740,7 @@ class InscriptionTranslation(ConfiguredBaseModel):
     translationOf: Optional[Inscription] = Field(default=None, title="translation of", json_schema_extra = { "linkml_meta": {'domain': 'InscriptionTranslation',
          'domain_of': ['InscriptionTranslation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/translationOf'} })
-    translationResult: Optional[list[LexicalForm]] = Field(default=None, title="translation result", json_schema_extra = { "linkml_meta": {'domain': 'InscriptionTranslation',
+    translationResult: Optional[list[InformationObject]] = Field(default=None, title="translation result", json_schema_extra = { "linkml_meta": {'domain': 'InscriptionTranslation',
          'domain_of': ['InscriptionTranslation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/translationResult'} })
 
@@ -10753,7 +10753,7 @@ class InscriptionTransliteration(ConfiguredBaseModel):
     transliterationOf: Optional[Inscription] = Field(default=None, title="transliteration of", json_schema_extra = { "linkml_meta": {'domain': 'InscriptionTransliteration',
          'domain_of': ['InscriptionTransliteration'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/transliterationOf'} })
-    transliterationResult: Optional[list[LexicalForm]] = Field(default=None, title="transliteration result", json_schema_extra = { "linkml_meta": {'domain': 'InscriptionTransliteration',
+    transliterationResult: Optional[list[InformationObject]] = Field(default=None, title="transliteration result", json_schema_extra = { "linkml_meta": {'domain': 'InscriptionTransliteration',
          'domain_of': ['InscriptionTransliteration'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/transliterationResult'} })
 
@@ -24734,7 +24734,7 @@ class ScriptLanguageAttribution(Observation):
     attributedLanguage: Optional[list[Language]] = Field(default=None, title="attributed language", json_schema_extra = { "linkml_meta": {'domain': 'ScriptLanguageAttribution',
          'domain_of': ['ScriptLanguageAttribution'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributedLanguage'} })
-    attributedNotation: Optional[list[NotationSystem]] = Field(default=None, title="attributed notation", json_schema_extra = { "linkml_meta": {'domain': 'ScriptLanguageAttribution',
+    attributedNotation: Optional[list[InformationObject]] = Field(default=None, title="attributed notation", json_schema_extra = { "linkml_meta": {'domain': 'ScriptLanguageAttribution',
          'domain_of': ['ScriptLanguageAttribution'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/attributedNotation'} })
     attributedScript: Optional[list[WritingSystem]] = Field(default=None, title="attributed script", json_schema_extra = { "linkml_meta": {'domain': 'ScriptLanguageAttribution',

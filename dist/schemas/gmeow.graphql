@@ -6146,19 +6146,19 @@ type Inscription
 type InscriptionReading
   {
     readingOf: Inscription
-    readingResult: [LexicalForm]
+    readingResult: [InformationObject]
   }
 
 type InscriptionTranslation
   {
     translationOf: Inscription
-    translationResult: [LexicalForm]
+    translationResult: [InformationObject]
   }
 
 type InscriptionTransliteration
   {
     transliterationOf: Inscription
-    transliterationResult: [LexicalForm]
+    transliterationResult: [InformationObject]
   }
 
 type Instant
@@ -10979,7 +10979,7 @@ type ScriptLanguageAttribution
     perceptionEnvironment: SensoryEnvironment
     vantage: [Entity]
     attributedLanguage: [Language]
-    attributedNotation: [NotationSystem]
+    attributedNotation: [InformationObject]
     attributedScript: [WritingSystem]
     attributionTarget: Inscription
   }
