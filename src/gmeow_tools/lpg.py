@@ -24,6 +24,8 @@ from xml.etree.ElementTree import Element, SubElement, tostring
 import pyoxigraph
 
 from gmeow_tools.config import (
+    GTS_GRAPH_STATEMENTS,
+    GTS_SNAPSHOT_FILE,
     LPG_DIR,
     NAMESPACE,
     PREFIXES,
@@ -31,6 +33,7 @@ from gmeow_tools.config import (
     STATEMENT_RDF12_FILE,
 )
 from gmeow_tools.generator import Generator, register
+from gmeow_tools.gts_views import FoldView, load_fold
 
 #: Union of all pyoxigraph term types (there is no single ``Term`` base class).
 _Term = (
@@ -506,6 +509,163 @@ def build_lpg(
 
 
 # --------------------------------------------------------------------------- #
+# The fold path (narrow waist #267): build the LPG from the GTS snapshot
+# --------------------------------------------------------------------------- #
+
+_RDF_TYPE_IRI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+_XSD_NS = "http://www.w3.org/2001/XMLSchema#"
+
+
+def _fold_value(view: FoldView, tid: int) -> object:
+    """Convert a fold term to the lpg scalar form.
+
+    Parity with the old pyoxigraph ``_value_from_term``, including its
+    ``_bnode:`` rendering.
+    """
+    term = view.term(tid)
+    if view.is_literal(tid):
+        dt = view.datatype(tid)
+        lex = term.value or ""
+        if dt == _XSD_NS + "integer":
+            return int(lex)
+        if dt in (_XSD_NS + "decimal", _XSD_NS + "double", _XSD_NS + "float"):
+            return float(lex)
+        if dt == _XSD_NS + "boolean":
+            return lex.lower() in ("true", "1")
+        if term.lang is not None:
+            return {"value": lex, "lang": term.lang}
+        return lex
+    if view.is_iri(tid):
+        return _curie(term.value or "")
+    if view.is_bnode(tid):
+        return f"_bnode:{term.value or ''}"
+    return view.nq_token(tid)
+
+
+def _accumulate(bucket: dict[str, object], key: str, value: object) -> None:
+    """Single value → value; repeats → list (the old row-accumulate idiom)."""
+    existing = bucket.get(key)
+    if existing is None:
+        bucket[key] = value
+    elif isinstance(existing, list):
+        existing.append(value)
+    else:
+        bucket[key] = [existing, value]
+
+
+def build_lpg_fold(
+    view: FoldView,
+    *,
+    scope: str | None = GTS_GRAPH_STATEMENTS,
+    drop_tbox: bool = True,
+) -> LPGGraph:
+    """Build an LPG from the GTS fold — quads scoped to the statement layer.
+
+    The fold-table counterpart of the SPARQL path: ``reifiers``/``annot``
+    are direct table reads (the producer routed ``rdf:reifies`` and
+    reifier-subject triples there, so the scoped quads are exactly the base
+    triples and the reifies/annotation FILTERs vanish).
+    """
+    lpg = LPGGraph()
+    tbox_predicates = _TBOX_PREDICATES if drop_tbox else frozenset()
+
+    # --- Reifier metadata from the fold tables ---
+    reifier_meta: dict[str, dict[str, object]] = defaultdict(dict)
+    reifier_triple: dict[str, tuple[str, str, str]] = {}
+    reifier_iris: set[str] = set()
+    for rid, (qs, qp, qo) in view.reifiers().items():
+        reifier = view.lex(rid)
+        reifier_iris.add(reifier)
+        reifier_triple[reifier] = (view.lex(qs), view.lex(qp), view.lex(qo))
+    for rid, p, v in view.annotations():
+        reifier = view.lex(rid)
+        reifier_iris.add(reifier)
+        _accumulate(reifier_meta[reifier], view.lex(p), _fold_value(view, v))
+
+    triple_meta: dict[tuple[str, str, str], list[dict[str, object]]] = defaultdict(list)
+    for reifier, (qs, qp, qo) in reifier_triple.items():
+        meta = reifier_meta.get(reifier, {})
+        triple_meta[(qs, qp, qo)].append({_short_key(k): v for k, v in meta.items()})
+
+    # --- One pass over the scoped quads, bucketed by object kind ---
+    type_tid = view.tid_of_iri(_RDF_TYPE_IRI)
+    node_labels: dict[str, set[str]] = defaultdict(set)
+    node_props: dict[str, dict[str, object]] = defaultdict(dict)
+    object_rows: list[tuple[str, str, str]] = []
+
+    for s, p, o, _g in view.quads(scope):
+        if view.is_bnode(s):
+            continue
+        subject = view.lex(s)
+        if p == type_tid:
+            if subject in reifier_iris:
+                continue
+            type_iri = view.lex(o)
+            if type_iri not in _SKIP_LABELS:
+                node_labels[subject].add(_curie(type_iri))
+            node_labels.setdefault(subject, set())
+        elif view.is_literal(o):
+            if subject in reifier_iris:
+                continue
+            _accumulate(
+                node_props[subject],
+                _short_key(view.lex(p)),
+                _fold_value(view, o),
+            )
+            node_labels.setdefault(subject, set())
+        elif view.is_iri(o):
+            obj = view.lex(o)
+            if subject in reifier_iris or obj in reifier_iris:
+                continue
+            node_labels.setdefault(subject, set())
+            node_labels.setdefault(obj, set())
+            object_rows.append((subject, view.lex(p), obj))
+
+    # IRI annotation VALUES are referenced entities and become (possibly
+    # isolated) nodes — the old path's "all distinct resources" straggler
+    # union caught them via the reifier-subject annotation triples.
+    for _rid, _p, v in view.annotations():
+        if view.is_iri(v):
+            value_iri = view.lex(v)
+            if value_iri not in reifier_iris:
+                node_labels.setdefault(value_iri, set())
+
+    # --- Nodes ---
+    for resource, labels in node_labels.items():
+        props = dict(node_props.get(resource, {}))
+        props["uri"] = resource
+        if labels:
+            props["types"] = sorted(labels)
+        lpg.add_node(
+            LPGNode(
+                id=_curie(resource),
+                labels=tuple(sorted(labels)),
+                properties=props,
+            )
+        )
+
+    # --- Edges ---
+    for subject, predicate, obj in object_rows:
+        if predicate in tbox_predicates:
+            continue
+        source_id, target_id = _curie(subject), _curie(obj)
+        edge_type = _short_key(predicate)
+        meta_list = triple_meta.get((subject, predicate, obj), []) or [{}]
+        for meta in meta_list:
+            lpg.add_edge(
+                LPGEdge(
+                    id=_edge_id(source_id, target_id, edge_type, meta),
+                    source=source_id,
+                    target=target_id,
+                    type=edge_type,
+                    properties=dict(meta),
+                )
+            )
+
+    return lpg
+
+
+# --------------------------------------------------------------------------- #
 # Serializers
 # --------------------------------------------------------------------------- #
 
@@ -807,7 +967,7 @@ class LpgGenerator(Generator):
     @property
     def inputs(self) -> Sequence[Path]:
         """Canonical inputs for the LPG generator."""
-        return [STATEMENT_RDF12_FILE]
+        return [GTS_SNAPSHOT_FILE]
 
     @property
     def outputs(self) -> Sequence[Path]:
@@ -821,8 +981,7 @@ class LpgGenerator(Generator):
 
     def render(self, staging: Path) -> None:
         """Render LPG artifacts into the staging tree."""
-        store = _load_store()
-        lpg = build_lpg(store)
+        lpg = build_lpg_fold(load_fold())
         out_dir = staging / LPG_DIR.relative_to(PROJECT_ROOT)
         written = _write_all(lpg, out_dir, "all")
         self._rendered_outputs = [
