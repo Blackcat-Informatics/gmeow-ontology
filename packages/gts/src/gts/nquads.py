@@ -57,6 +57,16 @@ def _render(g: Graph, tid: int) -> str:
     return f"_:unbound_triple_{tid}"
 
 
+def term_token(g: Graph, tid: int) -> str:
+    """Render the canonical N-Triples token for a term-id (public API).
+
+    IRIs in angle brackets, escaped literals with language or datatype,
+    quoted triples through their reifier — the stable sort key and display
+    form that tooling builds on.
+    """
+    return _render(g, tid)
+
+
 def to_nquads(g: Graph) -> str:
     """Serialise a folded :class:`Graph` to N-Quads text."""
     lines: list[str] = []
