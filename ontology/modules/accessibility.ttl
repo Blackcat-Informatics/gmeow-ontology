@@ -142,12 +142,6 @@ gmeow:assertionPolarity
 # Route kind seed — accessible route (computed, not asserted)
 # --------------------------------------------------------------------------- #
 
-gmeow:routeKindAccessible
-    a gmeow:RouteKind ;
-    rdfs:label "accessible route"@x-gmeow-english ;
-    skos:definition "A route computed to satisfy a set of accessibility needs. The actual path is determined by the solver layer (Principle 12), not asserted in OWL."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/accessibility> .
-
 # --------------------------------------------------------------------------- #
 # AXIOMATIZED DOCTRINE — relator mediation for ELK visibility
 # --------------------------------------------------------------------------- #

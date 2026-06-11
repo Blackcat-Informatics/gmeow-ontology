@@ -420,15 +420,6 @@ gmeow:mediumServerObject a gmeow:CarrierMedium ; rdfs:label "server object"@x-gm
 # --- DC relation family (issue #60) ---------------------------------------- #
 gmeow:mediumServerObject rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/modules/creative-works> .
 
-gmeow:isReferencedBy
-    a owl:ObjectProperty ;
-    owl:inverseOf gmeow:references ;
-    rdfs:domain gmeow:Entity ;
-    rdfs:range gmeow:Entity ;
-    rdfs:label "is referenced by"@x-gmeow-english ;
-    skos:definition "A related resource that references, cites, or otherwise points to the described resource. Inverse of gmeow:references."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
 gmeow:requires
     a owl:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;

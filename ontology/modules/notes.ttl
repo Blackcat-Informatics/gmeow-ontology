@@ -18,13 +18,6 @@
 # EVIDENCE SPAN — generalized anchored target (coordinated with #55 Selector)
 # =========================================================================== #
 
-gmeow:EvidenceSpan
-    a owl:Class, gufo:Category ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Evidence Span"@x-gmeow-english ;
-    skos:definition "An anchored target span within a resource — a text quote, character position, fragment identifier, page, or generic locator. Generalized from the citation-selector model to serve both evidentiary claims (#54/#55) and annotation targets (#63). The selector properties (selectorTextQuote, selectorTextPosition, selectorPage, selectorLocator) are asserted on EvidenceSpan individuals and inherited by Selector instances. No second selector model is minted (Principle 4)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
 # =========================================================================== #
 # NOTE — the content layer
 # =========================================================================== #

@@ -154,14 +154,6 @@ gmeow:bcc
     skos:definition "A blind-carbon-copy recipient address of a message (RFC 5322 Bcc)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:deliversToAccount
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:EmailAddress ;
-    rdfs:range gmeow:OnlineAccount ;
-    rdfs:label "delivers to account"@x-gmeow-english ;
-    skos:definition "Relates an email address to the online account it delivers to — the seam joining an address (held by an agent) to the account a message resides in."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
 # --------------------------------------------------------------------------- #
 # Threading
 # --------------------------------------------------------------------------- #
@@ -181,14 +173,6 @@ gmeow:inReplyTo
     rdfs:range gmeow:Message ;
     rdfs:label "in reply to"@x-gmeow-english ;
     skos:definition "Relates a message to the message it directly replies to (RFC 5322 In-Reply-To)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:references
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Entity ;
-    rdfs:range gmeow:Entity ;
-    rdfs:label "references"@x-gmeow-english ;
-    skos:definition "A related resource that is referenced, cited, or otherwise pointed to by the described resource. (RFC 5322 References for messages; bibliographic references for creative works.)"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:rfcMessageId
@@ -443,30 +427,6 @@ gmeow:mailboxUnreadMessages
 # --------------------------------------------------------------------------- #
 # Stable address decomposition (on EmailAddress, not on occurrence)
 # --------------------------------------------------------------------------- #
-
-gmeow:addressValue
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:EmailAddress ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "address value"@x-gmeow-english ;
-    skos:definition "The normalized addr-spec of an email address."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:localPart
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:EmailAddress ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "local part"@x-gmeow-english ;
-    skos:definition "The local part of an email address."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:domainPart
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:EmailAddress ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "domain part"@x-gmeow-english ;
-    skos:definition "The domain part of an email address."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 # --------------------------------------------------------------------------- #
 # MessageParticipant — reified contextual occurrence of an address in a message
