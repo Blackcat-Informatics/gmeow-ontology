@@ -48,35 +48,35 @@ gmeow:Procedure
     rdfs:subClassOf gmeow:InformationObject, gufo:Object ;
     rdfs:label "Procedure"@x-gmeow-english ;
     skos:definition "A prescriptive specification — a template, recipe, protocol, blueprint, workflow definition, or pipeline spec. The plan side of the plan ⟂ execution de-conflation: an InformationObject that describes how to do something, distinct from any Execution that enacts it. The kind of procedure is a gmeow:procedureType value, never a subclass."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:ProcedureStep
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject, gufo:Object ;
     rdfs:label "Procedure Step"@x-gmeow-english ;
     skos:definition "An atomic step within a Procedure. Carries inputs, outputs, and parameters. May itself reference a subprocess Procedure via gmeow:stepEnactsProcedure. The kind of step is a gmeow:StepType value, never a subclass."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:Execution
     a owl:Class, gufo:EventType ;
     rdfs:subClassOf gmeow:Event ;
     rdfs:label "Execution"@x-gmeow-english ;
     skos:definition "An event that enacts a Procedure or one of its ProcedureSteps. The execution side of the plan ⟂ execution de-conflation: an occurrence that realises a prescriptive spec. Reuses the existing event stack (Participation for agent/tool assignment, Allen relations for temporal ordering, eventInterval / eventTime for dating)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:ControlFlow
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Control Flow"@x-gmeow-english ;
     skos:definition "A reified relator that connects two ProcedureSteps in a control-flow relationship — sequencing, branching, or looping. Reuses the Participation idiom: mediates a source step, a target step, and an optional guard condition (gmeow:flowGuard). The actual guard evaluation is solver-side (Principle 12)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:DataFlow
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Data Flow"@x-gmeow-english ;
     skos:definition "A reified relator that connects a ProcedureStep's output to another ProcedureStep's input. Mediates a source step, a target step, and the data entity that flows between them."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 # =========================================================================== #
 # VALUE VOCABULARIES — open, individuals never subclasses (Principle 9)
@@ -87,7 +87,7 @@ gmeow:ProcedureType
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Procedure Type"@x-gmeow-english ;
     skos:definition "The kind of a procedure — a VALUE, never a Procedure subclass. The set is open; a kind not among the seed individuals is a FRESH gmeow:ProcedureType individual carrying rdfs:label, not a new class."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:procedureType
     a owl:ObjectProperty ;
@@ -95,24 +95,24 @@ gmeow:procedureType
     rdfs:range gmeow:ProcedureType ;
     rdfs:label "procedure type"@x-gmeow-english ;
     skos:definition "The kind(s) of a procedure, drawn from the open gmeow:ProcedureType value vocabulary. Non-functional: a procedure may serve several purposes (a research plan that is also a data pipeline), and competing standpoint-indexed type claims coexist rather than contradict."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 # Seed procedure types
-gmeow:procedureTypeRecipe       a gmeow:ProcedureType ; rdfs:label "recipe"@x-gmeow-english ;       skos:definition "A cooking recipe or culinary procedure."@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:procedureTypeLabProtocol  a gmeow:ProcedureType ; rdfs:label "lab protocol"@x-gmeow-english ;  skos:definition "A laboratory protocol or experimental procedure (OBI)."@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:procedureTypeDataPipeline a gmeow:ProcedureType ; rdfs:label "data pipeline"@x-gmeow-english ; skos:definition "A data-ingestion, ETL, or transformation pipeline."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:procedureTypeAgentFlow    a gmeow:ProcedureType ; rdfs:label "agent flow"@x-gmeow-english ;    skos:definition "An LLM or software-agent orchestration flow."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:procedureTypeCiBuild      a gmeow:ProcedureType ; rdfs:label "CI build"@x-gmeow-english ;      skos:definition "A continuous-integration or build pipeline."@x-gmeow-english ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:procedureTypeBusinessProcess a gmeow:ProcedureType ; rdfs:label "business process"@x-gmeow-english ; skos:definition "A business process or workflow (BPMN)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:procedureTypeResearchPlan a gmeow:ProcedureType ; rdfs:label "research plan"@x-gmeow-english ; skos:definition "A planned inquiry, open lead, or research question."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:procedureTypeIngestion    a gmeow:ProcedureType ; rdfs:label "ingestion"@x-gmeow-english ;    skos:definition "A source-packet ingestion or import procedure."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:procedureTypeRecipe       a gmeow:ProcedureType ; rdfs:label "recipe"@x-gmeow-english ;       skos:definition "A cooking recipe or culinary procedure."@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:procedureTypeLabProtocol  a gmeow:ProcedureType ; rdfs:label "lab protocol"@x-gmeow-english ;  skos:definition "A laboratory protocol or experimental procedure (OBI)."@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:procedureTypeDataPipeline a gmeow:ProcedureType ; rdfs:label "data pipeline"@x-gmeow-english ; skos:definition "A data-ingestion, ETL, or transformation pipeline."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:procedureTypeAgentFlow    a gmeow:ProcedureType ; rdfs:label "agent flow"@x-gmeow-english ;    skos:definition "An LLM or software-agent orchestration flow."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:procedureTypeCiBuild      a gmeow:ProcedureType ; rdfs:label "CI build"@x-gmeow-english ;      skos:definition "A continuous-integration or build pipeline."@x-gmeow-english ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:procedureTypeBusinessProcess a gmeow:ProcedureType ; rdfs:label "business process"@x-gmeow-english ; skos:definition "A business process or workflow (BPMN)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:procedureTypeResearchPlan a gmeow:ProcedureType ; rdfs:label "research plan"@x-gmeow-english ; skos:definition "A planned inquiry, open lead, or research question."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:procedureTypeIngestion    a gmeow:ProcedureType ; rdfs:label "ingestion"@x-gmeow-english ;    skos:definition "A source-packet ingestion or import procedure."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:StepType
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Step Type"@x-gmeow-english ;
     skos:definition "The kind of a procedure step — a VALUE, never a ProcedureStep subclass. The set is open; a kind not among the seed individuals is a FRESH gmeow:StepType individual carrying rdfs:label, not a new class."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:procedureStepType
     a owl:ObjectProperty ;
@@ -120,22 +120,22 @@ gmeow:procedureStepType
     rdfs:range gmeow:StepType ;
     rdfs:label "procedure step type"@x-gmeow-english ;
     skos:definition "The kind(s) of a procedure step, drawn from the open gmeow:StepType value vocabulary. Non-functional: a step may serve several purposes, and competing standpoint-indexed type claims coexist."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 # Seed step types
-gmeow:stepTypeAtomic    a gmeow:StepType ; rdfs:label "atomic step"@x-gmeow-english ;    skos:definition "An atomic, indivisible action step."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:stepTypeStart     a gmeow:StepType ; rdfs:label "start step"@x-gmeow-english ;     skos:definition "The entry point of a procedure."@x-gmeow-english ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:stepTypeEnd       a gmeow:StepType ; rdfs:label "end step"@x-gmeow-english ;       skos:definition "The terminal point of a procedure."@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:stepTypeBranch    a gmeow:StepType ; rdfs:label "branch step"@x-gmeow-english ;    skos:definition "A guarded decision point (BPMN gateway). Must be the source of at least two ControlFlow relators."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:stepTypeSubprocess a gmeow:StepType ; rdfs:label "subprocess step"@x-gmeow-english ; skos:definition "A step that is itself a Procedure, enacted via gmeow:stepEnactsProcedure."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:stepTypeParallel  a gmeow:StepType ; rdfs:label "parallel step"@x-gmeow-english ;  skos:definition "A fork or join point for parallel execution."@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:stepTypeAtomic    a gmeow:StepType ; rdfs:label "atomic step"@x-gmeow-english ;    skos:definition "An atomic, indivisible action step."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:stepTypeStart     a gmeow:StepType ; rdfs:label "start step"@x-gmeow-english ;     skos:definition "The entry point of a procedure."@x-gmeow-english ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:stepTypeEnd       a gmeow:StepType ; rdfs:label "end step"@x-gmeow-english ;       skos:definition "The terminal point of a procedure."@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:stepTypeBranch    a gmeow:StepType ; rdfs:label "branch step"@x-gmeow-english ;    skos:definition "A guarded decision point (BPMN gateway). Must be the source of at least two ControlFlow relators."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:stepTypeSubprocess a gmeow:StepType ; rdfs:label "subprocess step"@x-gmeow-english ; skos:definition "A step that is itself a Procedure, enacted via gmeow:stepEnactsProcedure."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:stepTypeParallel  a gmeow:StepType ; rdfs:label "parallel step"@x-gmeow-english ;  skos:definition "A fork or join point for parallel execution."@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:BranchConditionType
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Branch Condition Type"@x-gmeow-english ;
     skos:definition "The kind of guard condition on a control-flow edge — a VALUE, never a subclass. Evaluated solver-side (Principle 12). The set is open; new condition kinds are fresh individuals."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:flowGuard
     a owl:ObjectProperty ;
@@ -143,20 +143,20 @@ gmeow:flowGuard
     rdfs:range gmeow:BranchConditionType ;
     rdfs:label "flow guard"@x-gmeow-english ;
     skos:definition "The guard condition type on a control-flow edge. The actual truth evaluation (the condition expression, variable bindings, etc.) is solver-side (Principle 12); the ontology records only the condition kind."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 # Seed branch condition types
-gmeow:branchConditionIf       a gmeow:BranchConditionType ; rdfs:label "if"@x-gmeow-english ;       skos:definition "A conditional if-then branch."@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:branchConditionSwitch   a gmeow:BranchConditionType ; rdfs:label "switch"@x-gmeow-english ;   skos:definition "A multi-way switch branch."@x-gmeow-english ;   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:branchConditionLoop     a gmeow:BranchConditionType ; rdfs:label "loop"@x-gmeow-english ;     skos:definition "An iterative loop-back branch."@x-gmeow-english ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:branchConditionParallel a gmeow:BranchConditionType ; rdfs:label "parallel"@x-gmeow-english ; skos:definition "A parallel split or join branch."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:branchConditionIf       a gmeow:BranchConditionType ; rdfs:label "if"@x-gmeow-english ;       skos:definition "A conditional if-then branch."@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:branchConditionSwitch   a gmeow:BranchConditionType ; rdfs:label "switch"@x-gmeow-english ;   skos:definition "A multi-way switch branch."@x-gmeow-english ;   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:branchConditionLoop     a gmeow:BranchConditionType ; rdfs:label "loop"@x-gmeow-english ;     skos:definition "An iterative loop-back branch."@x-gmeow-english ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:branchConditionParallel a gmeow:BranchConditionType ; rdfs:label "parallel"@x-gmeow-english ; skos:definition "A parallel split or join branch."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:ExecutionStatus
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Execution Status"@x-gmeow-english ;
     skos:definition "The status of an Execution occurrence — a VALUE, never a subclass. The set is open; new statuses are fresh individuals."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:executionStatus
     a owl:ObjectProperty ;
@@ -164,15 +164,15 @@ gmeow:executionStatus
     rdfs:range gmeow:ExecutionStatus ;
     rdfs:label "execution status"@x-gmeow-english ;
     skos:definition "The status of an execution occurrence, drawn from the open gmeow:ExecutionStatus value vocabulary. Non-functional: competing assessments from different monitoring sources coexist (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 # Seed execution statuses
-gmeow:executionStatusPending    a gmeow:ExecutionStatus ; rdfs:label "pending"@x-gmeow-english ;    skos:definition "The execution is scheduled but has not started."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:executionStatusRunning    a gmeow:ExecutionStatus ; rdfs:label "running"@x-gmeow-english ;    skos:definition "The execution is currently in progress."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:executionStatusSucceeded  a gmeow:ExecutionStatus ; rdfs:label "succeeded"@x-gmeow-english ;  skos:definition "The execution completed successfully."@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:executionStatusFailed     a gmeow:ExecutionStatus ; rdfs:label "failed"@x-gmeow-english ;     skos:definition "The execution failed or aborted."@x-gmeow-english ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:executionStatusCancelled  a gmeow:ExecutionStatus ; rdfs:label "cancelled"@x-gmeow-english ;  skos:definition "The execution was cancelled before completion."@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:executionStatusSkipped    a gmeow:ExecutionStatus ; rdfs:label "skipped"@x-gmeow-english ;    skos:definition "The execution was skipped (e.g. by a branch guard)."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:executionStatusPending    a gmeow:ExecutionStatus ; rdfs:label "pending"@x-gmeow-english ;    skos:definition "The execution is scheduled but has not started."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:executionStatusRunning    a gmeow:ExecutionStatus ; rdfs:label "running"@x-gmeow-english ;    skos:definition "The execution is currently in progress."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:executionStatusSucceeded  a gmeow:ExecutionStatus ; rdfs:label "succeeded"@x-gmeow-english ;  skos:definition "The execution completed successfully."@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:executionStatusFailed     a gmeow:ExecutionStatus ; rdfs:label "failed"@x-gmeow-english ;     skos:definition "The execution failed or aborted."@x-gmeow-english ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:executionStatusCancelled  a gmeow:ExecutionStatus ; rdfs:label "cancelled"@x-gmeow-english ;  skos:definition "The execution was cancelled before completion."@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
+gmeow:executionStatusSkipped    a gmeow:ExecutionStatus ; rdfs:label "skipped"@x-gmeow-english ;    skos:definition "The execution was skipped (e.g. by a branch guard)."@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 # =========================================================================== #
 # PROCEDURE COMPOSITION — mereology
@@ -185,7 +185,7 @@ gmeow:hasProcedureStep
     rdfs:range gmeow:ProcedureStep ;
     rdfs:label "has procedure step"@x-gmeow-english ;
     skos:definition "Relates a Procedure to a step it contains. Specialisation of the universal gmeow:hasPart spine."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:procedureStepOf
     a owl:ObjectProperty ;
@@ -195,7 +195,7 @@ gmeow:procedureStepOf
     rdfs:range gmeow:Procedure ;
     rdfs:label "procedure step of"@x-gmeow-english ;
     skos:definition "Relates a ProcedureStep to the Procedure it is part of; the inverse of gmeow:hasProcedureStep."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:subProcedureOf
     a owl:ObjectProperty, owl:TransitiveProperty ;
@@ -204,7 +204,7 @@ gmeow:subProcedureOf
     rdfs:range gmeow:Procedure ;
     rdfs:label "sub-procedure of"@x-gmeow-english ;
     skos:definition "Relates a Procedure to a larger Procedure it is part of — subprocess composition. Transitive: a part of a part is a part. Specialisation of the universal gmeow:partOf spine. Non-simple, so kept out of all cardinality axioms."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:hasSubProcedure
     a owl:ObjectProperty, owl:TransitiveProperty ;
@@ -214,7 +214,7 @@ gmeow:hasSubProcedure
     rdfs:range gmeow:Procedure ;
     rdfs:label "has sub-procedure"@x-gmeow-english ;
     skos:definition "Relates a Procedure to a constituent subprocess Procedure; the transitive inverse of gmeow:subProcedureOf."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:stepEnactsProcedure
     a owl:ObjectProperty ;
@@ -222,7 +222,7 @@ gmeow:stepEnactsProcedure
     rdfs:range gmeow:Procedure ;
     rdfs:label "step enacts procedure"@x-gmeow-english ;
     skos:definition "Relates a ProcedureStep to the subprocess Procedure it enacts. Used when a step is a subprocess (gmeow:stepTypeSubprocess): the step references the Procedure that defines its internal steps. Non-functional: a step may reference multiple procedure variants."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 # =========================================================================== #
 # STEP INPUTS / OUTPUTS / PARAMETERS
@@ -234,7 +234,7 @@ gmeow:stepInput
     rdfs:range owl:Thing ;
     rdfs:label "step input"@x-gmeow-english ;
     skos:definition "An entity consumed by a procedure step — a dataset, ingredient, document, tool, or any other resource. Range is owl:Thing to admit any input type. Non-functional: a step may have multiple inputs, and competing input claims coexist (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:stepOutput
     a owl:ObjectProperty ;
@@ -242,7 +242,7 @@ gmeow:stepOutput
     rdfs:range owl:Thing ;
     rdfs:label "step output"@x-gmeow-english ;
     skos:definition "An entity produced by a procedure step — a derived dataset, claim, event, observation, or artifact. Range is owl:Thing. Non-functional: a step may have multiple outputs, and competing output claims coexist."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:stepParameter
     a owl:ObjectProperty ;
@@ -250,7 +250,7 @@ gmeow:stepParameter
     rdfs:range owl:Thing ;
     rdfs:label "step parameter"@x-gmeow-english ;
     skos:definition "A configurable parameter of a procedure step — a setting, threshold, or variable that governs the step's behaviour without being consumed as input. Range is owl:Thing. Non-functional: a step may have multiple parameters."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 # =========================================================================== #
 # EXECUTION LINKAGE — plan ⟂ execution
@@ -262,7 +262,7 @@ gmeow:executesProcedure
     rdfs:range gmeow:Procedure ;
     rdfs:label "executes procedure"@x-gmeow-english ;
     skos:definition "Relates an Execution to the Procedure it enacts. Non-functional: an execution may enact multiple procedures (a combined run), and competing enactment claims coexist."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:executesStep
     a owl:ObjectProperty ;
@@ -270,7 +270,7 @@ gmeow:executesStep
     rdfs:range gmeow:ProcedureStep ;
     rdfs:label "executes step"@x-gmeow-english ;
     skos:definition "Relates an Execution to the specific ProcedureStep it enacts. Non-functional: an execution may enact multiple steps (a batch run), and competing enactment claims coexist."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 # =========================================================================== #
 # CONTROL FLOW RELATOR PROPERTIES
@@ -282,7 +282,7 @@ gmeow:flowSource
     rdfs:range gmeow:ProcedureStep ;
     rdfs:label "flow source"@x-gmeow-english ;
     skos:definition "The source ProcedureStep of a control-flow relator. Functional: one source per control-flow edge."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:flowTarget
     a owl:ObjectProperty ;
@@ -290,7 +290,7 @@ gmeow:flowTarget
     rdfs:range gmeow:ProcedureStep ;
     rdfs:label "flow target"@x-gmeow-english ;
     skos:definition "The target ProcedureStep of a control-flow relator. Functional: one target per control-flow edge."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:flowOrder
     a owl:DatatypeProperty ;
@@ -298,7 +298,7 @@ gmeow:flowOrder
     rdfs:range xsd:integer ;
     rdfs:label "flow order"@x-gmeow-english ;
     skos:definition "An explicit ordering index on a control-flow edge, used when the graph structure alone is insufficient to determine sequence (e.g. linear pipelines). Optional; the default ordering mechanism is the ControlFlow graph structure plus Allen relations at the Execution level."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 # =========================================================================== #
 # DATA FLOW RELATOR PROPERTIES
@@ -310,7 +310,7 @@ gmeow:dataFlowSource
     rdfs:range gmeow:ProcedureStep ;
     rdfs:label "data flow source"@x-gmeow-english ;
     skos:definition "The producing ProcedureStep of a data-flow relator. Functional: one source per data-flow edge."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:dataFlowTarget
     a owl:ObjectProperty ;
@@ -318,7 +318,7 @@ gmeow:dataFlowTarget
     rdfs:range gmeow:ProcedureStep ;
     rdfs:label "data flow target"@x-gmeow-english ;
     skos:definition "The consuming ProcedureStep of a data-flow relator. Functional: one target per data-flow edge."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:dataFlowEntity
     a owl:ObjectProperty ;
@@ -326,7 +326,7 @@ gmeow:dataFlowEntity
     rdfs:range gmeow:Entity ;
     rdfs:label "data flow entity"@x-gmeow-english ;
     skos:definition "The data entity that flows from the source step to the target step via a data-flow relator. Non-functional: multiple entities may flow on the same edge, and competing claims about what flows coexist."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 # =========================================================================== #
 # EXECUTION PARTICIPATION — flat shortcut and reified relator
@@ -338,7 +338,7 @@ gmeow:executionParticipant
     rdfs:range gmeow:Agent ;
     rdfs:label "execution participant"@x-gmeow-english ;
     skos:definition "An agent that took part in an execution — the flat 80%-case shortcut. Non-functional. Promote to a gmeow:Participation node when the role, period, confidence, or evidence of the participation must be recorded."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 # =========================================================================== #
 # SEED PROFILE: INGESTION PROCESS
@@ -349,13 +349,13 @@ gmeow:procedureIngestionCanonical
     rdfs:label "Canonical Ingestion Procedure"@x-gmeow-english ;
     skos:definition "A worked-example ingestion procedure that supersedes the 'source-packet bundle' idea. Six sequential steps from raw-root acquisition to privacy-posture assessment."@x-gmeow-english ;
     gmeow:procedureType gmeow:procedureTypeIngestion ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:procedureIngestionRawRoot
     a gmeow:Entity ;
     rdfs:label "raw root data source"@x-gmeow-english ;
     skos:definition "The raw root data source produced by the ingestion procedure."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:stepIngestionRawRoot
     a gmeow:ProcedureStep ;
@@ -363,61 +363,61 @@ gmeow:stepIngestionRawRoot
     skos:definition "Acquire the raw root data source."@x-gmeow-english ;
     gmeow:procedureStepType gmeow:stepTypeAtomic ;
     gmeow:stepOutput gmeow:procedureIngestionRawRoot ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:stepIngestionFileCopy
     a gmeow:ProcedureStep ;
     rdfs:label "file copy / staging"@x-gmeow-english ;
     skos:definition "Copy and stage files from the raw root."@x-gmeow-english ;
     gmeow:procedureStepType gmeow:stepTypeAtomic ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:stepIngestionOcrExtract
     a gmeow:ProcedureStep ;
     rdfs:label "OCR / text extraction"@x-gmeow-english ;
     skos:definition "Perform OCR and extract text from staged files."@x-gmeow-english ;
     gmeow:procedureStepType gmeow:stepTypeAtomic ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:stepIngestionDerivedClaims
     a gmeow:ProcedureStep ;
     rdfs:label "derived claims / events generation"@x-gmeow-english ;
     skos:definition "Generate derived claims and events from extracted text."@x-gmeow-english ;
     gmeow:procedureStepType gmeow:stepTypeAtomic ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:stepIngestionUnresolvedLeads
     a gmeow:ProcedureStep ;
     rdfs:label "unresolved leads identification"@x-gmeow-english ;
     skos:definition "Identify unresolved leads from the generated claims."@x-gmeow-english ;
     gmeow:procedureStepType gmeow:stepTypeAtomic ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:stepIngestionPrivacyPosture
     a gmeow:ProcedureStep ;
     rdfs:label "privacy posture assessment"@x-gmeow-english ;
     skos:definition "Assess the privacy posture of the ingested data and derived claims."@x-gmeow-english ;
     gmeow:procedureStepType gmeow:stepTypeAtomic ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 # Control-flow edges for the canonical ingestion procedure
-gmeow:flowIngestion1 a gmeow:ControlFlow ; gmeow:flowSource gmeow:stepIngestionRawRoot ;      gmeow:flowTarget gmeow:stepIngestionFileCopy ;       gmeow:flowOrder 1 ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:flowIngestion1 a gmeow:ControlFlow ; gmeow:flowSource gmeow:stepIngestionRawRoot ;      gmeow:flowTarget gmeow:stepIngestionFileCopy ;       gmeow:flowOrder 1 ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 gmeow:flowIngestion1 rdfs:label "ingestion 1"@x-gmeow-english ;
     skos:definition "The ingestion 1 control flow — a named stage or pattern in a procedural or data-ingestion pipeline."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
-gmeow:flowIngestion2 a gmeow:ControlFlow ; gmeow:flowSource gmeow:stepIngestionFileCopy ;     gmeow:flowTarget gmeow:stepIngestionOcrExtract ;     gmeow:flowOrder 2 ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:flowIngestion2 a gmeow:ControlFlow ; gmeow:flowSource gmeow:stepIngestionFileCopy ;     gmeow:flowTarget gmeow:stepIngestionOcrExtract ;     gmeow:flowOrder 2 ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 gmeow:flowIngestion2 rdfs:label "ingestion 2"@x-gmeow-english ;
     skos:definition "The ingestion 2 control flow — a named stage or pattern in a procedural or data-ingestion pipeline."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
-gmeow:flowIngestion3 a gmeow:ControlFlow ; gmeow:flowSource gmeow:stepIngestionOcrExtract ;   gmeow:flowTarget gmeow:stepIngestionDerivedClaims ;  gmeow:flowOrder 3 ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:flowIngestion3 a gmeow:ControlFlow ; gmeow:flowSource gmeow:stepIngestionOcrExtract ;   gmeow:flowTarget gmeow:stepIngestionDerivedClaims ;  gmeow:flowOrder 3 ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 gmeow:flowIngestion3 rdfs:label "ingestion 3"@x-gmeow-english ;
     skos:definition "The ingestion 3 control flow — a named stage or pattern in a procedural or data-ingestion pipeline."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
-gmeow:flowIngestion4 a gmeow:ControlFlow ; gmeow:flowSource gmeow:stepIngestionDerivedClaims ; gmeow:flowTarget gmeow:stepIngestionUnresolvedLeads ; gmeow:flowOrder 4 ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:flowIngestion4 a gmeow:ControlFlow ; gmeow:flowSource gmeow:stepIngestionDerivedClaims ; gmeow:flowTarget gmeow:stepIngestionUnresolvedLeads ; gmeow:flowOrder 4 ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 gmeow:flowIngestion4 rdfs:label "ingestion 4"@x-gmeow-english ;
     skos:definition "The ingestion 4 control flow — a named stage or pattern in a procedural or data-ingestion pipeline."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
-gmeow:flowIngestion5 a gmeow:ControlFlow ; gmeow:flowSource gmeow:stepIngestionUnresolvedLeads ; gmeow:flowTarget gmeow:stepIngestionPrivacyPosture ; gmeow:flowOrder 5 ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:flowIngestion5 a gmeow:ControlFlow ; gmeow:flowSource gmeow:stepIngestionUnresolvedLeads ; gmeow:flowTarget gmeow:stepIngestionPrivacyPosture ; gmeow:flowOrder 5 ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 # Link steps to the canonical procedure
 gmeow:procedureIngestionCanonical gmeow:hasProcedureStep
@@ -441,7 +441,7 @@ gmeow:inquiryPriority
     rdfs:range xsd:integer ;
     rdfs:label "inquiry priority"@x-gmeow-english ;
     skos:definition "The priority of a research inquiry, on a 1–10 scale. Applies to Procedures of type researchPlan."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:inquiryTheme
     a owl:DatatypeProperty ;
@@ -449,7 +449,7 @@ gmeow:inquiryTheme
     rdfs:range rdfs:Literal ;
     rdfs:label "inquiry theme"@x-gmeow-english ;
     skos:definition "The thematic area or topic of a research inquiry. Applies to Procedures of type researchPlan. Open vocabulary — any literal is valid."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:inquirySource
     a owl:ObjectProperty ;
@@ -457,7 +457,7 @@ gmeow:inquirySource
     rdfs:range gmeow:Entity ;
     rdfs:label "inquiry source"@x-gmeow-english ;
     skos:definition "The source that prompted the research inquiry — a document, observation, or tip. Applies to Procedures of type researchPlan. Reuses the sources module."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:inquiryStatus
     a owl:ObjectProperty ;
@@ -465,7 +465,7 @@ gmeow:inquiryStatus
     rdfs:range gmeow:ExecutionStatus ;
     rdfs:label "inquiry status"@x-gmeow-english ;
     skos:definition "The status of a research inquiry, drawn from the gmeow:ExecutionStatus value vocabulary. Applies to Procedures of type researchPlan. Non-functional: competing assessments coexist."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 gmeow:resolvedByArtifact
     a owl:ObjectProperty ;
@@ -473,7 +473,7 @@ gmeow:resolvedByArtifact
     rdfs:range gmeow:Entity ;
     rdfs:label "resolved by artifact"@x-gmeow-english ;
     skos:definition "The artifact — document, observation, claim, or other entity — that resolves the research inquiry. Applies to Procedures of type researchPlan. Non-functional: multiple resolution artifacts may coexist, and competing resolution claims are standpoint-indexed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> .
 
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE — EL someValuesFrom for reasoner visibility

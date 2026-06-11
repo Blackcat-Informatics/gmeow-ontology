@@ -18,21 +18,21 @@ gmeow:Agreement
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Agreement"@x-gmeow-english ;
     skos:definition "A mutual understanding between two or more agents that creates obligations or rights, reified as a relator connecting its parties."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> .
 
 gmeow:Contract
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Agreement ;
     rdfs:label "Contract"@x-gmeow-english ;
     skos:definition "A legally enforceable agreement."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> .
 
 gmeow:AgreementName
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Appellation ;
     rdfs:label "Agreement Name"@x-gmeow-english ;
     skos:definition "An appellation borne by an agreement — a formal title, short name, or multilingual version of a contract or legal instrument. Carries its own gmeow:nameLanguage and gmeow:nameScript so co-equal multilingual names are separate first-class objects."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> .
 
 gmeow:hasParty
     a owl:ObjectProperty ;
@@ -40,7 +40,7 @@ gmeow:hasParty
     rdfs:range gmeow:Agent ;
     rdfs:label "has party"@x-gmeow-english ;
     skos:definition "Relates an agreement to an agent that is bound by it."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> .
 
 gmeow:foundedOn
     a owl:ObjectProperty ;
@@ -48,4 +48,4 @@ gmeow:foundedOn
     rdfs:range gmeow:Agreement ;
     rdfs:label "founded on"@x-gmeow-english ;
     skos:definition "The agreement or contract that grounds this relator — in UFO terms, the set of commitments on which the relator is founded. Reusable across any relator (Membership, KinRelationship, etc.)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> .

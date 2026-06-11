@@ -37,7 +37,7 @@ gmeow:FinancialAccount
     owl:disjointWith gmeow:OnlineAccount ;
     rdfs:label "Financial Account"@x-gmeow-english ;
     skos:definition "A financial account held by an agent with a financial institution — a bank account, credit card, investment account, or wallet. Distinct from OnlineAccount (social profiles, decentralized identity): this is the financial-existence layer. The account's legal terms are modelled as an Agreement between the holder and the institution."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:accountHolder
     a owl:ObjectProperty ;
@@ -45,7 +45,7 @@ gmeow:accountHolder
     rdfs:range gmeow:Agent ;
     rdfs:label "account holder"@x-gmeow-english ;
     skos:definition "Relates a financial account to the agent that holds it. Non-functional: a joint account has several co-equal holders."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:accountCurrency
     a owl:ObjectProperty ;
@@ -53,7 +53,7 @@ gmeow:accountCurrency
     rdfs:range gmeow:ReferenceFrame ;
     rdfs:label "account currency"@x-gmeow-english ;
     skos:definition "The currency(ies) of a financial account, drawn from the open currency reference-frame vocabulary (gmeow:frameRealmCurrency). NON-FUNCTIONAL: a single account may hold balances in several currencies (multi-currency fintech accounts)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:accountNumber
     a owl:DatatypeProperty ;
@@ -61,7 +61,7 @@ gmeow:accountNumber
     rdfs:range rdfs:Literal ;
     rdfs:label "account number"@x-gmeow-english ;
     skos:definition "The account number identifying the financial account at its institution. Not functional: different sources may report differing formats."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:iban
     a owl:DatatypeProperty ;
@@ -69,7 +69,7 @@ gmeow:iban
     rdfs:range rdfs:Literal ;
     rdfs:label "IBAN"@x-gmeow-english ;
     skos:definition "The International Bank Account Number (ISO 13616) of a bank account."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:bic
     a owl:DatatypeProperty ;
@@ -77,7 +77,7 @@ gmeow:bic
     rdfs:range rdfs:Literal ;
     rdfs:label "BIC"@x-gmeow-english ;
     skos:definition "The Bank Identifier Code (ISO 9362, SWIFT code) of the institution holding the account."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:accountBalance
     a owl:ObjectProperty ;
@@ -85,7 +85,7 @@ gmeow:accountBalance
     rdfs:range gmeow:MonetaryAmount ;
     rdfs:label "account balance"@x-gmeow-english ;
     skos:definition "The current balance of a financial account, expressed as a MonetaryAmount. Non-functional: a multi-currency account has several balances, and competing standpoint-indexed balance claims coexist (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:accountType
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -93,7 +93,7 @@ gmeow:accountType
     rdfs:range gmeow:FinancialAccountType ;
     rdfs:label "account type"@x-gmeow-english ;
     skos:definition "The kind of financial account — one of the open gmeow:FinancialAccountType values (bank, credit, investment, wallet). Functional: an account has one canonical type; several types are several accounts."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 # --------------------------------------------------------------------------- #
 # MonetaryAmount — a quantity of money: value + currency frame.
@@ -108,7 +108,7 @@ gmeow:FinancialAccountType
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Financial Account Type"@x-gmeow-english ;
     skos:definition "The kind of a financial account — a VALUE, never a FinancialAccount subclass. The set is open; a kind not among the seeds is a FRESH gmeow:FinancialAccountType individual carrying rdfs:label. Pointed at by gmeow:accountType."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:accountTypeBank       a gmeow:FinancialAccountType ; rdfs:label "bank account"@x-gmeow-english ;       skos:definition "A deposit or chequing account at a bank or credit union."@x-gmeow-english .
 gmeow:accountTypeBank rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
@@ -128,14 +128,14 @@ gmeow:TransactionType
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Transaction Type"@x-gmeow-english ;
     skos:definition "The kind of a financial transaction — a VALUE, never a subclass. Open vocabulary; seeds in Phase B."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:TransactionStatus
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Transaction Status"@x-gmeow-english ;
     skos:definition "The status of a financial transaction — a VALUE, never a subclass. Open vocabulary; seeds in Phase B."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE — relator mediation (EL someValuesFrom, open-world).
@@ -161,7 +161,7 @@ gmeow:FinancialTransaction
     rdfs:subClassOf gmeow:Event ;
     rdfs:label "Financial Transaction"@x-gmeow-english ;
     skos:definition "A money-movement event — a payment, transfer, deposit, withdrawal, fee, interest, or refund. Reuses the Event/Participation substrate: payer, payee, and intermediary are ParticipantRole values on Participation relators, never subproperties. The kind of transaction is a TransactionType value; the status is a TransactionStatus value."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:transactionAmount
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -169,7 +169,7 @@ gmeow:transactionAmount
     rdfs:range gmeow:MonetaryAmount ;
     rdfs:label "transaction amount"@x-gmeow-english ;
     skos:definition "The monetary amount of a financial transaction, expressed as a MonetaryAmount. Functional: a single transaction occurrence has one canonical amount (disputed amounts are standpoint-indexed claims on separate statements, not additional values on the same transaction)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:transactionType
     a owl:ObjectProperty ;
@@ -177,7 +177,7 @@ gmeow:transactionType
     rdfs:range gmeow:TransactionType ;
     rdfs:label "transaction type"@x-gmeow-english ;
     skos:definition "The kind(s) of a financial transaction, drawn from the open TransactionType value vocabulary. Non-functional: a transaction may carry several types, and competing standpoint-indexed type claims coexist."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:transactionStatus
     a owl:ObjectProperty ;
@@ -185,7 +185,7 @@ gmeow:transactionStatus
     rdfs:range gmeow:TransactionStatus ;
     rdfs:label "transaction status"@x-gmeow-english ;
     skos:definition "The status(es) of a financial transaction, drawn from the open TransactionStatus value vocabulary. Non-functional: a transaction may progress through several statuses over time, recorded as co-equal standpoint-indexed claims."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 # --------------------------------------------------------------------------- #
 # LedgerAccount — a book-keeping account (asset / liability / equity / revenue /
@@ -198,7 +198,7 @@ gmeow:LedgerAccount
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Ledger Account"@x-gmeow-english ;
     skos:definition "A book-keeping account in a double-entry ledger — an asset, liability, equity, revenue, or expense account. An InformationObject distinct from FinancialAccount: a LedgerAccount is a conceptual book-keeping construct, while a FinancialAccount is a bank-level account with IBAN/BIC/number."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:ledgerAccountType
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -206,7 +206,7 @@ gmeow:ledgerAccountType
     rdfs:range gmeow:LedgerAccountType ;
     rdfs:label "ledger account type"@x-gmeow-english ;
     skos:definition "The kind of ledger account — one of the open LedgerAccountType values (asset, liability, equity, revenue, expense). Functional: a ledger account has one canonical type."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:ledgerAccountHolder
     a owl:ObjectProperty ;
@@ -214,7 +214,7 @@ gmeow:ledgerAccountHolder
     rdfs:range gmeow:Agent ;
     rdfs:label "ledger account holder"@x-gmeow-english ;
     skos:definition "The agent that holds the ledger account. Non-functional: a jointly maintained ledger account has several co-equal holders."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:ledgerAccountCurrency
     a owl:ObjectProperty ;
@@ -222,7 +222,7 @@ gmeow:ledgerAccountCurrency
     rdfs:range gmeow:ReferenceFrame ;
     rdfs:label "ledger account currency"@x-gmeow-english ;
     skos:definition "The currency(ies) in which the ledger account tracks balances. Non-functional: a single logical ledger account may track several currency buckets (multi-currency bookkeeping). The functional constraint moves to individual Posting relators."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 # --------------------------------------------------------------------------- #
 # JournalEntry — a balanced double-entry event.  Subclass of Event because it is
@@ -234,7 +234,7 @@ gmeow:JournalEntry
     rdfs:subClassOf gmeow:Event ;
     rdfs:label "Journal Entry"@x-gmeow-english ;
     skos:definition "A balanced double-entry bookkeeping event: a temporal occurrence in which debits equal credits (per currency bucket). Composed of two or more Posting relators."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:journalEntryPostings
     a owl:ObjectProperty ;
@@ -243,7 +243,7 @@ gmeow:journalEntryPostings
     rdfs:range gmeow:Posting ;
     rdfs:label "journal entry postings"@x-gmeow-english ;
     skos:definition "The postings that compose a journal entry. Non-functional: a journal entry has at least two postings (SHACL-enforced)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 # --------------------------------------------------------------------------- #
 # Posting — the relator connecting a journal entry to a ledger account with an
@@ -255,7 +255,7 @@ gmeow:Posting
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Posting"@x-gmeow-english ;
     skos:definition "A reified relator connecting a journal entry to a ledger account with a monetary amount and a posting direction (debit or credit). The atomic unit of double-entry bookkeeping."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:postingJournalEntry
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -264,7 +264,7 @@ gmeow:postingJournalEntry
     rdfs:range gmeow:JournalEntry ;
     rdfs:label "posting journal entry"@x-gmeow-english ;
     skos:definition "The journal entry this posting belongs to. Functional: a posting belongs to exactly one journal entry."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:postingAccount
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -272,7 +272,7 @@ gmeow:postingAccount
     rdfs:range gmeow:LedgerAccount ;
     rdfs:label "posting account"@x-gmeow-english ;
     skos:definition "The ledger account this posting affects. Functional: a posting affects exactly one ledger account."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:postingAmount
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -280,7 +280,7 @@ gmeow:postingAmount
     rdfs:range gmeow:MonetaryAmount ;
     rdfs:label "posting amount"@x-gmeow-english ;
     skos:definition "The monetary amount of this posting, expressed as a MonetaryAmount with explicit currency frame. Functional: a posting has exactly one amount."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:postingDirection
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -288,7 +288,7 @@ gmeow:postingDirection
     rdfs:range gmeow:PostingDirection ;
     rdfs:label "posting direction"@x-gmeow-english ;
     skos:definition "The direction of this posting — debit or credit. Functional: a posting is exactly one direction."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 # --------------------------------------------------------------------------- #
 # Ledger account type — an OPEN value vocabulary.
@@ -299,7 +299,7 @@ gmeow:LedgerAccountType
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Ledger Account Type"@x-gmeow-english ;
     skos:definition "The kind of a ledger account — a VALUE, never a LedgerAccount subclass. The set is open; a kind not among the seeds is a FRESH LedgerAccountType individual carrying rdfs:label. Pointed at by gmeow:ledgerAccountType."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:ledgerAccountTypeAsset     a gmeow:LedgerAccountType ; rdfs:label "asset"@x-gmeow-english ;     skos:definition "An asset account — resources owned by the entity (cash, receivables, inventory, equipment)."@x-gmeow-english .
 gmeow:ledgerAccountTypeAsset rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
@@ -321,7 +321,7 @@ gmeow:PostingDirection
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Posting Direction"@x-gmeow-english ;
     skos:definition "The direction of a posting in double-entry bookkeeping — a VALUE, never a subclass. Only debit and credit are seeded; the vocabulary is closed in practice but modelled as open for consistency."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:postingDirectionDebit  a gmeow:PostingDirection ; rdfs:label "debit"@x-gmeow-english ;  skos:definition "A debit posting — an entry on the left side of a ledger account."@x-gmeow-english .
 gmeow:postingDirectionDebit rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
@@ -386,7 +386,7 @@ gmeow:Payment
     rdfs:subClassOf gmeow:FinancialTransaction ;
     rdfs:label "Payment"@x-gmeow-english ;
     skos:definition "A payment event — a financial transaction whose purpose is to discharge an obligation or transfer value. A thin subclass of FinancialTransaction distinguished by the paymentMethod facet."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:paymentMethod
     a owl:ObjectProperty ;
@@ -394,7 +394,7 @@ gmeow:paymentMethod
     rdfs:range gmeow:PaymentMethod ;
     rdfs:label "payment method"@x-gmeow-english ;
     skos:definition "The method of payment — cash, cheque, credit card, bank transfer, cryptocurrency, etc. Non-functional: a single payment may involve several methods (e.g. split payment)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 # --------------------------------------------------------------------------- #
 # Payment method — an OPEN value vocabulary.
@@ -405,7 +405,7 @@ gmeow:PaymentMethod
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Payment Method"@x-gmeow-english ;
     skos:definition "The method or instrument used to make a payment — a VALUE, never a subclass. Open vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:paymentMethodCash         a gmeow:PaymentMethod ; rdfs:label "cash"@x-gmeow-english ;         skos:definition "Payment made in physical currency."@x-gmeow-english .
 gmeow:paymentMethodCash rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
@@ -427,7 +427,7 @@ gmeow:Invoice
     rdfs:subClassOf gmeow:Document ;
     rdfs:label "Invoice"@x-gmeow-english ;
     skos:definition "A billing document issued by a seller to a buyer, requesting payment for goods or services rendered. A subclass of Document."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:invoiceAmount
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -435,7 +435,7 @@ gmeow:invoiceAmount
     rdfs:range gmeow:MonetaryAmount ;
     rdfs:label "invoice amount"@x-gmeow-english ;
     skos:definition "The total monetary amount requested by the invoice, expressed as a MonetaryAmount. Functional: an invoice has one canonical total amount."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:invoiceIssuer
     a owl:ObjectProperty ;
@@ -443,7 +443,7 @@ gmeow:invoiceIssuer
     rdfs:range gmeow:Agent ;
     rdfs:label "invoice issuer"@x-gmeow-english ;
     skos:definition "The agent that issued the invoice. Non-functional: a jointly issued invoice has several co-equal issuers."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:invoiceRecipient
     a owl:ObjectProperty ;
@@ -451,7 +451,7 @@ gmeow:invoiceRecipient
     rdfs:range gmeow:Agent ;
     rdfs:label "invoice recipient"@x-gmeow-english ;
     skos:definition "The agent that is being billed. Non-functional: a jointly billed party has several recipients."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:invoiceDueDate
     a owl:DatatypeProperty ;
@@ -459,7 +459,7 @@ gmeow:invoiceDueDate
     rdfs:range xsd:dateTime ;
     rdfs:label "invoice due date"@x-gmeow-english ;
     skos:definition "The date and time by which payment is due (xsd:dateTime — DL-clean, never xsd:date). Non-functional: competing standpoint-indexed due dates coexist."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:invoiceStatus
     a owl:ObjectProperty ;
@@ -467,7 +467,7 @@ gmeow:invoiceStatus
     rdfs:range gmeow:InvoiceStatus ;
     rdfs:label "invoice status"@x-gmeow-english ;
     skos:definition "The status of an invoice, drawn from the open InvoiceStatus value vocabulary. Non-functional: an invoice may progress through several statuses over time."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 # --------------------------------------------------------------------------- #
 # Invoice status — an OPEN value vocabulary.
@@ -478,7 +478,7 @@ gmeow:InvoiceStatus
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Invoice Status"@x-gmeow-english ;
     skos:definition "The status of an invoice — a VALUE, never a subclass. Open vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:invoiceStatusDraft     a gmeow:InvoiceStatus ; rdfs:label "draft"@x-gmeow-english ;     skos:definition "An invoice that has been created but not yet sent."@x-gmeow-english .
 gmeow:invoiceStatusDraft rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
@@ -500,7 +500,7 @@ gmeow:Order
     rdfs:subClassOf gmeow:Agreement ;
     rdfs:label "Order"@x-gmeow-english ;
     skos:definition "A purchase order or sales order — an agreement between a buyer and a seller for the supply of goods or services at a stated price. A subclass of Agreement."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:orderAmount
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -508,7 +508,7 @@ gmeow:orderAmount
     rdfs:range gmeow:MonetaryAmount ;
     rdfs:label "order amount"@x-gmeow-english ;
     skos:definition "The total monetary amount of the order, expressed as a MonetaryAmount. Functional: an order has one canonical total amount."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:orderBuyer
     a owl:ObjectProperty ;
@@ -516,7 +516,7 @@ gmeow:orderBuyer
     rdfs:range gmeow:Agent ;
     rdfs:label "order buyer"@x-gmeow-english ;
     skos:definition "The agent placing the order. Non-functional: a joint purchase has several buyers."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:orderSeller
     a owl:ObjectProperty ;
@@ -524,7 +524,7 @@ gmeow:orderSeller
     rdfs:range gmeow:Agent ;
     rdfs:label "order seller"@x-gmeow-english ;
     skos:definition "The agent fulfilling the order. Non-functional: a jointly fulfilled order has several sellers."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:orderStatus
     a owl:ObjectProperty ;
@@ -532,7 +532,7 @@ gmeow:orderStatus
     rdfs:range gmeow:OrderStatus ;
     rdfs:label "order status"@x-gmeow-english ;
     skos:definition "The status of an order, drawn from the open OrderStatus value vocabulary. Non-functional: an order may progress through several statuses."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 # --------------------------------------------------------------------------- #
 # Order status — an OPEN value vocabulary.
@@ -543,7 +543,7 @@ gmeow:OrderStatus
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Order Status"@x-gmeow-english ;
     skos:definition "The status of an order — a VALUE, never a subclass. Open vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:orderStatusPending    a gmeow:OrderStatus ; rdfs:label "pending"@x-gmeow-english ;    skos:definition "An order that has been placed but not yet confirmed."@x-gmeow-english .
 gmeow:orderStatusPending rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
@@ -565,7 +565,7 @@ gmeow:Asset
     rdfs:subClassOf gmeow:Entity ;
     rdfs:label "Asset"@x-gmeow-english ;
     skos:definition "A financial asset — a stock, bond, cryptocurrency, real estate holding, commodity, or other instrument of value. The thing that is held, not the holding itself (which is a Holding relator)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:assetType
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -573,7 +573,7 @@ gmeow:assetType
     rdfs:range gmeow:AssetType ;
     rdfs:label "asset type"@x-gmeow-english ;
     skos:definition "The kind of financial asset — one of the open AssetType values (stock, bond, cryptocurrency, real estate, commodity). Functional: an asset has one canonical type."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:assetIdentifier
     a owl:DatatypeProperty ;
@@ -581,7 +581,7 @@ gmeow:assetIdentifier
     rdfs:range rdfs:Literal ;
     rdfs:label "asset identifier"@x-gmeow-english ;
     skos:definition "An identifier for the financial asset — FIGI, ISIN, ticker symbol, or other instrument identifier. Non-functional: different sources may report differing identifiers."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 # --------------------------------------------------------------------------- #
 # Asset type — an OPEN value vocabulary.
@@ -592,7 +592,7 @@ gmeow:AssetType
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Asset Type"@x-gmeow-english ;
     skos:definition "The kind of a financial asset — a VALUE, never an Asset subclass. Open vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:assetTypeStock          a gmeow:AssetType ; rdfs:label "stock"@x-gmeow-english ;          skos:definition "A share of ownership in a corporation."@x-gmeow-english .
 gmeow:assetTypeStock rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
@@ -616,7 +616,7 @@ gmeow:Holding
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Holding"@x-gmeow-english ;
     skos:definition "A reified relator connecting an agent to a financial asset with a quantity and cost-basis. The thing that is held: agent × asset × quantity × cost-basis × optional period. Promote from a flat accountBalance when cost-basis, period, or provenance must be recorded."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:holdingAgent
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -624,7 +624,7 @@ gmeow:holdingAgent
     rdfs:range gmeow:Agent ;
     rdfs:label "holding agent"@x-gmeow-english ;
     skos:definition "The agent that holds the asset. Functional: a holding is held by exactly one agent."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:holdingAsset
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -632,7 +632,7 @@ gmeow:holdingAsset
     rdfs:range gmeow:Asset ;
     rdfs:label "holding asset"@x-gmeow-english ;
     skos:definition "The financial asset that is held. Functional: a holding is of exactly one asset."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:holdingQuantity
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -640,7 +640,7 @@ gmeow:holdingQuantity
     rdfs:range xsd:decimal ;
     rdfs:label "holding quantity"@x-gmeow-english ;
     skos:definition "The quantity of the asset held, as an xsd:decimal. Functional: a holding has exactly one quantity at a given point in time (competing standpoint-indexed quantities coexist as separate statements)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:holdingCostBasis
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -648,7 +648,7 @@ gmeow:holdingCostBasis
     rdfs:range gmeow:MonetaryAmount ;
     rdfs:label "holding cost basis"@x-gmeow-english ;
     skos:definition "The cost basis of the holding — the original monetary amount paid to acquire the asset. Functional: a holding has one canonical cost basis (disputed values are standpoint-indexed claims)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:holdingPeriod
     a owl:ObjectProperty ;
@@ -656,7 +656,7 @@ gmeow:holdingPeriod
     rdfs:range gmeow:TimeInterval ;
     rdfs:label "holding period"@x-gmeow-english ;
     skos:definition "The time interval over which the holding is valid. Optional: omit for point-in-time holdings."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 # =========================================================================== #
 # PHASE D — Crypto Wallets
@@ -671,7 +671,7 @@ gmeow:CryptoWallet
     rdfs:subClassOf gmeow:FinancialAccount ;
     rdfs:label "Crypto Wallet"@x-gmeow-english ;
     skos:definition "A digital wallet that holds cryptocurrency assets. A subclass of FinancialAccount (it is a financial-existence account) with wallet-specific properties: address(es), scheme, and cryptographic key linkage."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:walletAddress
     a owl:DatatypeProperty ;
@@ -679,7 +679,7 @@ gmeow:walletAddress
     rdfs:range rdfs:Literal ;
     rdfs:label "wallet address"@x-gmeow-english ;
     skos:definition "A public address of the crypto wallet. Non-functional: a single wallet may have multiple addresses (e.g. HD wallet derivation paths)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:walletScheme
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -687,7 +687,7 @@ gmeow:walletScheme
     rdfs:range gmeow:WalletScheme ;
     rdfs:label "wallet scheme"@x-gmeow-english ;
     skos:definition "The blockchain scheme of the wallet — Bitcoin, Ethereum, Solana, Monero, etc. Functional: a wallet operates on exactly one scheme (a multi-scheme container is several wallets)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:walletKey
     a owl:ObjectProperty ;
@@ -695,7 +695,7 @@ gmeow:walletKey
     rdfs:range gmeow:CryptographicKey ;
     rdfs:label "wallet key"@x-gmeow-english ;
     skos:definition "The cryptographic key that controls the wallet. Non-functional: a wallet may be controlled by several keys (multi-sig) or the key may rotate over time."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 # --------------------------------------------------------------------------- #
 # Wallet scheme — an OPEN value vocabulary.
@@ -706,7 +706,7 @@ gmeow:WalletScheme
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Wallet Scheme"@x-gmeow-english ;
     skos:definition "The blockchain or cryptographic scheme of a wallet — a VALUE, never a subclass. Open vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .
 
 gmeow:walletSchemeBTC a gmeow:WalletScheme ; rdfs:label "Bitcoin"@x-gmeow-english ; skos:definition "The Bitcoin blockchain scheme."@x-gmeow-english .
 gmeow:walletSchemeBTC rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> .

@@ -45,28 +45,28 @@ gmeow:Work
     rdfs:subClassOf gmeow:CreativeWork ;
     rdfs:label "Work"@x-gmeow-english ;
     skos:definition "A distinct abstract intellectual or artistic creation, independent of any language, notation, edition, or copy — the story, the composition, the visual conception. The most abstract tier of the WEMI spine; realized through one or more gmeow:Expression. Identity changes when the creative content itself differs."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:Expression
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:CreativeWork ;
     rdfs:label "Expression"@x-gmeow-english ;
     skos:definition "A realization of a gmeow:Work in a specific language, script, notation, or arrangement. The original-language text, a translation, and an audiobook narration are distinct Expressions of one Work. The realizing language/notation is carried as a reference frame (gmeow:hasReferenceFrame), not as a subclass. Identity changes when the language, notation, or arrangement differs."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:Manifestation
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:CreativeWork ;
     rdfs:label "Manifestation"@x-gmeow-english ;
     skos:definition "A concrete edition, format, or release that embodies a gmeow:Expression — a rights-bearing publication artifact (the 2003 Penguin paperback, the 2011 Kindle EPUB). gmeow:BookRelease, gmeow:SerialInstallment, gmeow:MediaObject, and gmeow:WebPage are specializations. Identity changes when the publication/format/edition differs."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:Item
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:CreativeWork ;
     rdfs:label "Item"@x-gmeow-english ;
     skos:definition "A single exemplar of a gmeow:Manifestation — one copy. An InformationObject; a physical copy is linked via gmeow:hasCarrier to a gmeow:PhysicalObject, keeping informational identity distinct from the physical carrier. Library circulation/holdings detail is out of scope for this base (carrier hook only). Identity changes when you hold a different physical or digital copy."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 # =========================================================================== #
 # SPINE RELATIONS — FRBR R-relations, native GMEOW idiom
@@ -78,7 +78,7 @@ gmeow:realizes
     rdfs:range gmeow:Work ;
     rdfs:label "realizes"@x-gmeow-english ;
     skos:definition "Relates an Expression to the Work it realizes. Non-functional: an omnibus or aggregate Expression may realize multiple Works (e.g. an anthology). Inverse of gmeow:realizedThrough."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:realizedThrough
     a owl:ObjectProperty ;
@@ -87,7 +87,7 @@ gmeow:realizedThrough
     rdfs:range gmeow:Expression ;
     rdfs:label "realized through"@x-gmeow-english ;
     skos:definition "Relates a Work to an Expression that realizes it. Non-functional: a Work may have many Expressions (translations, arrangements, narrations). Inverse of gmeow:realizes."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:embodies
     a owl:ObjectProperty ;
@@ -95,7 +95,7 @@ gmeow:embodies
     rdfs:range gmeow:Expression ;
     rdfs:label "embodies"@x-gmeow-english ;
     skos:definition "Relates a Manifestation to the Expression it embodies. Non-functional: a collected edition may embody multiple Expressions. Inverse of gmeow:embodiedIn."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:embodiedIn
     a owl:ObjectProperty ;
@@ -104,7 +104,7 @@ gmeow:embodiedIn
     rdfs:range gmeow:Manifestation ;
     rdfs:label "embodied in"@x-gmeow-english ;
     skos:definition "Relates an Expression to a Manifestation that embodies it. Non-functional: an Expression may be embodied in many Manifestations (hardcover, paperback, EPUB). Inverse of gmeow:embodies."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:exemplifies
     a owl:ObjectProperty ;
@@ -112,7 +112,7 @@ gmeow:exemplifies
     rdfs:range gmeow:Manifestation ;
     rdfs:label "exemplifies"@x-gmeow-english ;
     skos:definition "Relates an Item to the Manifestation it exemplifies. Non-functional: a single Item may exemplify multiple Manifestations when catalogued as a bound volume. Inverse of gmeow:exemplifiedBy."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:exemplifiedBy
     a owl:ObjectProperty ;
@@ -121,7 +121,7 @@ gmeow:exemplifiedBy
     rdfs:range gmeow:Item ;
     rdfs:label "exemplified by"@x-gmeow-english ;
     skos:definition "Relates a Manifestation to an Item that exemplifies it. Non-functional: a Manifestation may have many Items (copies). Inverse of gmeow:exemplifies."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasCarrier
     a owl:ObjectProperty ;
@@ -129,7 +129,7 @@ gmeow:hasCarrier
     rdfs:range gmeow:PhysicalObject ;
     rdfs:label "has carrier"@x-gmeow-english ;
     skos:definition "Relates an Item to the PhysicalObject that carries it — a printed book, a vinyl disc, a sculpture. Optional: a born-digital Item may have no carrier, or its carrier may be a server object modelled as a PhysicalObject. Keeps informational identity (the Item) distinct from physical substrate (Principle 11)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 # =========================================================================== #
 # CONTRIBUTION RELATOR — flat-first, reify-on-demand
@@ -140,7 +140,7 @@ gmeow:Contribution
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Contribution"@x-gmeow-english ;
     skos:definition "A reified relator binding a contributor (Agent), a contribution target (a Work, Expression, Manifestation, or Item), a contribution role, and an optional degree, carrying provenance, period, and confidence. THE universal credit construct; creative authorship, CRediT research roles, and mapping/software authorship are all Contributions. Flat shortcuts (gmeow:hasAuthor, gmeow:hasTranslator, …) cover the 80% query case."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:contributor
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -148,7 +148,7 @@ gmeow:contributor
     rdfs:range gmeow:Agent ;
     rdfs:label "contributor"@x-gmeow-english ;
     skos:definition "The agent that contributed to the target in this Contribution. Functional per relator: one contributor per Contribution."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:contributionTarget
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -156,7 +156,7 @@ gmeow:contributionTarget
     rdfs:range gmeow:CreativeWork ;
     rdfs:label "contribution target"@x-gmeow-english ;
     skos:definition "The creative-work target of this Contribution — a Work, Expression, Manifestation, or Item. Functional per relator: one target per Contribution."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:contributionRole
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -164,7 +164,7 @@ gmeow:contributionRole
     rdfs:range gmeow:ContributionRole ;
     rdfs:label "contribution role"@x-gmeow-english ;
     skos:definition "The role the contributor played in this Contribution — a value from the open gmeow:ContributionRole vocabulary. Functional per relator: one role per Contribution."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:contributionDegree
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -172,7 +172,7 @@ gmeow:contributionDegree
     rdfs:range gmeow:ContributionDegree ;
     rdfs:label "contribution degree"@x-gmeow-english ;
     skos:definition "The degree or weight of the contribution — lead, equal, or supporting. Optional (≤1 per Contribution). A value from the open gmeow:ContributionDegree vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasContributor
     a owl:ObjectProperty ;
@@ -180,7 +180,7 @@ gmeow:hasContributor
     rdfs:range gmeow:Agent ;
     rdfs:label "has contributor"@x-gmeow-english ;
     skos:definition "Relates a creative work to an agent that contributed to it — the flat 80%-case shortcut. Non-functional: a work may have many contributors. Promote to a gmeow:Contribution node when the role, period, confidence, or evidence of the contribution must be recorded."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasAuthor
     a owl:ObjectProperty ;
@@ -189,7 +189,7 @@ gmeow:hasAuthor
     rdfs:range gmeow:Agent ;
     rdfs:label "has author"@x-gmeow-english ;
     skos:definition "Relates a creative work to an agent chiefly responsible for creating its intellectual content. A flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasTranslator
     a owl:ObjectProperty ;
@@ -198,7 +198,7 @@ gmeow:hasTranslator
     rdfs:range gmeow:Agent ;
     rdfs:label "has translator"@x-gmeow-english ;
     skos:definition "Relates a creative work to an agent that translated it into another language or notation. A flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasIllustrator
     a owl:ObjectProperty ;
@@ -207,7 +207,7 @@ gmeow:hasIllustrator
     rdfs:range gmeow:Agent ;
     rdfs:label "has illustrator"@x-gmeow-english ;
     skos:definition "Relates a creative work to an agent that contributed visual illustrations. A flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasNarrator
     a owl:ObjectProperty ;
@@ -216,7 +216,7 @@ gmeow:hasNarrator
     rdfs:range gmeow:Agent ;
     rdfs:label "has narrator"@x-gmeow-english ;
     skos:definition "Relates a creative work to an agent that narrated or performed an audiobook, podcast, or other spoken-word rendition. A flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasEditor
     a owl:ObjectProperty ;
@@ -225,7 +225,7 @@ gmeow:hasEditor
     rdfs:range gmeow:Agent ;
     rdfs:label "has editor"@x-gmeow-english ;
     skos:definition "Relates a creative work to an agent that edited, compiled, or curated its content. A flat shortcut subproperty of gmeow:hasContributor."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE — relator mediation for Contribution
@@ -245,21 +245,21 @@ gmeow:CreativeWorkType
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Creative Work Type"@x-gmeow-english ;
     skos:definition "The kind of a creative work — a VALUE vocabulary (individuals, never subclasses) characterizing a gmeow:Work. Literary, musical, visual, and software are examples; the set is open."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:ContributionRole
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Contribution Role"@x-gmeow-english ;
     skos:definition "The role an agent played in contributing to a creative work — a VALUE vocabulary (individuals, never subclasses). Author, editor, translator, illustrator, narrator, composer, performer, director, photographer, and cover-artist are examples; the set is open."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:ManifestationFormat
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Manifestation Format"@x-gmeow-english ;
     skos:definition "The physical or digital format of a Manifestation — a VALUE vocabulary (individuals, never subclasses). Hardcover, paperback, EPUB, PDF, audiobook, vinyl, and web-page are examples; the set is open."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasManifestationFormat
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -267,14 +267,14 @@ gmeow:hasManifestationFormat
     rdfs:range gmeow:ManifestationFormat ;
     rdfs:label "has manifestation format"@x-gmeow-english ;
     skos:definition "The physical or digital format of this manifestation — hardcover, EPUB, audiobook, web serial, etc. A value from the open gmeow:ManifestationFormat vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:CarrierMedium
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Carrier Medium"@x-gmeow-english ;
     skos:definition "The medium of a physical carrier — a VALUE vocabulary (individuals, never subclasses). Print, e-ink file, optical disc, and server object are examples; the set is open."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 # --------------------------------------------------------------------------- #
 # CreativeWorkType seeds
@@ -426,7 +426,7 @@ gmeow:requires
     rdfs:range gmeow:CreativeWork ;
     rdfs:label "requires"@x-gmeow-english ;
     skos:definition "A related resource that is required by the described resource to support its function, delivery, or coherence."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:isRequiredBy
     a owl:ObjectProperty ;
@@ -435,7 +435,7 @@ gmeow:isRequiredBy
     rdfs:range gmeow:CreativeWork ;
     rdfs:label "is required by"@x-gmeow-english ;
     skos:definition "A related resource that requires the described resource to support its function, delivery, or coherence. Inverse of gmeow:requires."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:hasVersion
     a owl:ObjectProperty ;
@@ -444,7 +444,7 @@ gmeow:hasVersion
     rdfs:range gmeow:Entity ;
     rdfs:label "has version"@x-gmeow-english ;
     skos:definition "A related resource that is a version, edition, or adaptation of the described resource. Inverse of gmeow:versionOf."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:conformsTo
     a owl:ObjectProperty ;
@@ -452,7 +452,7 @@ gmeow:conformsTo
     rdfs:range gmeow:Entity ;
     rdfs:label "conforms to"@x-gmeow-english ;
     skos:definition "An established standard to which the described resource conforms."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 # --- DC medium & audience (issue #60) -------------------------------------- #
 
@@ -462,7 +462,7 @@ gmeow:medium
     rdfs:range gmeow:CarrierMedium ;
     rdfs:label "medium"@x-gmeow-english ;
     skos:definition "The material or physical carrier of a creative work. A value from the open gmeow:CarrierMedium vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .
 
 gmeow:audience
     a owl:ObjectProperty ;
@@ -470,4 +470,4 @@ gmeow:audience
     rdfs:range gmeow:Agent ;
     rdfs:label "audience"@x-gmeow-english ;
     skos:definition "The intended audience of a creative work."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .

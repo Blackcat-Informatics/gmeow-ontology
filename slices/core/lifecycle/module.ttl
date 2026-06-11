@@ -23,7 +23,7 @@ gmeow:hasCreationEvent
     rdfs:range gmeow:Event ;
     rdfs:label "has creation event"@x-gmeow-english ;
     skos:definition "Links an entity to the event that brought it into existence — the general form of birth (person), founding (organization), minting (currency), or realization (reference frame). Non-functional: competing standpoint-indexed creation claims coexist, none privileged. A Person's birth event is ALSO typed gmeow:eventTypeBirth (co-equal value, not a subclass)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> .
 
 gmeow:hasDestructionEvent
     a owl:ObjectProperty ;
@@ -31,7 +31,7 @@ gmeow:hasDestructionEvent
     rdfs:range gmeow:Event ;
     rdfs:label "has destruction event"@x-gmeow-english ;
     skos:definition "Links an entity to the event that ended its existence — the general form of death (person), dissolution (organization), destruction (place), or retirement (frame, software). Non-functional: competing standpoint-indexed destruction claims coexist. A Person's death event is ALSO typed gmeow:eventTypeDeath. Suppression (gmeow:displayable false) is a display contract; destruction is an ontic fact — the entity is retained, merely marked as no longer extant."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> .
 
 gmeow:existenceInterval
     a owl:ObjectProperty ;
@@ -39,7 +39,7 @@ gmeow:existenceInterval
     rdfs:range gmeow:TimeInterval ;
     rdfs:label "existence interval"@x-gmeow-english ;
     skos:definition "The time interval over which an entity exists. Open-ended (no end instant) when the entity is still extant. Non-functional: in a multi-source merge, different sources may give different bounds, and those claims coexist as standpoint-indexed statements. Carries its temporal frame via gmeow:hasTemporalFrame on the TimeInterval (Principle 11)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> .
 
 # --------------------------------------------------------------------------- #
 # Supersession — one entity replaces another. Directional, inverse pair.
@@ -55,7 +55,7 @@ gmeow:supersededBy
     rdfs:range gmeow:Entity ;
     rdfs:label "superseded by"@x-gmeow-english ;
     skos:definition "Links an entity to the entity that replaced it — Constantinople supersededBy Istanbul, the Soviet Union supersededBy the Russian Federation, a deprecated software release supersededBy its successor. Directional, NOT symmetric. The superseded entity is retained (never deleted) and may carry gmeow:displayable false."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> .
 
 # =========================================================================== #
 # REIFIED FORM — promote to EntityExistence when standpoint, confidence,
@@ -68,7 +68,7 @@ gmeow:EntityExistence
     rdfs:subClassOf gmeow:TimeScopedRelation ;
     rdfs:label "Entity Existence"@x-gmeow-english ;
     skos:definition "The reified, time-scoped fact that an entity existed over an interval — a gufo:Situation that carries its period via gmeow:duringInterval (inherited from TimeScopedRelation). Use when the existence claim is contested (two sources disagree on when a place ceased to exist), when evidence must be attached, or when standpoint indexing is needed. Flat-first: the common case uses gmeow:hasCreationEvent / gmeow:hasDestructionEvent / gmeow:existenceInterval directly on the entity."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> .
 
 gmeow:existenceEntity
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -76,7 +76,7 @@ gmeow:existenceEntity
     rdfs:range gmeow:Entity ;
     rdfs:label "existence entity"@x-gmeow-english ;
     skos:definition "The entity whose existence is recorded by this EntityExistence. Functional: an EntityExistence concerns exactly one entity (constitutive of the situation's identity)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> .
 
 gmeow:existenceCreationEvent
     a owl:ObjectProperty ;
@@ -84,7 +84,7 @@ gmeow:existenceCreationEvent
     rdfs:range gmeow:Event ;
     rdfs:label "existence creation event"@x-gmeow-english ;
     skos:definition "The creation event associated with this existence record. Optional: an EntityExistence may record only an interval when the creation event is unknown."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> .
 
 gmeow:existenceDestructionEvent
     a owl:ObjectProperty ;
@@ -92,7 +92,7 @@ gmeow:existenceDestructionEvent
     rdfs:range gmeow:Event ;
     rdfs:label "existence destruction event"@x-gmeow-english ;
     skos:definition "The destruction event associated with this existence record. Optional: an EntityExistence for a still-extant entity has no destruction event."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> .
 
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE — open-world EL someValuesFrom on the reified form.

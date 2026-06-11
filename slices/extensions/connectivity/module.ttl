@@ -160,4 +160,4 @@ gmeow:routeKindAccessible
     a gmeow:RouteKind ;
     rdfs:label "accessible route"@x-gmeow-english ;
     skos:definition "A route computed to satisfy a set of accessibility needs. The actual path is determined by the solver layer (Principle 12), not asserted in OWL."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
