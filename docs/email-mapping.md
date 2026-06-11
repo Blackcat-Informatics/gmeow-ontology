@@ -299,3 +299,106 @@ A cancelled invitation is **retained, not erased** (Principle 10). The email
 remains in the store with its `hasCalendarMethod gmeow:calendarMethodCancel`
 and the original `describesEvent` link intact. Suppression (hiding from UI)
 is handled through the projection layer, never by deletion.
+
+## Versioning, variants, and patch diffs (issue #136)
+
+Gmeow's mail store tracks Message-ID collisions, body variants, and patch diffs
+between a variant message and its canonical counterpart. The cross-cutting
+version-set layer in `ontology/modules/versions.ttl` (#161) provides the generic
+lineage machinery; the email module adds only the email-specific identity keys,
+collision flags, fingerprints, and patch-diff artifact type.
+
+### Design principles
+
+- **Canonical/variant is a role, not a subclass.** A message is canonical or
+  variant only *according to an authority/importer*. The role is asserted with a
+  `gmeow:VersionMembership` relator carrying `versionRole`
+  (`roleCanonical` / `roleVariant`) and `membershipAuthority` (Principle 9).
+- **Version scale is a value vocabulary.** Use `gmeow:versionScale`
+  (`scaleTrivial`, `scaleMinor`, `scaleMajor`) on the `VersionMembership`, not a
+  free literal or datatype property.
+- **Superseded variants remain first-class.** A variant that is later judged
+  non-canonical is retained and linked forward; it is suppressed from display via
+  `gmeow:displayable false`, never erased (Principle 10).
+- **Counts and fuzzy matching are projection concerns.** `version_count` and the
+  selection of "latest" or "canonical" according to a fingerprint policy are
+  computed by the importer / solver layer (Principle 12), not asserted as
+  canonical datatype properties.
+
+### `query_mail_identities` mapping
+
+| gmeow field | GMEOW term | Object kind |
+|---|---|---|
+| `generated` | `gmeow:messageIdGenerated` | `xsd:boolean` on `EmailMessage` |
+| `collision` | `gmeow:messageIdCollision` | `xsd:boolean` on `EmailMessage` |
+| `variant` | `gmeow:VersionMembership` + `gmeow:versionRole gmeow:roleVariant` | relator on the variant message |
+| `max_scale` | `gmeow:VersionMembership` + `gmeow:versionScale` (`scaleTrivial`/`scaleMinor`/`scaleMajor`) | relator on the relevant membership(s) |
+| `version_count` | — | **derived projection**; count `VersionMembership`s for the `VersionSet` |
+
+### `mail_message` facet metadata mapping
+
+| gmeow facet field | GMEOW term | Object kind |
+|---|---|---|
+| `canonical_fingerprint` | `gmeow:canonicalFingerprint` | `rdfs:Literal` on `EmailMessage` |
+| `body_line_fingerprint` | `gmeow:bodyLineFingerprint` | `rdfs:Literal` on `EmailMessage` |
+| `canonical_version_id` | `gmeow:versionLabel` or an identifier on the canonical `VersionMembership` | literal / relator annotation |
+| `version_count` | — | **derived projection** (see above) |
+| `message_id_collision` | `gmeow:messageIdCollision` | `xsd:boolean` on `EmailMessage` |
+| `analysis_scope` | `gmeow:analysisScope` | `rdfs:Literal` on `EmailMessage` |
+| `analysis_input_body_line` | `gmeow:analysisInputBodyLine` | `rdfs:Literal` on `EmailMessage` |
+
+### Compound parts: `patch_diff`
+
+A `patch_diff` compound part is modeled as a `gmeow:EmailPatchDiff`, which is a
+`gmeow:BodyPart` subclass. It is linked from the variant message via
+`gmeow:hasPatchDiff` (a subproperty of `gmeow:hasBodyPart`). The patch carries
+`gmeow:mediaType "text/x-gmeow-patch"`, a `gmeow:contentDigest` for reliable
+identity, and `gmeow:wasDerivedFrom` pointing to the canonical body part(s) it
+was computed from.
+
+| gmeow part role | GMEOW term |
+|---|---|
+| `patch_diff` (`text/x-gmeow-patch`) | `gmeow:hasPatchDiff` → `gmeow:EmailPatchDiff` (`mediaType`, `contentDigest`, `wasDerivedFrom`) |
+
+### Example pattern
+
+```turtle
+ex:msgVersionSet a gmeow:VersionSet .
+
+ex:msgCanonical a gmeow:EmailMessage ;
+    gmeow:rfcMessageId "<collision@example.org>" ;
+    gmeow:messageIdCollision true ;
+    gmeow:canonicalFingerprint "blake3:canonical-body-hash" ;
+    gmeow:hasBodyPart ex:msgCanonicalBody .
+
+ex:msgCanonicalBody a gmeow:BodyPart ;
+    gmeow:partId "1" ;
+    gmeow:mediaType "text/plain" ;
+    gmeow:contentDigest "blake3:canonical-body-bytes" .
+
+ex:canonicalMembership a gmeow:VersionMembership ;
+    gmeow:versionSet ex:msgVersionSet ;
+    gmeow:versionMember ex:msgCanonical ;
+    gmeow:versionRole gmeow:roleCanonical ;
+    gmeow:membershipAuthority ex:gmeowImporter .
+
+ex:msgVariant a gmeow:EmailMessage ;
+    gmeow:rfcMessageId "<collision@example.org>" ;
+    gmeow:messageIdCollision true ;
+    gmeow:bodyLineFingerprint "blake3:variant-body-line-hash" ;
+    gmeow:analysisScope "body-only" ;
+    gmeow:analysisInputBodyLine "Please review the attached Q2 report." ;
+    gmeow:hasPatchDiff ex:variantPatch .
+
+ex:variantMembership a gmeow:VersionMembership ;
+    gmeow:versionSet ex:msgVersionSet ;
+    gmeow:versionMember ex:msgVariant ;
+    gmeow:versionRole gmeow:roleVariant ;
+    gmeow:versionScale gmeow:scaleMinor ;
+    gmeow:membershipAuthority ex:gmeowImporter .
+
+ex:variantPatch a gmeow:EmailPatchDiff ;
+    gmeow:mediaType "text/x-gmeow-patch" ;
+    gmeow:contentDigest "blake3:patch-bytes" ;
+    gmeow:wasDerivedFrom ex:msgCanonicalBody .
+```
