@@ -109,6 +109,16 @@ class Graph:
     opaque: list[OpaqueNode] = field(default_factory=list)
     signatures: list[Signature] = field(default_factory=list)
     diagnostics: list[Diagnostic] = field(default_factory=list)
+    #: Ordered per-segment head ids (§3.1) — the file's composite identity.
+    #: A single-segment file has exactly one entry.
+    segment_heads: list[bytes] = field(default_factory=list)
+    #: Per-segment header profiles, in file order; the file's effective
+    #: requirement set is the union (§3.1, §13).
+    segment_profiles: list[str] = field(default_factory=list)
+    #: Per-segment folded meta, in file order (§7.5) — preserved alongside the
+    #: file-level shallow merge in ``meta`` so a later segment's keys win in
+    #: ``meta`` but no segment's metadata is silently absorbed.
+    segment_meta: list[dict[str, object]] = field(default_factory=list)
 
     def term(self, term_id: int) -> Term:
         """Resolve a term-id to its :class:`Term`."""

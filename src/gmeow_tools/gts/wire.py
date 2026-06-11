@@ -25,9 +25,33 @@ VERSION = 1
 _ID_EXCLUDED = ("id", "sig")
 
 
+def _deterministic(obj: object) -> object:
+    """Recursively order map keys per RFC 8949 §4.2 (bytewise on encoded keys).
+
+    ``cbor2``'s ``canonical=True`` implements the older RFC 7049 ordering
+    (length-first), which DIVERGES from RFC 8949 on keys like ``"x"`` vs
+    ``"id"``. The spec mandates 8949, so maps are re-built here in 8949 order
+    and encoded with the default (insertion-order, definite-length,
+    shortest-int) encoder. Tags recurse into their value.
+    """
+    if isinstance(obj, cbor2.CBORTag):
+        return cbor2.CBORTag(obj.tag, _deterministic(obj.value))
+    if isinstance(obj, Mapping):
+        entries = [(cbor2.dumps(k), k, _deterministic(v)) for k, v in obj.items()]
+        entries.sort(key=lambda e: e[0])
+        return {k: v for _, k, v in entries}
+    if isinstance(obj, list):
+        return [_deterministic(v) for v in obj]
+    return obj
+
+
 def canonical(obj: object) -> bytes:
-    """Encode an object as deterministic CBOR (RFC 8949 §4.2)."""
-    return cbor2.dumps(obj, canonical=True)
+    """Encode an object as deterministic CBOR (RFC 8949 §4.2).
+
+    Definite lengths and shortest-form integers come from the default
+    encoder; key ordering is enforced by :func:`_deterministic`.
+    """
+    return cbor2.dumps(_deterministic(obj))
 
 
 def blake3_256(data: bytes) -> bytes:

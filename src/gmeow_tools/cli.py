@@ -60,6 +60,7 @@ def regenerate(
     from gmeow_tools import (  # noqa: F401
         apache,
         export,
+        gts_vectors_gen,
         lpg,
         mapping_compile,
         matrix,
@@ -96,6 +97,7 @@ def check_generated(
     from gmeow_tools import (  # noqa: F401
         apache,
         export,
+        gts_vectors_gen,
         lpg,
         mapping_compile,
         matrix,

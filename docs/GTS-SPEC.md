@@ -3,8 +3,12 @@
 
 # GTS — Graph Transport Substrate — Specification
 
-> **Status:** Draft `v0.2` (2026-06-10). **Stability:** the wire format below is
+> **Status:** Draft `v0.3` (2026-06-11). **Stability:** the wire format below is
 > a working draft and MAY change before `v1.0`.
+> **Changes in v0.3 (#327):** multi-segment files (`cat`-append composition, §3.1);
+> segment-scoped term-ids (§7.2); per-segment fold + value-union semantics (§7.5);
+> cross-segment suppression (§11); profile union and per-section language-tag
+> discipline (§13); composition-tool requirements (§14.1); vectors 15–21 (§18).
 >
 > GTS is a single-file, language-independent transport for an **RDF 1.2** graph
 > (statements *and* statement-level metadata) together with any **content-addressed
@@ -120,13 +124,49 @@ well-formed CBOR data item. The file MAY begin with the CBOR self-describe tag `
 it is not a separate log item, has no `"id"`, and does not participate in the id/prev chain.
 
 ```text
-GTS-file = [self-describe-tag] header *frame
+GTS-file = segment *segment
+segment  = [self-describe-tag] header *frame
 ```
 
-- The **first** data item MUST be a **Header** (§5).
-- Every subsequent data item is a **Frame** (§6), in log order.
-- **Append** = concatenate one more frame. No length prefix or count is stored, so a writer
-  never rewrites earlier bytes.
+- The **first** data item of a segment MUST be a **Header** (§5).
+- Every subsequent data item of a segment is a **Frame** (§6), in log order, until the next
+  Header (which begins a new segment) or end of input.
+- **Append** = concatenate one more frame (extending the last segment), or concatenate a whole
+  further segment (§3.1). No length prefix or count is stored, so a writer never rewrites
+  earlier bytes.
+
+### 3.1 Multi-segment files (`cat`-append composition)
+
+A GTS file is one or more **segments**, each a complete, self-contained
+`header *frame` log. The defining property: **byte-concatenation of valid GTS files is a
+valid GTS file** —
+
+```sh
+cat music.gts >> core.gts        # core.gts is now a valid two-segment GTS
+```
+
+- **Boundary detection (normative).** A reader that has consumed at least one frame and
+  encounters a data item that is a map containing the key `"gts"` and lacking the key `"t"`
+  MUST treat it as the Header of a **new segment** (the optional self-describe tag `55799`
+  MAY precede it; writers SHOULD emit the tag on every segment header to make boundaries
+  eyeball-visible). Any other non-frame item remains malformed input (§16).
+- **Independent integrity.** Each segment has its own genesis (its header `"id"`), its own
+  id/prev chain, its own signatures, and its own optional `index` (an index covers ONLY its
+  segment). The file's composite identity is the **ordered list of segment head ids**. A
+  third-party segment carries its own signer; concatenation rewrites nothing (a `cat` cannot
+  rewrite an earlier segment's header without breaking its self-hash — by design).
+- **Identity across segments.** Term-ids are **segment-scoped** (§7.2); the ONLY cross-segment
+  identity is the term **value** (IRI, literal, quoted-triple structure). Blank-node labels are
+  segment-local and MUST NOT be merged across segments (the §12.1 nested-GTS rule, applied at
+  the top level).
+- **Profiles union.** The file's effective profile/requirement set is the union of the segment
+  headers' `"prof"` values (and any profile requirements carried in segment metadata). A reader
+  lacking the capabilities a segment requires degrades that segment's frames to opaque nodes
+  (§7.6) — "this data needs the gmeow-music profile" is a header read, not an error.
+- **Relationship to nesting.** Nested GTS (§12.1) composes by *containment* (a sealed,
+  independently-shippable subgraph); segments compose by *concatenation* (open, tool-free
+  aggregation). Both yield a union fold; choose nesting when the part must travel or seal
+  independently, segments when plain `cat` must work.
 
 A reader streams items until end of input. Trailing partial bytes (a torn append) MUST be
 detected and ignored with a diagnostic: a reader attempts to decode each successive CBOR item,
@@ -142,7 +182,12 @@ surviving frame remains recoverable. The optional index is an accelerator, never
 - Maps use **short text-string keys** (e.g. `"t"`, `"d"`) for self-description and eyeball
   debuggability; compactness is the transform layer's job, not the schema's.
 - Any bytes that are **hashed or signed** MUST use **Deterministic Encoding** (RFC 8949 §4.2):
-  shortest-form integers, definite-length items, sorted map keys.
+  shortest-form integers, definite-length items, and map keys sorted **bytewise on their
+  encoded form** — explicitly the RFC 8949 rule, NOT RFC 7049's length-first canonical
+  ordering. (For the short text keys GTS itself uses the two coincide, because a CBOR text
+  string's initial byte embeds its length; the rules diverge on mixed-type keys, so
+  implementations MUST NOT rely on a CBOR library's legacy "canonical" mode without checking
+  which ordering it implements.)
 - Unsigned integers are used for all ids. BLAKE3 digests are 32-byte (256-bit) byte strings.
 - The grammar below is given in **CDDL** (RFC 8610).
 
@@ -277,11 +322,16 @@ nodes while preserving blank-node isomorphism.
 
 ### 7.2 Term-id assignment (normative)
 
-Term ids are unsigned integers assigned **in append order**, starting at `0`, and are
-**frozen**: a term minted while folding frame *N* keeps its id forever. A `quads`, `annot`,
-or `reifies` frame at position *N* MUST only reference term-ids introduced at positions
-`0..N-1` (such frames introduce no terms of their own). This makes writing pure-append and
-reading single-pass.
+Term ids are unsigned integers assigned **in append order, per segment**, starting at `0` at
+each segment's header, and are **frozen within their segment**: a term minted while folding
+frame *N* keeps its id for the rest of that segment. A `quads`, `annot`, or `reifies` frame at
+position *N* MUST only reference term-ids introduced at positions `0..N-1` **of the same
+segment** (such frames introduce no terms of their own). This makes writing pure-append,
+reading single-pass, and concatenation sound: term-ids are **compression artifacts, never
+identity** — cross-segment identity is the term *value* only (§3.1), exactly as a `snapshot`'s
+dictionary already restarts at `0` (§10). An implementation that applied file-global ids to a
+multi-segment file would misfold silently; the boundary rule (§3.1) and vector 17 (§18) exist
+to make that failure loud instead.
 
 ### 7.3 Quoted triples and reifiers (`reifies` frame)
 
@@ -321,9 +371,12 @@ constraints. In an `annot` row the predicate MUST be an IRI.
 ### 7.5 Fold algorithm (normative)
 
 ```text
-verify each frame's id (self-hash) and prev-link; record sig status if "sig" present
-terms := []   graph := {}   reif := {}   meta := {}   blobs := {}   suppressed := {}
-for frame in log order:
+result := empty union state (graph, reif, annot, blobs, meta, suppressed, opaque[])
+for segment in file order:                      # §3.1; single-segment files: one iteration
+  verify each frame's id (self-hash) and prev-link within the segment;
+  record sig status if "sig" present
+  terms := []   graph := {}   reif := {}   meta := {}   blobs := {}   suppressed := {}
+  for frame in segment log order:
     P := resolve payload (§6.1); if undecodable -> add opaque node (§7.6); continue
     switch frame.t:
       "terms"    : append each term (assign next id); each "dt"/"rf" MUST name an
@@ -337,12 +390,17 @@ for frame in log order:
       "snapshot" : load a self-contained fold wholesale (§10)
       "meta"     : shallow-merge map into global meta (later keys overwrite earlier)
       "opaque"   : add explicit opaque node
-result := (terms, graph, reif, annot, blobs, meta, suppressed, opaque[])
+  union segment fold into result BY TERM VALUE     # ids resolve locally, never cross segments;
+                                                   # bnode labels stay segment-local (§3.1)
+result
 ```
 
 The fold is deterministic: the same log yields the same graph in every conformant reader.
-`meta` accumulates as a shallow union over one global map — a later frame's keys replace earlier
-ones; values are not concatenated.
+Within a segment, `meta` accumulates as a shallow union over one map — a later frame's keys
+replace earlier ones; values are not concatenated. **Across segments**, each segment's folded
+`meta` is exposed per segment (keyed by segment head id) AND shallow-merged in file order into
+a file-level view — a later segment's keys win, but the per-segment originals remain
+addressable (a third-party segment's metadata is never silently absorbed).
 
 ### 7.6 Opaque nodes
 
@@ -585,6 +643,17 @@ hash-linked, and a consumer MAY surface suppressed content explicitly. There is 
 v1 — later frames may add further suppressions, and a later identical assertion does not revive a
 suppressed target.
 
+**Cross-segment suppression (normative, §3.1).** Digest-addressed targets (`frame`, `blob`)
+are file-global: a content-id names the same bytes wherever they sit, so a later segment MAY
+suppress an earlier segment's frame or blob by digest. Id-addressed targets (`term`, `quad`,
+`reifier`) carry term-ids, which are segment-local — they are first **resolved to term values
+within the suppress frame's own segment**, and the suppression then applies **value-wise to the
+whole union fold**: a `quad` target hides every matching `(s,p,o,g)` value tuple in any
+segment, and a `term` target hides the term value (and the quads it appears in) file-wide.
+This is what lets an appended belief-revision segment suppress a statement made by an earlier
+segment without rewriting a byte of it — the earlier segment's record stays present, signed,
+and hash-linked (Principle 10 at the wire level).
+
 ## 12. Binary and content-addressing
 
 ```cddl
@@ -644,7 +713,20 @@ A profile is a named set of conventions over the one format (declared in header 
 Profiles constrain conventions, not the wire format; a `generic` reader reads them all. The
 `evidence` profile additionally REQUIRES a head commitment (§9, item 4), and writers SHOULD emit
 a checkpoint `index` at least every 1024 frames or 64 MiB, whichever comes first, so a damaged
-log recovers robustly (§9.1).
+log recovers robustly (§9.1). In a multi-segment file each segment declares its own profile;
+the file's effective requirement set is the union (§3.1).
+
+### 13.1 Language-tag discipline (normative)
+
+A producer's graph payload MAY carry **internal private-use language tags** (e.g. GMEOW's
+`x-gmeow-*`): the payload of a `dist` or `ai-package` segment *is* the canonical form, and
+canonical forms keep their internal tags. Every **projection section** — docs blobs, derived
+views, down-projected representations, anything generated *for an external consumer* — MUST
+carry **public BCP 47 tags only**; a producer that leaks private-use tags into a projection
+section MUST fail at write time, not warn (vector 20). The boundary is per *role*, not per
+file: one package legitimately carries a canonical payload with internal tags beside
+public-tagged docs sections. (This mirrors the GMEOW generator framework's internal-tag leak
+gate; the reference producer reuses its `retag` machinery at the section boundary.)
 
 ## 14. Transforms out
 
@@ -663,6 +745,22 @@ Each transform SHOULD be verifiable by **round-trip equivalence**: for **fully-d
 frames, `gts → nq → gts` MUST yield the same folded graph (modulo blank-node labelling and
 deterministic CBOR re-encoding). Opaque nodes are excluded — they serialise as opaque-node
 descriptions and re-import as ordinary quads, not as opaque frames.
+
+### 14.1 Composition tooling requirements (normative for conformant tools)
+
+Raw `cat` always works (§3.1); a conformant **validating composer** (`gts cat`) and verifier
+(`gts verify`) add the refuse-don't-trust posture:
+
+- **`gts cat` MUST refuse degenerate inputs**: an input that is not a valid GTS, a segment
+  whose fold yields zero quads and zero blobs (almost always a wiring bug, never a real
+  package), or an output in which a suppress-only segment would hide every prior frame.
+  Publish-class tools never trust a pathological state to be intentional.
+- **`gts verify` MUST check declared-vs-computed requirements**: a segment whose graph uses a
+  profile's vocabulary without declaring the profile is an **error**; a declared-but-unused
+  profile is a warning. Declarations a tool reads (the CLI dependency report, §13) must not be
+  able to rot against the content they describe.
+- **`gts verify` SHOULD report per-segment**: head id, signer set, profile, term/quad counts,
+  opaque-node count with reasons — the composition ledger of the file.
 
 ## 15. Worked examples
 
@@ -749,6 +847,15 @@ verifiable subgraph.
 
 - The header `"v"` is the spec major version. A reader MUST refuse a major version it does not
   implement, but MUST still verify the id/prev chain and enumerate frame types/ids.
+- **Segment semantics and older readers.** A reader implementing this revision MUST support
+  segment boundaries (§3.1). A reader that does NOT (a pre-§3.1 implementation) encounters a
+  second Header as a non-frame data item: such input is **malformed for that reader**, and it
+  MUST surface a fatal diagnostic for the remainder of the file rather than skip the item —
+  *silently misfolding (applying file-global term-ids across a boundary) is the one forbidden
+  outcome* (vector 17). Because `cat` cannot rewrite the first segment's header (the self-hash
+  seals it), multi-segment files cannot advertise themselves in the first header; boundary
+  detection is therefore structural, and the hard-fail rule is what protects the ecosystem's
+  oldest readers.
 - **Structure durability:** a GTS file plus this specification is decodable forever with no
   engine and no external dictionary — CBOR is an IETF standard and dictionaries are in-band.
 - **Density durability:** governed by the codec catalog; the mandatory core set
@@ -778,6 +885,15 @@ verifiable subgraph.
   SHOULD cap decoded sizes.
 - Nested GTS (§12.1) MUST be bounded: readers MUST enforce a maximum recursion depth and a
   total decoded-size budget across all nesting levels (matryoshka-bomb resistance).
+- **Segments are independently authentic, not mutually vouched.** Concatenation implies no
+  endorsement: segment A's signer attests nothing about segment B. A verifier MUST report
+  signer sets per segment (§14.1), and a consumer deciding trust MUST NOT treat the file-level
+  union as carrying the strongest segment's authority. Value-wise cross-segment suppression
+  (§11) means an untrusted appended segment can HIDE earlier content from default resolution —
+  readers SHOULD surface which segment suppressed what, and high-assurance consumers MAY
+  resolve suppression only from segments whose signers they trust.
+- A torn append at a segment boundary looks like a torn header: the §3 torn-append rule
+  applies; the prior segments fold intact.
 
 ## 18. Conformance test vectors
 
@@ -802,6 +918,29 @@ A conformant implementation MUST pass a shared corpus. v1 requires at least thes
     (§7.4).
 14. Blank-node label locality (§7.1, §12.1): identical bnode labels in an outer and a nested GTS
     remain isolated (not merged).
+15. **Two-segment union (§3.1)**: `cat` of two single-segment files folds to the value-union of
+    both graphs; term-ids resolve segment-locally (a shared IRI unifies; identical ids naming
+    different values do NOT collide); identical bnode labels across segments stay isolated.
+    *15b*: label-less blank nodes (absent **or empty** `"v"`) are distinct terms within a
+    segment and across segments, and the union's serialized labels MUST keep them distinct —
+    relabeling that merges what the graph separates is the forbidden outcome.
+16. **Composed round-trip (§3.1, §14)**: a `cat`-composed file survives `gts → nq → gts` with
+    the same union fold.
+17. **Pre-segment reader hard-fail (§16, negative)**: an implementation in pre-§3.1 mode fed a
+    two-segment file MUST surface a fatal diagnostic at the second header — folding frames past
+    the boundary with file-global term-ids is the forbidden outcome this vector exists to catch.
+18. **Cross-segment suppression (§11)**: a second segment suppresses (a) an earlier segment's
+    frame by digest and (b) a quad by value; default resolution hides both; the suppressed
+    segment's bytes verify intact; the verifier reports which segment suppressed what (§17).
+19. **Profile union + graceful segment opacity (§3.1)**: a two-segment file whose second
+    segment requires an undeclared-to-the-reader capability folds segment one fully and
+    segment two as opaque nodes with the profile named in the diagnostics.
+20. **Language-tag discipline (§13.1, negative)**: a producer emitting a private-use language
+    tag into a projection/docs section MUST fail at write time; the same tag in a canonical
+    `dist` payload section is accepted.
+21. **Degenerate composition refused (§14.1, negative)**: `gts cat` refuses an empty-fold
+    segment and a suppress-everything composition; raw byte `cat` of the same inputs still
+    yields a structurally valid file (the tool is stricter than the format, by design).
 
 ## 19. References
 
