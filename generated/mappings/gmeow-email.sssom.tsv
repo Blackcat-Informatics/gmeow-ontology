@@ -29,6 +29,7 @@ gmeow:calendarUid	skos:closeMatch	ical:uid	semapv:ManualMappingCuration	0.9	iCal
 gmeow:cc	skos:closeMatch	nmo:cc	semapv:ManualMappingCuration	0.95	
 gmeow:cc	skos:closeMatch	schema:ccRecipient	semapv:ManualMappingCuration	0.95	
 gmeow:describesEvent	skos:relatedMatch	schema:about	semapv:ManualMappingCuration	0.6	schema:about is extremely broad; describesEvent is scoped to Event-bearing emails
+gmeow:displayName	skos:closeMatch	schema:name	semapv:ManualMappingCuration	0.85	GMEOW scopes displayName to the MessageParticipant occurrence; schema:name is broader (Thing/ContactPoint/Person)
 gmeow:from	skos:closeMatch	nmo:from	semapv:ManualMappingCuration	0.9	
 gmeow:from	skos:closeMatch	schema:sender	semapv:ManualMappingCuration	0.9	
 gmeow:hasAttachment	skos:closeMatch	nmo:hasAttachment	semapv:ManualMappingCuration	0.9	

@@ -292,3 +292,25 @@ gmeow:eqEmail032 a gmeow:TermEquivalence ;
 # This follows the precedent of MessageKind, Mailbox hierarchy, and
 # ContentTransferEncoding (all canonical in this slice).
 # --------------------------------------------------------------------------- #
+
+# --------------------------------------------------------------------------- #
+# Email address structure and envelope/header occurrence terms (issue #134)
+# --------------------------------------------------------------------------- #
+# gmeow:displayName is occurrence-scoped on MessageParticipant; schema:name is
+# broader (applies to Thing / ContactPoint / Person). Bridge is skos:closeMatch.
+# gmeow:addressValue, gmeow:localPart, gmeow:domainPart, gmeow:rawAddressValue,
+# gmeow:MessageParticipant, gmeow:MessageParticipantRole, and the envelope/resent
+# role individuals are canonical — no maintained external RDF vocabulary covers
+# RFC 5322 address decomposition, the participant relator pattern, or envelope
+# roles. NMO has flat from/to/cc/bcc but no occurrence relator; SIOC has no
+# email address structure terms.
+# --------------------------------------------------------------------------- #
+
+gmeow:eqEmail033 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:displayName ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:name ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "GMEOW scopes displayName to the MessageParticipant occurrence; schema:name is broader (Thing/ContactPoint/Person)" ;
+    gmeow:sssomFile "gmeow-email.sssom.tsv" .

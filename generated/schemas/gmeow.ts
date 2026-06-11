@@ -2118,7 +2118,7 @@ export interface AdoptiveParentChild extends ParentChildRelationship {
 
 
 export interface Agent {
-    email?: string,
+    email?: string[],
     endorses?: Agent[],
     hasAgreement?: Agreement[],
     hasContactPoint?: ContactPoint[],
@@ -2130,10 +2130,10 @@ export interface Agent {
     holdsCredential?: Credential[],
     holdsKey?: CryptographicKey[],
     knowsLanguage?: Language[],
-    mailmapEntry?: string,
+    mailmapEntry?: string[],
     memberOf?: Organization[],
     nativeLanguage?: Language[],
-    telephone?: string,
+    telephone?: string[],
 }
 
 
@@ -2171,12 +2171,12 @@ export interface AnnotationMotivation {
 
 export interface Appellation {
     conferredByEvent?: LifeEvent[],
-    fullName?: string,
+    fullName?: string[],
     hasNamePart?: NamePart[],
     nameLanguage?: Language,
     namePurpose?: NamePurpose[],
-    nameScript?: string,
-    romanization?: string,
+    nameScript?: string[],
+    romanization?: string[],
     transliterationScheme?: TransliterationScheme[],
 }
 
@@ -2203,7 +2203,7 @@ export interface Article extends Work {
 
 
 export interface Asset extends Entity {
-    assetIdentifier?: string,
+    assetIdentifier?: string[],
     assetType?: AssetType,
 }
 
@@ -2329,12 +2329,12 @@ export interface BlockchainNetwork extends Entity {
 
 
 export interface BodyPart extends InformationObject {
-    charset?: string,
-    contentId?: string,
+    charset?: string[],
+    contentId?: string[],
     hasContentDisposition?: ContentDisposition,
     hasContentTransferEncoding?: ContentTransferEncoding,
     mediaType?: string,
-    partId?: string,
+    partId?: string[],
 }
 
 
@@ -2415,9 +2415,9 @@ export interface CarrierMedium {
 
 
 export interface CelestialCoordinates {
-    celestialEpoch?: string,
-    declination?: string,
-    rightAscension?: string,
+    celestialEpoch?: string[],
+    declination?: string[],
+    rightAscension?: string[],
 }
 
 
@@ -2465,7 +2465,7 @@ export interface CitationAct {
     hasEvidenceClass?: EvidenceClass[],
     sourceIndependence?: SourceIndependence[],
     sourceTier?: SourceTier[],
-    supportsNotability?: boolean,
+    supportsNotability?: boolean[],
     viaSelector?: Selector[],
 }
 
@@ -2505,7 +2505,7 @@ export interface Comment extends Note {
 
 
 export interface Commit extends Activity {
-    authorTime?: string,
+    authorTime?: string[],
     authoredBy?: Agent[],
     commitAncestor?: Commit[],
     commitAuthorIdentity?: AuthorIdentity,
@@ -2514,7 +2514,7 @@ export interface Commit extends Activity {
     commitInRepository?: Repository,
     commitTree?: SourceTree,
     committedBy?: Agent[],
-    committerTime?: string,
+    committerTime?: string[],
     parentCommit?: Commit[],
 }
 
@@ -2608,7 +2608,7 @@ export interface ContributionRole {
 
 export interface ControlFlow {
     flowGuard?: BranchConditionType[],
-    flowOrder?: number,
+    flowOrder?: number[],
     flowSource?: ProcedureStep[],
     flowTarget?: ProcedureStep[],
 }
@@ -2658,18 +2658,18 @@ export interface CoverageDepth {
 
 
 export interface CreativeWork extends InformationObject {
-    abstract?: string,
+    abstract?: string[],
     audience?: Agent[],
-    bibliographicCitation?: string,
+    bibliographicCitation?: string[],
     conformsTo?: Entity[],
-    dateAccepted?: string,
-    dateAvailable?: string,
-    dateCreated?: string,
-    dateModified?: string,
-    datePublished?: string,
-    dateSubmitted?: string,
+    dateAccepted?: string[],
+    dateAvailable?: string[],
+    dateCreated?: string[],
+    dateModified?: string[],
+    datePublished?: string[],
+    dateSubmitted?: string[],
     editionOf?: CreativeWork,
-    extent?: string,
+    extent?: string[],
     hasAuthor?: Agent[],
     hasContributor?: Agent[],
     hasEditor?: Agent[],
@@ -2677,18 +2677,18 @@ export interface CreativeWork extends InformationObject {
     hasNarrator?: Agent[],
     hasTitle?: CreativeWorkTitle[],
     hasTranslator?: Agent[],
-    identifier?: string,
+    identifier?: string[],
     isRequiredBy?: CreativeWork[],
     medium?: CarrierMedium[],
     propagatesFrom?: CreativeWork[],
     requires?: CreativeWork[],
     sourceFor?: NarrativeReferenceFrame[],
-    sourceLocation?: string,
-    sourceModifiedAt?: string,
+    sourceLocation?: string[],
+    sourceModifiedAt?: string[],
     spatialCoverage?: Place[],
-    tableOfContents?: string,
+    tableOfContents?: string[],
     temporalCoverage?: TimeInterval[],
-    title?: string,
+    title?: string[],
 }
 
 
@@ -2711,7 +2711,7 @@ export interface Credential extends Entity {
 
 
 export interface CryptoWallet extends FinancialAccount {
-    walletAddress?: string,
+    walletAddress?: string[],
     walletKey?: CryptographicKey[],
     walletScheme?: WalletScheme,
 }
@@ -2719,11 +2719,11 @@ export interface CryptoWallet extends FinancialAccount {
 
 
 export interface CryptographicKey extends InformationObject {
-    fingerprint?: string,
-    keyAlgorithm?: string,
-    keyExpiresAt?: string,
-    keyId?: string,
-    keyMaterial?: string,
+    fingerprint?: string[],
+    keyAlgorithm?: string[],
+    keyExpiresAt?: string[],
+    keyId?: string[],
+    keyMaterial?: string[],
     keyScheme?: KeyScheme,
 }
 
@@ -2802,7 +2802,7 @@ export interface DisclosurePolicy {
 
 
 export interface Distribution extends InformationObject {
-    distributionFormat?: string,
+    distributionFormat?: string[],
 }
 
 
@@ -2833,14 +2833,14 @@ export interface EmailAddress extends ContactPoint {
 
 
 export interface EmailMessage extends Message {
-    analysisInputBodyLine?: string,
-    analysisScope?: string,
-    autoSubmitted?: string,
+    analysisInputBodyLine?: string[],
+    analysisScope?: string[],
+    autoSubmitted?: string[],
     bcc?: EmailAddress[],
-    bodyLineFingerprint?: string,
+    bodyLineFingerprint?: string[],
     calendarAttachment?: Attachment[],
-    calendarUid?: string,
-    canonicalFingerprint?: string,
+    calendarUid?: string[],
+    canonicalFingerprint?: string[],
     cc?: EmailAddress[],
     describesEvent?: Event[],
     dispositionNotificationTo?: EmailAddress[],
@@ -2849,24 +2849,26 @@ export interface EmailMessage extends Message {
     hasMailingList?: MailingList[],
     hasMessageParticipant?: MessageParticipant[],
     hasPatchDiff?: EmailPatchDiff[],
-    importance?: string,
+    importance?: string[],
     listArchive?: string[],
     listHelp?: string[],
     listOwner?: EmailAddress[],
-    listPost?: string,
+    listPost?: string[],
     listSubscribe?: string[],
     listUnsubscribe?: string[],
-    messageIdCollision?: boolean,
-    messageIdGenerated?: boolean,
-    precedence?: string,
-    priority?: string,
-    readReceiptRequested?: boolean,
+    messageIdCollision?: boolean[],
+    messageIdGenerated?: boolean[],
+    precedence?: string[],
+    priority?: string[],
+    readReceiptRequested?: boolean[],
     replyTo?: EmailAddress[],
+    resentDate?: string[],
+    resentMessageId?: string[],
     sender?: EmailAddress[],
     sentBySoftware?: SoftwareAgent[],
-    subjectPrefix?: string,
+    subjectPrefix?: string[],
     to?: EmailAddress[],
-    userAgent?: string,
+    userAgent?: string[],
 }
 
 
@@ -2893,15 +2895,15 @@ export interface EmploymentType {
 
 
 export interface Entity {
-    acquireLicensePage?: string,
-    attributionText?: string,
-    attributionUrl?: string,
+    acquireLicensePage?: string[],
+    attributionText?: string[],
+    attributionUrl?: string[],
     authorityLink?: string[],
     cites?: CreativeWork[],
-    conditionsOfAccess?: string,
+    conditionsOfAccess?: string[],
     counterpartOf?: Entity[],
     depictedIn?: MediaObject[],
-    description?: string,
+    description?: string[],
     existenceInterval?: TimeInterval[],
     hasAccessibilityNeed?: AccessibilityFacet[],
     hasAppellation?: Appellation[],
@@ -2923,21 +2925,21 @@ export interface Entity {
     hasVersion?: Entity[],
     hasWebPage?: WebPage[],
     isAbout?: Entity[],
-    isAccessibleForFree?: boolean,
+    isAccessibleForFree?: boolean[],
     isReferencedBy?: Entity[],
     isResultOf?: Observation[],
     locatedAt?: Location[],
     mentionedIn?: Note[],
-    name?: string,
-    provenance?: string,
+    name?: string[],
+    provenance?: string[],
     proximity?: ProximityMeasurement[],
     references?: Entity[],
     storedIn?: StorageLocation[],
     supersededBy?: Entity[],
     supersedes?: Entity[],
-    usageInfo?: string,
-    versionFingerprint?: string,
-    versionLabel?: string,
+    usageInfo?: string[],
+    versionFingerprint?: string[],
+    versionLabel?: string[],
     versionOf?: Entity,
     wasAttributedTo?: Agent[],
     wasGeneratedBy?: Activity[],
@@ -2970,7 +2972,7 @@ export interface Event {
     deceptionCue?: Observation[],
     deceptiveIntentClaim?: StandpointClaim[],
     during?: Event[],
-    earliestStart?: string,
+    earliestStart?: string[],
     eventAspect?: GrammaticalAspect[],
     eventDescribedBy?: EmailMessage[],
     eventInterval?: TimeInterval[],
@@ -2979,7 +2981,7 @@ export interface Event {
     eventSpacetime?: LocationState[],
     eventTemporalFrame?: TemporalFrame,
     eventTense?: GrammaticalTense[],
-    eventTime?: string,
+    eventTime?: string[],
     eventTimeZone?: TimeZone,
     eventTrajectory?: Trajectory[],
     eventType?: EventType[],
@@ -2990,7 +2992,7 @@ export interface Event {
     hasSubEvent?: Event[],
     heldStandpoint?: StandpointClaim[],
     implicates?: Entity[],
-    latestEnd?: string,
+    latestEnd?: string[],
     maximViolationType?: MaximViolationType[],
     meets?: Event[],
     metBy?: Event[],
@@ -2999,7 +3001,7 @@ export interface Event {
     overlaps?: Event[],
     predecessorOrganization?: Organization[],
     projectedStandpoint?: StandpointClaim[],
-    propagationMutationDistance?: number,
+    propagationMutationDistance?: number[],
     startedBy?: Event[],
     starts?: Event[],
     subEventOf?: Event[],
@@ -3081,7 +3083,7 @@ export interface Family extends Group {
 
 
 export interface Filename extends Appellation {
-    claimedMediaType?: string,
+    claimedMediaType?: string[],
 }
 
 
@@ -3090,10 +3092,10 @@ export interface FinancialAccount extends InformationObject {
     accountBalance?: MonetaryAmount[],
     accountCurrency?: ReferenceFrame[],
     accountHolder?: Agent[],
-    accountNumber?: string,
+    accountNumber?: string[],
     accountType?: FinancialAccountType,
-    bic?: string,
-    iban?: string,
+    bic?: string[],
+    iban?: string[],
 }
 
 
@@ -3185,9 +3187,9 @@ export interface GenderIdentity extends IdentityFacet {
 
 
 export interface GeoCoordinates extends Entity {
-    elevation?: string,
-    latitude?: string,
-    longitude?: string,
+    elevation?: string[],
+    latitude?: string[],
+    longitude?: string[],
 }
 
 
@@ -3206,8 +3208,8 @@ export interface Geocode extends Entity {
 
 
 export interface Geometry extends Entity {
-    asGeoJSON?: string,
-    asWKT?: string,
+    asGeoJSON?: string[],
+    asWKT?: string[],
     geometryDeterminacy?: Determinacy[],
     geometryType?: GeometryType[],
 }
@@ -3278,8 +3280,8 @@ export interface HonorificPosition {
 
 
 export interface Identifier {
-    identifierScheme?: string,
-    identifierValue?: string,
+    identifierScheme?: string[],
+    identifierValue?: string[],
     jurisdiction?: Location[],
 }
 
@@ -3292,7 +3294,7 @@ export interface IdentityFacet {
 
 
 export interface ImageRegion extends InformationObject {
-    regionLabel?: string,
+    regionLabel?: string[],
     regionOf?: MediaObject,
     regionSelector?: RegionSelector,
 }
@@ -3307,7 +3309,7 @@ export interface ImportActivity extends Activity {
 
 export interface InformationObject extends Entity {
     contributesToFrame?: NarrativeReferenceFrame[],
-    detectedMediaType?: string,
+    detectedMediaType?: string[],
     writtenInLanguage?: Language[],
 }
 
@@ -3366,7 +3368,7 @@ export interface InvitationStatus {
 
 export interface Invoice extends Document {
     invoiceAmount?: MonetaryAmount,
-    invoiceDueDate?: string,
+    invoiceDueDate?: string[],
     invoiceIssuer?: Agent[],
     invoiceRecipient?: Agent[],
     invoiceStatus?: InvoiceStatus[],
@@ -3431,10 +3433,10 @@ export interface LandTenureType {
 
 
 export interface Language extends InformationObject {
-    bcp47Tag?: string,
-    designGoal?: string,
+    bcp47Tag?: string[],
+    designGoal?: string[],
     hasNotationSystem?: NotationSystem[],
-    languageCode?: string,
+    languageCode?: string[],
     languageModality?: LanguageModality[],
     languageOrigin?: LanguageOrigin[],
     languageStatus?: LanguageStatus[],
@@ -3570,14 +3572,14 @@ export interface LexicalItem extends InformationObject {
 
 
 export interface License extends Agreement {
-    isOsiApproved?: boolean,
+    isOsiApproved?: boolean[],
     licenseFamily?: LicenseFamily,
-    licenseText?: string,
+    licenseText?: string[],
     licensedWork?: InformationObject,
     licensee?: Agent[],
     licensor?: Agent[],
     spdxLicenseId?: string,
-    spdxLicenseName?: string,
+    spdxLicenseName?: string[],
 }
 
 
@@ -3615,7 +3617,7 @@ export interface Location extends Entity {
     rcc8tppi?: Location[],
     siteType?: SiteType[],
     spatiallyConnectsTo?: Location[],
-    timezone?: string,
+    timezone?: string[],
 }
 
 
@@ -3640,13 +3642,13 @@ export interface LogicalConstraint extends Constraint {
 
 export interface Mailbox extends InformationObject {
     childMailbox?: Mailbox[],
-    mailboxName?: string,
+    mailboxName?: string[],
     mailboxOfAccount?: OnlineAccount,
-    mailboxPath?: string,
+    mailboxPath?: string[],
     mailboxRole?: string,
-    mailboxSortOrder?: number,
-    mailboxTotalMessages?: number,
-    mailboxUnreadMessages?: number,
+    mailboxSortOrder?: number[],
+    mailboxTotalMessages?: number[],
+    mailboxUnreadMessages?: number[],
     parentMailbox?: Mailbox[],
 }
 
@@ -3705,7 +3707,7 @@ export interface Measurement extends Observation {
 
 export interface MediaObject extends Manifestation {
     captureDevice?: PhysicalObject[],
-    captureTime?: string,
+    captureTime?: string[],
     colourspace?: ReferenceFrame[],
     depicts?: Entity[],
     hasRegion?: ImageRegion[],
@@ -3753,15 +3755,15 @@ export interface Message extends InformationObject {
     hasMessageKind?: MessageKind[],
     hasRelayHop?: RelayHop[],
     inReplyTo?: Message[],
-    listId?: string,
+    listId?: string[],
     partOfThread?: Thread[],
-    preview?: string,
-    receivedAt?: string,
+    preview?: string[],
+    receivedAt?: string[],
     residesIn?: Mailbox[],
     rfcMessageId?: string,
-    sentAt?: string,
-    sizeEstimate?: number,
-    subject?: string,
+    sentAt?: string[],
+    sizeEstimate?: number[],
+    subject?: string[],
 }
 
 
@@ -3784,14 +3786,14 @@ export interface MessageKind {
 
 
 export interface MessageParticipant {
-    displayName?: string,
+    displayName?: string[],
     participantAddress?: EmailAddress,
-    participantGroup?: string,
+    participantGroup?: string[],
     participantHeader?: MessageHeader,
     participantMessage?: EmailMessage,
     participantOrdinal?: number,
     participantRole?: MessageParticipantRole,
-    rawAddressValue?: string,
+    rawAddressValue?: string[],
 }
 
 
@@ -3828,16 +3830,16 @@ export interface Myth extends SocialObject {
     affectedConsumerSurface?: ProjectionContext[],
     hasMythTelling?: CreativeWork[],
     mythFrame?: NarrativeReferenceFrame,
-    recurringRisk?: boolean,
+    recurringRisk?: boolean[],
 }
 
 
 
 export interface NamePart extends InformationObject {
     namePartType?: NamePartType,
-    partExpansion?: string,
+    partExpansion?: string[],
     partOrder?: number,
-    partText?: string,
+    partText?: string[],
 }
 
 
@@ -3938,9 +3940,9 @@ export interface Note extends InformationObject {
     hasWikilink?: Note[],
     mentions?: Entity[],
     noteAuthor?: Agent[],
-    noteContent?: string,
-    noteCreatedAt?: string,
-    noteModifiedAt?: string,
+    noteContent?: string[],
+    noteCreatedAt?: string[],
+    noteModifiedAt?: string[],
     relatedNote?: Note[],
 }
 
@@ -3952,7 +3954,7 @@ export interface ObservableProperty {
 
 
 export interface Observation {
-    credibilityScore?: string,
+    credibilityScore?: string[],
     facetSubject?: Person[],
     facetVantage?: Agent[],
     observationEvent?: Event[],
@@ -3989,17 +3991,17 @@ export interface Occupancy extends Measurement {
 
 
 export interface Occupation extends Entity {
-    occupationClassification?: string,
+    occupationClassification?: string[],
 }
 
 
 
 export interface OnlineAccount extends InformationObject {
     accountKey?: CryptographicKey[],
-    accountName?: string,
-    activityPubActor?: string,
-    nip05?: string,
-    nostrPubkey?: string,
+    accountName?: string[],
+    activityPubActor?: string[],
+    nip05?: string[],
+    nostrPubkey?: string[],
 }
 
 
@@ -4038,7 +4040,7 @@ export interface Organization extends Agent {
     hasSite?: Location[],
     industryClassification?: Identifier[],
     legalIdentifier?: Identifier[],
-    organizationPurpose?: string,
+    organizationPurpose?: string[],
     organizationType?: OrganizationType[],
     subOrganizationOf?: Organization[],
 }
@@ -4056,16 +4058,16 @@ export interface OrganizationType {
 
 
 export interface Orientation extends Entity {
-    bearing?: number,
-    eulerOrder?: string,
-    heading?: number,
-    pitch?: number,
-    quaternionW?: number,
-    quaternionX?: number,
-    quaternionY?: number,
-    quaternionZ?: number,
-    roll?: number,
-    yaw?: number,
+    bearing?: number[],
+    eulerOrder?: string[],
+    heading?: number[],
+    pitch?: number[],
+    quaternionW?: number[],
+    quaternionX?: number[],
+    quaternionY?: number[],
+    quaternionZ?: number[],
+    roll?: number[],
+    yaw?: number[],
 }
 
 
@@ -4146,7 +4148,7 @@ export interface Person extends Agent {
     hasSibling?: Person[],
     hasSpouse?: Person[],
     honorific?: Honorific[],
-    intersexVariation?: string,
+    intersexVariation?: string[],
     sexAssignedAtBirth?: SexAssignedAtBirth[],
 }
 
@@ -4217,15 +4219,15 @@ export interface Post {
 
 
 export interface PostalAddress extends ContactPoint {
-    addressLocality?: string,
+    addressLocality?: string[],
     addressPlace?: Place[],
-    addressRegion?: string,
-    countryCode?: string,
-    extendedAddress?: string,
-    postOfficeBox?: string,
+    addressRegion?: string[],
+    countryCode?: string[],
+    extendedAddress?: string[],
+    postOfficeBox?: string[],
     postalAddressFrame?: ReferenceFrame,
-    postalCode?: string,
-    streetAddress?: string,
+    postalCode?: string[],
+    streetAddress?: string[],
 }
 
 
@@ -4252,10 +4254,10 @@ export interface PrivacyNotice extends InformationObject {
 export interface Procedure extends InformationObject {
     hasProcedureStep?: ProcedureStep[],
     hasSubProcedure?: Procedure[],
-    inquiryPriority?: number,
+    inquiryPriority?: number[],
     inquirySource?: Entity[],
     inquiryStatus?: ExecutionStatus[],
-    inquiryTheme?: string,
+    inquiryTheme?: string[],
     procedureType?: ProcedureType[],
     resolvedByArtifact?: Entity[],
     subProcedureOf?: Procedure[],
@@ -4323,7 +4325,7 @@ export interface Project extends Entity {
     hasRelease?: Release[],
     hasRepository?: Repository[],
     maintenanceStatus?: MaintenanceStatus[],
-    projectIdentifier?: string,
+    projectIdentifier?: string[],
     projectLicense?: License[],
 }
 
@@ -4395,7 +4397,7 @@ export interface ReferenceFrame extends Entity {
     dimensionCount?: number,
     frameKind?: FrameKind,
     frameRealm?: FrameRealm,
-    frameSolver?: string,
+    frameSolver?: string[],
     hasAxis?: Axis[],
     hasMetricKind?: MetricKind,
     hasReferencePosition?: CelestialReferenceOrigin,
@@ -4415,7 +4417,7 @@ export interface ReferencePosition extends Entity {
 
 export interface RegionSelector extends InformationObject {
     selectorType?: SelectorType,
-    selectorValue?: string,
+    selectorValue?: string[],
 }
 
 
@@ -4449,10 +4451,10 @@ export interface RelayHop {
 
 
 export interface Release extends Event {
-    releaseDoi?: string,
+    releaseDoi?: string[],
     releaseOf?: Project,
     releaseTag?: Tag[],
-    releaseVersion?: string,
+    releaseVersion?: string[],
 }
 
 
@@ -4460,7 +4462,7 @@ export interface Release extends Event {
 export interface Reminder extends Entity {
     reminderAction?: ReminderAction,
     reminderTarget?: Event,
-    reminderTrigger?: string,
+    reminderTrigger?: string[],
 }
 
 
@@ -4471,11 +4473,11 @@ export interface ReminderAction {
 
 
 export interface Repository extends InformationObject {
-    cloneUrl?: string,
+    cloneUrl?: string[],
     hostedAt?: ForgePlatform[],
     materializationDepth?: number,
     repositoryType?: RepositoryType,
-    webUrl?: string,
+    webUrl?: string[],
 }
 
 
@@ -4613,10 +4615,10 @@ export interface ScriptRole {
 
 
 export interface Selector extends EvidenceSpan {
-    selectorLocator?: string,
-    selectorPage?: string,
-    selectorTextPosition?: string,
-    selectorTextQuote?: string,
+    selectorLocator?: string[],
+    selectorPage?: string[],
+    selectorTextPosition?: string[],
+    selectorTextQuote?: string[],
 }
 
 
@@ -4857,7 +4859,7 @@ export interface Standpoint extends Entity {
 
 
 export interface StandpointClaim extends Observation {
-    argumentAcceptability?: string,
+    argumentAcceptability?: string[],
     claimModality?: StandpointModality,
     claimVeridicality?: ClaimVeridicality[],
 }
@@ -4890,8 +4892,8 @@ export interface StepType {
 export interface StorageLocation extends Location {
     physicalPlace?: Place[],
     storageMedium?: StorageMedium,
-    storagePath?: string,
-    storageService?: string,
+    storagePath?: string[],
+    storageService?: string[],
 }
 
 
@@ -5009,7 +5011,7 @@ export interface TextExtraction extends Document {
 
 
 export interface Thread extends InformationObject {
-    threadSubject?: string,
+    threadSubject?: string[],
 }
 
 
@@ -5099,7 +5101,7 @@ export interface TransliterationScheme {
 
 export interface TransparencyLogEntry extends InformationObject {
     logEntryIndex?: number,
-    logEntryUrl?: string,
+    logEntryUrl?: string[],
 }
 
 
@@ -5183,10 +5185,10 @@ export interface VersionSet extends InformationObject {
 
 
 export interface VirtualLocation extends Location {
-    accessUrl?: string,
+    accessUrl?: string[],
     hasNetworkAddress?: NetworkAddress[],
     virtualLocationType?: VirtualLocationType[],
-    virtualPlatform?: string,
+    virtualPlatform?: string[],
 }
 
 
@@ -5213,7 +5215,7 @@ export interface Work extends CreativeWork {
 
 
 export interface WritingSystem extends InformationObject {
-    scriptCode?: string,
+    scriptCode?: string[],
     textDirection?: TextDirection[],
     writingSystemAsNotation?: NotationSystem[],
     writingSystemType?: WritingSystemType[],
