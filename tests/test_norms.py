@@ -242,6 +242,8 @@ def test_malformed_norms_fixture_is_flagged() -> None:
     assert "never overrides itself" in errors
     assert "at least two gmeow:groupMember" in errors
     assert "exactly one gmeow:groupOperator" in errors
+    # ex:mutexParam binds both a value and an entity — the XOR must fire.
+    assert "binds exactly one of gmeow:parameterValue" in errors
     assert "higher and lower norms must be distinct" in errors
     # ex:flatTenure also omits its scope — both tenure violations must fire.
     assert "must be scoped to exactly one gmeow:precedenceScope" in errors
