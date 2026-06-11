@@ -3286,6 +3286,12 @@ gmeow:NormIssuerShape
     a sh:NodeShape ;
     rdfs:label "Norm Issuer Shape" ;
     sh:targetClass gmeow:Norm ;
+    sh:property [
+        sh:path gmeow:deonticModality ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Norm states at most one gmeow:deonticModality — a rule that both permits and obliges is two norms (functional, closed-world)." ;
+    ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;
         sh:message "A norm carrying a deontic modality must name at least one gmeow:normIssuer — there is no ought, only ought-according-to (no anonymous oughts, Principles 1/9)." ;
@@ -3329,8 +3335,9 @@ gmeow:ConditionGroupShape
         sh:path gmeow:groupOperator ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:in ( gmeow:operatorAll gmeow:operatorAny gmeow:operatorNone ) ;
         sh:severity sh:Violation ;
-        sh:message "A ConditionGroup must declare exactly one gmeow:groupOperator (all / any / none)." ;
+        sh:message "A ConditionGroup must declare exactly one gmeow:groupOperator (all / any / none — a CLOSED vocabulary, hence sh:in)." ;
     ] ;
     sh:property [
         sh:path gmeow:groupMember ;
@@ -3354,8 +3361,9 @@ gmeow:ConditionExpressionShape
         sh:path gmeow:expressionLanguage ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
-        sh:message "A ConditionExpression must name exactly one gmeow:expressionLanguage." ;
+        sh:message "A ConditionExpression must name exactly one gmeow:expressionLanguage as an IRI. DELIBERATELY no sh:in (PR #369 review): the language vocabulary is OPEN (new engines join without schema change, Principle 9) — the aboutness-guard convention." ;
     ] .
 
 gmeow:ConditionParameterShape
@@ -3370,9 +3378,9 @@ gmeow:ConditionParameterShape
         sh:message "A ConditionParameter must carry exactly one gmeow:parameterName." ;
     ] ;
     sh:xone (
-        [ sh:property [ sh:path gmeow:parameterValue ;  sh:minCount 1 ; sh:maxCount 1 ] ;
+        [ sh:property [ sh:path gmeow:parameterValue ;  sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:Literal ] ;
           sh:property [ sh:path gmeow:parameterEntity ; sh:maxCount 0 ] ]
-        [ sh:property [ sh:path gmeow:parameterEntity ; sh:minCount 1 ; sh:maxCount 1 ] ;
+        [ sh:property [ sh:path gmeow:parameterEntity ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ;
           sh:property [ sh:path gmeow:parameterValue ;  sh:maxCount 0 ] ]
     ) ;
     sh:message "A ConditionParameter binds exactly one of gmeow:parameterValue (literal) or gmeow:parameterEntity (IRI)." .
@@ -3385,6 +3393,7 @@ gmeow:PrecedenceTenureShape
         sh:path gmeow:precedenceHigher ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:class gmeow:Norm ;
         sh:severity sh:Violation ;
         sh:message "A PrecedenceTenure must record exactly one gmeow:precedenceHigher norm." ;
     ] ;
@@ -3392,6 +3401,7 @@ gmeow:PrecedenceTenureShape
         sh:path gmeow:precedenceLower ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:class gmeow:Norm ;
         sh:severity sh:Violation ;
         sh:message "A PrecedenceTenure must record exactly one gmeow:precedenceLower norm." ;
     ] ;
@@ -3399,6 +3409,7 @@ gmeow:PrecedenceTenureShape
         sh:path gmeow:precedenceScope ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:class gmeow:NormativeSystem ;
         sh:severity sh:Violation ;
         sh:message "A PrecedenceTenure must be scoped to exactly one gmeow:precedenceScope normative system — precedence is always scoped." ;
     ] ;

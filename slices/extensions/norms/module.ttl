@@ -64,9 +64,8 @@ gmeow:deonticModality
 
 gmeow:normIssuer
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:Norm ;
     rdfs:label "norm issuer"@x-gmeow-english ;
-    skos:definition "The agent or standpoint according to which this norm holds — the constitutional keystone: there is no ought, only ought-according-to. The range is intentionally open (a gmeow:Agent or a gmeow:Standpoint individual, the accordingTo convention). normIssuer ⊑ gmeow:accordingTo is documented, not axiomatised (accordingTo is an AnnotationProperty; the vantage precedent). NOT functional: co-issued norms (a treaty, a joint policy) carry several issuers, and those claims coexist (Principle 9)."@x-gmeow-english ;
+    skos:definition "The agent or standpoint according to which this norm holds — the constitutional keystone: there is no ought, only ought-according-to. DOMAIN-FREE on purpose: gmeow:systemIssuer specializes this property for NormativeSystems, and a domain of Norm would leak gmeow:Norm typing onto every system through the subproperty (PR #369 review); issuance applies to norms, systems, and future deontic carriers alike. The range is intentionally open (a gmeow:Agent or a gmeow:Standpoint individual, the accordingTo convention). normIssuer ⊑ gmeow:accordingTo is documented, not axiomatised (accordingTo is an AnnotationProperty; the vantage precedent). NOT functional: co-issued norms (a treaty, a joint policy) carry several issuers, and those claims coexist (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
 
 gmeow:normBearer

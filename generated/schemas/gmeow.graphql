@@ -5193,7 +5193,6 @@ type Duty
     hasAuthorityLevel: [AuthorityLevel]
     normBearer: [Agent]
     normCondition: [Condition]
-    normIssuer: [String]
     overrides: [Norm]
     prescribedConduct: [String]
     ruleAction: RightsAction
@@ -9756,7 +9755,6 @@ type Norm
     hasAuthorityLevel: [AuthorityLevel]
     normBearer: [Agent]
     normCondition: [Condition]
-    normIssuer: [String]
     overrides: [Norm]
     prescribedConduct: [String]
   }
@@ -10610,7 +10608,6 @@ type Permission
     hasAuthorityLevel: [AuthorityLevel]
     normBearer: [Agent]
     normCondition: [Condition]
-    normIssuer: [String]
     overrides: [Norm]
     prescribedConduct: [String]
     ruleAction: RightsAction
@@ -11373,7 +11370,6 @@ type Prohibition
     hasAuthorityLevel: [AuthorityLevel]
     normBearer: [Agent]
     normCondition: [Condition]
-    normIssuer: [String]
     overrides: [Norm]
     prescribedConduct: [String]
     ruleAction: RightsAction
@@ -12399,7 +12395,6 @@ type Rule
     hasAuthorityLevel: [AuthorityLevel]
     normBearer: [Agent]
     normCondition: [Condition]
-    normIssuer: [String]
     overrides: [Norm]
     prescribedConduct: [String]
     ruleAction: RightsAction

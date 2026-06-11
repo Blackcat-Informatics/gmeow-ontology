@@ -20109,9 +20109,6 @@ class Norm(Entity):
     normCondition: Optional[list[Condition]] = Field(default=None, title="norm condition", json_schema_extra = { "linkml_meta": {'domain': 'Norm',
          'domain_of': ['Norm'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/normCondition'} })
-    normIssuer: Optional[list[str]] = Field(default=None, title="norm issuer", json_schema_extra = { "linkml_meta": {'domain': 'Norm',
-         'domain_of': ['Norm'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/normIssuer'} })
     overrides: Optional[list[Norm]] = Field(default=None, title="overrides", json_schema_extra = { "linkml_meta": {'domain': 'Norm',
          'domain_of': ['Norm'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overrides'} })
@@ -27449,9 +27446,6 @@ class Rule(Norm):
     normCondition: Optional[list[Condition]] = Field(default=None, title="norm condition", json_schema_extra = { "linkml_meta": {'domain': 'Norm',
          'domain_of': ['Norm'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/normCondition'} })
-    normIssuer: Optional[list[str]] = Field(default=None, title="norm issuer", json_schema_extra = { "linkml_meta": {'domain': 'Norm',
-         'domain_of': ['Norm'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/normIssuer'} })
     overrides: Optional[list[Norm]] = Field(default=None, title="overrides", json_schema_extra = { "linkml_meta": {'domain': 'Norm',
          'domain_of': ['Norm'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overrides'} })
@@ -27636,9 +27630,6 @@ class Duty(Rule):
     normCondition: Optional[list[Condition]] = Field(default=None, title="norm condition", json_schema_extra = { "linkml_meta": {'domain': 'Norm',
          'domain_of': ['Norm'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/normCondition'} })
-    normIssuer: Optional[list[str]] = Field(default=None, title="norm issuer", json_schema_extra = { "linkml_meta": {'domain': 'Norm',
-         'domain_of': ['Norm'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/normIssuer'} })
     overrides: Optional[list[Norm]] = Field(default=None, title="overrides", json_schema_extra = { "linkml_meta": {'domain': 'Norm',
          'domain_of': ['Norm'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overrides'} })
@@ -27823,9 +27814,6 @@ class Permission(Rule):
     normCondition: Optional[list[Condition]] = Field(default=None, title="norm condition", json_schema_extra = { "linkml_meta": {'domain': 'Norm',
          'domain_of': ['Norm'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/normCondition'} })
-    normIssuer: Optional[list[str]] = Field(default=None, title="norm issuer", json_schema_extra = { "linkml_meta": {'domain': 'Norm',
-         'domain_of': ['Norm'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/normIssuer'} })
     overrides: Optional[list[Norm]] = Field(default=None, title="overrides", json_schema_extra = { "linkml_meta": {'domain': 'Norm',
          'domain_of': ['Norm'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overrides'} })
@@ -28010,9 +27998,6 @@ class Prohibition(Rule):
     normCondition: Optional[list[Condition]] = Field(default=None, title="norm condition", json_schema_extra = { "linkml_meta": {'domain': 'Norm',
          'domain_of': ['Norm'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/normCondition'} })
-    normIssuer: Optional[list[str]] = Field(default=None, title="norm issuer", json_schema_extra = { "linkml_meta": {'domain': 'Norm',
-         'domain_of': ['Norm'],
-         'slot_uri': 'https://blackcatinformatics.ca/gmeow/normIssuer'} })
     overrides: Optional[list[Norm]] = Field(default=None, title="overrides", json_schema_extra = { "linkml_meta": {'domain': 'Norm',
          'domain_of': ['Norm'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/overrides'} })

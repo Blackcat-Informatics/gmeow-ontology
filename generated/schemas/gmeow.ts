@@ -4123,7 +4123,6 @@ export interface Norm extends Entity {
     hasAuthorityLevel?: AuthorityLevel[],
     normBearer?: Agent[],
     normCondition?: Condition[],
-    normIssuer?: string[],
     overrides?: Norm[],
     prescribedConduct?: string[],
 }

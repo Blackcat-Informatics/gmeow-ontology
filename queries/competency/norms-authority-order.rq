@@ -9,6 +9,7 @@
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 
 SELECT ?top WHERE {
+    ?top a gmeow:AuthorityLevel .
     ?top gmeow:strongerThan+ gmeow:authorityConditional .
     FILTER NOT EXISTS { ?higher gmeow:strongerThan ?top . }
 }

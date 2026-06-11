@@ -24930,15 +24930,6 @@
                   "null"
                 ]
               },
-              "normIssuer": {
-                "items": {
-                  "type": "string"
-                },
-                "type": [
-                  "array",
-                  "null"
-                ]
-              },
               "overrides": {
                 "items": {
                   "$ref": "#/$defs/Norm"
@@ -62827,15 +62818,6 @@
                   "null"
                 ]
               },
-              "normIssuer": {
-                "items": {
-                  "type": "string"
-                },
-                "type": [
-                  "array",
-                  "null"
-                ]
-              },
               "overrides": {
                 "items": {
                   "$ref": "#/$defs/Norm"
@@ -70398,15 +70380,6 @@
                   "null"
                 ]
               },
-              "normIssuer": {
-                "items": {
-                  "type": "string"
-                },
-                "type": [
-                  "array",
-                  "null"
-                ]
-              },
               "overrides": {
                 "items": {
                   "$ref": "#/$defs/Norm"
@@ -76188,15 +76161,6 @@
               "normCondition": {
                 "items": {
                   "$ref": "#/$defs/Condition"
-                },
-                "type": [
-                  "array",
-                  "null"
-                ]
-              },
-              "normIssuer": {
-                "items": {
-                  "type": "string"
                 },
                 "type": [
                   "array",
@@ -84794,15 +84758,6 @@
               "normCondition": {
                 "items": {
                   "$ref": "#/$defs/Condition"
-                },
-                "type": [
-                  "array",
-                  "null"
-                ]
-              },
-              "normIssuer": {
-                "items": {
-                  "type": "string"
                 },
                 "type": [
                   "array",

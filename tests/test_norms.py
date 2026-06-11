@@ -77,6 +77,9 @@ def test_no_anonymous_ought_machinery() -> None:
     g = _graph()
     assert (GM.normIssuer, RDF.type, OWL.ObjectProperty) in g
     assert g.value(GM.normIssuer, RDFS.range) is None
+    # Domain-free so systemIssuer ⊑ normIssuer cannot leak Norm typing onto
+    # NormativeSystems (PR #369 review).
+    assert g.value(GM.normIssuer, RDFS.domain) is None
     assert (GM.normIssuer, RDF.type, OWL.FunctionalProperty) not in g
     assert (GM.normIssuer, RDFS.subPropertyOf, GM.accordingTo) not in g
     assert (GM.systemIssuer, RDFS.subPropertyOf, GM.normIssuer) in g
@@ -206,8 +209,9 @@ def test_graft_axioms_live_extension_side_only() -> None:
     )
     norms_terms = [GM.Norm, GM.deonticModality, GM.normIssuer, GM.normBearer]
     for term in norms_terms:
-        assert not list(core_rights.predicate_objects(term)), term
-        assert not list(core_rights.subject_predicates(term)), term
+        assert not list(core_rights.triples((term, None, None))), f"{term} as subject"
+        assert not list(core_rights.triples((None, term, None))), f"{term} as predicate"
+        assert not list(core_rights.triples((None, None, term))), f"{term} as object"
 
 
 def test_graft_preserves_core_trio_classhood() -> None:
@@ -241,6 +245,7 @@ def test_malformed_norms_fixture_is_flagged() -> None:
     assert "higher and lower norms must be distinct" in errors
     assert "must be gmeow:deonticPermission" in errors
     assert "exactly one gmeow:evaluationVerdict" in errors
+    assert "at most one gmeow:deonticModality" in errors
 
 
 # --------------------------------------------------------------------------- #
