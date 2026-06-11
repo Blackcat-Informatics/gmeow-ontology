@@ -189,9 +189,15 @@ def _fold_value(view: FoldView, tid: int) -> object:
         dt = view.datatype(tid)
         lex = term.value or ""
         if dt == _XSD_NS + "integer":
-            return int(lex)
+            try:
+                return int(lex)
+            except ValueError:
+                return lex  # malformed input degrades to the raw lexical
         if dt in (_XSD_NS + "decimal", _XSD_NS + "double", _XSD_NS + "float"):
-            return float(lex)
+            try:
+                return float(lex)
+            except ValueError:
+                return lex
         if dt == _XSD_NS + "boolean":
             return lex.lower() in ("true", "1")
         if term.lang is not None:

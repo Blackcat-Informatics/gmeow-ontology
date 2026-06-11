@@ -32,7 +32,6 @@ def _fold_from_ttl(ttl: str) -> FoldView:
     import tempfile
 
     from gmeow_tools.gts_producer import gts_from_rdf12
-    from gts import read
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".ttl", delete=False) as f:
         f.write(ttl)
