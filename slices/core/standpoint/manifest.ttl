@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/standpoint>
+    a gmeow:Slice ;
+    rdfs:label "standpoint"@x-gmeow-english ;
+    dcterms:title "GMEOW Standpoint Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/core> ,
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:sliceConsumer "Every contested fact and every model disagreement (P9); the statement layer; the deception slice."@x-gmeow-english .

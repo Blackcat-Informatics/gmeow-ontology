@@ -77,7 +77,7 @@ Cite them by number in issues and PRs.
   deadnames suppressed-not-deleted, a 7-axis orthogonality matrix (pronouns ⟂ honorifics ⟂
   gender identity ⟂ expression ⟂ sex ⟂ sexual ⟂ romantic orientation) **enforced by
   tests** — and self-assertion outranks any inference, for people and for AI entities alike
-  ([Principles 9 & 16](./CONSTITUTION.md); [`docs/names-mapping.md`](./docs/names-mapping.md),
+  ([Principles 9 & 16](./CONSTITUTION.md); [`slices/core/names/docs.md`](./slices/core/names/docs.md),
   [`docs/identity-mapping.md`](./docs/identity-mapping.md)). Identity and deception
   epistemics ship in the **core**, by commitment — a memory substrate that makes "what is a
   person" an optional add-on has already answered the question, badly.
@@ -123,15 +123,15 @@ slice's model *and* how it aligns/projects.
 | [`docs/standpoints.md`](./docs/standpoints.md) | Doctrine | Contested facts as coexisting, standpoint-indexed claims — no privileged winner |
 | [`docs/rights.md`](./docs/rights.md) | Doctrine | Rights / IP / licensing as reified, temporally-bound, machine-readable claims (ODRL superset) |
 | [`docs/temporal-queries.md`](./docs/temporal-queries.md) | Reference | TQL — the parameterized temporal query algebra (Allen relations) over the events/temporal model |
-| [`docs/names-mapping.md`](./docs/names-mapping.md) | Domain guide | Names as reified, co-equal, anti-colonial relationships; pronouns & honorifics as first-class facets |
+| [`slices/core/names/docs.md`](./slices/core/names/docs.md) | Domain guide | Names as reified, co-equal, anti-colonial relationships; pronouns & honorifics as first-class facets |
 | [`docs/identity-mapping.md`](./docs/identity-mapping.md) | Domain guide | Gender & sexuality as orthogonal, self-asserted, co-equal facets (the 7-axis matrix) |
-| [`docs/languages-mapping.md`](./docs/languages-mapping.md) | Domain guide | Languages as registry-independent first-class entities; co-mingled writing systems; proficiency |
-| [`docs/email-mapping.md`](./docs/email-mapping.md) | Domain guide | Email message/header structure, participants, and RFC 5322 mapping; time-scoped address tenure |
+| [`slices/extensions/languages/docs.md`](./slices/extensions/languages/docs.md) | Domain guide | Languages as registry-independent first-class entities; co-mingled writing systems; proficiency |
+| [`slices/extensions/email/docs.md`](./slices/extensions/email/docs.md) | Domain guide | Email message/header structure, participants, and RFC 5322 mapping; time-scoped address tenure |
 | [`docs/location-mapping.md`](./docs/location-mapping.md) | Domain guide | The universal reference-frame: 13+ realms, RCC-8 topology, pose/trajectory, frame-relativity |
-| [`docs/attestation-mapping.md`](./docs/attestation-mapping.md) | Domain guide | Signed-claim envelopes, verification results, and append-only transparency logs (cross-cutting) |
-| [`docs/rights-mapping.md`](./docs/rights-mapping.md) | Domain guide | Alignment/projection companion to `rights.md` — ODRL, CC REL, Dublin Core, SPDX, schema.org |
-| [`docs/standpoint-mapping.md`](./docs/standpoint-mapping.md) | Domain guide | Alignment/projection companion to `standpoints.md` — CRMinf, PROV-O, Web Annotation, schema:Claim |
-| [`docs/versions-mapping.md`](./docs/versions-mapping.md) | Domain guide | Versions as standpoint-scoped claims (latest / stable / yanked / canonical are not intrinsic) |
+| [`slices/core/attestation/docs.md`](./slices/core/attestation/docs.md) | Domain guide | Signed-claim envelopes, verification results, and append-only transparency logs (cross-cutting) |
+| [`slices/core/rights/docs.md`](./slices/core/rights/docs.md) | Domain guide | Alignment/projection companion to `rights.md` — ODRL, CC REL, Dublin Core, SPDX, schema.org |
+| [`slices/core/standpoint/docs.md`](./slices/core/standpoint/docs.md) | Domain guide | Alignment/projection companion to `standpoints.md` — CRMinf, PROV-O, Web Annotation, schema:Claim |
+| [`slices/core/versions/docs.md`](./slices/core/versions/docs.md) | Domain guide | Versions as standpoint-scoped claims (latest / stable / yanked / canonical are not intrinsic) |
 | [`docs/wikidata-mapping.md`](./docs/wikidata-mapping.md) | Domain guide | The Wikidata integration policy — `wd:` / `wdt:` / `ps:` / `pq:` semantics; QID/PID syntax gates |
 | [`docs/BRAND.md`](./docs/BRAND.md) | Brand | Logo usage and trademark guidelines |
 
@@ -323,7 +323,7 @@ Most vocabularies treat a name as a flat string (`familyName`). GMEOW models it 
 `gmeow:Appellation` borne by an entity, with the `gmeow:NameUsage` relator binding *who is
 named × which name × toward whom × in what register × over what period*. That makes naming
 non-standard in deliberate, useful ways (full rationale in
-[`docs/names-mapping.md`](./docs/names-mapping.md)):
+[`slices/core/names/docs.md`](./slices/core/names/docs.md)):
 
 - **Co-equal, anti-colonial.** A person's names in different languages/scripts (e.g.
   *Patrick Colm Audley* and *欧德理*) are **co-equal full names** — neither is the other's
@@ -346,7 +346,7 @@ non-standard in deliberate, useful ways (full rationale in
 Most vocabularies treat a language as an opaque tag (`inLanguage "ja"`) — *a language **is**
 its ISO/BCP-47 code*. GMEOW inverts that: a **`gmeow:Language` has a self-minted IRI**,
 registry codes are optional alignments (never identity), and **internal string literals use private-use BCP-47 tags (e.g., `@x-gmeow-japanese`)** to isolate GMEOW graphs from external registries. Standard BCP-47 tags are reconstructed on-demand during down-projection. Full rationale is in
-[`docs/languages-mapping.md`](./docs/languages-mapping.md):
+[`slices/extensions/languages/docs.md`](./slices/extensions/languages/docs.md):
 
 - **Registry-independent.** A code-less conlang (**Ithkuil**), a fast-versioning AI-minted
   interlingua, an under-coded sign/minority language, and a programming language are all

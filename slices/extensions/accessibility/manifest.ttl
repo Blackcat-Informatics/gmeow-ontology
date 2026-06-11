@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/accessibility>
+    a gmeow:Slice ;
+    rdfs:label "accessibility"@x-gmeow-english ;
+    dcterms:title "GMEOW Accessibility Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierExtension ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/core> ,
+        <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:sliceConsumer "Accessibility facets over places and routes; the schema.org accessibility projection."@x-gmeow-english .

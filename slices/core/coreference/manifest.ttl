@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/coreference>
+    a gmeow:Slice ;
+    rdfs:label "coreference"@x-gmeow-english ;
+    dcterms:title "GMEOW Coreference Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/core> ,
+        <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:sliceConsumer "Authority links from every slice to Wikidata and registries (P5, never owl:sameAs)."@x-gmeow-english .

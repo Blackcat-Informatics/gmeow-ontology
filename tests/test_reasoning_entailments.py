@@ -26,9 +26,10 @@ import pytest
 from rdflib import RDF, RDFS, Graph, Namespace
 from rdflib.term import Node
 
-from gmeow_tools.config import DIST_DIR, FIXTURES_DIR, ONTOLOGY_DIR, ROBOT_IMAGE
+from gmeow_tools.config import DIST_DIR, FIXTURES_DIR, ROBOT_IMAGE
 from gmeow_tools.reason import MERGED_FILE, merge_release, reason, verify
 from gmeow_tools.runner import ToolExecutionError, image_available
+from gmeow_tools.slices import module_path
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 EX = Namespace("https://example.org/test/")
@@ -47,7 +48,7 @@ requires_robot = pytest.mark.skipif(
 def _parsed_module(module: str) -> Graph:
     """Parse a single authored module (cached) — closure runs with A-Box present."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / f"{module}.ttl", format="turtle")
+    graph.parse(module_path(module), format="turtle")
     return graph
 
 

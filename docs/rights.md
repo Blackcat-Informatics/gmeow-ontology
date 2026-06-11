@@ -7,7 +7,7 @@ GMEOW records the rights of the things it describes as **reified, attributed,
 machine-readable, time-scoped claims** — who may do what with a work, under what
 licence, with what copyright, attributed to whom, over what term. This is the
 doctrine document for the rights facility (`ontology/modules/rights.ttl`); its
-companion is the [alignment & projection reference](rights-mapping.md).
+companion is the [alignment & projection reference](../slices/core/rights/docs.md).
 
 ## Why a cross-cutting facility
 

@@ -18,6 +18,7 @@ from rdflib.query import ResultRow
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.slices import module_path
 from gmeow_tools.validate import run_shacl
 
 GM = Namespace(NAMESPACE)
@@ -142,7 +143,7 @@ def test_disclosure_orthogonal_to_granularity() -> None:
 def test_no_preferred_or_primary_disclosure_term() -> None:
     """No gmeow:primary* / gmeow:preferred* disclosure term."""
     module = Graph().parse(
-        Path(__file__).parents[1] / "ontology" / "modules" / "core.ttl",
+        module_path("core"),
         format="turtle",
     )
     offenders = []

@@ -822,7 +822,7 @@ export enum LandTenureTypeEnum {
 export enum LanguageEnum {
 
     English = "languageEnglish",
-    French = "languageFrench",
+    français = "languageFrench",
     普通话 = "languageMandarin",
 };
 

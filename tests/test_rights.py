@@ -15,6 +15,7 @@ from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.projections import project_graph
+from gmeow_tools.slices import module_path
 from gmeow_tools.validate import run_shacl
 
 GM = Namespace(NAMESPACE)
@@ -149,7 +150,7 @@ def test_no_action_value_is_a_class() -> None:
 def test_no_preferred_or_primary_rights_term() -> None:
     """No gmeow:primary* / gmeow:preferred* rights term (Principle 9)."""
     module = Graph().parse(
-        Path(__file__).parents[1] / "ontology" / "modules" / "rights.ttl",
+        module_path("rights"),
         format="turtle",
     )
     offenders = []

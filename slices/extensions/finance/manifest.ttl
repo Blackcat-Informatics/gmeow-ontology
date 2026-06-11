@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/finance>
+    a gmeow:Slice ;
+    rdfs:label "finance"@x-gmeow-english ;
+    dcterms:title "GMEOW Finance Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierExtension ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/accounts> ,
+        <https://blackcatinformatics.ca/gmeow/slices/agreements> ,
+        <https://blackcatinformatics.ca/gmeow/slices/core> ,
+        <https://blackcatinformatics.ca/gmeow/slices/documents> ,
+        <https://blackcatinformatics.ca/gmeow/slices/events> ,
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/places> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
+        <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    gmeow:sliceConsumer "Accounts, transactions, REA double-entry over core MonetaryAmount; FIBO alignment."@x-gmeow-english .

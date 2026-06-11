@@ -19,8 +19,9 @@ from __future__ import annotations
 import owlrl
 from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace
 
-from gmeow_tools.config import NAMESPACE, ONTOLOGY_DIR
+from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
 GUFO = Namespace("http://purl.org/nemo/gufo#")
@@ -91,8 +92,8 @@ def test_coordinate_matrix_properties_exist() -> None:
 def test_sensory_environment_el_axioms_fire() -> None:
     """A SensoryEnvironment individual with a location stays consistent."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "sensory-environment.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
+    graph.parse(module_path("sensory-environment"), format="turtle")
+    graph.parse(module_path("places"), format="turtle")
 
     graph.add((EX.env1, GMEOW.environmentAtLocation, EX.place1))
     graph.add((EX.place1, RDF.type, GMEOW.Place))
@@ -104,9 +105,9 @@ def test_sensory_environment_el_axioms_fire() -> None:
 def test_sensory_perception_specialises_standpoint_claim() -> None:
     """SensoryPerception is inferred as a StandpointClaim."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "sensory-environment.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "standpoint.ttl", format="turtle")
+    graph.parse(module_path("sensory-environment"), format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("standpoint"), format="turtle")
 
     graph.add((EX.perc1, RDF.type, GMEOW.SensoryPerception))
 
@@ -118,8 +119,8 @@ def test_sensory_perception_specialises_standpoint_claim() -> None:
 def test_mental_reference_frame_specialises_reference_frame() -> None:
     """MentalReferenceFrame is inferred as a ReferenceFrame."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "sensory-environment.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
+    graph.parse(module_path("sensory-environment"), format="turtle")
+    graph.parse(module_path("places"), format="turtle")
 
     graph.add((EX.mrf1, RDF.type, GMEOW.MentalReferenceFrame))
 
@@ -130,9 +131,9 @@ def test_mental_reference_frame_specialises_reference_frame() -> None:
 def test_frame_inheritance_via_coordinate_matrix() -> None:
     """A CoordinateMatrix result inherits the observation's reference frame."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "sensory-environment.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
+    graph.parse(module_path("sensory-environment"), format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("places"), format="turtle")
 
     graph.add((EX.obs1, RDF.type, GMEOW.SensoryObservation))
     graph.add((EX.obs1, GMEOW.observationResult, EX.matrix1))
@@ -252,8 +253,8 @@ def test_mental_reference_frame_requires_host() -> None:
     isHostedBy; verify the axiom exists and that a hosted instance is consistent
     under OWL 2 RL (necessary-but-not-sufficient: check structure + consistency)."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "sensory-environment.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
+    graph.parse(module_path("sensory-environment"), format="turtle")
+    graph.parse(module_path("places"), format="turtle")
 
     # Structural: the restriction axiom must exist on MentalReferenceFrame.
     restrictions = list(graph.objects(GMEOW.MentalReferenceFrame, RDFS.subClassOf))

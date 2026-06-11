@@ -22,8 +22,9 @@ from rdflib import RDF, Graph, Literal, Namespace
 from rdflib.namespace import XSD
 from rdflib.query import ResultRow
 
-from gmeow_tools.config import COMPETENCY_DIR, NAMESPACE, ONTOLOGY_DIR, QC_DIR
+from gmeow_tools.config import COMPETENCY_DIR, NAMESPACE, QC_DIR
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
 EX = Namespace("https://example.org/test/")
@@ -270,7 +271,7 @@ def test_competency_ancestry_is_answered_only_by_reasoning() -> None:
         (EX.b, GMEOW.hasParent, EX.c),
     )
     asserted = Graph()
-    asserted.parse(ONTOLOGY_DIR / "modules" / "genealogy.ttl", format="turtle")
+    asserted.parse(module_path("genealogy"), format="turtle")
     for triple in abox:
         asserted.add(triple)
 

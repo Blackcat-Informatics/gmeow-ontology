@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/tags>
+    a gmeow:Slice ;
+    rdfs:label "tags"@x-gmeow-english ;
+    dcterms:title "GMEOW Tags Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/core> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:sliceConsumer "Folksonomy tagging reused by images and software (forced core by dual extension use)."@x-gmeow-english .

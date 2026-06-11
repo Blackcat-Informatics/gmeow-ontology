@@ -1,0 +1,351 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/images>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Images Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Images Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
+    rdfs:comment """The Images super-ontology — a layered model for contextual depiction, region encoding, scene graphs, and technical metadata (issue #22). Builds on the WEMI spine (#208): a visual work is a gmeow:Work with workTypeVisual / workTypePhotographic; the digital file is a gmeow:Manifestation (gmeow:MediaObject) plus gmeow:Item / hasCarrier. Colourspace is carried via gmeow:hasReferenceFrame (#70). Rights reuse the #21 facility directly.
+
+LAYERS.
+  1. Contextual depiction — the DepictionUsage relator (mirrors NameUsage) and
+     the flat gmeow:depicts shortcut (⊑ gmeow:isAbout).
+  2. Region encoding — ImageRegion + RegionSelector with an open SelectorType
+     value vocabulary (SVG, pixel rectangle, fractional, polygon, RLE, COCO,
+     DICOM-SEG, Web Annotation fragment).
+  3. Region / UI rendering — IIIF Presentation API 3 projections (Canvas,
+     Annotation, selector mapping). No new ontology terms; purely projection.
+  4. Spatial context / scene graphs — SceneGraphEdge relator binding two
+     ImageRegions with a SceneRelationType value (leftOf, rightOf, inside,
+     holding, wearing, etc.).
+  5. Hardware / technical metadata — pixelWidth, pixelHeight, imageOrientation,
+     captureTime, captureDevice, colourspace (gmeow:colourspace ⊑ gmeow:hasReferenceFrame)
+     on MediaObject in documents.ttl.
+  6. Provenance / workflow — image-specific eventType values (capture, scanning,
+     processing, annotation) in events.ttl; reuse wasGeneratedBy / wasDerivedFrom.
+  7. Rights / IP — reuse #21 terms directly.
+  8. SEO / discovery — schema.org ImageObject projections.
+
+GOVERNING TENETS.
+  * No flat gmeow:depicts as a contact field — it is a formally defined image
+    ontology property, subproperty of gmeow:isAbout, domain MediaObject.
+  * No primary / preferred depiction (Principle 9). Co-equal depictions coexist;
+    a superseded one sets gmeow:displayable false (Principle 10).
+  * Selector encoding kinds are an open value vocabulary; actual mask parsing /
+    coordinate conversion lives in the solver layer (Principle 12).
+  * All alignments are by reference (Principle 5): schema.org, IIIF, W3C Web
+    Annotation, W3C EXIF Ontology, XMP, IPTC, CIDOC-CRM/CRMdig."""@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# LAYER 1 — Contextual Depiction
+# =========================================================================== #
+# The DepictionUsage relator mirrors NameUsage: an image depicts an entity
+# IN A CONTEXT, OVER A PERIOD, FOR AN AUDIENCE, asserted by an authority.
+# The flat gmeow:depicts shortcut covers the 80% case; promote to DepictionUsage
+# when context, audience, period, or confidence must be recorded.
+# =========================================================================== #
+
+gmeow:DepictionUsage
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Observation, gufo:Relator ;
+    rdfs:label "Depiction Usage"@x-gmeow-english ;
+    skos:definition "A reified, context-dependent depiction of an entity by an image — an observation in the universal claim stack (#69): an entity (depictionSubject) is shown in a given image (depictionImage), in a particular context (depictionContext), by or among a particular audience (depictionAudience), over a period (depictionInterval), asserted by an authority (depictionAuthority). Perspectival — a usage is whoever's, never a global fact — so it carries no notion of a preferred or canonical depiction. Mint one DepictionUsage per (entity, image, context) tuple; its period is carried by gmeow:depictionInterval or by validFrom/validUntil on the statement."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:depictionSubject
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:DepictionUsage ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "depiction subject"@x-gmeow-english ;
+    skos:definition "The entity that is depicted in a depiction usage. Functional per relator: one subject per DepictionUsage."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:depictionImage
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:DepictionUsage ;
+    rdfs:range gmeow:MediaObject ;
+    rdfs:label "depiction image"@x-gmeow-english ;
+    skos:definition "The image (MediaObject) that depicts the subject in a depiction usage. Functional per relator: one image per DepictionUsage."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:depictionContext
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:DepictionUsage ;
+    rdfs:range gmeow:DepictionContext ;
+    rdfs:label "depiction context"@x-gmeow-english ;
+    skos:definition "The context in which the image depicts the subject — work, family, childhood, portrait, candid, etc. A gmeow:DepictionContext value. Functional per relator: one context per DepictionUsage."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:depictionAudience
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:DepictionUsage ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "depiction audience"@x-gmeow-english ;
+    skos:definition "The audience or scope for which the depiction is intended — an Agent, a Group/Family, or a locale community. Range is gmeow:Entity to admit all of them. Non-functional: a depiction may be intended for multiple audiences."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:depictionInterval
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:DepictionUsage ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "depiction interval"@x-gmeow-english ;
+    skos:definition "The time interval over which the depiction usage held. A relator carries its period this way (matching gmeow:usageInterval, gmeow:relationshipInterval) rather than via RDF-star annotations on the relator node."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:depictionAuthority
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:DepictionUsage ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "depiction authority"@x-gmeow-english ;
+    skos:definition "The authority behind a depiction usage — the gmeow:Agent (a photographer, a national archive, a self-asserting individual) that confers or sanctions the depiction in this use. NON-FUNCTIONAL: joint or competing authorities coexist with no privileged claimant (Principle 9), each attributable and confidence-weighted."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# LAYER 2 — Region Encoding
+# =========================================================================== #
+# An ImageRegion is a structural part of an image (like ContentSegment is a
+# part of a work). It is described by a RegionSelector that carries the
+# encoding kind (SelectorType value) and the raw selector data (selectorValue).
+# =========================================================================== #
+
+gmeow:ImageRegion
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Image Region"@x-gmeow-english ;
+    skos:definition "A region within an image — a structural part of a gmeow:MediaObject, described by a gmeow:RegionSelector that encodes its boundaries. The counterpart of ContentSegment for visual media: a face, an object bounding box, a polygon, or a pixel mask. Carries a human-readable gmeow:regionLabel."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:RegionSelector
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Region Selector"@x-gmeow-english ;
+    skos:definition "The encoding descriptor for an image region — carries the selector type (a gmeow:SelectorType value) and the raw selector value (SVG path, pixel coordinates, mask data, RLE string, etc.). The canonical superset of W3C Web Annotation selectors, IIIF selectors, and domain-specific mask formats."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasRegion
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:MediaObject ;
+    rdfs:range gmeow:ImageRegion ;
+    rdfs:label "has region"@x-gmeow-english ;
+    skos:definition "Relates an image to a region within it. Non-functional: an image may have many regions. Inverse of gmeow:regionOf."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:regionOf
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    owl:inverseOf gmeow:hasRegion ;
+    rdfs:domain gmeow:ImageRegion ;
+    rdfs:range gmeow:MediaObject ;
+    rdfs:label "region of"@x-gmeow-english ;
+    skos:definition "A region is part of exactly one image. Functional per region: one containing image per ImageRegion. Inverse of gmeow:hasRegion."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:regionSelector
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ImageRegion ;
+    rdfs:range gmeow:RegionSelector ;
+    rdfs:label "region selector"@x-gmeow-english ;
+    skos:definition "The selector that describes this region's boundaries. Functional per region: one selector per ImageRegion."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:selectorType
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:RegionSelector ;
+    rdfs:range gmeow:SelectorType ;
+    rdfs:label "selector type"@x-gmeow-english ;
+    skos:definition "The encoding kind of this selector — a gmeow:SelectorType value. Functional: one kind per selector."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:selectorValue
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:RegionSelector ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "selector value"@x-gmeow-english ;
+    skos:definition "The raw selector data — an SVG path string, a pixel rectangle (x,y,w,h), a fractional rectangle, a polygon coordinate list, an RLE-encoded mask string, a DICOM-SEG mask reference, or a Web Annotation fragment (xywh=...). The format is determined by gmeow:selectorType. Parsing and coordinate conversion live in the solver layer (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:regionLabel
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ImageRegion ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "region label"@x-gmeow-english ;
+    skos:definition "A human-readable label for the region — e.g. 'face', 'car', 'building facade'."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# LAYER 4 — Spatial Context / Scene Graphs
+# =========================================================================== #
+# A SceneGraphEdge is a reified relator binding two ImageRegions with a
+# spatial or semantic relationship. The relation is a value, never a subclass
+# (Principle 9). Confidence is explicit (0.0–1.0).
+# =========================================================================== #
+
+gmeow:SceneGraphEdge
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Scene Graph Edge"@x-gmeow-english ;
+    skos:definition "A reified spatial or semantic relationship between two image regions — a gufo:Relator mediating a subject region, an object region, a relation type, and a confidence. The canonical form for scene-graph assertions; aligns by reference to Visual Genome and OVSR relation strings."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sceneSubject
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:SceneGraphEdge ;
+    rdfs:range gmeow:ImageRegion ;
+    rdfs:label "scene subject"@x-gmeow-english ;
+    skos:definition "The subject region in a scene-graph edge — the region from which the relation originates. Functional per edge: one subject per SceneGraphEdge."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sceneObject
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:SceneGraphEdge ;
+    rdfs:range gmeow:ImageRegion ;
+    rdfs:label "scene object"@x-gmeow-english ;
+    skos:definition "The object region in a scene-graph edge — the region toward which the relation points. Functional per edge: one object per SceneGraphEdge."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sceneRelation
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:SceneGraphEdge ;
+    rdfs:range gmeow:SceneRelationType ;
+    rdfs:label "scene relation"@x-gmeow-english ;
+    skos:definition "The spatial or semantic relation of this edge — a gmeow:SceneRelationType value. Functional: one relation per edge."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sceneConfidence
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:SceneGraphEdge ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "scene confidence"@x-gmeow-english ;
+    skos:definition "The confidence of this scene-graph edge, as a decimal in [0.0, 1.0]. Functional: one confidence value per edge."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# VALUE VOCABULARIES — open; new entries are individuals, never subclasses.
+# Following the names.ttl / creative-works.ttl idiom.
+# =========================================================================== #
+
+# --- DepictionContext -------------------------------------------------------- #
+
+gmeow:DepictionContext
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Depiction Context"@x-gmeow-english ;
+    skos:definition "The context in which an image depicts an entity — a VALUE vocabulary (individuals, never subclasses). Work, family, childhood, portrait, candid, formal, and so on; the set is open."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:depictionContextWork          a gmeow:DepictionContext ; rdfs:label "work"@x-gmeow-english ;          skos:definition "A depiction in a work or professional context — a headshot, product photo, or institutional portrait."@x-gmeow-english .
+gmeow:depictionContextWork rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:depictionContextFamily        a gmeow:DepictionContext ; rdfs:label "family"@x-gmeow-english ;        skos:definition "A depiction in a family or domestic context."@x-gmeow-english .
+gmeow:depictionContextFamily rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:depictionContextChildhood     a gmeow:DepictionContext ; rdfs:label "childhood"@x-gmeow-english ;     skos:definition "A depiction from the subject's childhood."@x-gmeow-english .
+gmeow:depictionContextChildhood rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:depictionContextNow           a gmeow:DepictionContext ; rdfs:label "now / current"@x-gmeow-english ; skos:definition "A current depiction — the most recent or presently valid image."@x-gmeow-english .
+gmeow:depictionContextNow rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:depictionContextPortrait      a gmeow:DepictionContext ; rdfs:label "portrait"@x-gmeow-english ;      skos:definition "A posed or formal portrait."@x-gmeow-english .
+gmeow:depictionContextPortrait rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:depictionContextCandid        a gmeow:DepictionContext ; rdfs:label "candid"@x-gmeow-english ;        skos:definition "An unposed, spontaneous depiction."@x-gmeow-english .
+gmeow:depictionContextCandid rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:depictionContextFormal        a gmeow:DepictionContext ; rdfs:label "formal"@x-gmeow-english ;        skos:definition "A formal, staged depiction (ceremonial, official, professional)."@x-gmeow-english .
+gmeow:depictionContextFormal rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:depictionContextProfessional  a gmeow:DepictionContext ; rdfs:label "professional"@x-gmeow-english ;  skos:definition "A depiction in a professional or occupational context."@x-gmeow-english .
+gmeow:depictionContextProfessional rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:depictionContextSocial        a gmeow:DepictionContext ; rdfs:label "social"@x-gmeow-english ;        skos:definition "A depiction in a social or recreational context."@x-gmeow-english .
+gmeow:depictionContextSocial rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:depictionContextSelfPortrait  a gmeow:DepictionContext ; rdfs:label "self-portrait"@x-gmeow-english ; skos:definition "A depiction created by the subject of themselves."@x-gmeow-english .
+gmeow:depictionContextSelfPortrait rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:depictionContextActionShot    a gmeow:DepictionContext ; rdfs:label "action shot"@x-gmeow-english ;   skos:definition "A depiction capturing the subject in motion or performing an activity."@x-gmeow-english .
+gmeow:depictionContextActionShot rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:depictionContextEvent         a gmeow:DepictionContext ; rdfs:label "event"@x-gmeow-english ;         skos:definition "A depiction at a specific event or occasion."@x-gmeow-english .
+
+# --- SelectorType ------------------------------------------------------------ #
+gmeow:depictionContextEvent rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+
+gmeow:SelectorType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Selector Type"@x-gmeow-english ;
+    skos:definition "The encoding kind of a region selector — a VALUE vocabulary (individuals, never subclasses). SVG path, pixel rectangle, fractional rectangle, polygon, RLE mask, COCO mask, DICOM-SEG mask, and Web Annotation fragment are examples; the set is open."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:selectorTypeSvgPath               a gmeow:SelectorType ; rdfs:label "SVG path"@x-gmeow-english ;               skos:definition "An SVG path string (W3C Web Annotation oa:SvgSelector)."@x-gmeow-english .
+gmeow:selectorTypeSvgPath rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:selectorTypePixelRectangle        a gmeow:SelectorType ; rdfs:label "pixel rectangle"@x-gmeow-english ;        skos:definition "A pixel-coordinate rectangle (x, y, width, height)."@x-gmeow-english .
+gmeow:selectorTypePixelRectangle rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:selectorTypeFractionalRectangle   a gmeow:SelectorType ; rdfs:label "fractional rectangle"@x-gmeow-english ;   skos:definition "A fractional-coordinate rectangle (x, y, width, height) in [0.0, 1.0] relative to image dimensions."@x-gmeow-english .
+gmeow:selectorTypeFractionalRectangle rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:selectorTypePolygonPath           a gmeow:SelectorType ; rdfs:label "polygon path"@x-gmeow-english ;           skos:definition "A polygon defined by a list of (x, y) coordinate pairs."@x-gmeow-english .
+gmeow:selectorTypePolygonPath rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:selectorTypeRunLengthEncoded      a gmeow:SelectorType ; rdfs:label "run-length encoded"@x-gmeow-english ;     skos:definition "A run-length encoded binary mask."@x-gmeow-english .
+gmeow:selectorTypeRunLengthEncoded rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:selectorTypeCocoRleMask           a gmeow:SelectorType ; rdfs:label "COCO RLE mask"@x-gmeow-english ;          skos:definition "A COCO dataset run-length encoded mask."@x-gmeow-english .
+gmeow:selectorTypeCocoRleMask rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:selectorTypeDicomSegMask          a gmeow:SelectorType ; rdfs:label "DICOM-SEG mask"@x-gmeow-english ;         skos:definition "A DICOM Segmentation mask reference."@x-gmeow-english .
+gmeow:selectorTypeDicomSegMask rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:selectorTypePixelMask             a gmeow:SelectorType ; rdfs:label "pixel mask"@x-gmeow-english ;             skos:definition "A per-pixel binary or integer mask."@x-gmeow-english .
+gmeow:selectorTypePixelMask rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:selectorTypeWebAnnotationFragment a gmeow:SelectorType ; rdfs:label "Web Annotation fragment"@x-gmeow-english ; skos:definition "A W3C Web Annotation Media Fragment (xywh=..., t=...)."@x-gmeow-english .
+
+# --- SceneRelationType ------------------------------------------------------- #
+gmeow:selectorTypeWebAnnotationFragment rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+
+gmeow:SceneRelationType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Scene Relation Type"@x-gmeow-english ;
+    skos:definition "The spatial or semantic relation in a scene-graph edge — a VALUE vocabulary (individuals, never subclasses). leftOf, rightOf, above, below, inside, touching, near, farFrom, sameAs, partOf, holding, wearing, riding, eating, playing are examples; the set is open. Aligns by reference to Visual Genome and OVSR relation strings."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sceneRelationLeftOf    a gmeow:SceneRelationType ; rdfs:label "left of"@x-gmeow-english ;    skos:definition "The subject region is to the left of the object region."@x-gmeow-english .
+gmeow:sceneRelationLeftOf rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:sceneRelationRightOf   a gmeow:SceneRelationType ; rdfs:label "right of"@x-gmeow-english ;   skos:definition "The subject region is to the right of the object region."@x-gmeow-english .
+gmeow:sceneRelationRightOf rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:sceneRelationAbove     a gmeow:SceneRelationType ; rdfs:label "above"@x-gmeow-english ;      skos:definition "The subject region is above the object region."@x-gmeow-english .
+gmeow:sceneRelationAbove rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:sceneRelationBelow     a gmeow:SceneRelationType ; rdfs:label "below"@x-gmeow-english ;      skos:definition "The subject region is below the object region."@x-gmeow-english .
+gmeow:sceneRelationBelow rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:sceneRelationInside    a gmeow:SceneRelationType ; rdfs:label "inside"@x-gmeow-english ;     skos:definition "The subject region is inside the object region."@x-gmeow-english .
+gmeow:sceneRelationInside rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:sceneRelationTouching  a gmeow:SceneRelationType ; rdfs:label "touching"@x-gmeow-english ;   skos:definition "The subject region touches the object region."@x-gmeow-english .
+gmeow:sceneRelationTouching rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:sceneRelationNear      a gmeow:SceneRelationType ; rdfs:label "near"@x-gmeow-english ;       skos:definition "The subject region is near the object region."@x-gmeow-english .
+gmeow:sceneRelationNear rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:sceneRelationFarFrom   a gmeow:SceneRelationType ; rdfs:label "far from"@x-gmeow-english ;   skos:definition "The subject region is far from the object region."@x-gmeow-english .
+gmeow:sceneRelationFarFrom rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:sceneRelationSameAs    a gmeow:SceneRelationType ; rdfs:label "same as"@x-gmeow-english ;    skos:definition "The subject region depicts the same entity as the object region (co-reference)."@x-gmeow-english .
+gmeow:sceneRelationSameAs rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:sceneRelationPartOf    a gmeow:SceneRelationType ; rdfs:label "part of"@x-gmeow-english ;    skos:definition "The subject region is a part of the object region (mereological)."@x-gmeow-english .
+gmeow:sceneRelationPartOf rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:sceneRelationHolding   a gmeow:SceneRelationType ; rdfs:label "holding"@x-gmeow-english ;    skos:definition "The subject region is holding the object region."@x-gmeow-english .
+gmeow:sceneRelationHolding rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:sceneRelationWearing   a gmeow:SceneRelationType ; rdfs:label "wearing"@x-gmeow-english ;    skos:definition "The subject region is wearing the object region."@x-gmeow-english .
+gmeow:sceneRelationWearing rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:sceneRelationRiding    a gmeow:SceneRelationType ; rdfs:label "riding"@x-gmeow-english ;     skos:definition "The subject region is riding the object region."@x-gmeow-english .
+gmeow:sceneRelationRiding rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:sceneRelationEating    a gmeow:SceneRelationType ; rdfs:label "eating"@x-gmeow-english ;     skos:definition "The subject region is eating the object region."@x-gmeow-english .
+gmeow:sceneRelationEating rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+gmeow:sceneRelationPlaying   a gmeow:SceneRelationType ; rdfs:label "playing"@x-gmeow-english ;    skos:definition "The subject region is playing with the object region."@x-gmeow-english .
+
+gmeow:sceneRelationPlaying rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> .
+# =========================================================================== #
+# AXIOMATIZED DOCTRINE — relator mediation for ELK visibility
+# =========================================================================== #
+# Every relator mediates at least its core players (EL someValuesFrom,
+# open-world). Closed-world "exactly one" cardinality is SHACL's concern.
+# =========================================================================== #
+
+gmeow:DepictionUsage rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:depictionSubject ; owl:someValuesFrom gmeow:Entity ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:depictionImage ; owl:someValuesFrom gmeow:MediaObject ] .
+
+gmeow:ImageRegion rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:regionOf ; owl:someValuesFrom gmeow:MediaObject ] .
+
+gmeow:SceneGraphEdge rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:sceneSubject ; owl:someValuesFrom gmeow:ImageRegion ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:sceneObject ; owl:someValuesFrom gmeow:ImageRegion ] .

@@ -15,7 +15,6 @@ from rdflib import Graph
 
 from gmeow_tools.config import (
     IMPORTS_DIR,
-    MODULES_DIR,
     ONTOLOGY_FILE,
     PREFIXES,
 )
@@ -23,13 +22,12 @@ from gmeow_tools.slices import iter_slice_module_files
 
 
 def iter_module_files() -> list[Path]:
-    """Return the GMEOW module Turtle files in sorted order.
+    """Return every slice's module file (``slices/*/*/module.ttl``), sorted.
 
-    Modules live in slices (``slices/*/*/module.ttl``, #287); the flat
-    ``ontology/modules/*.ttl`` glob remains only while the migration is in
-    flight and dies with the last unmigrated module.
+    The single module enumerator (#287): every canonical terms file lives in
+    a slice; there is no other location.
     """
-    return sorted(MODULES_DIR.glob("*.ttl")) + iter_slice_module_files()
+    return iter_slice_module_files()
 
 
 def iter_import_files() -> list[Path]:

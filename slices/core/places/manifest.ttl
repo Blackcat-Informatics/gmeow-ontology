@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/places>
+    a gmeow:Slice ;
+    rdfs:label "places"@x-gmeow-english ;
+    dcterms:title "GMEOW Locations Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/core> ,
+        <https://blackcatinformatics.ca/gmeow/slices/coreference> ,
+        <https://blackcatinformatics.ca/gmeow/slices/documents> ,
+        <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ,
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/rights> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:sliceConsumer "Every located fact: contacts, events, the mail corpus, jurisdiction tenures; the GeoSPARQL projection."@x-gmeow-english .

@@ -25,8 +25,9 @@ from __future__ import annotations
 import owlrl
 from rdflib import OWL, RDF, RDFS, XSD, Graph, Literal, Namespace
 
-from gmeow_tools.config import NAMESPACE, ONTOLOGY_DIR
+from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
 GUFO = Namespace("http://purl.org/nemo/gufo#")
@@ -85,8 +86,8 @@ def test_observable_property_seeds_exist() -> None:
 def test_sensory_observation_specialises_observation() -> None:
     """SensoryObservation is inferred as an Observation under OWL RL."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "sensory.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("sensory"), format="turtle")
     graph.add((EX.so1, RDF.type, GMEOW.SensoryObservation))
 
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
@@ -96,9 +97,9 @@ def test_sensory_observation_specialises_observation() -> None:
 def test_sensor_specialises_agent() -> None:
     """Sensor is inferred as an Agent under OWL RL."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "core.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "sensory.ttl", format="turtle")
+    graph.parse(module_path("core"), format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("sensory"), format="turtle")
     graph.add((EX.sensor1, RDF.type, GMEOW.Sensor))
 
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
@@ -118,8 +119,8 @@ def test_sensory_quantity_equivalent_to_scalar_quantity() -> None:
 def test_sensory_quantity_inherits_scalar_quantity() -> None:
     """A SensoryQuantity individual is inferred as a ScalarQuantity."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "sensory.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("sensory"), format="turtle")
     graph.add((EX.sq1, RDF.type, GMEOW.SensoryQuantity))
 
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
@@ -162,10 +163,10 @@ def test_has_sensory_observation_is_inverse() -> None:
 def test_sensory_observation_el_axioms() -> None:
     """A SensoryObservation individual with required properties stays consistent."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "core.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "sensory.ttl", format="turtle")
+    graph.parse(module_path("core"), format="turtle")
+    graph.parse(module_path("places"), format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("sensory"), format="turtle")
 
     graph.add((EX.so2, RDF.type, GMEOW.SensoryObservation))
     graph.add((EX.so2, GMEOW.vantage, EX.sensor2))
@@ -188,9 +189,9 @@ def test_sensory_observation_el_axioms() -> None:
 def test_sensory_quantity_frame_inheritance() -> None:
     """A SensoryQuantity result inherits the observation's reference frame."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "sensory.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("places"), format="turtle")
+    graph.parse(module_path("sensory"), format="turtle")
 
     graph.add((EX.so3, RDF.type, GMEOW.SensoryObservation))
     graph.add((EX.so3, GMEOW.sensoryResult, EX.sq3))
@@ -213,8 +214,8 @@ def test_has_sensory_quantity_property_chain() -> None:
     """The flat shortcut hasSensoryQuantity is derived from
     hasSensoryObservation ∘ sensoryResult."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "sensory.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("sensory"), format="turtle")
 
     graph.add((EX.room2, RDF.type, GMEOW.Place))
     graph.add((EX.room2, GMEOW.hasSensoryObservation, EX.so4))
@@ -234,10 +235,10 @@ def test_has_sensory_quantity_property_chain() -> None:
 def test_contested_sensory_readings_coexist() -> None:
     """Two sensors observing the same feature with different results coexist."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "core.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "sensory.ttl", format="turtle")
+    graph.parse(module_path("core"), format="turtle")
+    graph.parse(module_path("places"), format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("sensory"), format="turtle")
 
     # Sensor A says 21°C
     graph.add((EX.soA, RDF.type, GMEOW.SensoryObservation))

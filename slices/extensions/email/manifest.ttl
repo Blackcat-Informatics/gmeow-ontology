@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/email>
+    a gmeow:Slice ;
+    rdfs:label "email"@x-gmeow-english ;
+    dcterms:title "GMEOW Email Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierExtension ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/accounts> ,
+        <https://blackcatinformatics.ca/gmeow/slices/contacts> ,
+        <https://blackcatinformatics.ca/gmeow/slices/core> ,
+        <https://blackcatinformatics.ca/gmeow/slices/entities> ,
+        <https://blackcatinformatics.ca/gmeow/slices/events> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
+        <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    gmeow:sliceConsumer "The mail corpus (#141): the dogfooded message model over core contacts/accounts."@x-gmeow-english .

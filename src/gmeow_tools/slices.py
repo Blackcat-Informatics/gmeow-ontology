@@ -152,6 +152,24 @@ def iter_slice_module_files(root: Path = SLICES_DIR) -> list[Path]:
     return sorted(root.glob("*/*/module.ttl"))
 
 
+def module_path(name: str, root: Path = SLICES_DIR) -> Path:
+    """Resolve a slice's module file by slice (directory) name.
+
+    The ``<group>`` segment carries no semantics, so resolution globs across
+    groups; exactly one match is required.
+
+    Raises:
+        SliceError: When no slice — or more than one — has that name.
+    """
+    matches = sorted(root.glob(f"*/{name}/module.ttl"))
+    if len(matches) != 1:
+        raise SliceError(
+            f"slice {name!r}: expected exactly one slices/*/{name}/module.ttl, "
+            f"found {len(matches)}"
+        )
+    return matches[0]
+
+
 def iter_slice_shape_files(root: Path = SLICES_DIR) -> list[Path]:
     """Every slice's SHACL shapes file (``slices/*/*/shapes.ttl``), sorted."""
     return sorted(root.glob("*/*/shapes.ttl"))

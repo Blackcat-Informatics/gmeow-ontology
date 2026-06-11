@@ -96,7 +96,6 @@ def sweep_stale_gmeow_temp_dirs(
 
 
 ONTOLOGY_DIR = PROJECT_ROOT / "ontology"
-MODULES_DIR = ONTOLOGY_DIR / "modules"
 ONTOLOGY_FILE = ONTOLOGY_DIR / "gmeow.ttl"
 
 IMPORTS_DIR = PROJECT_ROOT / "imports"
