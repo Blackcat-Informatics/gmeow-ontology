@@ -15,6 +15,7 @@ resolution-markers = [
 
 [manifest]
 members = [
+    "gmeow",
     "gmeow-ontology",
     "gts",
 ]
@@ -822,12 +823,33 @@ wheels = [
 ]
 
 [[package]]
+name = "gmeow"
+version = "1.0.1"
+source = { editable = "packages/gmeow" }
+dependencies = [
+    { name = "gts" },
+]
+
+[package.optional-dependencies]
+rdf = [
+    { name = "rdflib" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "gts", editable = "packages/gts" },
+    { name = "rdflib", marker = "extra == 'rdf'", specifier = ">=7.6" },
+]
+provides-extras = ["rdf"]
+
+[[package]]
 name = "gmeow-ontology"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "duckdb" },
     { name = "fastmcp" },
+    { name = "gmeow" },
     { name = "gts" },
     { name = "httpx" },
     { name = "linkml" },
@@ -856,6 +878,7 @@ dev = [
 requires-dist = [
     { name = "duckdb", specifier = ">=1.5.3" },
     { name = "fastmcp", specifier = ">=3.4" },
+    { name = "gmeow", editable = "packages/gmeow" },
     { name = "gts", editable = "packages/gts" },
     { name = "httpx", specifier = ">=0.28" },
     { name = "linkml", specifier = ">=1.11" },

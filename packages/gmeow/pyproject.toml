@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "gmeow"
+# 1.0.0 is burned on PyPI by the prior product (now gmeow-proxy on GitHub);
+# PyPI version numbers are permanent, so the repurposed client starts at 1.0.1.
+version = "1.0.1"
+description = "Grounded agent memory in five minutes: store, recall, and revise claims with confidence, standpoint, and provenance — persisted as a verifiable GTS package."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [{ name = "Blackcat Informatics Inc." }]
+keywords = ["agent-memory", "knowledge-graph", "rdf", "ai", "gmeow", "gts"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "gts>=0.1.0,<0.2",
+]
+
+[project.optional-dependencies]
+# rdflib interop: Memory.to_rdflib() — the user never sees Turtle without it
+rdf = ["rdflib>=7.6"]
+
+[project.urls]
+Repository = "https://github.com/Blackcat-Informatics/gmeow-ontology"
+Ontology = "https://blackcatinformatics.ca/gmeow/"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gmeow"]

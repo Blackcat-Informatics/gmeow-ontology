@@ -22,6 +22,8 @@ dependencies = [
     # the GTS format engine — the publishable workspace member (packages/gts);
     # the range matters for non-workspace installs of downstream packages
     "gts>=0.1.0,<0.2",
+    # the gmeow client (packages/gmeow) — in the dev env so its tests run
+    "gmeow>=1.0.1,<2",
 ]
 
 [project.scripts]
@@ -40,10 +42,11 @@ dev = [
 ]
 
 [tool.uv.workspace]
-members = ["packages/gts"]
+members = ["packages/gts", "packages/gmeow"]
 
 [tool.uv.sources]
 gts = { workspace = true }
+gmeow = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]
@@ -55,7 +58,7 @@ packages = ["src/gmeow_tools"]
 [tool.ruff]
 line-length = 88
 target-version = "py313"
-src = ["src", "tests", "packages/gts/src"]
+src = ["src", "tests", "packages/gts/src", "packages/gmeow/src"]
 # generated/ is owned by registered generators (#287); never lint outputs.
 extend-exclude = ["generated"]
 
@@ -93,7 +96,7 @@ warn_unreachable = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 disallow_any_generics = true
-files = ["src", "tests", "packages/gts/src"]
+files = ["src", "tests", "packages/gts/src", "packages/gmeow/src"]
 
 [[tool.mypy.overrides]]
 # Third-party libraries without complete type information.
