@@ -36,7 +36,8 @@ from rdflib.term import BNode
 
 from gmeow_tools.config import PREFIXES, PROJECT_ROOT, SCHEMAS_DIR
 from gmeow_tools.generator import Generator, register, write_text
-from gmeow_tools.graph import iter_module_files, load_merged_graph
+from gmeow_tools.graph import iter_module_files
+from gmeow_tools.gts_views import FoldView, load_fold
 from gmeow_tools.language_tags import public_text
 from gmeow_tools.self_desc import load_self_description
 
@@ -372,6 +373,259 @@ def emit_linkml(graph: Graph) -> tuple[dict[str, Any], list[str]]:
     return schema, warnings
 
 
+_RDF_TYPE_IRI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+_OWL_NS = str(PREFIXES["owl"])
+_RDFS_NS = str(PREFIXES["rdfs"])
+
+
+def _local_name_str(iri: str) -> str:
+    """Local name of an IRI string (after last ``#`` or ``/``)."""
+    cut = max(iri.rfind("#"), iri.rfind("/"))
+    return iri[cut + 1 :] if cut >= 0 else iri
+
+
+def _iri_to_linkml_range_str(
+    iri: str,
+    class_names: set[str],
+    warnings: list[str],
+    prop_local: str,
+) -> str:
+    """Map an OWL range IRI string to a LinkML range string (fold-side)."""
+    if iri in _XSD_TO_LINKML:
+        return _XSD_TO_LINKML[iri]
+    local = _local_name_str(iri)
+    if iri.startswith(str(_GMEOW)) and local in class_names:
+        return local
+    warnings.append(f"{prop_local}: range {iri} is external — degrading to string")
+    return "string"
+
+
+def emit_linkml_fold(view: FoldView) -> tuple[dict[str, Any], list[str]]:
+    """Extract the LinkML schema dict from the GTS snapshot (narrow waist).
+
+    The fold counterpart of the rdflib emitter, with one deliberate
+    difference: multi-``rdfs:comment`` descriptions pick the
+    lexicographically smallest comment instead of graph order (which is
+    process-unstable) — the determinism fix the plan called for.
+    """
+    warnings: list[str] = []
+    schema: dict[str, Any] = {
+        "id": "https://blackcatinformatics.ca/gmeow/linkml",
+        "name": "gmeow",
+        "description": (
+            "GMEOW developer schema generated from canonical OWL. "
+            "Lossy by design: restrictions, reification, standpoint, "
+            "inverseOf, and temporal scope are dropped."
+        ),
+        "prefixes": {
+            "gmeow": PREFIXES["gmeow"],
+            "linkml": "https://w3id.org/linkml/",
+        },
+        "imports": ["linkml:types"],
+        "default_range": "string",
+        "types": {
+            "duration": {
+                "uri": str(_XSD.duration),
+                "typeof": "string",
+            }
+        },
+        "classes": {},
+        "slots": {},
+        "enums": {},
+    }
+
+    gmeow_ns = str(_GMEOW)
+
+    def is_gmeow(tid: int) -> bool:
+        return view.is_iri(tid) and view.lex(tid).startswith(gmeow_ns)
+
+    def description(tid: int) -> str | None:
+        comments = sorted(
+            view.lex(o)
+            for o in view.objects(tid, _RDFS_NS + "comment")
+            if view.is_literal(o)
+        )
+        return comments[0] if comments else None
+
+    # Classes ---------------------------------------------------------------
+    class_names: set[str] = set()
+    class_iris: dict[str, str] = {}
+    pending_is_a: dict[str, str] = {}
+    classes = sorted(view.subjects_by_type(_OWL_NS + "Class"), key=view.lex)
+    for cls in classes:
+        if not is_gmeow(cls):
+            continue
+        iri = view.lex(cls)
+        local = _local_name_str(iri)
+        if not local:
+            continue
+        class_names.add(local)
+        class_iris[local] = iri
+
+        cls_def: dict[str, Any] = {"class_uri": iri}
+        label_text = view.public_text(cls, _RDFS_NS + "label")
+        if label_text:
+            cls_def["title"] = label_text
+        desc = description(cls)
+        if desc is not None:
+            cls_def["description"] = desc
+
+        supers = sorted(
+            (
+                view.lex(o)
+                for o in view.objects(cls, _RDFS_NS + "subClassOf")
+                if view.is_iri(o)
+            ),
+        )
+        if supers:
+            chosen = next(
+                (
+                    s
+                    for s in supers
+                    if s.startswith(gmeow_ns) and _local_name_str(s) in class_names
+                ),
+                supers[0],
+            )
+            super_local = _local_name_str(chosen)
+            if super_local == local:
+                warnings.append(f"{local}: self-referential superclass — dropping is_a")
+            elif chosen.startswith(gmeow_ns) and super_local in class_names:
+                cls_def["is_a"] = super_local
+            elif chosen.startswith(gmeow_ns):
+                pending_is_a[local] = super_local
+            if len(supers) > 1:
+                warnings.append(
+                    f"{local}: multiple superclasses — keeping {super_local}"
+                )
+
+        schema["classes"][local] = cls_def
+
+    for local, super_local in pending_is_a.items():
+        if super_local in class_names:
+            schema["classes"][local]["is_a"] = super_local
+        else:
+            warnings.append(
+                f"{local}: superclass {super_local} not found — dropping is_a"
+            )
+
+    # Slots -------------------------------------------------------------------
+    functional = set(view.subjects_by_type(_OWL_NS + "FunctionalProperty"))
+    object_tid = view.tid_of_iri(_OWL_NS + "ObjectProperty")
+    datatype_tid = view.tid_of_iri(_OWL_NS + "DatatypeProperty")
+    props = sorted(
+        {
+            t
+            for kind in ("ObjectProperty", "DatatypeProperty", "AnnotationProperty")
+            for t in view.subjects_by_type(_OWL_NS + kind)
+        },
+        key=view.lex,
+    )
+    for prop in props:
+        if not is_gmeow(prop):
+            continue
+        iri = view.lex(prop)
+        local = _local_name_str(iri)
+        if not local:
+            continue
+
+        slot: dict[str, Any] = {"slot_uri": iri}
+        label_text = view.public_text(prop, _RDFS_NS + "label")
+        if label_text:
+            slot["title"] = label_text
+        desc = description(prop)
+        if desc is not None:
+            slot["description"] = desc
+
+        ranges = sorted(
+            view.lex(r)
+            for r in view.objects(prop, _RDFS_NS + "range")
+            if view.is_iri(r)
+        )
+        if ranges:
+            slot["range"] = _iri_to_linkml_range_str(
+                ranges[0], class_names, warnings, local
+            )
+            bounds = _XSD_INTEGER_BOUNDS.get(ranges[0])
+            if bounds is not None:
+                minimum, maximum = bounds
+                if minimum is not None:
+                    slot["minimum_value"] = minimum
+                if maximum is not None:
+                    slot["maximum_value"] = maximum
+            if len(ranges) > 1:
+                warnings.append(f"{local}: multiple ranges — keeping {slot['range']}")
+        else:
+            slot["range"] = "string"
+
+        domains = sorted(
+            view.lex(d)
+            for d in view.objects(prop, _RDFS_NS + "domain")
+            if view.is_iri(d)
+        )
+        if domains:
+            domain_local = _local_name_str(domains[0])
+            if domains[0].startswith(gmeow_ns) and domain_local in class_names:
+                slot["domain"] = domain_local
+            if len(domains) > 1:
+                warnings.append(f"{local}: multiple domains — keeping {domain_local}")
+
+        is_functional = prop in functional
+        is_object = object_tid is not None and view.has(prop, _RDF_TYPE_IRI, object_tid)
+        is_datatype = datatype_tid is not None and view.has(
+            prop, _RDF_TYPE_IRI, datatype_tid
+        )
+        if is_functional:
+            slot["multivalued"] = False
+        elif is_object or is_datatype:
+            slot["multivalued"] = True
+
+        schema["slots"][local] = slot
+
+    # Enums ---------------------------------------------------------------------
+    type_tid = view.tid_of_iri(_RDF_TYPE_IRI)
+    individuals_by_class: dict[str, list[int]] = {}
+    typed_subjects = sorted({s for s, p, o, _ in view.quads() if p == type_tid})
+    for ind in typed_subjects:
+        if not is_gmeow(ind):
+            continue
+        for cls in view.objects(ind, _RDF_TYPE_IRI):
+            if not is_gmeow(cls):
+                continue
+            cls_local = _local_name_str(view.lex(cls))
+            if cls_local not in class_names:
+                continue
+            individuals_by_class.setdefault(cls_local, []).append(ind)
+
+    for cls_local, inds in sorted(individuals_by_class.items()):
+        if not inds:
+            continue
+        enum_name = f"{cls_local}Enum"
+        enum_def: dict[str, Any] = {
+            "enum_uri": class_iris[cls_local],
+            "permissible_values": {},
+        }
+        for ind in sorted(inds, key=view.lex):
+            ind_iri = view.lex(ind)
+            ind_local = _local_name_str(ind_iri)
+            pv: dict[str, Any] = {"meaning": ind_iri}
+            label_text = view.public_text(ind, _RDFS_NS + "label")
+            if label_text:
+                pv["title"] = label_text
+            desc = description(ind)
+            if desc is not None:
+                pv["description"] = desc
+            enum_def["permissible_values"][ind_local] = pv
+        schema["enums"][enum_name] = enum_def
+
+    # Attach slots to their domain classes ---------------------------------------
+    for slot_name, slot_def in schema["slots"].items():
+        domain = slot_def.get("domain")
+        if domain and domain in schema["classes"]:
+            schema["classes"][domain].setdefault("slots", []).append(slot_name)
+
+    return schema, warnings
+
+
 def _write_yaml(
     data: dict[str, Any],
     path: Path,
@@ -535,8 +789,7 @@ class SchemaGenerator(Generator):
 
     def render(self, staging: Path) -> None:
         """Render schema artifacts into the staging tree."""
-        graph = load_merged_graph(include_imports=False)
-        schema_dict, _warnings = emit_linkml(graph)
+        schema_dict, _warnings = emit_linkml_fold(load_fold())
 
         if SCHEMAS_DIR.is_relative_to(PROJECT_ROOT):
             out_dir = staging / SCHEMAS_DIR.relative_to(PROJECT_ROOT)
