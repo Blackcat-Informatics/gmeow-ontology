@@ -28,8 +28,8 @@ high-quality knowledge graphs, scholarly and archival work, and inter-ontology l
 linked-data and ontology communities are a constituency we serve and bridge to with full
 seriousness; the AI ecosystem is the home market.
 
-*Embodied in:* [`docs/names-mapping.md`](./docs/names-mapping.md),
-[`docs/languages-mapping.md`](./docs/languages-mapping.md),
+*Embodied in:* [`slices/core/names/docs.md`](./slices/core/names/docs.md),
+[`slices/extensions/languages/docs.md`](./slices/extensions/languages/docs.md),
 [`docs/identity-mapping.md`](./docs/identity-mapping.md).
 
 ## 2. RDF 1.2 / RDF\*-first — precisely scoped
@@ -172,8 +172,8 @@ standpoint-indexed claim, and a sensory perception are the **same reified constr
 may be inherently crisp, vague, fuzzy, probabilistic, or disputed (`gmeow:Determinacy`), and that is
 recorded explicitly rather than assumed away — distinct from *how sure we are* (`gmeow:confidence`).
 
-*Embodied in:* [`docs/names-mapping.md`](./docs/names-mapping.md),
-[`docs/languages-mapping.md`](./docs/languages-mapping.md),
+*Embodied in:* [`slices/core/names/docs.md`](./slices/core/names/docs.md),
+[`slices/extensions/languages/docs.md`](./slices/extensions/languages/docs.md),
 [`docs/identity-mapping.md`](./docs/identity-mapping.md),
 [`docs/standpoints.md`](./docs/standpoints.md) (no preferred/primary claim — a contested fact is
 several coequal standpoint-indexed claims). *Tested by:* the 7-axis orthogonality matrix tests;
@@ -332,8 +332,8 @@ somewhere to go that is not the core. Extension *ecosystem* machinery (SDK, cata
 submission process) is itself subject to Principle 15 — built when a named external extension
 author exists, not before.
 
-*Embodied in:* the #287 repository re-layout (`ontology/core/` + `extensions/`); the extension
-manifest; the GTS `bundle` profile. *Tested by:* per-extension compile / reason / drift gates;
+*Embodied in:* the #287 slice architecture (`slices/<group>/<name>/` — the manifest is
+the sole tier truth); `slices/vocabulary.ttl`; the GTS `bundle` profile. *Tested by:* per-extension compile / reason / drift gates;
 the manifest consumer field, checked via the Principle→enforcement manifest (#280).
 
 ---

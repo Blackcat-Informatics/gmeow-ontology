@@ -1,2 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:33c26386374f0f44,gmeow:examples/attestation-factcheck-001,gmeow:attestationTypeFactCheck,attestationType,gmeow:examples/standpoint-factchecker,2026-02-01T00:00:00Z,0.92,,,,,,

@@ -1,3 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:292d5c70d9438632,gmeow:examples/participation-disinformation-origin-deceiver-001,gmeow:roleDeceiver,participationRole,,2026-06-11T00:00:00Z,0.9,,,,,,
-edge:d8016e03fff491f2,gmeow:examples/participation-disinformation-dupe-001,gmeow:roleDupe,participationRole,,2026-06-11T00:00:00Z,0.75,,,,,,

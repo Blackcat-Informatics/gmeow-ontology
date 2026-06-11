@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/trust>
+    a gmeow:Slice ;
+    rdfs:label "trust"@x-gmeow-english ;
+    skos:definition "The trust slice of the GMEOW ontology (core tier): GMEOW Trust Module. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
+    dcterms:title "GMEOW Trust Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/accounts> ,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    gmeow:sliceConsumer "Keys, certifications, and cryptographic signatures used by email wire-auth and attestation."@x-gmeow-english .

@@ -1,3 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:7ed328c966fba8ef,gmeow:examples/creativework-forged-001,gmeow:examples/creativework-genuine-001,counterpartOf,gmeow:examples/standpoint-investigator,2026-06-09T00:00:00Z,0.85,,,,,,
-edge:8828a88173ca12de,gmeow:examples/identity-sockpuppet-001,gmeow:examples/identity-deceiver-001,counterpartOf,gmeow:examples/standpoint-investigator,2026-06-10T00:00:00Z,0.7,,,,,,

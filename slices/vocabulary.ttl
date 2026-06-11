@@ -1,0 +1,122 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# =============================================================================
+# GMEOW slice manifest vocabulary — the authoring source for slice metadata.
+#
+# A SLICE is the unit of the ontology: a self-contained directory
+# (slices/<group>/<name>/) carrying module.ttl, shapes.ttl, mappings/,
+# queries/, tests/, docs.md, and a manifest.ttl authored in THIS vocabulary.
+# The manifest is the ONLY tier truth: the <group> path segment between
+# slices/ and the slice name is human organization the build never reads
+# (slices/anything/baz builds identically). Anatomy is convention, not
+# configuration — the loader derives every file location from the slice
+# directory; the manifest carries metadata only.
+#
+# This file is a SPEC LAYER, sibling of mapping-dsl/vocabulary.ttl — grounded
+# in the gmeow: namespace and annotated like every GMEOW term, but NOT
+# owl:imports-ed into the reasoned OWL 2 DL core. Validated by
+# shapes/slice-manifest-shapes.ttl and the slice gates (Constitution
+# Principles 15 & 16): a manifest must name its consumer, and an extension
+# slice may depend only on core slices.
+# =============================================================================
+
+<https://blackcatinformatics.ca/gmeow/slice-dsl>
+    a owl:Ontology ;
+    rdfs:label "GMEOW slice manifest vocabulary"@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment "Authoring vocabulary for slice manifests (slices/*/*/manifest.ttl): tier, dependencies, consumer, GTS profile, CLI provision, and citation metadata. Enforced by the slice gates; never reasoned."@x-gmeow-english .
+
+# --------------------------------------------------------------------------- #
+# The slice
+# --------------------------------------------------------------------------- #
+
+gmeow:Slice a owl:Class ;
+    rdfs:label "slice"@x-gmeow-english ;
+    skos:definition "A self-contained unit of the GMEOW ontology: canonical terms, shapes, alignments, queries, tests, and documentation composed by the build into the fused package. Core and extension slices are structurally identical; tier is a manifest field (gmeow:sliceTier), never a directory property."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+# --------------------------------------------------------------------------- #
+# Tier — an open value vocabulary of individuals (house style; no enum strings)
+# --------------------------------------------------------------------------- #
+
+gmeow:SliceTier a owl:Class ;
+    rdfs:label "slice tier"@x-gmeow-english ;
+    skos:definition "The loading/composition tier of a slice. Core slices reason as one union and may interlink; extension slices depend only on core (the dependency DAG gate) and load opt-in."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:sliceTier a owl:ObjectProperty ;
+    rdfs:label "slice tier"@x-gmeow-english ;
+    rdfs:domain gmeow:Slice ;
+    rdfs:range gmeow:SliceTier ;
+    skos:definition "The slice's tier. Exactly one. The sole machine-readable core/extension distinction — the slices/<group>/ directory segment is organizational and carries no semantics."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:tierCore a gmeow:SliceTier ;
+    rdfs:label "core tier"@x-gmeow-english ;
+    skos:definition "A slice in the always-loaded core: it deeply interlinks with other core slices, appears in more than a quarter of expected uses, or is core by constitutional commitment (Principle 16 — identity and deception epistemics ship where no consumer can decline them)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:tierExtension a gmeow:SliceTier ;
+    rdfs:label "extension tier"@x-gmeow-english ;
+    skos:definition "An opt-in slice serving a focused domain: it depends only on core slices (never on another extension — enforced by the dependency gate), reasons as extension ∪ core, and may ship as its own sub-profiled GTS package."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+# --------------------------------------------------------------------------- #
+# Dependencies & consumer (the two gated fields)
+# --------------------------------------------------------------------------- #
+
+gmeow:sliceDependsOn a owl:ObjectProperty ;
+    rdfs:label "slice depends on"@x-gmeow-english ;
+    rdfs:domain gmeow:Slice ;
+    rdfs:range gmeow:Slice ;
+    skos:definition "A slice whose terms this slice's canonical sources reference. The dependency gate verifies the declaration against the computed cross-slice reference graph (no undeclared edges, no stale declarations) and rejects any extension→extension edge."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:sliceConsumer a owl:DatatypeProperty ;
+    rdfs:label "slice consumer"@x-gmeow-english ;
+    rdfs:domain gmeow:Slice ;
+    skos:definition "Who consumes this slice, through which surface, in which product — the Principle 15 question, machine-required (at least one). \"The mail corpus\", \"the claim-spine worked example\", or a named external adopter are answers; \"it would be modelled beautifully\" is not."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+# --------------------------------------------------------------------------- #
+# Distribution & tooling provision (consumed by the GTS packager and the
+# CLI roll-up — specified in issues #326/#327; fields reserved here so the
+# manifest schema needs no re-architecture when those land)
+# --------------------------------------------------------------------------- #
+
+gmeow:sliceProfile a owl:DatatypeProperty ;
+    rdfs:label "slice GTS profile"@x-gmeow-english ;
+    rdfs:domain gmeow:Slice ;
+    rdfs:range xsd:string ;
+    skos:definition "The GTS sub-profile name this slice serves (e.g. \"music\", \"image\"). A GTS segment carrying this slice's data declares the profile in its header, which is how a reader without the slice installed reports what is missing. Optional; defaults to the slice name for extensions."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:providesSubcommand a owl:DatatypeProperty ;
+    rdfs:label "provides subcommand"@x-gmeow-english ;
+    rdfs:domain gmeow:Slice ;
+    rdfs:range xsd:string ;
+    skos:definition "A CLI subcommand this slice contributes to the gmeow roll-up (e.g. \"image\", \"render\", \"gts\"). Discovery and dispatch are specified in the CLI roll-up spec (#326); this field is the declaration the loader will read."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:builtAgainstCore a owl:DatatypeProperty ;
+    rdfs:label "built against core version"@x-gmeow-english ;
+    rdfs:domain gmeow:Slice ;
+    rdfs:range xsd:string ;
+    skos:definition "The GMEOW core version (owl:versionInfo) this slice was authored and tested against. Required for third-party slices; in-repo slices inherit the repository version and omit it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+# --------------------------------------------------------------------------- #
+# Citation — projected to the slice's CITATION.cff by the registry (so
+# third-party slice authors get citability for their alignment labour by
+# filling in the manifest, not by hand-maintaining a second file). Standard
+# dcterms fields on the gmeow:Slice node: dcterms:title, dcterms:creator
+# (≥1), dcterms:identifier (an optional DOI). No new terms needed here.
+# --------------------------------------------------------------------------- #

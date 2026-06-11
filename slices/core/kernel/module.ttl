@@ -1,0 +1,332 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann:    <http://purl.org/vocab/vann/> .
+@prefix qudt:    <http://qudt.org/schema/qudt/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/kernel>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Core Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Core Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:comment "Foundational GMEOW categories grounded in gUFO, plus the annotation properties used across all modules."@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Annotation properties (declared so the ontology stays OWL 2 DL).
+# --------------------------------------------------------------------------- #
+
+skos:definition     a owl:AnnotationProperty .
+skos:scopeNote      a owl:AnnotationProperty .
+skos:example        a owl:AnnotationProperty .
+vann:preferredNamespacePrefix a owl:AnnotationProperty .
+vann:preferredNamespaceUri    a owl:AnnotationProperty .
+dcterms:isPartOf    a owl:AnnotationProperty .
+dcterms:created     a owl:AnnotationProperty .
+dcterms:modified    a owl:AnnotationProperty .
+
+# --------------------------------------------------------------------------- #
+# Core categories. Every GMEOW class subclasses a gUFO foundational category.
+# These are skeleton stubs; the specification fills in the full axiomatisation.
+# --------------------------------------------------------------------------- #
+
+gmeow:Entity
+    a owl:Class, gufo:Category ;
+    rdfs:subClassOf gufo:Endurant ;
+    rdfs:label "Entity"@x-gmeow-english ;
+    skos:definition "Anything in the GMEOW universe of discourse that persists in time and can bear properties: an agent, a document, a contact point, and so on."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:Agent
+    a owl:Class, gufo:Category ;
+    rdfs:subClassOf gmeow:Entity, gufo:FunctionalComplex ;
+    rdfs:label "Agent"@x-gmeow-english ;
+    skos:definition "An entity that can act, bear responsibility, and enter into agreements: a person, an organization, or a software agent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:InformationObject
+    a owl:Class, gufo:Category ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Information Object"@x-gmeow-english ;
+    skos:definition "An entity whose nature is to carry information content: a document, dataset, software artifact, online account, or message. The shared parent of the document, software and account layers."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:PhysicalObject
+    a owl:Class, gufo:Category ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    owl:disjointWith gmeow:Agent, gmeow:InformationObject ;
+    rdfs:label "Physical Object"@x-gmeow-english ;
+    skos:definition "An entity that is a material thing occupying space and time — a device, instrument, vehicle, building, or natural body. Distinct from Agent (which acts and bears responsibility) and InformationObject (which carries information content). The sortal for pose-bearing, sensor-hosting, and spatially-located things that are not agents."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:SocialObject
+    a owl:Class, gufo:Category ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Social Object"@x-gmeow-english ;
+    skos:definition "An entity that exists by virtue of social convention, collective acceptance, or sustained narrative practice — a myth, an urban legend, an agreement, a standpoint, or a socially-constituted institution. Distinct from PhysicalObject (material) and overlapping with InformationObject (a myth is both social and informational). No disjointness with InformationObject is asserted so that socially-sustained narratives may carry information content without identity clash."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Universal mereology — the broad part/whole spine (#76).
+#
+# Domain-specific properties keep their exact meanings (geographic containment,
+# organizational departments, event decomposition, name parts, MIME parts, ...).
+# They specialize this universal transitive spine so generic consumers can ask
+# for parthood without collapsing those semantics. No domain/range is asserted
+# here: GMEOW part/whole spans endurants, information objects, locations and
+# occurrents, while narrower subproperties carry their own local typing.
+# --------------------------------------------------------------------------- #
+
+gmeow:partOf
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    owl:inverseOf gmeow:hasPart ;
+    rdfs:label "part of"@x-gmeow-english ;
+    skos:definition "Universal part-to-whole relation: relates any GMEOW thing to a larger whole it is part of. Transitive and intentionally broad; use specialized subproperties such as gmeow:containedInLocation, gmeow:subOrganizationOf, gmeow:subEventOf, gmeow:partOfThread or module-specific component properties when the kind of parthood matters. No domain/range is asserted so event, location, information-object and endurant parthood all remain possible in OWL 2 DL."@x-gmeow-english ;
+    skos:scopeNote "No cardinality, functionality, asymmetry or irreflexivity is asserted on this transitive property. Proper-part, direct-part and time-scoped mutable parthood must be modelled with narrower simple properties or relators when needed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasPart
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    owl:inverseOf gmeow:partOf ;
+    rdfs:label "has part"@x-gmeow-english ;
+    skos:definition "Universal whole-to-part inverse of gmeow:partOf. Transitive and intentionally broad; specialized component and containment properties remain the authoritative source for domain-specific meaning."@x-gmeow-english ;
+    skos:scopeNote "Generic has-part is a query/projection convenience, not a single privileged decomposition model. Consumers that need spatial, organizational, event or information-object semantics should use the corresponding specialized subproperty."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Granularity / level-of-detail — the universal resolution axis (#79).
+#
+# Every value has a resolution (a date known to the year; a place to the city).
+# Granularity is an explicit, queryable facet — "no silent precision" — and the
+# axis along which generalization (gmeow:coarsenTo, below) coarsens. Levels are an
+# OPEN, ORDERED value vocabulary (ordered by gmeow:coarserThan); per-domain level
+# individuals are seeded in their own modules (spatial in places, temporal in
+# temporal) and aligned by reference to external resolution vocabularies
+# (OWL-Time time:TemporalUnit, ISO 19112 LocationType) with skos:exactMatch.
+# --------------------------------------------------------------------------- #
+
+gmeow:GranularityLevel
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Granularity Level"@x-gmeow-english ;
+    skos:definition "A level of detail / resolution at which a value is expressed — a point on an open, ordered, domain-general axis (spatial: point ≺ address ≺ city ≺ region ≺ country; temporal: day ≺ month ≺ year ≺ decade ≺ century). The explicit facet behind 'no silent precision', and the axis that gmeow:coarsenTo generalizes along. Levels are individuals (never per-level subclasses), ordered by gmeow:coarserThan and aligned to external resolution vocabularies (OWL-Time time:TemporalUnit, ISO 19112 LocationType) by skos:exactMatch."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:coarserThan
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:domain gmeow:GranularityLevel ;
+    rdfs:range gmeow:GranularityLevel ;
+    rdfs:label "coarser than"@x-gmeow-english ;
+    skos:definition "Orders the granularity axis: relates a granularity level to a finer level it generalizes (country gmeow:coarserThan city). Transitive; the partial order that makes 'at or above a target level' well-defined for coarsening, and mirrors skos:broader between the levels."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasGranularity
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:GranularityLevel ;
+    rdfs:label "has granularity"@x-gmeow-english ;
+    skos:definition "Relates a value, place, period, coordinate or measurement to its own resolution level — the explicit 'no silent precision' facet, queryable independently of any disclosure control. Domain-free. NOT functional: in a multi-source merge sources may state different resolutions, and those claims coexist rather than force the reasoner to collapse distinct levels."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Disclosure control by projection — the coarsen operation (#72, CONSTITUTION P10).
+#
+# Suppression (gmeow:displayable false → withhold) and generalization
+# (gmeow:coarsenTo → emit a coarser value) are one mechanism: withhold OR coarsen
+# a value at projection time under a trigger, never by deletion. Coarsening walks
+# the part/whole spine (gmeow:generalizesVia, default gmeow:partOf) up to the
+# target gmeow:GranularityLevel; any geometry/geomask math stays in the solver
+# layer (P12). The access/consent trigger is layered on this by the privacy
+# facility (#73), which reuses the same control with a consent guard.
+# --------------------------------------------------------------------------- #
+
+gmeow:coarsenTo
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:GranularityLevel ;
+    rdfs:label "coarsen to"@x-gmeow-english ;
+    skos:definition "Disclosure control: marks a value/relator so that at projection time it is generalized to no finer than the named gmeow:GranularityLevel — a coarser ancestor is emitted instead of the precise value (e.g. an enclosing city rather than exact coordinates), never by deletion. The generalization sibling of gmeow:displayable false (withhold); together they are the single 'withhold or coarsen under a trigger' mechanism of CONSTITUTION P10. Domain-free, like gmeow:displayable. The coarse value is obtained by walking gmeow:generalizesVia (default gmeow:partOf); any geometry/geomask computation stays in the solver layer (P12). When both apply, displayable false (withhold) wins over coarsen."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:generalizesVia
+    a owl:AnnotationProperty ;
+    rdfs:label "generalizes via"@x-gmeow-english ;
+    skos:definition "Projection-compiler guidance naming the transitive part/whole property to walk when coarsening a value (e.g. gmeow:containedInPlace for places). Defaults to gmeow:partOf when absent. An annotation property — it directs generalization without imposing logical semantics, keeping the core OWL 2 DL."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Determinacy — universal ontic-uncertainty vocabulary (#71).
+#
+# Ontic indeterminacy (how inherently defined a value is) is held distinct from
+# epistemic confidence (how sure we are). A value may be crisp, vague, fuzzy,
+# probabilistic, or disputed — and that is recorded explicitly rather than
+# assumed away (CONSTITUTION P9). Applies to any value: gender, date, boundary,
+# SLAM cell. The fuzzy/probabilistic math lives in the solver layer (P12).
+# --------------------------------------------------------------------------- #
+
+gmeow:Determinacy
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Determinacy"@x-gmeow-english ;
+    skos:definition "The model of ontic determinacy or indeterminacy for a value — whether it is inherently crisp, vague, fuzzy, probabilistic, or disputed. Distinct from epistemic confidence (how sure we are of a claim); determinacy records the nature of the value itself. Applies universally: a gender may be fuzzy, a date approximate, a boundary vague, a SLAM cell probabilistic, a contested fact disputed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasDeterminacy
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:Determinacy ;
+    rdfs:label "has determinacy"@x-gmeow-english ;
+    skos:definition "Relates a value, entity, or claim to its ontic determinacy model — the explicit facet recording whether the value is crisp, vague, fuzzy, probabilistic, or disputed. Domain-free (universal, like hasGranularity). NOT functional: in a multi-source merge sources may state different determinacy models, and those claims coexist rather than force the reasoner to collapse distinct models. Distinct from gmeow:confidence (epistemic certainty) and from gmeow:determinacyModel (the frame-level default for a ReferenceFrame)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Seeds
+gmeow:determinacyCrisp         a gmeow:Determinacy ; rdfs:label "crisp"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:determinacyCrisp skos:definition "The crisp determinacy — a characterization of whether a value is crisp, vague, fuzzy, probabilistic, or disputed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+gmeow:determinacyVague         a gmeow:Determinacy ; rdfs:label "vague"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:determinacyVague skos:definition "The vague determinacy — a characterization of whether a value is crisp, vague, fuzzy, probabilistic, or disputed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+gmeow:determinacyFuzzy         a gmeow:Determinacy ; rdfs:label "fuzzy"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:determinacyFuzzy skos:definition "The fuzzy determinacy — a characterization of whether a value is crisp, vague, fuzzy, probabilistic, or disputed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+gmeow:determinacyProbabilistic a gmeow:Determinacy ; rdfs:label "probabilistic"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:determinacyProbabilistic skos:definition "The probabilistic determinacy — a characterization of whether a value is crisp, vague, fuzzy, probabilistic, or disputed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+gmeow:determinacyDisputed      a gmeow:Determinacy ; rdfs:label "disputed"@x-gmeow-english ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+# --------------------------------------------------------------------------- #
+# Sensitivity — universal privacy-classification vocabulary (#73, PRIV-GEN).
+#
+# Every value may carry a sensitivity level that drives disclosure control
+# (coarsenTo / displayable) at projection time under a consent guard (P10).
+# The sensitivity axis is orthogonal to determinacy, confidence, and granularity.
+# --------------------------------------------------------------------------- #
+gmeow:determinacyDisputed skos:definition "The disputed determinacy — a characterization of whether a value is crisp, vague, fuzzy, probabilistic, or disputed (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:SensitivityLevel
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Sensitivity Level"@x-gmeow-english ;
+    skos:definition "A privacy-sensitivity classification for a value — an open, ordered value vocabulary (public ≺ internal ≺ confidential ≺ restricted ≺ sensitive personal). The explicit facet that drives disclosure-control decisions: a value marked sensitive personal may be coarsened or withheld at projection time under a consent guard. Orthogonal to determinacy, confidence, and granularity (Principle 9). The sensitivity-to-coarsen trigger is a solver concern (P12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasSensitivity
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:SensitivityLevel ;
+    rdfs:label "has sensitivity"@x-gmeow-english ;
+    skos:definition "Relates a value, entity, or claim to its privacy-sensitivity level — the explicit facet that drives disclosure-control decisions (coarsenTo / displayable) at projection time under a consent guard. Domain-free (universal, like hasGranularity and hasDeterminacy). NOT functional: in a multi-source merge sources may state different sensitivity levels, and those claims coexist rather than force the reasoner to collapse distinct levels. Distinct from gmeow:confidence (epistemic certainty) and from gmeow:hasDeterminacy (ontic model)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Seeds
+gmeow:sensitivityPublic            a gmeow:SensitivityLevel ; rdfs:label "public"@x-gmeow-english ;            rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:sensitivityPublic skos:definition "The public sensitivity level — information that may be disclosed without restriction."@x-gmeow-english .
+gmeow:sensitivityInternal          a gmeow:SensitivityLevel ; rdfs:label "internal"@x-gmeow-english ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:sensitivityInternal skos:definition "The internal sensitivity level — information intended for use within an organization or trusted circle."@x-gmeow-english .
+gmeow:sensitivityConfidential      a gmeow:SensitivityLevel ; rdfs:label "confidential"@x-gmeow-english ;      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:sensitivityConfidential skos:definition "The confidential sensitivity level — information whose unauthorized disclosure could harm an organization or individual."@x-gmeow-english .
+gmeow:sensitivityRestricted        a gmeow:SensitivityLevel ; rdfs:label "restricted"@x-gmeow-english ;        rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:sensitivityRestricted skos:definition "The restricted sensitivity level — information whose access is limited to named individuals or roles under explicit authorization."@x-gmeow-english .
+gmeow:sensitivitySensitivePersonal a gmeow:SensitivityLevel ; rdfs:label "sensitive personal"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:sensitivitySensitivePersonal skos:definition "The sensitive personal sensitivity level — information about a person whose disclosure carries elevated risk and may be subject to legal protection or consent guards."@x-gmeow-english .
+
+# --------------------------------------------------------------------------- #
+# Consumer Projection Context — the audience / consumer axis (#225).
+#
+# Every value or claim may name the projection consumers it is eligible for.
+# This is the *who* layer of disclosure control: which downstream consumers
+# (internal archive, agent memory, Wikidata, Wikipedia, public site, …) may
+# receive the fact. Orthogonal to sensitivity, determinacy, confidence, and
+# granularity (Principle 9). The eligibility decision (k-anonymity, source
+# independence) stays in the solver layer (P12).
+# --------------------------------------------------------------------------- #
+
+gmeow:ProjectionContext
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Projection Context"@x-gmeow-english ;
+    skos:definition "The consumer or audience for which a fact is eligible to be projected — an open value vocabulary of individuals (never subclasses). Names downstream targets such as internal archives, agent memory, Wikidata, Wikipedia, or public websites. The *who* layer of disclosure control, orthogonal to sensitivity, determinacy, confidence, and granularity (Principle 9). Eligibility decisions (k-anonymity, source-independence checks) are solver-layer computations (P12); the vocabulary is the ontology deliverable."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:eligibleForConsumer
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:ProjectionContext ;
+    rdfs:label "eligible for consumer"@x-gmeow-english ;
+    skos:definition "Relates a value, entity, or claim to the projection consumers it is eligible for — the explicit *who* facet of disclosure control. Domain-free (universal, like hasGranularity and hasSensitivity). NOT functional: in a multi-source merge sources may state different consumer eligibilities, and those claims coexist rather than force the reasoner to collapse distinct consumers (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Seeds
+gmeow:consumerInternalArchive     a gmeow:ProjectionContext ; rdfs:label "internal archive"@x-gmeow-english ;     skos:definition "The consumer is an internal archival system — not publicly visible."@x-gmeow-english ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:consumerAgentMemory         a gmeow:ProjectionContext ; rdfs:label "agent memory"@x-gmeow-english ;         skos:definition "The consumer is an AI agent's working memory or retrieval store."@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:consumerWikidata            a gmeow:ProjectionContext ; rdfs:label "Wikidata"@x-gmeow-english ;            skos:definition "The consumer is Wikidata — a structured, editable knowledge base."@x-gmeow-english ;            rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:consumerWikipedia           a gmeow:ProjectionContext ; rdfs:label "Wikipedia"@x-gmeow-english ;           skos:definition "The consumer is Wikipedia — an encyclopedic article."@x-gmeow-english ;           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:consumerPublicSite          a gmeow:ProjectionContext ; rdfs:label "public site"@x-gmeow-english ;          skos:definition "The consumer is a public-facing website or application."@x-gmeow-english ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:consumerSchemaOrgJsonLd     a gmeow:ProjectionContext ; rdfs:label "schema.org JSON-LD"@x-gmeow-english ;  skos:definition "The consumer is a schema.org JSON-LD markup export."@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:consumerFoafExport          a gmeow:ProjectionContext ; rdfs:label "FOAF export"@x-gmeow-english ;          skos:definition "The consumer is a FOAF/RDF social-graph export."@x-gmeow-english ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:consumerResearchQueue       a gmeow:ProjectionContext ; rdfs:label "research queue"@x-gmeow-english ;       skos:definition "The consumer is a human-curated research or verification queue."@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Disclosure Policy — the access-classification axis (#225).
+#
+# Every value or claim may carry a disclosure policy that classifies its
+# suitability for public release. This is the *what* layer: internal-only,
+# sensitive, public-careful, public-safe, never-public, or public-only-with-
+# independent-source. It layers over the existing sensitivity/coarsen/suppress
+# machinery (#72/#73) and pairs with the evidence module's sourceIndependence
+# (#224) for the conditional case.
+# --------------------------------------------------------------------------- #
+
+gmeow:DisclosurePolicy
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Disclosure Policy"@x-gmeow-english ;
+    skos:definition "The disclosure posture of a value or claim — an open value vocabulary of individuals (never subclasses) classifying whether and under what conditions the fact may be projected to consumers. The *what* layer of disclosure control: internalOnly, sensitive, publicCareful, publicSafe, neverPublic, or publicOnlyWithIndependentSource. Orthogonal to sensitivity, determinacy, confidence, and granularity (Principle 9). The conditional case (publicOnlyWithIndependentSource) is resolved against the evidence module's sourceIndependence axis (#224) in the solver layer (P12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasDisclosurePolicy
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:DisclosurePolicy ;
+    rdfs:label "has disclosure policy"@x-gmeow-english ;
+    skos:definition "Relates a value, entity, or claim to its disclosure policy — the explicit *what* facet of disclosure control. Domain-free (universal, like hasGranularity and hasSensitivity). NOT functional: in a multi-source merge sources may state different policies, and those claims coexist rather than force the reasoner to collapse distinct policies (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Seeds
+gmeow:policyInternalOnly                   a gmeow:DisclosurePolicy ; rdfs:label "internal only"@x-gmeow-english ;                   skos:definition "The fact must never leave internal systems."@x-gmeow-english ;                   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:policySensitive                      a gmeow:DisclosurePolicy ; rdfs:label "sensitive"@x-gmeow-english ;                      skos:definition "The fact is sensitive and requires case-by-case review before any projection."@x-gmeow-english ;                      rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:policyPublicCareful                  a gmeow:DisclosurePolicy ; rdfs:label "public careful"@x-gmeow-english ;                  skos:definition "The fact may be public but warrants caution — check context and consent before projecting."@x-gmeow-english ;                  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:policyPublicSafe                     a gmeow:DisclosurePolicy ; rdfs:label "public safe"@x-gmeow-english ;                     skos:definition "The fact is safe for broad public projection without additional review."@x-gmeow-english ;                     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:policyNeverPublic                    a gmeow:DisclosurePolicy ; rdfs:label "never public"@x-gmeow-english ;                    skos:definition "The fact must never be projected to any public consumer — private-sourced or otherwise restricted."@x-gmeow-english ;                    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:policyPublicOnlyWithIndependentSource  a gmeow:DisclosurePolicy ; rdfs:label "public only with independent source"@x-gmeow-english ;  skos:definition "The fact may be projected to public consumers ONLY when supported by an editorially independent source (resolved against gmeow:sourceIndependence in the solver layer, P12)."@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Units — cross-cutting unit linkage for measurements (#67).
+#
+# Domain-free object property pointing to QUDT by reference. Temporal
+# measurements, spatial coordinates, and any other quantitative value can use
+# this to name their unit without importing QUDT axioms (Principle 5).
+# --------------------------------------------------------------------------- #
+
+gmeow:hasUnit
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:range qudt:Unit ;
+    rdfs:label "has unit"@x-gmeow-english ;
+    skos:definition "Relates a quantitative value or measurement to its QUDT unit (by reference, never imported). Domain-free: used by temporal measurements, spatial measurements, and any other quantified claim."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# --------------------------------------------------------------------------- #
+# Universal connectivity — the traversable-link spine (#80, CONN-GEN).
+#
+# Domain-specific properties keep their exact meanings (spatial network links,
+# social acquaintance, kinship bonds, citation edges, software dependencies).
+# They specialize this universal spine so generic consumers can ask for
+# connectivity without collapsing those semantics. No domain/range is asserted
+# here: GMEOW connectivity spans endurants, information objects, locations and
+# events. NOT symmetric and NOT transitive so subproperties can be directed or
+# undirected and reachability stays in the solver layer (Principle 12).
+# --------------------------------------------------------------------------- #
+
+gmeow:connectsTo
+    a owl:ObjectProperty ;
+    rdfs:label "connects to"@x-gmeow-english ;
+    skos:definition "Universal traversable-link relation: relates any GMEOW thing to another thing it is directly connected to in a graph, network, or path. Intentionally broad; use specialized subproperties (spatiallyConnectsTo, hasSpouse, citesWork, dependsOn, …) when the kind of connection matters. NOT symmetric and NOT transitive at this level so that subproperties can be directed or undirected and reachability can be computed by the solver layer (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

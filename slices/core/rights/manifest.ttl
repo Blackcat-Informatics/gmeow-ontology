@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/rights>
+    a gmeow:Slice ;
+    rdfs:label "rights"@x-gmeow-english ;
+    skos:definition "The rights slice of the GMEOW ontology (core tier): GMEOW Rights & IP Module. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    dcterms:title "GMEOW Rights & IP Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/agreements> ,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    gmeow:sliceConsumer "Licensing of every artifact: the ontology's own dual licence, images, software, the mail corpus."@x-gmeow-english .

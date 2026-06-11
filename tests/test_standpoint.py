@@ -19,7 +19,7 @@ from pathlib import Path
 
 from rdflib import OWL, RDF, RDFS, SKOS, Graph, Namespace, URIRef
 
-from gmeow_tools.config import PROJECT_ROOT, STATEMENT_RDF12_FILE
+from gmeow_tools.config import PROJECTION_QUERY_DIR, STATEMENT_RDF12_FILE
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.statement_dsl import (
     Annotation,
@@ -35,7 +35,7 @@ GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
 EX = Namespace("https://example.org/shapes/")
 SHAPES_FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
-_PROJ_Q = PROJECT_ROOT / "queries" / "projections"
+_PROJ_Q = PROJECTION_QUERY_DIR
 STANDPOINT_OWL2_QUERY = _PROJ_Q / "standpoint-owl2.rq"
 STANDPOINT_CRMINF_QUERY = _PROJ_Q / "standpoint-crminf.rq"
 STANDPOINT_PROV_QUERY = _PROJ_Q / "standpoint-prov.rq"

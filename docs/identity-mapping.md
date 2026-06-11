@@ -6,7 +6,7 @@
 GMEOW models a person's gender and sexuality as **reified, self-asserted,
 co-equal, time-scopeable facets** — never bare attributes. Two sibling modules
 (`gender`, `sexuality`) share one base, `gmeow:IdentityFacet`. This guide is the
-companion to the [names guide](names-mapping.md): together they make one claim —
+companion to the [names guide](../slices/core/names/docs.md): together they make one claim —
 **the axes of a person are orthogonal, and none is inferred from another.**
 
 ## The reframe

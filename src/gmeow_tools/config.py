@@ -96,7 +96,6 @@ def sweep_stale_gmeow_temp_dirs(
 
 
 ONTOLOGY_DIR = PROJECT_ROOT / "ontology"
-MODULES_DIR = ONTOLOGY_DIR / "modules"
 ONTOLOGY_FILE = ONTOLOGY_DIR / "gmeow.ttl"
 
 IMPORTS_DIR = PROJECT_ROOT / "imports"
@@ -106,7 +105,10 @@ IMPORTS_DIR = PROJECT_ROOT / "imports"
 #: CC BY 4.0 artifact. Used solely by the SSSOM alignment-direction linter; only
 #: IMPORT_OK targets are vendored here (reference-only ones are fetched live).
 TARGET_SNAPSHOT_DIR = IMPORTS_DIR / "targets"
-MAPPINGS_DIR = PROJECT_ROOT / "mappings"
+#: Single committed root for EVERY generated artifact (#287): a path under
+#: generated/ is owned by a registered generator and never hand-edited.
+GENERATED_DIR = PROJECT_ROOT / "generated"
+MAPPINGS_DIR = GENERATED_DIR / "mappings"
 SHAPES_DIR = PROJECT_ROOT / "shapes"
 SHAPES_FILE = SHAPES_DIR / "gmeow-shapes.ttl"
 SOFTWARE_SHAPES_FILE = SHAPES_DIR / "software-shapes.ttl"
@@ -125,36 +127,48 @@ VERIFY_DIR = QUERIES_DIR / "verify"
 #: queries (Allen-relation closures, timeline, overlap, bitemporal four-clocks)
 #: over the events model. A query algebra realized in standard SPARQL, not a
 #: bespoke engine (Principle 5: align to T-SPARQL/stSPARQL by reference).
-TEMPORAL_QUERY_DIR = QUERIES_DIR / "temporal"
+#: TQL parameterized temporal queries — owned by the temporal slice (#287).
+#: NOTE: encodes the slice's checkout location for constant-import ergonomics;
+#: identity/tier still live solely in the manifest.
+TEMPORAL_QUERY_DIR = PROJECT_ROOT / "slices" / "core" / "temporal" / "queries" / "tql"
 #: Per-profile projection CONSTRUCT queries (the FnO/EDOAL executors).
-PROJECTION_QUERY_DIR = QUERIES_DIR / "projections"
+PROJECTION_QUERY_DIR = GENERATED_DIR / "queries"
 #: FnO function catalog + EDOAL complex-alignment specs (consumable, not reasoned).
-PROJECTIONS_DIR = PROJECT_ROOT / "projections"
+PROJECTIONS_DIR = GENERATED_DIR / "projections"
 #: Single-source mapping DSL (the GMEOW-grounded authoring layer). ``gmeow
 #: compile-mappings`` renders these cells into the SSSOM / EDOAL / FnO / SPARQL
 #: artifacts. Authored, never generated; not in the reasoned import closure.
-MAPPING_DSL_DIR = PROJECT_ROOT / "mapping-dsl"
+MAPPING_DSL_DIR = PROJECT_ROOT / "dsl" / "mappings"
+#: Slice root (CONSTITUTION Principles 15-16): every ontology unit is a
+#: self-contained slice at ``slices/<group>/<name>/`` whose ``manifest.ttl``
+#: is the sole source of identity (IRI) and tier (core/extension). The
+#: ``<group>`` segment is human organization with no build semantics.
+SLICES_DIR = PROJECT_ROOT / "slices"
+#: Authoring vocabulary for slice manifests (a spec layer, never reasoned).
+SLICE_VOCABULARY_FILE = SLICES_DIR / "vocabulary.ttl"
 #: Single-source statement DSL (the canonical RDF 1.2 / RDF* statement-metadata
 #: layer — provenance, confidence, temporal scope). ``gmeow compile-statements``
 #: renders these cells to the RDF 1.2 lead artifact + the OWL axiom-annotation
 #: compatibility downcast. Authored, never generated; a spec layer (CONSTITUTION
 #: Principles 2-3). The RDF 1.2 form is canonical; the OWL form is the generated,
 #: reasoning-lossless downcast the OWL 2 DL reasoners consume.
-STATEMENT_DSL_DIR = PROJECT_ROOT / "statement-dsl"
+STATEMENT_DSL_DIR = PROJECT_ROOT / "dsl" / "statements"
 #: Generated statement-metadata artifacts (committed, like mappings/ — so the
 #: ``compile-statements --check`` no-drift gate has a committed target).
-STATEMENTS_DIR = PROJECT_ROOT / "statements"
+STATEMENTS_DIR = GENERATED_DIR / "statements"
 #: The RDF 1.2 / RDF* lead serialization (canonical statement-metadata form).
 STATEMENT_RDF12_FILE = STATEMENTS_DIR / "gmeow.rdf12.ttl"
 #: The OWL 2 axiom-annotation downcast (generated; consumed by the reasoner).
 STATEMENT_OWL_FILE = STATEMENTS_DIR / "gmeow-statements.owl.ttl"
 #: Vendored coverage fixtures (public site graphs) used by the coverage harness.
 FIXTURES_DIR = PROJECT_ROOT / "tests" / "fixtures" / "coverage"
-METADATA_DIR = PROJECT_ROOT / "metadata"
+#: Authored self-description stays in metadata/; the generated VoID/DCAT live
+#: under generated/metadata/ (#287).
+METADATA_DIR = GENERATED_DIR / "metadata"
 VOID_FILE = METADATA_DIR / "void.ttl"
 DCAT_FILE = METADATA_DIR / "dcat.ttl"
 
-APACHE_DIR = PROJECT_ROOT / "apache"
+APACHE_DIR = GENERATED_DIR / "apache"
 APACHE_CONF = APACHE_DIR / "gmeow.conf"
 
 CATALOG_FILE = PROJECT_ROOT / "catalog-v001.xml"
@@ -163,8 +177,8 @@ CATALOG_FILE = PROJECT_ROOT / "catalog-v001.xml"
 DIST_DIR = PROJECT_ROOT / "dist"
 DOCS_DIR = PROJECT_ROOT / "docs" / "_generated"
 #: LPG (Labeled Property Graph) export outputs.
-LPG_DIR = DIST_DIR / "lpg"
-SCHEMAS_DIR = DIST_DIR / "schemas"
+LPG_DIR = GENERATED_DIR / "lpg"
+SCHEMAS_DIR = GENERATED_DIR / "schemas"
 
 # --------------------------------------------------------------------------- #
 # Pinned Docker images (the Java toolchain — see plan)

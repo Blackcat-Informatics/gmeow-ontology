@@ -1,7 +1,8 @@
 """TQL — the GMEOW Temporal Query Language.
 
 A small *query algebra* over the events model, realized as parameterized SPARQL 1.1
-queries (``queries/temporal/*.rq``) rather than a bespoke temporal-query engine.
+queries (``slices/core/temporal/queries/tql/*.rq``) rather than a bespoke
+temporal-query engine.
 GMEOW aligns to the temporal-query literature — stSPARQL, T-SPARQL, SPARQL-ST — **by
 reference** (CONSTITUTION Principle 5): the model carries the Allen interval algebra
 (``gmeow:before``/``after``/``during``/… on ``gmeow:Event``) and the four clocks

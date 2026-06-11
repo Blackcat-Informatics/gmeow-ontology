@@ -123,7 +123,8 @@ ex:python a gmeow:ProgrammingLanguage ;
     gmeow:hasAppellation ex:pythonName .
 ex:pythonName a gmeow:Appellation ;
     gmeow:fullName "Python"@x-gmeow-english ; gmeow:namePurpose gmeow:namePurposeGlossonym .
-ex:someProject a gmeow:SoftwareProject ;
+ex:someProject a gmeow:SoftwareProject .
+ex:someProjectTree a gmeow:SourceTree ;
     gmeow:writtenInLanguage ex:python .
 
 # --- (f) German + English: endonym/exonym + leveled per-skill proficiency ---- #

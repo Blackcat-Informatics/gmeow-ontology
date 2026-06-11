@@ -15,8 +15,8 @@ import owlrl
 from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
 from rdflib.namespace import XSD
 
-from gmeow_tools.config import ONTOLOGY_DIR
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.slices import module_path
 from gmeow_tools.validate import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
@@ -2565,8 +2565,8 @@ def test_coordinate_observation_chain_fires() -> None:
     """A Place with a CoordinateObservation that has a GeoCoordinates result
     infers hasCoordinates via the property chain."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(module_path("places"), format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
 
     graph.add((EX_PLACES.testPlace, RDF.type, URIRef(GMEOW + "Place")))
     graph.add(
@@ -2610,8 +2610,8 @@ def test_geometry_observation_chain_fires() -> None:
     """A Place with a CoordinateObservation that has a Geometry result infers
     hasGeometry via the property chain."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(module_path("places"), format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
 
     graph.add((EX_PLACES.testPlace2, RDF.type, URIRef(GMEOW + "Place")))
     graph.add(

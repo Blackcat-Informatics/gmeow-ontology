@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/kernel>
+    a gmeow:Slice ;
+    rdfs:label "kernel"@x-gmeow-english ;
+    skos:definition "The kernel slice of the GMEOW ontology (core tier): GMEOW Core Module. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    dcterms:title "GMEOW Core Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceConsumer "Every slice: the gUFO-grounded kernel (Entity, Agent, InformationObject, base relations)."@x-gmeow-english .

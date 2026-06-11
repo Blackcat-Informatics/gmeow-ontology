@@ -18,12 +18,14 @@ from rdflib import OWL, RDF, Graph, Namespace, URIRef
 from gmeow_tools.config import (
     CATALOG_FILE,
     FIXTURES_DIR,
-    MODULES_DIR,
+    MAPPING_DSL_DIR,
     NAMESPACE,
     ONTOLOGY_FILE,
     PROJECT_ROOT,
     SHAPES_FILE,
+    STATEMENT_DSL_DIR,
 )
+from gmeow_tools.graph import iter_module_files
 
 GMEOW = Namespace(NAMESPACE)
 GMEOW_MODULES = NAMESPACE + "modules/"
@@ -33,8 +35,7 @@ GMEOW_EXAMPLES = NAMESPACE + "examples/"
 DOCS_DIR = PROJECT_ROOT / "docs"
 
 # DSL source directories whose terms are legitimate in docs prose.
-MAPPING_DSL_DIR = PROJECT_ROOT / "mapping-dsl"
-STATEMENT_DSL_DIR = PROJECT_ROOT / "statement-dsl"
+
 
 # Terms that are intentionally retired but still mentioned in docs as historical.
 _RETIRED_DOCS_TERMS = {
@@ -89,7 +90,7 @@ def test_all_modules_are_in_root_imports() -> None:
     }
 
     missing: list[str] = []
-    for module_path in sorted(MODULES_DIR.glob("*.ttl")):
+    for module_path in iter_module_files():
         module_graph = _parse_ttl(module_path)
         ontology_subjects = list(module_graph.subjects(RDF.type, OWL.Ontology))
         assert len(ontology_subjects) == 1, (
@@ -109,7 +110,7 @@ def test_all_modules_are_in_catalog() -> None:
     catalog_iris = {uri.get("name") for uri in catalog.findall(".//catalog:uri", ns)}
 
     missing: list[str] = []
-    for module_path in sorted(MODULES_DIR.glob("*.ttl")):
+    for module_path in iter_module_files():
         module_graph = _parse_ttl(module_path)
         ontology_subjects = list(module_graph.subjects(RDF.type, OWL.Ontology))
         module_iri = str(ontology_subjects[0])
@@ -120,13 +121,21 @@ def test_all_modules_are_in_catalog() -> None:
 
 
 def test_module_iri_matches_filename() -> None:
-    """Each module's owl:Ontology IRI should follow https://blackcatinformatics.ca/gmeow/modules/<stem>."""
+    """Each module's owl:Ontology IRI follows its location.
+
+    Flat modules: ``…/gmeow/modules/<stem>``. Slice modules
+    (``slices/<group>/<name>/module.ttl``, #287): ``…/gmeow/slices/<name>`` —
+    the unified slice IRI, named by the slice directory, never the group.
+    """
     mismatches: list[tuple[str, str]] = []
-    for module_path in sorted(MODULES_DIR.glob("*.ttl")):
+    for module_path in iter_module_files():
         module_graph = _parse_ttl(module_path)
         ontology_subjects = list(module_graph.subjects(RDF.type, OWL.Ontology))
         module_iri = str(ontology_subjects[0])
-        expected = GMEOW_MODULES + module_path.stem
+        if module_path.name == "module.ttl":
+            expected = f"{NAMESPACE}slices/{module_path.parent.name}"
+        else:
+            expected = GMEOW_MODULES + module_path.stem
         if module_iri != expected:
             mismatches.append((module_path.name, module_iri))
 
@@ -141,7 +150,7 @@ def test_module_iri_matches_filename() -> None:
 def _declared_ontology_terms() -> set[str]:
     """Build the set of GMEOW terms declared as subjects in the ontology."""
     declared: set[str] = set()
-    for path in [ONTOLOGY_FILE, *sorted(MODULES_DIR.glob("*.ttl"))]:
+    for path in [ONTOLOGY_FILE, *iter_module_files()]:
         declared.update(_subjects(_parse_ttl(path)))
     # Exclude module ontology IRIs themselves — they are not vocabulary terms.
     declared = {s for s in declared if not s.startswith(GMEOW_MODULES)}

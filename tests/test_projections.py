@@ -8,7 +8,12 @@ import pyoxigraph
 from rdflib import RDF, XSD, Graph, Literal, URIRef
 
 from gmeow_tools import sparql
-from gmeow_tools.config import FIXTURES_DIR, PROJECTION_QUERY_DIR, PROJECTIONS_DIR
+from gmeow_tools.config import (
+    FIXTURES_DIR,
+    MAPPING_DSL_DIR,
+    PROJECTION_QUERY_DIR,
+    PROJECTIONS_DIR,
+)
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.projections import PROFILES, project_examples, project_graph
 
@@ -62,7 +67,11 @@ def test_fno_edoal_specs_parse() -> None:
         "foaf.edoal.ttl",
     )
     for name in required:
-        spec = PROJECTIONS_DIR / name
+        spec = (
+            MAPPING_DSL_DIR / name
+            if name == "transforms.fno.ttl"
+            else PROJECTIONS_DIR / name
+        )
         assert spec.exists(), f"missing projection spec: {name}"
         assert len(Graph().parse(spec, format="turtle")) > 0
 

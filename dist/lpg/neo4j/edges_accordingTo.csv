@@ -1,2 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:c44590d1f02100c8,gmeow:examples/claim-hogwarts-in-canon,gmeow:examples/narrative-frame-harry-potter,accordingTo,gmeow:examples/standpoint-publisher,2026-06-07T00:00:00Z,0.95,,,,,,

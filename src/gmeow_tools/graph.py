@@ -15,15 +15,19 @@ from rdflib import Graph
 
 from gmeow_tools.config import (
     IMPORTS_DIR,
-    MODULES_DIR,
     ONTOLOGY_FILE,
     PREFIXES,
 )
+from gmeow_tools.slices import iter_slice_module_files
 
 
 def iter_module_files() -> list[Path]:
-    """Return the GMEOW module Turtle files in sorted order."""
-    return sorted(MODULES_DIR.glob("*.ttl"))
+    """Return every slice's module file (``slices/*/*/module.ttl``), sorted.
+
+    The single module enumerator (#287): every canonical terms file lives in
+    a slice; there is no other location.
+    """
+    return iter_slice_module_files()
 
 
 def iter_import_files() -> list[Path]:

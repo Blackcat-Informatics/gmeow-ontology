@@ -24,6 +24,7 @@ from gmeow_tools.config import (
     VERIFY_DIR,
 )
 from gmeow_tools.runner import run_container
+from gmeow_tools.slices import iter_slice_query_files
 
 #: Canonical merged (asserted) release product.
 MERGED_FILE = DIST_DIR / "gmeow-merged.ttl"
@@ -197,6 +198,9 @@ def verify(
     if not merged.exists():
         merge_release(merged)
     query_files = sorted(queries.glob("*.rq"))
+    if queries == VERIFY_DIR:
+        # Slices carry their own verify queries (slices/*/*/queries/verify/).
+        query_files += iter_slice_query_files("verify")
     if not query_files:
         raise FileNotFoundError(f"no verify queries found in {queries}")
     output_dir.mkdir(parents=True, exist_ok=True)

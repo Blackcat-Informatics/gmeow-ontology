@@ -1,0 +1,144 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix fno:     <https://w3id.org/function/ontology#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema:  <https://schema.org/> .
+
+# FnO catalog of LANGUAGE TRANSFORMATIONS — transliteration, transcription and
+# translation modelled as declarative functions. Unlike functions.fno.ttl (which
+# describes GMEOW→external PROJECTION transforms), these are DOMAIN conversions:
+# each names a system (Hepburn, Pinyin, ISO 233, IPA, …) and links it to the
+# gmeow:TransliterationScheme value individual it realises, so a gmeow:romanization
+# can record HOW it was derived (names module: gmeow:transliterationScheme). A
+# consumable spec — NOT imported into the ontology and never reasoned over; the
+# executable HOW (a real transliterator) is out of scope, intentionally pluggable.
+
+<https://blackcatinformatics.ca/gmeow/mapping-dsl/transforms>
+    a owl:Ontology ;
+    rdfs:label "GMEOW language transformation functions (FnO)"@x-gmeow-english ;
+    skos:definition "Hand-authored FnO catalog of language transformations — transliteration, transcription and translation as declarative functions, each realising a gmeow:TransliterationScheme value individual. A consumable spec layer beside the mapping DSL; never reasoned."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# --- Transliteration (script → script; reversible by design) ---------------- #
+
+gmeow:fnRomanizeHepburn
+    a fno:Function ;
+    rdfs:label "Hepburn romanization (Japanese kana/kanji → Latin)"@x-gmeow-english ;
+    dcterms:description "Transliterates Japanese (kana, with kanji readings) to the Latin script per the Hepburn system (山田太郎 → \"Yamada Tarō\"). Realises gmeow:schemeHepburn. Reversible for kana; lossy for kanji (requires readings)."@x-gmeow-english ;
+    fno:expects ( gmeow:pSourceText ) ;
+    fno:returns ( gmeow:oTransliterated ) ;
+    rdfs:seeAlso gmeow:schemeHepburn .
+
+gmeow:fnRomanizeKunrei
+    a fno:Function ;
+    rdfs:label "Kunrei-shiki romanization (Japanese → Latin)"@x-gmeow-english ;
+    dcterms:description "Transliterates Japanese kana to Latin per the ISO 3602 Kunrei-shiki system (a systematic alternative to Hepburn). Realises gmeow:schemeKunreiShiki. Reversible."@x-gmeow-english ;
+    fno:expects ( gmeow:pSourceText ) ;
+    fno:returns ( gmeow:oTransliterated ) ;
+    rdfs:seeAlso gmeow:schemeKunreiShiki .
+
+gmeow:fnRomanizePinyin
+    a fno:Function ;
+    rdfs:label "Hanyu Pinyin romanization (Mandarin → Latin)"@x-gmeow-english ;
+    dcterms:description "Transliterates Mandarin Chinese to the Latin script with tone marks per Hanyu Pinyin (北京 → \"Běijīng\"). Realises gmeow:schemePinyin. Lossy without readings; tone-mark variants exist."@x-gmeow-english ;
+    fno:expects ( gmeow:pSourceText ) ;
+    fno:returns ( gmeow:oTransliterated ) ;
+    rdfs:seeAlso gmeow:schemePinyin .
+
+gmeow:fnRomanizeWadeGiles
+    a fno:Function ;
+    rdfs:label "Wade-Giles romanization (Mandarin → Latin)"@x-gmeow-english ;
+    dcterms:description "Transliterates Mandarin to Latin per the older Wade-Giles system (北京 → \"Pei-ching\"). Realises gmeow:schemeWadeGiles."@x-gmeow-english ;
+    fno:expects ( gmeow:pSourceText ) ;
+    fno:returns ( gmeow:oTransliterated ) ;
+    rdfs:seeAlso gmeow:schemeWadeGiles .
+
+gmeow:fnRomanizeRevisedRomanization
+    a fno:Function ;
+    rdfs:label "Revised Romanization (Korean → Latin)"@x-gmeow-english ;
+    dcterms:description "Transliterates Korean Hangul to Latin per the Revised Romanization of Korean (서울 → \"Seoul\"). Realises gmeow:schemeRevisedRomanization."@x-gmeow-english ;
+    fno:expects ( gmeow:pSourceText ) ;
+    fno:returns ( gmeow:oTransliterated ) ;
+    rdfs:seeAlso gmeow:schemeRevisedRomanization .
+
+gmeow:fnTransliterateISO233
+    a fno:Function ;
+    rdfs:label "ISO 233 transliteration (Arabic → Latin)"@x-gmeow-english ;
+    dcterms:description "Transliterates Arabic script to Latin per ISO 233. Realises gmeow:schemeISO233. Reversible (character-level)."@x-gmeow-english ;
+    fno:expects ( gmeow:pSourceText ) ;
+    fno:returns ( gmeow:oTransliterated ) ;
+    rdfs:seeAlso gmeow:schemeISO233 .
+
+gmeow:fnTransliterateISO15919
+    a fno:Function ;
+    rdfs:label "ISO 15919 transliteration (Indic → Latin)"@x-gmeow-english ;
+    dcterms:description "Transliterates Brahmic/Indic scripts to Latin per ISO 15919. Realises gmeow:schemeISO15919. Reversible."@x-gmeow-english ;
+    fno:expects ( gmeow:pSourceText ) ;
+    fno:returns ( gmeow:oTransliterated ) ;
+    rdfs:seeAlso gmeow:schemeISO15919 .
+
+# --- Transcription (→ phonetic representation; not reversible) --------------- #
+
+gmeow:fnTranscribeIPA
+    a fno:Function ;
+    rdfs:label "IPA phonetic transcription"@x-gmeow-english ;
+    dcterms:description "Transcribes spoken/written language to the International Phonetic Alphabet — a phonetic representation, not a script transliteration (\"Yamada\" → /jamada/). Realises gmeow:schemeIPA. NOT reversible (phonetic, language-specific)."@x-gmeow-english ;
+    fno:expects ( gmeow:pSourceText ) ;
+    fno:returns ( gmeow:oTranscribed ) ;
+    rdfs:seeAlso gmeow:schemeIPA .
+
+# --- Translation (language → language; meaning-preserving, lossy) ------------ #
+
+gmeow:fnTranslate
+    a fno:Function ;
+    rdfs:label "translate (language → language)"@x-gmeow-english ;
+    dcterms:description "Translates an expression from a source language to a target language, preserving meaning rather than form. A translation relates two CO-EQUAL expressions (neither subordinate); it is not a transliteration and never a name-of-a-person operation. Lossy and context-dependent; the source and target languages are gmeow:Language inputs."@x-gmeow-english ;
+    fno:expects ( gmeow:pSourceText gmeow:pTargetLanguage ) ;
+    fno:returns ( gmeow:oTranslated ) ;
+    rdfs:seeAlso <https://www.wikidata.org/entity/Q7553> .
+
+# --- Shared parameters / outputs (declarative; no bound executor) ----------- #
+
+gmeow:pSourceText      a fno:Parameter ; fno:predicate gmeow:fullName ; fno:type rdfs:Literal ; fno:required true ;
+    rdfs:label "source text"@x-gmeow-english ;
+    skos:definition "The input literal to a language transformation — the text to transliterate, transcribe, or translate."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pTargetLanguage  a fno:Parameter ; fno:predicate gmeow:targetLanguage ; fno:type gmeow:Language ; fno:required true ;
+    rdfs:label "target language"@x-gmeow-english ;
+    skos:definition "The first-class gmeow:Language the transformation targets."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:oTransliterated  a fno:Output ; fno:predicate gmeow:romanization ; fno:type rdfs:Literal ;
+    rdfs:label "transliterated output"@x-gmeow-english ;
+    skos:definition "The transliterated literal produced by a romanization/transliteration function; recorded as a gmeow:romanization."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:oTranscribed     a fno:Output ; fno:predicate gmeow:projectedTranscription ; fno:type rdfs:Literal ;
+    rdfs:label "transcribed output"@x-gmeow-english ;
+    skos:definition "The phonetic transcription literal produced by a transcription function (e.g. IPA)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:oTranslated      a fno:Output ; fno:predicate gmeow:projectedTranslation ; fno:type rdfs:Literal ;
+    rdfs:label "translated output"@x-gmeow-english ;
+    skos:definition "The translated literal produced by a translation function."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+# --- Projection-domain transforms (issue #263) ----------------------------- #
+
+gmeow:fnSkillProficiencyToKnowsAbout
+    a fno:Function ;
+    rdfs:label "SkillProficiency → schema:knowsAbout/skills (lossy flatten)"@x-gmeow-english ;
+    dcterms:description "Projects a reified gmeow:SkillProficiency relator to a flat schema:knowsAbout or schema:skills edge. Lossy: level, scale, interval, standpoint, and confidence are dropped."@x-gmeow-english ;
+    fno:expects ( gmeow:pSkillProficiency ) ;
+    fno:returns ( gmeow:oKnowsAbout ) ;
+    rdfs:seeAlso gmeow:hasSkill .
+
+gmeow:pSkillProficiency a fno:Parameter ; fno:predicate gmeow:hasSkill ; fno:type gmeow:Skill ; fno:required true ;
+    rdfs:label "skill proficiency input"@x-gmeow-english ;
+    skos:definition "The gmeow:Skill borne by a SkillProficiency, input to the knowsAbout projection."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:oKnowsAbout       a fno:Output ;     fno:predicate schema:knowsAbout ;     fno:type gmeow:Skill ;
+    rdfs:label "knowsAbout output"@x-gmeow-english ;
+    skos:definition "The schema:knowsAbout value emitted for a skill proficiency by the projection."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .

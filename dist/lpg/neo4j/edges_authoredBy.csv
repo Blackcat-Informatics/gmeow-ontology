@@ -1,2 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:520d41adcb6e0d23,gmeow:examples/aiCommit,gmeow:examples/copilot,authoredBy,,2026-06-09T10:00:00Z,0.9,,,True,,2026-06-09,

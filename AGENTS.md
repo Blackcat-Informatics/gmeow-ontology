@@ -16,8 +16,8 @@ Every design decision, code modification, and schema change is governed by the t
 ### Critical Ontological Rules
 
 * **One Canonical Source (Principle 4)**: Do not hand-edit generated files. Any change must be made in the canonical source files.
-  * **Mappings**: Authored in [mapping-dsl/](./mapping-dsl/) -> compiled to `mappings/`, `projections/`, etc.
-  * **Statements**: Authored in [statement-dsl/](./statement-dsl/) -> compiled to `statements/`.
+  * **Mappings**: Authored in [dsl/mappings/](./dsl/mappings/) -> compiled to `generated/`
+  * **Statements**: Authored in [dsl/statements/](./dsl/statements/) -> compiled to `generated/statements/`.
 * **RDF 1.2 / RDF\*-first (Principles 2 & 3)**: Statement-level metadata (provenance, confidence, temporal scope) is authored as native RDF 1.2 / RDF\* in the statement DSL. The logical core stays OWL 2 DL.
 * **Co-equal & Non-privileged (Principles 9 & 10)**: There is no `primaryName`, `preferredGender`, or single-winner preference. A contested fact is represented as coexisting standpoint-indexed claims. A superseded label/deadname is suppressed using `gmeow:displayable false` rather than deleted.
 
@@ -39,12 +39,17 @@ make lint            # Run ruff check, ruff format --check, and mypy
 
 ```bash
 make validate        # Validate Turtle syntax, term annotations, and SHACL
-make compile-mappings # Compile mapping-dsl/ to mappings/ and projections/ (run after changing DSL)
-make compile-statements # Compile statement-dsl/ to statements/ (run after changing statement DSL)
-make compile-check   # Validate that committed projection artifacts match mapping-dsl/
-make statements-check # Validate that committed statement artifacts match statement-dsl/
+make regenerate      # Rebuild ALL committed generated artifacts (the #279 registry)
+make check-generated # Drift + orphan + internal-tag-leak check for every registered generator
 make wikidata        # Validate Wikidata QID/PID syntax in the mappings (offline)
 ```
+
+The per-artifact `compile-*` commands were replaced by the unified generator
+registry (#279): every committed artifact under `generated/` is produced by a
+registered generator with staging, source-hash banners, drift detection,
+orphan detection, and the internal-tag leak gate (no `@x-gmeow-*` tag may
+appear in a generated artifact; the statements compilation — the canonical
+internal form — is the sole opt-out).
 
 #### Annotation-completeness gate (issue #221)
 
@@ -75,18 +80,19 @@ make commit          # Run regenerate, stage the artifacts, and commit (default 
 make commit MESSAGE="feat: ..."  # Same, with a custom commit message
 ```
 
-`make regenerate` runs the generators in dependency order: `compile-mappings` → `compile-statements` → `metadata` → `apache` → `export`. It refreshes:
+`make regenerate` runs the registered generators in topological order. It refreshes everything under `generated/`:
 
-* `mappings/`, `projections/`, `queries/projections/` — from `compile-mappings`
-* `statements/` — from `compile-statements`
-* `metadata/void.ttl`, `metadata/dcat.ttl` — from `metadata`
-* `apache/gmeow.conf` — from `apache`
-* `dist/lpg/` — from `lpg`
+* `generated/mappings/`, `generated/projections/`, `generated/queries/` — the `mappings` generator
+* `generated/statements/` — the `statements` generator (RDF 1.2 lead + OWL downcast)
+* `generated/metadata/void.ttl`, `generated/metadata/dcat.ttl` — the `metadata` generator
+* `generated/apache/gmeow.conf` — the `apache` generator
+* `generated/lpg/`, `generated/schemas/` — the `lpg` and `schemas` generators
+* `generated/module-status.md` — the `matrix` generator (the per-slice audit ledger)
 
-`make commit` stages only the generated artifacts above. If you also have source changes (e.g. in `mapping-dsl/`), stage them separately with `git add` before running `make commit`, or amend the commit afterward.
+`make commit` stages only the generated artifacts above. If you also have source changes (e.g. in `dsl/mappings/`), stage them separately with `git add` before running `make commit`, or amend the commit afterward.
 
 > [!TIP]
-> If you suspect generated files are stale but do not want to commit yet, run `make regenerate` followed by `make check` to verify the full gate still passes.
+> If you suspect generated files are stale but do not want to commit yet, run `make regenerate` followed by `make check-generated` to verify the full gate still passes.
 
 ### Reasoning & Negative Tests
 
@@ -115,17 +121,17 @@ The Makefile is only a task runner. The actual compiler and validation logic liv
 
 ### Mapping Compiler
 
-`make compile-mappings` runs `uv run gmeow compile-mappings`, implemented by [src/gmeow_tools/mapping_dsl.py](./src/gmeow_tools/mapping_dsl.py) and [src/gmeow_tools/mapping_compile.py](./src/gmeow_tools/mapping_compile.py).
+Mapping compilation runs inside `gmeow regenerate` (the `mappings` generator), implemented by [src/gmeow_tools/mapping_dsl.py](./src/gmeow_tools/mapping_dsl.py) and [src/gmeow_tools/mapping_compile.py](./src/gmeow_tools/mapping_compile.py).
 
-* **Canonical input**: all Turtle files under [mapping-dsl/](./mapping-dsl/), plus the DSL vocabulary in [mapping-dsl/vocabulary.ttl](./mapping-dsl/vocabulary.ttl).
+* **Canonical input**: all Turtle files under [dsl/mappings/](./dsl/mappings/), plus the DSL vocabulary in [dsl/mappings/vocabulary.ttl](./dsl/mappings/vocabulary.ttl).
 * **Generated outputs**:
   * `mappings/*.sssom.tsv` — SSSOM term-equivalence rows.
   * `projections/*.edoal.ttl` — EDOAL alignment cells.
   * `projections/functions.fno.ttl` — generated FnO function catalog.
   * `queries/projections/*.rq` — executable SPARQL CONSTRUCT projection queries.
-* **Hand-authored companion file**: `projections/transforms.fno.ttl` is read by the compiler/lints but is not generated by `compile-mappings`.
+* **Hand-authored companion file**: `dsl/mappings/transforms.fno.ttl` is read by the compiler/lints but is authored, never generated.
 * **Important behavior**: the compiler first renders artifacts into a temporary tree, runs projection cross-layer invariants, and only then writes generated files. If an invariant fails, nothing is written.
-* **Drift check**: `make compile-check` runs the same render into a temp tree with `--check`, compares generated RDF by graph isomorphism and TSV/SPARQL by bytes, and fails if committed artifacts are stale.
+* **Drift check**: `make check-generated` renders into a staging tree, compares against the committed `generated/` artifacts, detects orphans, and enforces the internal-tag leak gate.
 
 The mapping DSL has two main authoring units:
 
@@ -136,24 +142,24 @@ Do not patch a generated SSSOM, EDOAL, FnO, or projection query file directly to
 
 ### Statement Compiler
 
-`make compile-statements` runs `uv run gmeow compile-statements`, implemented by [src/gmeow_tools/statement_dsl.py](./src/gmeow_tools/statement_dsl.py) and [src/gmeow_tools/statement_compile.py](./src/gmeow_tools/statement_compile.py).
+Statement compilation runs inside `gmeow regenerate` (the `statements` generator), implemented by [src/gmeow_tools/statement_dsl.py](./src/gmeow_tools/statement_dsl.py) and [src/gmeow_tools/statement_compile.py](./src/gmeow_tools/statement_compile.py).
 
-* **Canonical input**: all Turtle files under [statement-dsl/](./statement-dsl/), plus the DSL vocabulary in [statement-dsl/vocabulary.ttl](./statement-dsl/vocabulary.ttl).
+* **Canonical input**: all Turtle files under [dsl/statements/](./dsl/statements/), plus the DSL vocabulary in [statement-dsl/vocabulary.ttl](./statement-dsl/vocabulary.ttl).
 * **Generated outputs**:
-  * `statements/gmeow.rdf12.ttl` — RDF 1.2 / RDF* lead artifact, emitted through Apache Jena because rdflib cannot yet parse/write native RDF 1.2 triple-term Turtle.
-  * `statements/gmeow-statements.owl.ttl` — OWL 2 axiom-annotation downcast consumed by OWL 2 DL reasoners.
+  * `generated/statements/gmeow.rdf12.ttl` — RDF 1.2 / RDF* lead artifact, emitted through Apache Jena because rdflib cannot yet parse/write native RDF 1.2 triple-term Turtle.
+  * `generated/statements/gmeow-statements.owl.ttl` — OWL 2 axiom-annotation downcast consumed by OWL 2 DL reasoners.
 * **Important behavior**: the DSL is plain Turtle that structurally mirrors RDF 1.2 reifying statements. The compiler emits the OWL form, projects it to RDF 1.2 with Jena, then normalizes the RDF 1.2 form back to OWL and requires graph isomorphism before writing.
 * **Drift check**: `make statements-check` performs the same compile in check mode and fails if committed statement artifacts are stale.
 
-Do not edit `statements/gmeow.rdf12.ttl` or `statements/gmeow-statements.owl.ttl` directly. If metadata is wrong, fix the `gmeow:StatementMetadata` cells in `statement-dsl/`.
+Do not edit `generated/statements/gmeow.rdf12.ttl` or `generated/statements/gmeow-statements.owl.ttl` directly. If metadata is wrong, fix the `gmeow:StatementMetadata` cells in `dsl/statements/`.
 
 ### Generated Artifact Rule
 
 Generated files contain a `GENERATED by ... DO NOT EDIT` banner where practical. Treat that as binding:
 
-* Source changes belong in `ontology/modules/`, `mapping-dsl/`, `statement-dsl/`, shapes, queries, tests, or toolchain source.
+* Source changes belong in `slices/<group>/<name>/module.ttl`, `dsl/mappings/`, `dsl/statements/`, shapes, queries, tests, or toolchain source.
 * Generated artifact changes must be reproducible by the relevant `make compile-*` target.
-* If `make compile-check` or `make statements-check` reports drift, run the matching compiler rather than hand-editing the output.
+* If `make check-generated` reports drift, run `make regenerate` rather than hand-editing the output.
 * If a generated artifact is nondeterministic, fix the compiler determinism bug. Do not normalize the artifact by hand.
 
 ### Vocabulary Index (llms.txt)
@@ -166,23 +172,33 @@ If you are an agent trying to look up terms, resolve definitions, or discover vo
 
 ## 4. Directory Layout
 
-* `ontology/modules/` — Canonical Turtle ontology modules. Add new terms here.
-* `mapping-dsl/` — DSL files for alignments. Edit mappings here.
-* `statement-dsl/` — DSL files for statement-level metadata. Edit statement provenance here.
-* `shapes/` — SHACL validation shapes.
-* `queries/verify/` — Negative tests/QC SPARQL queries.
-* `src/gmeow_tools/` — The toolchain CLI Python source code.
-* `tests/` — Integration and competency tests.
+**The one rule (#287):** if a path is under `generated/`, a registered generator owns it and you never edit it; if it is under `dist/`, it is ephemeral and never committed; anything else is authored by a human.
 
-Generated or partially generated areas:
+```text
+slices/<group>/<name>/   # THE unit of the ontology: a slice. The <group> segment
+                         #   (core/, extensions/) is human organization only —
+                         #   manifest.ttl is the SOLE source of identity (IRI) and
+                         #   tier. Anatomy (discovered, never configured):
+                         #   manifest.ttl, module.ttl, shapes.ttl, mappings/,
+                         #   queries/, tests/, docs.md
+slices/vocabulary.ttl    # The slice-manifest authoring vocabulary (spec layer)
+ontology/gmeow.ttl       # Root ontology (owl:imports of every slice)
+dsl/mappings/            # Mapping DSL: vocabulary, foundational bridge, per-target
+                         #   projections, shared equivalences, transforms.fno.ttl
+dsl/statements/          # Statement DSL (canonical RDF 1.2 statement metadata)
+shapes/                  # Authored SHACL (incl. slice-manifest-shapes.ttl)
+queries/                 # Authored SPARQL: competency/, verify/, qc/, codecs/
+imports/                 # Vendored externals (gUFO + validation snapshots)
+docs/                    # Cross-slice doctrine docs (slice guides live IN slices)
+generated/               # EVERY committed generated artifact, one root:
+                         #   mappings/ projections/ queries/ statements/ schemas/
+                         #   lpg/ metadata/ apache/ module-status.md
+dist/                    # Ephemeral build products (one .gitignore line)
+src/gmeow_tools/         # The toolchain (CLI: `gmeow …`)
+tests/                   # Cross-slice tests (slice-local tests live IN slices)
+```
 
-* `mappings/` — Generated SSSOM files from `mapping-dsl/`.
-* `projections/` — Generated EDOAL/FnO files, except hand-authored `projections/transforms.fno.ttl`.
-* `queries/projections/` — Generated projection CONSTRUCT queries.
-* `statements/` — Generated RDF 1.2 lead artifact and OWL 2 downcast from `statement-dsl/`.
-* `dist/` and `docs/_generated/` — Build, documentation, metadata, export, and release artifacts.
-
----
+Slice rules (Principles 15–16): core slices interlink freely and reason as one union; **extension slices depend only on core** (the dependency DAG gate rejects extension→extension edges); every slice names its consumer in the manifest; every term is *declared* in exactly one slice. To add a slice, copy any core slice's anatomy — there is nothing else to learn. The generated `generated/module-status.md` matrix tracks tier, dependencies, and documentation status per slice.
 
 ## 5. PR Lifecycle: Rebase, Review, Push
 
@@ -238,18 +254,17 @@ Apply fixes **only in canonical source files** (Principle 4):
 
 | Review target | Canonical source to edit |
 |---|---|
-| SSSOM / EDOAL / FnO / projection queries | `mapping-dsl/` |
-| RDF 1.2 / OWL statement artifacts | `statement-dsl/` |
-| Ontology terms, axioms, observation bridges | `ontology/modules/` |
+| SSSOM / EDOAL / FnO / projection queries | `dsl/mappings/` |
+| RDF 1.2 / OWL statement artifacts | `dsl/statements/` |
+| Ontology terms, axioms, observation bridges | `slices/<group>/<name>/module.ttl` |
 | SHACL shapes | `shapes/` |
 | Tests, fixtures | `tests/` |
 
 Never patch generated artifacts by hand. After editing canonical sources, regenerate:
 
 ```bash
-make compile-mappings    # if mapping-dsl/ changed
-make compile-statements  # if statement-dsl/ changed
-make regenerate          # full rebuild of all generated artifacts
+make regenerate          # after ANY canonical-source change
+make check-generated     # verify no drift remains
 ```
 
 ### Validate before pushing

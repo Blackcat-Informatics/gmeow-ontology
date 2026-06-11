@@ -1,3 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:430855ef112d21e3,gmeow:examples/rights/contested-trademark,gmeow:examples/rights/acme,trademarkHolder,gmeow:examples/rights/standpoint-acme,,0.6,,,,,,
-edge:d200901e7f89b566,gmeow:examples/rights/contested-trademark,gmeow:examples/rights/omega,trademarkHolder,gmeow:examples/rights/standpoint-omega,,0.6,,,,,,

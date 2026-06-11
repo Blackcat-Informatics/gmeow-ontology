@@ -33,8 +33,8 @@ from rdflib.term import Node
 from sssom.validators import validate
 
 from gmeow_tools.config import (
+    MAPPING_DSL_DIR,
     MAPPINGS_DIR,
-    MODULES_DIR,
     ONTOLOGY_IRI,
     PREFIXES,
     PROJECT_ROOT,
@@ -42,7 +42,8 @@ from gmeow_tools.config import (
     PROJECTIONS_DIR,
 )
 from gmeow_tools.generator import Generator, rdf_compare, register
-from gmeow_tools.graph import bind_prefixes, load_merged_graph
+from gmeow_tools.graph import bind_prefixes, iter_module_files, load_merged_graph
+from gmeow_tools.language_tags import retag_graph
 from gmeow_tools.mapping_dsl import (
     Atom,
     CompileError,
@@ -63,6 +64,7 @@ from gmeow_tools.projection_lint import (
     projection_spec_drift,
 )
 from gmeow_tools.self_desc import load_self_description
+from gmeow_tools.slices import iter_slice_mapping_files
 
 GM = Namespace(PREFIXES["gmeow"])
 FNO = Namespace(PREFIXES["fno"])
@@ -1107,7 +1109,7 @@ def _prefix_block(text: str) -> str:
 #: projection — choosing one standpoint in a down-projection would re-create the
 #: single winning slot the facility exists to abolish (Principle 9: no single slot
 #: to win). A flat, perspectiveless format simply cannot carry "according to whom".
-_STANDPOINT_OWL2_QUERY = "queries/projections/standpoint-owl2.rq"
+_STANDPOINT_OWL2_QUERY = "generated/queries/standpoint-owl2.rq"
 _STANDPOINT_LABEL_IRI = f"{ONTOLOGY_IRI}#standpointLabel"
 
 
@@ -1196,7 +1198,7 @@ def emit_standpoint_owl2_sparql() -> str:
 #: J5 holds to be a belief value). This carries the FULL belief-value space
 #: (true/probable/possible/false), so a standpoint's DENIAL is first-class — the
 #: parity that makes GMEOW at least as expressive as CRMinf.
-_STANDPOINT_CRMINF_QUERY = "queries/projections/standpoint-crminf.rq"
+_STANDPOINT_CRMINF_QUERY = "generated/queries/standpoint-crminf.rq"
 
 
 def emit_standpoint_crminf_sparql() -> str:
@@ -1284,7 +1286,7 @@ def emit_standpoint_crminf_sparql() -> str:
 #: attributed (prov:qualifiedAttribution) to its standpoint agent. Perspective-
 #: preserving (every standpoint retained, none privileged), lossy on the belief
 #: value / confidence (carried by the CRMinf + OWL 2 projections).
-_STANDPOINT_PROV_QUERY = "queries/projections/standpoint-prov.rq"
+_STANDPOINT_PROV_QUERY = "generated/queries/standpoint-prov.rq"
 
 
 def emit_standpoint_prov_sparql() -> str:
@@ -1352,7 +1354,7 @@ def emit_standpoint_prov_sparql() -> str:
 #: The Web Annotation (OA) projection — each standpoint-indexed claim becomes an
 #: oa:Annotation: body = the quoted statement, target = its subject, creator = the
 #: standpoint. Perspective-preserving, lossy on the belief value / confidence.
-_STANDPOINT_OA_QUERY = "queries/projections/standpoint-oa.rq"
+_STANDPOINT_OA_QUERY = "generated/queries/standpoint-oa.rq"
 
 
 def emit_standpoint_oa_sparql() -> str:
@@ -1420,7 +1422,7 @@ def emit_standpoint_oa_sparql() -> str:
 #: schema:Claim authored by its standpoint, for the web / fact-check ecosystem. A
 #: refuted (denied) claim is excluded (schema:author would misread denial as
 #: authorship); denials are carried by the CRMinf projection.
-_STANDPOINT_SCHEMA_QUERY = "queries/projections/standpoint-schema.rq"
+_STANDPOINT_SCHEMA_QUERY = "generated/queries/standpoint-schema.rq"
 
 
 def emit_standpoint_schema_sparql() -> str:
@@ -1488,7 +1490,7 @@ def emit_standpoint_schema_sparql() -> str:
 
 #: The BBC News Ontology projection — standpoint-claims about events become
 #: bbc:NewsEvent individuals with standpoint metadata.
-_STANDPOINT_BBC_QUERY = "queries/projections/standpoint-bbc.rq"
+_STANDPOINT_BBC_QUERY = "generated/queries/standpoint-bbc.rq"
 
 
 def emit_standpoint_bbc_sparql() -> str:
@@ -1570,18 +1572,24 @@ def _artifacts(
     dsl: Dsl, onto: Graph
 ) -> tuple[dict[str, Graph], dict[str, str], dict[str, str]]:
     """Render every artifact. Returns (rdf_graphs, sparql_texts, sssom_texts)."""
-    rdf_graphs: dict[str, Graph] = {f"projections/{_FNO_FILE}": emit_fno(dsl, onto)}
+    rdf_graphs: dict[str, Graph] = {
+        f"generated/projections/{_FNO_FILE}": emit_fno(dsl, onto)
+    }
     sparql_texts: dict[str, str] = {}
     for profile in _PROFILES:
-        rdf_graphs[f"projections/{profile}.edoal.ttl"] = emit_edoal(dsl, profile)
-        sparql_texts[f"queries/projections/{profile}.rq"] = emit_sparql(dsl, profile)
+        rdf_graphs[f"generated/projections/{profile}.edoal.ttl"] = emit_edoal(
+            dsl, profile
+        )
+        sparql_texts[f"generated/queries/{profile}.rq"] = emit_sparql(dsl, profile)
     sparql_texts[_STANDPOINT_OWL2_QUERY] = emit_standpoint_owl2_sparql()
     sparql_texts[_STANDPOINT_CRMINF_QUERY] = emit_standpoint_crminf_sparql()
     sparql_texts[_STANDPOINT_PROV_QUERY] = emit_standpoint_prov_sparql()
     sparql_texts[_STANDPOINT_OA_QUERY] = emit_standpoint_oa_sparql()
     sparql_texts[_STANDPOINT_SCHEMA_QUERY] = emit_standpoint_schema_sparql()
     sparql_texts[_STANDPOINT_BBC_QUERY] = emit_standpoint_bbc_sparql()
-    sssom_texts = {f"mappings/{file}": text for file, text in emit_sssom(dsl).items()}
+    sssom_texts = {
+        f"generated/mappings/{file}": text for file, text in emit_sssom(dsl).items()
+    }
     return rdf_graphs, sparql_texts, sssom_texts
 
 
@@ -1592,6 +1600,7 @@ def _write_tree(
     sssom_texts: dict[str, str],
 ) -> None:
     for rel, graph in rdf_graphs.items():
+        retag_graph(graph)  # projection boundary: public BCP-47 only (#287)
         path = root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
         # Normalise the trailing newline so the pre-commit end-of-file fixer
@@ -1608,11 +1617,12 @@ def _run_invariants(root: Path) -> list[str]:
     """Run the three projection-lint invariants against a rendered tree."""
     # transforms.fno.ttl is hand-authored — copy it in so the FnO lint sees it.
     shutil.copy2(
-        PROJECTIONS_DIR / _TRANSFORMS_FILE, root / "projections" / _TRANSFORMS_FILE
+        MAPPING_DSL_DIR / _TRANSFORMS_FILE,
+        root / "generated" / "projections" / _TRANSFORMS_FILE,
     )
-    proj = root / "projections"
-    queries = root / "queries" / "projections"
-    maps = root / "mappings"
+    proj = root / "generated" / "projections"
+    queries = root / "generated" / "queries"
+    maps = root / "generated" / "mappings"
     return [
         *fno_type_mismatches(proj),
         *fno_reference_integrity(proj),
@@ -1621,12 +1631,14 @@ def _run_invariants(root: Path) -> list[str]:
 
 
 def _committed_paths() -> dict[str, Path]:
-    paths: dict[str, Path] = {f"projections/{_FNO_FILE}": PROJECTIONS_DIR / _FNO_FILE}
+    paths: dict[str, Path] = {
+        f"generated/projections/{_FNO_FILE}": PROJECTIONS_DIR / _FNO_FILE
+    }
     for profile in _PROFILES:
-        paths[f"projections/{profile}.edoal.ttl"] = (
+        paths[f"generated/projections/{profile}.edoal.ttl"] = (
             PROJECTIONS_DIR / f"{profile}.edoal.ttl"
         )
-        paths[f"queries/projections/{profile}.rq"] = (
+        paths[f"generated/queries/{profile}.rq"] = (
             PROJECTION_QUERY_DIR / f"{profile}.rq"
         )
     paths[_STANDPOINT_OWL2_QUERY] = PROJECTION_QUERY_DIR / "standpoint-owl2.rq"
@@ -1689,10 +1701,11 @@ class MappingGenerator(Generator):
     def inputs(self) -> Sequence[Path]:
         """Canonical inputs for the mapping generator."""
         return [
-            *list((PROJECT_ROOT / "mapping-dsl").glob("*.ttl")),
-            *list((PROJECT_ROOT / "mapping-dsl").glob("*/*.ttl")),
+            *list(MAPPING_DSL_DIR.glob("*.ttl")),
+            *list(MAPPING_DSL_DIR.glob("*/*.ttl")),
+            *iter_slice_mapping_files(),
             PROJECT_ROOT / "ontology" / "gmeow.ttl",
-            *list(MODULES_DIR.glob("*.ttl")),
+            *iter_module_files(),
             *list((PROJECT_ROOT / "imports").glob("*.ttl")),
         ]
 

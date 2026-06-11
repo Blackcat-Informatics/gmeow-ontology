@@ -1,0 +1,128 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/slices/quality>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Data Quality Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Data Quality Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> ;
+    rdfs:comment """Cross-cutting data-quality layer refining confidence and provenance across every realm. Quality assessments are reified observations about ISO 19157 dimensions (positional accuracy, temporal accuracy, thematic accuracy, completeness, logical consistency, topological consistency) plus lineage. Aligns W3C DQV and GeoDCAT-AP by reference; quality-metric computation lives in the solver layer (Principle 12).
+
+QualityAssessment reuses the universal Observation stack: the assessed entity is the observedFeature, the quality result is the observationResult (typically a ScalarQuantity), and the assessment method is the observationMethod. This keeps the quality layer thin and consistent with every other GMEOW claim construct."""@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# CORE CLASS — QualityAssessment
+# =========================================================================== #
+
+gmeow:QualityAssessment
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Observation ;
+    rdfs:label "Quality Assessment"@x-gmeow-english ;
+    skos:definition "A reified assessment of the quality of an entity or dataset, expressed as an observation about one or more quality dimensions. The result is typically a scalar quantity (accuracy in metres, completeness as a percentage, etc.) or a categorical conformance statement, carrying unit, reference frame, determinacy, and provenance in the same bundle as every other GMEOW measurement (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# EL axiomatisation: every QualityAssessment assesses at least one entity.
+# Closed-world cardinality is SHACL's concern.
+gmeow:QualityAssessment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:assessedEntity ; owl:someValuesFrom gmeow:Entity ] .
+
+# =========================================================================== #
+# CORE PROPERTIES
+# =========================================================================== #
+
+gmeow:assessedEntity
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    rdfs:domain gmeow:QualityAssessment ;
+    rdfs:range gmeow:Entity ;
+    rdfs:label "assessed entity"@x-gmeow-english ;
+    skos:definition "The entity whose data quality is being assessed — the feature of interest of the quality observation. Sub-property of gmeow:observedFeature so generic consumers can query 'all observations about Alice' without knowing whether the claim is a name, a coordinate, or a quality assessment."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:qualityDimension
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:QualityAssessment ;
+    rdfs:range gmeow:QualityDimension ;
+    rdfs:label "quality dimension"@x-gmeow-english ;
+    skos:definition "The quality dimension under which this assessment is made. Non-functional: a single assessment may cover several dimensions (e.g. a report that evaluates both positional accuracy and completeness), and competing dimension classifications coexist rather than collapse (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# VALUE VOCABULARY — QualityDimension (ISO 19157 + lineage)
+# =========================================================================== #
+
+gmeow:QualityDimension
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Quality Dimension"@x-gmeow-english ;
+    skos:definition "An ISO 19157 data-quality dimension or lineage category — an open value vocabulary of individuals (never subclasses). New dimensions (e.g. a domain-specific 'semantic consistency' or 'usability') are added by minting fresh individuals, not by creating new classes (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Seeds — ISO 19157 dimensions + lineage
+gmeow:qualityDimensionPositionalAccuracy
+    a gmeow:QualityDimension ;
+    rdfs:label "positional accuracy"@x-gmeow-english ;
+    skos:definition "Closeness of the spatial position of a feature to its true position, including absolute accuracy, relative accuracy, and gridded data positional accuracy (ISO 19157)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:qualityDimensionTemporalAccuracy
+    a gmeow:QualityDimension ;
+    rdfs:label "temporal accuracy"@x-gmeow-english ;
+    skos:definition "Correctness of the temporal references of a feature (e.g. date, time, period) relative to the true temporal value (ISO 19157)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:qualityDimensionThematicAccuracy
+    a gmeow:QualityDimension ;
+    rdfs:label "thematic accuracy"@x-gmeow-english ;
+    skos:definition "Accuracy of quantitative and qualitative attribute values, including classification correctness and non-quantitative attribute correctness (ISO 19157)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:qualityDimensionCompleteness
+    a gmeow:QualityDimension ;
+    rdfs:label "completeness"@x-gmeow-english ;
+    skos:definition "Presence or absence of features and their attributes, including commission (excess data) and omission (missing data) (ISO 19157)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:qualityDimensionLogicalConsistency
+    a gmeow:QualityDimension ;
+    rdfs:label "logical consistency"@x-gmeow-english ;
+    skos:definition "Degree of adherence to logical rules of data structure, attribution, and relationships, including domain consistency, format consistency, and topological consistency (ISO 19157)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:qualityDimensionTopologicalConsistency
+    a gmeow:QualityDimension ;
+    rdfs:label "topological consistency"@x-gmeow-english ;
+    skos:definition "Correctness of the explicitly encoded topological characteristics of a dataset, typically expressed as error counts or conformance to a topological rule set (ISO 19157)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:qualityDimensionLineage
+    a gmeow:QualityDimension ;
+    rdfs:label "lineage"@x-gmeow-english ;
+    skos:definition "The history, source, and process steps that produced a dataset or entity — the provenance of the data viewed through a quality lens. In GMEOW the structural lineage is recorded by gmeow:wasGeneratedBy, gmeow:wasDerivedFrom, and gmeow:ImportActivity (provenance module); this dimension value marks a quality assessment that evaluates lineage completeness or correctness."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# CROSS-CUTTING REUSE DECLARATION
+#
+# The following properties are already defined in other modules and are reused
+# here without redefinition. They are listed for documentation only.
+#
+#   gmeow:observationResult    (observations.ttl) — the scalar/categorical result.
+#   gmeow:observationMethod    (observations.ttl) — the assessment protocol.
+#   gmeow:vantage              (observations.ttl) — the assessing agent/standpoint.
+#   gmeow:confidence           (provenance.ttl)   — epistemic confidence [0,1].
+#   gmeow:hasDeterminacy       (core.ttl)         — ontic determinacy model.
+#   gmeow:hasReferenceFrame    (places.ttl)       — frame of the result value.
+#   gmeow:hasUnit              (core.ttl)         — unit of the scalar result.
+#   gmeow:wasGeneratedBy       (provenance.ttl)   — activity that produced the assessment.
+#   gmeow:validFrom / validUntil (temporal.ttl)   — assessment validity window.
+#
+# No new properties are minted for these axes — the quality module reuses the
+# existing cross-cutting vocabulary (Principle 4: one canonical source).
+# =========================================================================== #

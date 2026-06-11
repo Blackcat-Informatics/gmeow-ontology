@@ -11,7 +11,8 @@ from pathlib import Path
 
 from rdflib import Graph, URIRef
 
-from gmeow_tools.config import MODULES_DIR, PREFIXES
+from gmeow_tools.config import PREFIXES
+from gmeow_tools.graph import iter_module_files
 from gmeow_tools.wikidata import NamespaceMisuse, check_syntax_iri
 
 _WD_NS = PREFIXES["wd"]
@@ -129,13 +130,15 @@ def audit_files(paths: list[Path]) -> AuditReport:
 
 def audit_all(
     fixtures_dir: Path | None = None,
-    modules_dir: Path = MODULES_DIR,
+    modules_dir: Path | None = None,
 ) -> AuditReport:
     """Audit all fixtures and ontology modules for Wikidata misuse."""
     paths: list[Path] = []
     if fixtures_dir is not None:
         paths.extend(sorted(fixtures_dir.rglob("*.ttl")))
-    paths.extend(sorted(modules_dir.glob("*.ttl")))
+    paths.extend(
+        sorted(modules_dir.glob("*.ttl")) if modules_dir else iter_module_files()
+    )
     return audit_files(paths)
 
 

@@ -14,6 +14,7 @@ from pathlib import Path
 
 from rdflib import OWL, RDF, Graph, Literal, Namespace
 
+from gmeow_tools.config import STATEMENT_OWL_FILE
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.projections import project_graph
 from gmeow_tools.validate import run_shacl
@@ -24,7 +25,7 @@ GM = Namespace(GMEOW)
 EX_NS = Namespace(EX)
 
 FIXTURE = Path(__file__).parent / "fixtures" / "coverage" / "identity-over-history.ttl"
-STATEMENT_OWL = Path(__file__).parent.parent / "statements" / "gmeow-statements.owl.ttl"
+STATEMENT_OWL = STATEMENT_OWL_FILE
 
 
 def _fixture_graph() -> Graph:

@@ -1,4 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:5b8645ba698aa54e,gmeow:examples/event-disinformation-001,gmeow:examples/agent-deceiver-001,hasParticipant,gmeow:examples/standpoint-investigator,2026-06-11T00:00:00Z,0.9,,,,,,
-edge:8fcdf74523f18f8a,gmeow:examples/event-distortion-001,gmeow:examples/standpoint-spin-doctor,hasParticipant,gmeow:examples/standpoint-investigator,2026-06-04T00:00:00Z,0.85,,,,,,
-edge:e1f0e7e4189f0ad3,gmeow:examples/event-self-deception-001,gmeow:examples/agent-self-001,hasParticipant,gmeow:examples/standpoint-therapist,2026-06-06T00:00:00Z,0.7,,,,,,

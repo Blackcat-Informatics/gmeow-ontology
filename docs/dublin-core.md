@@ -196,6 +196,6 @@ suitable term exists, never forcing a weak alignment.
 
 - [`docs/projections.md`](projections.md) — general projection doctrine (lossiness,
   drift-check, the `_PROFILES` registry).
-- [`docs/rights-mapping.md`](rights-mapping.md) — rights-specific DC alignments
+- [`slices/core/rights/docs.md`](../slices/core/rights/docs.md) — rights-specific DC alignments
   (`license`, `rightsHolder`, `accessRights`, `dateCopyrighted`).
 - Issue #31 — Wikidata enhancement (the same audit→maximal-coverage→projection shape).
