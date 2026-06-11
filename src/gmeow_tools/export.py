@@ -23,10 +23,13 @@ import csv
 import json
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 
 from gmeow_tools.config import (
     DIST_DIR,
+    GTS_GRAPH_ALIGNMENTS,
+    GTS_SNAPSHOT_FILE,
     NAMESPACE,
     ONTOLOGY_IRI,
     PREFIXES,
@@ -48,13 +51,9 @@ def _resolve_meta(title: str | None, version: str | None) -> tuple[str, str]:
     return title or default_title, version or default_version
 
 
-_META_CACHE: list[tuple[str, str]] = []
-
-
+@lru_cache(maxsize=1)
 def _default_meta() -> tuple[str, str]:
-    if not _META_CACHE:
-        _META_CACHE.append(fold_meta(load_fold()))
-    return _META_CACHE[0]
+    return fold_meta(load_fold())
 
 
 #: Property rdf:type IRI → short kind label.
@@ -173,8 +172,6 @@ def _fold_curies(view: FoldView, s_tid: int, p_iri: str) -> list[str]:
 
 def _fold_alignments(view: FoldView, s_tid: int) -> list[str]:
     """``tag=curie`` alignment strings from the snapshot's alignments graph."""
-    from gmeow_tools.config import GTS_GRAPH_ALIGNMENTS
-
     out: list[str] = []
     for p, o in view.predicate_objects(s_tid, scope=GTS_GRAPH_ALIGNMENTS):
         tag = _ALIGN_TAGS.get(view.lex(p), curie(view.lex(p)))
@@ -436,10 +433,11 @@ def write_markdown(
     classes = [t for t in terms if t.category == "class"]
     properties = [t for t in terms if t.category == "property"]
     individuals = [t for t in terms if t.category == "individual"]
+    resolved_title, resolved_version = _resolve_meta(title, version)
     lines = [
-        f"# {_resolve_meta(title, version)[0]} — term reference",
+        f"# {resolved_title} — term reference",
         "",
-        f"Generated from the GMEOW {_resolve_meta(title, version)[1]} vocabulary "
+        f"Generated from the GMEOW {resolved_version} vocabulary "
         f"({len(classes)} classes, {len(properties)} properties, "
         f"{len(individuals)} individuals). The OWL source is canonical.",
         "",
@@ -494,15 +492,16 @@ def write_llms_txt(
     classes = [t for t in terms if t.category == "class"]
     properties = [t for t in terms if t.category == "property"]
     individuals = [t for t in terms if t.category == "individual"]
+    resolved_title, resolved_version = _resolve_meta(title, version)
     lines = [
-        f"# {_resolve_meta(title, version)[0]}",
+        f"# {resolved_title}",
         "",
         "> A reasoning-centric, OWL 2 DL, gUFO-grounded super-vocabulary that "
         "unifies a person's or organization's digital existence (entities, "
         "contacts, email, trust/keys, time) and aligns it to schema.org, FOAF, "
         "PROV, the WOT schema, Wikidata, and more.",
         "",
-        f"Vocabulary {_resolve_meta(title, version)[1]}. Namespace: {NAMESPACE}. "
+        f"Vocabulary {resolved_version}. Namespace: {NAMESPACE}. "
         "Each term below is "
         "`curie` — definition; the OWL source is canonical.",
         "",
@@ -547,8 +546,6 @@ class ExportGenerator(Generator):
         """Canonical inputs for the export generator."""
         if self._cached_inputs is not None:
             return self._cached_inputs
-        from gmeow_tools.config import GTS_SNAPSHOT_FILE
-
         self._cached_inputs = [GTS_SNAPSHOT_FILE]
         return self._cached_inputs
 
