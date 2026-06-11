@@ -18,10 +18,10 @@ dependencies = [
     "fastmcp>=3.4",
     "linkml>=1.11",
     "PyYAML>=6.0",
-    "cbor2>=6.1.2",
-    "blake3>=1.0.8",
-    "zstandard>=0.25.0",
     "duckdb>=1.5.3",
+    # the GTS format engine — the publishable workspace member (packages/gts);
+    # the range matters for non-workspace installs of downstream packages
+    "gts>=0.1.0,<0.2",
 ]
 
 [project.scripts]
@@ -39,6 +39,12 @@ dev = [
     "pyoxigraph>=0.5.8",  # in-process RDF 1.2 cross-check (#177)
 ]
 
+[tool.uv.workspace]
+members = ["packages/gts"]
+
+[tool.uv.sources]
+gts = { workspace = true }
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -49,7 +55,7 @@ packages = ["src/gmeow_tools"]
 [tool.ruff]
 line-length = 88
 target-version = "py313"
-src = ["src", "tests"]
+src = ["src", "tests", "packages/gts/src"]
 # generated/ is owned by registered generators (#287); never lint outputs.
 extend-exclude = ["generated"]
 
@@ -87,7 +93,7 @@ warn_unreachable = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 disallow_any_generics = true
-files = ["src", "tests"]
+files = ["src", "tests", "packages/gts/src"]
 
 [[tool.mypy.overrides]]
 # Third-party libraries without complete type information.

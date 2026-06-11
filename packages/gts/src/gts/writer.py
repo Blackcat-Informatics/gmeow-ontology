@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """A GTS writer: build frames, maintain the id/prev chain, emit a CBOR Sequence.
 
-This is the encoder counterpart to :mod:`gmeow_tools.gts.reader`. It drives the
+This is the encoder counterpart to :mod:`gts.reader`. It drives the
 conformance vectors and is the seed of the future ``RDF 1.2 → GTS`` producer.
 """
 
@@ -10,10 +10,10 @@ from __future__ import annotations
 
 import cbor2
 
-from gmeow_tools.gts.codec import DEFAULT_CATALOG, Codec, encode_chain
-from gmeow_tools.gts.crypto import Signer, encrypt0, sign_id
-from gmeow_tools.gts.model import Quad, Term, Triple
-from gmeow_tools.gts.wire import (
+from gts.codec import DEFAULT_CATALOG, Codec, encode_chain
+from gts.crypto import Signer, encrypt0, sign_id
+from gts.model import Quad, Term, Triple
+from gts.wire import (
     MAGIC,
     SELF_DESCRIBE_TAG,
     VERSION,

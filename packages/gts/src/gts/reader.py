@@ -15,9 +15,9 @@ from collections.abc import Callable, Mapping
 
 import cbor2
 
-from gmeow_tools.gts.codec import Codec, CodecUnavailableError, decode_chain
-from gmeow_tools.gts.crypto import KeyProvider, decrypt0, verify_sig
-from gmeow_tools.gts.model import (
+from gts.codec import Codec, CodecUnavailableError, decode_chain
+from gts.crypto import KeyProvider, decrypt0, verify_sig
+from gts.model import (
     Diagnostic,
     Graph,
     OpaqueNode,
@@ -28,7 +28,7 @@ from gmeow_tools.gts.model import (
     TermKind,
     Triple,
 )
-from gmeow_tools.gts.wire import (
+from gts.wire import (
     content_id,
     digest_str,
     header_id,
@@ -255,7 +255,11 @@ class _Folder:
         self, payload: object, frame: Mapping[str, object], _index: int
     ) -> None:
         if isinstance(payload, bytes):
-            self.g.blobs[digest_str(payload)] = payload
+            digest = digest_str(payload)
+            self.g.blobs[digest] = payload
+            pub = frame.get("pub")
+            if isinstance(pub, Mapping):
+                self.g.blob_meta[digest] = {str(k): v for k, v in pub.items()}
         # else: external blob — bytes live elsewhere, referenced by "pub".digest (§12).
 
     def _h_meta(self, payload: object, _f: Mapping[str, object], _index: int) -> None:
@@ -467,7 +471,7 @@ def read(
 
     Args:
         data: the GTS file bytes.
-        keys: optional :class:`~gmeow_tools.gts.crypto.KeyProvider` — when given,
+        keys: optional :class:`~gts.crypto.KeyProvider` — when given,
             ``sig`` frames are verified (§9.2) and recorded in ``Graph.signatures``.
         expected_head: optional head commitment — compared against the LAST
             segment's head; on mismatch a ``TruncatedLog`` diagnostic is recorded.
@@ -526,6 +530,37 @@ def read(
             Diagnostic("TornAppendError", f"torn at offset {torn}", None)
         )
     return g
+
+
+def read_segments(
+    data: bytes,
+    *,
+    keys: KeyProvider | None = None,
+) -> tuple[list[Graph], int | None, Diagnostic | None]:
+    """Fold a file segment-by-segment WITHOUT unioning (§14.1 tooling view).
+
+    The composition-ledger view that ``gts info``/``gts verify`` report
+    per-segment: each segment folded independently with its OWN diagnostics.
+
+    Returns:
+        ``(segments, torn_offset, fatal)`` — ``fatal`` is set (and
+        ``segments`` empty) when the file never reaches segmentation: empty,
+        or the first item is not a header.
+    """
+    items, torn = iter_items(data)
+    if not items:
+        return [], torn, Diagnostic("EmptyFile", "no CBOR items", None)
+    bounds = [i for i, (_, item) in enumerate(items) if _is_header_item(item)]
+    if not bounds or bounds[0] != 0:
+        return [], torn, Diagnostic("DamagedFrame", "first item is not a header", 0)
+    segment_slices = [
+        items[a:b] for a, b in zip(bounds, [*bounds[1:], len(items)], strict=False)
+    ]
+    folded = [
+        _read_segment(seg, keys=keys, index_offset=a)
+        for a, seg in zip(bounds, segment_slices, strict=False)
+    ]
+    return folded, torn, None
 
 
 def _read_segment(
@@ -681,6 +716,7 @@ def _union_segments(segments: list[Graph]) -> Graph:
                 (_map(seg, seg_idx, rf), _map(seg, seg_idx, p_), _map(seg, seg_idx, v_))
             )
         out.blobs.update(seg.blobs)
+        out.blob_meta.update(seg.blob_meta)
         out.meta.update(seg.meta)  # file-level shallow merge; later segments win
         out.segment_meta.extend(seg.segment_meta)
         for sup in seg.suppressions:

@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "gts"
+version = "0.1.0"
+description = "GTS (Graph Transport Substrate): a single-file CBOR transport for RDF 1.2 graphs — append-only log, BLAKE3 chain verification, deterministic fold, multi-segment cat-append composition."
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [{ name = "Blackcat Informatics Inc." }]
+keywords = ["rdf", "rdf-star", "cbor", "knowledge-graph", "linked-data", "gts"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "cbor2>=6.1.2",
+    "blake3>=1.0.8",
+    "zstandard>=0.25.0",
+    "cryptography>=44",
+]
+
+[project.urls]
+Repository = "https://github.com/Blackcat-Informatics/gmeow-ontology"
+Specification = "https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/docs/GTS-SPEC.md"
+
+[project.scripts]
+gts = "gts.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gts"]

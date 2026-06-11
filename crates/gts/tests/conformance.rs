@@ -13,7 +13,7 @@ use gts::model::Graph;
 use gts::nquads::to_nquads;
 use gts::reader::read;
 use gts::wire::hex;
-use serde_json::{json, Value};
+use serde_json::{json, Map, Value};
 
 /// Rebuild the `.expected.json` summary shape from a folded graph.
 fn summarize(g: &Graph, mode: &str) -> Value {
@@ -31,8 +31,36 @@ fn summarize(g: &Graph, mode: &str) -> Value {
         "profiles": g.segment_profiles.clone(),
         "opaque_reasons": opaque_reasons,
         "suppressions": g.suppressions.len(),
+        "blobs": blob_summary(g),
         "nquads": nquads,
     })
+}
+
+/// Inline blobs: digest -> {size, declared media type} — pins blob folding
+/// and metadata retention (§12) across implementations.
+fn blob_summary(g: &Graph) -> Value {
+    let mut out = Map::new();
+    for (digest, data) in &g.blobs {
+        let mt =
+            g.blob_meta
+                .iter()
+                .find(|(d, _)| d == digest)
+                .and_then(|(_, meta)| {
+                    if let ciborium::value::Value::Map(entries) = meta {
+                        entries.iter().find_map(|(k, v)| match (k, v) {
+                            (
+                                ciborium::value::Value::Text(key),
+                                ciborium::value::Value::Text(text),
+                            ) if key == "mt" => Some(text.clone()),
+                            _ => None,
+                        })
+                    } else {
+                        None
+                    }
+                });
+        out.insert(digest.clone(), json!({"size": data.len(), "mt": mt}));
+    }
+    Value::Object(out)
 }
 
 #[test]

@@ -11,10 +11,10 @@ from __future__ import annotations
 
 import cbor2
 
-from gmeow_tools.gts import Term, TermKind, Writer, read, to_nquads
-from gmeow_tools.gts.codec import Codec
-from gmeow_tools.gts.model import RDF_LANG_STRING, XSD_STRING
-from gmeow_tools.gts.wire import canonical, content_id, header_id
+from gts import Term, TermKind, Writer, read, to_nquads
+from gts.codec import Codec
+from gts.model import RDF_LANG_STRING, XSD_STRING
+from gts.wire import canonical, content_id, header_id
 
 CAT = "https://example.org/Cat"
 LABEL = "http://www.w3.org/2000/01/rdf-schema#label"
@@ -238,7 +238,7 @@ def test_inline_blob_digest() -> None:
     w.add_blob(payload, mt="image/png")
     g = read(w.to_bytes())
     assert _diag_codes(g) == []
-    from gmeow_tools.gts.wire import digest_str
+    from gts.wire import digest_str
 
     assert g.blobs[digest_str(payload)] == payload
 
@@ -509,7 +509,7 @@ def test_corpus_matches_committed_expectations() -> None:
     import json
 
     from gmeow_tools.config import GENERATED_DIR
-    from gmeow_tools.gts.vectors import corpus, expected_for
+    from gts.vectors import corpus, expected_for
 
     vdir = GENERATED_DIR / "gts-vectors"
     cases = corpus()

@@ -23,8 +23,8 @@ from typing import TYPE_CHECKING
 
 from rdflib import BNode, Dataset, Graph, Literal, URIRef
 
-from gmeow_tools.gts.model import XSD_STRING, Quad, Term, TermKind, Triple
-from gmeow_tools.gts.writer import Writer, term_to_wire
+from gts.model import XSD_STRING, Quad, Term, TermKind, Triple
+from gts.writer import Writer, term_to_wire
 
 if TYPE_CHECKING:
     from rdflib.term import Node

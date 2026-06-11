@@ -8,9 +8,9 @@ import os
 
 import pytest
 
-from gmeow_tools.gts import InMemoryKeys, Signer, Term, TermKind, Writer, read
-from gmeow_tools.gts.codec import CodecUnavailableError
-from gmeow_tools.gts.crypto import decrypt0, encrypt0, sign_id, verify_sig
+from gts import InMemoryKeys, Signer, Term, TermKind, Writer, read
+from gts.codec import CodecUnavailableError
+from gts.crypto import decrypt0, encrypt0, sign_id, verify_sig
 
 EX = "https://example.org/"
 _ID = b"\x01" * 32
@@ -175,7 +175,7 @@ def test_verify_sig_rejects_non_bytes_signature() -> None:
     """A COSE_Sign1 with a non-bstr signature is invalid, not a crash."""
     import cbor2
 
-    from gmeow_tools.gts.crypto import _KID, _TAG_SIGN1
+    from gts.crypto import _KID, _TAG_SIGN1
 
     malformed = cbor2.dumps(
         cbor2.CBORTag(_TAG_SIGN1, [b"prot", {_KID: b"k"}, None, 123]),  # sig is int
@@ -190,7 +190,7 @@ def test_decrypt0_rejects_malformed_fields() -> None:
     """A held key with a non-bytes IV degrades to missing-key, not a crash."""
     import cbor2
 
-    from gmeow_tools.gts.crypto import _IV, _KID, _TAG_ENCRYPT0
+    from gts.crypto import _IV, _KID, _TAG_ENCRYPT0
 
     body = [b"prot", {_IV: "not-bytes", _KID: b"k"}, b"ct"]  # IV is str, not bstr
     bad = cbor2.dumps(cbor2.CBORTag(_TAG_ENCRYPT0, body), canonical=True)
@@ -201,7 +201,7 @@ def test_decrypt0_rejects_malformed_fields() -> None:
 
 def test_encrypt_requires_catalog_entry() -> None:
     """A catalog without 'cose-encrypt0' raises a stable API error, not KeyError."""
-    from gmeow_tools.gts.codec import Codec
+    from gts.codec import Codec
 
     catalog = {0: Codec("identity", "encode")}  # no encrypt codec
     w = Writer(profile="opaque", catalog=catalog)

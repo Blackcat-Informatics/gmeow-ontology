@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """The ``gts → {sqlite,duckdb}`` transforms (§14, issue #271).
 
-Loads a folded :class:`~gmeow_tools.gts.model.Graph` into a relational store using
+Loads a folded :class:`~gts.model.Graph` into a relational store using
 the **integer-id** model — five dictionary-encoded tables (``terms``, ``quads``,
 ``reifiers``, ``annotations``, ``blobs``) — so the target DB stays compact and the
 load is a near-mechanical bulk insert; the engine does the join to resolve ids.
@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from gmeow_tools.gts.model import Graph
+    from gts.model import Graph
 
 # DDL shared by both engines (both speak this SQL subset).
 _SCHEMA = [
