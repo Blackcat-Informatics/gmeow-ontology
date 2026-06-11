@@ -459,10 +459,13 @@ def test_vector_18_cross_segment_suppression() -> None:
     assert len(g.suppressions) == 1
     (target,) = g.suppressions[0].targets
     sq = target["q"]
+    assert isinstance(sq, list)
+    s_id, p_id, o_id = sq[0], sq[1], sq[2]
+    assert isinstance(s_id, int)
     # The remapped target must name the UNION ids of segment one's quad —
     # value-interning makes value-wise application id-exact.
-    assert (sq[0], sq[1], sq[2], None) in g.quads
-    assert g.term(sq[0]).value == CAT
+    assert (s_id, p_id, o_id, None) in g.quads
+    assert g.term(s_id).value == CAT
 
 
 def test_vector_19_profile_union_graceful_opacity() -> None:
