@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import yaml
 from rdflib import OWL, RDF, RDFS, XSD, Graph, URIRef
 from rdflib.query import ResultRow
 
@@ -127,6 +128,39 @@ def test_participant_group_is_literal() -> None:
     node = URIRef(GMEOW + "participantGroup")
     assert (node, RDF.type, OWL.DatatypeProperty) in graph
     assert (node, RDFS.domain, URIRef(GMEOW + "MessageParticipant")) in graph
+
+
+def test_resent_date_property() -> None:
+    graph = _graph()
+    node = URIRef(GMEOW + "resentDate")
+    assert (node, RDF.type, OWL.DatatypeProperty) in graph
+    assert (node, RDFS.domain, URIRef(GMEOW + "EmailMessage")) in graph
+    assert (node, RDFS.range, XSD.dateTime) in graph
+    # Multiple resent blocks possible
+    assert (node, RDF.type, OWL.FunctionalProperty) not in graph
+
+
+def test_resent_message_id_property() -> None:
+    graph = _graph()
+    node = URIRef(GMEOW + "resentMessageId")
+    assert (node, RDF.type, OWL.DatatypeProperty) in graph
+    assert (node, RDFS.domain, URIRef(GMEOW + "EmailMessage")) in graph
+    assert (node, RDFS.range, RDFS.Literal) in graph
+    # Multiple resent blocks possible
+    assert (node, RDF.type, OWL.FunctionalProperty) not in graph
+
+
+def test_resent_properties_are_multivalued_in_linkml_schema() -> None:
+    """Regression guard: non-functional datatype properties must compile to
+    multivalued slots (issue #134 review feedback)."""
+    linkml_path = (
+        Path(__file__).parent.parent / "generated" / "schemas" / "gmeow.linkml.yaml"
+    )
+    with linkml_path.open() as f:
+        schema = yaml.safe_load(f)
+    slots = schema.get("slots", {})
+    assert slots.get("resentDate", {}).get("multivalued") is True
+    assert slots.get("resentMessageId", {}).get("multivalued") is True
 
 
 def _fixture_path() -> str:
