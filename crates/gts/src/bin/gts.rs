@@ -153,8 +153,10 @@ fn cmd_fold(paths: &[String]) -> ExitCode {
         eprintln!("gts: diagnostic {}: {}", d.code, d.detail);
     }
     print!("{}", to_nquads(&g));
-    if g.segment_heads.is_empty() {
-        // never reached segmentation — empty file or no leading header
+    // The (possibly partial) fold is still emitted, but any diagnostic — or
+    // never reaching segmentation at all — is a nonzero exit, so
+    // `gts fold … && publish` pipelines fail on damage.
+    if !g.diagnostics.is_empty() || g.segment_heads.is_empty() {
         return ExitCode::from(1);
     }
     ExitCode::SUCCESS

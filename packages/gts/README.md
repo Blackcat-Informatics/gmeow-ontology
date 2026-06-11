@@ -19,9 +19,11 @@ the identical corpus and will ship inside this package as a native wheel.
 ## Library
 
 ```python
+from pathlib import Path
+
 import gts
 
-graph = gts.read(open("package.gts", "rb").read())
+graph = gts.read(Path("package.gts").read_bytes())
 print(gts.to_nquads(graph))
 ```
 

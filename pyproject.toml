@@ -19,8 +19,9 @@ dependencies = [
     "linkml>=1.11",
     "PyYAML>=6.0",
     "duckdb>=1.5.3",
-    # the GTS format engine — the publishable workspace member (packages/gts)
-    "gts",
+    # the GTS format engine — the publishable workspace member (packages/gts);
+    # the range matters for non-workspace installs of downstream packages
+    "gts>=0.1.0,<0.2",
 ]
 
 [project.scripts]

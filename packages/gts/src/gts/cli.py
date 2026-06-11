@@ -78,8 +78,10 @@ def _cmd_fold(path: str) -> int:
     for d in g.diagnostics:
         print(f"gts: diagnostic {d.code}: {d.detail}", file=sys.stderr)
     sys.stdout.write(to_nquads(g))
-    # never reached segmentation — empty file or no leading header
-    return 1 if not g.segment_heads else 0
+    # The (possibly partial) fold is still emitted, but any diagnostic —
+    # or never reaching segmentation at all — is a nonzero exit, so
+    # `gts fold … && publish` pipelines fail on damage.
+    return 1 if g.diagnostics or not g.segment_heads else 0
 
 
 def _cmd_verify(paths: list[str]) -> int:
@@ -119,10 +121,26 @@ def _all_quads_suppressed(g: Graph) -> bool:
                     quad_sup.add(tuple(q))
     return all(
         (s, p, o) in quad_sup
-        or ((s, p, o, gq) in quad_sup if gq is not None else False)
-        or term_sup & ({s, p, o} | ({gq} if gq is not None else set()))
+        or (gq is not None and (s, p, o, gq) in quad_sup)
+        or s in term_sup
+        or p in term_sup
+        or o in term_sup
+        or (gq is not None and gq in term_sup)
         for s, p, o, gq in g.quads
     )
+
+
+def _write_out(out: str | None, data: bytes) -> int:
+    """Write to a path or stdout; IO failure is exit 2, never a traceback."""
+    try:
+        if out is not None:
+            Path(out).write_bytes(data)
+        else:
+            sys.stdout.buffer.write(data)
+    except OSError as exc:  # includes BrokenPipeError
+        print(f"gts: cannot write {out or 'stdout'}: {exc}", file=sys.stderr)
+        return 2
+    return 0
 
 
 def _cmd_ls(path: str) -> int:
@@ -199,11 +217,7 @@ def _cmd_extract(
             file=sys.stderr,
         )
         return 1
-    if out is not None:
-        Path(out).write_bytes(data)
-    else:
-        sys.stdout.buffer.write(data)
-    return 0
+    return _write_out(out, data)
 
 
 def _cmd_cat(paths: list[str], out: str | None) -> int:
@@ -248,11 +262,7 @@ def _cmd_cat(paths: list[str], out: str | None) -> int:
         )
         return 1
 
-    if out is not None:
-        Path(out).write_bytes(bytes(combined))
-    else:
-        sys.stdout.buffer.write(bytes(combined))
-    return 0
+    return _write_out(out, bytes(combined))
 
 
 def main(argv: list[str] | None = None) -> int:

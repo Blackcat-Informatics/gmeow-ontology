@@ -100,3 +100,10 @@ def test_extract_refuses_suppressed_blob_by_default(tmp_path: Path) -> None:
         == 0
     )
     assert out.read_bytes() == BLOB
+
+
+def test_fold_exits_nonzero_on_diagnostics() -> None:
+    # damaged corpus vector: the partial fold is emitted, the exit is 1 —
+    # `gts fold … && publish` pipelines must fail on damage
+    damaged = Path("generated/gts-vectors/04-damaged-frame.gts")
+    assert main(["fold", str(damaged)]) == 1

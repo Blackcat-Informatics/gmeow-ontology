@@ -126,3 +126,12 @@ fn extract_verifies_and_asserts_media_type() {
     ]);
     assert!(out.status.success());
 }
+
+#[test]
+fn fold_exits_nonzero_on_diagnostics() {
+    // damaged corpus vector: partial fold emitted, exit 1 — pipelines
+    // (`gts fold … && publish`) must fail on damage
+    let v = vectors().join("04-damaged-frame.gts");
+    let out = gts(&["fold", v.to_str().unwrap()]);
+    assert_eq!(out.status.code(), Some(1));
+}
