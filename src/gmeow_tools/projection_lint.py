@@ -26,6 +26,7 @@ from rdflib import RDF, RDFS, Graph, URIRef
 from rdflib.namespace import Namespace
 
 from gmeow_tools.config import (
+    MAPPING_DSL_DIR,
     MAPPINGS_DIR,
     PREFIXES,
     PROJECTION_QUERY_DIR,
@@ -39,7 +40,8 @@ ALIGN = Namespace("http://knowledgeweb.semanticweb.org/heterogeneity/alignment#"
 EDOAL = Namespace("http://ns.inria.org/edoal/1.0/#")
 
 #: The FnO catalog files (projection transforms + the language conversion catalog).
-_FNO_FILES = ("functions.fno.ttl", "transforms.fno.ttl")
+_TRANSFORMS_NAME = "transforms.fno.ttl"
+_FNO_FILES = ("functions.fno.ttl", _TRANSFORMS_NAME)
 
 #: Each projection profile and the target-vocabulary prefixes it emits.
 _PROFILE_TARGETS: dict[str, tuple[str, ...]] = {
@@ -92,7 +94,13 @@ _STRUCTURAL_OUTPUTS: frozenset[str] = frozenset(
 def _fno_graph(projections_dir: Path = PROJECTIONS_DIR) -> Graph:
     graph = Graph()
     for name in _FNO_FILES:
-        graph.parse(projections_dir / name, format="turtle")
+        path = projections_dir / name
+        if not path.exists() and name == _TRANSFORMS_NAME:
+            # The hand-authored language-transform catalog lives in the DSL
+            # tree (#287); staging trees copy it in, the committed tree
+            # reads it from its authored home.
+            path = MAPPING_DSL_DIR / name
+        graph.parse(path, format="turtle")
     return graph
 
 

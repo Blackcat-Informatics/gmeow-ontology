@@ -193,8 +193,8 @@ def test_no_preview_language_remains() -> None:
     )
     targets = [
         PROJECT_ROOT / "src/gmeow_tools/rdf12.py",
-        PROJECT_ROOT / "queries/rdf12-project.rq",
-        PROJECT_ROOT / "queries/rdf12-to-owl.rq",
+        PROJECT_ROOT / "queries/codecs/rdf12-project.rq",
+        PROJECT_ROOT / "queries/codecs/rdf12-to-owl.rq",
         PROJECT_ROOT / "README.md",
         PROJECT_ROOT / "docs/RATIONALE.md",
     ]
@@ -286,5 +286,7 @@ def test_reason_consumes_generated_owl_downcast() -> None:
 
 def test_statement_rdf12_committed_under_repo_not_dist() -> None:
     """The lead artifact is committed (so --check has a target), not in dist/."""
-    assert STATEMENT_RDF12_FILE.is_relative_to(PROJECT_ROOT / "statements")
+    assert STATEMENT_RDF12_FILE.is_relative_to(
+        PROJECT_ROOT / "generated" / "statements"
+    )
     assert Path(STATEMENT_RDF12_FILE).exists()

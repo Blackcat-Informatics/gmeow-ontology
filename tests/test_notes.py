@@ -13,13 +13,14 @@ from pathlib import Path
 
 from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
 
+from gmeow_tools.config import PROJECTION_QUERY_DIR
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.validate import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"
 EX = Namespace("https://example.org/test/")
-_PROJ_Q = Path(__file__).parent.parent / "queries" / "projections"
+_PROJ_Q = PROJECTION_QUERY_DIR
 
 
 def _graph() -> Graph:

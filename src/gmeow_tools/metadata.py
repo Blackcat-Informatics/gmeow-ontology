@@ -17,7 +17,6 @@ from gmeow_tools.config import (
     ALIGNMENT_TARGETS,
     DCAT_FILE,
     MAPPINGS_DIR,
-    MODULES_DIR,
     NAMESPACE,
     ONTOLOGY_IRI,
     PREFIXES,
@@ -26,7 +25,7 @@ from gmeow_tools.config import (
     VOID_FILE,
 )
 from gmeow_tools.generator import Generator, register, write_turtle
-from gmeow_tools.graph import bind_prefixes
+from gmeow_tools.graph import bind_prefixes, iter_module_files
 from gmeow_tools.mappings import build_linksets, load_mappings
 from gmeow_tools.self_desc import load_self_description
 
@@ -140,7 +139,7 @@ class MetadataGenerator(Generator):
         """Canonical inputs for the metadata generator."""
         return [
             PROJECT_ROOT / "ontology" / "gmeow.ttl",
-            *list(MODULES_DIR.glob("*.ttl")),
+            *iter_module_files(),
             *list(MAPPINGS_DIR.glob("*.sssom.tsv")),
         ]
 

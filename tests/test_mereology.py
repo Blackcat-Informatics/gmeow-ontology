@@ -6,8 +6,8 @@ import owlrl
 from rdflib import OWL, RDF, RDFS, Graph, Namespace
 from rdflib.term import Node
 
-from gmeow_tools.config import ONTOLOGY_DIR
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.slices import module_path
 
 GM = Namespace("https://blackcatinformatics.ca/gmeow/")
 EX = Namespace("https://example.org/mereology/")
@@ -21,7 +21,7 @@ def _materialize(*modules: str, abox: tuple[tuple[Node, Node, Node], ...]) -> Gr
     """Close real authored modules + a tiny A-Box under OWL 2 RL."""
     graph = Graph()
     for module in modules:
-        graph.parse(ONTOLOGY_DIR / "modules" / f"{module}.ttl", format="turtle")
+        graph.parse(module_path(module), format="turtle")
     for triple in abox:
         graph.add(triple)
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
@@ -69,7 +69,7 @@ def test_existing_part_like_relations_specialize_the_spine() -> None:
 
 def test_specialized_part_relations_entail_generic_parthood() -> None:
     g = _materialize(
-        "core",
+        "kernel",
         "places",
         "organization",
         "events",
@@ -89,7 +89,7 @@ def test_specialized_part_relations_entail_generic_parthood() -> None:
 
 def test_member_of_propagates_through_suborganization() -> None:
     g = _materialize(
-        "core",
+        "kernel",
         "organization",
         abox=(
             (EX.alex, GM.memberOf, EX.team),
@@ -103,7 +103,7 @@ def test_member_of_propagates_through_suborganization() -> None:
 
 def test_event_location_propagates_through_spatial_containment_only() -> None:
     g = _materialize(
-        "core",
+        "kernel",
         "places",
         "events",
         abox=(

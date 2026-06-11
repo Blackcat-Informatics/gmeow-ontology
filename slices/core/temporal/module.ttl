@@ -1,0 +1,743 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix time:    <http://www.w3.org/2006/time#> .
+
+<https://blackcatinformatics.ca/gmeow/slices/temporal>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Temporal Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Temporal Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    rdfs:comment """Cross-cutting temporal facility (the OWL-Time superset layer): time intervals, instants, temporal reference frames, named periods, temporal measurements, and reified time-scoped relations, reused by every slice for facts that hold over a period (mailbox residence, address/role tenure, etc.). Lighter cases use the validFrom/validUntil RDF-star annotation properties."""@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# EXISTING — Time Interval & Time-Scoped Relation (retained, unchanged)
+# =========================================================================== #
+
+gmeow:TimeInterval
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:AbstractIndividual ;
+    rdfs:label "Time Interval"@x-gmeow-english ;
+    skos:definition "A bounded stretch of time, optionally open-ended, delimited by a start and/or end instant."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:TimeScopedRelation
+    a owl:Class, gufo:SituationType ;
+    rdfs:subClassOf gufo:Situation ;
+    rdfs:label "Time-Scoped Relation"@x-gmeow-english ;
+    skos:definition "A reified relationship that holds only over a particular time interval — the base for residence, tenure, and membership-over-time situations."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:duringInterval
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:TimeScopedRelation ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "during interval"@x-gmeow-english ;
+    skos:definition "Relates a time-scoped relation to the interval over which it holds."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:startedAtTime
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "started at time"@x-gmeow-english ;
+    skos:definition "The instant at which a time interval begins."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:endedAtTime
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "ended at time"@x-gmeow-english ;
+    skos:definition "The instant at which a time interval ends; absent if the interval is still open."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:atTime
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "at time"@x-gmeow-english ;
+    skos:definition "The instant at which a point-like event or observation occurred."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# RDF-star validity annotations (statement-level temporal scope for lighter cases).
+
+gmeow:validFrom
+    a owl:AnnotationProperty ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "valid from"@x-gmeow-english ;
+    skos:definition "The instant from which the annotated statement is asserted to hold."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:validUntil
+    a owl:AnnotationProperty ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "valid until"@x-gmeow-english ;
+    skos:definition "The instant until which the annotated statement is asserted to hold."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:assertedAt
+    a owl:AnnotationProperty ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "asserted at"@x-gmeow-english ;
+    skos:definition "The instant an agent observed or asserted the annotated claim (e.g. an email Date header or a vCard REV) — a witness that the fact held at that instant. Distinct from validity (validFrom/validUntil) and from a source's carrier time."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:recordedNoLaterThan
+    a owl:AnnotationProperty ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "recorded no later than"@x-gmeow-english ;
+    skos:definition "A DERIVED upper bound (terminus ante quem) on when the annotated claim was committed to a record — typically taken from the modification time of its source carrier (gmeow:sourceModifiedAt) when no stronger observation time is known. Carries low gmeow:confidence; it is neither valid-time nor a point observation. Populate it in the importer/query layer, not by OWL inference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# TEMPORAL FRAME PROFILE — mirrors the spatial ReferenceFrame (#65)
+# =========================================================================== #
+
+gmeow:TemporalFrame
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:ReferenceFrame, gufo:Object ;
+    rdfs:label "Temporal Frame"@x-gmeow-english ;
+    skos:definition "A reference system for expressing time — the temporal counterpart of gmeow:ReferenceFrame. Decomposed into a TimeScale, an optional CalendarSystem, and an optional ReferencePosition. Every crisp instant or interval is asserted relative to a TemporalFrame (Principle 11)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:TimeScale
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Time Scale"@x-gmeow-english ;
+    skos:definition "The atomic progression of time — TAI, TT, UTC, GPS, UT1, TDB, etc. A time scale is independent of any calendar or geographic reference position."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:CalendarSystem
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Calendar System"@x-gmeow-english ;
+    skos:definition "The rules mapping a time scale to human-readable dates. Co-equal: Gregorian is one peer among Julian, Hebrew, Islamic, Chinese, Persian, Ethiopian, Coptic, ISO week, and others (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:ReferencePosition
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Reference Position"@x-gmeow-english ;
+    skos:definition "The spatial locus, observatory, timezone, or planetary body relative to which a time is expressed — e.g. an observatory longitude for local sidereal time, an IANA timezone for civil time, or a planet for planetary calendars."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Temporal Frame Profile Properties
+gmeow:hasTemporalFrame
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range gmeow:TemporalFrame ;
+    rdfs:label "has temporal frame"@x-gmeow-english ;
+    skos:definition "Relates a time interval to the temporal frame in which its bounds are expressed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:frameTimeScale
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TemporalFrame ;
+    rdfs:range gmeow:TimeScale ;
+    rdfs:label "frame time scale"@x-gmeow-english ;
+    skos:definition "The time scale of a temporal frame (functional: a frame has exactly one scale)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:frameCalendarSystem
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TemporalFrame ;
+    rdfs:range gmeow:CalendarSystem ;
+    rdfs:label "frame calendar system"@x-gmeow-english ;
+    skos:definition "The calendar system of a temporal frame, when one is used. Optional: some frames (e.g. Julian Date) carry only a scale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:frameReferencePosition
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TemporalFrame ;
+    rdfs:range gmeow:ReferencePosition ;
+    rdfs:label "frame reference position"@x-gmeow-english ;
+    skos:definition "The reference position of a temporal frame, when one is needed. Optional: TAI needs none; civil time needs a timezone."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+
+
+# Seeds for TimeScale
+gmeow:timeScaleTAI  a gmeow:TimeScale ; rdfs:label "International Atomic Time (TAI)"@x-gmeow-english ; skos:definition "Atomic time scale based on SI seconds."@x-gmeow-english .
+gmeow:timeScaleTAI rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:timeScaleTT   a gmeow:TimeScale ; rdfs:label "Terrestrial Time (TT)"@x-gmeow-english ; skos:definition "Dynamical time scale for Earth-surface geocentric coordinate time."@x-gmeow-english .
+gmeow:timeScaleTT rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:timeScaleUTC  a gmeow:TimeScale ; rdfs:label "Coordinated Universal Time (UTC)"@x-gmeow-english ; skos:definition "Civil atomic time scale with leap seconds."@x-gmeow-english .
+gmeow:timeScaleUTC rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:timeScaleGPS  a gmeow:TimeScale ; rdfs:label "GPS Time"@x-gmeow-english ; skos:definition "Atomic time scale used by GPS, offset from TAI."@x-gmeow-english .
+gmeow:timeScaleGPS rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:timeScaleUT1  a gmeow:TimeScale ; rdfs:label "Universal Time 1 (UT1)"@x-gmeow-english ; skos:definition "Earth-rotation-based time scale; the basis for civil-time solar alignment."@x-gmeow-english .
+gmeow:timeScaleUT1 rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:timeScaleTDB  a gmeow:TimeScale ; rdfs:label "Barycentric Dynamical Time (TDB)"@x-gmeow-english ; skos:definition "Dynamical time scale for solar-system barycentric calculations."@x-gmeow-english .
+
+# Seeds for CalendarSystem — co-equal, no privileged default (Principle 9)
+gmeow:timeScaleTDB rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:calendarGregorian  a gmeow:CalendarSystem ; rdfs:label "Gregorian calendar"@x-gmeow-english ; skos:definition "The Gregorian calendar, introduced 1582."@x-gmeow-english .
+gmeow:calendarGregorian rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:calendarJulian     a gmeow:CalendarSystem ; rdfs:label "Julian calendar"@x-gmeow-english ; skos:definition "The Julian calendar, predecessor to the Gregorian."@x-gmeow-english .
+gmeow:calendarJulian rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:calendarHebrew     a gmeow:CalendarSystem ; rdfs:label "Hebrew calendar"@x-gmeow-english ; skos:definition "The lunisolar Hebrew calendar."@x-gmeow-english .
+gmeow:calendarHebrew rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:calendarIslamic    a gmeow:CalendarSystem ; rdfs:label "Islamic (Hijri) calendar"@x-gmeow-english ; skos:definition "The lunar Islamic calendar."@x-gmeow-english .
+gmeow:calendarIslamic rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:calendarChinese    a gmeow:CalendarSystem ; rdfs:label "Chinese calendar"@x-gmeow-english ; skos:definition "The lunisolar Chinese calendar."@x-gmeow-english .
+gmeow:calendarChinese rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:calendarPersian    a gmeow:CalendarSystem ; rdfs:label "Persian (Solar Hijri) calendar"@x-gmeow-english ; skos:definition "The solar Persian calendar."@x-gmeow-english .
+gmeow:calendarPersian rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:calendarEthiopian  a gmeow:CalendarSystem ; rdfs:label "Ethiopian calendar"@x-gmeow-english ; skos:definition "The Ethiopian calendar, similar to the Coptic."@x-gmeow-english .
+gmeow:calendarEthiopian rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:calendarCoptic     a gmeow:CalendarSystem ; rdfs:label "Coptic calendar"@x-gmeow-english ; skos:definition "The Coptic calendar."@x-gmeow-english .
+gmeow:calendarCoptic rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:calendarISOWeek    a gmeow:CalendarSystem ; rdfs:label "ISO week date"@x-gmeow-english ; skos:definition "The ISO 8601 week-numbering calendar."@x-gmeow-english .
+
+# Default Temporal Frames — satisfy FrameProfileShape (hasAxis, dimensionCount, frameRealm, frameKind, requiresHost, determinacyModel)
+gmeow:calendarISOWeek rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:temporalFrameUTCGregorian
+    a gmeow:TemporalFrame ;
+    rdfs:label "UTC Gregorian (civil time)"@x-gmeow-english ;
+    gmeow:frameTimeScale gmeow:timeScaleUTC ;
+    gmeow:frameCalendarSystem gmeow:calendarGregorian ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisMonth, gmeow:axisDay, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTemporal ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:temporalFrameUTCGregorian skos:definition "The utc gregorian temporal frame — a named combination of timescale and calendar used to interpret temporal coordinates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:temporalFrameTAI
+    a gmeow:TemporalFrame ;
+    rdfs:label "TAI (atomic, no calendar)"@x-gmeow-english ;
+    gmeow:frameTimeScale gmeow:timeScaleTAI ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:temporalFrameTAI skos:definition "The tai temporal frame — a named combination of timescale and calendar used to interpret temporal coordinates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:temporalFrameTTGregorian
+    a gmeow:TemporalFrame ;
+    rdfs:label "TT Gregorian (dynamical)"@x-gmeow-english ;
+    gmeow:frameTimeScale gmeow:timeScaleTT ;
+    gmeow:frameCalendarSystem gmeow:calendarGregorian ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisMonth, gmeow:axisDay, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTemporal ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+gmeow:temporalFrameTTGregorian skos:definition "The tt gregorian temporal frame — a named combination of timescale and calendar used to interpret temporal coordinates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:temporalFrameTDBGregorian
+    a gmeow:TemporalFrame ;
+    rdfs:label "TDB Gregorian (barycentric)"@x-gmeow-english ;
+    gmeow:frameTimeScale gmeow:timeScaleTDB ;
+    gmeow:frameCalendarSystem gmeow:calendarGregorian ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:hasAxis gmeow:axisYear, gmeow:axisMonth, gmeow:axisDay, gmeow:axisHour, gmeow:axisMinute, gmeow:axisSecond ;
+    gmeow:dimensionCount "6"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindTemporal ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+# =========================================================================== #
+# INSTANT & EDTF
+# =========================================================================== #
+gmeow:temporalFrameTDBGregorian skos:definition "The tdb gregorian temporal frame — a named combination of timescale and calendar used to interpret temporal coordinates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:Instant
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:AbstractIndividual ;
+    rdfs:label "Instant"@x-gmeow-english ;
+    skos:definition "A zero-duration point in time, distinct from a TimeInterval. Carries a crisp instantValue (xsd:dateTime) and/or an edtfValue (EDTF literal) relative to a TemporalFrame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:instantValue
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Instant ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "instant value"@x-gmeow-english ;
+    skos:definition "The crisp instant as an xsd:dateTime literal in the associated temporal frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:edtfValue
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "EDTF value"@x-gmeow-english ;
+    skos:definition "An ISO 8601-2 (EDTF) expression of an instant or interval, stored as a plain literal. EDTF parsing and normalization are solver-layer concerns (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:inTemporalFrame
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+    rdfs:domain gmeow:Instant ;
+    rdfs:range gmeow:TemporalFrame ;
+    rdfs:label "in temporal frame"@x-gmeow-english ;
+    skos:definition "Relates an instant to the temporal frame in which its value is expressed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Bridge: an interval has a start instant and an end instant (optional)
+gmeow:hasStartInstant
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range gmeow:Instant ;
+    rdfs:label "has start instant"@x-gmeow-english ;
+    skos:definition "The start instant of a time interval."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasEndInstant
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range gmeow:Instant ;
+    rdfs:label "has end instant"@x-gmeow-english ;
+    skos:definition "The end instant of a time interval; absent if the interval is open-ended."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# NAMED PERIOD
+# =========================================================================== #
+
+gmeow:NamedPeriod
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Entity, gufo:Object ;
+    rdfs:label "Named Period"@x-gmeow-english ;
+    skos:definition "A named stretch of time with defined bounds — a geologic era, historical dynasty, artistic period, fiscal year, or any other culturally salient temporal division."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:PeriodType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Period Type"@x-gmeow-english ;
+    skos:definition "The kind of a named period (geologic eon, era, period, epoch, age; historical dynasty, era; fiscal year). A value, never a subclass."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:periodStart
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NamedPeriod ;
+    rdfs:range gmeow:Instant ;
+    rdfs:label "period start"@x-gmeow-english ;
+    skos:definition "The instant at which a named period begins. Functional nature removed because the property chain below makes periodStart non-simple, and OWL 2 DL forbids non-simple properties in functional axioms (Principle 8). Closed-world single-valuedness lives in SHACL (NamedPeriodShape)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Property chain (EL): a NamedPeriod with a TemporalMeasurement whose measuredDate is an Instant
+# infers the period's start instant.  Uses measuredDate (range Instant) rather than
+# observationResult (range Entity) because Instant (gufo:AbstractIndividual) is disjoint
+# from Entity (gufo:Endurant) under gUFO, so observationResult cannot point at an Instant
+# without causing inconsistency.  Age-based measurements (measuredAge) do not trigger this
+# chain — they need solver-layer conversion (Principle 12).
+gmeow:periodStart owl:propertyChainAxiom ( gmeow:hasTemporalMeasurement gmeow:measuredDate ) .
+
+gmeow:periodEnd
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:NamedPeriod ;
+    rdfs:range gmeow:Instant ;
+    rdfs:label "period end"@x-gmeow-english ;
+    skos:definition "The instant at which a named period ends."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:periodType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NamedPeriod ;
+    rdfs:range gmeow:PeriodType ;
+    rdfs:label "period type"@x-gmeow-english ;
+    skos:definition "The kind(s) of a named period. Non-functional: competing classifications coexist."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:periodPartOf
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:subPropertyOf gmeow:partOf ;
+    rdfs:domain gmeow:NamedPeriod ;
+    rdfs:range gmeow:NamedPeriod ;
+    rdfs:label "period part of"@x-gmeow-english ;
+    skos:definition "Relates a named period to a larger named period that contains it (e.g. Holocene ⊂ Quaternary ⊂ Cenozoic). Transitive."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:periodContainsPeriod
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:subPropertyOf gmeow:hasPart ;
+    owl:inverseOf gmeow:periodPartOf ;
+    rdfs:domain gmeow:NamedPeriod ;
+    rdfs:range gmeow:NamedPeriod ;
+    rdfs:label "period contains period"@x-gmeow-english ;
+    skos:definition "The transitive inverse of gmeow:periodPartOf."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Seeds for PeriodType
+gmeow:periodTypeGeologicEon     a gmeow:PeriodType ; rdfs:label "geologic eon"@x-gmeow-english .
+gmeow:periodTypeGeologicEon skos:definition "The geologic eon period type — a classification of a named or bounded interval by the domain that defines it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:periodTypeGeologicEra     a gmeow:PeriodType ; rdfs:label "geologic era"@x-gmeow-english .
+gmeow:periodTypeGeologicEra skos:definition "The geologic era period type — a classification of a named or bounded interval by the domain that defines it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:periodTypeGeologicPeriod  a gmeow:PeriodType ; rdfs:label "geologic period"@x-gmeow-english .
+gmeow:periodTypeGeologicPeriod skos:definition "The geologic period period type — a classification of a named or bounded interval by the domain that defines it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:periodTypeGeologicEpoch   a gmeow:PeriodType ; rdfs:label "geologic epoch"@x-gmeow-english .
+gmeow:periodTypeGeologicEpoch skos:definition "The geologic epoch period type — a classification of a named or bounded interval by the domain that defines it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:periodTypeGeologicAge     a gmeow:PeriodType ; rdfs:label "geologic age"@x-gmeow-english .
+gmeow:periodTypeGeologicAge skos:definition "The geologic age period type — a classification of a named or bounded interval by the domain that defines it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:periodTypeHistoricalDynasty a gmeow:PeriodType ; rdfs:label "historical dynasty"@x-gmeow-english .
+gmeow:periodTypeHistoricalDynasty skos:definition "The historical dynasty period type — a classification of a named or bounded interval by the domain that defines it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:periodTypeHistoricalEra   a gmeow:PeriodType ; rdfs:label "historical era"@x-gmeow-english .
+gmeow:periodTypeHistoricalEra skos:definition "The historical era period type — a classification of a named or bounded interval by the domain that defines it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:periodTypeFiscalYear      a gmeow:PeriodType ; rdfs:label "fiscal year"@x-gmeow-english .
+
+# Seed geologic periods — aligned to ICS by skos:exactMatch in the mapping DSL
+gmeow:periodTypeFiscalYear skos:definition "The fiscal year period type — a classification of a named or bounded interval by the domain that defines it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:periodPhanerozoic
+    a gmeow:NamedPeriod ;
+    rdfs:label "Phanerozoic Eon"@x-gmeow-english ;
+    gmeow:periodType gmeow:periodTypeGeologicEon ;
+    gmeow:hasTemporalMeasurement gmeow:measurementPhanerozoicStart .
+gmeow:periodPhanerozoic skos:definition "The phanerozoic named period — a conventional geological, historical, or fiscal interval with defined boundaries."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:periodCenozoic
+    a gmeow:NamedPeriod ;
+    rdfs:label "Cenozoic Era"@x-gmeow-english ;
+    gmeow:periodType gmeow:periodTypeGeologicEra ;
+    gmeow:periodPartOf gmeow:periodPhanerozoic ;
+    gmeow:hasTemporalMeasurement gmeow:measurementCenozoicStart .
+gmeow:periodCenozoic skos:definition "The cenozoic named period — a conventional geological, historical, or fiscal interval with defined boundaries."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:periodQuaternary
+    a gmeow:NamedPeriod ;
+    rdfs:label "Quaternary Period"@x-gmeow-english ;
+    gmeow:periodType gmeow:periodTypeGeologicPeriod ;
+    gmeow:periodPartOf gmeow:periodCenozoic ;
+    gmeow:hasTemporalMeasurement gmeow:measurementQuaternaryStart .
+gmeow:periodQuaternary skos:definition "The quaternary named period — a conventional geological, historical, or fiscal interval with defined boundaries."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:periodHolocene
+    a gmeow:NamedPeriod ;
+    rdfs:label "Holocene Epoch"@x-gmeow-english ;
+    gmeow:periodType gmeow:periodTypeGeologicEpoch ;
+    gmeow:periodPartOf gmeow:periodQuaternary ;
+    gmeow:hasTemporalMeasurement gmeow:measurementHoloceneStart .
+
+# Seed temporal measurements for the geologic periods (satisfies NamedPeriodShape)
+gmeow:periodHolocene skos:definition "The holocene named period — a conventional geological, historical, or fiscal interval with defined boundaries."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:measurementPhanerozoicStart
+    a gmeow:TemporalMeasurement ;
+    rdfs:label "Phanerozoic start age"@x-gmeow-english ;
+    gmeow:vantage gmeow:agentInternationalCommissionOnStratigraphy ;
+    gmeow:observedFeature gmeow:periodPhanerozoic ;
+    gmeow:observationMethod gmeow:datingMethodStratigraphicCorrelation ;
+    gmeow:hasUnit <http://qudt.org/vocab/unit/YR> ;
+    gmeow:measuredAge "538800000"^^xsd:decimal ;
+    gmeow:measurementUncertainty "5000000"^^xsd:decimal .
+gmeow:measurementPhanerozoicStart skos:definition "The phanerozoic start temporal measurement — a measured boundary value expressed in a particular temporal reference frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:measurementCenozoicStart
+    a gmeow:TemporalMeasurement ;
+    rdfs:label "Cenozoic start age"@x-gmeow-english ;
+    gmeow:vantage gmeow:agentInternationalCommissionOnStratigraphy ;
+    gmeow:observedFeature gmeow:periodCenozoic ;
+    gmeow:observationMethod gmeow:datingMethodStratigraphicCorrelation ;
+    gmeow:hasUnit <http://qudt.org/vocab/unit/YR> ;
+    gmeow:measuredAge "66000000"^^xsd:decimal ;
+    gmeow:measurementUncertainty "500000"^^xsd:decimal .
+gmeow:measurementCenozoicStart skos:definition "The cenozoic start temporal measurement — a measured boundary value expressed in a particular temporal reference frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:measurementQuaternaryStart
+    a gmeow:TemporalMeasurement ;
+    rdfs:label "Quaternary start age"@x-gmeow-english ;
+    gmeow:vantage gmeow:agentInternationalCommissionOnStratigraphy ;
+    gmeow:observedFeature gmeow:periodQuaternary ;
+    gmeow:observationMethod gmeow:datingMethodStratigraphicCorrelation ;
+    gmeow:hasUnit <http://qudt.org/vocab/unit/YR> ;
+    gmeow:measuredAge "2580000"^^xsd:decimal ;
+    gmeow:measurementUncertainty "10000"^^xsd:decimal .
+gmeow:measurementQuaternaryStart skos:definition "The quaternary start temporal measurement — a measured boundary value expressed in a particular temporal reference frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:measurementHoloceneStart
+    a gmeow:TemporalMeasurement ;
+    rdfs:label "Holocene start age"@x-gmeow-english ;
+    gmeow:vantage gmeow:agentInternationalCommissionOnStratigraphy ;
+    gmeow:observedFeature gmeow:periodHolocene ;
+    gmeow:observationMethod gmeow:datingMethodStratigraphicCorrelation ;
+    gmeow:hasUnit <http://qudt.org/vocab/unit/YR> ;
+    gmeow:measuredAge "11700"^^xsd:decimal ;
+    gmeow:measurementUncertainty "500"^^xsd:decimal .
+
+# =========================================================================== #
+# TEMPORAL MEASUREMENT & DATING METHOD
+# =========================================================================== #
+gmeow:measurementHoloceneStart skos:definition "The holocene start temporal measurement — a measured boundary value expressed in a particular temporal reference frame."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:TemporalMeasurement
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Measurement, gufo:Relator ;
+    rdfs:label "Temporal Measurement"@x-gmeow-english ;
+    skos:definition "A measured assignment of a date or age to an entity or sample, carrying the method, uncertainty, and determinacy. Now a subclass of gmeow:Measurement (and therefore gmeow:Observation), realising Principle 9: the measurement is a standpoint-indexed claim (vantage + observedFeature + observationResult), not ground truth."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# EL axiomatisation: every TemporalMeasurement mediates at least one vantage and one feature.
+# Closed-world cardinality lives in SHACL (TemporalMeasurementShape).
+gmeow:TemporalMeasurement rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage ;         owl:someValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:someValuesFrom gmeow:Entity ] .
+
+gmeow:DatingMethod
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gmeow:ObservationMethod, gufo:QualityValue ;
+    rdfs:label "Dating Method"@x-gmeow-english ;
+    skos:definition "The method used to derive a temporal measurement — radiocarbon, dendrochronology, thermoluminescence, etc. A value, never a subclass. Specialises gmeow:ObservationMethod for the temporal dating domain."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:hasTemporalMeasurement
+    a owl:ObjectProperty ;
+    rdfs:range gmeow:TemporalMeasurement ;
+    rdfs:label "has temporal measurement"@x-gmeow-english ;
+    skos:definition "Relates an entity (event, artifact, place, sample) to a temporal measurement assigned to it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:measurementMethod
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:observationMethod ;
+    rdfs:domain gmeow:TemporalMeasurement ;
+    rdfs:range gmeow:DatingMethod ;
+    rdfs:label "measurement method"@x-gmeow-english ;
+    skos:definition "The dating method used for a temporal measurement. Bridges to gmeow:observationMethod (rdfs:subPropertyOf) so generic consumers can query all observations by method without knowing the domain."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:measuredAge
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TemporalMeasurement ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "measured age"@x-gmeow-english ;
+    skos:definition "The numeric age yielded by a temporal measurement, in the unit given by gmeow:hasUnit."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:measuredDate
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TemporalMeasurement ;
+    rdfs:range gmeow:Instant ;
+    rdfs:label "measured date"@x-gmeow-english ;
+    skos:definition "The absolute date instant yielded by a temporal measurement. Semantically plays the observationResult role for TemporalMeasurement, but is NOT asserted as rdfs:subPropertyOf gmeow:observationResult because gmeow:Instant (gufo:AbstractIndividual) is not a subclass of gmeow:Entity (gufo:Endurant), the range of gmeow:observationResult. Projection-layer alignment to time:hasTime lives in the mapping DSL."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:measurementUncertainty
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:TemporalMeasurement ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "measurement uncertainty"@x-gmeow-english ;
+    skos:definition "The uncertainty (e.g. ±1 sigma) of a temporal measurement, in the same unit as the measured age."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:measurementDeterminacy
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:hasDeterminacy ;
+    rdfs:domain gmeow:TemporalMeasurement ;
+    rdfs:range gmeow:Determinacy ;
+    rdfs:label "measurement determinacy"@x-gmeow-english ;
+    skos:definition "The ontic determinacy model of a temporal measurement — crisp, vague, fuzzy, probabilistic, or disputed. Bridges to gmeow:hasDeterminacy (rdfs:subPropertyOf) so generic consumers can query determinacy uniformly across all domains."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# Seed vantage agent for geologic period measurements (ICS authority)
+gmeow:agentInternationalCommissionOnStratigraphy
+    a gmeow:Organization ;
+    rdfs:label "International Commission on Stratigraphy"@x-gmeow-english ;
+    skos:definition "The International Commission on Stratigraphy (ICS), the global scientific authority for definition and nomenclature of geologic time units."@x-gmeow-english .
+
+# Seeds for DatingMethod
+gmeow:agentInternationalCommissionOnStratigraphy rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:datingMethodRadiocarbon                        a gmeow:DatingMethod ; rdfs:label "radiocarbon dating (14C)"@x-gmeow-english .
+gmeow:datingMethodRadiocarbon skos:definition "The radiocarbon dating method — a scientific technique used to estimate the age of an object, stratum, or event."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:datingMethodDendrochronology                   a gmeow:DatingMethod ; rdfs:label "dendrochronology"@x-gmeow-english .
+gmeow:datingMethodDendrochronology skos:definition "The dendrochronology dating method — a scientific technique used to estimate the age of an object, stratum, or event."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:datingMethodThermoluminescence                 a gmeow:DatingMethod ; rdfs:label "thermoluminescence"@x-gmeow-english .
+gmeow:datingMethodThermoluminescence skos:definition "The thermoluminescence dating method — a scientific technique used to estimate the age of an object, stratum, or event."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:datingMethodPotassiumArgon                     a gmeow:DatingMethod ; rdfs:label "potassium-argon (K-Ar)"@x-gmeow-english .
+gmeow:datingMethodPotassiumArgon skos:definition "The potassium argon dating method — a scientific technique used to estimate the age of an object, stratum, or event."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:datingMethodUraniumLead                        a gmeow:DatingMethod ; rdfs:label "uranium-lead (U-Pb)"@x-gmeow-english .
+gmeow:datingMethodUraniumLead skos:definition "The uranium lead dating method — a scientific technique used to estimate the age of an object, stratum, or event."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:datingMethodOpticallyStimulatedLuminescence    a gmeow:DatingMethod ; rdfs:label "optically stimulated luminescence (OSL)"@x-gmeow-english .
+gmeow:datingMethodOpticallyStimulatedLuminescence skos:definition "The optically stimulated luminescence dating method — a scientific technique used to estimate the age of an object, stratum, or event."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:datingMethodElectronSpinResonance              a gmeow:DatingMethod ; rdfs:label "electron spin resonance (ESR)"@x-gmeow-english .
+gmeow:datingMethodElectronSpinResonance skos:definition "The electron spin resonance dating method — a scientific technique used to estimate the age of an object, stratum, or event."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:datingMethodAminoAcidRacemization              a gmeow:DatingMethod ; rdfs:label "amino acid racemization"@x-gmeow-english .
+gmeow:datingMethodAminoAcidRacemization skos:definition "The amino acid racemization dating method — a scientific technique used to estimate the age of an object, stratum, or event."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:datingMethodPaleomagnetism                     a gmeow:DatingMethod ; rdfs:label "paleomagnetism"@x-gmeow-english .
+gmeow:datingMethodPaleomagnetism skos:definition "The paleomagnetism dating method — a scientific technique used to estimate the age of an object, stratum, or event."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:datingMethodStratigraphicCorrelation           a gmeow:DatingMethod ; rdfs:label "stratigraphic correlation"@x-gmeow-english .
+
+# =========================================================================== #
+# ALLEN INTERVAL RELATIONS — over TimeInterval (JEPD, mirroring events #41)
+# =========================================================================== #
+gmeow:datingMethodStratigraphicCorrelation skos:definition "The stratigraphic correlation dating method — a scientific technique used to estimate the age of an object, stratum, or event."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+gmeow:intervalBefore
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "interval before"@x-gmeow-english ;
+    skos:definition "Allen BEFORE: this interval ends strictly before the related interval begins. Transitive. Inverse of gmeow:intervalAfter. (= time:intervalBefore)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:intervalAfter
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    owl:inverseOf gmeow:intervalBefore ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "interval after"@x-gmeow-english ;
+    skos:definition "Allen AFTER: this interval begins strictly after the related interval ends. Transitive inverse of gmeow:intervalBefore. (= time:intervalAfter)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:intervalMeets
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:intervalMetBy ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "interval meets"@x-gmeow-english ;
+    skos:definition "Allen MEETS: this interval ends exactly when the related interval begins. NOT transitive. Inverse of gmeow:intervalMetBy. (= time:intervalMeets)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:intervalMetBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "interval met by"@x-gmeow-english ;
+    skos:definition "Allen MET-BY: inverse of gmeow:intervalMeets. (= time:intervalMetBy)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:intervalOverlaps
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:intervalOverlappedBy ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "interval overlaps"@x-gmeow-english ;
+    skos:definition "Allen OVERLAPS: this interval begins before and ends during the related interval. NOT transitive. Inverse of gmeow:intervalOverlappedBy. (= time:intervalOverlaps)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:intervalOverlappedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "interval overlapped by"@x-gmeow-english ;
+    skos:definition "Allen OVERLAPPED-BY: inverse of gmeow:intervalOverlaps. (= time:intervalOverlappedBy)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:intervalStarts
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:intervalStartedBy ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "interval starts"@x-gmeow-english ;
+    skos:definition "Allen STARTS: this interval and the related interval begin together, and this one ends first. NOT transitive. Inverse of gmeow:intervalStartedBy. (= time:intervalStarts)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:intervalStartedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "interval started by"@x-gmeow-english ;
+    skos:definition "Allen STARTED-BY: inverse of gmeow:intervalStarts. (= time:intervalStartedBy)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:intervalDuring
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    owl:inverseOf gmeow:intervalContains ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "interval during"@x-gmeow-english ;
+    skos:definition "Allen DURING: this interval's extent falls strictly within the related interval's extent. Transitive. Inverse of gmeow:intervalContains. (= time:intervalDuring)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:intervalContains
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "interval contains"@x-gmeow-english ;
+    skos:definition "Allen CONTAINS: this interval's extent strictly contains the related interval's extent. Transitive inverse of gmeow:intervalDuring. (= time:intervalContains)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:intervalFinishes
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:intervalFinishedBy ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "interval finishes"@x-gmeow-english ;
+    skos:definition "Allen FINISHES: this interval and the related interval end together, and this one began later. NOT transitive. Inverse of gmeow:intervalFinishedBy. (= time:intervalFinishes)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:intervalFinishedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "interval finished by"@x-gmeow-english ;
+    skos:definition "Allen FINISHED-BY: inverse of gmeow:intervalFinishes. (= time:intervalFinishedBy)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:intervalCoincidesWith
+    a owl:ObjectProperty, owl:SymmetricProperty, owl:TransitiveProperty ;
+    rdfs:domain gmeow:TimeInterval ;
+    rdfs:range gmeow:TimeInterval ;
+    rdfs:label "interval coincides with"@x-gmeow-english ;
+    skos:definition "Allen EQUALS: this interval and the related interval share the same temporal extent. Symmetric and transitive. TEMPORAL simultaneity only, never identity of the intervals themselves. (= time:intervalEquals)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+# JEPD — Pairwise disjointness of the 13 interval Allen relations.
+# JEPD disjointness of the 13 interval relations is NOT asserted in OWL
+# because several relations are transitive (intervalBefore, intervalAfter,
+# intervalCoincidesWith) and OWL 2 DL forbids DisjointObjectProperties over
+# non-simple properties.  Enforcement lives in SHACL verify queries
+# (queries/verify/no-jepd-violation.rq) and the solver layer (Principle 12).
+
+# =========================================================================== #
+# GRANULARITY LEVEL — temporal resolution axis (retained from #79)
+# =========================================================================== #
+
+gmeow:granularityCentury a gmeow:GranularityLevel ; rdfs:label "century level"@x-gmeow-english ;
+    gmeow:coarserThan gmeow:granularityDecade .
+gmeow:granularityCentury skos:definition "The century granularity level — a resolution at which a value may be disclosed or coarsened (Principle 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:granularityDecade  a gmeow:GranularityLevel ; rdfs:label "decade level"@x-gmeow-english ;
+    gmeow:coarserThan gmeow:granularityYear .
+gmeow:granularityDecade skos:definition "The decade granularity level — a resolution at which a value may be disclosed or coarsened (Principle 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:granularityYear    a gmeow:GranularityLevel ; rdfs:label "year level"@x-gmeow-english ;
+    gmeow:coarserThan gmeow:granularityMonth ; skos:exactMatch time:unitYear .
+gmeow:granularityYear skos:definition "The year granularity level — a resolution at which a value may be disclosed or coarsened (Principle 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:granularityMonth   a gmeow:GranularityLevel ; rdfs:label "month level"@x-gmeow-english ;
+    gmeow:coarserThan gmeow:granularityDay ; skos:exactMatch time:unitMonth .
+gmeow:granularityMonth skos:definition "The month granularity level — a resolution at which a value may be disclosed or coarsened (Principle 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+gmeow:granularityDay     a gmeow:GranularityLevel ; rdfs:label "day level"@x-gmeow-english ;
+    skos:exactMatch time:unitDay .
+gmeow:granularityDay skos:definition "The day granularity level — a resolution at which a value may be disclosed or coarsened (Principle 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .

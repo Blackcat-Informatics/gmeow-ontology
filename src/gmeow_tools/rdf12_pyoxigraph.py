@@ -17,9 +17,9 @@ from gmeow_tools.config import QUERIES_DIR
 from gmeow_tools.graph import bind_prefixes
 
 #: OWL axiom-annotation downcast → RDF 1.2 / RDF* reifying triples.
-PROJECT_QUERY = QUERIES_DIR / "rdf12-project.rq"
+PROJECT_QUERY = QUERIES_DIR / "codecs" / "rdf12-project.rq"
 #: RDF 1.2 / RDF* → OWL axiom-annotation normal form (the round-trip inverse).
-NORMALIZE_QUERY = QUERIES_DIR / "rdf12-to-owl.rq"
+NORMALIZE_QUERY = QUERIES_DIR / "codecs" / "rdf12-to-owl.rq"
 
 #: Header prepended to the emitted RDF 1.2 lead artifact.
 _RDF12_BANNER = (

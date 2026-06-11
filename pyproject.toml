@@ -50,6 +50,8 @@ packages = ["src/gmeow_tools"]
 line-length = 88
 target-version = "py313"
 src = ["src", "tests"]
+# generated/ is owned by registered generators (#287); never lint outputs.
+extend-exclude = ["generated"]
 
 [tool.ruff.lint]
 select = [
@@ -76,6 +78,7 @@ convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D"] # docstrings not required in tests
+"slices/*/*/tests/*" = ["D"] # slice-local tests (#287), same rule
 
 [tool.mypy]
 python_version = "3.13"
@@ -93,7 +96,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-testpaths = ["tests"]
+testpaths = ["tests", "slices"]
 addopts = "-ra --strict-markers"
 markers = [
     "network: tests that require network access (Wikidata/OOPS!/FOOPS!)",

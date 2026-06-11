@@ -9,10 +9,10 @@ __pycache__/
 .coverage
 htmlcov/
 
-# Generated build artifacts (published on release, not committed)
-/dist/*
-!/dist/lpg/
-!/dist/schemas/
+# Ephemeral build products (published on release, never committed).
+# Committed generated artifacts live under generated/ (#287) — one root,
+# every path owned by a registered generator.
+/dist/
 /docs/_generated/
 /llms.txt
 

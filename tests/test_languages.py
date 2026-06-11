@@ -160,9 +160,14 @@ def test_transliteration_scheme_retrofits_names() -> None:
 
 def test_software_bridge_and_version_lineage() -> None:
     graph = _graph()
+    # writtenInLanguage is the GENERIC content-language relation (#287
+    # surgery): any InformationObject — a document, a source tree, an
+    # inscription reading — is written in a first-class Language. The
+    # software case is the subsumed instance (SourceTree ⊑ InformationObject,
+    # ProgrammingLanguage ⊑ Language), never a software-shaped domain.
     written = URIRef(GMEOW + "writtenInLanguage")
-    assert (written, RDFS.domain, URIRef(GMEOW + "SoftwareProject")) in graph
-    assert (written, RDFS.range, URIRef(GMEOW + "ProgrammingLanguage")) in graph
+    assert (written, RDFS.domain, URIRef(GMEOW + "InformationObject")) in graph
+    assert (written, RDFS.range, URIRef(GMEOW + "Language")) in graph
     # versionOf is functional (a version belongs to exactly one lineage).
     assert (
         URIRef(GMEOW + "versionOf"),

@@ -17,6 +17,7 @@ from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.projections import project_graph
+from gmeow_tools.slices import module_path
 from gmeow_tools.validate import run_shacl
 
 GM = Namespace(NAMESPACE)
@@ -137,7 +138,7 @@ def test_sensitivity_orthogonal_to_granularity() -> None:
 def test_no_preferred_or_primary_sensitivity_term() -> None:
     """No gmeow:primary* / gmeow:preferred* privacy term."""
     module = Graph().parse(
-        Path(__file__).parents[1] / "ontology" / "modules" / "core.ttl",
+        module_path("kernel"),
         format="turtle",
     )
     offenders = []

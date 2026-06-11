@@ -77,7 +77,7 @@ Cite them by number in issues and PRs.
   deadnames suppressed-not-deleted, a 7-axis orthogonality matrix (pronouns ⟂ honorifics ⟂
   gender identity ⟂ expression ⟂ sex ⟂ sexual ⟂ romantic orientation) **enforced by
   tests** — and self-assertion outranks any inference, for people and for AI entities alike
-  ([Principles 9 & 16](./CONSTITUTION.md); [`docs/names-mapping.md`](./docs/names-mapping.md),
+  ([Principles 9 & 16](./CONSTITUTION.md); [`slices/core/names/docs.md`](./slices/core/names/docs.md),
   [`docs/identity-mapping.md`](./docs/identity-mapping.md)). Identity and deception
   epistemics ship in the **core**, by commitment — a memory substrate that makes "what is a
   person" an optional add-on has already answered the question, badly.
@@ -123,15 +123,15 @@ slice's model *and* how it aligns/projects.
 | [`docs/standpoints.md`](./docs/standpoints.md) | Doctrine | Contested facts as coexisting, standpoint-indexed claims — no privileged winner |
 | [`docs/rights.md`](./docs/rights.md) | Doctrine | Rights / IP / licensing as reified, temporally-bound, machine-readable claims (ODRL superset) |
 | [`docs/temporal-queries.md`](./docs/temporal-queries.md) | Reference | TQL — the parameterized temporal query algebra (Allen relations) over the events/temporal model |
-| [`docs/names-mapping.md`](./docs/names-mapping.md) | Domain guide | Names as reified, co-equal, anti-colonial relationships; pronouns & honorifics as first-class facets |
+| [`slices/core/names/docs.md`](./slices/core/names/docs.md) | Domain guide | Names as reified, co-equal, anti-colonial relationships; pronouns & honorifics as first-class facets |
 | [`docs/identity-mapping.md`](./docs/identity-mapping.md) | Domain guide | Gender & sexuality as orthogonal, self-asserted, co-equal facets (the 7-axis matrix) |
-| [`docs/languages-mapping.md`](./docs/languages-mapping.md) | Domain guide | Languages as registry-independent first-class entities; co-mingled writing systems; proficiency |
-| [`docs/email-mapping.md`](./docs/email-mapping.md) | Domain guide | Email message/header structure, participants, and RFC 5322 mapping; time-scoped address tenure |
+| [`slices/extensions/languages/docs.md`](./slices/extensions/languages/docs.md) | Domain guide | Languages as registry-independent first-class entities; co-mingled writing systems; proficiency |
+| [`slices/extensions/email/docs.md`](./slices/extensions/email/docs.md) | Domain guide | Email message/header structure, participants, and RFC 5322 mapping; time-scoped address tenure |
 | [`docs/location-mapping.md`](./docs/location-mapping.md) | Domain guide | The universal reference-frame: 13+ realms, RCC-8 topology, pose/trajectory, frame-relativity |
-| [`docs/attestation-mapping.md`](./docs/attestation-mapping.md) | Domain guide | Signed-claim envelopes, verification results, and append-only transparency logs (cross-cutting) |
-| [`docs/rights-mapping.md`](./docs/rights-mapping.md) | Domain guide | Alignment/projection companion to `rights.md` — ODRL, CC REL, Dublin Core, SPDX, schema.org |
-| [`docs/standpoint-mapping.md`](./docs/standpoint-mapping.md) | Domain guide | Alignment/projection companion to `standpoints.md` — CRMinf, PROV-O, Web Annotation, schema:Claim |
-| [`docs/versions-mapping.md`](./docs/versions-mapping.md) | Domain guide | Versions as standpoint-scoped claims (latest / stable / yanked / canonical are not intrinsic) |
+| [`slices/core/attestation/docs.md`](./slices/core/attestation/docs.md) | Domain guide | Signed-claim envelopes, verification results, and append-only transparency logs (cross-cutting) |
+| [`slices/core/rights/docs.md`](./slices/core/rights/docs.md) | Domain guide | Alignment/projection companion to `rights.md` — ODRL, CC REL, Dublin Core, SPDX, schema.org |
+| [`slices/core/standpoint/docs.md`](./slices/core/standpoint/docs.md) | Domain guide | Alignment/projection companion to `standpoints.md` — CRMinf, PROV-O, Web Annotation, schema:Claim |
+| [`slices/core/versions/docs.md`](./slices/core/versions/docs.md) | Domain guide | Versions as standpoint-scoped claims (latest / stable / yanked / canonical are not intrinsic) |
 | [`docs/wikidata-mapping.md`](./docs/wikidata-mapping.md) | Domain guide | The Wikidata integration policy — `wd:` / `wdt:` / `ps:` / `pq:` semantics; QID/PID syntax gates |
 | [`docs/BRAND.md`](./docs/BRAND.md) | Brand | Logo usage and trademark guidelines |
 
@@ -159,15 +159,13 @@ make check           # full local gate: lint, validate, reason (ELK), mappings, 
 | `make reason` | Merge import closure → OWL 2 **DL** profile check → **ELK** consistency (Docker/ROBOT) |
 | `make explain` | Explain unsatisfiable classes with **HermiT** |
 | `make verify` | Reasoned-graph SPARQL QC (ROBOT `verify` over `queries/verify/`) — the closed-world half of the [OWL-infers / SHACL-validates split](./docs/reasoning.md) |
-| `make compile-mappings` | Compile the `mapping-dsl/` source → SSSOM + EDOAL + FnO + SPARQL artifacts (in-place) |
+| `make regenerate` | Rebuild EVERY committed artifact under `generated/` via the registered-generator framework (#279): mappings, projections, statements, schemas, lpg, metadata, apache, the module-status matrix |
+| `make check-generated` | Drift + orphan + internal-tag-leak gate over every registered generator |
 | `make mappings` | SSSOM → OWL/SKOS alignment axioms + VoID linksets; validates Wikidata QID syntax |
 | `make wikidata` / `wikidata-live` | Wikidata QID/PID syntax gate (offline) / + existence check (network) |
-| `make metadata` | Generate VoID (+ linksets) and DCAT dataset descriptions |
 | `make crossref` | Generate the CrossRef DOI deposit XML (deposit schema 5.4.0) |
-| `make apache` | Render the Apache content-negotiation include (`apache/gmeow.conf`) |
 | `make docs` / `docs-full` | pyLODE HTML / + WIDOCO (diagrams, changelog, OOPS!) |
-| `make build` | All serializations (`ttl`/`rdf`/`nt`/`jsonld`) + JSON-LD context + apache.conf → `dist/` |
-| `make compile-statements` | Compile `statement-dsl/` → RDF 1.2 / RDF\* lead artifact + OWL-form downcast (verified, in-place) |
+| `make build` | All serializations (`ttl`/`rdf`/`nt`/`jsonld`) + JSON-LD context → `dist/` (ephemeral) |
 | `make rdf12` | Emit the RDF 1.2 / RDF\* lead artifact + its OWL-form downcast via Apache Jena (**required** — fails if absent) |
 | `make quality` | OOPS! pitfall scan (network, best-effort) |
 | `make release` | Reasoned closure (HermiT) + build + metadata + RDF 1.2 / RDF\* lead artifact + OWL-form downcast |
@@ -178,31 +176,39 @@ invoking user, so generated files are never owned by root.
 
 ## Architecture
 
+**The one rule (#287):** under `generated/`, a registered generator owns it; under
+`dist/`, it is ephemeral; everything else is authored. The unit of the ontology is
+the **slice** — identical anatomy for core and extensions, with the manifest as the
+sole source of identity and tier (Principles 15–16).
+
 ```text
-ontology/gmeow.ttl        Root ontology: metadata + owl:imports (gUFO + modules)
-ontology/modules/*.ttl    Module stubs, each class grounded in a gUFO category
-imports/                  Vendored gUFO (+ future extracted subsets)
-imports/targets/          Validation-only axiom snapshots (alignment linter + foundational bridge); NOT in the reasoned closure
+slices/<group>/<name>/    A slice: manifest.ttl (IRI + tier + deps + consumer),
+                          module.ttl, shapes.ttl, mappings/, queries/, tests/,
+                          docs.md. The <group> dir (core/, extensions/) is human
+                          organization only — the build reads manifests.
+slices/vocabulary.ttl     The slice-manifest authoring vocabulary (spec layer)
+ontology/gmeow.ttl        Root ontology: metadata + owl:imports (gUFO + slices)
+dsl/mappings/             Mapping DSL: vocabulary, foundational gUFO↔BFO bridge,
+                          per-target projections, transforms.fno.ttl
+dsl/statements/           The canonical RDF 1.2 / RDF* statement-metadata source
+shapes/                   Authored SHACL (incl. the slice-manifest shapes)
+queries/                  Authored SPARQL: competency/, verify/, qc/, codecs/
+imports/                  Vendored gUFO + validation-only axiom snapshots
 catalog-v001.xml          Offline IRI→file resolution for ROBOT/Protégé
-mapping-dsl/              The single authoring source for the alignment layer (compiled)
-mapping-dsl/foundational/ gUFO↔BFO foundational-spine bridge (by reference) — see docs/foundational-bridging.md
-statement-dsl/            The canonical RDF 1.2 / RDF* statement-metadata source (compiled)
-shapes/gmeow-shapes.ttl   SHACL completeness shapes
-queries/competency/, qc/  Competency questions + QC SPARQL
-queries/rdf12-project.rq  Codec: OWL axiom-annotation downcast → RDF 1.2 / RDF* (compile step)
-metadata/                 VoID + DCAT (generated)
-apache/gmeow.conf         Content-negotiation include (generated)
 src/gmeow_tools/          The toolchain (CLI: `gmeow …`)
 
-# Generated by `gmeow compile-mappings` from mapping-dsl/ — do not hand-edit:
-mappings/*.sssom.tsv      Cross-ontology alignments (SSSOM)
-projections/*.edoal.ttl   Complex alignment cells (EDOAL) + functions.fno.ttl (FnO)
-queries/projections/*.rq  Executable projection CONSTRUCTs (SPARQL)
-
-# Generated by `gmeow compile-statements` from statement-dsl/ — do not hand-edit:
-statements/gmeow.rdf12.ttl           RDF 1.2 / RDF* statement metadata (canonical lead)
-statements/gmeow-statements.owl.ttl  OWL axiom-annotation downcast (merged into reasoning)
+generated/                EVERY committed generated artifact — one root, every
+                          path owned by a registered generator (drift-, orphan-,
+                          and internal-tag-leak-gated):
+                          mappings/ (SSSOM) · projections/ (EDOAL+FnO) ·
+                          queries/ (projection CONSTRUCTs) · statements/
+                          (RDF 1.2 lead + OWL downcast) · schemas/ · lpg/ ·
+                          metadata/ (VoID+DCAT) · apache/ · module-status.md
+dist/                     Ephemeral build products (never committed)
 ```
+
+The per-slice audit state — tier, dependencies, term counts, documentation
+status — is the generated [`generated/module-status.md`](./generated/module-status.md).
 
 ### Reasoning: merge first
 
@@ -323,7 +329,7 @@ Most vocabularies treat a name as a flat string (`familyName`). GMEOW models it 
 `gmeow:Appellation` borne by an entity, with the `gmeow:NameUsage` relator binding *who is
 named × which name × toward whom × in what register × over what period*. That makes naming
 non-standard in deliberate, useful ways (full rationale in
-[`docs/names-mapping.md`](./docs/names-mapping.md)):
+[`slices/core/names/docs.md`](./slices/core/names/docs.md)):
 
 - **Co-equal, anti-colonial.** A person's names in different languages/scripts (e.g.
   *Patrick Colm Audley* and *欧德理*) are **co-equal full names** — neither is the other's
@@ -346,7 +352,7 @@ non-standard in deliberate, useful ways (full rationale in
 Most vocabularies treat a language as an opaque tag (`inLanguage "ja"`) — *a language **is**
 its ISO/BCP-47 code*. GMEOW inverts that: a **`gmeow:Language` has a self-minted IRI**,
 registry codes are optional alignments (never identity), and **internal string literals use private-use BCP-47 tags (e.g., `@x-gmeow-japanese`)** to isolate GMEOW graphs from external registries. Standard BCP-47 tags are reconstructed on-demand during down-projection. Full rationale is in
-[`docs/languages-mapping.md`](./docs/languages-mapping.md):
+[`slices/extensions/languages/docs.md`](./slices/extensions/languages/docs.md):
 
 - **Registry-independent.** A code-less conlang (**Ithkuil**), a fast-versioning AI-minted
   interlingua, an under-coded sign/minority language, and a programming language are all

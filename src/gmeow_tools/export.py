@@ -29,14 +29,13 @@ from rdflib import OWL, RDF, RDFS, SKOS, BNode, Graph, URIRef
 from gmeow_tools.config import (
     DIST_DIR,
     MAPPINGS_DIR,
-    MODULES_DIR,
     NAMESPACE,
     ONTOLOGY_IRI,
     PREFIXES,
     PROJECT_ROOT,
 )
 from gmeow_tools.generator import Generator, _rel, register
-from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.graph import iter_module_files, load_merged_graph
 from gmeow_tools.language_tags import load_tag_map, public_text
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
 from gmeow_tools.self_desc import load_self_description
@@ -522,7 +521,7 @@ class ExportGenerator(Generator):
             return self._cached_inputs
         self._cached_inputs = [
             PROJECT_ROOT / "ontology" / "gmeow.ttl",
-            *list(MODULES_DIR.glob("*.ttl")),
+            *iter_module_files(),
             *list(MAPPINGS_DIR.glob("*.sssom.tsv")),
         ]
         return self._cached_inputs

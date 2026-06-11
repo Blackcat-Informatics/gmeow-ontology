@@ -6,7 +6,7 @@
 GMEOW records a contested fact as **several standpoint-indexed claims that
 coexist, none privileged** — never one ground truth with a winner. This is the
 doctrine document for the standpoint facility (`ontology/modules/standpoint.ttl`);
-its companion is the [alignment & projection reference](standpoint-mapping.md).
+its companion is the [alignment & projection reference](../slices/core/standpoint/docs.md).
 
 ## The epistemic thesis
 
@@ -171,7 +171,7 @@ ex:crimea gmeow:containedInPlace ex:russia , ex:ukraine .   # both asserted
   There is **no** projection that selects one standpoint: collapsing a contested fact
   to a chosen frame in a down-projection would re-create the single winning slot — it
   is picking a winner by another name, and the facility forbids it. See
-  [standpoint-mapping.md](standpoint-mapping.md).
+  [standpoint-mapping.md](../slices/core/standpoint/docs.md).
 
 ## SOTA, and how GMEOW transcends it
 

@@ -220,7 +220,7 @@ All projections live in `mapping-dsl/projections/` and compile to
 | `Activity`, `Event`, `Participation` | `events.ttl`, `provenance.ttl` | Commit, Release, Push, Merge, CodeReview, BuildActivity |
 | `Contribution`, `ContributionRole` | `creative-works.ttl` (#211) | Agent × project/commit/release × role |
 | `VersionSet`, `VersionMembership` | `versions.ttl` (#161) | Release versioning without facet collapse |
-| `Attestation`, `CryptographicSignature`, `TransparencyLogEntry` | `attestation.ttl`, `trust.ttl`, `messaging-trust.ttl` (#162) | SLSA, cosign, Rekor |
+| `Attestation`, `CryptographicSignature`, `TransparencyLogEntry` | `attestation.ttl`, `trust.ttl` (#162) | SLSA, cosign, Rekor |
 | `contentDigest`, `versionFingerprint` | `sources.ttl`, `versions.ttl` | Git hashes, SWHIDs |
 | `TimeInterval`, four clocks | `temporal.ttl` | author-time, committer-time, push-time |
 | `displayable`, `selfAsserted` | `core.ttl` | Suppression, AI authorship |

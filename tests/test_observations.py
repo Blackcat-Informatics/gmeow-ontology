@@ -18,8 +18,9 @@ from __future__ import annotations
 import owlrl
 from rdflib import OWL, RDF, RDFS, Graph, Namespace
 
-from gmeow_tools.config import NAMESPACE, ONTOLOGY_DIR
+from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
 GUFO = Namespace("http://purl.org/nemo/gufo#")
@@ -99,7 +100,7 @@ def test_scalar_quantity_properties_exist() -> None:
 def test_observation_el_axioms_fire() -> None:
     """An Observation individual with required properties stays consistent."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
     # Minimal A-Box: an observation of a place by an agent
     graph.add((EX.obs1, RDF.type, GMEOW.Observation))
     graph.add((EX.obs1, GMEOW.vantage, EX.agent1))
@@ -118,8 +119,8 @@ def test_observation_el_axioms_fire() -> None:
 def test_frame_inheritance_property_chain() -> None:
     """A result inherits the observation's reference frame via property chain."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("places"), format="turtle")
 
     graph.add((EX.obs1, GMEOW.observationResult, EX.coords1))
     graph.add((EX.obs1, GMEOW.hasReferenceFrame, EX.frameWGS84))
@@ -137,7 +138,7 @@ def test_frame_inheritance_property_chain() -> None:
 def test_measurement_specialises_observation() -> None:
     """Measurement is inferred as an Observation."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
     graph.add((EX.m1, RDF.type, GMEOW.Measurement))
 
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
@@ -146,7 +147,7 @@ def test_measurement_specialises_observation() -> None:
 
 def test_sensory_observation_specialises_observation() -> None:
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
     graph.add((EX.s1, RDF.type, GMEOW.SensoryObservation))
 
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
@@ -155,7 +156,7 @@ def test_sensory_observation_specialises_observation() -> None:
 
 def test_standpoint_claim_specialises_observation() -> None:
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
     graph.add((EX.c1, RDF.type, GMEOW.StandpointClaim))
 
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
@@ -170,8 +171,8 @@ def test_standpoint_claim_specialises_observation() -> None:
 def test_name_usage_specialises_observation() -> None:
     """NameUsage is inferred as an Observation."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "names.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("names"), format="turtle")
     graph.add((EX.nu1, RDF.type, GMEOW.NameUsage))
 
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
@@ -181,8 +182,8 @@ def test_name_usage_specialises_observation() -> None:
 def test_identity_facet_specialises_observation() -> None:
     """IdentityFacet is inferred as an Observation."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "gender.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("gender"), format="turtle")
     graph.add((EX.if1, RDF.type, GMEOW.IdentityFacet))
 
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
@@ -192,8 +193,8 @@ def test_identity_facet_specialises_observation() -> None:
 def test_rights_statement_specialises_observation() -> None:
     """RightsStatement is inferred as an Observation."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "rights.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("rights"), format="turtle")
     graph.add((EX.rs1, RDF.type, GMEOW.RightsStatement))
 
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
@@ -203,8 +204,8 @@ def test_rights_statement_specialises_observation() -> None:
 def test_kin_relationship_specialises_observation() -> None:
     """KinRelationship is inferred as an Observation."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "genealogy.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("genealogy"), format="turtle")
     graph.add((EX.kr1, RDF.type, GMEOW.KinRelationship))
 
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
@@ -314,7 +315,7 @@ def test_is_result_of_is_inverse_of_observation_result() -> None:
 def test_is_result_of_provenance_chain() -> None:
     """A quantity can trace back to its producing observation via isResultOf (#77)."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
 
     graph.add((EX.obs1, RDF.type, GMEOW.Measurement))
     graph.add((EX.q1, RDF.type, GMEOW.Quantity))
@@ -329,8 +330,8 @@ def test_is_result_of_provenance_chain() -> None:
 def test_frame_inheritance_via_quantity() -> None:
     """A Quantity result inherits the observation's reference frame (#77)."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("places"), format="turtle")
 
     graph.add((EX.obs1, RDF.type, GMEOW.Measurement))
     graph.add((EX.obs1, GMEOW.observationResult, EX.q1))
@@ -424,7 +425,7 @@ def test_streaming_method_exists() -> None:
 def test_stream_el_axiom() -> None:
     """A Stream individual with streamOf stays consistent under OWL RL."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
     graph.add((EX.stream1, RDF.type, GMEOW.Stream))
     graph.add((EX.stream1, GMEOW.streamOf, EX.entity1))
     graph.add((EX.entity1, RDF.type, GMEOW.Entity))
@@ -441,8 +442,8 @@ def test_stream_el_axiom() -> None:
 def test_spatial_measurement_infers_observation() -> None:
     """SpatialMeasurement is inferred as an Observation under OWL RL."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("places"), format="turtle")
     graph.add((EX.sm1, RDF.type, GMEOW.SpatialMeasurement))
 
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
@@ -453,8 +454,8 @@ def test_coordinate_observation_infers_spatial_measurement() -> None:
     """CoordinateObservation is inferred as SpatialMeasurement
     (and thus Observation)."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("places"), format="turtle")
     graph.add((EX.co1, RDF.type, GMEOW.CoordinateObservation))
 
     owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
@@ -465,8 +466,8 @@ def test_coordinate_observation_infers_spatial_measurement() -> None:
 def test_coordinate_observation_frame_inheritance() -> None:
     """A CoordinateObservation's result inherits the observation's reference frame."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("places"), format="turtle")
 
     graph.add((EX.co2, RDF.type, GMEOW.CoordinateObservation))
     graph.add((EX.co2, GMEOW.coordinateResult, EX.coords2))
@@ -483,8 +484,8 @@ def test_coordinate_observation_frame_inheritance() -> None:
 def test_coordinate_observation_el_axioms() -> None:
     """A CoordinateObservation individual with required properties stays consistent."""
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "places.ttl", format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
+    graph.parse(module_path("places"), format="turtle")
 
     graph.add((EX.co3, RDF.type, GMEOW.CoordinateObservation))
     graph.add((EX.co3, GMEOW.vantage, EX.agent3))

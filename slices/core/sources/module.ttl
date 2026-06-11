@@ -1,0 +1,52 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/slices/sources>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Sources Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Sources Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:comment """Sources, citations, and the evidence layer — a cross-cutting facility
+(reused by genealogy and every other slice) for evidence-based, source-cited claims.
+Refactored in #211: the anti-rigid Source Kind is retired; source-hood is mediated by
+CitationAct or borne as SourceRole. The Citation locator is retired in favor of Selector
+(in the citations module). Carrier metadata now applies to Manifestation/Item."""@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# Carrier metadata — when a creative work is an import "envelope" (a file carrying a
+# bundle of claims), these describe the artifact itself, not the claims. The
+# carrier's modification time is a terminus-ante-quem on the recording of its
+# claims (see gmeow:recordedNoLaterThan), never their tenure or observation time.
+# Re-homed from the retired gmeow:Source Kind to CreativeWork (#211);
+# typically asserted on Manifestation or Item.
+
+gmeow:sourceModifiedAt
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "source modified at"@x-gmeow-english ;
+    skos:definition "The last-modification time of the source artifact itself (e.g. a file mtime). A terminus-ante-quem on the recording of the claims this source carries — NOT valid-time (tenure) and NOT observation-time. Advisory and resettable; the reliable identity is gmeow:contentDigest. NOT functional: because a source is identified by its content digest, copies/syncs of the same bytes may legitimately report different modification times, which must coexist rather than force an inconsistency."@x-gmeow-english ;
+    skos:scopeNote "Typically asserted on a Manifestation or Item."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:contentDigest
+    a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "content digest"@x-gmeow-english ;
+    skos:definition "A content hash of an object's bytes (e.g. \"blake3:…\", \"sha256:…\", \"git:…\") — the reliable identity by content (two objects with the same bytes are the same object, regardless of path, name, or mtime). Domain-free: applies to creative works, source files, commits, distributions, and any other content-addressable artifact. Not functional: an object may carry digests under several algorithms."@x-gmeow-english ;
+    skos:scopeNote "Typically asserted on a Manifestation, Item, SourceFile, Commit, or Distribution."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+
+gmeow:sourceLocation
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "source location"@x-gmeow-english ;
+    skos:definition "Where the source artifact came from — a file path, original filename, or URL. Provenance/audit only; carries no reliable identity."@x-gmeow-english ;
+    skos:scopeNote "Typically asserted on a Manifestation or Item."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .

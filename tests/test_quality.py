@@ -15,8 +15,8 @@ from __future__ import annotations
 
 from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
 
-from gmeow_tools.config import ONTOLOGY_DIR
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.slices import module_path
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
@@ -78,8 +78,8 @@ def test_quality_assessment_specialises_observation() -> None:
     import owlrl
 
     graph = Graph()
-    graph.parse(ONTOLOGY_DIR / "modules" / "quality.ttl", format="turtle")
-    graph.parse(ONTOLOGY_DIR / "modules" / "observations.ttl", format="turtle")
+    graph.parse(module_path("quality"), format="turtle")
+    graph.parse(module_path("observations"), format="turtle")
     graph.add((EX.qa1, RDF.type, GM.QualityAssessment))
     graph.add((EX.qa1, GM.assessedEntity, EX.place1))
     graph.add((EX.place1, RDF.type, GM.Place))
