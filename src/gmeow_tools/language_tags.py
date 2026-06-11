@@ -114,6 +114,20 @@ def retag_literal(lit: Literal, tag_map: dict[str, str] | None = None) -> Litera
     return Literal(str(lit), lang=bcp)
 
 
+def rank_language(lang: str | None) -> tuple[int, str]:
+    """The shared language-preference sort key (term-representation agnostic).
+
+    Deterministic across multilingual labels (#287: the seed languages
+    introduced fr/zh labels): the artifact carrier language
+    (``x-gmeow-english``) wins, then the remaining tags in lexicographic
+    order — never graph order. One function, used by BOTH the rdflib path
+    (:func:`public_literal`) and the GTS fold view (#267 narrow waist), so
+    their selections agree by construction.
+    """
+    norm = (lang or "").lower()
+    return (0 if norm == "x-gmeow-english" else 1, norm)
+
+
 def public_literal(
     graph: Graph,
     subject: URIRef,
@@ -152,14 +166,12 @@ def public_literal(
     if not candidates:
         return None
 
-    # Prefer internal-tagged literals with a BCP-47 mapping. Deterministic
-    # across multilingual labels (#287: the seed languages introduced fr/zh
-    # labels): the artifact carrier language (x-gmeow-english) wins, then the
-    # remaining internal tags in lexicographic order — never graph order.
-    def _rank(lit: Literal) -> tuple[int, str]:
-        return (0 if lit.language == "x-gmeow-english" else 1, lit.language or "")
-
-    for lit in sorted(candidates, key=_rank):
+    # Pre-sort by (language, lexical) so ties WITHIN a language resolve
+    # deterministically (sorted() is stable; raw candidate order is rdflib
+    # iteration order, which is process-unstable) — and identically to the
+    # fold path's FoldView.public_text.
+    candidates.sort(key=lambda lit: (lit.language or "", str(lit)))
+    for lit in sorted(candidates, key=lambda lit: rank_language(lit.language)):
         if lit.language and is_internal_tag(lit.language):
             bcp = tag_map.get(lit.language)
             if bcp is not None:
