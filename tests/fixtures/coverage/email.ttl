@@ -512,3 +512,63 @@ ex:mpBobToInvite
     gmeow:participantOrdinal 0 ;
     gmeow:displayName "Bob Jones" ;
     gmeow:rawAddressValue "\"Bob Jones\" <bob@example.com>" .
+
+# --------------------------------------------------------------------------- #
+# Versioning, variants, and patch diffs (issue #136)
+# --------------------------------------------------------------------------- #
+
+ex:msgVersionSet
+    a gmeow:VersionSet ;
+    gmeow:identifier "<collision@example.org>" .
+
+# The canonical message in a Message-ID collision family.
+ex:msgCanonical
+    a schema:EmailMessage, gmeow:EmailMessage ;
+    gmeow:rfcMessageId "<collision@example.org>" ;
+    gmeow:subject "Project update" ;
+    gmeow:messageIdCollision true ;
+    gmeow:canonicalFingerprint "blake3:canonical-body-hash" ;
+    gmeow:hasBodyPart ex:msgCanonicalBody .
+
+ex:msgCanonicalBody
+    a gmeow:BodyPart ;
+    gmeow:partId "1" ;
+    gmeow:mediaType "text/plain" ;
+    gmeow:contentDigest "blake3:canonical-body-bytes" .
+
+ex:canonicalMembership
+    a gmeow:VersionMembership ;
+    gmeow:versionSet ex:msgVersionSet ;
+    gmeow:versionMember ex:msgCanonical ;
+    gmeow:versionRole gmeow:roleCanonical ;
+    gmeow:membershipAuthority ex:gmeowImporter .
+
+# A variant of the same message, with a minor body change.
+ex:msgVariant
+    a schema:EmailMessage, gmeow:EmailMessage ;
+    gmeow:rfcMessageId "<collision@example.org>" ;
+    gmeow:subject "Project update" ;
+    gmeow:messageIdCollision true ;
+    gmeow:bodyLineFingerprint "blake3:variant-body-line-hash" ;
+    gmeow:analysisScope "body-only" ;
+    gmeow:analysisInputBodyLine "Please review the attached Q2 report." ;
+    gmeow:hasPatchDiff ex:variantPatch .
+
+ex:variantMembership
+    a gmeow:VersionMembership ;
+    gmeow:versionSet ex:msgVersionSet ;
+    gmeow:versionMember ex:msgVariant ;
+    gmeow:versionRole gmeow:roleVariant ;
+    gmeow:versionScale gmeow:scaleMinor ;
+    gmeow:membershipAuthority ex:gmeowImporter .
+
+# Patch-diff artifact between variant and canonical body.
+ex:variantPatch
+    a gmeow:EmailPatchDiff ;
+    gmeow:partId "patch-1" ;
+    gmeow:mediaType "text/x-gmeow-patch" ;
+    gmeow:contentDigest "blake3:patch-bytes" ;
+    gmeow:wasDerivedFrom ex:msgCanonicalBody .
+
+ex:gmeowImporter a gmeow:SoftwareAgent ;
+    gmeow:name "gmeow mail importer" .
