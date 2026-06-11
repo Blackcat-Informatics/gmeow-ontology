@@ -34,7 +34,7 @@ def view() -> FoldView:
         Term(TermKind.IRI, EX + "cat"),  # 0
         Term(TermKind.IRI, RDF_NS + "type"),  # 1
         Term(TermKind.IRI, EX + "Animal"),  # 2
-        Term(TermKind.IRI, RDFS.label),  # 3
+        Term(TermKind.IRI, str(RDFS.label)),  # 3
         Term(TermKind.LITERAL, "Cat", lang="en"),  # 4
         Term(TermKind.IRI, EX + "age"),  # 5
         Term(TermKind.IRI, XSD + "integer"),  # 6
@@ -100,9 +100,10 @@ def test_scoped_quad_access(view: FoldView) -> None:
     animals_named = view.subjects_by_type(EX + "Animal", EX + "graph")
     animals_all = view.subjects_by_type(EX + "Animal", ALL)
     cat, dog = view.tid_of_iri(EX + "cat"), view.tid_of_iri(EX + "dog")
+    assert cat is not None and dog is not None
     assert animals_default == [cat]
     assert animals_named == [dog]
-    assert sorted([cat, dog]) == animals_all  # type: ignore[type-var]
+    assert sorted([cat, dog]) == animals_all
     assert len(list(view.quads(ALL))) == 9
 
 

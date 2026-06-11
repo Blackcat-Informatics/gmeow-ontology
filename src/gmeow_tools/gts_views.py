@@ -43,6 +43,9 @@ _RDF_NIL = _RDF + "nil"
 
 _XSD = "http://www.w3.org/2001/XMLSchema#"
 
+#: PREFIXES sorted once (longest namespace first) — curie() runs per term.
+_SORTED_PREFIXES = sorted(PREFIXES.items(), key=lambda x: -len(x[1]))
+
 _LANGUAGE_CLASS = NAMESPACE + "Language"
 _LANGUAGE_TAG = NAMESPACE + "languageTag"
 _BCP47_TAG = NAMESPACE + "bcp47Tag"
@@ -130,7 +133,8 @@ class FoldView:
             if dt in (_XSD + "decimal", _XSD + "double", _XSD + "float"):
                 return float(lex)
             if dt == _XSD + "boolean":
-                return lex.lower() == "true"
+                # XSD admits four lexical forms: true/false/1/0
+                return lex.lower() in ("true", "1")
             if t.lang is not None:
                 return {"value": lex, "lang": t.lang}
             return lex
@@ -152,7 +156,7 @@ class FoldView:
 
     def curie(self, iri: str) -> str:
         """A CURIE under the longest matching known prefix, else the IRI."""
-        for prefix, namespace in sorted(PREFIXES.items(), key=lambda x: -len(x[1])):
+        for prefix, namespace in _SORTED_PREFIXES:
             if iri.startswith(namespace):
                 return f"{prefix}:{iri[len(namespace) :]}"
         return iri
@@ -261,11 +265,13 @@ class FoldView:
         if not candidates:
             return ""
         tag_map = self.tag_map()
+        # Same pre-sort as language_tags.public_literal: ties within a
+        # language resolve by lexical value in BOTH paths.
+        candidates.sort(key=lambda o: (self.lang(o) or "", self.lex(o)))
         for o in sorted(candidates, key=lambda o: rank_language(self.lang(o))):
             lang = self.lang(o)
             if lang and is_internal_tag(lang) and lang in tag_map:
                 return self.lex(o)
-        candidates.sort(key=lambda o: (self.lang(o) or "", self.lex(o)))
         return self.lex(candidates[0])
 
     # -- internals ---------------------------------------------------------------

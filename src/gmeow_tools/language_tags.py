@@ -124,7 +124,8 @@ def rank_language(lang: str | None) -> tuple[int, str]:
     (:func:`public_literal`) and the GTS fold view (#267 narrow waist), so
     their selections agree by construction.
     """
-    return (0 if lang == "x-gmeow-english" else 1, lang or "")
+    norm = (lang or "").lower()
+    return (0 if norm == "x-gmeow-english" else 1, norm)
 
 
 def public_literal(
@@ -165,6 +166,11 @@ def public_literal(
     if not candidates:
         return None
 
+    # Pre-sort by (language, lexical) so ties WITHIN a language resolve
+    # deterministically (sorted() is stable; raw candidate order is rdflib
+    # iteration order, which is process-unstable) — and identically to the
+    # fold path's FoldView.public_text.
+    candidates.sort(key=lambda lit: (lit.language or "", str(lit)))
     for lit in sorted(candidates, key=lambda lit: rank_language(lit.language)):
         if lit.language and is_internal_tag(lit.language):
             bcp = tag_map.get(lit.language)
