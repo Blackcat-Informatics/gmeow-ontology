@@ -467,7 +467,7 @@ def read(
 
     Args:
         data: the GTS file bytes.
-        keys: optional :class:`~gmeow_tools.gts.crypto.KeyProvider` — when given,
+        keys: optional :class:`~gts.crypto.KeyProvider` — when given,
             ``sig`` frames are verified (§9.2) and recorded in ``Graph.signatures``.
         expected_head: optional head commitment — compared against the LAST
             segment's head; on mismatch a ``TruncatedLog`` diagnostic is recorded.
