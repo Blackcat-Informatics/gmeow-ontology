@@ -317,6 +317,73 @@ gmeow:listId
     skos:definition "The mailing-list identifier a message was distributed through (RFC 2919 List-Id)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
+# --------------------------------------------------------------------------- #
+# Mailing list headers (issue #131) — RFC 2369 / RFC 2919
+# --------------------------------------------------------------------------- #
+
+gmeow:MailingList
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Mailing List"@x-gmeow-english ;
+    skos:definition "An email distribution list — an InformationObject identified by a List-Id and serving as the hub for list metadata, subscription, and archiving."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+
+gmeow:hasMailingList
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:EmailMessage ;
+    rdfs:range gmeow:MailingList ;
+    rdfs:label "has mailing list"@x-gmeow-english ;
+    skos:definition "Relates an email message to the mailing list through which it was distributed. Non-functional: a message may theoretically be cross-posted to multiple lists."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+
+gmeow:listSubscribe
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:EmailMessage ;
+    rdfs:range owl:Thing ;
+    rdfs:label "list subscribe"@x-gmeow-english ;
+    skos:definition "A subscription URI for the mailing list this message was distributed through (RFC 2369 List-Subscribe). Non-functional: multiple URIs may be listed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+
+gmeow:listUnsubscribe
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:EmailMessage ;
+    rdfs:range owl:Thing ;
+    rdfs:label "list unsubscribe"@x-gmeow-english ;
+    skos:definition "An unsubscription URI for the mailing list this message was distributed through (RFC 2369 List-Unsubscribe). Non-functional: multiple URIs may be listed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+
+gmeow:listPost
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:EmailMessage ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "list post"@x-gmeow-english ;
+    skos:definition "The posting address or sentinel for the mailing list this message was distributed through (RFC 2369 List-Post). A datatype property because RFC 2369 permits the sentinel value 'NO' for announcement-only lists; URI values are stored as literals. The raw header is also preserved on MessageHeader."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+
+gmeow:listHelp
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:EmailMessage ;
+    rdfs:range owl:Thing ;
+    rdfs:label "list help"@x-gmeow-english ;
+    skos:definition "A help URI for the mailing list this message was distributed through (RFC 2369 List-Help). Non-functional: multiple URIs may be listed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+
+gmeow:listArchive
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:EmailMessage ;
+    rdfs:range owl:Thing ;
+    rdfs:label "list archive"@x-gmeow-english ;
+    skos:definition "An archive URI for the mailing list this message was distributed through (RFC 2369 List-Archive). Non-functional: multiple URIs may be listed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+
+gmeow:listOwner
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:EmailMessage ;
+    rdfs:range gmeow:EmailAddress ;
+    rdfs:label "list owner"@x-gmeow-english ;
+    skos:definition "The owner or administrator email address of the mailing list this message was distributed through (RFC 2369 List-Owner). Non-functional: multiple addresses may be listed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+
 gmeow:headerName
     a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain gmeow:MessageHeader ;

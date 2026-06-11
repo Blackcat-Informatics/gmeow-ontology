@@ -332,6 +332,57 @@ System/user origin is a **projection concern**; the canonical signal is
 `sent`, `trash`, `junk`, `templates`). A mailbox without a role is treated as
 user-created by convention.
 
+## Mailing-list headers (issue #131)
+
+RFC 2369 and RFC 2919 define a family of mailing-list headers that carry
+metadata about subscription, posting, help, archiving, and list identity.
+GMEOW models the list itself as a first-class `gmeow:MailingList` individual
+and links messages to it; the header values are convenience projections over
+the canonical `rfc822_headers` part (Principle 4).
+
+### List identity and message linkage
+
+| Source header | GMEOW term | Object kind | Notes |
+|---|---|---|---|
+| `List-Id` | `gmeow:listId` | `rdfs:Literal` on `Message` | Existing property; RFC 2919 identifier |
+| `List-Id` (list entity) | `gmeow:identifier` | `rdfs:Literal` on `MailingList` | Cross-cutting identifier property |
+| Message → list | `gmeow:hasMailingList` | → `gmeow:MailingList` | Non-functional; cross-posting possible |
+
+### RFC 2369 command headers
+
+| Source header | GMEOW term | Object kind | Notes |
+|---|---|---|---|
+| `List-Subscribe` | `gmeow:listSubscribe` | → `owl:Thing` | Non-functional; multiple URIs may appear |
+| `List-Unsubscribe` | `gmeow:listUnsubscribe` | → `owl:Thing` | Non-functional; multiple URIs may appear |
+| `List-Post` | `gmeow:listPost` | `rdfs:Literal` | Datatype because RFC 2369 permits `NO` sentinel |
+| `List-Help` | `gmeow:listHelp` | → `owl:Thing` | Non-functional; multiple URIs may appear |
+| `List-Archive` | `gmeow:listArchive` | → `owl:Thing` | Non-functional; multiple URIs may appear |
+| `List-Owner` | `gmeow:listOwner` | → `gmeow:EmailAddress` | Non-functional; multiple addresses may appear |
+
+`listPost` is intentionally a **datatype property** while the other URI-valued
+headers are object properties. RFC 2369 §3.4 allows the sentinel value `NO` for
+announcement-only lists, which cannot be represented as an object property value.
+The raw header value remains on `gmeow:MessageHeader` in all cases.
+
+### Example pattern
+
+```turtle
+ex:myList a gmeow:MailingList ;
+    gmeow:identifier "<discuss@example.org>" .
+
+ex:msg a gmeow:EmailMessage ;
+    gmeow:hasMailingList ex:myList ;
+    gmeow:listId "<discuss@example.org>" ;
+    gmeow:listSubscribe <mailto:discuss-subscribe@example.org> ;
+    gmeow:listUnsubscribe <mailto:discuss-unsubscribe@example.org> ;
+    gmeow:listPost "<mailto:discuss@example.org>" ;
+    gmeow:listHelp <mailto:discuss-help@example.org> ;
+    gmeow:listArchive <https://example.org/archive/discuss/> ;
+    gmeow:listOwner ex:listOwnerAddress .
+
+ex:listOwnerAddress a gmeow:EmailAddress .
+```
+
 ## Calendar invitations and event descriptions (issue #139)
 
 When gmeow ingests an email with a `text/calendar` MIME part or a `.ics`
