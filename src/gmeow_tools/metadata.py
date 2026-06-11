@@ -33,7 +33,7 @@ from gmeow_tools.config import (
 from gmeow_tools.generator import Generator, register, write_turtle
 from gmeow_tools.graph import bind_prefixes
 from gmeow_tools.gts_views import FoldView, load_fold
-from gmeow_tools.mappings import _object_namespace
+from gmeow_tools.mappings import object_namespace
 
 _CC_BY = URIRef("https://creativecommons.org/licenses/by/4.0/")
 _PUBLISHER = URIRef("https://blackcatinformatics.ca/#bii")
@@ -79,7 +79,9 @@ def _fold_linksets(view: FoldView) -> Graph:
     dataset = URIRef(VOID_DATASET_IRI)
     buckets: dict[tuple[str, str], int] = defaultdict(int)
     for _s, p, o, _g in view.quads(scope=GTS_GRAPH_ALIGNMENTS):
-        target_ns = _object_namespace(URIRef(view.lex(o)))
+        if not (view.is_iri(p) and view.is_iri(o)):
+            continue  # defensive: alignment axioms are IRI→IRI by construction
+        target_ns = object_namespace(URIRef(view.lex(o)))
         buckets[(target_ns, view.lex(p))] += 1
 
     for (target_ns, predicate_iri), count in sorted(buckets.items()):
