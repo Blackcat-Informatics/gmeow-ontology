@@ -33,49 +33,49 @@ gmeow:Appellation
     rdfs:subClassOf gmeow:InformationObject, ontolex:LexicalEntry ;
     rdfs:label "Appellation"@x-gmeow-english ;
     skos:definition "A name as an information object borne by an entity — a person's name, a filename, a place name, an organization name. It carries the surface form (gmeow:fullName) and the structured parts (gmeow:hasNamePart); who uses it, toward whom, in what register and over what period is carried by gmeow:NameUsage. The universal superclass reconciling the scattered naming terms. Multiple appellations on one entity are CO-EQUAL — none is canonical or 'primary'."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:PersonName
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Appellation ;
     rdfs:label "Person Name"@x-gmeow-english ;
     skos:definition "A structured, typed name borne by a person — birth name, married name, chosen name, alias, religious name — with ordered, typed name parts, an optional honorific, a script/language, and a purpose (gmeow:namePurpose). A person bears many co-equal PersonNames (across life stages and across languages/scripts); their validity period is carried with gmeow:validFrom/validUntil on the bearing statement or by a gmeow:NameUsage."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:Filename
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Appellation ;
     rdfs:label "Filename"@x-gmeow-english ;
     skos:definition "An appellation borne by a digital file — a stem and an extension. The extension CLAIMS a content type (gmeow:claimedMediaType) which may disagree with the type detected from the bytes (gmeow:detectedMediaType); the disagreement is recorded as coexisting claims with confidence, never reasoned into a contradiction."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:PlaceName
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Appellation ;
     rdfs:label "Place Name"@x-gmeow-english ;
     skos:definition "An appellation (toponym) borne by a geographic place via gmeow:hasPlaceName — possibly endonym/exonym (gmeow:namePurpose), multilingual, or historical (held over a period via a gmeow:NameUsage / inferred gmeow:PlaceNaming). The structured, first-class replacement for the retired flat gmeow:alternateName literal, used for gazetteer matching and co-equal multilingual/historical naming."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:OrganizationName
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Appellation ;
     rdfs:label "Organization Name"@x-gmeow-english ;
     skos:definition "An appellation borne by an organization — a legal name, a trading / 'doing-business-as' name, or a former name."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:NamePart
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Name Part"@x-gmeow-english ;
     skos:definition "A reified component of a structured appellation — a given name, a surname, a patronymic, a nobiliary particle, an Arabic nisba, a filename extension. Its kind is the value gmeow:namePartType, its text is gmeow:partText, and gmeow:partOrder records its position WITHOUT implying a Western given-before-family order."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:PronounSet
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Pronoun Set"@x-gmeow-english ;
     skos:definition "A set of third-person pronouns a person goes by, in the five English forms (subject, object, possessive determiner, possessive pronoun, reflexive). Sex/gender INDEPENDENT and contextual. A known set is one of the gmeow:PronounSet value individuals; any other set is expressed by filling the five form properties on a fresh PronounSet instance."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 # --------------------------------------------------------------------------- #
 # NameUsage: the context-dependent USE of an appellation. A gufo:Relator (it
@@ -90,7 +90,7 @@ gmeow:NameUsage
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
     rdfs:label "Name Usage"@x-gmeow-english ;
     skos:definition "A reified, context-dependent use of an appellation — an observation in the universal claim stack (#69): a named entity (observedFeature) is called by a given appellation (observationResult), by or among a particular audience (or within a relationship scope), in a particular register, over a period, on some evidence. Perspectival — a usage is whoever's, never a global fact — so it carries no notion of a preferred or canonical name. Mint one NameUsage per (appellation, audience, register) tuple; its period is carried by gmeow:usageInterval or by validFrom/validUntil on the statement."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:usageNamed
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -98,7 +98,7 @@ gmeow:usageNamed
     rdfs:range gmeow:Entity ;
     rdfs:label "usage named"@x-gmeow-english ;
     skos:definition "The entity that is called by the appellation in a name-usage."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:usageAppellation
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -106,7 +106,7 @@ gmeow:usageAppellation
     rdfs:range gmeow:Appellation ;
     rdfs:label "usage appellation"@x-gmeow-english ;
     skos:definition "The appellation used to call the named entity in a name-usage."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:usageNamer
     a owl:ObjectProperty ;
@@ -114,7 +114,7 @@ gmeow:usageNamer
     rdfs:range gmeow:Agent ;
     rdfs:label "usage namer"@x-gmeow-english ;
     skos:definition "An agent who uses the appellation for the named entity — the speaker/perspective holder. Non-functional: a usage may be shared by an audience of agents."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:usageAudience
     a owl:ObjectProperty ;
@@ -122,7 +122,7 @@ gmeow:usageAudience
     rdfs:range gmeow:Entity ;
     rdfs:label "usage audience"@x-gmeow-english ;
     skos:definition "The audience or scope in which the appellation is used — an Agent, a Group/Family, or a locale community. Range is gmeow:Entity to admit all of them. Non-functional. ('Aunt Genny' is used toward the family; 欧德理 toward a Sinophone audience.)"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:usageRelationshipScope
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -130,7 +130,7 @@ gmeow:usageRelationshipScope
     rdfs:range gmeow:InterpersonalRelationship ;
     rdfs:label "usage relationship scope"@x-gmeow-english ;
     skos:definition "The interpersonal relationship that scopes a name-usage (e.g. the aunt-niece tie within which 'Aunt Genny' is used) — reuses the contacts relator. A sharper alternative to gmeow:usageAudience when the scope is exactly one standing relationship."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:usageRegister
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -138,7 +138,7 @@ gmeow:usageRegister
     rdfs:range gmeow:NameRegister ;
     rdfs:label "usage register"@x-gmeow-english ;
     skos:definition "The social register of a name-usage (formal, intimate, professional, casual) — a gmeow:NameRegister value individual."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:usageInterval
     a owl:ObjectProperty ;
@@ -146,7 +146,7 @@ gmeow:usageInterval
     rdfs:range gmeow:TimeInterval ;
     rdfs:label "usage interval"@x-gmeow-english ;
     skos:definition "The time interval over which a name-usage held. (A relator carries its period this way — matching contacts' relationshipInterval — rather than via duringInterval.)"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:usageAuthority
     a owl:ObjectProperty ;
@@ -154,7 +154,7 @@ gmeow:usageAuthority
     rdfs:range gmeow:Agent ;
     rdfs:label "usage authority"@x-gmeow-english ;
     skos:definition "The naming / toponymic authority behind a name-usage — the gmeow:Agent (a national mapping agency, a standards body, an indigenous community, or a self-asserting individual) that confers or sanctions the appellation in this use. NON-FUNCTIONAL: joint or competing authorities coexist with no privileged claimant (anti-colonial, Principle 9), each attributable and confidence-weighted. (Introduced as namingAuthority by issue #105; named usageAuthority for usage* consistency.)"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 # --------------------------------------------------------------------------- #
 # PlaceNaming — a DEFINED specialization of NameUsage (Principle 6: reuse the
@@ -175,7 +175,7 @@ gmeow:PlaceNaming
     ] ;
     rdfs:label "Place Naming"@x-gmeow-english ;
     skos:definition "A DEFINED specialization of gmeow:NameUsage whose named entity is a gmeow:Place — a time/audience/register-scoped use of a toponym. Defined, NOT asserted: any NameUsage that names a Place is inferred to be a PlaceNaming (≡ gmeow:NameUsage ⊓ ∃gmeow:usageNamed.gmeow:Place), so place-naming reuses the NameUsage relator instead of minting a parallel relator (Principle 6, greenfield/no-redundancy). The reified counterpart of CIDOC-CRM's time-spanned crm:E48 Place Name / crm:E41 Appellation. Competing and historical place names coexist as co-equal PlaceNamings with no primary; superseded ones set gmeow:displayable false (Principle 10). The toponymic authority is gmeow:usageAuthority; the name's language is gmeow:nameLanguage on the bound gmeow:PlaceName (reached via gmeow:usageAppellation)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 # --------------------------------------------------------------------------- #
 # Bearing a name + structured parts.
@@ -191,7 +191,7 @@ gmeow:hasAppellation
     rdfs:range gmeow:Appellation ;
     rdfs:label "has appellation"@x-gmeow-english ;
     skos:definition "Relates an entity to an appellation (name-object) it bears. The universal name-bearing property; gmeow:hasName is the person-scoped specialization. Non-functional — entities bear many co-equal names; a bearing's period is carried with gmeow:validFrom/validUntil on the statement, or reified as a gmeow:NameUsage when audience/register/evidence must be borne."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:hasName
     a owl:ObjectProperty ;
@@ -200,7 +200,7 @@ gmeow:hasName
     rdfs:range gmeow:PersonName ;
     rdfs:label "has name"@x-gmeow-english ;
     skos:definition "Relates a person to a structured, typed PersonName they bear; the person-scoped specialization of gmeow:hasAppellation. Non-functional — a person bears many co-equal names."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:hasPlaceName
     a owl:ObjectProperty ;
@@ -209,7 +209,7 @@ gmeow:hasPlaceName
     rdfs:range gmeow:PlaceName ;
     rdfs:label "has place name"@x-gmeow-english ;
     skos:definition "Relates a geographic gmeow:Place to a structured gmeow:PlaceName (toponym) it bears; the place-scoped specialization of gmeow:hasAppellation, mirroring gmeow:hasName for persons. Non-functional — a place bears many co-equal names (endonym/exonym, multilingual, historical); none is primary, and superseded ones set gmeow:displayable false. The structured, first-class replacement for the retired flat gmeow:alternateName literal."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:hasOrganizationName
     a owl:ObjectProperty ;
@@ -218,7 +218,7 @@ gmeow:hasOrganizationName
     rdfs:range gmeow:OrganizationName ;
     rdfs:label "has organization name"@x-gmeow-english ;
     skos:definition "Relates an organization to a structured gmeow:OrganizationName it bears; the organization-scoped specialization of gmeow:hasAppellation, mirroring gmeow:hasName for persons and gmeow:hasPlaceName for places. Non-functional — an organization bears many co-equal names (legal, trading, former, multilingual); none is primary, and superseded ones set gmeow:displayable false."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:hasAgreementName
     a owl:ObjectProperty ;
@@ -227,7 +227,7 @@ gmeow:hasAgreementName
     rdfs:range gmeow:AgreementName ;
     rdfs:label "has agreement name"@x-gmeow-english ;
     skos:definition "Relates an agreement to a structured gmeow:AgreementName it bears; the agreement-scoped specialization of gmeow:hasAppellation. Non-functional — an agreement may bear many co-equal names (formal title, short name, multilingual versions); none is primary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:hasNamePart
     a owl:ObjectProperty ;
@@ -236,7 +236,7 @@ gmeow:hasNamePart
     rdfs:range gmeow:NamePart ;
     rdfs:label "has name part"@x-gmeow-english ;
     skos:definition "Relates an appellation to one of its reified, typed parts. Non-functional — a name has many parts. A specialized information-object component relation under the universal gmeow:hasPart spine."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:namePartType
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -244,7 +244,7 @@ gmeow:namePartType
     rdfs:range gmeow:NamePartType ;
     rdfs:label "name part type"@x-gmeow-english ;
     skos:definition "The kind of a name part (a gmeow:NamePartType value). Functional: a single part has one kind — a part that is both a surname and a patronymic is modelled as two parts."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:partText
     a owl:DatatypeProperty ;
@@ -252,7 +252,7 @@ gmeow:partText
     rdfs:range rdfs:Literal ;
     rdfs:label "part text"@x-gmeow-english ;
     skos:definition "The string value of a name part. Language-/script-tag the literal where applicable."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:partOrder
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -260,7 +260,7 @@ gmeow:partOrder
     rdfs:range xsd:nonNegativeInteger ;
     rdfs:label "part order"@x-gmeow-english ;
     skos:definition "The 0-based position of a part within its appellation's surface order, as actually written in its culture. Records observed order WITHOUT implying a given-before-family default — East-Asian family-first is simply order 0 = surname."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:partExpansion
     a owl:DatatypeProperty ;
@@ -268,7 +268,7 @@ gmeow:partExpansion
     rdfs:range rdfs:Literal ;
     rdfs:label "part expansion"@x-gmeow-english ;
     skos:definition "The expanded form of an abbreviated part — e.g. the full word a South-Indian (Tamil) initial stands for."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 # --------------------------------------------------------------------------- #
 # Whole-name surface form, language/script, and the purpose value.
@@ -283,7 +283,7 @@ gmeow:fullName
     rdfs:range rdfs:Literal ;
     rdfs:label "full name"@x-gmeow-english ;
     skos:definition "The complete surface form of an appellation as a single string, in the natural order of its culture (language-/script-tag the literal, e.g. \"山田太郎\"@ja, \"Yamada Tarō\"@ja-Latn). Authoritative for display. Non-functional: spellings/transliterations from different sources coexist."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:nameLanguage
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -292,7 +292,7 @@ gmeow:nameLanguage
     rdfs:range gmeow:Language ;
     rdfs:label "name language"@x-gmeow-english ;
     skos:definition "The first-class gmeow:Language an appellation's surface form is in. Language is ALWAYS a first-class gmeow:Language (registry-INDEPENDENT, self-minted IRI) — never a bare BCP-47 literal; codes (e.g. \"ja\", \"zh\") live on the Language via gmeow:languageCode, so a code-less conlang or AI-minted language names co-equally. FUNCTIONAL — exactly one language per appellation: co-equal multilingual names are modelled as SEPARATE co-equal gmeow:Appellation instances (one per language), never by multi-tagging a single name (that is what keeps naming anti-colonial and symmetric). Drives locale-relative, symmetric display selection — never a ranking of one name above another. The script the form is written in is gmeow:nameScript (bridging to a first-class gmeow:WritingSystem)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:nameScript
     a owl:DatatypeProperty ;
@@ -300,7 +300,7 @@ gmeow:nameScript
     rdfs:range rdfs:Literal ;
     rdfs:label "name script"@x-gmeow-english ;
     skos:definition "The ISO 15924 script code of an appellation (e.g. \"Hani\", \"Arab\", \"Latn\"). Available explicitly for indexing alongside a BCP-47 script subtag on the literal."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:romanization
     a owl:DatatypeProperty ;
@@ -309,7 +309,7 @@ gmeow:romanization
     rdfs:label "romanization"@x-gmeow-english ;
     skos:definition "A Latin-script transliteration of THIS SAME appellation in another script (e.g. \"Yamada Tarō\" for \"山田太郎\"; pinyin for a Chinese name). Strictly a transliteration of one name — it NEVER bridges two distinct co-equal names (a Mandarin name is not the romanization of a Latin one)."@x-gmeow-english ;
     skos:scopeNote "Name the system that produced the romanization with gmeow:transliterationScheme (languages module) — Hepburn vs Kunrei for Japanese, Pinyin vs Wade-Giles for Mandarin — so the romanization records HOW it was derived; each scheme is catalogued as an FnO function in the projection layer."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:namePurpose
     a owl:ObjectProperty ;
@@ -317,14 +317,14 @@ gmeow:namePurpose
     rdfs:range gmeow:NamePurpose ;
     rdfs:label "name purpose"@x-gmeow-english ;
     skos:definition "The intrinsic kind/purpose(s) of an appellation (legal, birth, chosen, professional, deadname, …) — a gmeow:NamePurpose value. Non-functional: a name may be both legal and chosen."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:displayable
     a owl:DatatypeProperty ;
     rdfs:range xsd:boolean ;
     rdfs:label "displayable"@x-gmeow-english ;
     skos:definition "Whether a name or identity facet may be shown in interfaces and reports. The ONLY display control in the model — across naming (gmeow:Appellation) and identity (gmeow:IdentityFacet: gender/orientation), deliberately no preferred/primary marker (display selection is locale-relative and symmetric). It is intentionally domain-free so it applies to both. Superseded names (especially deadnames) and superseded gender/orientation labels set this false; consumers MUST honour false and never surface the string. NOT functional: in a multi-source merge, sources may disagree, and those claims must coexist rather than force a global inconsistency — the cautious value (false) wins at the projection layer. Cardinality is enforced by SHACL on data, not by the logical core."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:conferredByEvent
     a owl:ObjectProperty ;
@@ -332,7 +332,7 @@ gmeow:conferredByEvent
     rdfs:range gmeow:LifeEvent ;
     rdfs:label "conferred by event"@x-gmeow-english ;
     skos:definition "The life event that conferred or changed an appellation — a gmeow:LifeEvent carrying a gmeow:eventType such as gmeow:eventTypeChristening, gmeow:eventTypeNameChange, gmeow:eventTypeMarriage (a married name), or gmeow:eventTypeAdoption. Non-functional. The seam joining the names module to the events module's event spine."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 # --------------------------------------------------------------------------- #
 # Filename claim-vs-reality. Both properties are non-functional; a disagreement
@@ -347,7 +347,7 @@ gmeow:claimedMediaType
     rdfs:range rdfs:Literal ;
     rdfs:label "claimed media type"@x-gmeow-english ;
     skos:definition "The MIME media type CLAIMED by a filename's extension (e.g. \".pdf\" → \"application/pdf\"). A claim by the name, which may disagree with gmeow:detectedMediaType. Non-functional."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:detectedMediaType
     a owl:DatatypeProperty ;
@@ -355,7 +355,7 @@ gmeow:detectedMediaType
     rdfs:range rdfs:Literal ;
     rdfs:label "detected media type"@x-gmeow-english ;
     skos:definition "The MIME media type DETECTED from the bytes/magic of an information object (the observed type). May disagree with a filename's gmeow:claimedMediaType — a mismatch is recorded, not reasoned into a contradiction. Non-functional."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 # --------------------------------------------------------------------------- #
 # Pronouns + honorifics — first-class forms of ADDRESS, contextual, temporal, and
@@ -370,7 +370,7 @@ gmeow:hasPronounSet
     rdfs:range gmeow:PronounSet ;
     rdfs:label "has pronoun set"@x-gmeow-english ;
     skos:definition "Relates a person to a pronoun set they go by. Non-functional and contextual (scope a context-specific set with gmeow:validFrom/validUntil on the statement, or via a NameUsage). A form of ADDRESS, sex/gender-independent — MUST NOT be inferred from gender identity/expression, sex-assigned-at-birth or orientation."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:pronounSubject
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -378,7 +378,7 @@ gmeow:pronounSubject
     rdfs:range rdfs:Literal ;
     rdfs:label "pronoun subject"@x-gmeow-english ;
     skos:definition "The subject (nominative) form of a pronoun set, e.g. \"she\", \"they\", \"xe\"."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:pronounObject
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -386,7 +386,7 @@ gmeow:pronounObject
     rdfs:range rdfs:Literal ;
     rdfs:label "pronoun object"@x-gmeow-english ;
     skos:definition "The object (accusative) form of a pronoun set, e.g. \"her\", \"them\", \"xem\"."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:pronounPossessiveDeterminer
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -394,7 +394,7 @@ gmeow:pronounPossessiveDeterminer
     rdfs:range rdfs:Literal ;
     rdfs:label "pronoun possessive determiner"@x-gmeow-english ;
     skos:definition "The possessive determiner form of a pronoun set, e.g. \"her\", \"their\", \"xyr\"."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:pronounPossessive
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -402,7 +402,7 @@ gmeow:pronounPossessive
     rdfs:range rdfs:Literal ;
     rdfs:label "pronoun possessive"@x-gmeow-english ;
     skos:definition "The possessive pronoun form of a pronoun set, e.g. \"hers\", \"theirs\", \"xyrs\"."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:pronounReflexive
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -410,7 +410,7 @@ gmeow:pronounReflexive
     rdfs:range rdfs:Literal ;
     rdfs:label "pronoun reflexive"@x-gmeow-english ;
     skos:definition "The reflexive form of a pronoun set, e.g. \"herself\", \"themself\", \"xemself\"."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:honorific
     a owl:ObjectProperty ;
@@ -418,7 +418,7 @@ gmeow:honorific
     rdfs:range gmeow:Honorific ;
     rdfs:label "honorific"@x-gmeow-english ;
     skos:definition "An honorific/title of address for a person (a gmeow:Honorific value). Non-functional and contextual. A form of ADDRESS, sex/gender-independent — MUST NOT be inferred from gender identity/expression, sex-assigned-at-birth or orientation."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:honorificPosition
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -426,7 +426,7 @@ gmeow:honorificPosition
     rdfs:range gmeow:HonorificPosition ;
     rdfs:label "honorific position"@x-gmeow-english ;
     skos:definition "Whether an honorific is rendered before (prefix) or after (suffix) the name."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:honorificClass
     a owl:ObjectProperty ;
@@ -434,7 +434,7 @@ gmeow:honorificClass
     rdfs:range gmeow:HonorificClass ;
     rdfs:label "honorific class"@x-gmeow-english ;
     skos:definition "The domain/class of an honorific (academic, clerical, noble, military, judicial, social)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 # =========================================================================== #
 # VALUE VOCABULARIES (open; new entries are individuals, not subclasses).
@@ -451,7 +451,7 @@ gmeow:NamePartType
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Name Part Type"@x-gmeow-english ;
     skos:definition "The kind of a name part (given, surname, patronymic, particle, Arabic nisba, filename extension, …). A value, not a NamePart subclass: naming systems worldwide contribute an open-ended set of part kinds that share NamePart's structure."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:namePartGiven              a gmeow:NamePartType ; rdfs:label "given name"@x-gmeow-english .
 gmeow:namePartGiven skos:definition "The given name part type — a kind of component that can appear in a personal or organizational appellation."@x-gmeow-english ;
@@ -566,7 +566,7 @@ gmeow:NamePurpose
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Name Purpose"@x-gmeow-english ;
     skos:definition "The purpose/kind of a whole appellation (legal, birth, chosen, professional, deadname, …). A value, not a PersonName subclass; a person may simultaneously bear several co-equal names of different purposes."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:namePurposeLegal        a gmeow:NamePurpose ; rdfs:label "legal name"@x-gmeow-english .
 gmeow:namePurposeLegal skos:definition "The legal name purpose — a role that a particular appellation plays in the life of its bearer."@x-gmeow-english ;
@@ -623,7 +623,7 @@ gmeow:NameRegister
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Name Register"@x-gmeow-english ;
     skos:definition "The social register of a name-usage (formal, intimate, professional, casual). A value vocabulary carried by gmeow:usageRegister on a gmeow:NameUsage."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:registerFormal       a gmeow:NameRegister ; rdfs:label "formal"@x-gmeow-english .
 gmeow:registerFormal skos:definition "The formal name register — a level of formality or social distance at which a name is used."@x-gmeow-english ;
@@ -645,7 +645,7 @@ gmeow:HonorificPosition
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Honorific Position"@x-gmeow-english ;
     skos:definition "Whether an honorific is rendered before (prefix) or after (suffix) the name."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:honorificPositionPrefix a gmeow:HonorificPosition ; rdfs:label "prefix"@x-gmeow-english .
 gmeow:honorificPositionPrefix skos:definition "The prefix honorific position — a position in a name string where an honorific appears."@x-gmeow-english ;
@@ -659,7 +659,7 @@ gmeow:HonorificClass
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Honorific Class"@x-gmeow-english ;
     skos:definition "The domain of an honorific (academic, clerical, noble, military, judicial, social)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:honorificClassAcademic a gmeow:HonorificClass ; rdfs:label "academic"@x-gmeow-english .
 gmeow:honorificClassAcademic skos:definition "The academic honorific class — a broad social or institutional domain from which honorifics are drawn."@x-gmeow-english ;
@@ -687,7 +687,7 @@ gmeow:Honorific
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Honorific"@x-gmeow-english ;
     skos:definition "A title or form of address (Mr, Mx, Dr, -san, Sri, Sayyid, …). A value, not a subclass. Each carries a gmeow:honorificPosition (prefix/suffix) and, where applicable, a gmeow:honorificClass."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> .
 
 gmeow:honorificMr a gmeow:Honorific ; rdfs:label "Mr"@x-gmeow-english ;
     gmeow:honorificPosition gmeow:honorificPositionPrefix ;

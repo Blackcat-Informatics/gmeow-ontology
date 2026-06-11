@@ -26,7 +26,7 @@ gmeow:authorityLink
     rdfs:domain gmeow:Entity ;
     rdfs:label "authority link"@x-gmeow-english ;
     skos:definition "Links a GMEOW entity to a record in an external authority, registry, database, gazetteer, or catalogue by IRI. It is a see-also authority pointer, not an OWL identity merge; assert the strength of the coreference separately with skos:exactMatch or skos:closeMatch. The range is intentionally open. Wikidata is the recommended hub because its cross-references reach many other authorities."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> .
 
 gmeow:counterpartOf
     a owl:ObjectProperty, owl:SymmetricProperty ;
@@ -34,7 +34,7 @@ gmeow:counterpartOf
     rdfs:range gmeow:Entity ;
     rdfs:label "counterpart of"@x-gmeow-english ;
     skos:definition "Relates two GMEOW entities that are recognisable counterparts across realms, frames, datasets, editions, or modelling contexts without being safely mergeable. Symmetric but deliberately not transitive: counterparts preserve cross-realm linkage while avoiding owl:sameAs collapse of contested, standpoint-indexed, or context-dependent claims."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> .
 
 # --------------------------------------------------------------------------- #
 # Universal version / edition lineage.
@@ -46,7 +46,7 @@ gmeow:versionOf
     rdfs:range gmeow:Entity ;
     rdfs:label "version of"@x-gmeow-english ;
     skos:definition "Relates a concrete version entity to the stable lineage entity it versions: a language version to its language, a software release to its project, a data release to its dataset, or a work version to its work. Functional because a version belongs to one lineage, but the lineage may have many versions."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> .
 
 gmeow:editionOf
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -54,7 +54,7 @@ gmeow:editionOf
     rdfs:range gmeow:CreativeWork ;
     rdfs:label "edition of"@x-gmeow-english ;
     skos:definition "Relates a concrete edition, issue, or manifestation of a creative work to the stable work it editions. Functional per edition, non-merge semantics: editions remain first-class works with their own identifiers, dates, rights, and provenance."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> .
 
 gmeow:supersedes
     a owl:ObjectProperty ;
@@ -62,4 +62,4 @@ gmeow:supersedes
     rdfs:range gmeow:Entity ;
     rdfs:label "supersedes"@x-gmeow-english ;
     skos:definition "Relates a newer entity, version, record, or claim-bearing artifact to a prior one it supersedes. Non-functional: one successor may consolidate several predecessors. Superseded entities remain first-class and usable; suppression from display is handled separately with gmeow:displayable false when appropriate."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> .

@@ -28,7 +28,7 @@ gmeow:LanguageVersion
     rdfs:subClassOf gmeow:Language ;
     rdfs:label "Language Version"@x-gmeow-english ;
     skos:definition "A concrete, dated revision of a language that is itself a fully usable language (Ithkuil 1993 / 2011 / New Ithkuil; an AI language v1 / v2). Subclass of gmeow:Language so a version bears its own scripts, names and status; gmeow:versionOf links it to the lineage language, gmeow:supersedes orders versions, and gmeow:wasDerivedFrom records derivation. Forward-looking for rapidly-versioned AI languages."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 
 gmeow:WritingSystemUsage
@@ -36,35 +36,35 @@ gmeow:WritingSystemUsage
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Writing System Usage"@x-gmeow-english ;
     skos:definition "A reified, role- and period-scoped use of a writing system by a language — the gufo:Relator binding {language} × {writing system} × {role} × {period}, mirroring names' gmeow:NameUsage. Lets Japanese co-mingle Han (logographic content), Hiragana (syllabic grammar), Katakana (loanwords) and Latin (transliteration) co-equally, and models script changes over time (Turkish Arabic→Latin, 1928) via the usage's validity. Mint one usage per (language, writing system, role) tuple."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:LanguageProficiency
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Language Proficiency"@x-gmeow-english ;
     skos:definition "A reified, leveled proficiency of an agent in a language, in a particular skill modality — the gufo:Relator binding {agent} × {language} × {skill modality} × {level on a scale}, mirroring names' gmeow:NameUsage. Mint one per (agent, language, modality) so 'native overall' and 'B2 writing' coexist. The base gmeow:knowsLanguage relation states that an agent knows a language; this relator adds the level and the skill."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:LanguageCreation
     a owl:Class, gufo:EventType ;
     rdfs:subClassOf gmeow:Activity ;
     rdfs:label "Language Creation"@x-gmeow-english ;
     skos:definition "The activity of creating or generating a language — a conlanger's design work or an AI model's generation run. Linked to its product by gmeow:wasGeneratedBy (the language → activity) and to its agent by gmeow:wasAssociatedWith; the language is ascribed to its creator with gmeow:wasAttributedTo (a gmeow:SoftwareAgent for an AI-generated language)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:LanguageVariety
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Language ;
     rdfs:label "Language Variety"@x-gmeow-english ;
     skos:definition "A speech variety that carries names, scripts, tags, status, provenance, and alignment metadata exactly as a gmeow:Language does, because it IS a language (a SubKind). Classifications such as dialect, sociolect, register, or standard are standpointed claims via gmeow:varietyKind, not OWL subclass decisions — so a single variety can be classified as a language by one standpoint and a dialect by another without incoherence (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:LanguageState
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Observation, gufo:Relator ;
     rdfs:label "Language State"@x-gmeow-english ;
     skos:definition "A reified, standpoint-scoped claim about the status of a language, variety, or version during a specific interval — the analytic/historical slice of a language at a time/period, often reconstructed and standpointed. Follows the VersionMembership pattern: a relator binding {language} × {status} × {authority} × {interval}. Differs from LanguageVersion, which is a named/released artifact; a version can have states, and a state can describe a version, but neither is defined as the other."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 # EL axiomatisation: every LanguageState mediates at least one language and one authority.
 gmeow:LanguageState rdfs:subClassOf
@@ -76,7 +76,7 @@ gmeow:LanguageChangeEvent
     rdfs:subClassOf gmeow:Activity ;
     rdfs:label "Language Change Event"@x-gmeow-english ;
     skos:definition "A historical linguistic change — sound shifts, semantic drift, borrowing, spelling reform, grammatical change, lexical innovation, standardization, language contact, extinction, revival, or revitalization. Follows the LanguageCreation pattern as an Activity subclass; change type is an open value vocabulary (gmeow:LanguageChangeType) and affected languages are linked via gmeow:affectedLanguage. Temporal placement and participation reuse the universal events machinery."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 # =========================================================================== #
 # Typing properties (object → value vocabularies; non-functional) + the OPTIONAL
@@ -89,7 +89,7 @@ gmeow:languageOrigin
     rdfs:range gmeow:LanguageOrigin ;
     rdfs:label "language origin"@x-gmeow-english ;
     skos:definition "The origin kind(s) of a language (gmeow:LanguageOrigin individuals). Non-functional — a contact language may be both creole and mixed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:languageModality
     a owl:ObjectProperty ;
@@ -97,7 +97,7 @@ gmeow:languageModality
     rdfs:range gmeow:LanguageModality ;
     rdfs:label "language modality"@x-gmeow-english ;
     skos:definition "The sensory/transmission modality/modalities of a language (gmeow:LanguageModality individuals). Non-functional — many languages are multimodal (spoken and written)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:languageStatus
     a owl:ObjectProperty ;
@@ -105,7 +105,7 @@ gmeow:languageStatus
     rdfs:range gmeow:LanguageStatus ;
     rdfs:label "language status"@x-gmeow-english ;
     skos:definition "The vitality status of a language (a gmeow:LanguageStatus value). Non-functional: source classifications coexist; period carried with gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 
 gmeow:designGoal
@@ -114,7 +114,7 @@ gmeow:designGoal
     rdfs:range rdfs:Literal ;
     rdfs:label "design goal"@x-gmeow-english ;
     skos:definition "The stated design goal/purpose of an engineered or constructed language (Lojban's syntactic unambiguity, Ithkuil's cognitive precision, an IAL's ease of learning). A literal; non-functional."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 # =========================================================================== #
 # Variety, state, and change properties.
@@ -126,7 +126,7 @@ gmeow:varietyKind
     rdfs:range gmeow:LanguageVarietyKind ;
     rdfs:label "variety kind"@x-gmeow-english ;
     skos:definition "The sociolinguistic classification(s) of a language variety — dialect, sociolect, register, idiolect, slang, standard, etc. NON-FUNCTIONAL: a single variety may carry multiple classifications from different standpoints simultaneously (Principle 9), and classifications change over time via new claims rather than overwrite (Principle 10)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:varietyOf
     a owl:ObjectProperty ;
@@ -134,7 +134,7 @@ gmeow:varietyOf
     rdfs:range gmeow:Language ;
     rdfs:label "variety of"@x-gmeow-english ;
     skos:definition "The parent language, lineage, or macrolanguage that a variety is considered a variety of. NON-FUNCTIONAL: standpoint-dependent — one standpoint may link Scots to English, another may treat it as an independent language (no varietyOf)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:stateLanguage
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -142,7 +142,7 @@ gmeow:stateLanguage
     rdfs:range gmeow:Language ;
     rdfs:label "state language"@x-gmeow-english ;
     skos:definition "The language, variety, or version whose state is being described. Functional per relator: one subject language per LanguageState."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:stateStatusValue
     a owl:ObjectProperty ;
@@ -150,7 +150,7 @@ gmeow:stateStatusValue
     rdfs:range gmeow:LanguageStatus ;
     rdfs:label "state status value"@x-gmeow-english ;
     skos:definition "The vitality status(es) asserted for the language during this state. NON-FUNCTIONAL: different authorities may assign different statuses for the same interval, and those claims coexist (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:stateAuthority
     a owl:ObjectProperty ;
@@ -158,7 +158,7 @@ gmeow:stateAuthority
     rdfs:range gmeow:Agent ;
     rdfs:label "state authority"@x-gmeow-english ;
     skos:definition "The agent or standpoint asserting this language state — a linguist, an institution, a historical reconstruction project. NON-FUNCTIONAL: competing authority claims coexist without privilege (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:stateInterval
     a owl:ObjectProperty ;
@@ -166,7 +166,7 @@ gmeow:stateInterval
     rdfs:range gmeow:TimeInterval ;
     rdfs:label "state interval"@x-gmeow-english ;
     skos:definition "The time interval over which this language state is asserted to hold — e.g. Old English 450–1150 CE. A relator carries its period this way (matching VersionMembership's membershipInterval) rather than via statement-level validFrom/validUntil alone."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:changeType
     a owl:ObjectProperty ;
@@ -174,7 +174,7 @@ gmeow:changeType
     rdfs:range gmeow:LanguageChangeType ;
     rdfs:label "change type"@x-gmeow-english ;
     skos:definition "The kind(s) of linguistic change occurring — sound shift, borrowing, standardization, extinction, etc. NON-FUNCTIONAL: a single event may instantiate multiple change types from different analytical standpoints."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:affectedLanguage
     a owl:ObjectProperty ;
@@ -182,7 +182,7 @@ gmeow:affectedLanguage
     rdfs:range gmeow:Language ;
     rdfs:label "affected language"@x-gmeow-english ;
     skos:definition "The language(s) or variety(ies) affected by this change event. NON-FUNCTIONAL: language contact and merger events affect multiple languages."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 # =========================================================================== #
 # Writing systems + the co-mingling usage relator.
@@ -194,7 +194,7 @@ gmeow:usesWritingSystem
     rdfs:range gmeow:WritingSystem ;
     rdfs:label "uses writing system"@x-gmeow-english ;
     skos:definition "Relates a language to a writing system it is written in — the direct relation. Non-functional and CO-EQUAL: Japanese uses Han, Hiragana, Katakana and Latin simultaneously, none primary. When role or period matter, reify the binding as gmeow:WritingSystemUsage."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:scriptCode
     a owl:DatatypeProperty ;
@@ -202,7 +202,7 @@ gmeow:scriptCode
     rdfs:range rdfs:Literal ;
     rdfs:label "script code"@x-gmeow-english ;
     skos:definition "The ISO 15924 script code of a writing system (\"Latn\", \"Hani\", \"Hira\", \"Kana\", \"Arab\", \"Brai\") when one exists, else a bespoke identifier for a conlang/AI script with no registered code. The bridge for names' gmeow:nameScript literals to resolve to a first-class WritingSystem. Non-functional."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:writingSystemType
     a owl:ObjectProperty ;
@@ -210,7 +210,7 @@ gmeow:writingSystemType
     rdfs:range gmeow:WritingSystemType ;
     rdfs:label "writing system type"@x-gmeow-english ;
     skos:definition "The structural kind(s) of a writing system (gmeow:WritingSystemType values). Non-functional — a script may be classified plurally."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:textDirection
     a owl:ObjectProperty ;
@@ -218,7 +218,7 @@ gmeow:textDirection
     rdfs:range gmeow:TextDirection ;
     rdfs:label "text direction"@x-gmeow-english ;
     skos:definition "The writing direction(s) of a writing system (gmeow:TextDirection values). Non-functional — Japanese is both vertical-rtl and ltr."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:usageLanguage
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -226,7 +226,7 @@ gmeow:usageLanguage
     rdfs:range gmeow:Language ;
     rdfs:label "usage language"@x-gmeow-english ;
     skos:definition "The language that uses the writing system in a writing-system-usage. Functional — constitutive of the usage (a usage binds exactly one language)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:usageWritingSystem
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -234,7 +234,7 @@ gmeow:usageWritingSystem
     rdfs:range gmeow:WritingSystem ;
     rdfs:label "usage writing system"@x-gmeow-english ;
     skos:definition "The writing system used by the language in a writing-system-usage. Functional — constitutive of the usage."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:scriptRole
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -242,7 +242,7 @@ gmeow:scriptRole
     rdfs:range gmeow:ScriptRole ;
     rdfs:label "script role"@x-gmeow-english ;
     skos:definition "The functional role a writing system plays for a language in a usage (a gmeow:ScriptRole value). Functional: one role per usage — a script playing two roles is two usages."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:scriptUsageInterval
     a owl:ObjectProperty ;
@@ -250,7 +250,7 @@ gmeow:scriptUsageInterval
     rdfs:range gmeow:TimeInterval ;
     rdfs:label "script usage interval"@x-gmeow-english ;
     skos:definition "The interval over which a writing-system-usage held — e.g. Turkish-in-Arabic-script until 1928. A relator carries its period this way (matching names' NameUsage); lighter cases use gmeow:validFrom/validUntil on the statement. (Distinct from the names module's gmeow:usageInterval, which scopes a NameUsage.)"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 # =========================================================================== #
 # Version labels + the software bridge. Universal version/supersession lineage
@@ -263,7 +263,7 @@ gmeow:versionLabel
     rdfs:range rdfs:Literal ;
     rdfs:label "version label"@x-gmeow-english ;
     skos:definition "The version designation of an entity as a literal (\"1993\", \"2011\", \"v2.1.0-beta\", \"3rd Edition\"). Domain is gmeow:Entity so any versioned artifact — a language, a software release, a book edition, a dataset, an email variant — may carry its designation. Non-functional."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 # =========================================================================== #
 # Proficiency relator roles (functional, constitutive) + base relations.
@@ -275,7 +275,7 @@ gmeow:proficiencyAgent
     rdfs:range gmeow:Agent ;
     rdfs:label "proficiency agent"@x-gmeow-english ;
     skos:definition "The agent whose proficiency a language-proficiency expresses. Functional — constitutive of the proficiency."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:proficiencyLanguage
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -283,7 +283,7 @@ gmeow:proficiencyLanguage
     rdfs:range gmeow:Language ;
     rdfs:label "proficiency language"@x-gmeow-english ;
     skos:definition "The language a language-proficiency concerns. Functional — constitutive."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:proficiencyModality
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -291,7 +291,7 @@ gmeow:proficiencyModality
     rdfs:range gmeow:ProficiencyModality ;
     rdfs:label "proficiency modality"@x-gmeow-english ;
     skos:definition "The skill modality a language-proficiency rates (speaking, listening, reading, writing, signing, comprehension, overall) — a gmeow:ProficiencyModality value. Functional: mint one proficiency per (agent, language, modality) so per-skill levels coexist."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:proficiencyLevel
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -299,7 +299,7 @@ gmeow:proficiencyLevel
     rdfs:range gmeow:ProficiencyLevel ;
     rdfs:label "proficiency level"@x-gmeow-english ;
     skos:definition "The attained level of a language-proficiency (a gmeow:ProficiencyLevel value, e.g. cefrB2, levelNative). Functional."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:proficiencyScale
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -307,7 +307,7 @@ gmeow:proficiencyScale
     rdfs:range gmeow:ProficiencyScale ;
     rdfs:label "proficiency scale"@x-gmeow-english ;
     skos:definition "The framework/scale a proficiency level is measured on (CEFR, ILR, ACTFL, self-reported) — a gmeow:ProficiencyScale value. Functional."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:proficiencyInterval
     a owl:ObjectProperty ;
@@ -315,7 +315,7 @@ gmeow:proficiencyInterval
     rdfs:range gmeow:TimeInterval ;
     rdfs:label "proficiency interval"@x-gmeow-english ;
     skos:definition "The interval over which a language-proficiency held (proficiency changes over a life). Lighter cases use gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:levelScale
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -323,7 +323,7 @@ gmeow:levelScale
     rdfs:range gmeow:ProficiencyScale ;
     rdfs:label "level scale"@x-gmeow-english ;
     skos:definition "The scale a proficiency-level individual belongs to (e.g. cefrB2 levelScale scaleCEFR). Functional."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:knowsLanguage
     a owl:ObjectProperty ;
@@ -331,7 +331,7 @@ gmeow:knowsLanguage
     rdfs:range gmeow:Language ;
     rdfs:label "knows language"@x-gmeow-english ;
     skos:definition "Relates an agent to a language it knows. Non-functional. The leveled, per-skill detail is carried by the reified gmeow:LanguageProficiency."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:nativeLanguage
     a owl:ObjectProperty ;
@@ -340,7 +340,7 @@ gmeow:nativeLanguage
     rdfs:range gmeow:Language ;
     rdfs:label "native language"@x-gmeow-english ;
     skos:definition "Relates an agent to a native (mother-tongue / first) language — a specialization of gmeow:knowsLanguage. Non-functional: a person may have several native languages."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 # =========================================================================== #
 # Transliteration scheme — names the system that produced a gmeow:romanization
@@ -358,7 +358,7 @@ gmeow:LanguageOrigin
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Language Origin"@x-gmeow-english ;
     skos:definition "How a language came to be (natural, constructed, AI-generated, formal, pidgin, creole, reconstructed, …). A value, not a Language subclass: origins are open-ended and share Language's structure."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:originNatural               a gmeow:LanguageOrigin ; rdfs:label "natural"@x-gmeow-english .
 gmeow:originNatural skos:definition "The natural language origin — a provenance category that explains how a language or variety arose."@x-gmeow-english ;
@@ -408,7 +408,7 @@ gmeow:LanguageModality
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Language Modality"@x-gmeow-english ;
     skos:definition "The sensory/transmission channel of a language (spoken, signed, written, whistled, tactile, machine, multimodal). A value carried by gmeow:languageModality."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:modalitySpoken     a gmeow:LanguageModality ; rdfs:label "spoken"@x-gmeow-english .
 gmeow:modalitySpoken skos:definition "The spoken language modality — a channel or medium through which a language is produced or perceived."@x-gmeow-english ;
@@ -437,7 +437,7 @@ gmeow:LanguageStatus
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Language Status"@x-gmeow-english ;
     skos:definition "The vitality status of a language (living, historical, extinct, dormant, revived, emerging, proposed, constructed-active). A value carried by gmeow:languageStatus."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:statusLiving            a gmeow:LanguageStatus ; rdfs:label "living"@x-gmeow-english .
 gmeow:statusLiving skos:definition "The living language status — a vitality or registration stage of a language or constructed language project."@x-gmeow-english ;
@@ -469,7 +469,7 @@ gmeow:WritingSystemType
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Writing System Type"@x-gmeow-english ;
     skos:definition "The structural kind of a writing system (alphabet, abjad, abugida, syllabary, logographic, featural, ideographic, pictographic, non-linear, mixed). A value carried by gmeow:writingSystemType."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:wsTypeAlphabet     a gmeow:WritingSystemType ; rdfs:label "alphabet"@x-gmeow-english .
 gmeow:wsTypeAlphabet skos:definition "The alphabet writing system type — a classification of a script by how its symbols encode language units."@x-gmeow-english ;
@@ -507,7 +507,7 @@ gmeow:TextDirection
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Text Direction"@x-gmeow-english ;
     skos:definition "The writing direction of a writing system (ltr, rtl, vertical, boustrophedon, non-linear, contextual). A value carried by gmeow:textDirection."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:directionLtr           a gmeow:TextDirection ; rdfs:label "left-to-right"@x-gmeow-english .
 gmeow:directionLtr skos:definition "The ltr text direction — a convention for ordering glyphs when rendering a writing system."@x-gmeow-english ;
@@ -536,7 +536,7 @@ gmeow:ScriptRole
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Script Role"@x-gmeow-english ;
     skos:definition "The role a writing system plays within a language's mixed orthography (primary, logographic content, syllabic grammar, loanword, transliteration, liturgical, historical, decorative). A value carried by gmeow:scriptRole."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:scriptRolePrimary            a gmeow:ScriptRole ; rdfs:label "primary"@x-gmeow-english .
 gmeow:scriptRolePrimary skos:definition "The primary script role — a function a writing system performs for a particular lexical item or passage."@x-gmeow-english ;
@@ -720,7 +720,7 @@ gmeow:LanguageVarietyKind
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Language Variety Kind"@x-gmeow-english ;
     skos:definition "The sociolinguistic classification of a language variety — a value, never an Entity subclass. Standpoint-scoped: 'dialect' according to one authority may be 'language' according to another. The seed list is an anchor, not a fence."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:kindDialect           a gmeow:LanguageVarietyKind ; rdfs:label "dialect"@x-gmeow-english .
 gmeow:kindDialect skos:definition "The dialect language variety kind — a sociolinguistic category that describes the relationship of a variety to its speech community."@x-gmeow-english ;
@@ -767,7 +767,7 @@ gmeow:LanguageChangeType
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Language Change Type"@x-gmeow-english ;
     skos:definition "The kind of historical linguistic change — a value, never an Entity subclass. Open-ended: new analytical frameworks may introduce further change types without ontology modification."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> .
 
 gmeow:changeSoundShift        a gmeow:LanguageChangeType ; rdfs:label "sound shift"@x-gmeow-english .
 gmeow:changeSoundShift skos:definition "The sound shift language change type — a kind of diachronic process that alters a language's form, lexicon, or social standing."@x-gmeow-english ;

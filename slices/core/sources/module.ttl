@@ -32,7 +32,7 @@ gmeow:sourceModifiedAt
     rdfs:label "source modified at"@x-gmeow-english ;
     skos:definition "The last-modification time of the source artifact itself (e.g. a file mtime). A terminus-ante-quem on the recording of the claims this source carries — NOT valid-time (tenure) and NOT observation-time. Advisory and resettable; the reliable identity is gmeow:contentDigest. NOT functional: because a source is identified by its content digest, copies/syncs of the same bytes may legitimately report different modification times, which must coexist rather than force an inconsistency."@x-gmeow-english ;
     skos:scopeNote "Typically asserted on a Manifestation or Item."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> .
 
 gmeow:contentDigest
     a owl:DatatypeProperty ;
@@ -40,7 +40,7 @@ gmeow:contentDigest
     rdfs:label "content digest"@x-gmeow-english ;
     skos:definition "A content hash of an object's bytes (e.g. \"blake3:…\", \"sha256:…\", \"git:…\") — the reliable identity by content (two objects with the same bytes are the same object, regardless of path, name, or mtime). Domain-free: applies to creative works, source files, commits, distributions, and any other content-addressable artifact. Not functional: an object may carry digests under several algorithms."@x-gmeow-english ;
     skos:scopeNote "Typically asserted on a Manifestation, Item, SourceFile, Commit, or Distribution."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> .
 
 gmeow:sourceLocation
     a owl:DatatypeProperty ;
@@ -49,4 +49,4 @@ gmeow:sourceLocation
     rdfs:label "source location"@x-gmeow-english ;
     skos:definition "Where the source artifact came from — a file path, original filename, or URL. Provenance/audit only; carries no reliable identity."@x-gmeow-english ;
     skos:scopeNote "Typically asserted on a Manifestation or Item."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> .

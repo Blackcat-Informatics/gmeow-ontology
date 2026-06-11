@@ -27,7 +27,7 @@ gmeow:SpatialAggregation
     rdfs:subClassOf gmeow:Measurement ;
     rdfs:label "Spatial Aggregation"@x-gmeow-english ;
     skos:definition "A measurement that aggregates entities located within a spatial region, yielding a scalar result such as a count, density, or average. The aggregation region is the observedFeature; the result is a ScalarQuantity. The actual computation is performed by the solver layer (Principle 12), not materialised as asserted triples in the OWL core."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> .
 
 gmeow:aggregationFunction
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -35,7 +35,7 @@ gmeow:aggregationFunction
     rdfs:range gmeow:AggregationFunction ;
     rdfs:label "aggregation function"@x-gmeow-english ;
     skos:definition "The statistical function applied to the entities in the aggregation region — count, sum, average, density, minimum, maximum, or centroid."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> .
 
 # =========================================================================== #
 # AGGREGATION FUNCTION — value vocabulary (individuals, never subclasses)
@@ -46,7 +46,7 @@ gmeow:AggregationFunction
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Aggregation Function"@x-gmeow-english ;
     skos:definition "The kind of statistical aggregation applied to a spatial region — a value vocabulary (individuals, never subclasses)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> .
 
 gmeow:aggCount
     a gmeow:AggregationFunction ;
@@ -99,7 +99,7 @@ gmeow:SpatialBin
     rdfs:subClassOf gmeow:Place ;
     rdfs:label "Spatial Bin"@x-gmeow-english ;
     skos:definition "A place that serves as a spatial bin in an aggregation grid — a generated region used to partition space for statistical summarisation. Its geometry defines the bin boundary; its aggregation result is a SpatialAggregation."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> .
 
 gmeow:hasBin
     a owl:ObjectProperty ;
@@ -107,7 +107,7 @@ gmeow:hasBin
     rdfs:range gmeow:SpatialBin ;
     rdfs:label "has bin"@x-gmeow-english ;
     skos:definition "Links a spatial aggregation to one of its constituent spatial bins. Non-functional: a bin may participate in multiple aggregations."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> .
 
 gmeow:minimumPopulation
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -115,7 +115,7 @@ gmeow:minimumPopulation
     rdfs:range xsd:nonNegativeInteger ;
     rdfs:label "minimum population"@x-gmeow-english ;
     skos:definition "The minimum population size (k) required for the aggregation result to be disclosed — the k-anonymity parameter. A result failing this check is suppressed at projection time (coarsen or withhold, Principle 10), never deleted."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> .
 
 # =========================================================================== #
 # CROSS-CUTTING REUSE DECLARATION
