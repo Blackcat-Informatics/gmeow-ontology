@@ -1,0 +1,459 @@
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/slices/norms>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Norms Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Norms Module — generalized deontics with indexed authority (issues #351 / #352, EPIC #348)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:comment """Generalized deontics with indexed authority — the constitutional keystone of the normative stack (EPIC #348).
+
+DOCTRINE.
+  * THERE IS NO OUGHT, ONLY OUGHT-ACCORDING-TO. Every norm names its issuer (gmeow:normIssuer); an ought without an issuer is the deontic analogue of a global truth axiom and is forbidden by SHACL. Two contradictory normative systems coexist without inconsistency because neither is asserted — both are recorded as issued (Principles 1, 9; the deception module's held/projected move applied to oughts). normIssuer ⊑ gmeow:accordingTo is documented, not axiomatised, because accordingTo is an AnnotationProperty and normIssuer is an ObjectProperty — the vantage ⊑ accordingTo precedent (standpoint module).
+  * PRECEDENCE IS DATA, NOT SEMANTICS. gmeow:overrides is pairwise and deliberately NOT transitive: lex-superior chains are solver inferences, never reasoner entailments. AuthorityLevel is an ordered value vocabulary (the kernel GranularityLevel pattern — third use); ordering comparisons are solver work (Principle 12). 'Tier 2 overrode X until v3.5' is a gmeow:PrecedenceTenure — the StandpointTenure idiom (Principle 10: withdrawal by suppression, never deletion).
+  * CONDITIONS ARE STORED, NEVER EXECUTED. A gmeow:Condition is an InformationObject whose canonical form is prose (conditionText); formalizations (SPARQL ASK, CEL, Rego, Cedar, XACML, SHACL) attach as ConditionExpressions, and EACH FORMALIZATION IS A CLAIM of equivalence to the prose, challengeable through the statement layer. Whether a condition held is a gmeow:ConditionEvaluation — a vantage-indexed Observation — never a graph entailment. No CI step, test, or tool may evaluate a ConditionExpression against the graph as part of validation (the Principle 12 boundary made operational; see docs.md).
+  * THE RIGHTS GRAFT (#352) lands here, extension-side, with ZERO core churn: gmeow:Rule ⊑ gmeow:Norm plus subproperty grafts. The deontic trio (Permission / Prohibition / Duty) is NOT an inferior duplicate of Norm + deonticModality — it is a rigid subkind partition (fixed modality per subkind) under the open modality axis, kept for the asset case and its projection affordances. When this extension is absent, the core rights slice behaves exactly as before.
+  * Deontic force ranges over teleology: gmeow:prescribedConduct points at event types, goals (#350), situations, or rights actions; its range is intentionally open (the tenurePosition precedent) so the graft needs no dual-typing and the generated schema surface keeps a clean property.
+  * ALIGNMENTS DEFERRED to the compiler-arc window (the wip-aboutness-349 precedent): ODRL 2.2 (EDOAL — odrl:Constraint ↔ Condition is structural), LegalRuleML (<Override> ↔ overrides/PrecedenceTenure — the one target where precedence survives round-trip), LKIF-Core, DPV, SUMO normative attributes, UFO-L. Target list is fixed in #351."""@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# THE NORM SPINE
+# =========================================================================== #
+
+gmeow:Norm
+    a owl:Class, gufo:Category ;
+    rdfs:subClassOf gmeow:Entity ;
+    rdfs:label "Norm"@x-gmeow-english ;
+    skos:definition "A prescription existing by social convention — an obligation, prohibition, permission, or recommendation issued by an agent or standpoint over some conduct. A norm asserts nothing about the world: it records that an issuer prescribes. Whether anything complies is a vantage-indexed ComplianceAssessment; what wins when norms conflict is solver work over the recorded precedence claims (Principle 12). Every modality-bearing norm must name its issuer (SHACL): there is no ought, only ought-according-to (Principles 1, 9). GROUNDING: a gufo:Category at Entity level — the IntentionalMoment precedent — because the #352 graft places gmeow:Rule (⊑ gufo:Relator) beneath it while plain standalone norms are object-like social descriptions; committing Norm to gufo:Object OR gufo:Relator would make one branch inconsistent (Object ⟂ Aspect), and a Kind would stack identities under the rights trio (OntoUML MixIden). The social-convention reading lives on the concrete classes: NormativeSystem ⊑ SocialObject, the trio ⊑ Relator."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:DeonticModality
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Deontic Modality"@x-gmeow-english ;
+    skos:definition "The deontic force of a norm — an OPEN value vocabulary (individuals, never subclasses) seeded with obligation (must), prohibition (must not), permission (may), and recommendation (should). Open so that supererogation, exemption, and other forces can join without schema change (Principle 9). Distinct from gmeow:standpointModality (doxastic — what a frame believes) and from gmeow:hasDeterminacy (ontic): deontic modality is what an issuer demands."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+# Seeds
+gmeow:deonticObligation      a gmeow:DeonticModality ; rdfs:label "obligation (must)"@x-gmeow-english ;
+    skos:definition "The obligation modality — the issuer requires the conduct."@x-gmeow-english .
+gmeow:deonticObligation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:deonticProhibition     a gmeow:DeonticModality ; rdfs:label "prohibition (must not)"@x-gmeow-english ;
+    skos:definition "The prohibition modality — the issuer forbids the conduct."@x-gmeow-english .
+gmeow:deonticProhibition rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:deonticPermission      a gmeow:DeonticModality ; rdfs:label "permission (may)"@x-gmeow-english ;
+    skos:definition "The permission modality — the issuer allows the conduct."@x-gmeow-english .
+gmeow:deonticPermission rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:deonticRecommendation  a gmeow:DeonticModality ; rdfs:label "recommendation (should)"@x-gmeow-english ;
+    skos:definition "The recommendation modality — the issuer advises the conduct without requiring it."@x-gmeow-english .
+gmeow:deonticRecommendation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:deonticModality
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Norm ;
+    rdfs:range gmeow:DeonticModality ;
+    rdfs:label "deontic modality"@x-gmeow-english ;
+    skos:definition "The deontic force of this norm. Functional: one norm, one force — a rule that both permits and obliges is two norms. A norm carrying a modality must also carry an issuer (SHACL): no anonymous oughts."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:normIssuer
+    a owl:ObjectProperty ;
+    rdfs:label "norm issuer"@x-gmeow-english ;
+    skos:definition "The agent or standpoint according to which this norm holds — the constitutional keystone: there is no ought, only ought-according-to. DOMAIN-FREE on purpose: gmeow:systemIssuer specializes this property for NormativeSystems, and a domain of Norm would leak gmeow:Norm typing onto every system through the subproperty (PR #369 review); issuance applies to norms, systems, and future deontic carriers alike. The range is intentionally open (a gmeow:Agent or a gmeow:Standpoint individual, the accordingTo convention). normIssuer ⊑ gmeow:accordingTo is documented, not axiomatised (accordingTo is an AnnotationProperty; the vantage precedent). NOT functional: co-issued norms (a treaty, a joint policy) carry several issuers, and those claims coexist (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:normBearer
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Norm ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "norm bearer"@x-gmeow-english ;
+    skos:definition "An agent the norm binds. NOT functional: a norm may bind several named bearers. ABSENT means the norm binds everyone in its issuer's scope — the gmeow:ruleAssignee convention (rights module), preserved by the graft."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:prescribedConduct
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Norm ;
+    rdfs:label "prescribed conduct"@x-gmeow-english ;
+    skos:definition "The conduct the norm is about — an event type, a goal (#350), a situation, or a rights action (via the #352 graft). The range is intentionally open (the tenurePosition precedent): asserting a closed range union would either dangle across module boundaries or vanish from the generated schema surface, and the graft would force dual-typing of the RightsAction vocabulary. NOT functional: one norm may govern several conducts jointly."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:NormativeSystem
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:SocialObject ;
+    rdfs:label "Normative System"@x-gmeow-english ;
+    skos:definition "A body of norms with a shared identity — a constitution, a legal code, a code of conduct, a principia document, a rubric set. Member norms attach via gmeow:partOf. A normative system is itself issued (gmeow:systemIssuer), and competing systems coexist without inconsistency: GMEOW records what each prescribes and never adjudicates between them (Principles 1, 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:systemIssuer
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:normIssuer ;
+    rdfs:domain gmeow:NormativeSystem ;
+    rdfs:label "system issuer"@x-gmeow-english ;
+    skos:definition "The agent or standpoint that issues a normative system as a whole. ⊑ normIssuer: issuing the system is issuing its stance. Member norms may still carry their own issuers (an annex contributed by another party)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+# =========================================================================== #
+# AUTHORITY & PRECEDENCE — ordered vocabulary + pairwise defeasible overrides
+# =========================================================================== #
+
+gmeow:AuthorityLevel
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Authority Level"@x-gmeow-english ;
+    skos:definition "The claimed authority grade of a norm within its issuing system — an ordered value vocabulary (absolute ≻ high ≻ medium ≻ conditional), the kernel GranularityLevel pattern. The ordering is carried by gmeow:strongerThan on the LEVELS; what the ordering does to conflicting norms is solver work over recorded precedence claims, never a reasoner entailment (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:strongerThan
+    a owl:ObjectProperty, owl:TransitiveProperty ;
+    rdfs:domain gmeow:AuthorityLevel ;
+    rdfs:range gmeow:AuthorityLevel ;
+    rdfs:label "stronger than"@x-gmeow-english ;
+    skos:definition "Orders authority levels: the subject level carries more claimed authority than the object level. Transitive ON LEVELS ONLY (the gmeow:coarserThan pattern) — norms themselves are ordered by pairwise gmeow:overrides claims, never transitively."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+# Seeds (ordered)
+gmeow:authorityAbsolute    a gmeow:AuthorityLevel ; rdfs:label "absolute"@x-gmeow-english ;
+    gmeow:strongerThan gmeow:authorityHigh ;
+    skos:definition "The absolute authority level — the issuing system claims this norm overrides all others it issues."@x-gmeow-english .
+gmeow:authorityAbsolute rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:authorityHigh        a gmeow:AuthorityLevel ; rdfs:label "high"@x-gmeow-english ;
+    gmeow:strongerThan gmeow:authorityMedium ;
+    skos:definition "The high authority level."@x-gmeow-english .
+gmeow:authorityHigh rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:authorityMedium      a gmeow:AuthorityLevel ; rdfs:label "medium"@x-gmeow-english ;
+    gmeow:strongerThan gmeow:authorityConditional ;
+    skos:definition "The medium authority level."@x-gmeow-english .
+gmeow:authorityMedium rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:authorityConditional a gmeow:AuthorityLevel ; rdfs:label "conditional"@x-gmeow-english ;
+    skos:definition "The conditional authority level — authority contingent on an activation condition."@x-gmeow-english .
+gmeow:authorityConditional rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:hasAuthorityLevel
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Norm ;
+    rdfs:range gmeow:AuthorityLevel ;
+    rdfs:label "has authority level"@x-gmeow-english ;
+    skos:definition "The authority grade an issuing system claims for this norm. NOT functional: in a multi-source merge, sources may grade the same norm differently, and those claims coexist rather than collapse (Principle 9 — the kernel-axis convention)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:overrides
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Norm ;
+    rdfs:range gmeow:Norm ;
+    rdfs:label "overrides"@x-gmeow-english ;
+    skos:definition "Pairwise defeasible precedence: when both norms apply, the subject prevails over the object — according to whoever asserts this claim (statement-layer indexed like everything else). DELIBERATELY NOT TRANSITIVE: lex-superior chains, specificity reasoning, and cycle handling are solver inferences over the recorded pairs, never reasoner entailments (Principle 12). Irreflexive by SHACL. The flat 80% case; promote to gmeow:PrecedenceTenure when the precedence held over an interval is itself the fact of interest."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:PrecedenceTenure
+    a owl:Class, gufo:SituationType ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    rdfs:label "Precedence Tenure"@x-gmeow-english ;
+    skos:definition "The reified, time-scoped fact that one norm took precedence over another within a normative system over an interval — 'Tier 2 overrode X until v3.5' made sayable. The StandpointTenure idiom (Principle 10): carries its interval via gmeow:duringInterval (temporal module); a withdrawn precedence is kept with gmeow:displayable false, never deleted. Use only when adoption / revision of the precedence is itself worth modelling; the common case is flat gmeow:overrides."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:precedenceHigher
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PrecedenceTenure ;
+    rdfs:range gmeow:Norm ;
+    rdfs:label "precedence higher"@x-gmeow-english ;
+    skos:definition "The norm that prevails during this tenure. Functional."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:precedenceLower
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PrecedenceTenure ;
+    rdfs:range gmeow:Norm ;
+    rdfs:label "precedence lower"@x-gmeow-english ;
+    skos:definition "The norm that yields during this tenure. Functional, and distinct from precedenceHigher (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:precedenceScope
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:PrecedenceTenure ;
+    rdfs:range gmeow:NormativeSystem ;
+    rdfs:label "precedence scope"@x-gmeow-english ;
+    skos:definition "The normative system within which this precedence holds. Functional and mandatory (SHACL): precedence is always scoped — a system orders its own norms; it cannot order the world's."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+# =========================================================================== #
+# CONDITION MACHINERY — stored, composed, formalized, evaluated; never executed
+# =========================================================================== #
+
+gmeow:Condition
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Condition"@x-gmeow-english ;
+    skos:definition "A describable circumstance — the trigger of a conditional norm, the activation context of a persona (#355), the antecedent of a causal link (#354). The canonical form is PROSE (gmeow:conditionText, mandatory by SHACL); machine formalizations attach via gmeow:formalizedAs, and each formalization is a claim of equivalence to the prose, challengeable through the statement layer. Whether the condition held at some moment is a gmeow:ConditionEvaluation — a vantage-indexed Observation — never a graph entailment. The ontology stores conditions; it never executes them (Principle 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:conditionText
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Condition ;
+    rdfs:range xsd:string ;
+    rdfs:label "condition text"@x-gmeow-english ;
+    skos:definition "The natural-language statement of the condition — the canonical form, always present (SHACL). Formalizations approximate the prose, not the other way around."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:normCondition
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Norm ;
+    rdfs:range gmeow:Condition ;
+    rdfs:label "norm condition"@x-gmeow-english ;
+    skos:definition "The condition under which this norm applies. NOT functional: several conditions on one norm are an implicit conjunction; use a gmeow:ConditionGroup when the combination logic matters."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:ConditionGroup
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Condition ;
+    rdfs:label "Condition Group"@x-gmeow-english ;
+    skos:definition "A composite condition — all-of, any-of, or none-of its members (arbitrary and/or/not trees by nesting groups). Requires an operator and at least two members (SHACL). A group is itself a Condition: it carries its own prose summary and can be evaluated, formalized, and reused like any other."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:GroupOperator
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Group Operator"@x-gmeow-english ;
+    skos:definition "The combination operator of a condition group — a closed three-member value vocabulary: all (conjunction), any (disjunction), none (negated disjunction)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:operatorAll  a gmeow:GroupOperator ; rdfs:label "all of (and)"@x-gmeow-english ;
+    skos:definition "The conjunction operator — the group holds when every member holds."@x-gmeow-english .
+gmeow:operatorAll rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:operatorAny  a gmeow:GroupOperator ; rdfs:label "any of (or)"@x-gmeow-english ;
+    skos:definition "The disjunction operator — the group holds when at least one member holds."@x-gmeow-english .
+gmeow:operatorAny rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:operatorNone a gmeow:GroupOperator ; rdfs:label "none of (not)"@x-gmeow-english ;
+    skos:definition "The negation operator — the group holds when no member holds."@x-gmeow-english .
+gmeow:operatorNone rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:groupOperator
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ConditionGroup ;
+    rdfs:range gmeow:GroupOperator ;
+    rdfs:label "group operator"@x-gmeow-english ;
+    skos:definition "The combination operator of this group. Functional and mandatory (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:groupMember
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ConditionGroup ;
+    rdfs:range gmeow:Condition ;
+    rdfs:label "group member"@x-gmeow-english ;
+    skos:definition "A member condition of this group. At least two (SHACL); nest groups for arbitrary trees."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:ConditionExpression
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Condition Expression"@x-gmeow-english ;
+    skos:definition "A machine formalization of a condition in a named expression language. STORED, NEVER EXECUTED: no CI step, test, or tool may evaluate a ConditionExpression against the graph as part of validation (Principle 12 made operational). Attaching one to a Condition (gmeow:formalizedAs) is a claim that the expression captures the prose — a claim like any other, carrying confidence and vantage through the statement layer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:expressionText
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ConditionExpression ;
+    rdfs:range xsd:string ;
+    rdfs:label "expression text"@x-gmeow-english ;
+    skos:definition "The expression source, verbatim, in the named language. Functional and mandatory (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:ExpressionLanguage
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Expression Language"@x-gmeow-english ;
+    skos:definition "The language of a condition expression — an OPEN value vocabulary seeded with the policy-engine and query languages GMEOW projects to: prose, SPARQL ASK, CEL, Rego, Cedar, XACML, SHACL. Open: new engines join without schema change."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:exprLangProse     a gmeow:ExpressionLanguage ; rdfs:label "prose"@x-gmeow-english ;
+    skos:definition "Natural-language restatement (a translation, not a formalization)."@x-gmeow-english .
+gmeow:exprLangProse rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:exprLangSparqlAsk a gmeow:ExpressionLanguage ; rdfs:label "SPARQL ASK"@x-gmeow-english ;
+    skos:definition "A SPARQL ASK query."@x-gmeow-english .
+gmeow:exprLangSparqlAsk rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:exprLangCel       a gmeow:ExpressionLanguage ; rdfs:label "CEL"@x-gmeow-english ;
+    skos:definition "Common Expression Language."@x-gmeow-english .
+gmeow:exprLangCel rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:exprLangRego      a gmeow:ExpressionLanguage ; rdfs:label "Rego (OPA)"@x-gmeow-english ;
+    skos:definition "Open Policy Agent's Rego policy language."@x-gmeow-english .
+gmeow:exprLangRego rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:exprLangCedar     a gmeow:ExpressionLanguage ; rdfs:label "Cedar"@x-gmeow-english ;
+    skos:definition "The Cedar authorization policy language."@x-gmeow-english .
+gmeow:exprLangCedar rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:exprLangXacml     a gmeow:ExpressionLanguage ; rdfs:label "XACML"@x-gmeow-english ;
+    skos:definition "OASIS XACML policy XML."@x-gmeow-english .
+gmeow:exprLangXacml rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:exprLangShacl     a gmeow:ExpressionLanguage ; rdfs:label "SHACL"@x-gmeow-english ;
+    skos:definition "A SHACL shapes graph used as a condition formalization. Carried as data like every other expression — never loaded into the validation harness (Principle 12)."@x-gmeow-english .
+gmeow:exprLangShacl rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:expressionLanguage
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ConditionExpression ;
+    rdfs:range gmeow:ExpressionLanguage ;
+    rdfs:label "expression language"@x-gmeow-english ;
+    skos:definition "The language of this expression. Functional and mandatory (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:formalizedAs
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Condition ;
+    rdfs:range gmeow:ConditionExpression ;
+    rdfs:label "formalized as"@x-gmeow-english ;
+    skos:definition "Attaches a machine formalization to a condition. NOT functional: one condition, several formalizations (one per engine), each a separate equivalence claim with its own confidence and vantage through the statement layer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:ConditionParameter
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Condition Parameter"@x-gmeow-english ;
+    skos:definition "A named binding that instantiates a condition template — 'threshold = 0.8', 'jurisdiction = Canada'. Lets one Condition serve many norms with different bindings."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:conditionParameter
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Condition ;
+    rdfs:range gmeow:ConditionParameter ;
+    rdfs:label "condition parameter"@x-gmeow-english ;
+    skos:definition "A parameter binding of this condition. NOT functional."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:parameterName
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ConditionParameter ;
+    rdfs:range xsd:string ;
+    rdfs:label "parameter name"@x-gmeow-english ;
+    skos:definition "The parameter's name as used in the condition text or expressions. Functional and mandatory (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:parameterValue
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ConditionParameter ;
+    rdfs:label "parameter value"@x-gmeow-english ;
+    skos:definition "The bound literal value. Use gmeow:parameterEntity for IRI-valued bindings; a parameter carries exactly one of the two (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:parameterEntity
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ConditionParameter ;
+    rdfs:label "parameter entity"@x-gmeow-english ;
+    skos:definition "The bound entity for IRI-valued bindings. Range intentionally open. A parameter carries exactly one of parameterValue / parameterEntity (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+# =========================================================================== #
+# CONDITION EVALUATION & COMPLIANCE — verdicts are observations, never facts
+# =========================================================================== #
+
+gmeow:ConditionEvaluation
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Observation ;
+    rdfs:label "Condition Evaluation"@x-gmeow-english ;
+    skos:definition "An observation that a condition held, did not hold, or could not be determined at some moment — vantage = the evaluator (an agent, a solver run, a model). The verdict is a recorded observation, NEVER a graph entailment: two evaluators returning different verdicts for one condition are two coexisting cells (Principle 9). The evaluation run itself attaches via gmeow:observationEvent; the evaluated condition rides gmeow:evaluatedCondition ⊑ gmeow:observedFeature."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:evaluatedCondition
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    rdfs:domain gmeow:ConditionEvaluation ;
+    rdfs:range gmeow:Condition ;
+    rdfs:label "evaluated condition"@x-gmeow-english ;
+    skos:definition "The condition this evaluation reports on (⊑ observedFeature — the #69 bridge idiom). Functional: one evaluation, one condition; group members get their own evaluations."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:EvaluationVerdict
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Evaluation Verdict"@x-gmeow-english ;
+    skos:definition "The outcome of a condition evaluation — held, not held, or undetermined. A closed three-member value vocabulary. Semantically the observationResult of a ConditionEvaluation, but not declared rdfs:subPropertyOf-reachable because QualityValues are disjoint from Entities in the DL profile (the claimModality precedent, standpoint module)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:verdictHeld         a gmeow:EvaluationVerdict ; rdfs:label "held"@x-gmeow-english ;
+    skos:definition "The evaluator found the condition to hold."@x-gmeow-english .
+gmeow:verdictHeld rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:verdictNotHeld      a gmeow:EvaluationVerdict ; rdfs:label "not held"@x-gmeow-english ;
+    skos:definition "The evaluator found the condition not to hold."@x-gmeow-english .
+gmeow:verdictNotHeld rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+gmeow:verdictUndetermined a gmeow:EvaluationVerdict ; rdfs:label "undetermined"@x-gmeow-english ;
+    skos:definition "The evaluator could not determine whether the condition held."@x-gmeow-english .
+gmeow:verdictUndetermined rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:evaluationVerdict
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ConditionEvaluation ;
+    rdfs:range gmeow:EvaluationVerdict ;
+    rdfs:label "evaluation verdict"@x-gmeow-english ;
+    skos:definition "The verdict of this evaluation. Functional and mandatory (SHACL). The claimModality pattern: equivalent in role to observationResult, separate in axiom because QualityValue ⟂ Entity."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:violates
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Norm ;
+    rdfs:label "violates"@x-gmeow-english ;
+    skos:definition "Flat shortcut: the event violates the norm — according to whoever asserts it (statement-layer indexed). Promote to a gmeow:ComplianceAssessment when the assessor, evidence, or confidence must be first-class. Never entailed: violation is always somebody's judgement (Principles 1, 9, 12)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:complies
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Event ;
+    rdfs:range gmeow:Norm ;
+    rdfs:label "complies with"@x-gmeow-english ;
+    skos:definition "Flat shortcut: the event complies with the norm — according to whoever asserts it. The positive twin of gmeow:violates; same promotion path, same never-entailed doctrine."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:ComplianceAssessment
+    a owl:Class, gufo:SubKind ;
+    rdfs:subClassOf gmeow:Observation ;
+    rdfs:label "Compliance Assessment"@x-gmeow-english ;
+    skos:definition "An observation that an event complied with or violated a norm — vantage = the assessor. The reified form of gmeow:violates / gmeow:complies, for when who-judged, on-what-evidence, and how-confidently must be first-class. Two assessors disagreeing are two coexisting cells; no global compliance verdict exists (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:assessedEvent
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    rdfs:domain gmeow:ComplianceAssessment ;
+    rdfs:range gmeow:Event ;
+    rdfs:label "assessed event"@x-gmeow-english ;
+    skos:definition "The event whose compliance is assessed (⊑ observedFeature). Functional."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:assessedNorm
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ComplianceAssessment ;
+    rdfs:range gmeow:Norm ;
+    rdfs:label "assessed norm"@x-gmeow-english ;
+    skos:definition "The norm against which the event is assessed. Functional: one assessment, one norm."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+gmeow:complianceVerdict
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:ComplianceAssessment ;
+    rdfs:range gmeow:EvaluationVerdict ;
+    rdfs:label "compliance verdict"@x-gmeow-english ;
+    skos:definition "The assessor's verdict, reusing the EvaluationVerdict vocabulary: held = compliant, not held = violative, undetermined = undetermined. Functional and mandatory (SHACL)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> .
+
+# =========================================================================== #
+# THE RIGHTS GRAFT (#352) — Rule ⊑ Norm, asserted extension-side, zero core churn
+#
+# The deontic trio (Permission / Prohibition / Duty) stays a rigid subkind
+# partition in the core rights slice. This section grafts it under Norm so
+# that, with the extension loaded, every Permission IS a Norm whose effective
+# modality is fixed by its subkind — enforced as a SHACL invariant, never as
+# reasoner-asserted modality triples. When the extension is absent, core
+# rights behaves exactly as before. The survey's ~150 mechanical-rename sites
+# and 5 class-dependent conflicts (disjointness axiom, shape targets, ODRL
+# projection templates, competency query, grounding tests) are this
+# section's DO-NOT-TOUCH list: the trio remain OWL classes, untouched.
+# =========================================================================== #
+
+gmeow:Rule rdfs:subClassOf gmeow:Norm .
+
+gmeow:ruleAssignee rdfs:subPropertyOf gmeow:normBearer .
+
+gmeow:ruleAction rdfs:subPropertyOf gmeow:prescribedConduct .

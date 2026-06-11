@@ -1,0 +1,65 @@
+# Malformed norms fixture (#351/#352, EPIC #348). Eight violations:
+#   1. ex:anonymousOught — a modality-bearing norm with no issuer.
+#   2. ex:narcissusNorm — a norm overriding itself.
+#   3. ex:soloGroup — a one-member ConditionGroup with no operator (x2).
+#   4. ex:mutexParam — a parameter binding both a value and an entity.
+#   5. ex:flatTenure — a PrecedenceTenure whose higher and lower coincide
+#      (plus missing scope).
+#   6. ex:confusedPerm — a grafted Permission claiming deonticObligation.
+#   7. ex:twoFacedNorm — a norm claiming two deontic forces at once.
+#   8. ex:blindEval — an evaluation with no verdict.
+# run_shacl over this graph MUST NOT conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:ada a gmeow:Person ; rdfs:label "Ada"@en .
+
+# Violation 1: an anonymous ought.
+ex:anonymousOught a gmeow:Norm ;
+    rdfs:label "thou shalt, says nobody"@en ;
+    gmeow:deonticModality gmeow:deonticObligation .
+
+# Violation 2: self-override.
+ex:narcissusNorm a gmeow:Norm ;
+    rdfs:label "self-overriding norm"@en ;
+    gmeow:overrides ex:narcissusNorm .
+
+# Violation 3: a one-member, operator-less group.
+ex:soloGroup a gmeow:ConditionGroup ;
+    gmeow:conditionText "just the one thing" ;
+    gmeow:groupMember ex:onlyMember .
+ex:onlyMember a gmeow:Condition ;
+    gmeow:conditionText "the one thing" .
+
+# Violation 4: both value and entity bound.
+ex:mutexParam a gmeow:ConditionParameter ;
+    gmeow:parameterName "jurisdiction" ;
+    gmeow:parameterValue "Canada" ;
+    gmeow:parameterEntity ex:ada .
+
+# Violation 5: higher = lower, and no scope.
+ex:someNorm a gmeow:Norm ; rdfs:label "a norm"@en .
+ex:flatTenure a gmeow:PrecedenceTenure ;
+    gmeow:precedenceHigher ex:someNorm ;
+    gmeow:precedenceLower ex:someNorm .
+
+# Violation 6: the graft invariant — a Permission claiming obligation force.
+ex:confusedPerm a gmeow:Permission ;
+    gmeow:ruleAction gmeow:actionReproduce ;
+    gmeow:deonticModality gmeow:deonticObligation ;
+    gmeow:normIssuer ex:ada .
+
+# Violation 7: a norm claiming two deontic forces at once.
+ex:twoFacedNorm a gmeow:Norm ;
+    rdfs:label "permits and obliges at once"@en ;
+    gmeow:normIssuer ex:ada ;
+    gmeow:deonticModality gmeow:deonticPermission , gmeow:deonticObligation .
+
+# Violation 8: an evaluation with no verdict.
+ex:someCond a gmeow:Condition ;
+    gmeow:conditionText "a condition" .
+ex:blindEval a gmeow:ConditionEvaluation ;
+    gmeow:vantage ex:ada ;
+    gmeow:evaluatedCondition ex:someCond .

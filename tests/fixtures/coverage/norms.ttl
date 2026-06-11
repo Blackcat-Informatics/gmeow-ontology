@@ -1,0 +1,65 @@
+# Coverage fixture for the norms slice (#351/#352, EPIC #348): exercises the
+# Norm spine, the precedence machinery, the condition stack, the verdict
+# observations, and the grafted trio in instance data.
+
+@prefix ex:    <https://example.org/coverage/norms/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:issuer a gmeow:Standpoint ; rdfs:label "coverage issuer"@en .
+ex:agent  a gmeow:Person ; rdfs:label "coverage agent"@en .
+
+ex:system a gmeow:NormativeSystem ;
+    gmeow:systemIssuer ex:issuer ;
+    gmeow:hasPart ex:norm1 , ex:norm2 .
+
+ex:norm1 a gmeow:Norm ;
+    gmeow:deonticModality gmeow:deonticObligation ;
+    gmeow:normIssuer ex:issuer ;
+    gmeow:normBearer ex:agent ;
+    gmeow:hasAuthorityLevel gmeow:authorityAbsolute ;
+    gmeow:overrides ex:norm2 ;
+    gmeow:normCondition ex:group .
+
+ex:norm2 a gmeow:Norm ;
+    gmeow:deonticModality gmeow:deonticRecommendation ;
+    gmeow:normIssuer ex:issuer ;
+    gmeow:hasAuthorityLevel gmeow:authorityMedium .
+
+ex:tenure a gmeow:PrecedenceTenure ;
+    gmeow:precedenceHigher ex:norm1 ;
+    gmeow:precedenceLower ex:norm2 ;
+    gmeow:precedenceScope ex:system .
+
+ex:group a gmeow:ConditionGroup ;
+    gmeow:conditionText "both things hold" ;
+    gmeow:groupOperator gmeow:operatorAll ;
+    gmeow:groupMember ex:condA , ex:condB ;
+    gmeow:formalizedAs ex:expr .
+
+ex:condA a gmeow:Condition ; gmeow:conditionText "thing A" ;
+    gmeow:conditionParameter ex:param .
+ex:condB a gmeow:Condition ; gmeow:conditionText "thing B" .
+
+ex:expr a gmeow:ConditionExpression ;
+    gmeow:expressionText "a && b" ;
+    gmeow:expressionLanguage gmeow:exprLangCel .
+
+ex:param a gmeow:ConditionParameter ;
+    gmeow:parameterName "limit" ;
+    gmeow:parameterValue "3"^^xsd:integer .
+
+ex:eval a gmeow:ConditionEvaluation ;
+    gmeow:vantage ex:agent ;
+    gmeow:evaluatedCondition ex:group ;
+    gmeow:evaluationVerdict gmeow:verdictNotHeld .
+
+ex:event a gmeow:Event ; gmeow:eventType gmeow:eventTypeCreation .
+ex:event gmeow:complies ex:norm1 .
+
+ex:assessment a gmeow:ComplianceAssessment ;
+    gmeow:vantage ex:issuer ;
+    gmeow:assessedEvent ex:event ;
+    gmeow:assessedNorm ex:norm1 ;
+    gmeow:complianceVerdict gmeow:verdictHeld .
