@@ -9,7 +9,7 @@ Inline blobs are externalised by the caller; this module emits the graph text on
 
 from __future__ import annotations
 
-from gmeow_tools.gts.model import Graph, Term, TermKind
+from gts.model import Graph, Term, TermKind
 
 _RDF_REIFIES = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"
 

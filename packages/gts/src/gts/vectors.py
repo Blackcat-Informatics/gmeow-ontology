@@ -16,10 +16,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from gmeow_tools.gts.codec import Codec
-from gmeow_tools.gts.model import Term, TermKind
-from gmeow_tools.gts.wire import canonical, content_id
-from gmeow_tools.gts.writer import Writer
+from gts.codec import Codec
+from gts.model import Term, TermKind
+from gts.wire import canonical, content_id
+from gts.writer import Writer
 
 CAT = "https://example.org/Cat"
 DOG = "https://example.org/Dog"
@@ -294,8 +294,8 @@ def corpus() -> list[VectorCase]:
 
 def expected_for(case: VectorCase) -> dict[str, object]:
     """Run the reference oracle over a case and summarize the outcome."""
-    from gmeow_tools.gts.nquads import to_nquads
-    from gmeow_tools.gts.reader import read
+    from gts.nquads import to_nquads
+    from gts.reader import read
 
     g = read(case.data, allow_segments=(case.mode != "pre-segment"))
     return {

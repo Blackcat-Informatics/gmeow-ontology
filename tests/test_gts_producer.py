@@ -10,13 +10,9 @@ from pathlib import Path
 from rdflib import BNode, Dataset, Graph, Literal, URIRef
 from rdflib.namespace import RDFS, XSD
 
-from gmeow_tools.gts import (
-    gts_from_graph,
-    read,
-    to_duckdb,
-    to_nquads,
-    to_sqlite,
-)
+from gmeow_tools.gts_db import to_duckdb, to_sqlite
+from gmeow_tools.gts_producer import gts_from_graph
+from gts import read, to_nquads
 
 EX = "https://example.org/"
 
@@ -125,7 +121,7 @@ def test_producer_default_graph_is_unnamed() -> None:
 
 def test_rdf12_producer_reifier_and_annotation(tmp_path: Path) -> None:
     """The RDF 1.2 path (pyoxigraph) ingests reifier triple-terms + annotations."""
-    from gmeow_tools.gts import gts_from_rdf12
+    from gmeow_tools.gts_producer import gts_from_rdf12
 
     ttl = (
         "@prefix g: <https://example.org/> .\n"
@@ -148,7 +144,7 @@ def test_compile_gts_missing_rdf12_raises(tmp_path: Path) -> None:
     """compile_gts errors on an explicitly-provided but missing RDF 1.2 path."""
     import pytest
 
-    from gmeow_tools.gts import compile_gts
+    from gmeow_tools.gts_producer import compile_gts
 
     with pytest.raises(FileNotFoundError):
         compile_gts(_sample_graph(), tmp_path / "does-not-exist.ttl")

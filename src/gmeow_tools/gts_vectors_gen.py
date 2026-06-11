@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 from gmeow_tools.config import GENERATED_DIR, PROJECT_ROOT
 from gmeow_tools.generator import Generator, register
-from gmeow_tools.gts.vectors import corpus, expected_for
+from gts.vectors import corpus, expected_for
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -28,7 +28,7 @@ class GtsVectorsGenerator(Generator):
     @property
     def inputs(self) -> Sequence[Path]:
         """The GTS reference implementation defines the corpus."""
-        gts_dir = PROJECT_ROOT / "src" / "gmeow_tools" / "gts"
+        gts_dir = PROJECT_ROOT / "packages" / "gts" / "src" / "gts"
         return sorted(gts_dir.glob("*.py"))
 
     @property

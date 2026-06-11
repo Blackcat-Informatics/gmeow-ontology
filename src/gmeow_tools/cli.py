@@ -766,7 +766,7 @@ app.add_typer(gts_app, name="gts")
 @gts_app.command("info")
 def gts_info(file: Path) -> None:
     """Summarise a GTS file: terms/quads/blobs counts and any diagnostics."""
-    from gmeow_tools import gts
+    import gts
 
     try:
         data = file.read_bytes()
@@ -791,7 +791,7 @@ _GTS_OUT_OPTION = typer.Option(
 @gts_app.command("to-nq")
 def gts_to_nq(file: Path, out: Path | None = _GTS_OUT_OPTION) -> None:
     """Transform a GTS file to N-Quads (§14 of GTS-SPEC.md)."""
-    from gmeow_tools import gts
+    import gts
 
     try:
         graph = gts.read(file.read_bytes())
@@ -820,7 +820,7 @@ def gts_from_rdf(file: Path, out: Path | None = _GTS_GTS_OUT) -> None:
     from rdflib import Dataset, Graph
     from rdflib.util import guess_format
 
-    from gmeow_tools import gts
+    from gmeow_tools.gts_producer import gts_from_graph
 
     fmt = guess_format(str(file))
     source: Graph = Dataset() if fmt in {"nquads", "trig", "json-ld"} else Graph()
@@ -828,7 +828,7 @@ def gts_from_rdf(file: Path, out: Path | None = _GTS_GTS_OUT) -> None:
         source.parse(str(file), format=fmt)
     except (OSError, ValueError, SyntaxError) as exc:
         raise _fail(f"cannot read or parse {file}: {exc}") from exc
-    data = gts.gts_from_graph(source)
+    data = gts_from_graph(source)
     target = out or file.with_suffix(".gts")
     try:
         target.write_bytes(data)
@@ -839,14 +839,15 @@ def gts_from_rdf(file: Path, out: Path | None = _GTS_GTS_OUT) -> None:
 
 def _gts_to_db(file: Path, out: Path | None, suffix: str, kind: str) -> None:
     """Shared body for the gts → {sqlite,duckdb} transforms."""
-    from gmeow_tools import gts
+    import gts
+    from gmeow_tools.gts_db import to_duckdb, to_sqlite
 
     try:
         graph = gts.read(file.read_bytes())
     except OSError as exc:
         raise _fail(f"cannot read {file}: {exc}") from exc
     target = out or file.with_suffix(suffix)
-    writer = gts.to_sqlite if kind == "sqlite" else gts.to_duckdb
+    writer = to_sqlite if kind == "sqlite" else to_duckdb
     try:
         writer(graph, target)
     except OSError as exc:
@@ -874,8 +875,9 @@ def gts_compile(out: Path | None = _GTS_GTS_OUT) -> None:
     (``statements/gmeow.rdf12.ttl``, via pyoxigraph) so confidence / standpoint /
     provenance survive into the shipped artifact.
     """
-    from gmeow_tools import config, gts
+    from gmeow_tools import config
     from gmeow_tools.graph import load_merged_graph
+    from gmeow_tools.gts_producer import compile_gts
 
     source = load_merged_graph(include_imports=False)
     rdf12 = config.STATEMENTS_DIR / "gmeow.rdf12.ttl"
@@ -885,7 +887,7 @@ def gts_compile(out: Path | None = _GTS_GTS_OUT) -> None:
             "run 'gmeow regenerate' first (a statement-less dist would drop "
             "confidence/standpoint/provenance)."
         )
-    data = gts.compile_gts(source, rdf12)
+    data = compile_gts(source, rdf12)
     target = out or (config.DIST_DIR / "gmeow.gts")
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(data)

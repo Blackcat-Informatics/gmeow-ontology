@@ -15,9 +15,9 @@ from collections.abc import Callable, Mapping
 
 import cbor2
 
-from gmeow_tools.gts.codec import Codec, CodecUnavailableError, decode_chain
-from gmeow_tools.gts.crypto import KeyProvider, decrypt0, verify_sig
-from gmeow_tools.gts.model import (
+from gts.codec import Codec, CodecUnavailableError, decode_chain
+from gts.crypto import KeyProvider, decrypt0, verify_sig
+from gts.model import (
     Diagnostic,
     Graph,
     OpaqueNode,
@@ -28,7 +28,7 @@ from gmeow_tools.gts.model import (
     TermKind,
     Triple,
 )
-from gmeow_tools.gts.wire import (
+from gts.wire import (
     content_id,
     digest_str,
     header_id,
@@ -526,6 +526,37 @@ def read(
             Diagnostic("TornAppendError", f"torn at offset {torn}", None)
         )
     return g
+
+
+def read_segments(
+    data: bytes,
+    *,
+    keys: KeyProvider | None = None,
+) -> tuple[list[Graph], int | None, Diagnostic | None]:
+    """Fold a file segment-by-segment WITHOUT unioning (§14.1 tooling view).
+
+    The composition-ledger view that ``gts info``/``gts verify`` report
+    per-segment: each segment folded independently with its OWN diagnostics.
+
+    Returns:
+        ``(segments, torn_offset, fatal)`` — ``fatal`` is set (and
+        ``segments`` empty) when the file never reaches segmentation: empty,
+        or the first item is not a header.
+    """
+    items, torn = iter_items(data)
+    if not items:
+        return [], torn, Diagnostic("EmptyFile", "no CBOR items", None)
+    bounds = [i for i, (_, item) in enumerate(items) if _is_header_item(item)]
+    if not bounds or bounds[0] != 0:
+        return [], torn, Diagnostic("DamagedFrame", "first item is not a header", 0)
+    segment_slices = [
+        items[a:b] for a, b in zip(bounds, [*bounds[1:], len(items)], strict=False)
+    ]
+    folded = [
+        _read_segment(seg, keys=keys, index_offset=a)
+        for a, seg in zip(bounds, segment_slices, strict=False)
+    ]
+    return folded, torn, None
 
 
 def _read_segment(
