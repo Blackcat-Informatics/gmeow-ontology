@@ -1,8 +1,9 @@
 # Well-formed narration-seam fixture (#360, EPIC #358), at chapter scale:
 # one chapter segment with positions (#359), twelve flat character links and
-# four flat event links (the efficiency doctrine's default), ONE promoted
-# NarrationUsage carrying flashback+mentioned modes (the reify-with-a-reason case),
-# and one narratedIn in the projection-friendly orientation.
+# three flat event links (the efficiency doctrine's default), ONE promoted
+# NarrationUsage carrying flashback+mentioned modes for a fourth event (the
+# reify-with-a-reason case), and one narratedIn in the projection-friendly
+# orientation.
 # run_shacl over this graph MUST conform.
 
 @prefix ex:    <https://example.org/shapes/> .
@@ -53,7 +54,7 @@ ex:chapter31 gmeow:narrates ex:phedre , ex:joscelin , ex:melisande , ex:alcuin ,
 # The projection-friendly orientation (P1441's edge), used for one link.
 ex:guy gmeow:narratedIn ex:chapter31 .
 
-# Four flat event links.
+# Three flat event links; the fourth event is promoted below.
 ex:evtOffer a gmeow:Event ; gmeow:eventType ex:etAssignation ; rdfs:label "the assignation offer"@en .
 ex:evtBraid a gmeow:Event ; gmeow:eventType ex:etIntimacy ;    rdfs:label "the braiding"@en .
 ex:evtBarb  a gmeow:Event ; gmeow:eventType ex:etExchange ;    rdfs:label "the sharp exchange"@en .
