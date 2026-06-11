@@ -209,19 +209,32 @@ def gmeow_validate() -> str:
     )
 
 
+def _load_generator_modules() -> None:
+    # Trigger @register side effects for all generators.
+    from gmeow_tools import (  # noqa: F401
+        apache,
+        export,
+        lpg,
+        mapping_compile,
+        metadata,
+        schema_compile,
+        statement_compile,
+    )
+
+
 @mcp.tool()
-def gmeow_compile_mappings(check: bool = False) -> str:
-    """Compile the mapping DSL to SSSOM/EDOAL/FnO and check for drift.
+def gmeow_regenerate(names: list[str] | None = None) -> str:
+    """Rebuild all checked-in generated artifacts from canonical sources.
 
     Args:
-        check: If True, verify committed artifacts match a fresh compile
-            and write nothing.
+        names: Generator names to run (default: all in dependency order).
     """
-    from gmeow_tools.mapping_compile import compile_all
+    _load_generator_modules()
+    from gmeow_tools.generator import regenerate
     from gmeow_tools.mapping_dsl import CompileError
 
     try:
-        report = compile_all(check=check)
+        results = regenerate(names or None)
     except CompileError as exc:
         return json.dumps({"ok": False, "error": str(exc)})
     except Exception as exc:
@@ -229,34 +242,46 @@ def gmeow_compile_mappings(check: bool = False) -> str:
     return json.dumps(
         {
             "ok": True,
-            "written": [str(p) for p in report.written],
-            "drifted": [str(p) for p in report.drifted],
+            "generators": {
+                name: {
+                    "written": [str(p) for p in report.written],
+                    "drifted": report.drifted,
+                    "orphans": report.orphans,
+                }
+                for name, report in results.items()
+            },
         }
     )
 
 
 @mcp.tool()
-def gmeow_compile_statements(check: bool = False) -> str:
-    """Compile statement DSL to RDF 1.2 and OWL downcasts and check for drift.
+def gmeow_check_generated(names: list[str] | None = None) -> str:
+    """Drift + orphan check for all registered generators.
 
     Args:
-        check: If True, verify committed artifacts match a fresh compile
-            and write nothing.
+        names: Generator names to check (default: all).
     """
-    from gmeow_tools.mapping_dsl import CompileError
-    from gmeow_tools.statement_compile import compile_statements as run
+    _load_generator_modules()
+    from gmeow_tools.generator import check_all
 
     try:
-        report = run(check=check)
-    except CompileError as exc:
-        return json.dumps({"ok": False, "error": str(exc)})
+        results = check_all(names or None)
     except Exception as exc:
         return json.dumps({"ok": False, "error": str(exc)})
+    total_drift = sum(len(r.drifted) for r in results.values())
+    total_orphans = sum(len(r.orphans) for r in results.values())
     return json.dumps(
         {
-            "ok": True,
-            "written": [str(p) for p in report.written],
-            "drifted": [str(p) for p in report.drifted],
+            "ok": total_drift == 0 and total_orphans == 0,
+            "drifted": total_drift,
+            "orphaned": total_orphans,
+            "generators": {
+                name: {
+                    "drifted": report.drifted,
+                    "orphans": report.orphans,
+                }
+                for name, report in results.items()
+            },
         }
     )
 

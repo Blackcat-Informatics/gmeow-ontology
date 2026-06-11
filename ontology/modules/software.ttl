@@ -252,18 +252,11 @@ gmeow:Branch
     skos:definition "A mutable pointer to a line of development in a repository — a named reference that advances as new commits are added. An InformationObject, not an Event or Entity."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
-gmeow:Tag
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Tag"@x-gmeow-english ;
-    skos:definition "A named pointer to a specific commit in a repository — typically used to mark releases or milestones. May be annotated (carrying a message and metadata) or lightweight."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-
 gmeow:Ref
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Ref"@x-gmeow-english ;
-    skos:definition "A version-control reference — the generic superclass of Branch and Tag, and any other named pointer into the commit graph."@x-gmeow-english ;
+    skos:definition "A version-control reference — the generic superclass of Branch and any other named pointer into the commit graph."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:commitInRepository

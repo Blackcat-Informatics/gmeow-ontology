@@ -45,6 +45,121 @@ def version() -> None:
 
 
 @app.command()
+def regenerate(
+    names: list[str] | None = typer.Argument(  # noqa: B008
+        None,
+        help="Generator names to run (default: all in dependency order).",
+    ),
+) -> None:
+    """Rebuild all checked-in generated artifacts from canonical sources.
+
+    Runs every registered generator in topologically sorted order, or the
+    named generators in the order given.
+    """
+    # Import all generator modules to trigger @register side effects.
+    from gmeow_tools import (  # noqa: F401
+        apache,
+        export,
+        lpg,
+        mapping_compile,
+        metadata,
+        schema_compile,
+        statement_compile,
+    )
+    from gmeow_tools.config import PROJECT_ROOT
+    from gmeow_tools.generator import regenerate as _regenerate
+
+    results = _regenerate(names or None)
+    for _name, report in results.items():
+        for path in report.written:
+            console.print(f"[green]✓[/green] {path.relative_to(PROJECT_ROOT)}")
+        if report.orphans:
+            for orphan in report.orphans:
+                err_console.print(f"[yellow]orphan[/yellow] {orphan}")
+    console.print(f"[green]✓ regenerated {len(results)} generator(s)[/green]")
+
+
+@app.command()
+def check_generated(
+    names: list[str] | None = typer.Argument(  # noqa: B008
+        None,
+        help="Generator names to check (default: all).",
+    ),
+) -> None:
+    """Drift + orphan check for every registered generator.
+
+    Runs ``--check`` mode for all registered generators (or the named ones)
+    and exits non-zero if any drift or orphans are found.
+    """
+    # Import all generator modules to trigger @register side effects.
+    from gmeow_tools import (  # noqa: F401
+        apache,
+        export,
+        lpg,
+        mapping_compile,
+        metadata,
+        schema_compile,
+        statement_compile,
+    )
+    from gmeow_tools.generator import check_all
+
+    results = check_all(names or None)
+    total_drift = 0
+    total_orphans = 0
+    for name, report in results.items():
+        if report.drifted:
+            total_drift += len(report.drifted)
+            for rel in sorted(report.drifted):
+                err_console.print(f"[red]drift[/red] {name}: {rel}")
+        if report.orphans:
+            total_orphans += len(report.orphans)
+            for rel in sorted(report.orphans):
+                err_console.print(f"[yellow]orphan[/yellow] {name}: {rel}")
+
+    if total_drift or total_orphans:
+        raise _fail(
+            f"✗ {total_drift} drifted, {total_orphans} orphaned — "
+            "run `gmeow regenerate`"
+        )
+    console.print(
+        f"[green]✓ all {len(results)} generator(s) match committed sources "
+        "(no drift, no orphans)[/green]"
+    )
+
+
+@app.command(name="compile-statements-pyoxigraph")
+def compile_statements_pyoxigraph() -> None:
+    """Cross-check statement-dsl/ against committed artifacts (pyoxigraph).
+
+    Non-authoritative read-only mirror that uses pyoxigraph instead of Apache
+    Jena for the RDF 1.2 projection and normalization. Proves the round-trip
+    is engine-independent (CONSTITUTION Principle 7). Never writes — Jena
+    remains the sole canonical artifact writer (Principle 4).
+    """
+    from gmeow_tools.mapping_dsl import CompileError
+    from gmeow_tools.statement_compile_pyoxigraph import (
+        compile_statements_pyoxigraph as run,
+    )
+
+    try:
+        report = run()
+    except CompileError as exc:
+        raise _fail(f"✗ {exc}") from exc
+
+    if report.drifted:
+        for rel in sorted(report.drifted):
+            err_console.print(f"[red]drift[/red] {rel}")
+        raise _fail(
+            f"✗ {len(report.drifted)} statement artifact(s) out of date — "
+            "run `gmeow regenerate`"
+        )
+    console.print(
+        "[green]✓ pyoxigraph cross-check: committed artifacts match "
+        "statement-dsl/ (no drift)[/green]"
+    )
+
+
+@app.command()
 def validate() -> None:
     """Validate Turtle syntax, term annotations, and SHACL conformance."""
     from gmeow_tools.validate import validate_all
@@ -228,103 +343,6 @@ def extract(
     console.print(
         f"[green]✓ {info.name} ({info.license}) is import-ok — "
         f"extraction permitted[/green]"
-    )
-
-
-@app.command(name="compile-mappings")
-def compile_mappings(
-    check: bool = typer.Option(
-        False,
-        "--check",
-        help="Verify committed artifacts match a fresh compile; write nothing.",
-    ),
-) -> None:
-    """Compile the mapping DSL → SSSOM + EDOAL + FnO + SPARQL artifacts (in-place).
-
-    The single authoring source in mapping-dsl/ is rendered into the four standard
-    alignment artifacts. The three projection-lint invariants are enforced on the
-    output before it is written, so drift cannot be produced. ``--check`` compiles
-    to a temp tree and reports any drift versus the committed files (the CI gate).
-    """
-    from gmeow_tools.mapping_compile import compile_all
-    from gmeow_tools.mapping_dsl import CompileError
-
-    try:
-        report = compile_all(check=check)
-    except CompileError as exc:
-        raise _fail(f"✗ {exc}") from exc
-
-    if check:
-        if report.drifted:
-            for rel in sorted(report.drifted):
-                err_console.print(f"[red]drift[/red] {rel}")
-            raise _fail(
-                f"✗ {len(report.drifted)} artifact(s) out of date — "
-                "run `gmeow compile-mappings`"
-            )
-        console.print("[green]✓ committed artifacts match the DSL (no drift)[/green]")
-        return
-    from gmeow_tools.config import PROJECT_ROOT
-
-    for path in report.written:
-        console.print(f"[green]✓[/green] {path.relative_to(PROJECT_ROOT)}")
-    console.print(
-        f"[green]✓ compiled {len(report.written)} artifacts from mapping-dsl/[/green]"
-    )
-
-
-@app.command(name="compile-schemas")
-def compile_schemas_cmd(
-    check: bool = typer.Option(
-        False,
-        "--check",
-        help="Verify committed artifacts match a fresh compile; write nothing.",
-    ),
-    reconcile: bool = typer.Option(
-        False,
-        "--reconcile",
-        help="Cross-check generated schema against JSON-LD context (non-fatal).",
-    ),
-) -> None:
-    """Compile canonical OWL → LinkML + JSON Schema / Pydantic / TS / GraphQL / OpenAPI.
-
-    Renders the merged ontology graph into a LinkML schema and then runs the
-    LinkML generator fan-out. --check compiles to a temp tree and reports
-    drift versus the committed files (the CI gate). --reconcile runs a
-    read-only cross-check against the JSON-LD context.
-    """
-    from gmeow_tools.config import PROJECT_ROOT, SCHEMAS_DIR
-    from gmeow_tools.schema_compile import SchemaCompileReport, compile_schemas
-
-    if check and reconcile:
-        raise _fail(
-            "--check and --reconcile are mutually exclusive. "
-            "Use --check to verify drift, or --reconcile to cross-check context."
-        )
-
-    report: SchemaCompileReport = compile_schemas(check=check, reconcile=reconcile)
-
-    for warning in report.warnings:
-        err_console.print(f"[yellow]warning[/yellow] {warning}")
-
-    if check:
-        if report.drifted:
-            for name in sorted(report.drifted):
-                err_console.print(f"[red]drift[/red] {name}")
-            raise _fail(
-                f"✗ {len(report.drifted)} schema artifact(s) out of date — "
-                "run `gmeow compile-schemas`"
-            )
-        console.print(
-            "[green]✓ committed schema artifacts match the ontology (no drift)[/green]"
-        )
-        return
-
-    for path in report.written:
-        console.print(f"[green]✓[/green] {path.relative_to(PROJECT_ROOT)}")
-    console.print(
-        f"[green]✓ compiled {len(report.written)} schema artifacts into "
-        f"{SCHEMAS_DIR.relative_to(PROJECT_ROOT)}/[/green]"
     )
 
 
@@ -555,16 +573,6 @@ def dc_coverage(
 
 
 @app.command()
-def metadata() -> None:
-    """Generate the VoID and DCAT dataset descriptions."""
-    from gmeow_tools.metadata import write_metadata
-
-    void_path, dcat_path = write_metadata()
-    console.print(f"[green]✓ {void_path.relative_to(void_path.parents[1])}[/green]")
-    console.print(f"[green]✓ {dcat_path.relative_to(dcat_path.parents[1])}[/green]")
-
-
-@app.command()
 def coverage(
     show_gaps: bool = typer.Option(
         False, "--gaps", help="List the uncovered (gap) classes and predicates."
@@ -589,15 +597,6 @@ def coverage(
             err_console.print(f"[yellow]gap class[/yellow] {iri}")
         for iri in sorted(report.gap_predicates):
             err_console.print(f"[yellow]gap predicate[/yellow] {iri}")
-
-
-@app.command()
-def apache() -> None:
-    """Render the Apache content-negotiation include."""
-    from gmeow_tools.apache import write_conf
-
-    path = write_conf()
-    console.print(f"[green]✓ {path.relative_to(path.parents[1])}[/green]")
 
 
 @app.command()
@@ -636,7 +635,7 @@ def normalize() -> None:
 
 @app.command()
 def build() -> None:
-    """Build serializations, JSON-LD context, apache.conf, and exports into dist/."""
+    """Build serializations and JSON-LD context into dist/."""
     from rdflib import Graph
 
     from gmeow_tools import reason as reasoning
@@ -652,85 +651,8 @@ def build() -> None:
     graph = Graph().parse(merged, format="turtle")
     written = serialize_graph(graph, stem="gmeow")
     context = write_context()
-    from gmeow_tools.apache import write_conf
-    from gmeow_tools.export import export_all
-    from gmeow_tools.projections import project_examples
-
-    conf = write_conf()
-    exports = export_all()
-    projected = project_examples()
-    for path in (*written.values(), context, conf, *exports, *projected):
+    for path in (*written.values(), context):
         console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
-
-
-export_app = typer.Typer(
-    name="export",
-    help="Generate flattened export views and property-graph exports.",
-    invoke_without_command=True,
-)
-app.add_typer(export_app, name="export")
-
-
-@export_app.callback(invoke_without_command=True)
-def export_callback(ctx: typer.Context) -> None:
-    """Generate flattened export views (CSV/CSVW, Markdown, JSONL, llms.txt).
-
-    Pure-Python (no reasoning/Docker): projects the asserted vocabulary +
-    alignments into broadly-consumable tabular and LLM-ingestable forms in dist/.
-    """
-    if ctx.invoked_subcommand is not None:
-        return
-    from gmeow_tools.export import export_all
-
-    for path in export_all():
-        console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
-
-
-@export_app.command()
-def lpg(
-    target: str = typer.Option(
-        "all",
-        help="Target format: all|csv|neo4j|cypher|graphml.",
-    ),
-    check: bool = typer.Option(
-        False,
-        "--check",
-        help="Verify committed artifacts match a fresh export; write nothing.",
-    ),
-) -> None:
-    """Export GMEOW to Labeled Property Graph (LPG) formats.
-
-    Consumes the canonical RDF 1.2 artifact via pyoxigraph and emits
-    Neo4j / openCypher / GraphML / generic CSV into dist/lpg/.
-    Statement metadata becomes native edge properties — the RDF-1.2-first payoff.
-    """
-    from gmeow_tools.lpg import export_lpg
-
-    valid_targets = {"all", "csv", "neo4j", "cypher", "graphml"}
-    if target not in valid_targets:
-        raise _fail(
-            f"unknown target: {target!r}. Use: {', '.join(sorted(valid_targets))}"
-        )
-
-    report = export_lpg(target=target, check=check)
-
-    if check:
-        if report.drifted:
-            for rel in sorted(report.drifted):
-                err_console.print(f"[red]drift[/red] {rel}")
-            raise _fail(
-                f"✗ {len(report.drifted)} artifact(s) out of date — "
-                "run `gmeow export lpg`"
-            )
-        console.print(
-            "[green]✓ committed LPG artifacts match canonical sources "
-            "(no drift)[/green]"
-        )
-        return
-
-    for path in report.written:
-        console.print(f"[green]✓[/green] {path.relative_to(path.parents[1])}")
-    console.print(f"[green]✓ exported {len(report.written)} LPG artifact(s)[/green]")
 
 
 @app.command()
@@ -785,113 +707,6 @@ def docs(
         except ToolUnavailableError as exc:
             raise _fail(f"tool unavailable: {exc}", code=2) from exc
         console.print(f"[green]✓ WIDOCO → {outdir}[/green]")
-
-
-def _compile_statements(check: bool) -> None:
-    """Shared driver for ``compile-statements`` and its ``rdf12`` alias."""
-    from gmeow_tools.config import PROJECT_ROOT
-    from gmeow_tools.mapping_dsl import CompileError
-    from gmeow_tools.runner import ToolUnavailableError
-    from gmeow_tools.statement_compile import compile_statements as run
-
-    try:
-        report = run(check=check)
-    except ToolUnavailableError as exc:
-        raise _fail(
-            f"✗ RDF 1.2 requires its toolchain: {exc}. RDF 1.2 is GMEOW's "
-            "canonical statement-level model — there is no degraded fallback.",
-            code=2,
-        ) from exc
-    except CompileError as exc:
-        raise _fail(f"✗ {exc}") from exc
-
-    if check:
-        if report.drifted:
-            for rel in sorted(report.drifted):
-                err_console.print(f"[red]drift[/red] {rel}")
-            raise _fail(
-                f"✗ {len(report.drifted)} statement artifact(s) out of date — "
-                "run `gmeow compile-statements`"
-            )
-        console.print(
-            "[green]✓ committed RDF 1.2 + OWL-form match statement-dsl/ "
-            "(no drift)[/green]"
-        )
-        return
-    for path in report.written:
-        console.print(f"[green]✓[/green] {path.relative_to(PROJECT_ROOT)}")
-    console.print(
-        f"[green]✓ compiled {len(report.written)} artifacts from statement-dsl/[/green]"
-    )
-
-
-def _compile_statements_pyoxigraph() -> None:
-    """Shared driver for ``compile-statements-pyoxigraph`` (check-only)."""
-    from gmeow_tools.mapping_dsl import CompileError
-    from gmeow_tools.statement_compile_pyoxigraph import (
-        compile_statements_pyoxigraph as run,
-    )
-
-    try:
-        report = run()
-    except CompileError as exc:
-        raise _fail(f"✗ {exc}") from exc
-
-    if report.drifted:
-        for rel in sorted(report.drifted):
-            err_console.print(f"[red]drift[/red] {rel}")
-        raise _fail(
-            f"✗ {len(report.drifted)} statement artifact(s) out of date — "
-            "run `gmeow compile-statements`"
-        )
-    console.print(
-        "[green]✓ pyoxigraph cross-check: committed artifacts match "
-        "statement-dsl/ (no drift)[/green]"
-    )
-
-
-@app.command(name="compile-statements")
-def compile_statements(
-    check: bool = typer.Option(
-        False,
-        "--check",
-        help="Verify committed RDF 1.2 + OWL-form artifacts match a fresh "
-        "compile; write nothing.",
-    ),
-) -> None:
-    """Compile statement-dsl/ → the RDF 1.2 lead artifact + OWL-form downcast (Jena).
-
-    The canonical RDF 1.2 / RDF* statement-metadata source in statement-dsl/ is
-    rendered to statements/gmeow.rdf12.ttl (the lead form) and
-    statements/gmeow-statements.owl.ttl (the reasoning-lossless downcast), proven
-    mutually lossless by round-trip isomorphism before writing. ``--check`` compiles
-    to a temp tree and reports any drift versus the committed files (the CI gate).
-    Apache Jena is required — RDF 1.2 has no degraded fallback.
-    """
-    _compile_statements(check)
-
-
-@app.command()
-def rdf12() -> None:
-    """Emit the RDF 1.2 / RDF* lead artifact + OWL downcast (requires Apache Jena).
-
-    A convenience alias of ``compile-statements`` that surfaces the RDF 1.2 lead
-    artifact — RDF 1.2 is GMEOW's canonical statement-level model, not an add-on.
-    """
-    _compile_statements(check=False)
-
-
-@app.command(name="compile-statements-pyoxigraph")
-def compile_statements_pyoxigraph() -> None:
-    """Cross-check statement-dsl/ against committed artifacts (pyoxigraph).
-
-    Non-authoritative read-only mirror of ``compile-statements`` that uses
-    pyoxigraph instead of Apache Jena for the RDF 1.2 projection and
-    normalization. Proves the round-trip is engine-independent
-    (CONSTITUTION Principle 7). Never writes — Jena remains the sole
-    canonical artifact writer (Principle 4).
-    """
-    _compile_statements_pyoxigraph()
 
 
 @app.command()
@@ -1063,7 +878,7 @@ def gts_compile(out: Path | None = _GTS_GTS_OUT) -> None:
     if not rdf12.exists():
         raise _fail(
             f"RDF 1.2 statement artifact not found: {rdf12}\n"
-            "run 'make compile-statements' first (a statement-less dist would drop "
+            "run 'gmeow regenerate' first (a statement-less dist would drop "
             "confidence/standpoint/provenance)."
         )
     data = gts.compile_gts(source, rdf12)

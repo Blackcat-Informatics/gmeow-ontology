@@ -1,3 +1,0 @@
-id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:807c04ab4b047d99,gmeow:examples/event-forgery-001,gmeow:examples/cryptographicsignature-forgery-001,deceptionCue,gmeow:examples/standpoint-verifier,2026-06-09T00:00:00Z,0.92,,,,,,
-edge:9f421bf00bbb041c,gmeow:examples/event-fabrication-001,gmeow:examples/verificationresult-fabrication-001,deceptionCue,gmeow:examples/standpoint-verifier,2026-06-08T00:00:00Z,0.9,,,,,,
