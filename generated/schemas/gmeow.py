@@ -15754,7 +15754,7 @@ class GTSSegment(Manifestation):
     gtsProfile: Optional[GTSProfile] = Field(default=None, title="GTS profile", json_schema_extra = { "linkml_meta": {'domain': 'GTSSegment',
          'domain_of': ['GTSSegment'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/gtsProfile'} })
-    gtsSegmentIndex: Optional[int] = Field(default=None, title="GTS segment index", json_schema_extra = { "linkml_meta": {'domain': 'GTSSegment',
+    gtsSegmentIndex: Optional[int] = Field(default=None, title="GTS segment index", ge=0, json_schema_extra = { "linkml_meta": {'domain': 'GTSSegment',
          'domain_of': ['GTSSegment'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/gtsSegmentIndex'} })
     gtsSegmentOf: Optional[GTSDocument] = Field(default=None, title="GTS segment of", json_schema_extra = { "linkml_meta": {'domain': 'GTSSegment',
@@ -16373,10 +16373,10 @@ class MediaObject(Manifestation):
     imageOrientation: Optional[Decimal] = Field(default=None, title="image orientation", json_schema_extra = { "linkml_meta": {'domain': 'MediaObject',
          'domain_of': ['MediaObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/imageOrientation'} })
-    pixelHeight: Optional[str] = Field(default=None, title="pixel height", json_schema_extra = { "linkml_meta": {'domain': 'MediaObject',
+    pixelHeight: Optional[int] = Field(default=None, title="pixel height", ge=0, json_schema_extra = { "linkml_meta": {'domain': 'MediaObject',
          'domain_of': ['MediaObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/pixelHeight'} })
-    pixelWidth: Optional[str] = Field(default=None, title="pixel width", json_schema_extra = { "linkml_meta": {'domain': 'MediaObject',
+    pixelWidth: Optional[int] = Field(default=None, title="pixel width", ge=0, json_schema_extra = { "linkml_meta": {'domain': 'MediaObject',
          'domain_of': ['MediaObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/pixelWidth'} })
     embodies: Optional[list[Expression]] = Field(default=None, title="embodies", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
@@ -17729,7 +17729,7 @@ class MessageParticipant(ConfiguredBaseModel):
     participantMessage: Optional[EmailMessage] = Field(default=None, title="participant message", json_schema_extra = { "linkml_meta": {'domain': 'MessageParticipant',
          'domain_of': ['MessageParticipant'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/participantMessage'} })
-    participantOrdinal: Optional[str] = Field(default=None, title="participant ordinal", json_schema_extra = { "linkml_meta": {'domain': 'MessageParticipant',
+    participantOrdinal: Optional[int] = Field(default=None, title="participant ordinal", ge=0, json_schema_extra = { "linkml_meta": {'domain': 'MessageParticipant',
          'domain_of': ['MessageParticipant'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/participantOrdinal'} })
     participantRole: Optional[MessageParticipantRole] = Field(default=None, title="participant role", json_schema_extra = { "linkml_meta": {'domain': 'MessageParticipant',
@@ -18113,7 +18113,7 @@ class NamePart(InformationObject):
     partExpansion: Optional[str] = Field(default=None, title="part expansion", json_schema_extra = { "linkml_meta": {'domain': 'NamePart',
          'domain_of': ['NamePart'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/partExpansion'} })
-    partOrder: Optional[str] = Field(default=None, title="part order", json_schema_extra = { "linkml_meta": {'domain': 'NamePart',
+    partOrder: Optional[int] = Field(default=None, title="part order", ge=0, json_schema_extra = { "linkml_meta": {'domain': 'NamePart',
          'domain_of': ['NamePart'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/partOrder'} })
     partText: Optional[str] = Field(default=None, title="part text", json_schema_extra = { "linkml_meta": {'domain': 'NamePart',
@@ -23666,7 +23666,7 @@ class ReferenceFrame(Entity):
     determinacyModel: Optional[Determinacy] = Field(default=None, title="determinacy model", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
          'domain_of': ['ReferenceFrame'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/determinacyModel'} })
-    dimensionCount: Optional[str] = Field(default=None, title="dimension count", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
+    dimensionCount: Optional[int] = Field(default=None, title="dimension count", ge=0, json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
          'domain_of': ['ReferenceFrame'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/dimensionCount'} })
     frameKind: Optional[FrameKind] = Field(default=None, title="frame kind", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
@@ -23856,7 +23856,7 @@ class MentalReferenceFrame(ReferenceFrame):
     determinacyModel: Optional[Determinacy] = Field(default=None, title="determinacy model", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
          'domain_of': ['ReferenceFrame'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/determinacyModel'} })
-    dimensionCount: Optional[str] = Field(default=None, title="dimension count", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
+    dimensionCount: Optional[int] = Field(default=None, title="dimension count", ge=0, json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
          'domain_of': ['ReferenceFrame'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/dimensionCount'} })
     frameKind: Optional[FrameKind] = Field(default=None, title="frame kind", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
@@ -24052,7 +24052,7 @@ class NarrativeReferenceFrame(ReferenceFrame):
     determinacyModel: Optional[Determinacy] = Field(default=None, title="determinacy model", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
          'domain_of': ['ReferenceFrame'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/determinacyModel'} })
-    dimensionCount: Optional[str] = Field(default=None, title="dimension count", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
+    dimensionCount: Optional[int] = Field(default=None, title="dimension count", ge=0, json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
          'domain_of': ['ReferenceFrame'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/dimensionCount'} })
     frameKind: Optional[FrameKind] = Field(default=None, title="frame kind", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
@@ -24905,7 +24905,7 @@ class Repository(InformationObject):
     hostedAt: Optional[list[ForgePlatform]] = Field(default=None, title="hosted at", json_schema_extra = { "linkml_meta": {'domain': 'Repository',
          'domain_of': ['Repository'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hostedAt'} })
-    materializationDepth: Optional[str] = Field(default=None, title="materialization depth", json_schema_extra = { "linkml_meta": {'domain': 'Repository',
+    materializationDepth: Optional[int] = Field(default=None, title="materialization depth", ge=0, json_schema_extra = { "linkml_meta": {'domain': 'Repository',
          'domain_of': ['Repository'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/materializationDepth'} })
     repositoryType: Optional[RepositoryType] = Field(default=None, title="repository type", json_schema_extra = { "linkml_meta": {'domain': 'Repository',
@@ -26843,10 +26843,10 @@ class SequenceCoordinates(Entity):
     inReferenceAssembly: Optional[ReferenceFrame] = Field(default=None, title="in reference assembly", json_schema_extra = { "linkml_meta": {'domain': 'SequenceCoordinates',
          'domain_of': ['SequenceCoordinates'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/inReferenceAssembly'} })
-    sequenceEnd: Optional[str] = Field(default=None, title="sequence end", json_schema_extra = { "linkml_meta": {'domain': 'SequenceCoordinates',
+    sequenceEnd: Optional[int] = Field(default=None, title="sequence end", ge=1, json_schema_extra = { "linkml_meta": {'domain': 'SequenceCoordinates',
          'domain_of': ['SequenceCoordinates'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/sequenceEnd'} })
-    sequenceStart: Optional[str] = Field(default=None, title="sequence start", json_schema_extra = { "linkml_meta": {'domain': 'SequenceCoordinates',
+    sequenceStart: Optional[int] = Field(default=None, title="sequence start", ge=1, json_schema_extra = { "linkml_meta": {'domain': 'SequenceCoordinates',
          'domain_of': ['SequenceCoordinates'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/sequenceStart'} })
     sequenceStrand: Optional[StrandOrientation] = Field(default=None, title="sequence strand", json_schema_extra = { "linkml_meta": {'domain': 'SequenceCoordinates',
@@ -29501,7 +29501,7 @@ class SpatialAggregation(Measurement):
     hasBin: Optional[list[SpatialBin]] = Field(default=None, title="has bin", json_schema_extra = { "linkml_meta": {'domain': 'SpatialAggregation',
          'domain_of': ['SpatialAggregation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/hasBin'} })
-    minimumPopulation: Optional[str] = Field(default=None, title="minimum population", json_schema_extra = { "linkml_meta": {'domain': 'SpatialAggregation',
+    minimumPopulation: Optional[int] = Field(default=None, title="minimum population", ge=0, json_schema_extra = { "linkml_meta": {'domain': 'SpatialAggregation',
          'domain_of': ['SpatialAggregation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/minimumPopulation'} })
     credibilityScore: Optional[Decimal] = Field(default=None, title="credibility score", json_schema_extra = { "linkml_meta": {'domain': 'Observation',
@@ -31886,7 +31886,7 @@ class TemporalFrame(ReferenceFrame):
     determinacyModel: Optional[Determinacy] = Field(default=None, title="determinacy model", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
          'domain_of': ['ReferenceFrame'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/determinacyModel'} })
-    dimensionCount: Optional[str] = Field(default=None, title="dimension count", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
+    dimensionCount: Optional[int] = Field(default=None, title="dimension count", ge=0, json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',
          'domain_of': ['ReferenceFrame'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/dimensionCount'} })
     frameKind: Optional[FrameKind] = Field(default=None, title="frame kind", json_schema_extra = { "linkml_meta": {'domain': 'ReferenceFrame',

@@ -152,3 +152,31 @@ def test_schema_generator_renders_all_artifacts(tmp_path: Path) -> None:
     finally:
         _cfg.SCHEMAS_DIR = original
         sc.SCHEMAS_DIR = original  # type: ignore[attr-defined]
+
+
+def test_bounded_xsd_integers_map_to_numeric_types() -> None:
+    """#345: the bounded XSD integer family must never fall back to string.
+
+    Asserts type STRINGS for one property per target — never totals (the
+    count-pin lesson)."""
+    import json
+
+    from gmeow_tools.config import PROJECT_ROOT
+
+    schemas = PROJECT_ROOT / "generated" / "schemas"
+
+    linkml = (schemas / "gmeow.linkml.yaml").read_text(encoding="utf-8")
+    assert "pixelWidth" in linkml
+    # the slot block carries integer range + the carried bound
+    block = linkml.split("  pixelWidth:")[1].split("\n  p")[0]
+    assert "range: integer" in block
+    assert "minimum_value: 0" in block
+
+    ts = (schemas / "gmeow.ts").read_text(encoding="utf-8")
+    assert "pixelWidth?: number," in ts
+
+    json_schema = json.loads(
+        (schemas / "gmeow.schema.json").read_text(encoding="utf-8")
+    )
+    text = json.dumps(json_schema)
+    assert '"pixelWidth"' in text

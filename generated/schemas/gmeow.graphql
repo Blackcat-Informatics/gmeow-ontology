@@ -8157,8 +8157,8 @@ type MediaObject
     depicts: [Entity]
     hasRegion: [ImageRegion]
     imageOrientation: Float
-    pixelHeight: String
-    pixelWidth: String
+    pixelHeight: Int
+    pixelWidth: Int
   }
 
 type Membership
@@ -8220,7 +8220,7 @@ type MentalReferenceFrame
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
     determinacyModel: Determinacy
-    dimensionCount: String
+    dimensionCount: Int
     frameKind: FrameKind
     frameRealm: FrameRealm
     frameSolver: String
@@ -8484,7 +8484,7 @@ type MessageParticipant
     participantGroup: String
     participantHeader: MessageHeader
     participantMessage: EmailMessage
-    participantOrdinal: String
+    participantOrdinal: Int
     participantRole: MessageParticipantRole
     rawAddressValue: String
   }
@@ -8785,7 +8785,7 @@ type NamePart
     writtenInLanguage: [Language]
     namePartType: NamePartType
     partExpansion: String
-    partOrder: String
+    partOrder: Int
     partText: String
   }
 
@@ -8875,7 +8875,7 @@ type NarrativeReferenceFrame
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
     determinacyModel: Determinacy
-    dimensionCount: String
+    dimensionCount: Int
     frameKind: FrameKind
     frameRealm: FrameRealm
     frameSolver: String
@@ -10868,7 +10868,7 @@ type ReferenceFrame
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
     determinacyModel: Determinacy
-    dimensionCount: String
+    dimensionCount: Int
     frameKind: FrameKind
     frameRealm: FrameRealm
     frameSolver: String
@@ -11181,7 +11181,7 @@ type Repository
     writtenInLanguage: [Language]
     cloneUrl: String
     hostedAt: [ForgePlatform]
-    materializationDepth: String
+    materializationDepth: Int
     repositoryType: RepositoryType
     webUrl: String
   }
@@ -11802,8 +11802,8 @@ type SequenceCoordinates
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
     inReferenceAssembly: ReferenceFrame
-    sequenceEnd: String
-    sequenceStart: String
+    sequenceEnd: Int
+    sequenceStart: Int
     sequenceStrand: StrandOrientation
   }
 
@@ -12886,7 +12886,7 @@ type SpatialAggregation
     vantage: [Entity]
     aggregationFunction: AggregationFunction
     hasBin: [SpatialBin]
-    minimumPopulation: String
+    minimumPopulation: Int
   }
 
 type SpatialBin
@@ -13618,7 +13618,7 @@ type TemporalFrame
     wasAttributedTo: [Agent]
     wasGeneratedBy: [Activity]
     determinacyModel: Determinacy
-    dimensionCount: String
+    dimensionCount: Int
     frameKind: FrameKind
     frameRealm: FrameRealm
     frameSolver: String
