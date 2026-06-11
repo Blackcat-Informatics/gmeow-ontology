@@ -315,11 +315,14 @@ def emit_linkml(graph: Graph) -> tuple[dict[str, Any], list[str]]:
         # Multivalued / required
         is_functional = prop in functional_props
         is_object = (prop, RDF.type, OWL.ObjectProperty) in graph
+        is_datatype = (prop, RDF.type, OWL.DatatypeProperty) in graph
         if is_functional:
             slot["multivalued"] = False
-        elif is_object:
+        elif is_object or is_datatype:
+            # Non-functional object and datatype properties can carry multiple
+            # values; only annotation properties default to single-valued.
             slot["multivalued"] = True
-        # datatype/annotation properties default to single-valued
+        # annotation properties default to single-valued
 
         schema["slots"][local] = slot
 

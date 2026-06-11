@@ -184,6 +184,9 @@ GMEOW distinguishes three layers for email addresses:
    message header or envelope. Carries `displayName`, `rawAddressValue`,
    `participantRole`, `participantHeader`, and `participantOrdinal`. Scoped to
    the occurrence, never a global claim about the EmailAddress.
+   `gmeow:displayName` is bridged to `schema:name` by `skos:closeMatch`
+   (Principle 5), with a scoping comment because GMEOW ties the display name
+   to the occurrence while schema:name is broader.
 3. **`AddressTenure`** — the time-scoped fact that an agent held an address.
 
 ### Flat shortcuts vs. reified relator
@@ -282,6 +285,22 @@ from the presence of `Disposition-Notification-To`. It is intentionally
 header (Principle 9). The canonical underlying fact is the
 `gmeow:dispositionNotificationTo` address (or addresses). The raw header is
 also preserved in `rfc822_headers`.
+
+### Resent header facets (issue #134)
+
+RFC 5322 allows a message to be resent by an intermediary, producing a
+`Resent-*` trace block. Address roles (`Resent-From`, `Resent-To`,
+`Resent-Cc`) are modelled through `gmeow:MessageParticipant` with the
+`messageRoleResentFrom`, `messageRoleResentTo`, and `messageRoleResentCc`
+role values. The non-address trace fields are convenience projections:
+
+| Source header | GMEOW term | Range | Notes |
+|---|---|---|---|
+| `Resent-Date` | `gmeow:resentDate` | `xsd:dateTime` | Non-functional; multiple resent blocks possible |
+| `Resent-Message-ID` | `gmeow:resentMessageId` | `rdfs:Literal` | Non-functional; multiple resent blocks possible |
+
+The raw `Resent-Date` and `Resent-Message-ID` values also remain on
+`gmeow:MessageHeader` (Principle 4).
 
 ## Mailbox hierarchy (issue #132)
 
