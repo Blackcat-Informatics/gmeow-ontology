@@ -165,12 +165,12 @@ def test_bounded_xsd_integers_map_to_numeric_types() -> None:
 
     schemas = PROJECT_ROOT / "generated" / "schemas"
 
-    linkml = (schemas / "gmeow.linkml.yaml").read_text(encoding="utf-8")
-    assert "pixelWidth" in linkml
-    # the slot block carries integer range + the carried bound
-    block = linkml.split("  pixelWidth:")[1].split("\n  p")[0]
-    assert "range: integer" in block
-    assert "minimum_value: 0" in block
+    import yaml
+
+    linkml = yaml.safe_load((schemas / "gmeow.linkml.yaml").read_text(encoding="utf-8"))
+    slot = linkml["slots"]["pixelWidth"]
+    assert slot["range"] == "integer"
+    assert slot["minimum_value"] == 0
 
     ts = (schemas / "gmeow.ts").read_text(encoding="utf-8")
     assert "pixelWidth?: number," in ts
@@ -178,5 +178,6 @@ def test_bounded_xsd_integers_map_to_numeric_types() -> None:
     json_schema = json.loads(
         (schemas / "gmeow.schema.json").read_text(encoding="utf-8")
     )
-    text = json.dumps(json_schema)
-    assert '"pixelWidth"' in text
+    prop = json_schema["$defs"]["MediaObject"]["properties"]["pixelWidth"]
+    assert prop["minimum"] == 0
+    assert "integer" in prop["type"]
