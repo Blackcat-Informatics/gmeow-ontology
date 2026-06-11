@@ -1,0 +1,22 @@
+{
+ "diagnostics": [],
+ "mode": "default",
+ "nquads": [
+  "_:s0._anon0 <http://www.w3.org/2000/01/rdf-schema#label> \"anon\"@en .",
+  "_:s0._anon3 <http://www.w3.org/2000/01/rdf-schema#label> \"anon\"@en .",
+  "_:s1._anon4 <http://www.w3.org/2000/01/rdf-schema#label> \"anon2\"@en ."
+ ],
+ "opaque_reasons": [],
+ "profiles": [
+  "dist",
+  "generic"
+ ],
+ "quads": 3,
+ "segment_heads": [
+  "27b78ad068503b90e4eab2b862a00cd622d353247b84a7d9fe93773bc87262b5",
+  "fc67a074e6a704e8c5a5a15061ab574554bba28bd8bc65eb5207a8cdcf0c881b"
+ ],
+ "segments": 2,
+ "suppressions": 0,
+ "terms": 6
+}

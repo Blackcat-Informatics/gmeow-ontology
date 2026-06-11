@@ -1,0 +1,21 @@
+{
+ "diagnostics": [],
+ "mode": "default",
+ "nquads": [
+  "<https://example.org/Cat> <http://www.w3.org/2000/01/rdf-schema#label> \"Cat\"@en .",
+  "_:s0.b0 <http://www.w3.org/2000/01/rdf-schema#label> \"Cat\"@en ."
+ ],
+ "opaque_reasons": [],
+ "profiles": [
+  "dist",
+  "generic"
+ ],
+ "quads": 2,
+ "segment_heads": [
+  "239ded6550cdc5ac8bac1ba82ab970d8a7d5dbd217aa736c5c73401d45d006d4",
+  "fd40ecc75ded0e6fed2cad20134112f8ea6ae5fb8ff28f31c47a9885a9be7d9b"
+ ],
+ "segments": 2,
+ "suppressions": 1,
+ "terms": 4
+}

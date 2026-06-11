@@ -368,3 +368,156 @@ def test_corrupt_trailing_item_is_torn() -> None:
     g = read(data)
     assert "TornAppendError" in _diag_codes(g)
     assert len(g.terms) == 1  # survivors intact
+
+
+# -- Vectors 15-19: multi-segment composition (§3.1, GTS-SPEC v0.3) ----------
+
+DOG = "https://example.org/Dog"
+
+
+def _segment_one() -> bytes:
+    w = Writer(profile="dist")
+    w.add_terms(
+        [
+            Term(TermKind.IRI, CAT),  # 0
+            Term(TermKind.IRI, LABEL),  # 1
+            Term(TermKind.LITERAL, "Cat", lang="en"),  # 2
+            Term(TermKind.BNODE, "b0"),  # 3
+        ]
+    )
+    w.add_quads([(0, 1, 2, None), (3, 1, 2, None)])
+    return bytes(w.to_bytes())
+
+
+def _segment_two() -> bytes:
+    # DELIBERATELY reuses the same numeric ids for different values, shares
+    # the LABEL IRI by value, and reuses the bnode label "b0".
+    w = Writer(profile="music")
+    w.add_terms(
+        [
+            Term(TermKind.IRI, DOG),  # 0 (was CAT in segment one)
+            Term(TermKind.IRI, LABEL),  # 1 (same IRI -> must unify)
+            Term(TermKind.LITERAL, "Dog", lang="en"),  # 2
+            Term(TermKind.BNODE, "b0"),  # 3 (same label -> must NOT unify)
+        ]
+    )
+    w.add_quads([(0, 1, 2, None), (3, 1, 2, None)])
+    return bytes(w.to_bytes())
+
+
+def test_vector_15_two_segment_union() -> None:
+    g = read(_segment_one() + _segment_two())
+    assert _diag_codes(g) == []
+    assert len(g.segment_heads) == 2
+    assert g.segment_profiles == ["dist", "music"]
+    values = {
+        g.term(s).value for s, _, _, _ in g.quads if g.term(s).kind is TermKind.IRI
+    }
+    assert values == {CAT, DOG}  # ids resolved per segment, never globally
+    # LABEL unified by value: exactly one IRI term carries it.
+    label_ids = [i for i, t in enumerate(g.terms) if t.value == LABEL]
+    assert len(label_ids) == 1
+    # Blank labels stay segment-local: two distinct bnode terms named "b0".
+    bnodes = [t for t in g.terms if t.kind is TermKind.BNODE]
+    assert len(bnodes) == 2
+    assert len(g.quads) == 4
+
+
+def test_vector_16_composed_round_trip() -> None:
+    g = read(_segment_one() + _segment_two())
+    nq = to_nquads(g)
+    assert f'<{CAT}> <{LABEL}> "Cat"@en .' in nq
+    assert f'<{DOG}> <{LABEL}> "Dog"@en .' in nq
+
+
+def test_vector_17_pre_segment_reader_hard_fails() -> None:
+    g = read(_segment_one() + _segment_two(), allow_segments=False)
+    assert "SegmentBoundary" in _diag_codes(g)
+    # Nothing past the boundary folded — the forbidden outcome is misfolding.
+    values = {
+        g.term(s).value for s, _, _, _ in g.quads if g.term(s).kind is TermKind.IRI
+    }
+    assert DOG not in values
+    assert CAT in values
+
+
+def test_vector_18_cross_segment_suppression() -> None:
+    seg1 = _segment_one()
+    # Segment two suppresses segment one's Cat-label quad BY VALUE: it mints
+    # its OWN ids for the same terms and issues a quad-kind suppress target.
+    w = Writer()
+    w.add_terms(
+        [
+            Term(TermKind.IRI, CAT),  # 0 (local id; same VALUE as seg1's 0)
+            Term(TermKind.IRI, LABEL),  # 1
+            Term(TermKind.LITERAL, "Cat", lang="en"),  # 2
+        ]
+    )
+    w.add_suppress([{"kind": "quad", "q": [0, 1, 2]}], reason="superseded")
+    g = read(seg1 + bytes(w.to_bytes()))
+    assert _diag_codes(g) == []
+    assert len(g.suppressions) == 1
+    (target,) = g.suppressions[0].targets
+    sq = target["q"]
+    assert isinstance(sq, list)
+    s_id, p_id, o_id = sq[0], sq[1], sq[2]
+    assert isinstance(s_id, int)
+    # The remapped target must name the UNION ids of segment one's quad —
+    # value-interning makes value-wise application id-exact.
+    assert (s_id, p_id, o_id, None) in g.quads
+    assert g.term(s_id).value == CAT
+
+
+def test_vector_19_profile_union_graceful_opacity() -> None:
+    seg1 = _segment_one()
+    w = Writer(catalog={0: Codec("identity", "encode"), 9: Codec("djvu", "compress")})
+    w.add_terms([Term(TermKind.IRI, DOG)])
+    frame = {"t": "quads", "x": [9], "d": b"\x00", "prev": w.head}
+    frame["id"] = content_id(frame)
+    g = read(seg1 + bytes(w.to_bytes()) + canonical(frame))
+    # Segment one folds fully; segment two's transformed frame is opaque.
+    values = {
+        g.term(s).value for s, _, _, _ in g.quads if g.term(s).kind is TermKind.IRI
+    }
+    assert CAT in values
+    assert any(o.reason == "unknown-codec" for o in g.opaque)
+    assert len(g.segment_heads) == 2
+
+
+def test_rfc8949_deterministic_key_order() -> None:
+    """§4: map keys sort BYTEWISE on their encoded form (RFC 8949 §4.2).
+
+    For short text keys the CBOR initial byte embeds the length, so RFC 8949
+    bytewise ordering coincides with RFC 7049 length-first ordering — every
+    GTS wire map (frames, headers, codec catalogs) therefore hashes the same
+    under both, and no compatibility break occurred when the encoder moved to
+    true 8949. The orderings DIVERGE on mixed-type keys; pin the divergent
+    case so the Rust implementation (#277) matches the right one.
+    """
+    # {"z": 1, 1000: 2}: "z" encodes 61 7a (2 bytes); 1000 encodes 19 03 e8
+    # (3 bytes). RFC 7049 length-first puts "z" first; RFC 8949 bytewise puts
+    # 1000 first (0x19 < 0x61). The spec mandates 8949.
+    assert canonical({"z": 1, 1000: 2}).hex() == "a21903e802617a01"
+    # And the coincident text-key case stays stable (hash compatibility):
+    assert canonical({"x": 1, "id": 2}).hex() == "a261780162696402"
+
+
+def test_corpus_matches_committed_expectations() -> None:
+    """The frozen corpus (generated/gts-vectors/) is the cross-implementation
+    truth: the oracle must reproduce every committed .expected.json exactly.
+    The Rust core (#277) runs the same gate from the same files."""
+    import json
+
+    from gmeow_tools.config import GENERATED_DIR
+    from gmeow_tools.gts.vectors import corpus, expected_for
+
+    vdir = GENERATED_DIR / "gts-vectors"
+    cases = corpus()
+    assert cases, "corpus must not be empty"
+    for case in cases:
+        committed_bytes = (vdir / f"{case.name}.gts").read_bytes()
+        assert committed_bytes == case.data, f"{case.name}: input bytes drifted"
+        committed = json.loads(
+            (vdir / f"{case.name}.expected.json").read_text(encoding="utf-8")
+        )
+        assert committed == expected_for(case), f"{case.name}: expectations drifted"

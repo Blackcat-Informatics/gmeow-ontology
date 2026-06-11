@@ -1,0 +1,16 @@
+{
+ "diagnostics": [],
+ "mode": "default",
+ "nquads": [],
+ "opaque_reasons": [],
+ "profiles": [
+  "generic"
+ ],
+ "quads": 0,
+ "segment_heads": [
+  "9b018637d69fb49e04321f80dbb939482b5c97853b63dc7e7c4929c696080e89"
+ ],
+ "segments": 1,
+ "suppressions": 1,
+ "terms": 1
+}

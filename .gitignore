@@ -29,3 +29,6 @@ htmlcov/
 
 # Toolchain temp directories (hard-kill leftovers)
 .gmeow-tmp-*/
+
+# Rust build artifacts
+/target/

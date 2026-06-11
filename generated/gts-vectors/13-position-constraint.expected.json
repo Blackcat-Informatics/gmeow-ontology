@@ -1,0 +1,18 @@
+{
+ "diagnostics": [
+  "PositionConstraint"
+ ],
+ "mode": "default",
+ "nquads": [],
+ "opaque_reasons": [],
+ "profiles": [
+  "generic"
+ ],
+ "quads": 0,
+ "segment_heads": [
+  "b237aa42eb93a120f4f6b5d298fc62e4335130b42e04754dfe13a83339dde5ca"
+ ],
+ "segments": 1,
+ "suppressions": 0,
+ "terms": 3
+}
