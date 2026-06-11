@@ -21,7 +21,6 @@ from gmeow_tools.lpg import (
     _short_key,
     _value_from_term,
     build_lpg,
-    export_lpg,
     serialize_cypher,
     serialize_generic_csv,
     serialize_graphml,
@@ -316,30 +315,6 @@ class TestSerializers:
         assert "<graph" in text
         assert "<node" in text
         assert "<edge" in text
-
-
-class TestExportLPG:
-    def test_export_all_formats(self, tmp_path: Path) -> None:
-        report = export_lpg(out_dir=tmp_path, target="all")
-        names = {p.name for p in report.written}
-        assert "nodes.csv" in names
-        assert "edges.csv" in names
-        assert "gmeow.cypher" in names
-        assert "gmeow.graphml" in names
-
-    def test_check_no_drift_on_fresh(self, tmp_path: Path) -> None:
-        """Running --check immediately after export should pass."""
-        export_lpg(out_dir=tmp_path, target="all")
-        report = export_lpg(out_dir=tmp_path, target="all", check=True)
-        assert not report.drifted
-
-    def test_check_detects_drift(self, tmp_path: Path) -> None:
-        """--check should detect drift if a file changes."""
-        export_lpg(out_dir=tmp_path, target="csv")
-        # Mutate one file
-        (tmp_path / "nodes.csv").write_text("bad data\n", encoding="utf-8")
-        report = export_lpg(out_dir=tmp_path, target="csv", check=True)
-        assert len(report.drifted) == 1
 
 
 class TestRoundTrip:

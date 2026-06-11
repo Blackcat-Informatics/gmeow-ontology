@@ -9,18 +9,23 @@ from __future__ import annotations
 
 import pytest
 
+from gmeow_tools.generator import run
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.mapping_compile import compile_all, emit_edoal, emit_fno
+from gmeow_tools.mapping_compile import emit_edoal, emit_fno
 from gmeow_tools.mapping_dsl import load_dsl
 
 _PROFILES = ("schema-org", "foaf", "vcard", "geosparql", "ical", "owl-time")
 
 
 def test_committed_artifacts_match_dsl() -> None:
-    report = compile_all(check=True)
+    report = run("mappings", check=True)
     assert report.drifted == [], (
-        "committed artifacts are stale — run `gmeow compile-mappings`:\n  "
+        "committed artifacts are stale — run `gmeow regenerate`:\n  "
         + "\n  ".join(report.drifted)
+    )
+    assert report.orphans == [], (
+        "committed generated artifacts contain orphans — run `gmeow regenerate`:\n  "
+        + "\n  ".join(report.orphans)
     )
 
 

@@ -5,7 +5,7 @@ canonical). This module proves that pyoxigraph — a pure in-process SPARQL
 engine — can parse the committed RDF 1.2 triple-term Turtle and reproduce the
 same OWL axiom-annotation normal form that the Jena-backed pipeline produces.
 
-The Jena-backed ``compile-statements``, ``statements-check``, and docker-marked
+The Jena-backed ``regenerate`` (statements), ``check-generated``, and docker-marked
 tests in ``test_statements.py`` remain authoritative; this is an additive,
 read-only verification path.
 """

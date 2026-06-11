@@ -15,14 +15,22 @@ import csv
 import hashlib
 import json
 from collections import defaultdict
-from dataclasses import dataclass, field
+from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from xml.etree.ElementTree import Element, SubElement, tostring
 
 import pyoxigraph
 
-from gmeow_tools.config import LPG_DIR, NAMESPACE, PREFIXES, STATEMENT_RDF12_FILE
+from gmeow_tools.config import (
+    LPG_DIR,
+    NAMESPACE,
+    PREFIXES,
+    PROJECT_ROOT,
+    STATEMENT_RDF12_FILE,
+)
+from gmeow_tools.generator import Generator, register
 
 #: Union of all pyoxigraph term types (there is no single ``Term`` base class).
 _Term = (
@@ -538,7 +546,7 @@ def serialize_generic_csv(lpg: LPGGraph, out_dir: Path) -> tuple[Path, Path]:
     ]
 
     with nodes_path.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=node_cols)
+        writer = csv.DictWriter(f, fieldnames=node_cols, lineterminator="\n")
         writer.writeheader()
         for node in lpg.nodes:
             row: dict[str, str] = {
@@ -551,7 +559,7 @@ def serialize_generic_csv(lpg: LPGGraph, out_dir: Path) -> tuple[Path, Path]:
             writer.writerow(row)
 
     with edges_path.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=edge_cols)
+        writer = csv.DictWriter(f, fieldnames=edge_cols, lineterminator="\n")
         writer.writeheader()
         for edge in lpg.edges:
             row = {
@@ -584,7 +592,7 @@ def serialize_neo4j_csv(lpg: LPGGraph, out_dir: Path) -> list[Path]:
     node_cols = ["id:ID", ":LABEL", *sorted(node_keys - {"uri"})]
 
     with nodes_path.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=node_cols)
+        writer = csv.DictWriter(f, fieldnames=node_cols, lineterminator="\n")
         writer.writeheader()
         for node in lpg.nodes:
             row: dict[str, str] = {
@@ -610,7 +618,7 @@ def serialize_neo4j_csv(lpg: LPGGraph, out_dir: Path) -> list[Path]:
         path = neo_dir / f"edges_{safe_name}.csv"
         cols = ["id:ID", ":START_ID", ":END_ID", ":TYPE", *edge_prop_cols]
         with path.open("w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=cols)
+            writer = csv.DictWriter(f, fieldnames=cols, lineterminator="\n")
             writer.writeheader()
             for edge in edges:
                 edge_row: dict[str, str] = {
@@ -759,57 +767,6 @@ def serialize_graphml(lpg: LPGGraph, out_path: Path) -> Path:
 # --------------------------------------------------------------------------- #
 
 
-@dataclass(slots=True)
-class LPGReport:
-    """Report from an LPG export run."""
-
-    written: list[Path] = field(default_factory=list)
-    drifted: list[str] = field(default_factory=list)
-
-
-def export_lpg(
-    *,
-    out_dir: Path | None = None,
-    target: str = "all",
-    check: bool = False,
-) -> LPGReport:
-    """Export GMEOW to LPG formats.
-
-    Args:
-        out_dir: Output directory. Defaults to ``LPG_DIR``.
-        target: Output format(s): ``all``, ``csv``, ``neo4j``, ``cypher``,
-            ``graphml``.
-        check: If True, compile to a temp tree and compare against committed
-            artifacts (the no-drift gate).
-
-    Returns:
-        An :class:`LPGReport` with written paths or drifted files.
-    """
-    out_dir = out_dir or LPG_DIR
-    report = LPGReport()
-
-    store = _load_store()
-    lpg = build_lpg(store)
-
-    if check:
-        import tempfile
-
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
-            fresh = _write_all(lpg, tmp_path, target)
-            for path in fresh:
-                committed = out_dir / path.relative_to(tmp_path)
-                if not committed.exists():
-                    report.drifted.append(str(committed.relative_to(out_dir.parent)))
-                    continue
-                if path.read_bytes() != committed.read_bytes():
-                    report.drifted.append(str(committed.relative_to(out_dir.parent)))
-        return report
-
-    report.written = _write_all(lpg, out_dir, target)
-    return report
-
-
 def _write_all(lpg: LPGGraph, out_dir: Path, target: str) -> list[Path]:
     """Write all requested formats to *out_dir*; return written paths."""
     valid_targets = {"all", "csv", "neo4j", "cypher", "graphml"}
@@ -833,3 +790,41 @@ def _write_all(lpg: LPGGraph, out_dir: Path, target: str) -> list[Path]:
         written.append(serialize_graphml(lpg, out_dir / "gmeow.graphml"))
 
     return written
+
+
+# --------------------------------------------------------------------------- #
+# Registered generator
+# --------------------------------------------------------------------------- #
+
+
+@register
+class LpgGenerator(Generator):
+    """Export GMEOW to Labeled Property Graph (LPG) formats."""
+
+    name: str = "lpg"
+    _rendered_outputs: Sequence[Path] | None = None
+
+    @property
+    def inputs(self) -> Sequence[Path]:
+        """Canonical inputs for the LPG generator."""
+        return [STATEMENT_RDF12_FILE]
+
+    @property
+    def outputs(self) -> Sequence[Path]:
+        """Committed outputs for the LPG generator (dynamically discovered)."""
+        if self._rendered_outputs is not None:
+            return self._rendered_outputs
+        # Scan the current committed LPG tree to discover dynamic outputs.
+        if not LPG_DIR.exists():
+            return []
+        return [p for p in LPG_DIR.rglob("*") if p.is_file()]
+
+    def render(self, staging: Path) -> None:
+        """Render LPG artifacts into the staging tree."""
+        store = _load_store()
+        lpg = build_lpg(store)
+        out_dir = staging / LPG_DIR.relative_to(PROJECT_ROOT)
+        written = _write_all(lpg, out_dir, "all")
+        self._rendered_outputs = [
+            PROJECT_ROOT / p.relative_to(staging) for p in written
+        ]

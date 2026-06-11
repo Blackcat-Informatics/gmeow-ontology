@@ -141,8 +141,8 @@ def test_server_has_expected_tools() -> None:
     tool_names = {t.name for t in tools}
     expected = {
         "gmeow_validate",
-        "gmeow_compile_mappings",
-        "gmeow_compile_statements",
+        "gmeow_regenerate",
+        "gmeow_check_generated",
         "gmeow_reason",
         "gmeow_lookup_term",
     }

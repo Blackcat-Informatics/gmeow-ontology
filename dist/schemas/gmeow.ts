@@ -2785,17 +2785,24 @@ export interface EmailAddress extends ContactPoint {
 
 
 export interface EmailMessage extends Message {
+    analysisInputBodyLine?: string,
+    analysisScope?: string,
     autoSubmitted?: string,
     bcc?: EmailAddress[],
+    bodyLineFingerprint?: string,
     calendarAttachment?: Attachment[],
     calendarUid?: string,
+    canonicalFingerprint?: string,
     cc?: EmailAddress[],
     describesEvent?: Event[],
     dispositionNotificationTo?: EmailAddress[],
     from?: EmailAddress[],
     hasCalendarMethod?: CalendarMethod[],
     hasMessageParticipant?: MessageParticipant[],
+    hasPatchDiff?: EmailPatchDiff[],
     importance?: string,
+    messageIdCollision?: boolean,
+    messageIdGenerated?: boolean,
     precedence?: string,
     priority?: string,
     readReceiptRequested?: boolean,
@@ -2805,6 +2812,11 @@ export interface EmailMessage extends Message {
     subjectPrefix?: string,
     to?: EmailAddress[],
     userAgent?: string,
+}
+
+
+
+export interface EmailPatchDiff extends BodyPart {
 }
 
 

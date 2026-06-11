@@ -12,16 +12,16 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
 
 import pytest
 import yaml
 
 from gmeow_tools.config import SCHEMAS_DIR
+from gmeow_tools.generator import run
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.schema_compile import (
     _LINKML_FILE,
-    compile_schemas,
+    SchemaGenerator,
     emit_linkml,
     gen_graphql,
     gen_json_schema,
@@ -110,59 +110,45 @@ def test_schema_compile_check_no_drift_after_write(tmp_path: Path) -> None:
         sc.SCHEMAS_DIR = tmp_path  # type: ignore[attr-defined]
 
         # First compile
-        report1 = sc.compile_schemas(check=False)
+        report1 = run("schemas", check=False)
         assert len(report1.written) == 6  # linkml + 4 generators + openapi
         assert report1.drifted == []
 
         # Then check
-        report2 = sc.compile_schemas(check=True)
+        report2 = run("schemas", check=True)
         assert report2.drifted == [], (
             f"schema artifacts drifted after in-place compile: {report2.drifted}"
+        )
+        assert report2.orphans == [], (
+            "schema artifacts contain orphans after in-place compile:\n  "
+            + "\n  ".join(report2.orphans)
         )
     finally:
         _cfg.SCHEMAS_DIR = original_schemas_dir
         sc.SCHEMAS_DIR = original_schemas_dir  # type: ignore[attr-defined]
 
 
-def test_reconcile_warns_on_missing_context_entries_and_skips_namespace_base(
-    tmp_path: Path,
-    monkeypatch: Any,
-) -> None:
-    """--reconcile warns on context IRIs missing from schema and skips @vocab base."""
+def test_schema_generator_renders_all_artifacts(tmp_path: Path) -> None:
+    """SchemaGenerator produces all six expected artifacts."""
     import gmeow_tools.config as _cfg
     import gmeow_tools.schema_compile as sc
-
-    # Inject a controlled context with a bogus GMEOW IRI
-    monkeypatch.setattr(
-        "gmeow_tools.jsonld_context.build_context",
-        lambda: {
-            "@context": {
-                "gmeow": "https://blackcatinformatics.ca/gmeow/",
-                "BogusTerm": {"@id": "https://blackcatinformatics.ca/gmeow/BogusTerm"},
-            }
-        },
-    )
 
     original = _cfg.SCHEMAS_DIR
     try:
         _cfg.SCHEMAS_DIR = tmp_path
         sc.SCHEMAS_DIR = tmp_path  # type: ignore[attr-defined]
-        report = compile_schemas(check=False, reconcile=True)
-
-        # Positive: the bogus term should trigger a reconciliation warning
-        assert any(
-            "BogusTerm" in w or "gmeow/BogusTerm" in w for w in report.warnings
-        ), f"expected reconciliation warning for BogusTerm in {report.warnings}"
-
-        # Negative: the namespace base IRI itself must not trigger a warning
-        base_iri = "https://blackcatinformatics.ca/gmeow/"
-        expected_base_warning = (
-            f"reconciliation: {base_iri} in JSON-LD context but missing from schema"
-        )
-        base_ns_warnings = [w for w in report.warnings if w == expected_base_warning]
-        assert not base_ns_warnings, (
-            f"false-positive namespace warnings: {base_ns_warnings}"
-        )
+        gen = SchemaGenerator
+        gen.render(tmp_path)  # type: ignore
+        expected = {
+            _LINKML_FILE,
+            "gmeow.schema.json",
+            "gmeow.py",
+            "gmeow.ts",
+            "gmeow.graphql",
+            "gmeow.openapi.json",
+        }
+        found = {p.name for p in tmp_path.rglob("*") if p.is_file()}
+        assert expected <= found, f"missing artifacts: {expected - found}"
     finally:
         _cfg.SCHEMAS_DIR = original
         sc.SCHEMAS_DIR = original  # type: ignore[attr-defined]

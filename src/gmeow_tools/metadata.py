@@ -7,6 +7,7 @@ mappings so the cross-dataset links stay in sync with the alignment axioms.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
 
 from rdflib import RDF, Graph, Literal, URIRef
@@ -15,12 +16,16 @@ from rdflib.namespace import DCAT, DCTERMS, FOAF, VOID, XSD
 from gmeow_tools.config import (
     ALIGNMENT_TARGETS,
     DCAT_FILE,
+    MAPPINGS_DIR,
+    MODULES_DIR,
     NAMESPACE,
     ONTOLOGY_IRI,
     PREFIXES,
+    PROJECT_ROOT,
     VOID_DATASET_IRI,
     VOID_FILE,
 )
+from gmeow_tools.generator import Generator, register, write_turtle
 from gmeow_tools.graph import bind_prefixes
 from gmeow_tools.mappings import build_linksets, load_mappings
 from gmeow_tools.self_desc import load_self_description
@@ -119,20 +124,44 @@ def build_dcat_graph() -> Graph:
     return graph
 
 
-def write_metadata(
-    *, void_path: Path = VOID_FILE, dcat_path: Path = DCAT_FILE
-) -> tuple[Path, Path]:
-    """Write the VoID and DCAT descriptions to disk.
+# --------------------------------------------------------------------------- #
+# Registered generator
+# --------------------------------------------------------------------------- #
 
-    Args:
-        void_path: Destination for the VoID Turtle file.
-        dcat_path: Destination for the DCAT Turtle file.
 
-    Returns:
-        The (void, dcat) paths written.
-    """
-    void_path.parent.mkdir(parents=True, exist_ok=True)
-    dcat_path.parent.mkdir(parents=True, exist_ok=True)
-    build_void_graph().serialize(destination=void_path, format="turtle")
-    build_dcat_graph().serialize(destination=dcat_path, format="turtle")
-    return void_path, dcat_path
+@register
+class MetadataGenerator(Generator):
+    """Generate VoID and DCAT dataset descriptions."""
+
+    name: str = "metadata"
+
+    @property
+    def inputs(self) -> Sequence[Path]:
+        """Canonical inputs for the metadata generator."""
+        return [
+            PROJECT_ROOT / "ontology" / "gmeow.ttl",
+            *list(MODULES_DIR.glob("*.ttl")),
+            *list(MAPPINGS_DIR.glob("*.sssom.tsv")),
+        ]
+
+    @property
+    def outputs(self) -> Sequence[Path]:
+        """Committed outputs for the metadata generator."""
+        return [VOID_FILE, DCAT_FILE]
+
+    def render(self, staging: Path) -> None:
+        """Render VoID and DCAT dataset descriptions."""
+        void_path = staging / VOID_FILE.relative_to(PROJECT_ROOT)
+        dcat_path = staging / DCAT_FILE.relative_to(PROJECT_ROOT)
+        write_turtle(
+            void_path,
+            build_void_graph(),
+            name=self.name,
+            source_hash=getattr(self, "_source_hash", ""),
+        )
+        write_turtle(
+            dcat_path,
+            build_dcat_graph(),
+            name=self.name,
+            source_hash=getattr(self, "_source_hash", ""),
+        )

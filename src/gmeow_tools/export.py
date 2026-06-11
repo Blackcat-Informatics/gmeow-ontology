@@ -19,14 +19,23 @@ from __future__ import annotations
 
 import csv
 import json
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TypeGuard
 
 from rdflib import OWL, RDF, RDFS, SKOS, BNode, Graph, URIRef
 
-from gmeow_tools.config import DIST_DIR, NAMESPACE, ONTOLOGY_IRI, PREFIXES
+from gmeow_tools.config import (
+    DIST_DIR,
+    MAPPINGS_DIR,
+    MODULES_DIR,
+    NAMESPACE,
+    ONTOLOGY_IRI,
+    PREFIXES,
+    PROJECT_ROOT,
+)
+from gmeow_tools.generator import Generator, _rel, register
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.language_tags import load_tag_map, public_text
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
@@ -493,20 +502,63 @@ def write_llms_txt(terms: list[Term], dist_dir: Path) -> Path:
     return path
 
 
-def export_all(dist_dir: Path = DIST_DIR) -> list[Path]:
-    """Generate every flattened export view into ``dist_dir``.
+# --------------------------------------------------------------------------- #
+# Registered generator
+# --------------------------------------------------------------------------- #
 
-    Args:
-        dist_dir: Target directory (created if absent).
 
-    Returns:
-        The list of written paths.
-    """
-    dist_dir.mkdir(parents=True, exist_ok=True)
-    terms = collect_terms()
-    written = write_csvs(terms, dist_dir)
-    written.append(write_csvw(dist_dir))
-    written.append(write_jsonl(terms, dist_dir))
-    written.append(write_markdown(terms, dist_dir))
-    written.append(write_llms_txt(terms, dist_dir))
-    return written
+@register
+class ExportGenerator(Generator):
+    """Generate flattened export views (CSV/CSVW, Markdown, JSONL, llms.txt)."""
+
+    name: str = "exports"
+
+    _cached_inputs: Sequence[Path] | None = None
+
+    @property
+    def inputs(self) -> Sequence[Path]:
+        """Canonical inputs for the export generator."""
+        if self._cached_inputs is not None:
+            return self._cached_inputs
+        self._cached_inputs = [
+            PROJECT_ROOT / "ontology" / "gmeow.ttl",
+            *list(MODULES_DIR.glob("*.ttl")),
+            *list(MAPPINGS_DIR.glob("*.sssom.tsv")),
+        ]
+        return self._cached_inputs
+
+    @property
+    def outputs(self) -> Sequence[Path]:
+        """Committed outputs for the export generator."""
+        return [
+            DIST_DIR / "gmeow-classes.csv",
+            DIST_DIR / "gmeow-properties.csv",
+            DIST_DIR / "gmeow-individuals.csv",
+            DIST_DIR / "gmeow-terms.csvw.json",
+            DIST_DIR / "gmeow-terms.jsonl",
+            DIST_DIR / "gmeow-terms.md",
+            DIST_DIR / "llms.txt",
+        ]
+
+    def render(self, staging: Path) -> None:
+        """Render flattened export views into the staging tree."""
+        out_dir = staging / DIST_DIR.relative_to(PROJECT_ROOT)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        terms = collect_terms()
+        write_csvs(terms, out_dir)
+        write_csvw(out_dir)
+        write_jsonl(terms, out_dir)
+        write_markdown(terms, out_dir)
+        write_llms_txt(terms, out_dir)
+
+    def compare(self, fresh: Path, committed: Path) -> list[str]:
+        """Skip drift for git-ignored export artifacts."""
+        if not committed.exists():
+            return []
+        if not fresh.exists():
+            rel = _rel(committed)
+            return [f"{rel} (not produced in staging)"]
+        if fresh.read_bytes() != committed.read_bytes():
+            rel = _rel(committed)
+            return [f"{rel}"]
+        return []

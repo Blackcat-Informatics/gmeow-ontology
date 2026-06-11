@@ -159,7 +159,10 @@ def public_literal(
             if bcp is not None:
                 return Literal(str(lit), lang=bcp)
 
-    # Fall back to the first candidate (rdflib iteration order is stable).
+    # Fall back to the first candidate after deterministic sorting.
+    # rdflib iteration order is stable within a process but can vary across
+    # processes due to PYTHONHASHSEED, so we sort by (language, value).
+    candidates.sort(key=lambda lit: (lit.language or "", str(lit)))
     return candidates[0]
 
 
