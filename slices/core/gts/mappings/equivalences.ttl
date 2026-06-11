@@ -1,0 +1,64 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+
+# Term equivalences for the GTS transport layer — GMEOW authoring source.
+# Compiled to mappings/gmeow-gts.sssom.tsv by `gmeow compile-mappings`.
+#
+# REFUSALS / LOOSE MAPPINGS (documented in setComment):
+# - CBOR (RFC 8949), CBOR Sequences (RFC 8742), CDDL (RFC 8610), COSE (RFC
+#   9052): wire-format standards with no RDF vocabulary; folded by reference
+#   in the spec, not mappable as terms.
+# - IPLD / Multiformats CID: an identifier scheme, not an RDF vocabulary;
+#   the conceptual alignment (content addressing) is carried on
+#   gmeow:contentDigest in the sources slice already.
+# - C2PA manifest/assertion: no RDF vocabulary; the attestation slice carries
+#   the C2PA attestation-type individual; frame/annot correspondence is
+#   documented in the spec.
+
+gmeow:mapsetGts a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-gts.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/gts" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "GTS transport alignments. DCAT is the strongest RDF alignment: a GTS document is a distribution of a dataset/work. PROV-O aligns the compaction activity. The wire-format standards GTS builds on (CBOR, COSE, CDDL) and identifier schemes (IPLD CID) have no canonical RDF vocabularies; they are folded by reference in docs/GTS-SPEC.md and refused here (Principle 5)." ;
+    gmeow:setTrailer "# Loose / refused mappings (no canonical RDF vocabulary available):\n# gmeow:GTSDocument\tskos:relatedMatch\tcbor:Sequence\tsemapv:ManualMappingCuration\t0.5\tCBOR/RFC 8742 is a wire format, not an RDF vocabulary\n# gmeow:gtsHeadId\tskos:relatedMatch\tipld:CID\tsemapv:ManualMappingCuration\t0.5\tcontent-addressing identifier scheme, not an RDF vocabulary\n# gmeow:OpaqueFrame\tskos:relatedMatch\tcose:Encrypt0\tsemapv:ManualMappingCuration\t0.5\tCOSE/RFC 9052 has no RDF vocabulary" .
+
+# --------------------------------------------------------------------------- #
+# DCAT — a GTS document is a distribution
+# --------------------------------------------------------------------------- #
+
+gmeow:eqGts001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:GTSDocument ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcat:Distribution ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "A GTS document is a concrete, downloadable embodiment of a dataset or work — DCAT's Distribution. Lossy: DCAT carries no segment structure, chain identity, or profile semantics." ;
+    gmeow:sssomFile "gmeow-gts.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# PROV-O — compaction lineage
+# --------------------------------------------------------------------------- #
+
+gmeow:eqGts002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:GTSCompaction ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject prov:Activity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "A compaction is a provenance activity: the compacted document prov:wasGeneratedBy it and prov:wasDerivedFrom the source document." ;
+    gmeow:sssomFile "gmeow-gts.sssom.tsv" .
+
+gmeow:eqGts003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:GTSSegment ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject prov:Entity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "A segment is a provenance entity with its own attribution (signers) and derivation history. Lossy: PROV carries no chain or head-identity semantics." ;
+    gmeow:sssomFile "gmeow-gts.sssom.tsv" .

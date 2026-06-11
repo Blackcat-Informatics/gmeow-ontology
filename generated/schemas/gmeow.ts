@@ -280,6 +280,13 @@ export enum ClaimVeridicalityEnum {
     untrue = "veridicalityUntrue",
 };
 
+export enum CodecClassEnum {
+
+    compress = "codecClassCompress",
+    encode = "codecClassEncode",
+    encrypt = "codecClassEncrypt",
+};
+
 export enum ConflictStrategyEnum {
 
     policy_void_on_conflict = "conflictInvalid",
@@ -671,6 +678,17 @@ export enum FrameRealmEnum {
     temporal = "frameRealmTemporal",
     terrestrial = "frameRealmTerrestrial",
     virtual_SOLIDUS_network = "frameRealmVirtual",
+};
+
+export enum GTSProfileEnum {
+
+    ai_package_profile = "gtsProfileAiPackage",
+    bundle_profile = "gtsProfileBundle",
+    dist_profile = "gtsProfileDist",
+    evidence_profile = "gtsProfileEvidence",
+    generic_profile = "gtsProfileGeneric",
+    image_profile = "gtsProfileImage",
+    opaque_profile = "gtsProfileOpaque",
 };
 
 export enum GenderEnum {
@@ -1226,6 +1244,13 @@ export enum ObservationTypeEnum {
     simulation_output = "observationTypeSimulation",
     standpoint_claim = "observationTypeStandpoint",
     streaming = "observationTypeStreaming",
+};
+
+export enum OpacityReasonEnum {
+
+    damaged = "opacityDamaged",
+    missing_key = "opacityMissingKey",
+    unknown_codec = "opacityUnknownCodec",
 };
 
 export enum OrderStatusEnum {
@@ -1954,6 +1979,17 @@ export enum TransactionTypeEnum {
     withdrawal = "transactionTypeWithdrawal",
 };
 
+export enum TransformCodecEnum {
+
+    base64_codec = "codecBase64",
+    base85_codec = "codecBase85",
+    COSE_Encrypt0_codec = "codecCoseEncrypt0",
+    gzip_codec = "codecGzip",
+    identity_codec = "codecIdentity",
+    lzma2_codec = "codecLzma2",
+    zstd_codec = "codecZstd",
+};
+
 export enum TransliterationSchemeEnum {
 
     BGNSOLIDUSPCGN_romanization = "schemeBGNPCGN",
@@ -2448,6 +2484,11 @@ export interface ClaimVeridicality {
 export interface CodeReview extends Event {
     reviewCommit?: Commit[],
     reviewOf?: MergeRequest[],
+}
+
+
+
+export interface CodecClass {
 }
 
 
@@ -3084,6 +3125,32 @@ export interface FrameKind {
 
 
 export interface FrameRealm {
+}
+
+
+
+export interface GTSCompaction extends Activity {
+}
+
+
+
+export interface GTSDocument extends Manifestation {
+    gtsSegment?: GTSSegment[],
+}
+
+
+
+export interface GTSProfile {
+}
+
+
+
+export interface GTSSegment extends Manifestation {
+    gtsHeadId?: string,
+    gtsProfile?: GTSProfile,
+    gtsSegmentIndex?: number,
+    gtsSegmentOf?: GTSDocument,
+    usesTransformCodec?: TransformCodec[],
 }
 
 
@@ -3921,6 +3988,19 @@ export interface OnlineAccount extends InformationObject {
     activityPubActor?: string,
     nip05?: string,
     nostrPubkey?: string,
+}
+
+
+
+export interface OpacityReason {
+}
+
+
+
+export interface OpaqueFrame extends InformationObject {
+    opacityReason?: OpacityReason,
+    opaqueFrameIn?: GTSSegment,
+    sealedRecipient?: Agent[],
 }
 
 
@@ -4990,6 +5070,12 @@ export interface TransactionStatus {
 
 
 export interface TransactionType {
+}
+
+
+
+export interface TransformCodec {
+    codecClass?: CodecClass,
 }
 
 
