@@ -41,6 +41,7 @@ def test_quickstart_flow_verbatim(tmp_path: Path) -> None:
         superseded_by=mem.store(
             "For one-off scripts Patrick is fine with exceptions-as-flow",
             confidence=0.9,
+            according_to="claude-fable-5",
         ),
     )
     # the superseded claim no longer surfaces...
@@ -134,6 +135,27 @@ def test_five_minute_gate_locally(tmp_path: Path) -> None:
     assert mem.recall("fast")
     mem.revise(c, reason="done")
     assert time.monotonic() - start < 5.0
+
+
+def test_confidence_is_validated(tmp_path: Path) -> None:
+    mem = Memory(tmp_path / "m.gts")
+    for bad in (1.5, -0.1, float("nan"), float("inf")):
+        try:
+            mem.store("x", confidence=bad)
+            raise AssertionError(f"accepted {bad}")
+        except ValueError:
+            pass
+
+
+def test_projection_keeps_claims_mentioning_quoted_triple_syntax(
+    tmp_path: Path,
+) -> None:
+    """The RDF 1.1 projection drops binding lines, never user text."""
+    mem = Memory(tmp_path / "m.gts")
+    mem.store("RDF 1.2 writes quoted triples as <<( s p o )>> tokens")
+    ds = mem.to_rdflib()
+    texts = [str(o) for _, _, o, _ in ds.quads((None, None, None, None))]
+    assert any("<<(" in t for t in texts)
 
 
 def test_rdflib_interop(tmp_path: Path) -> None:

@@ -46,7 +46,9 @@ mem.revise(
   package: append-only, hash-chained, damage-detecting. Every write is a
   crash-safe byte-append; `mem.verify()` (or the `gts` CLI) attests integrity.
 - **Graph when you want it.** `pip install 'gmeow[rdf]'` and
-  `mem.to_rdflib()` hands you the full dataset; the
+  `mem.to_rdflib()` gives an RDF 1.1 projection of the dataset (rdflib has no
+  RDF 1.2 yet, so the quoted-triple binding lines are dropped — the loss is
+  declared, and the GTS file itself stays full-fidelity); the
   [GMEOW ontology](https://blackcatinformatics.ca/gmeow/) gives the
   vocabulary meaning across tools.
 

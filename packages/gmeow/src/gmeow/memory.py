@@ -20,6 +20,7 @@ original bytes remain present, hash-linked, and recoverable.
 from __future__ import annotations
 
 import datetime as _dt
+import math
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
@@ -92,6 +93,11 @@ class Memory:
         if not text.strip():
             msg = "a claim needs text"
             raise ValueError(msg)
+        if confidence is not None:
+            confidence = float(confidence)
+            if not math.isfinite(confidence) or not 0.0 <= confidence <= 1.0:
+                msg = "confidence must be a number in [0, 1] (gmeow:confidence)"
+                raise ValueError(msg)
         assertion = f"urn:gmeow:assertion:{uuid.uuid4()}"
         subject = "urn:gmeow:claim:blake3:" + blake3_256(text.encode("utf-8")).hex()
         created = _dt.datetime.now(tz=_dt.UTC).isoformat(timespec="seconds")
@@ -193,12 +199,13 @@ class Memory:
             ]
         tokens = {t for t in query.lower().split() if t}
         if tokens:
-            scored = [(len(tokens & set(c.text.lower().split())), c) for c in claims]
-            claims = [c for score, c in scored if score > 0]
-            claims.sort(
-                key=lambda c: len(tokens & set(c.text.lower().split())),
-                reverse=True,
-            )
+            scored = [
+                (len(tokens & set(c.text.lower().split())), i, c)
+                for i, c in enumerate(claims)
+            ]
+            # score desc, storage order as the stable tiebreak
+            scored.sort(key=lambda item: (-item[0], item[1]))
+            claims = [c for score, _, c in scored if score > 0]
         else:
             claims.reverse()  # most recent first
         return claims[:limit]
@@ -259,7 +266,10 @@ class Memory:
         ds = Dataset()
         if self._path.exists():
             lines = to_nquads(read(self._path.read_bytes())).splitlines()
-            rdf11 = "\n".join(ln for ln in lines if "<<(" not in ln)
+            # Only a quoted-triple in object position can END a line with
+            # ")>> ." — inside a literal, the closing quote would follow it —
+            # so this cannot drop a claim whose text merely mentions "<<(".
+            rdf11 = "\n".join(ln for ln in lines if not ln.rstrip().endswith(")>> ."))
             ds.parse(data=rdf11, format="nquads")
         return ds
 
