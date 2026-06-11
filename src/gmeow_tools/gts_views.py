@@ -51,18 +51,37 @@ _LANGUAGE_TAG = NAMESPACE + "languageTag"
 _BCP47_TAG = NAMESPACE + "bcp47Tag"
 
 
+#: (resolved path, mtime_ns, size) → FoldView. Keyed by the file's stat
+#: fingerprint, NOT just the path: a naive lru_cache would hand back a STALE
+#: fold after `gmeow regenerate` republishes the snapshot mid-run (the gts
+#: generator runs before its consumers in topological order).
+_FOLD_CACHE: dict[tuple[str, int, int], FoldView] = {}
+
+
 def load_fold(path: Path | None = None) -> FoldView:
-    """Read the committed snapshot (or ``path``) into a :class:`FoldView`."""
+    """Read the committed snapshot (or ``path``) into a :class:`FoldView`.
+
+    Cached per (path, mtime, size): repeated loads within one process reuse
+    the parsed fold, while a republished snapshot is picked up immediately.
+    """
     target = path if path is not None else GTS_SNAPSHOT_FILE
     if not target.exists():
         msg = f"GTS snapshot not found: {target} — run `gmeow regenerate gts`"
         raise FileNotFoundError(msg)
+    stat = target.stat()
+    key = (str(target.resolve()), stat.st_mtime_ns, stat.st_size)
+    cached = _FOLD_CACHE.get(key)
+    if cached is not None:
+        return cached
     graph = read(target.read_bytes())
     if any(d.code != "TornAppendError" for d in graph.diagnostics):
         codes = ", ".join(d.code for d in graph.diagnostics)
         msg = f"GTS snapshot has reader diagnostics ({codes}): {target}"
         raise ValueError(msg)
-    return FoldView(graph)
+    view = FoldView(graph)
+    _FOLD_CACHE.clear()  # one snapshot per process is the working set
+    _FOLD_CACHE[key] = view
+    return view
 
 
 class FoldView:
