@@ -540,8 +540,10 @@ def test_prefix_fold_streaming_property() -> None:
         return {ln for ln in to_nquads(g).splitlines() if "_:" not in ln}
 
     for case in corpus():
-        items, _ = iter_items(case.data)
-        boundaries = [off for off, _ in items[1:]] + [len(case.data)]
+        items, torn = iter_items(case.data)
+        # the last TRUE item boundary of a torn file is the torn offset, not EOF
+        end_of_items = torn if torn is not None else len(case.data)
+        boundaries = [off for off, _ in items[1:]] + [end_of_items]
         prev: Graph | None = None
         for end in boundaries:
             g = read(case.data[:end])  # MUST be total: never raises
@@ -552,3 +554,8 @@ def test_prefix_fold_streaming_property() -> None:
                 else:
                     assert ground(prev) <= ground(g), case.name
             prev = g
+        if torn is not None and prev is not None:
+            # §3.2: a stream cut mid-item folds exactly like the torn file
+            full = read(case.data)
+            assert full.terms == prev.terms, case.name
+            assert full.quads == prev.quads, case.name

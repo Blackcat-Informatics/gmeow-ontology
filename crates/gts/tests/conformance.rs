@@ -135,21 +135,31 @@ fn prefix_fold_streaming_property() {
         }
         let name = path.file_name().unwrap().to_string_lossy().to_string();
         let data = fs::read(&path).expect("vector bytes");
-        let (items, _) = iter_items(&data);
+        let (items, torn) = iter_items(&data);
+        // the last TRUE item boundary of a torn file is the torn offset
+        let end_of_items = torn.unwrap_or(data.len());
         let mut boundaries: Vec<usize> = items.iter().skip(1).map(|(off, _)| *off).collect();
-        boundaries.push(data.len());
+        boundaries.push(end_of_items);
         let mut prev: Option<Graph> = None;
         for end in boundaries {
             let g = read(&data[..end], true, None); // MUST be total: never panics
             if let Some(p) = &prev {
                 if p.segment_heads.len() == g.segment_heads.len() {
-                    assert_eq!(&g.terms[..p.terms.len()], &p.terms[..], "{name}");
-                    assert_eq!(&g.quads[..p.quads.len()], &p.quads[..], "{name}");
+                    // .get() so a shrinking table is a clean assertion, not a panic
+                    assert_eq!(g.terms.get(..p.terms.len()), Some(&p.terms[..]), "{name}");
+                    assert_eq!(g.quads.get(..p.quads.len()), Some(&p.quads[..]), "{name}");
                 } else {
                     assert!(ground(p).is_subset(&ground(&g)), "{name}");
                 }
             }
             prev = Some(g);
+        }
+        if torn.is_some() {
+            // §3.2: a stream cut mid-item folds exactly like the torn file
+            let full = read(&data, true, None);
+            let p = prev.expect("at least the header boundary");
+            assert_eq!(full.terms, p.terms, "{name}");
+            assert_eq!(full.quads, p.quads, "{name}");
         }
     }
 }

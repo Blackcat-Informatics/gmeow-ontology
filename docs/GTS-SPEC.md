@@ -199,7 +199,7 @@ segments (full-resolution blobs, computed projections) gives a receiver a comple
 package at every segment boundary, §3.1's composition rules applied as a delivery schedule.
 **Checkpoint `index` frames** (§6.2) emitted periodically give a streaming consumer
 intermediate truncation anchors (`"head"`), random-access offsets for ranged re-fetch, and a
-manifest of what has arrived; the index remains an accelerator, never a dependency (§3).
+manifest of what has arrived; the index remains an accelerator, never a dependency (§3, §6.2).
 
 **The manifest is the graph.** GTS needs no table-of-contents structure, because the frames
 that *describe* content can precede the frames that *carry* it: a producer SHOULD emit the
