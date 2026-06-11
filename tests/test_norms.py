@@ -243,6 +243,8 @@ def test_malformed_norms_fixture_is_flagged() -> None:
     assert "at least two gmeow:groupMember" in errors
     assert "exactly one gmeow:groupOperator" in errors
     assert "higher and lower norms must be distinct" in errors
+    # ex:flatTenure also omits its scope — both tenure violations must fire.
+    assert "must be scoped to exactly one gmeow:precedenceScope" in errors
     assert "must be gmeow:deonticPermission" in errors
     assert "exactly one gmeow:evaluationVerdict" in errors
     assert "at most one gmeow:deonticModality" in errors
