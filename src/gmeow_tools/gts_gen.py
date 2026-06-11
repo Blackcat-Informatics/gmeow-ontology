@@ -73,10 +73,14 @@ class GtsSnapshotGenerator(Generator):
         bytes — typically a compression/library version bump). Both count
         as drift (Principle 7: the committed artifact is the contract).
         """
+        try:
+            rel = str(committed.relative_to(PROJECT_ROOT))
+        except ValueError:
+            rel = committed.name
         if not committed.exists():
-            return [f"{committed.name} (missing committed file)"]
+            return [f"{rel} (missing committed file)"]
         if not fresh.exists():
-            return [f"{committed.name} (not produced in staging)"]
+            return [f"{rel} (not produced in staging)"]
         fresh_bytes, committed_bytes = fresh.read_bytes(), committed.read_bytes()
         if fresh_bytes == committed_bytes:
             return []
@@ -91,4 +95,4 @@ class GtsSnapshotGenerator(Generator):
             if semantic
             else "encoding-only drift (identical fold; codec/library skew)"
         )
-        return [f"{committed.name} ({kind})"]
+        return [f"{rel} ({kind})"]

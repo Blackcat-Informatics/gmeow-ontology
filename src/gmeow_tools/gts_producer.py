@@ -51,8 +51,18 @@ class _Interner:
     def iri(self, iri: str) -> int:
         return self._intern(("iri", iri), lambda: Term(TermKind.IRI, iri))
 
-    def bnode(self, label: str) -> int:
-        return self._intern(("bnode", label), lambda: Term(TermKind.BNODE, label))
+    def bnode(self, label: str, scope: str | None = None) -> int:
+        """Intern a blank node, optionally scoped to an ingest source.
+
+        Sources are canonicalized INDEPENDENTLY, so two different
+        existential nodes in different sources can carry the same canonical
+        label — scoping prevents them collapsing into one term. ``None``
+        (single-source builders) preserves the raw label.
+        """
+        value = label if scope is None else f"{scope}-{label}"
+        return self._intern(
+            ("bnode", scope, label), lambda: Term(TermKind.BNODE, value)
+        )
 
     def literal(self, lex: str, datatype: str | None, lang: str | None) -> int:
         dt_id = self.iri(datatype) if datatype is not None else None
@@ -73,7 +83,13 @@ class _Builder:
 
     # -- rdflib (RDF 1.1) -----------------------------------------------------
 
-    def add_graph(self, graph: Graph, *, graph_name: str | None = None) -> None:
+    def add_graph(
+        self,
+        graph: Graph,
+        *,
+        graph_name: str | None = None,
+        bnode_scope: str | None = None,
+    ) -> None:
         """Ingest an rdflib ``Graph``/``Dataset`` base graph.
 
         ``graph_name`` assigns rows that carry no name of their own to a named
@@ -83,17 +99,21 @@ class _Builder:
         """
         default_gid = self.terms.iri(graph_name) if graph_name is not None else None
         for s, p, o, name in _iter_quads(graph):
-            sid, pid, oid = self._rdflib(s), self._rdflib(p), self._rdflib(o)
-            gid = self._rdflib(name) if name is not None else default_gid
+            sid, pid, oid = (
+                self._rdflib(s, bnode_scope),
+                self._rdflib(p, bnode_scope),
+                self._rdflib(o, bnode_scope),
+            )
+            gid = self._rdflib(name, bnode_scope) if name is not None else default_gid
             if sid is None or pid is None or oid is None:
                 continue
             self.quads.append((sid, pid, oid, gid))
 
-    def _rdflib(self, node: Node) -> int | None:
+    def _rdflib(self, node: Node, bnode_scope: str | None = None) -> int | None:
         if isinstance(node, URIRef):
             return self.terms.iri(str(node))
         if isinstance(node, BNode):
-            return self.terms.bnode(str(node))
+            return self.terms.bnode(str(node), bnode_scope)
         if isinstance(node, Literal):
             dt = str(node.datatype) if node.datatype is not None else None
             return self.terms.literal(str(node), dt, node.language)
@@ -101,7 +121,13 @@ class _Builder:
 
     # -- pyoxigraph (RDF 1.2 statement layer) ---------------------------------
 
-    def add_rdf12(self, path: Path, *, graph_name: str | None = None) -> None:
+    def add_rdf12(
+        self,
+        path: Path,
+        *,
+        graph_name: str | None = None,
+        bnode_scope: str | None = None,
+    ) -> None:
         """Ingest an RDF 1.2 artifact: ``rdf:reifies`` triple-terms + annotations.
 
         Base (non-reifier) triples land in ``graph_name`` when given; the
@@ -121,11 +147,11 @@ class _Builder:
                 and p.value == _RDF_REIFIES
                 and isinstance(o, ox.Triple)
             ):
-                rid = self._ox(s)
+                rid = self._ox(s, bnode_scope)
                 qs, qp, qo = (
-                    self._ox(o.subject),
-                    self._ox(o.predicate),
-                    self._ox(o.object),
+                    self._ox(o.subject, bnode_scope),
+                    self._ox(o.predicate, bnode_scope),
+                    self._ox(o.object, bnode_scope),
                 )
                 if (
                     rid is not None
@@ -141,14 +167,22 @@ class _Builder:
                         # order-defined — so a conflicting rebind is an error
                         # here, never a silent pick (the READER's tolerance
                         # rule, §7.8, is for foreign files, not our producer).
-                        msg = f"conflicting reifier rebind for term {rid}"
+                        term = self.terms.terms[rid]
+                        msg = (
+                            "conflicting reifier rebind for "
+                            f"{term.value!r} ({term.kind.name})"
+                        )
                         raise ValueError(msg)
                     self.reifies[rid] = (qs, qp, qo)
             else:
                 pending.append((s, p, o))
         # Pass 2: a reifier's other triples are annotations; the rest are base quads.
         for s, p, o in pending:
-            sid, pid, oid = self._ox(s), self._ox(p), self._ox(o)
+            sid, pid, oid = (
+                self._ox(s, bnode_scope),
+                self._ox(p, bnode_scope),
+                self._ox(o, bnode_scope),
+            )
             if sid is None or pid is None or oid is None:
                 continue
             if sid in reifier_ids:
@@ -156,13 +190,13 @@ class _Builder:
             else:
                 self.quads.append((sid, pid, oid, default_gid))
 
-    def _ox(self, node: object) -> int | None:
+    def _ox(self, node: object, bnode_scope: str | None = None) -> int | None:
         import pyoxigraph as ox
 
         if isinstance(node, ox.NamedNode):
             return self.terms.iri(node.value)
         if isinstance(node, ox.BlankNode):
-            return self.terms.bnode(node.value)
+            return self.terms.bnode(node.value, bnode_scope)
         if isinstance(node, ox.Literal):
             # pyoxigraph always sets a datatype (xsd:string / rdf:langString implied).
             if node.language is not None:
@@ -215,9 +249,13 @@ class _Builder:
             },
             key=lambda q: (-1 if q[3] is None else q[3], q[0], q[1], q[2]),
         )
+        # CBOR canonical encoding sorts map keys at emit, so dict order
+        # never reaches the bytes — sorted by NEW id for inspection sanity.
         new_reifies = {
             remap[rid]: (remap[s], remap[p], remap[o])
-            for rid, (s, p, o) in sorted(self.reifies.items())
+            for rid, (s, p, o) in sorted(
+                self.reifies.items(), key=lambda item: remap[item[0]]
+            )
         }
         new_annot = sorted({(remap[r], remap[p], remap[v]) for r, p, v in self.annot})
         return new_terms, new_quads, new_reifies, new_annot
@@ -312,14 +350,18 @@ def compile_gts(
     from gmeow_tools.config import GTS_GRAPH_ALIGNMENTS, GTS_GRAPH_STATEMENTS
 
     builder = _Builder()
-    builder.add_graph(to_canonical_graph(graph))
+    builder.add_graph(to_canonical_graph(graph), bnode_scope="base")
     if rdf12_path is not None:
         if not rdf12_path.exists():
             msg = f"RDF 1.2 statement artifact not found: {rdf12_path}"
             raise FileNotFoundError(msg)
-        builder.add_rdf12(rdf12_path, graph_name=GTS_GRAPH_STATEMENTS)
+        builder.add_rdf12(
+            rdf12_path, graph_name=GTS_GRAPH_STATEMENTS, bnode_scope="stmt"
+        )
     if alignment_graph is not None:
         builder.add_graph(
-            to_canonical_graph(alignment_graph), graph_name=GTS_GRAPH_ALIGNMENTS
+            to_canonical_graph(alignment_graph),
+            graph_name=GTS_GRAPH_ALIGNMENTS,
+            bnode_scope="align",
         )
     return builder.to_gts(profile="dist", transform=transform)

@@ -11,6 +11,7 @@ seeds.
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -79,11 +80,7 @@ def test_cross_hash_seed_builds_are_byte_identical(tmp_path: Path) -> None:
             [sys.executable, "-c", script],
             capture_output=True,
             check=True,
-            env={
-                "PYTHONHASHSEED": seed,
-                "PATH": "/usr/bin:/bin",
-                "HOME": str(Path.home()),
-            },
+            env={**os.environ, "PYTHONHASHSEED": seed},
             cwd=PROJECT_ROOT,
         )
         outputs.append(result.stdout)
