@@ -889,6 +889,39 @@ gmeow:charset
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # --------------------------------------------------------------------------- #
+# JMAP structural identifiers (issue #140)
+#
+# blobId and bodyStructure address the JMAP (RFC 8621) view of a message.
+# They are projections/artifacts, not the canonical semantic body-part tree,
+# which remains the hasBodyPart / hasPart / partOf spine from issue #133.
+# Decoded body content is a derived InformationObject linked by wasDerivedFrom,
+# not a literal on the part (Principle 12).
+# --------------------------------------------------------------------------- #
+
+gmeow:BodyValue
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    rdfs:label "Body Value"@x-gmeow-english ;
+    skos:definition "A decoded body-content object stored as a separate information object, typically the result of extracting or decoding a MIME BodyPart. Linked to its source BodyPart by gmeow:wasDerivedFrom; not a literal property on the part."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+
+gmeow:blobId
+    a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "blob id"@x-gmeow-english ;
+    skos:definition "The opaque JMAP (RFC 8620) blob identifier for an object. In JMAP this identifies the raw bytes of an Email or of an individual BodyPart; the value is provider-scoped and should not be treated as a global identifier."@x-gmeow-english ;
+    skos:scopeNote "Typically asserted on an EmailMessage or BodyPart. When byte-exact identity matters, also record gmeow:contentDigest."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+
+gmeow:bodyStructure
+    a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:EmailMessage ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "body structure"@x-gmeow-english ;
+    skos:definition "The serialized JMAP EmailBodyStructure object (RFC 8621) for a message, preserved as a raw projection. The canonical semantic representation of the MIME tree remains the hasBodyPart / hasPart / partOf spine; this property is for importer compatibility and round-tripping."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+
+# --------------------------------------------------------------------------- #
 # Calendar invitation bridge — email→event seam (issue #139)
 #
 # Reuses gmeow:Event from events.ttl and gmeow:EventInvitation from calendar.ttl.

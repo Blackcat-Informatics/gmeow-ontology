@@ -2357,6 +2357,11 @@ export interface BodyPart extends InformationObject {
 
 
 
+export interface BodyValue extends InformationObject {
+}
+
+
+
 export interface BookRelease extends Manifestation {
 }
 
@@ -2868,6 +2873,7 @@ export interface EmailMessage extends Message {
     autoSubmitted?: string[],
     bcc?: EmailAddress[],
     bodyLineFingerprint?: string[],
+    bodyStructure?: string,
     calendarAttachment?: Attachment[],
     calendarUid?: string[],
     canonicalFingerprint?: string[],
