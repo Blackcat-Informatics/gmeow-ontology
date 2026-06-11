@@ -20,6 +20,7 @@ isomorphism, TSV/SPARQL by bytes), reporting any drift without writing.
 from __future__ import annotations
 
 import io
+import json
 import re
 import shutil
 from collections.abc import Sequence
@@ -1568,6 +1569,30 @@ def emit_sparql(dsl: Dsl, profile: str) -> str:
 # --------------------------------------------------------------------------- #
 
 
+_DSL_STATS_FILE = "generated/mappings/dsl-stats.json"
+
+
+def emit_dsl_stats(dsl: Dsl) -> str:
+    """Render the DSL's surface counts as a committed, drift-gated artifact.
+
+    Replaces hand-pinned counts in the test suite: a vocabulary addition
+    changes THIS file (regenerate to resolve, the delta is reviewable in the
+    PR diff) instead of a Python assertion that conflicts on every branch.
+    Tests keep only structural invariants and catastrophe floors.
+    """
+    cells_by_set: dict[str, int] = {}
+    for cell in dsl.equivalences:
+        cells_by_set[cell.sssom_file] = cells_by_set.get(cell.sssom_file, 0) + 1
+    stats = {
+        "equivalences": len(dsl.equivalences),
+        "functions": len(dsl.functions),
+        "mapping_sets": len(dsl.mapping_sets),
+        "projections": len(dsl.projections),
+        "cells_by_set": dict(sorted(cells_by_set.items())),
+    }
+    return json.dumps(stats, indent=1, sort_keys=True) + "\n"
+
+
 def _artifacts(
     dsl: Dsl, onto: Graph
 ) -> tuple[dict[str, Graph], dict[str, str], dict[str, str]]:
@@ -1590,6 +1615,7 @@ def _artifacts(
     sssom_texts = {
         f"generated/mappings/{file}": text for file, text in emit_sssom(dsl).items()
     }
+    sssom_texts[_DSL_STATS_FILE] = emit_dsl_stats(dsl)
     return rdf_graphs, sparql_texts, sssom_texts
 
 
@@ -1647,6 +1673,7 @@ def _committed_paths() -> dict[str, Path]:
     paths[_STANDPOINT_OA_QUERY] = PROJECTION_QUERY_DIR / "standpoint-oa.rq"
     paths[_STANDPOINT_SCHEMA_QUERY] = PROJECTION_QUERY_DIR / "standpoint-schema.rq"
     paths[_STANDPOINT_BBC_QUERY] = PROJECTION_QUERY_DIR / "standpoint-bbc.rq"
+    paths[_DSL_STATS_FILE] = MAPPINGS_DIR / "dsl-stats.json"
     return paths
 
 

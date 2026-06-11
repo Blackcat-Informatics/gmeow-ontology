@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -10,7 +11,7 @@ from rdflib import RDF, RDFS, BNode, Graph, URIRef
 from rdflib.namespace import Namespace
 from rdflib.plugins.sparql import prepareQuery
 
-from gmeow_tools.config import MAPPING_DSL_DIR, MAPPINGS_DIR, PREFIXES
+from gmeow_tools.config import MAPPING_DSL_DIR, MAPPINGS_DIR, PREFIXES, PROJECT_ROOT
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.mapping_compile import (
     _PROFILES,
@@ -32,257 +33,53 @@ EDOAL = Namespace(PREFIXES["edoal"])
 
 
 def test_dsl_parses() -> None:
-    """
-    Validate that the mapping DSL loads correctly and contains the expected
-    counts and profiles.
+    """Validate the mapping DSL structurally — exact counts live elsewhere.
 
-    Asserts that the loaded DSL has 1557 term equivalences, 38 functions,
-    49 mapping sets, more than 30 projection cells, and that the set of
-    profiles used in projection bindings equals the module-level `_PROFILES`.
+    Exact surface counts are a GENERATED artifact
+    (generated/mappings/dsl-stats.json, emitted by the compiler and enforced
+    by the drift gate): a vocabulary addition changes that file via
+    `gmeow regenerate`, and the delta is reviewed in the PR diff. This test
+    keeps only what should never need editing — structural invariants and
+    catastrophe floors that catch the compiler silently dropping content.
     """
     dsl = load_dsl()
-    # Every SSSOM data row became a TermEquivalence cell (incl. the 7 gUFO↔BFO
-    # foundational-spine cells, issue #40, the 13 standpoint cells — PROV-O x3,
-    # nanopub, CRMinf x3, Wikidata x2, schema.org, Web Annotation, DnS x2, #43 —
-    # the 3 pronoun-set Wikidata cells, #46, and the maximal rights + rights-Wikidata
-    # cells, #21 — ODRL action/constraint/operator/conflict vocabularies, CC REL,
-    # dcterms, schema.org, SPDX, PREMIS, RightsStatements.org, ma-ont, Wikidata).
-    # Issue #105 place naming: +8 names cells (PlaceName→CIDOC E48, hasPlaceName,
-    # nameLanguage→dcterms/schema/P407, endonym/exonym) and -3 retired places
-    # alternateName cells, net +5. OntoLex-Lemon: +3, net +8. Issue #65 locations
-    # core: +3 Location alignments (CRM/BFO closeMatch). Issue #76 universal
-    # mereology: +12 part/whole links (BFO, gUFO, schema.org, DCTERMS, CIDOC CRM).
-    # Issue #72 SUPPRESS-GEN: +2 (coarsenTo→dpv:Generalisation,
-    # coarserThan→skos:broader).
-    # Issue #74 universal coreference: +5 authority/counterpart/version rows and
-    # -1 retired places-local authorityLink row, net +4.
-    # Issue #71 determinacy: +6 (Determinacy→gufo/BFO, 4 seeds→Wikidata, disputed).
-    # Issue #73 privacy: +16 (SensitivityLevel↔dpv/gufo, hasSensitivity↔dpv, 2 seeds→
-    # Wikidata, DataSubject/DataController/PrivacyNotice/hasPrivacyNotice/actionProcess
-    # PersonalData↔dpv/schema.org/odrl).
-    # Issue #70 frame-relativity: +9 (QUDT x3, FIBO x2, OWL-Time TRS x2, Lexvo x2).
-    # Issue #67 expanded temporal: +52 net after removing 11 duplicates that
-    # were split across classes.ttl/properties.ttl and consolidating them in
-    # temporal.ttl per Principle 4 (one canonical source).
-    # Issue #66 base observations: +16 (SOSA/SSN x6, PROV-O x4, CIDOC E13 x3,
-    # determinacy x1, Wikidata x2).
-    # Issue #68 standpoint enhancement: +2 (StandpointClaim→sosa:Observation,
-    # Agent→sosa:Sensor).
-    # Issue #95 distance/metric: +1 (proximity→schema:distance).
-    # Issue #27 tagging building block: +16 (Tag↔skos:Concept/schema:DefinedTerm,
-    # TagScheme↔skos:ConceptScheme/schema:DefinedTermSet, hasTag↔skos:hasTopConcept/
-    # schema:keywords, isAbout↔schema:about/oa:hasTarget, Tagging↔oa:Annotation,
-    # broaderTag↔skos:broader, narrowerTag↔skos:narrower, relatedTag↔skos:related,
-    # tagInScheme↔skos:inScheme, 2 MOAT alignments, 2 tag-relation seeds).
-    # Issue #78 pose/orientation: +16 (IEEE 1872 POS x5, Wikidata x11).
-    # Issue #80 connectivity: +2 (Route→gtfs:Route, Route→schema:Trip).
-    # Issue #81 lifecycle: +8 (+7 as originally authored, +1 eventTypeDissolution
-    # mapping added per review feedback).
-    # Issue #75 Profile meta-pattern: +1 (gmeow:Profile skos:relatedMatch prof:Profile).
-    # Issue #77 universal quantity: +4 (Quantity→qudt:QuantityValue,
-    # quantityValue→qudt:quantityValue, quantityUncertainty→qudt:standardUncertainty,
-    # Quantity→sosa:Result).
-    # Issue #69 universal claim construct: +6 (IdentityFacet→sosa:Observation,
-    # NameUsage→sosa:Observation, RightsStatement→sosa:Observation,
-    # KinRelationship→sosa:Observation, facetSubject→sosa:hasFeatureOfInterest,
-    # facetVantage→sosa:madeBySensor).
-    # Issue #101 spatial aggregation: +5 (SpatialAggregation→qb:Observation,
-    # Dataset→qb:DataSet, AggregationFunction→qb:MeasureProperty,
-    # containsPlace→geo:sfContains, hasCentroid→geo:hasCentroid).
-    # Place is intentionally NOT aligned to qb:DimensionProperty (category
-    # mismatch: object class vs. metaclass of properties).
-    # Issue #82 terrestrial realm deepening: +20 (LinkedGeoData x3, CIDOC-CRM+CRMgeo x4,
-    # Pleiades x3, WHG x2, sf: x3, Wikidata x5).
-    # Issue #102 accessibility: +14 (hasAccessibilityFeature→schema:a11yFeature,
-    # hasBarrier→schema:a11yHazard, AccessibilityAssertion→sosa:Observation,
-    # 7 facet→ICF, 4 duplicate ICF facet alignments for step-free/auditory/cognitive
-    # /clearance bridging to shared ICF categories).
-    # Issue #99 data quality: +10 (DQV x4, GeoDCAT-AP/OA x1, PROV-O lineage x1,
-    # Wikidata x3).
-    # Issue #94 motion: +2 (LocationState→mf:TemporalGeometry,
-    # Trajectory→mf:TemporalTrajectory).
-    # Issue #100 capacity/occupancy: +3 (Brick Capacity, Brick Occupancy,
-    # schema.org maximumAttendeeCapacity).
-    # Issue #161 cross-cutting versions: +3 (versionLabel→schema:version,
-    # versionLabel→doap:revision, VersionSet→doap:Project).
-    # Issue #97 cross-cutting multilingual labels: +11
-    # (hasOrganizationName→schema/vcard/foaf, hasTitle→dcterms/schema/headline,
-    # CreativeWorkTitle→schema, AgreementName→schema, SoftwareName→schema,
-    # hasAgreementName→schema, hasSoftwareName→schema).
-    # Issue #103 regulatory overlays: +14 (RegulatoryOverlay→schema/Wikidata,
-    # overlayType*→Wikidata x8, civilTimeZone→time:TimeZone/Wikidata,
-    # overlayAuthority→schema:organizer, overlayRegulation→schema:legislation).
-    # Issue #96 streaming: +10 observations (removed eqObs028 per review),
-    # +4 places (eqPlaces104-107); closeMatch→broadMatch/relatedMatch per review.
-    # Issue #106 events spacetime/trajectory: +6 (LocationState→E92/SP1,
-    # Trajectory→E92, eventSpacetime/eventTrajectory→E92/SP1 x2).
-    # Issue #104 sensory environment: +5 (SOSA/SSN x5:
-    # SensoryObservation→sosa:Observation, SensoryEnvironment→sosa:FeatureOfInterest,
-    # CoordinateMatrix→sosa:Result, hasMeasuredCondition→sosa:hasResult,
-    # SensoryPerception→sosa:Observation).
-    # Issue #83 indoor realm (BOT / ifcOWL): +11 (placeType* → bot/ifc x8,
-    # Place→bot:Zone, containsPlace→bot:containsZone,
-    # adjacentTo→bot:adjacentZone).
-    # Issue #84 virtual + network address space: +11 (NetworkAddress→Wikidata,
-    # networkAddressType*→Wikidata x6 incl. port,
-    # virtualLocationType*→schema.org/Wikidata x3, networkAddressTypeBGP→Wikidata).
-    # Issue #85 celestial realm: +19 (IVOA refframe x3, refposition x4 incl.
-    # heliocentric, object-type x4, UAT x2 in places.ttl; IVOA timescale x6 in
-    # temporal.ttl).
-    # Issue #86 mathematical / n-D reference frames: +9 (Wikidata/ML-Schema
-    # alignments in places.ttl).
-    # Issue #87 psychological / cognitive realm: +4 (
-    # MentalReferenceFrame→mf:mental process,
-    # SensoryPerception→mf:perceptual process,
-    # referenceFrameAffectiveCircumplex→mfoem:affective process,
-    # referenceFrameAffectiveCircumplex→mfoem:emotion process).
-    # Issue #88 robotic realm: +9 (Wikidata x2, CORA x2, KnowRob x4, SOMA x1).
-    # Issue #89 narrative realm: +4 (schema:Book, schema:Episode in
-    # narrative.ttl; wd:Q1774138, wd:Q15706943 in narrative.ttl).
-    # Issue #124 temporal measurement under observation: +4
-    # (measuredDate→time:hasTime, measuredDate→time:inXSDDateTimeStamp,
-    # DatingMethod→dcterms:method, DatingMethod→crm:P33_used_specific_technique).
-    # Issue #31 enhanced Wikidata ontology usage: +26 (Agent, Document, CreativeWork,
-    # Article, WebPage, Dataset, MediaObject, LifeEvent, eventTypeBirth/Death/Marriage/
-    # Divorce/Adoption/Graduation, TelephoneNumber, EmailAddress, Mailbox, Credential,
-    # CryptographicKey, Certification, CalendarSystem, languageCode, Occupation, Skill,
-    # Group, Activity).
-    # Issue #90 biological-sequence realm: +18 (FALDO x6, Sequence Ontology x7,
-    # Wikidata x5).
-    # Issue #91 geocoding frames: +9 (Geocode→Wikidata, 6 ReferenceFrame→Wikidata,
-    # plusCode→Wikidata P3826, geohash→Wikidata P2506).
-    # Issue #125 spatial measurement / coordinate observation: +13
-    # (SpatialMeasurement→sosa/O&M/CRMarchaeo/OM,
-    #  CoordinateObservation→sosa/O&M/CRMarchaeo,
-    #  coordinateResult→sosa:hasResult/geo:asWKT,
-    #  geometryResult→sosa:hasResult/geo:hasGeometry,
-    #  hasCoordinateObservation→geo:hasGeometry,
-    #  methodGPS/TotalStation/Photogrammetry→Wikidata).
-    # Issue #92 cadastral / land administration: +14 (LADM x5, INSPIRE CP x7,
-    # Wikidata x2).
-    # Issue #93 maritime / aviation zones: +14 (MRGID x4, AIXM/ICAO x5, UNCLOS x5).
-    # Issue #162 cross-cutting attestations: +14 (PROV-O x7, W3C VC/DID x5,
-    # WOT x1, DQV x1).
-    # Issue #126 sensory module: +14 (SOSA/SSN x6, OBOE x3, PATO x1, OBI x2,
-    # QB x1, OM x1).
-    # Issue #208 creative-works WEMI spine: +38 (FRBRcore x7, FaBiO x4, LRMoo x6,
-    # CIDOC-CRM x1, BIBFRAME x3, schema.org x4, Wikidata x13).
-    # Issue #211 citation & credit module: +29 (CRediT x14, PAV x2, CiTO x10,
-    # Web Annotation x1, PROV-O x2).
-    # Issue #172 notation and symbolic systems: +8 (NotationSystem→schema/Wikidata x2,
-    # NotationSystemUsage→sosa:Observation, hasNotationSystem→schema/Wikidata x2,
-    # notationSystemFor→schema/Wikidata x2, writingSystemAsNotation→schema).
-    # Issue #128 event-observation unification: +10 (ObservationalActivity→CRM E13/
-    # prov:Activity/schema:Action in events.ttl x3, generatedObservation→prov:generated
-    # in provenance.ttl x1, eventObservation→CRM P140 x1,
-    # eventTypeSurvey/Audit→schema x2, ObservationalActivity→OBI/QB x2,
-    # Observation→oboe:Observation x1).
-    # Issue #224 evidence / source-typing: +7 (CRMinf x3, PROV-O x2, schema.org x2).
-    # Issue #129 domain-specific observation profiles: +18
-    # (CRMarchaeo x4, IVOA ObsCore x4, BBC News Ontology x2,
-    # IPTC NewsML-G2 x3, Open Annotation x1, LOINC x2, SNOMED CT x2).
-    # Issue #231 software five-facet de-conflation: +12 (DOAP x3, schema.org x3,
-    # SPDX x2, CodeMeta x1, ForgeFed x3).
-    # Issue #173 archaeological evidence: +16 (CIDOC-CRM E34, E19, P128, P128i,
-    # CRMarchaeo A2 x2, CRMsci S4 x3, CRMinf I1/I2 x2, PROV-O Activity/generated x2,
-    # Web Annotation x3).
-    # Issue #225 consumer projection policy / disclosure control: +8
-    # (ProjectionContext↔dpv:Recipient,
-    #  DisclosurePolicy↔dpv:ProcessingContext/odrl:Policy,
-    #  eligibleForConsumer↔schema:audience,
-    #  hasDisclosurePolicy↔dpv:hasProcessingContext,
-    #  policyPublicOnlyWithIndependentSource↔odrl:purpose,
-    #  consumerWikidata↔wd:Q2013, consumerWikipedia↔wd:Q52).
-    # Issue #156 book / narrative model: +6 (schema:Book, bibo:Book,
-    # schema:CreativeWorkSeries, schema:Chapter x2, schema:Role).
-    # Issue #64 financial slice Phase A: +17 (FIBO x7, schema.org x5, ISO 4217 x5).
-    # Issue #213 deception: +8 (standpoint.ttl bullshit→CRMinf x1;
-    # deception.ttl schema.org x2, PROV-O x2, CRMinf x2, Wikidata x1).
-    # Issue #60 Dublin Core maximal alignment: +46 (dcterms props + dcmitype classes
-    # + DC refinements date/description/relation/coverage/bibliographic/medium/
-    # audience/provenance/accessRights; overlaps none of the above issues).
-    # Issue #232 git provenance deepening: +6 (Software Heritage alignments).
-    # Issue #214 myth: +4 (Myth→Wikidata x3, hasMythTelling→schema:CreativeWork x1).
-    # Issue #169 lexicon: +9 (OntoLex x4, LIME x1, PROV-O x3, Wikidata x1).
-    # Issue #226 procedure / execution / step: +26 (P-Plan x4, PROV-O x4,
-    # schema.org x4, OPMW x3, OBI x3, BPMN x4, RO-Crate x4).
-    # Issue #215 speech-act deceptions: +5 (eventTypeLie/Distortion/Bullshit/
-    # SelfDeception → Wikidata x4 + Frankfurt essay x1). Paltering removed —
-    # no valid Wikidata QID found.
-    # Issue #64 financial slice Phases B-D: +10 (schema.org finance x5, FIBO x5).
-    # Issue #60 completion: +1 (hasManifestationFormat → dcterms:format).
-    # Issue #63 first-class annotation & PKM layer: +16 (oa:Annotation x3,
-    # schema:NoteDigitalDocument, schema:Comment, as:Note, sioc:Post,
-    # sioc:reply_of, sioc:has_reply, AnnotationMotivation x7).
-    # Issue #22 image super-ontology: +21 (schema.org ImageObject/about/width/
-    # height/dateCreated x5, Web Annotation selector types x4, EXIF width/height/
-    # orientation/dateTime x4, IIIF Canvas/Annotation/width/height x4,
-    # CIDOC-CRM production x1, CRMdig area x1, Wikidata region/spatial-relation x2).
-    # Issue #23 employment / CV-résumé block: +8 (schema.org x4, Wikidata x2,
-    # W3C ORG x1, ESCO x1).
-    # Issue #137 email behavioral metadata: +1 (sentBySoftware → schema:agent).
-    # Issue #258 organization module deepening: +11 (Post→org:Post,
-    # organizationTypeCompany/Collaboration→org, ChangeEvent→Event,
-    # postIn/fillsPost/hasSite/predecessorOrganization/successorOrganization/
-    # organizationPurpose/industryClassification→org).
-    # Issue #216 carrier deceptions: +5 (fabrication→Wikidata x2, forgery→Wikidata x2,
-    # impersonation→Wikidata x1). PAPO/ROSE mappings removed — no stable resolvable
-    # RDF namespaces for those OntoUML models.
-    # Issue #62 calendar / scheduling slice: +22 (iCalendar x13, schema.org
-    # Schedule x4, Wikidata x5).
-    # Issue #263 expertise depth: +10 (ESCO skill/occupation x2, CTDL credential x1,
-    # schema.org hasSkill/skills/knowsAbout x2, schema.org hasCredential/
-    # competencyRequired/recognizedBy/sourceOrganization x4, CTDL ownedBy x1).
-    # Issue #217 disinformation campaign: +5 (disinformation→Wikidata x1,
-    # misinformation→Wikidata x1, propaganda→Wikidata x1, rumor→Wikidata x1,
-    # fake news→Wikidata x1).
-    assert len(dsl.equivalences) == 1557
-    # 27 projection transforms declared (incl. fnPronounSetToText #46,
-    # fnSelectEndonym + fnSelectExonym #105, fnCoarsenToGranularity #72,
-    # fnTagToKeyword + fnTaggingToAnnotation #27,
-    # fnPosePositionToWktPoint #78,
-    # fnRetagGeoJson + fnCoarsenToGranularityGeoJson #82).
-    # Issue #213 deception: +7 (fnStandpointDivergence, fnImplicatesInContext,
-    # fnMaximViolationType, fnDeceptionCueScore, fnCredibilityScore,
-    # fnPropagationMutationDistance, fnArgumentAcceptability).
-    # Issue #234 software identity over history: +1 (fnComposeMailmapMapping).
-    # Issue #258 organization module deepening: +2 (fnOrganizationTypeToClass,
-    # fnPostToOrganizationRole).
-    assert len(dsl.functions) == 38
-    # One MappingSet per TSV (incl. gmeow-foundational, gmeow-standpoint,
-    # gmeow-events, gmeow-rights, gmeow-coreference, gmeow-determinacy, gmeow-privacy).
-    # Issue #70 adds gmeow-qudt, gmeow-fibo, gmeow-temporal.
-    # Issue #67 expands gmeow-temporal (merged, not double-counted).
-    # Issue #66 adds gmeow-observations.
-    # Issue #27 adds gmeow-tags.
-    # gmeow-colourspace is intentionally omitted (no TermEquivalence entries).
-    # Issue #27 adds gmeow-tags.
-    # Issue #80 adds gmeow-connectivity.
-    # Issue #81 lifecycle: +1 (gmeow-lifecycle.sssom.tsv).
-    # Issue #101 spatial aggregation: +1 (gmeow-aggregation.sssom.tsv).
-    # Issue #102 accessibility: +1 (gmeow-accessibility.sssom.tsv).
-    # Issue #99 data quality: +1 (gmeow-quality.sssom.tsv).
-    # Issue #161 versions: +1 (gmeow-versions.sssom.tsv).
-    # Issue #104 sensory environment: +1 (gmeow-sensory-environment.sssom.tsv).
-    # Issue #89 narrative realm: +1 (gmeow-narrative.sssom.tsv).
-    # Issue #208 creative-works WEMI spine: +1 (gmeow-creative-works.sssom.tsv).
-    # Issue #211 citation & credit module: +1 (gmeow-citations.sssom.tsv).
-    # Issue #172 notation and symbolic systems: +1 (gmeow-notation.sssom.tsv).
-    # Issue #224 evidence: +1 (gmeow-evidence.sssom.tsv).
-    # Issue #231 software five-facet de-conflation: +1 (gmeow-software.sssom.tsv).
-    # Issue #173 archaeological evidence: +1 (gmeow-archaeological-evidence.sssom.tsv).
-    # Issue #64 financial slice Phase A: +2 (gmeow-schema-org-finance, gmeow-iso4217).
-    # Issue #213 deception: +1 (gmeow-deception.sssom.tsv).
-    # Issue #60 Dublin Core maximal alignment: +1 (gmeow-dublin-core.sssom.tsv).
-    # Issue #169 lexicon: +1 (gmeow-lexicon.sssom.tsv).
-    # Issue #226 procedure / execution / step: +1 (gmeow-procedures.sssom.tsv).
-    # Issue #63 first-class annotation & PKM layer: +1 (gmeow-notes.sssom.tsv).
-    # Issue #22 image super-ontology: +1 (gmeow-images.sssom.tsv).
-    # Issue #23 employment: +1 (gmeow-employment.sssom.tsv).
-    # Issue #62 calendar / scheduling slice: +1 (gmeow-calendar.sssom.tsv).
-    assert len(dsl.mapping_sets) == 50
-    # Projection cells across all eight profiles (incl. ical, owl-time, odrl, cc).
+
+    # Catastrophe floors: orders-of-magnitude backstops, NOT running totals.
+    assert len(dsl.equivalences) >= 1000
+    assert len(dsl.functions) >= 30
+    assert len(dsl.mapping_sets) >= 40
     assert len(dsl.projections) > 30
+
+    # Every equivalence cell belongs to a declared mapping set's SSSOM file.
+    set_files = set(dsl.mapping_sets)  # keyed by SSSOM file name
+    cell_files = {cell.sssom_file for cell in dsl.equivalences}
+    assert cell_files <= set_files, cell_files - set_files
+
+    # At most a handful of sets are intentionally cell-less (e.g.
+    # gmeow-colourspace documents refusals only); a wide gap means the
+    # parser dropped cells wholesale.
+    assert len(set_files - cell_files) <= 3, set_files - cell_files
+
+    # The committed stats artifact agrees with the live parse — belt to the
+    # drift gate's braces, and a clear local failure message when a branch
+    # forgets to regenerate.
+    stats = json.loads(
+        (PROJECT_ROOT / "generated" / "mappings" / "dsl-stats.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    live = {
+        "equivalences": len(dsl.equivalences),
+        "functions": len(dsl.functions),
+        "mapping_sets": len(dsl.mapping_sets),
+        "projections": len(dsl.projections),
+    }
+    committed = {k: stats[k] for k in live}
+    assert live == committed, (
+        f"DSL surface changed: {live} != committed {committed} — "
+        "run `gmeow regenerate mappings` and commit dsl-stats.json"
+    )
+
     profiles = {b.profile for cell in dsl.projections for b in cell.bindings}
     assert profiles == set(_PROFILES)
 
