@@ -348,12 +348,15 @@ ex:msgMultipart
     gmeow:receivedAt "2026-06-03T09:00:01Z"^^xsd:dateTime ;
     gmeow:residesIn ex:inbox ;
     gmeow:hasKeyword gmeow:keywordSeen ;
+    gmeow:blobId "Gabcdef1234567890" ;
+    gmeow:bodyStructure """{"type":"multipart/alternative","partId":"1","blobId":"Gabcdef1234567890","size":1234,"name":null,"cid":null,"language":null,"location":null,"parts":[{"type":"text/plain","partId":"1.1","blobId":"Gplain1234567890","size":42},{"type":"text/html","partId":"1.2","blobId":"Ghtml1234567890","size":84}]}""" ;
     gmeow:hasBodyPart ex:multipartAlt ;
     gmeow:hasInlinePart ex:htmlPart .
 
 ex:multipartAlt
     a gmeow:MultipartBodyPart ;
     gmeow:partId "1" ;
+    gmeow:blobId "Gabcdef1234567890" ;
     gmeow:hasMultipartType gmeow:multipartTypeAlternative ;
     gmeow:hasPart ex:plainPart ;
     gmeow:hasPart ex:htmlPart .
@@ -361,6 +364,7 @@ ex:multipartAlt
 ex:plainPart
     a gmeow:BodyPart ;
     gmeow:partId "1.1" ;
+    gmeow:blobId "Gplain1234567890" ;
     gmeow:mediaType "text/plain" ;
     gmeow:charset "utf-8" ;
     gmeow:hasContentTransferEncoding gmeow:transferEncodingQuotedPrintable ;
@@ -371,9 +375,15 @@ ex:plainText
     a gmeow:TextExtraction ;
     gmeow:wasDerivedFrom ex:plainPart .
 
+# Decoded body content as a BodyValue (issue #140).
+ex:plainBodyValue
+    a gmeow:BodyValue ;
+    gmeow:wasDerivedFrom ex:plainPart .
+
 ex:htmlPart
     a gmeow:InlinePart ;
     gmeow:partId "1.2" ;
+    gmeow:blobId "Ghtml1234567890" ;
     gmeow:mediaType "text/html" ;
     gmeow:charset "utf-8" ;
     gmeow:contentId "<html-body@example.org>" ;
