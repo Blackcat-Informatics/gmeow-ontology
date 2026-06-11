@@ -2846,9 +2846,16 @@ export interface EmailMessage extends Message {
     dispositionNotificationTo?: EmailAddress[],
     from?: EmailAddress[],
     hasCalendarMethod?: CalendarMethod[],
+    hasMailingList?: MailingList[],
     hasMessageParticipant?: MessageParticipant[],
     hasPatchDiff?: EmailPatchDiff[],
     importance?: string,
+    listArchive?: string[],
+    listHelp?: string[],
+    listOwner?: EmailAddress[],
+    listPost?: string,
+    listSubscribe?: string[],
+    listUnsubscribe?: string[],
     messageIdCollision?: boolean,
     messageIdGenerated?: boolean,
     precedence?: string,
@@ -3648,6 +3655,11 @@ export interface Mailbox extends InformationObject {
 export interface MailboxResidence extends TimeScopedRelation {
     residenceMailbox?: Mailbox,
     residentMessage?: Message,
+}
+
+
+
+export interface MailingList extends InformationObject {
 }
 
 
