@@ -17233,6 +17233,15 @@
                         "null"
                     ]
                 },
+                "narrates": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "provenance": {
                     "items": {
                         "type": "string"
@@ -60212,6 +60221,58 @@
             ],
             "title": "NamedPeriodEnum",
             "type": "string"
+        },
+        "NarrationMode": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "NarrationMode",
+            "type": "object"
+        },
+        "NarrationModeEnum": {
+            "description": "",
+            "enum": [
+                "narrationDirect",
+                "narrationDream",
+                "narrationFlashback",
+                "narrationHypothetical",
+                "narrationMentioned",
+                "narrationUnreliable"
+            ],
+            "title": "NarrationModeEnum",
+            "type": "string"
+        },
+        "NarrationUsage": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "narrationMode": {
+                    "items": {
+                        "$ref": "#/$defs/NarrationMode"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "narrationSegment": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ContentSegment"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "narrationSubject": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "title": "NarrationUsage",
+            "type": "object"
         },
         "NarrativeFrameLink": {
             "additionalProperties": false,

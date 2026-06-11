@@ -1,0 +1,75 @@
+# Well-formed narration-seam fixture (#360, EPIC #358), at chapter scale:
+# one chapter segment with positions (#359), twelve flat character links and
+# three flat event links (the efficiency doctrine's default), ONE promoted
+# NarrationUsage carrying flashback+mentioned modes for a fourth event (the
+# reify-with-a-reason case), and one narratedIn in the projection-friendly
+# orientation.
+# run_shacl over this graph MUST conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:novel a gmeow:CreativeWork ; rdfs:label "Kushiel's Dart (first edition)"@en .
+
+ex:discourseFrame a gmeow:NarrativeTimeFrame ;
+    gmeow:narrativeTimeAxis gmeow:axisDiscourseTime ;
+    gmeow:discourseTimeOf ex:novel ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ;
+    gmeow:frameKind gmeow:frameKindNarrative ;
+    gmeow:hasAxis ex:dAxis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyCrisp .
+
+ex:pos31 a gmeow:NarrativePosition ;
+    gmeow:positionFrame ex:discourseFrame ;
+    gmeow:positionOrdinal 31 .
+
+# The carrying segment: chapter 31, positioned in discourse time.
+ex:chapter31 a gmeow:ContentSegment ;
+    rdfs:label "Thirty-Three"@en ;
+    gmeow:segmentOf ex:novel ;
+    gmeow:atNarrativePosition ex:pos31 .
+
+# Twelve flat character links — one quad each (efficiency doctrine).
+ex:phedre a gmeow:Person ; rdfs:label "Phèdre"@en .
+ex:joscelin a gmeow:Person ; rdfs:label "Joscelin"@en .
+ex:melisande a gmeow:Person ; rdfs:label "Melisande"@en .
+ex:alcuin a gmeow:Person ; rdfs:label "Alcuin"@en .
+ex:delaunay a gmeow:Person ; rdfs:label "Delaunay"@en .
+ex:ysandre a gmeow:Person ; rdfs:label "Ysandre"@en .
+ex:hyacinthe a gmeow:Person ; rdfs:label "Hyacinthe"@en .
+ex:thelesis a gmeow:Person ; rdfs:label "Thelesis"@en .
+ex:quincel a gmeow:Person ; rdfs:label "Quincel"@en .
+ex:ganelon a gmeow:Person ; rdfs:label "Ganelon"@en .
+ex:cecilie a gmeow:Person ; rdfs:label "Cecilie"@en .
+ex:guy a gmeow:Person ; rdfs:label "Guy"@en .
+
+ex:chapter31 gmeow:narrates ex:phedre , ex:joscelin , ex:melisande , ex:alcuin ,
+    ex:delaunay , ex:ysandre , ex:hyacinthe , ex:thelesis , ex:quincel ,
+    ex:ganelon , ex:cecilie .
+
+# The projection-friendly orientation (P1441's edge), used for one link.
+ex:guy gmeow:narratedIn ex:chapter31 .
+
+# Three flat event links; the fourth event is promoted below.
+ex:evtOffer a gmeow:Event ; gmeow:eventType ex:etAssignation ; rdfs:label "the assignation offer"@en .
+ex:evtBraid a gmeow:Event ; gmeow:eventType ex:etIntimacy ;    rdfs:label "the braiding"@en .
+ex:evtBarb  a gmeow:Event ; gmeow:eventType ex:etExchange ;    rdfs:label "the sharp exchange"@en .
+ex:evtOath  a gmeow:Event ; gmeow:eventType ex:etRevelation ;  rdfs:label "Delaunay's oath recalled"@en .
+ex:etAssignation a gmeow:EventType ; rdfs:label "assignation"@en .
+ex:etIntimacy    a gmeow:EventType ; rdfs:label "intimacy"@en .
+ex:etExchange    a gmeow:EventType ; rdfs:label "exchange"@en .
+ex:etRevelation  a gmeow:EventType ; rdfs:label "revelation"@en .
+
+ex:chapter31 gmeow:narrates ex:evtOffer , ex:evtBraid , ex:evtBarb .
+
+# The ONE promoted link: the oath is recalled — narrated out of story order,
+# framed in memory. Mode is the reason to reify; the flat link is replaced,
+# not duplicated.
+ex:oathNarration a gmeow:NarrationUsage ;
+    gmeow:narrationSegment ex:chapter31 ;
+    gmeow:narrationSubject ex:evtOath ;
+    gmeow:narrationMode gmeow:narrationFlashback , gmeow:narrationMentioned .
