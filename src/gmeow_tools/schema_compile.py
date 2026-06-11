@@ -31,18 +31,18 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
-from rdflib.term import BNode
 
-from gmeow_tools.config import PREFIXES, PROJECT_ROOT, SCHEMAS_DIR
+from gmeow_tools.config import (
+    GTS_SNAPSHOT_FILE,
+    PREFIXES,
+    PROJECT_ROOT,
+    SCHEMAS_DIR,
+)
 from gmeow_tools.generator import Generator, register, write_text
-from gmeow_tools.graph import iter_module_files
 from gmeow_tools.gts_views import FoldView, load_fold
-from gmeow_tools.language_tags import public_text
-from gmeow_tools.self_desc import load_self_description
 
-_GMEOW = Namespace(PREFIXES["gmeow"])
-_XSD = Namespace(PREFIXES["xsd"])
+_GMEOW = str(PREFIXES["gmeow"])
+_XSD = str(PREFIXES["xsd"])
 
 #: Artifacts emitted by the schema compiler.
 _LINKML_FILE = "gmeow.linkml.yaml"
@@ -54,30 +54,30 @@ _OPENAPI_FILE = "gmeow.openapi.json"
 
 #: OWL XSD → LinkML built-in type name.
 _XSD_TO_LINKML: Mapping[str, str] = {
-    str(_XSD.string): "string",
-    str(_XSD.boolean): "boolean",
-    str(_XSD.integer): "integer",
-    str(_XSD.int): "integer",
-    str(_XSD.long): "integer",
-    str(_XSD.short): "integer",
-    str(_XSD.byte): "integer",
-    str(_XSD.nonNegativeInteger): "integer",
-    str(_XSD.positiveInteger): "integer",
-    str(_XSD.nonPositiveInteger): "integer",
-    str(_XSD.negativeInteger): "integer",
-    str(_XSD.unsignedByte): "integer",
-    str(_XSD.unsignedShort): "integer",
-    str(_XSD.unsignedInt): "integer",
-    str(_XSD.unsignedLong): "integer",
-    str(_XSD.decimal): "decimal",
-    str(_XSD.float): "float",
-    str(_XSD.double): "double",
-    str(_XSD.dateTime): "datetime",
-    str(_XSD.date): "date",
-    str(_XSD.time): "time",
-    str(_XSD.duration): "duration",
-    str(_XSD.anyURI): "uri",
-    str(RDFS.Literal): "string",
+    _XSD + "string": "string",
+    _XSD + "boolean": "boolean",
+    _XSD + "integer": "integer",
+    _XSD + "int": "integer",
+    _XSD + "long": "integer",
+    _XSD + "short": "integer",
+    _XSD + "byte": "integer",
+    _XSD + "nonNegativeInteger": "integer",
+    _XSD + "positiveInteger": "integer",
+    _XSD + "nonPositiveInteger": "integer",
+    _XSD + "negativeInteger": "integer",
+    _XSD + "unsignedByte": "integer",
+    _XSD + "unsignedShort": "integer",
+    _XSD + "unsignedInt": "integer",
+    _XSD + "unsignedLong": "integer",
+    _XSD + "decimal": "decimal",
+    _XSD + "float": "float",
+    _XSD + "double": "double",
+    _XSD + "dateTime": "datetime",
+    _XSD + "date": "date",
+    _XSD + "time": "time",
+    _XSD + "duration": "duration",
+    _XSD + "anyURI": "uri",
+    "http://www.w3.org/2000/01/rdf-schema#Literal": "string",
 }
 
 
@@ -86,291 +86,16 @@ _XSD_TO_LINKML: Mapping[str, str] = {
 #: constraint instead of merely the integer-ness (#345). unsignedLong's upper
 #: bound exceeds what JSON consumers represent exactly and is omitted.
 _XSD_INTEGER_BOUNDS: Mapping[str, tuple[int | None, int | None]] = {
-    str(_XSD.nonNegativeInteger): (0, None),
-    str(_XSD.positiveInteger): (1, None),
-    str(_XSD.nonPositiveInteger): (None, 0),
-    str(_XSD.negativeInteger): (None, -1),
-    str(_XSD.byte): (-128, 127),
-    str(_XSD.unsignedByte): (0, 255),
-    str(_XSD.unsignedShort): (0, 65535),
-    str(_XSD.unsignedInt): (0, 4294967295),
-    str(_XSD.unsignedLong): (0, None),
+    _XSD + "nonNegativeInteger": (0, None),
+    _XSD + "positiveInteger": (1, None),
+    _XSD + "nonPositiveInteger": (None, 0),
+    _XSD + "negativeInteger": (None, -1),
+    _XSD + "byte": (-128, 127),
+    _XSD + "unsignedByte": (0, 255),
+    _XSD + "unsignedShort": (0, 65535),
+    _XSD + "unsignedInt": (0, 4294967295),
+    _XSD + "unsignedLong": (0, None),
 }
-
-
-def _local_name(iri: URIRef) -> str:
-    """Return the local name of an IRI (after last ``#`` or ``/``)."""
-    text = str(iri)
-    cut = max(text.rfind("#"), text.rfind("/"))
-    return text[cut + 1 :] if cut >= 0 else text
-
-
-def _is_bnode(iri: URIRef | BNode) -> bool:
-    """Whether the term is a blank node."""
-    return isinstance(iri, BNode)
-
-
-def _iri_to_linkml_range(
-    iri: URIRef,
-    class_names: set[str],
-    warnings: list[str],
-    prop_local: str,
-) -> str:
-    """Map an OWL range IRI to a LinkML range string."""
-    s = str(iri)
-    if s in _XSD_TO_LINKML:
-        return _XSD_TO_LINKML[s]
-    local = _local_name(iri)
-    if _is_gmeow_iri(iri) and local in class_names:
-        return local
-    # External class → degrade to string with warning
-    warnings.append(f"{prop_local}: range {s} is external — degrading to string")
-    return "string"
-
-
-def _gather_owl_properties(graph: Graph) -> list[URIRef]:
-    """Return all OWL properties (object, datatype, annotation) as a sorted list."""
-    props: set[URIRef] = set()
-    for p in (
-        *graph.subjects(RDF.type, OWL.ObjectProperty),
-        *graph.subjects(RDF.type, OWL.DatatypeProperty),
-        *graph.subjects(RDF.type, OWL.AnnotationProperty),
-    ):
-        if isinstance(p, URIRef):
-            props.add(p)
-    return sorted(props, key=str)
-
-
-def _is_gmeow_iri(iri: URIRef) -> bool:
-    """Whether the IRI is in the GMEOW namespace."""
-    return str(iri).startswith(str(_GMEOW))
-
-
-def emit_linkml(graph: Graph) -> tuple[dict[str, Any], list[str]]:
-    """Extract GMEOW classes, properties, and individuals into a LinkML schema dict.
-
-    Returns the schema dict and a list of non-fatal warnings.
-    """
-    warnings: list[str] = []
-
-    schema: dict[str, Any] = {
-        "id": "https://blackcatinformatics.ca/gmeow/linkml",
-        "name": "gmeow",
-        "description": (
-            "GMEOW developer schema generated from canonical OWL. "
-            "Lossy by design: restrictions, reification, standpoint, "
-            "inverseOf, and temporal scope are dropped."
-        ),
-        "prefixes": {
-            "gmeow": PREFIXES["gmeow"],
-            "linkml": "https://w3id.org/linkml/",
-        },
-        "imports": ["linkml:types"],
-        "default_range": "string",
-        "types": {
-            "duration": {
-                "uri": str(_XSD.duration),
-                "typeof": "string",
-            }
-        },
-        "classes": {},
-        "slots": {},
-        "enums": {},
-    }
-
-    # ------------------------------------------------------------------ #
-    # Classes
-    # ------------------------------------------------------------------ #
-    class_names: set[str] = set()
-    class_iris: dict[str, URIRef] = {}
-    pending_is_a: dict[str, str] = {}
-    for cls in sorted(graph.subjects(RDF.type, OWL.Class), key=str):
-        if not isinstance(cls, URIRef) or _is_bnode(cls):
-            continue
-        if not _is_gmeow_iri(cls):
-            continue
-        local = _local_name(cls)
-        if not local:
-            continue
-        class_names.add(local)
-        class_iris[local] = cls
-
-        cls_def: dict[str, Any] = {
-            "class_uri": str(cls),
-        }
-        label_text = public_text(graph, cls, RDFS.label)
-        if label_text:
-            cls_def["title"] = label_text
-        comments = list(graph.objects(cls, RDFS.comment))
-        if comments:
-            cls_def["description"] = str(comments[0])
-
-        supers = sorted(
-            (
-                s
-                for s in graph.objects(cls, RDFS.subClassOf)
-                if isinstance(s, URIRef) and not _is_bnode(s)
-            ),
-            key=str,
-        )
-        if supers:
-            # Prefer a GMEOW superclass already known in class_names;
-            # fall back to the first sorted superclass otherwise.
-            chosen = next(
-                (
-                    s
-                    for s in supers
-                    if _is_gmeow_iri(s) and _local_name(s) in class_names
-                ),
-                supers[0],
-            )
-            super_local = _local_name(chosen)
-            super_iri = chosen
-            if super_local == local:
-                warnings.append(f"{local}: self-referential superclass — dropping is_a")
-            elif _is_gmeow_iri(super_iri) and super_local in class_names:
-                cls_def["is_a"] = super_local
-            elif _is_gmeow_iri(super_iri):
-                # GMEOW superclass not yet discovered; defer resolution.
-                pending_is_a[local] = super_local
-            # External superclasses are silently dropped (they never appear
-            # in class_names).  Only warn when there are multiple choices.
-            if len(supers) > 1:
-                warnings.append(
-                    f"{local}: multiple superclasses — keeping {super_local}"
-                )
-
-        schema["classes"][local] = cls_def
-
-    # ------------------------------------------------------------------ #
-    # Resolve superclass links discovered after their child in the first pass
-    # ------------------------------------------------------------------ #
-    for local, super_local in pending_is_a.items():
-        if super_local in class_names:
-            schema["classes"][local]["is_a"] = super_local
-        else:
-            warnings.append(
-                f"{local}: superclass {super_local} not found — dropping is_a"
-            )
-
-    # ------------------------------------------------------------------ #
-    # Slots (properties)
-    # ------------------------------------------------------------------ #
-    functional_props = set(graph.subjects(RDF.type, OWL.FunctionalProperty))
-    for prop in _gather_owl_properties(graph):
-        if not _is_gmeow_iri(prop):
-            continue
-        local = _local_name(prop)
-        if not local:
-            continue
-
-        slot: dict[str, Any] = {"slot_uri": str(prop)}
-        label_text = public_text(graph, prop, RDFS.label)
-        if label_text:
-            slot["title"] = label_text
-        comments = list(graph.objects(prop, RDFS.comment))
-        if comments:
-            slot["description"] = str(comments[0])
-
-        # Range
-        ranges = sorted(
-            (
-                r
-                for r in graph.objects(prop, RDFS.range)
-                if isinstance(r, URIRef) and not _is_bnode(r)
-            ),
-            key=str,
-        )
-        if ranges:
-            slot["range"] = _iri_to_linkml_range(
-                ranges[0], class_names, warnings, local
-            )
-            bounds = _XSD_INTEGER_BOUNDS.get(str(ranges[0]))
-            if bounds is not None:
-                minimum, maximum = bounds
-                if minimum is not None:
-                    slot["minimum_value"] = minimum
-                if maximum is not None:
-                    slot["maximum_value"] = maximum
-            if len(ranges) > 1:
-                warnings.append(f"{local}: multiple ranges — keeping {slot['range']}")
-        else:
-            slot["range"] = "string"
-
-        # Domain
-        domains = sorted(
-            (
-                d
-                for d in graph.objects(prop, RDFS.domain)
-                if isinstance(d, URIRef) and not _is_bnode(d)
-            ),
-            key=str,
-        )
-        if domains:
-            domain_local = _local_name(domains[0])
-            if _is_gmeow_iri(domains[0]) and domain_local in class_names:
-                slot["domain"] = domain_local
-            if len(domains) > 1:
-                warnings.append(f"{local}: multiple domains — keeping {domain_local}")
-
-        # Multivalued / required
-        is_functional = prop in functional_props
-        is_object = (prop, RDF.type, OWL.ObjectProperty) in graph
-        is_datatype = (prop, RDF.type, OWL.DatatypeProperty) in graph
-        if is_functional:
-            slot["multivalued"] = False
-        elif is_object or is_datatype:
-            # Non-functional object and datatype properties can carry multiple
-            # values; only annotation properties default to single-valued.
-            slot["multivalued"] = True
-        # annotation properties default to single-valued
-
-        schema["slots"][local] = slot
-
-    # ------------------------------------------------------------------ #
-    # Enums from value vocabularies (individuals of GMEOW classes)
-    # ------------------------------------------------------------------ #
-    individuals_by_class: dict[str, list[URIRef]] = {}
-    for ind in graph.subjects(RDF.type):
-        if not isinstance(ind, URIRef) or not _is_gmeow_iri(ind):
-            continue
-        for cls in graph.objects(ind, RDF.type):
-            if not isinstance(cls, URIRef) or not _is_gmeow_iri(cls):
-                continue
-            cls_local = _local_name(cls)
-            if cls_local not in class_names:
-                continue
-            individuals_by_class.setdefault(cls_local, []).append(ind)
-
-    for cls_local, inds in sorted(individuals_by_class.items()):
-        if not inds:
-            continue
-        enum_name = f"{cls_local}Enum"
-        enum_def: dict[str, Any] = {
-            "enum_uri": str(class_iris[cls_local]),
-            "permissible_values": {},
-        }
-        for ind in sorted(inds, key=str):
-            ind_local = _local_name(ind)
-            pv: dict[str, Any] = {"meaning": str(ind)}
-            label_text = public_text(graph, ind, RDFS.label)
-            if label_text:
-                pv["title"] = label_text
-            comments = list(graph.objects(ind, RDFS.comment))
-            if comments:
-                pv["description"] = str(comments[0])
-            enum_def["permissible_values"][ind_local] = pv
-        schema["enums"][enum_name] = enum_def
-
-    # ------------------------------------------------------------------ #
-    # Attach slots to their domain classes
-    # ------------------------------------------------------------------ #
-    for slot_name, slot_def in schema["slots"].items():
-        domain = slot_def.get("domain")
-        if domain and domain in schema["classes"]:
-            schema["classes"][domain].setdefault("slots", []).append(slot_name)
-
-    return schema, warnings
 
 
 _RDF_TYPE_IRI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
@@ -394,13 +119,13 @@ def _iri_to_linkml_range_str(
     if iri in _XSD_TO_LINKML:
         return _XSD_TO_LINKML[iri]
     local = _local_name_str(iri)
-    if iri.startswith(str(_GMEOW)) and local in class_names:
+    if iri.startswith(_GMEOW) and local in class_names:
         return local
     warnings.append(f"{prop_local}: range {iri} is external — degrading to string")
     return "string"
 
 
-def emit_linkml_fold(view: FoldView) -> tuple[dict[str, Any], list[str]]:
+def emit_linkml(view: FoldView) -> tuple[dict[str, Any], list[str]]:
     """Extract the LinkML schema dict from the GTS snapshot (narrow waist).
 
     The fold counterpart of the rdflib emitter, with one deliberate
@@ -425,7 +150,7 @@ def emit_linkml_fold(view: FoldView) -> tuple[dict[str, Any], list[str]]:
         "default_range": "string",
         "types": {
             "duration": {
-                "uri": str(_XSD.duration),
+                "uri": _XSD + "duration",
                 "typeof": "string",
             }
         },
@@ -434,7 +159,7 @@ def emit_linkml_fold(view: FoldView) -> tuple[dict[str, Any], list[str]]:
         "enums": {},
     }
 
-    gmeow_ns = str(_GMEOW)
+    gmeow_ns = _GMEOW
 
     def is_gmeow(tid: int) -> bool:
         return view.is_iri(tid) and view.lex(tid).startswith(gmeow_ns)
@@ -638,6 +363,23 @@ def _write_yaml(
     write_text(path, dumped, name=name, source_hash=source_hash)
 
 
+def _snapshot_version() -> str:
+    """The ontology version from the snapshot's header (owl:versionInfo)."""
+    from gmeow_tools.config import ONTOLOGY_IRI
+
+    view = load_fold()
+    onto = view.tid_of_iri(ONTOLOGY_IRI)
+    version = (
+        view.value(onto, "http://www.w3.org/2002/07/owl#versionInfo")
+        if onto is not None
+        else None
+    )
+    if version is None:
+        msg = "snapshot lacks owl:versionInfo on the ontology header"
+        raise ValueError(msg)
+    return view.lex(version)
+
+
 def gen_json_schema(linkml_path: Path) -> str:
     """Run the LinkML JSON Schema generator."""
     from linkml.generators.jsonschemagen import JsonSchemaGenerator
@@ -690,7 +432,7 @@ def gen_openapi(json_schema_text: str) -> str:
                 "OpenAPI 3.1 derived from the GMEOW LinkML developer schema. "
                 "Lossy by design — see gmeow.linkml.yaml for caveats."
             ),
-            "version": load_self_description().version,
+            "version": _snapshot_version(),
         },
         "paths": {
             "/entities/{id}": {
@@ -769,11 +511,7 @@ class SchemaGenerator(Generator):
     @property
     def inputs(self) -> Sequence[Path]:
         """Canonical inputs for the schema generator."""
-        return [
-            PROJECT_ROOT / "ontology" / "gmeow.ttl",
-            *iter_module_files(),
-            *list((PROJECT_ROOT / "imports").glob("*.ttl")),
-        ]
+        return [GTS_SNAPSHOT_FILE]
 
     @property
     def outputs(self) -> Sequence[Path]:
@@ -789,7 +527,7 @@ class SchemaGenerator(Generator):
 
     def render(self, staging: Path) -> None:
         """Render schema artifacts into the staging tree."""
-        schema_dict, _warnings = emit_linkml_fold(load_fold())
+        schema_dict, _warnings = emit_linkml(load_fold())
 
         if SCHEMAS_DIR.is_relative_to(PROJECT_ROOT):
             out_dir = staging / SCHEMAS_DIR.relative_to(PROJECT_ROOT)
