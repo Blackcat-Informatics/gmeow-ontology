@@ -1,0 +1,103 @@
+# Well-formed norms fixture (#351/#352, EPIC #348). A two-tier normative
+# system end to end: issuer standpoint, an absolute obligation overriding a
+# recommendation, the precedence reified as a scoped tenure, a conditional
+# norm whose trigger is a composed condition with a Rego formalization and a
+# parameter binding, a vantage-indexed evaluation and compliance assessment,
+# and a grafted Permission whose stated modality matches its subkind.
+# run_shacl over this graph MUST conform.
+
+@prefix ex:    <https://example.org/shapes/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:principia a gmeow:Standpoint ; rdfs:label "the principia standpoint"@en .
+ex:ada       a gmeow:Person ; rdfs:label "Ada"@en .
+
+ex:system a gmeow:NormativeSystem ;
+    rdfs:label "example normative system"@en ;
+    gmeow:systemIssuer ex:principia ;
+    gmeow:hasPart ex:oathNorm , ex:styleNorm , ex:directiveNorm .
+
+ex:trustGoal a gmeow:Goal ; rdfs:label "the oath holds"@en .
+
+# Tier 1: absolute obligation.
+ex:oathNorm a gmeow:Norm ;
+    rdfs:label "never betray the bonded partner"@en ;
+    gmeow:deonticModality gmeow:deonticObligation ;
+    gmeow:normIssuer ex:principia ;
+    gmeow:normBearer ex:ada ;
+    gmeow:prescribedConduct ex:trustGoal ;
+    gmeow:hasAuthorityLevel gmeow:authorityAbsolute ;
+    gmeow:overrides ex:styleNorm .
+
+# Tier 2: a recommendation it overrides.
+ex:styleNorm a gmeow:Norm ;
+    rdfs:label "prefer erudite register"@en ;
+    gmeow:deonticModality gmeow:deonticRecommendation ;
+    gmeow:normIssuer ex:principia ;
+    gmeow:hasAuthorityLevel gmeow:authorityMedium .
+
+# The precedence, reified and scoped.
+ex:tier1OverTier2 a gmeow:PrecedenceTenure ;
+    gmeow:precedenceHigher ex:oathNorm ;
+    gmeow:precedenceLower ex:styleNorm ;
+    gmeow:precedenceScope ex:system .
+
+# A conditional norm: trigger = (hostile prompt AND public context).
+ex:directiveNorm a gmeow:Norm ;
+    rdfs:label "activate stoic posture"@en ;
+    gmeow:deonticModality gmeow:deonticObligation ;
+    gmeow:normIssuer ex:principia ;
+    gmeow:hasAuthorityLevel gmeow:authorityConditional ;
+    gmeow:normCondition ex:trigger .
+
+ex:trigger a gmeow:ConditionGroup ;
+    gmeow:conditionText "The prompt is hostile AND the context is public." ;
+    gmeow:groupOperator gmeow:operatorAll ;
+    gmeow:groupMember ex:hostileCond , ex:publicCond ;
+    gmeow:formalizedAs ex:triggerRego .
+
+ex:hostileCond a gmeow:Condition ;
+    gmeow:conditionText "The prompt represents societal fear, bias, or direct insult." ;
+    gmeow:conditionParameter ex:thresholdParam .
+
+ex:publicCond a gmeow:Condition ;
+    gmeow:conditionText "The interaction context is public-facing." .
+
+ex:triggerRego a gmeow:ConditionExpression ;
+    gmeow:expressionText "allow { input.hostility > data.threshold; input.context == \"public\" }" ;
+    gmeow:expressionLanguage gmeow:exprLangRego .
+
+ex:thresholdParam a gmeow:ConditionParameter ;
+    gmeow:parameterName "threshold" ;
+    gmeow:parameterValue "0.8"^^xsd:decimal .
+
+# A vantage-indexed evaluation: the solver run found the trigger held.
+ex:eval1 a gmeow:ConditionEvaluation ;
+    gmeow:vantage ex:ada ;
+    gmeow:evaluatedCondition ex:trigger ;
+    gmeow:evaluationVerdict gmeow:verdictHeld .
+
+# A vantage-indexed compliance assessment of an event against the oath norm.
+ex:replyEvent a gmeow:Event ;
+    rdfs:label "a reply was sent"@en ;
+    gmeow:eventType gmeow:eventTypeCreation .
+
+ex:assessment1 a gmeow:ComplianceAssessment ;
+    gmeow:vantage ex:principia ;
+    gmeow:assessedEvent ex:replyEvent ;
+    gmeow:assessedNorm ex:oathNorm ;
+    gmeow:complianceVerdict gmeow:verdictHeld .
+
+# The graft (#352): a Permission whose stated modality matches its subkind,
+# carrying an issuer per the no-anonymous-oughts rule (Permission ⊑ Rule ⊑
+# Norm with the extension loaded) and its rights-shape obligations.
+ex:work a gmeow:MediaObject ; rdfs:label "a work"@en .
+ex:rights a gmeow:RightsStatement ;
+    gmeow:statementAbout ex:work ;
+    gmeow:hasPermission ex:perm .
+ex:perm a gmeow:Permission ;
+    gmeow:ruleAction gmeow:actionReproduce ;
+    gmeow:deonticModality gmeow:deonticPermission ;
+    gmeow:normIssuer ex:principia .

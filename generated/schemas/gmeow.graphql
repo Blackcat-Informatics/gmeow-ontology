@@ -86,6 +86,14 @@ enum AttestationTypeEnum
     attestationTypeVerifiableCredential
   }
 
+enum AuthorityLevelEnum
+  {
+    authorityAbsolute
+    authorityConditional
+    authorityHigh
+    authorityMedium
+  }
+
 enum AvailabilityStatusEnum
   {
     availabilityStatusBusy
@@ -456,6 +464,14 @@ enum DatingMethodEnum
     datingMethodUraniumLead
   }
 
+enum DeonticModalityEnum
+  {
+    deonticObligation
+    deonticPermission
+    deonticProhibition
+    deonticRecommendation
+  }
+
 enum DepictionContextEnum
   {
     depictionContextActionShot
@@ -523,6 +539,13 @@ enum EmploymentTypeEnum
 enum EntityEnum
   {
     procedureIngestionRawRoot
+  }
+
+enum EvaluationVerdictEnum
+  {
+    verdictHeld
+    verdictNotHeld
+    verdictUndetermined
   }
 
 enum EventTypeEnum
@@ -636,6 +659,17 @@ enum ExecutionStatusEnum
     executionStatusRunning
     executionStatusSkipped
     executionStatusSucceeded
+  }
+
+enum ExpressionLanguageEnum
+  {
+    exprLangCedar
+    exprLangCel
+    exprLangProse
+    exprLangRego
+    exprLangShacl
+    exprLangSparqlAsk
+    exprLangXacml
   }
 
 enum FinancialAccountTypeEnum
@@ -757,6 +791,13 @@ enum GranularityLevelEnum
     granularityPoint
     granularityRegion
     granularityYear
+  }
+
+enum GroupOperatorEnum
+  {
+    operatorAll
+    operatorAny
+    operatorNone
   }
 
 enum GTSProfileEnum
@@ -2116,6 +2157,7 @@ type Activity
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -2155,6 +2197,7 @@ type Activity
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     wasAssociatedWith: [Agent]
   }
 
@@ -2658,6 +2701,11 @@ type AuthorIdentity
     writtenInLanguage: [Language]
     authorIdentityString: String
     canonicalizedIdentity: [Agent]
+  }
+
+type AuthorityLevel
+  {
+    strongerThan: [AuthorityLevel]
   }
 
 type Availability
@@ -3246,6 +3294,7 @@ type BuildActivity
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -3285,6 +3334,7 @@ type BuildActivity
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     wasAssociatedWith: [Agent]
     buildConfigUri: String
     buildOutput: [Distribution]
@@ -3592,6 +3642,7 @@ type CodeReview
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -3631,6 +3682,7 @@ type CodeReview
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     reviewCommit: [Commit]
     reviewOf: [MergeRequest]
   }
@@ -3790,6 +3842,7 @@ type Commit
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -3829,6 +3882,7 @@ type Commit
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     wasAssociatedWith: [Agent]
     authorTime: [String]
     authoredBy: [Agent]
@@ -3847,6 +3901,272 @@ type Commitment
   {
     commitmentBeneficiary: [Agent]
     committedAgent: Agent
+  }
+
+type ComplianceAssessment
+  {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    vantage: [Entity]
+    assessedEvent: Event
+    assessedNorm: Norm
+    complianceVerdict: EvaluationVerdict
+  }
+
+type Condition
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
+    conditionParameter: [ConditionParameter]
+    conditionText: String
+    formalizedAs: [ConditionExpression]
+  }
+
+type ConditionEvaluation
+  {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    vantage: [Entity]
+    evaluatedCondition: Condition
+    evaluationVerdict: EvaluationVerdict
+  }
+
+type ConditionExpression
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
+    expressionLanguage: ExpressionLanguage
+    expressionText: String
+  }
+
+type ConditionGroup
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
+    conditionParameter: [ConditionParameter]
+    conditionText: String
+    formalizedAs: [ConditionExpression]
+    groupMember: [Condition]
+    groupOperator: GroupOperator
+  }
+
+type ConditionParameter
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    contributesToFrame: [NarrativeReferenceFrame]
+    detectedMediaType: [String]
+    writtenInLanguage: [Language]
+    parameterEntity: String
+    parameterName: String
+    parameterValue: String
   }
 
 type ConflictStrategy
@@ -4470,6 +4790,10 @@ type DatingMethod
   {
   }
 
+type DeonticModality
+  {
+  }
+
 type DepictionContext
   {
   }
@@ -4817,6 +5141,61 @@ type Duration
 
 type Duty
   {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    deonticModality: DeonticModality
+    hasAuthorityLevel: [AuthorityLevel]
+    normBearer: [Agent]
+    normCondition: [Condition]
+    normIssuer: [String]
+    overrides: [Norm]
+    prescribedConduct: [String]
     ruleAction: RightsAction
     ruleAssignee: [Agent]
     ruleConsequence: [Duty]
@@ -5089,11 +5468,16 @@ type EtymologicalDerivation
     derivationTarget: InformationObject
   }
 
+type EvaluationVerdict
+  {
+  }
+
 type Event
   {
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -5133,6 +5517,7 @@ type Event
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
   }
 
 type EventInvitation
@@ -5279,6 +5664,7 @@ type Execution
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -5318,6 +5704,7 @@ type Execution
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     executesProcedure: [Procedure]
     executesStep: [ProcedureStep]
     executionParticipant: [Agent]
@@ -5414,6 +5801,10 @@ type Expression
     title: [String]
     embodiedIn: [Manifestation]
     realizes: [Work]
+  }
+
+type ExpressionLanguage
+  {
   }
 
 type Family
@@ -5552,6 +5943,7 @@ type FinancialTransaction
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -5591,6 +5983,7 @@ type FinancialTransaction
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     transactionAmount: MonetaryAmount
     transactionStatus: [TransactionStatus]
     transactionType: [TransactionType]
@@ -6044,11 +6437,16 @@ type Group
     wasGeneratedBy: [Activity]
   }
 
+type GroupOperator
+  {
+  }
+
 type GTSCompaction
   {
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -6088,6 +6486,7 @@ type GTSCompaction
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     wasAssociatedWith: [Agent]
   }
 
@@ -6385,6 +6784,7 @@ type ImportActivity
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -6424,6 +6824,7 @@ type ImportActivity
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     wasAssociatedWith: [Agent]
     ingestedAt: String
   }
@@ -6949,6 +7350,7 @@ type JournalEntry
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -6988,6 +7390,7 @@ type JournalEntry
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     journalEntryPostings: [Posting]
   }
 
@@ -7090,6 +7493,7 @@ type LanguageChangeEvent
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -7129,6 +7533,7 @@ type LanguageChangeEvent
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     wasAssociatedWith: [Agent]
     affectedLanguage: [Language]
     changeType: [LanguageChangeType]
@@ -7143,6 +7548,7 @@ type LanguageCreation
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -7182,6 +7588,7 @@ type LanguageCreation
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     wasAssociatedWith: [Agent]
   }
 
@@ -7416,6 +7823,7 @@ type LedgerEvent
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -7455,6 +7863,7 @@ type LedgerEvent
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     logIndex: Int
   }
 
@@ -7665,6 +8074,7 @@ type LifeEvent
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -7704,6 +8114,7 @@ type LifeEvent
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
   }
 
 type LiteraryWork
@@ -8451,6 +8862,7 @@ type Merge
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -8490,6 +8902,7 @@ type Merge
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     wasAssociatedWith: [Agent]
     mergeBase: [Commit]
     mergeSource: [Ref]
@@ -9289,6 +9702,118 @@ type NetworkAddressType
   {
   }
 
+type Norm
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    deonticModality: DeonticModality
+    hasAuthorityLevel: [AuthorityLevel]
+    normBearer: [Agent]
+    normCondition: [Condition]
+    normIssuer: [String]
+    overrides: [Norm]
+    prescribedConduct: [String]
+  }
+
+type NormativeSystem
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    systemIssuer: [String]
+  }
+
 type NotationSystem
   {
     acquireLicensePage: [String]
@@ -9444,6 +9969,7 @@ type ObservationalActivity
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -9483,6 +10009,7 @@ type ObservationalActivity
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     wasAssociatedWith: [Agent]
     generatedObservation: [Observation]
   }
@@ -9974,6 +10501,7 @@ type Payment
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -10013,6 +10541,7 @@ type Payment
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     transactionAmount: MonetaryAmount
     transactionStatus: [TransactionStatus]
     transactionType: [TransactionType]
@@ -10029,6 +10558,61 @@ type PeriodType
 
 type Permission
   {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    deonticModality: DeonticModality
+    hasAuthorityLevel: [AuthorityLevel]
+    normBearer: [Agent]
+    normCondition: [Condition]
+    normIssuer: [String]
+    overrides: [Norm]
+    prescribedConduct: [String]
     ruleAction: RightsAction
     ruleAssignee: [Agent]
     ruleConsequence: [Duty]
@@ -10402,6 +10986,14 @@ type PostingDirection
   {
   }
 
+type PrecedenceTenure
+  {
+    duringInterval: [TimeInterval]
+    precedenceHigher: Norm
+    precedenceLower: Norm
+    precedenceScope: NormativeSystem
+  }
+
 type PrivacyNotice
   {
     acquireLicensePage: [String]
@@ -10729,6 +11321,61 @@ type ProgrammingLanguage
 
 type Prohibition
   {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    deonticModality: DeonticModality
+    hasAuthorityLevel: [AuthorityLevel]
+    normBearer: [Agent]
+    normCondition: [Condition]
+    normIssuer: [String]
+    overrides: [Norm]
+    prescribedConduct: [String]
     ruleAction: RightsAction
     ruleAssignee: [Agent]
     ruleConsequence: [Duty]
@@ -10878,6 +11525,7 @@ type Push
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -10917,6 +11565,7 @@ type Push
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     wasAssociatedWith: [Agent]
     pushTarget: [String]
   }
@@ -11363,6 +12012,7 @@ type Release
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -11402,6 +12052,7 @@ type Release
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     releaseDoi: [String]
     releaseOf: Project
     releaseTag: [Tag]
@@ -11696,6 +12347,61 @@ type RsvpStatus
 
 type Rule
   {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasLicense: [License]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasWebPage: [WebPage]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mentionedIn: [Note]
+    name: [String]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    deonticModality: DeonticModality
+    hasAuthorityLevel: [AuthorityLevel]
+    normBearer: [Agent]
+    normCondition: [Condition]
+    normIssuer: [String]
+    overrides: [Norm]
+    prescribedConduct: [String]
     ruleAction: RightsAction
     ruleAssignee: [Agent]
     ruleConsequence: [Duty]
@@ -13857,6 +14563,7 @@ type Task
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -13896,6 +14603,7 @@ type Task
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     taskDueDate: String
     taskPriority: Int
     taskRecurrenceUntilDone: Boolean
@@ -14528,6 +15236,7 @@ type VerificationActivity
     after: [Event]
     before: [Event]
     coincidesWith: [Event]
+    complies: [Norm]
     contains: [Event]
     deceptionCue: [Observation]
     deceptiveIntentClaim: [StandpointClaim]
@@ -14567,6 +15276,7 @@ type VerificationActivity
     subEventOf: [Event]
     successorOrganization: [Organization]
     temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
     wasAssociatedWith: [Agent]
   }
 
