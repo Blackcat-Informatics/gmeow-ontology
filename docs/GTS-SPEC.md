@@ -921,6 +921,9 @@ A conformant implementation MUST pass a shared corpus. v1 requires at least thes
 15. **Two-segment union (§3.1)**: `cat` of two single-segment files folds to the value-union of
     both graphs; term-ids resolve segment-locally (a shared IRI unifies; identical ids naming
     different values do NOT collide); identical bnode labels across segments stay isolated.
+    *15b*: label-less blank nodes (absent **or empty** `"v"`) are distinct terms within a
+    segment and across segments, and the union's serialized labels MUST keep them distinct —
+    relabeling that merges what the graph separates is the forbidden outcome.
 16. **Composed round-trip (§3.1, §14)**: a `cat`-composed file survives `gts → nq → gts` with
     the same union fold.
 17. **Pre-segment reader hard-fail (§16, negative)**: an implementation in pre-§3.1 mode fed a

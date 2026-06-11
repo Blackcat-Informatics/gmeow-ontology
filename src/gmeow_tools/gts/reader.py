@@ -631,20 +631,27 @@ def _union_segments(segments: list[Graph]) -> Graph:
         if got is not None:
             return got
         t = seg.terms[tid]
+        datatype = _map(seg, seg_idx, t.datatype) if t.datatype is not None else None
+        reifier = _map(seg, seg_idx, t.reifier) if t.reifier is not None else None
         # Blank nodes are relabelled with a segment prefix (§7.1 permits
         # isomorphism-preserving relabeling): within a segment, byte-identical
         # entries already intern to one union term (§7.8); ACROSS segments the
         # same label names DIFFERENT nodes, and emitting the raw label from
-        # the union would merge them.
-        value = f"s{seg_idx}.{t.value or 'b'}" if t.kind is TermKind.BNODE else t.value
+        # the union would merge them. Label-less nodes (absent or empty "v")
+        # are distinct TERMS under the intern key, so their serialized labels
+        # must stay distinct too — the union id disambiguates them. Computed
+        # after dt/rf mapping so len(out.terms) IS this term's id.
+        if t.kind is TermKind.BNODE:
+            label = t.value if t.value else f"_anon{len(out.terms)}"
+            value: str | None = f"s{seg_idx}.{label}"
+        else:
+            value = t.value
         new = Term(
             kind=t.kind,
             value=value,
-            datatype=(
-                _map(seg, seg_idx, t.datatype) if t.datatype is not None else None
-            ),
+            datatype=datatype,
             lang=t.lang,
-            reifier=(_map(seg, seg_idx, t.reifier) if t.reifier is not None else None),
+            reifier=reifier,
         )
         out.terms.append(new)
         new_id = len(out.terms) - 1

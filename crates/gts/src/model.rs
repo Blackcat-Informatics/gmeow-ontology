@@ -157,11 +157,15 @@ impl Graph {
     }
 
     /// The effective datatype IRI of a literal, applying §7.1 defaulting.
+    ///
+    /// The fold sanitizes `datatype` ids, but `Graph` is constructible by
+    /// callers — an out-of-range id falls back to `xsd:string`, never panics.
     pub fn datatype_iri(&self, t: &Term) -> String {
         if let Some(dt) = t.datatype {
-            return self.terms[dt]
-                .value
-                .clone()
+            return self
+                .terms
+                .get(dt)
+                .and_then(|term| term.value.clone())
                 .unwrap_or_else(|| XSD_STRING.to_string());
         }
         if t.lang.is_some() {

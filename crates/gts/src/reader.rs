@@ -827,18 +827,24 @@ impl Unioner {
             return got;
         }
         let t = seg.terms[tid].clone();
+        let datatype = t.datatype.map(|d| self.map_term(seg, seg_idx, d));
+        let reifier = t.reifier.map(|r| self.map_term(seg, seg_idx, r));
         // Blank nodes are relabelled with a segment prefix (§7.1 permits
         // isomorphism-preserving relabeling): within a segment, byte-identical
         // entries already intern to one union term (§7.8); ACROSS segments the
         // same label names DIFFERENT nodes, and emitting the raw label from
-        // the union would merge them.
+        // the union would merge them. Label-less nodes (absent or empty "v")
+        // are distinct TERMS under the intern key, so their serialized labels
+        // must stay distinct too — the union id disambiguates them. Computed
+        // after dt/rf mapping so out.terms.len() IS this term's id.
         let value = if t.kind == TermKind::Bnode {
-            Some(format!("s{seg_idx}.{}", t.value.as_deref().unwrap_or("b")))
+            Some(match t.value.as_deref() {
+                Some(label) if !label.is_empty() => format!("s{seg_idx}.{label}"),
+                _ => format!("s{seg_idx}._anon{}", self.out.terms.len()),
+            })
         } else {
             t.value.clone()
         };
-        let datatype = t.datatype.map(|d| self.map_term(seg, seg_idx, d));
-        let reifier = t.reifier.map(|r| self.map_term(seg, seg_idx, r));
         self.out.terms.push(Term {
             kind: t.kind,
             value,

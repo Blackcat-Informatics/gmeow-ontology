@@ -200,6 +200,44 @@ def _two_segment_union() -> bytes:
     return _segment_one() + _segment_two()
 
 
+def _segment_anon_one() -> bytes:
+    w = Writer(profile="dist")
+    w.add_terms(
+        [
+            Term(TermKind.BNODE),  # anonymous: no "v" on the wire
+            Term(TermKind.IRI, LABEL),
+            Term(TermKind.LITERAL, "anon", lang="en"),
+            Term(TermKind.BNODE, ""),  # empty label: a DISTINCT term (§7.8)
+        ]
+    )
+    w.add_quads([(0, 1, 2, None), (3, 1, 2, None)])
+    return bytes(w.to_bytes())
+
+
+def _segment_anon_two() -> bytes:
+    w = Writer()
+    w.add_terms(
+        [
+            Term(TermKind.BNODE),
+            Term(TermKind.IRI, LABEL),
+            Term(TermKind.LITERAL, "anon2", lang="en"),
+        ]
+    )
+    w.add_quads([(0, 1, 2, None)])
+    return bytes(w.to_bytes())
+
+
+def _anon_bnode_union() -> bytes:
+    """Vector 15b: label-less blank nodes stay distinct through the union.
+
+    The intern key separates an anonymous bnode (no ``"v"``) from an
+    empty-labelled one (``"v": ""``) within a segment, and both from a later
+    segment's anonymous node — so the union's serialized labels must be
+    distinct too (three different subjects in the folded N-Quads).
+    """
+    return _segment_anon_one() + _segment_anon_two()
+
+
 def _cross_segment_suppression() -> bytes:
     w = Writer()
     w.add_terms(
@@ -236,6 +274,7 @@ def corpus() -> list[VectorCase]:
         VectorCase("13-position-constraint", _position_constraint()),
         VectorCase("14-bnode-label", _bnode_label()),
         VectorCase("15-two-segment-union", _two_segment_union()),
+        VectorCase("15b-anon-bnode-union", _anon_bnode_union()),
         VectorCase("16-composed-round-trip", _two_segment_union()),
         VectorCase(
             "17-pre-segment-hard-fail", _two_segment_union(), mode="pre-segment"

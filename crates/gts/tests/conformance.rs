@@ -38,14 +38,28 @@ fn summarize(g: &Graph, mode: &str) -> Value {
 #[test]
 fn corpus_matches_frozen_expectations() {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../generated/gts-vectors");
-    let mut names: Vec<String> = fs::read_dir(&dir)
+    let mut names: Vec<String> = Vec::new();
+    let mut expected_names: Vec<String> = Vec::new();
+    for entry in fs::read_dir(&dir)
         .expect("generated/gts-vectors must exist — run `uv run gmeow regenerate gts-vectors`")
-        .filter_map(|e| {
-            let name = e.ok()?.file_name().into_string().ok()?;
-            name.strip_suffix(".gts").map(str::to_string)
-        })
-        .collect();
+    {
+        let Ok(name) = entry.expect("dir entry").file_name().into_string() else {
+            continue;
+        };
+        if let Some(base) = name.strip_suffix(".gts") {
+            names.push(base.to_string());
+        } else if let Some(base) = name.strip_suffix(".expected.json") {
+            expected_names.push(base.to_string());
+        }
+    }
     names.sort();
+    expected_names.sort();
+    // every .gts has an .expected.json and vice versa — an orphan on either
+    // side means the corpus generation is incomplete or stale
+    assert_eq!(
+        names, expected_names,
+        "vector basename mismatch between .gts and .expected.json files"
+    );
     assert!(
         names.len() >= 16,
         "corpus too small ({} vectors) — generation incomplete?",
