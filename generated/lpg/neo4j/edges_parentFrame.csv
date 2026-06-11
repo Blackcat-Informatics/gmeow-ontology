@@ -1,2 +1,2 @@
 id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:3f7fe86f8b5a2397,gmeow:examples/referenceFrameRobotEndEffector,gmeow:referenceFrameRobotBase,parentFrame,,2026-06-07T10:00:00Z,0.95,,,,,2026-06-07T10:00:00Z,2026-06-07T10:05:00Z
+edge:a1c8862ed85f67c2,gmeow:examples/referenceFrameRobotEndEffector,gmeow:referenceFrameRobotBase,parentFrame,,2026-06-07T10:00:00+00:00,0.95,,,,,2026-06-07T10:00:00+00:00,2026-06-07T10:05:00+00:00

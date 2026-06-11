@@ -10,42 +10,37 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
-import pyoxigraph
-import pytest
-
+from gmeow_tools.gts_views import FoldView
 from gmeow_tools.lpg import (
     LPGEdge,
     LPGGraph,
     LPGNode,
     _curie,
+    _fold_value,
     _short_key,
-    _value_from_term,
     build_lpg,
     serialize_cypher,
     serialize_generic_csv,
     serialize_graphml,
     serialize_neo4j_csv,
 )
+from gts import Term, TermKind, Writer, read
 
 
-def _make_store_from_ttl(ttl: str) -> pyoxigraph.Store:
-    """Load a Turtle string into a fresh pyoxigraph Store.
-
-    Note: pyoxigraph's Turtle parser does not support RDF-star ``<<(...)>>``
-    syntax for synthetic strings — it only works when Jena produces the file.
-    This helper is therefore limited to plain Turtle.
-    """
+def _fold_from_ttl(ttl: str) -> FoldView:
+    """Build a FoldView from a Turtle string through the real producer."""
     import tempfile
 
-    store = pyoxigraph.Store()
+    from gmeow_tools.gts_producer import gts_from_rdf12
+    from gts import read
+
     with tempfile.NamedTemporaryFile(mode="w", suffix=".ttl", delete=False) as f:
         f.write(ttl)
-        path = f.name
+        path = Path(f.name)
     try:
-        store.load(path=path, format=pyoxigraph.RdfFormat.TURTLE)
-        return store
+        return FoldView(read(gts_from_rdf12(path)))
     finally:
-        Path(path).unlink(missing_ok=True)
+        path.unlink(missing_ok=True)
 
 
 class TestCurieShortening:
@@ -62,42 +57,53 @@ class TestCurieShortening:
         )
 
 
-class TestValueFromTerm:
-    def test_literal_integer(self) -> None:
-        lit = pyoxigraph.Literal(
-            "42",
-            datatype=pyoxigraph.NamedNode("http://www.w3.org/2001/XMLSchema#integer"),
-        )
-        assert _value_from_term(lit) == 42
+class TestFoldValue:
+    """Scalar conversion over fold terms (the old _value_from_term contract)."""
 
-    def test_literal_decimal(self) -> None:
-        lit = pyoxigraph.Literal(
-            "3.14",
-            datatype=pyoxigraph.NamedNode("http://www.w3.org/2001/XMLSchema#decimal"),
-        )
-        assert _value_from_term(lit) == 3.14
+    @staticmethod
+    def _single(term: Term, *extra: Term) -> tuple[FoldView, int]:
+        w = Writer()
+        w.add_terms([*extra, term])
+        view = FoldView(read(w.to_bytes()))
+        return view, len(extra)
 
-    def test_literal_boolean(self) -> None:
-        lit = pyoxigraph.Literal(
-            "true",
-            datatype=pyoxigraph.NamedNode("http://www.w3.org/2001/XMLSchema#boolean"),
-        )
-        assert _value_from_term(lit) is True
+    def test_literal_conversions(self) -> None:
+        xsd = "http://www.w3.org/2001/XMLSchema#"
+        cases = [
+            (
+                Term(TermKind.LITERAL, "42", datatype=0),
+                Term(TermKind.IRI, xsd + "integer"),
+                42,
+            ),
+            (
+                Term(TermKind.LITERAL, "3.14", datatype=0),
+                Term(TermKind.IRI, xsd + "decimal"),
+                3.14,
+            ),
+            (
+                Term(TermKind.LITERAL, "true", datatype=0),
+                Term(TermKind.IRI, xsd + "boolean"),
+                True,
+            ),
+            (
+                Term(TermKind.LITERAL, "2026-01-01T00:00:00Z", datatype=0),
+                Term(TermKind.IRI, xsd + "dateTime"),
+                "2026-01-01T00:00:00Z",
+            ),
+        ]
+        for term, dt_term, expected in cases:
+            view, _ = self._single(term, dt_term)
+            assert _fold_value(view, 1) == expected
 
-    def test_literal_datetime(self) -> None:
-        lit = pyoxigraph.Literal(
-            "2026-01-01T00:00:00Z",
-            datatype=pyoxigraph.NamedNode("http://www.w3.org/2001/XMLSchema#dateTime"),
+    def test_named_node_becomes_curie(self) -> None:
+        view, _ = self._single(
+            Term(TermKind.IRI, "https://blackcatinformatics.ca/gmeow/Person")
         )
-        assert _value_from_term(lit) == "2026-01-01T00:00:00Z"
-
-    def test_named_node(self) -> None:
-        node = pyoxigraph.NamedNode("https://blackcatinformatics.ca/gmeow/Person")
-        assert _value_from_term(node) == "gmeow:Person"
+        assert _fold_value(view, 0) == "gmeow:Person"
 
     def test_language_tagged(self) -> None:
-        lit = pyoxigraph.Literal("hello", language="en")
-        assert _value_from_term(lit) == {"value": "hello", "lang": "en"}
+        view, _ = self._single(Term(TermKind.LITERAL, "hello", lang="en"))
+        assert _fold_value(view, 0) == {"value": "hello", "lang": "en"}
 
 
 class TestLPGGraph:
@@ -147,33 +153,49 @@ class TestBuildLPG:
         ex:Alice a ex:Person ; ex:name "Alice" .
         ex:Bob a ex:Person ; ex:name "Bob" .
         """
-        store = _make_store_from_ttl(ttl)
-        lpg = build_lpg(store)
+        lpg = build_lpg(_fold_from_ttl(ttl), scope=None)
         ids = {n.id for n in lpg.nodes}
         # ex: prefix is not in PREFIXES, so full IRIs are used
         assert "http://example.org/Alice" in ids
         assert "http://example.org/Bob" in ids
 
-    def test_reifiers_excluded(self) -> None:
-        """Reifiers must NOT become nodes.
+    def test_reifiers_excluded_and_become_edge_properties(self) -> None:
+        """Reifiers must NOT become nodes; their annotations ride the edge.
 
-        Uses ``rdf:reifies`` (the RDF-star reifier predicate) so the LPG builder
-        recognises ``ex:Reifier1`` as a reifier and excludes it from the node
-        set.  The quoted triple itself cannot be expressed in plain Turtle, so
-        the object of ``rdf:reifies`` here is a plain IRI; the builder still
-        adds the subject to ``reifier_iris`` and skips it.
+        The old pyoxigraph fixture could not express a quoted triple in
+        synthetic Turtle; the fold path builds one directly via the gts
+        Writer — so this now tests the REAL reifier semantics: the binding
+        vanishes from the node set and its confidence lands on the edge.
         """
-        ttl = """
-        @prefix ex: <http://example.org/> .
-        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-        ex:Alice ex:knows ex:Bob .
-        ex:Reifier1 rdf:reifies ex:Alice ;
-                    <https://blackcatinformatics.ca/gmeow/confidence> 0.9 .
-        """
-        store = _make_store_from_ttl(ttl)
-        lpg = build_lpg(store)
+        w = Writer()
+        w.add_terms(
+            [
+                Term(TermKind.IRI, "http://example.org/Alice"),  # 0
+                Term(TermKind.IRI, "http://example.org/knows"),  # 1
+                Term(TermKind.IRI, "http://example.org/Bob"),  # 2
+                Term(TermKind.IRI, "http://example.org/Reifier1"),  # 3
+                Term(
+                    TermKind.IRI,
+                    "https://blackcatinformatics.ca/gmeow/confidence",
+                ),  # 4
+                Term(
+                    TermKind.LITERAL,
+                    "0.9",
+                    datatype=None,
+                ),  # 5
+            ]
+        )
+        w.add_quads([(0, 1, 2, None)])
+        w.add_reifies({3: (0, 1, 2)})
+        w.add_annot([(3, 4, 5)])
+        lpg = build_lpg(FoldView(read(w.to_bytes())), scope=None)
         ids = {n.id for n in lpg.nodes}
         assert "http://example.org/Reifier1" not in ids
+        [edge] = lpg.edges
+        # _short_key on an unknown-prefix IRI splits at the scheme colon —
+        # longstanding behavior, asserted as-is for parity
+        assert edge.type == "//example.org/knows"
+        assert edge.properties == {"confidence": "0.9"}
 
     def test_no_tbox_edges(self) -> None:
         """OWL TBox predicates must not create edges."""
@@ -184,8 +206,7 @@ class TestBuildLPG:
         ex:Child rdfs:subClassOf ex:Person .
         ex:knows rdfs:domain ex:Person ; rdfs:range ex:Person .
         """
-        store = _make_store_from_ttl(ttl)
-        lpg = build_lpg(store)
+        lpg = build_lpg(_fold_from_ttl(ttl), scope=None)
         edge_types = {e.type for e in lpg.edges}
         assert "subClassOf" not in edge_types
         assert "domain" not in edge_types
@@ -203,21 +224,16 @@ class TestBuildLPG:
                 owl:minCardinality "0"^^<http://www.w3.org/2001/XMLSchema#integer>
             ] .
         """
-        store = _make_store_from_ttl(ttl)
-        lpg = build_lpg(store)
+        lpg = build_lpg(_fold_from_ttl(ttl), scope=None)
         assert all(not n.id.startswith("_bnode:") for n in lpg.nodes)
 
     def test_statement_metadata_on_canonical_rdf12(self) -> None:
-        """Load the canonical Jena-produced RDF 1.2 artifact and verify
-        statement metadata lands as edge properties."""
-        from gmeow_tools.config import STATEMENT_RDF12_FILE
+        """Fold the snapshot's statement layer and verify statement
+        metadata lands as edge properties."""
 
-        if not STATEMENT_RDF12_FILE.exists():
-            pytest.fail(f"canonical RDF 1.2 artifact missing: {STATEMENT_RDF12_FILE}")
+        from gmeow_tools.gts_views import load_fold
 
-        store = pyoxigraph.Store()
-        store.load(path=str(STATEMENT_RDF12_FILE), format=pyoxigraph.RdfFormat.TURTLE)
-        lpg = build_lpg(store)
+        lpg = build_lpg(load_fold())
 
         # Find the Crimea edges — the headline example
         crimea_edges = [e for e in lpg.edges if e.source == "gmeow:examples/crimea"]
@@ -233,14 +249,10 @@ class TestBuildLPG:
 
     def test_standpoint_parallel_edges_on_canonical_rdf12(self) -> None:
         """The Crimea example has two standpoint claims → parallel edges."""
-        from gmeow_tools.config import STATEMENT_RDF12_FILE
 
-        if not STATEMENT_RDF12_FILE.exists():
-            pytest.fail(f"canonical RDF 1.2 artifact missing: {STATEMENT_RDF12_FILE}")
+        from gmeow_tools.gts_views import load_fold
 
-        store = pyoxigraph.Store()
-        store.load(path=str(STATEMENT_RDF12_FILE), format=pyoxigraph.RdfFormat.TURTLE)
-        lpg = build_lpg(store)
+        lpg = build_lpg(load_fold())
 
         crimea_edges = [e for e in lpg.edges if e.source == "gmeow:examples/crimea"]
         # Two standpoints = two parallel edges for containedInPlace
