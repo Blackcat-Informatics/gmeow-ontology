@@ -86,4 +86,5 @@
         <https://blackcatinformatics.ca/gmeow/slices/accessibility> ,
         <https://blackcatinformatics.ca/gmeow/slices/notes> ,
         <https://blackcatinformatics.ca/gmeow/slices/deception> ,
-        <https://blackcatinformatics.ca/gmeow/slices/images> .
+        <https://blackcatinformatics.ca/gmeow/slices/images> ,
+        <https://blackcatinformatics.ca/gmeow/slices/gts> .
