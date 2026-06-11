@@ -25,7 +25,7 @@ gmeow:QualityAssessment
     rdfs:subClassOf gmeow:Observation ;
     rdfs:label "Quality Assessment"@x-gmeow-english ;
     skos:definition "A reified assessment of the quality of an entity or dataset, expressed as an observation about one or more quality dimensions. The result is typically a scalar quantity (accuracy in metres, completeness as a percentage, etc.) or a categorical conformance statement, carrying unit, reference frame, determinacy, and provenance in the same bundle as every other GMEOW measurement (Principle 11)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> .
 
 # EL axiomatisation: every QualityAssessment assesses at least one entity.
 # Closed-world cardinality is SHACL's concern.
@@ -43,7 +43,7 @@ gmeow:assessedEntity
     rdfs:range gmeow:Entity ;
     rdfs:label "assessed entity"@x-gmeow-english ;
     skos:definition "The entity whose data quality is being assessed — the feature of interest of the quality observation. Sub-property of gmeow:observedFeature so generic consumers can query 'all observations about Alice' without knowing whether the claim is a name, a coordinate, or a quality assessment."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> .
 
 gmeow:qualityDimension
     a owl:ObjectProperty ;
@@ -51,7 +51,7 @@ gmeow:qualityDimension
     rdfs:range gmeow:QualityDimension ;
     rdfs:label "quality dimension"@x-gmeow-english ;
     skos:definition "The quality dimension under which this assessment is made. Non-functional: a single assessment may cover several dimensions (e.g. a report that evaluates both positional accuracy and completeness), and competing dimension classifications coexist rather than collapse (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> .
 
 # =========================================================================== #
 # VALUE VOCABULARY — QualityDimension (ISO 19157 + lineage)
@@ -62,50 +62,50 @@ gmeow:QualityDimension
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Quality Dimension"@x-gmeow-english ;
     skos:definition "An ISO 19157 data-quality dimension or lineage category — an open value vocabulary of individuals (never subclasses). New dimensions (e.g. a domain-specific 'semantic consistency' or 'usability') are added by minting fresh individuals, not by creating new classes (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> .
 
 # Seeds — ISO 19157 dimensions + lineage
 gmeow:qualityDimensionPositionalAccuracy
     a gmeow:QualityDimension ;
     rdfs:label "positional accuracy"@x-gmeow-english ;
     skos:definition "Closeness of the spatial position of a feature to its true position, including absolute accuracy, relative accuracy, and gridded data positional accuracy (ISO 19157)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> .
 
 gmeow:qualityDimensionTemporalAccuracy
     a gmeow:QualityDimension ;
     rdfs:label "temporal accuracy"@x-gmeow-english ;
     skos:definition "Correctness of the temporal references of a feature (e.g. date, time, period) relative to the true temporal value (ISO 19157)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> .
 
 gmeow:qualityDimensionThematicAccuracy
     a gmeow:QualityDimension ;
     rdfs:label "thematic accuracy"@x-gmeow-english ;
     skos:definition "Accuracy of quantitative and qualitative attribute values, including classification correctness and non-quantitative attribute correctness (ISO 19157)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> .
 
 gmeow:qualityDimensionCompleteness
     a gmeow:QualityDimension ;
     rdfs:label "completeness"@x-gmeow-english ;
     skos:definition "Presence or absence of features and their attributes, including commission (excess data) and omission (missing data) (ISO 19157)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> .
 
 gmeow:qualityDimensionLogicalConsistency
     a gmeow:QualityDimension ;
     rdfs:label "logical consistency"@x-gmeow-english ;
     skos:definition "Degree of adherence to logical rules of data structure, attribution, and relationships, including domain consistency, format consistency, and topological consistency (ISO 19157)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> .
 
 gmeow:qualityDimensionTopologicalConsistency
     a gmeow:QualityDimension ;
     rdfs:label "topological consistency"@x-gmeow-english ;
     skos:definition "Correctness of the explicitly encoded topological characteristics of a dataset, typically expressed as error counts or conformance to a topological rule set (ISO 19157)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> .
 
 gmeow:qualityDimensionLineage
     a gmeow:QualityDimension ;
     rdfs:label "lineage"@x-gmeow-english ;
     skos:definition "The history, source, and process steps that produced a dataset or entity — the provenance of the data viewed through a quality lens. In GMEOW the structural lineage is recorded by gmeow:wasGeneratedBy, gmeow:wasDerivedFrom, and gmeow:ImportActivity (provenance module); this dimension value marks a quality assessment that evaluates lineage completeness or correctness."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> .
 
 # =========================================================================== #
 # CROSS-CUTTING REUSE DECLARATION

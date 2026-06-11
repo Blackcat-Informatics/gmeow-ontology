@@ -26,7 +26,7 @@ gmeow:SexualOrientation
     rdfs:subClassOf gmeow:IdentityFacet ;
     rdfs:label "Sexual Orientation"@x-gmeow-english ;
     skos:definition "A person's SELF-ASSERTED sexual orientation — the pattern of their sexual attraction — as a reified facet pointing (via gmeow:sexualOrientationValue) to an open gmeow:SexualOrientationValue. A SEPARATE axis from romantic orientation (split-attraction model) and from gender identity/expression; nothing infers one from another."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
 gmeow:hasSexualOrientation
     a owl:ObjectProperty ;
@@ -34,7 +34,7 @@ gmeow:hasSexualOrientation
     rdfs:range gmeow:SexualOrientation ;
     rdfs:label "has sexual orientation"@x-gmeow-english ;
     skos:definition "Relates a person to a self-asserted sexual-orientation facet. Non-functional and contextual; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasRomanticOrientation, gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
 gmeow:sexualOrientationValue
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -42,14 +42,14 @@ gmeow:sexualOrientationValue
     rdfs:range gmeow:SexualOrientationValue ;
     rdfs:label "sexual orientation value"@x-gmeow-english ;
     skos:definition "The gmeow:SexualOrientationValue a sexual-orientation facet asserts (functional per facet). A predefined individual or a fresh one with rdfs:label; the single path to the value."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
 gmeow:RomanticOrientation
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:IdentityFacet ;
     rdfs:label "Romantic Orientation"@x-gmeow-english ;
     skos:definition "A person's SELF-ASSERTED romantic orientation — the pattern of their romantic attraction — as a reified facet pointing (via gmeow:romanticOrientationValue) to an open gmeow:RomanticOrientationValue. A SEPARATE axis from sexual orientation (split-attraction model); the two are mutually independent (e.g. asexual yet biromantic)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
 gmeow:hasRomanticOrientation
     a owl:ObjectProperty ;
@@ -57,7 +57,7 @@ gmeow:hasRomanticOrientation
     rdfs:range gmeow:RomanticOrientation ;
     rdfs:label "has romantic orientation"@x-gmeow-english ;
     skos:definition "Relates a person to a self-asserted romantic-orientation facet. Non-functional and contextual; a superseded one is kept with gmeow:displayable false, never deleted. MUST NOT be inferred from gmeow:hasSexualOrientation, gmeow:hasGenderIdentity, gmeow:sexAssignedAtBirth, pronouns or honorifics."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
 gmeow:romanticOrientationValue
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -65,7 +65,7 @@ gmeow:romanticOrientationValue
     rdfs:range gmeow:RomanticOrientationValue ;
     rdfs:label "romantic orientation value"@x-gmeow-english ;
     skos:definition "The gmeow:RomanticOrientationValue a romantic-orientation facet asserts (functional per facet). A predefined individual or a fresh one with rdfs:label; the single path to the value."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
 # =========================================================================== #
 # VALUE VOCABULARIES (open; new entries are individuals, not subclasses).
@@ -80,7 +80,7 @@ gmeow:SexualOrientationValue
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Sexual Orientation Value"@x-gmeow-english ;
     skos:definition "A pattern of sexual attraction — a VALUE pointed at by gmeow:sexualOrientationValue, never a subclass. Open: an orientation not seeded here is a fresh individual with rdfs:label."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
 gmeow:orientHeterosexual a gmeow:SexualOrientationValue ; rdfs:label "heterosexual"@x-gmeow-english .
 gmeow:orientHeterosexual skos:definition "The heterosexual sexual orientation value — a pattern of sexual attraction that an agent may experience."@x-gmeow-english ;
@@ -112,7 +112,7 @@ gmeow:RomanticOrientationValue
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Romantic Orientation Value"@x-gmeow-english ;
     skos:definition "A pattern of romantic attraction — a VALUE pointed at by gmeow:romanticOrientationValue, never a subclass. Kept separate from sexual orientation (split-attraction). Open: a fresh individual with rdfs:label when none is seeded."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> .
 
 gmeow:romanticHeteroromantic a gmeow:RomanticOrientationValue ; rdfs:label "heteroromantic"@x-gmeow-english .
 gmeow:romanticHeteroromantic skos:definition "The heteroromantic romantic orientation value — a pattern of romantic attraction that an agent may experience."@x-gmeow-english ;

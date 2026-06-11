@@ -24,56 +24,56 @@ gmeow:Message
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Message"@x-gmeow-english ;
     skos:definition "A communication sent from one agent to others — the parent of email and other message kinds."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:EmailMessage
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:Message ;
     rdfs:label "Email Message"@x-gmeow-english ;
     skos:definition "An RFC 5322 email message, with headers, participants, a thread, body parts and mailbox residence."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:Thread
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Thread"@x-gmeow-english ;
     skos:definition "A conversation: a set of messages related by reply/reference chains."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:Mailbox
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Mailbox"@x-gmeow-english ;
     skos:definition "A named container of messages within an account — a folder, JMAP mailbox, or Gmail label."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:MessageHeader
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Message Header"@x-gmeow-english ;
     skos:definition "A single RFC 5322 header field (name and value) of a message."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:BodyPart
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Body Part"@x-gmeow-english ;
     skos:definition "A MIME part of a message's body, with a media type and content."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:Attachment
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:BodyPart ;
     rdfs:label "Attachment"@x-gmeow-english ;
     skos:definition "A non-inline body part presented as an attached file. An attachment may also be a gmeow:Document or gmeow:MediaObject (the two are not disjoint), and its text extraction or summary is a derived object linked by gmeow:wasDerivedFrom."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:MessageKeyword
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Message Keyword"@x-gmeow-english ;
     skos:definition "A flag/keyword applied to a message (IMAP flag or JMAP keyword) such as seen, flagged, answered, draft, forwarded, or junk."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # Standard keyword individuals (IMAP \\flags / JMAP $keywords).
 gmeow:keywordSeen      a gmeow:MessageKeyword ; rdfs:label "seen"@x-gmeow-english .
@@ -100,7 +100,7 @@ gmeow:MailboxResidence
     rdfs:subClassOf gmeow:TimeScopedRelation ;
     rdfs:label "Mailbox Residence"@x-gmeow-english ;
     skos:definition "The reified, time-scoped fact that a message resided in a mailbox/label over an interval (membership is time-varying — messages move between folders and labels)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # --------------------------------------------------------------------------- #
 # Participants (routed through gmeow:EmailAddress — the entity/account seam)
@@ -112,7 +112,7 @@ gmeow:from
     rdfs:range gmeow:EmailAddress ;
     rdfs:label "from"@x-gmeow-english ;
     skos:definition "The author address of a message (RFC 5322 From)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:sender
     a owl:ObjectProperty ;
@@ -120,7 +120,7 @@ gmeow:sender
     rdfs:range gmeow:EmailAddress ;
     rdfs:label "sender"@x-gmeow-english ;
     skos:definition "The transmitting address of a message, where different from the author (RFC 5322 Sender)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:replyTo
     a owl:ObjectProperty ;
@@ -128,7 +128,7 @@ gmeow:replyTo
     rdfs:range gmeow:EmailAddress ;
     rdfs:label "reply to"@x-gmeow-english ;
     skos:definition "An address to which replies should be sent (RFC 5322 Reply-To)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:to
     a owl:ObjectProperty ;
@@ -136,7 +136,7 @@ gmeow:to
     rdfs:range gmeow:EmailAddress ;
     rdfs:label "to"@x-gmeow-english ;
     skos:definition "A primary recipient address of a message (RFC 5322 To)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:cc
     a owl:ObjectProperty ;
@@ -144,7 +144,7 @@ gmeow:cc
     rdfs:range gmeow:EmailAddress ;
     rdfs:label "cc"@x-gmeow-english ;
     skos:definition "A carbon-copy recipient address of a message (RFC 5322 Cc)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:bcc
     a owl:ObjectProperty ;
@@ -152,7 +152,7 @@ gmeow:bcc
     rdfs:range gmeow:EmailAddress ;
     rdfs:label "bcc"@x-gmeow-english ;
     skos:definition "A blind-carbon-copy recipient address of a message (RFC 5322 Bcc)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # --------------------------------------------------------------------------- #
 # Threading
@@ -165,7 +165,7 @@ gmeow:partOfThread
     rdfs:range gmeow:Thread ;
     rdfs:label "part of thread"@x-gmeow-english ;
     skos:definition "Relates a message to the thread (conversation) it belongs to. A conversation-thread specialization of the universal gmeow:partOf spine."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:inReplyTo
     a owl:ObjectProperty ;
@@ -173,7 +173,7 @@ gmeow:inReplyTo
     rdfs:range gmeow:Message ;
     rdfs:label "in reply to"@x-gmeow-english ;
     skos:definition "Relates a message to the message it directly replies to (RFC 5322 In-Reply-To)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:rfcMessageId
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -181,7 +181,7 @@ gmeow:rfcMessageId
     rdfs:range rdfs:Literal ;
     rdfs:label "RFC message id"@x-gmeow-english ;
     skos:definition "The RFC 5322 Message-ID of a message."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # --------------------------------------------------------------------------- #
 # Structure, residence and metadata properties
@@ -193,7 +193,7 @@ gmeow:hasHeader
     rdfs:range gmeow:MessageHeader ;
     rdfs:label "has header"@x-gmeow-english ;
     skos:definition "Relates a message to one of its RFC 5322 headers."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:hasBodyPart
     a owl:ObjectProperty ;
@@ -202,7 +202,7 @@ gmeow:hasBodyPart
     rdfs:range gmeow:BodyPart ;
     rdfs:label "has body part"@x-gmeow-english ;
     skos:definition "Relates a message to a MIME part of its body. A MIME-structure specialization of the universal gmeow:hasPart spine."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:hasAttachment
     a owl:ObjectProperty ;
@@ -211,7 +211,7 @@ gmeow:hasAttachment
     rdfs:range gmeow:Attachment ;
     rdfs:label "has attachment"@x-gmeow-english ;
     skos:definition "Relates a message to one of its attachments."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:hasKeyword
     a owl:ObjectProperty ;
@@ -219,7 +219,7 @@ gmeow:hasKeyword
     rdfs:range gmeow:MessageKeyword ;
     rdfs:label "has keyword"@x-gmeow-english ;
     skos:definition "Relates a message to a flag/keyword applied to it."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:residesIn
     a owl:ObjectProperty ;
@@ -227,7 +227,7 @@ gmeow:residesIn
     rdfs:range gmeow:Mailbox ;
     rdfs:label "resides in"@x-gmeow-english ;
     skos:definition "Relates a message to a mailbox/label it currently resides in. Time-varying residence is reified as gmeow:MailboxResidence; on this convenience property the period may be carried with gmeow:validFrom/validUntil."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:residentMessage
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -235,7 +235,7 @@ gmeow:residentMessage
     rdfs:range gmeow:Message ;
     rdfs:label "resident message"@x-gmeow-english ;
     skos:definition "The message a mailbox-residence concerns."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:residenceMailbox
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -243,7 +243,7 @@ gmeow:residenceMailbox
     rdfs:range gmeow:Mailbox ;
     rdfs:label "residence mailbox"@x-gmeow-english ;
     skos:definition "The mailbox a mailbox-residence concerns."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:mailboxOfAccount
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -251,7 +251,7 @@ gmeow:mailboxOfAccount
     rdfs:range gmeow:OnlineAccount ;
     rdfs:label "mailbox of account"@x-gmeow-english ;
     skos:definition "Relates a mailbox to the online account that holds it."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:sentAt
     a owl:DatatypeProperty ;
@@ -259,7 +259,7 @@ gmeow:sentAt
     rdfs:range xsd:dateTime ;
     rdfs:label "sent at"@x-gmeow-english ;
     skos:definition "When a message was sent (RFC 5322 Date)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:receivedAt
     a owl:DatatypeProperty ;
@@ -267,7 +267,7 @@ gmeow:receivedAt
     rdfs:range xsd:dateTime ;
     rdfs:label "received at"@x-gmeow-english ;
     skos:definition "When a message was received by the storing system (JMAP receivedAt / Gmail internalDate)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:subject
     a owl:DatatypeProperty ;
@@ -275,7 +275,7 @@ gmeow:subject
     rdfs:range rdfs:Literal ;
     rdfs:label "subject"@x-gmeow-english ;
     skos:definition "The subject line of a message (RFC 5322 Subject)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:threadSubject
     a owl:DatatypeProperty ;
@@ -283,7 +283,7 @@ gmeow:threadSubject
     rdfs:range rdfs:Literal ;
     rdfs:label "thread subject"@x-gmeow-english ;
     skos:definition "The base subject of a conversation thread, with reply/forward prefixes stripped, used for display and grouping. Derived from the raw RFC 5322 Subject headers of the messages in the thread."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:subjectPrefix
     a owl:DatatypeProperty ;
@@ -291,7 +291,7 @@ gmeow:subjectPrefix
     rdfs:range rdfs:Literal ;
     rdfs:label "subject prefix"@x-gmeow-english ;
     skos:definition "A prefix stripped from a message subject during normalization (e.g. 'Re:', 'Fwd:', 'AW:'). A single message may have multiple nested prefixes, so this property is not functional."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:preview
     a owl:DatatypeProperty ;
@@ -299,7 +299,7 @@ gmeow:preview
     rdfs:range rdfs:Literal ;
     rdfs:label "preview"@x-gmeow-english ;
     skos:definition "A short plain-text preview/snippet of a message's body."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:sizeEstimate
     a owl:DatatypeProperty ;
@@ -307,7 +307,7 @@ gmeow:sizeEstimate
     rdfs:range xsd:integer ;
     rdfs:label "size estimate"@x-gmeow-english ;
     skos:definition "The estimated size of a message in octets."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:listId
     a owl:DatatypeProperty ;
@@ -315,7 +315,7 @@ gmeow:listId
     rdfs:range rdfs:Literal ;
     rdfs:label "list id"@x-gmeow-english ;
     skos:definition "The mailing-list identifier a message was distributed through (RFC 2919 List-Id)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:headerName
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -323,7 +323,7 @@ gmeow:headerName
     rdfs:range rdfs:Literal ;
     rdfs:label "header name"@x-gmeow-english ;
     skos:definition "The field name of a message header."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:headerValue
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -331,7 +331,7 @@ gmeow:headerValue
     rdfs:range rdfs:Literal ;
     rdfs:label "header value"@x-gmeow-english ;
     skos:definition "The field value of a message header."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:mediaType
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -339,7 +339,7 @@ gmeow:mediaType
     rdfs:range rdfs:Literal ;
     rdfs:label "media type"@x-gmeow-english ;
     skos:definition "The MIME media type of a body part (e.g. text/plain, application/pdf)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:filename
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -347,7 +347,7 @@ gmeow:filename
     rdfs:range rdfs:Literal ;
     rdfs:label "filename"@x-gmeow-english ;
     skos:definition "The filename of an attachment."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:mailboxRole
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -355,7 +355,7 @@ gmeow:mailboxRole
     rdfs:range rdfs:Literal ;
     rdfs:label "mailbox role"@x-gmeow-english ;
     skos:definition "The special-use role of a mailbox (JMAP role): inbox, archive, drafts, sent, trash, junk, templates."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:mailboxName
     a owl:DatatypeProperty ;
@@ -363,7 +363,7 @@ gmeow:mailboxName
     rdfs:range rdfs:Literal ;
     rdfs:label "mailbox name"@x-gmeow-english ;
     skos:definition "The display name of a mailbox or label."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # --------------------------------------------------------------------------- #
 # Mailbox hierarchy and provider-derived state (issue #132)
@@ -380,7 +380,7 @@ gmeow:parentMailbox
     rdfs:range gmeow:Mailbox ;
     rdfs:label "parent mailbox"@x-gmeow-english ;
     skos:definition "The parent mailbox in a folder hierarchy. A specialization of the universal gmeow:partOf spine for mailbox containment."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:childMailbox
     a owl:ObjectProperty ;
@@ -390,7 +390,7 @@ gmeow:childMailbox
     rdfs:range gmeow:Mailbox ;
     rdfs:label "child mailbox"@x-gmeow-english ;
     skos:definition "A child mailbox in a folder hierarchy. Inverse of gmeow:parentMailbox; a specialization of the universal gmeow:hasPart spine."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:mailboxSortOrder
     a owl:DatatypeProperty ;
@@ -398,7 +398,7 @@ gmeow:mailboxSortOrder
     rdfs:range xsd:integer ;
     rdfs:label "mailbox sort order"@x-gmeow-english ;
     skos:definition "The display ordering of a mailbox among its siblings in a provider's UI. Provider-derived mutable state, not a logical core fact. Intentionally non-functional: different sources or UIs may assign different sort orders to the same mailbox (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:mailboxPath
     a owl:DatatypeProperty ;
@@ -406,7 +406,7 @@ gmeow:mailboxPath
     rdfs:range rdfs:Literal ;
     rdfs:label "mailbox path"@x-gmeow-english ;
     skos:definition "A display path string for a mailbox (e.g. 'INBOX/Work/Projects'). Derived from the transitive parentMailbox spine; a projection-layer convenience, not a canonical fact."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:mailboxTotalMessages
     a owl:DatatypeProperty ;
@@ -414,7 +414,7 @@ gmeow:mailboxTotalMessages
     rdfs:range xsd:integer ;
     rdfs:label "mailbox total messages"@x-gmeow-english ;
     skos:definition "The total number of messages residing in a mailbox. A derived rollup over gmeow:MailboxResidence / gmeow:residesIn, computed in the solver/projection layer (Principle 12), not asserted as a canonical fact."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:mailboxUnreadMessages
     a owl:DatatypeProperty ;
@@ -422,7 +422,7 @@ gmeow:mailboxUnreadMessages
     rdfs:range xsd:integer ;
     rdfs:label "mailbox unread messages"@x-gmeow-english ;
     skos:definition "The number of unread messages in a mailbox. A derived rollup over message residence and keyword state (absence of gmeow:keywordSeen), computed in the solver/projection layer (Principle 12), not asserted as a canonical fact."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # --------------------------------------------------------------------------- #
 # Stable address decomposition (on EmailAddress, not on occurrence)
@@ -437,7 +437,7 @@ gmeow:MessageParticipant
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Message Participant"@x-gmeow-english ;
     skos:definition "A reified occurrence of an email address in a particular message header or envelope context."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:MessageParticipant rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:participantMessage ; owl:someValuesFrom gmeow:EmailMessage ] ,
@@ -450,7 +450,7 @@ gmeow:participantMessage
     rdfs:range gmeow:EmailMessage ;
     rdfs:label "participant message"@x-gmeow-english ;
     skos:definition "The message a participant occurrence belongs to."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:hasMessageParticipant
     a owl:ObjectProperty ;
@@ -459,7 +459,7 @@ gmeow:hasMessageParticipant
     rdfs:range gmeow:MessageParticipant ;
     rdfs:label "has message participant"@x-gmeow-english ;
     skos:definition "Relates a message to one of its reified address occurrences."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:participantAddress
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -467,7 +467,7 @@ gmeow:participantAddress
     rdfs:range gmeow:EmailAddress ;
     rdfs:label "participant address"@x-gmeow-english ;
     skos:definition "The normalized email address that appears in this participant occurrence."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:participantRole
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -475,7 +475,7 @@ gmeow:participantRole
     rdfs:range gmeow:MessageParticipantRole ;
     rdfs:label "participant role"@x-gmeow-english ;
     skos:definition "The header or envelope role of this address occurrence."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:participantHeader
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -483,7 +483,7 @@ gmeow:participantHeader
     rdfs:range gmeow:MessageHeader ;
     rdfs:label "participant header"@x-gmeow-english ;
     skos:definition "The RFC 5322 header field from which this occurrence was parsed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:participantOrdinal
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -491,7 +491,7 @@ gmeow:participantOrdinal
     rdfs:range xsd:nonNegativeInteger ;
     rdfs:label "participant ordinal"@x-gmeow-english ;
     skos:definition "The zero-based position of this address occurrence."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:participantGroup
     a owl:DatatypeProperty ;
@@ -499,7 +499,7 @@ gmeow:participantGroup
     rdfs:range rdfs:Literal ;
     rdfs:label "participant group"@x-gmeow-english ;
     skos:definition "The RFC 5322 group name that contains this address occurrence."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:rawAddressValue
     a owl:DatatypeProperty ;
@@ -507,7 +507,7 @@ gmeow:rawAddressValue
     rdfs:range rdfs:Literal ;
     rdfs:label "raw address value"@x-gmeow-english ;
     skos:definition "The raw, unparsed header segment or envelope value for this occurrence."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:displayName
     a owl:DatatypeProperty ;
@@ -515,7 +515,7 @@ gmeow:displayName
     rdfs:range rdfs:Literal ;
     rdfs:label "display name"@x-gmeow-english ;
     skos:definition "The display name as rendered in this particular header occurrence."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # --------------------------------------------------------------------------- #
 # MessageParticipantRole — open value vocabulary for header/envelope roles
@@ -526,37 +526,37 @@ gmeow:MessageParticipantRole
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Message Participant Role"@x-gmeow-english ;
     skos:definition "The role an address occurrence plays in a message header or envelope."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
-gmeow:messageRoleFrom         a gmeow:MessageParticipantRole ; rdfs:label "from"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleFrom         a gmeow:MessageParticipantRole ; rdfs:label "from"@x-gmeow-english ;         rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 gmeow:messageRoleFrom skos:definition "The from message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
-gmeow:messageRoleSender       a gmeow:MessageParticipantRole ; rdfs:label "sender"@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleSender       a gmeow:MessageParticipantRole ; rdfs:label "sender"@x-gmeow-english ;       rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 gmeow:messageRoleSender skos:definition "The sender message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
-gmeow:messageRoleReplyTo      a gmeow:MessageParticipantRole ; rdfs:label "reply-to"@x-gmeow-english ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleReplyTo      a gmeow:MessageParticipantRole ; rdfs:label "reply-to"@x-gmeow-english ;     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 gmeow:messageRoleReplyTo skos:definition "The reply to message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
-gmeow:messageRoleTo           a gmeow:MessageParticipantRole ; rdfs:label "to"@x-gmeow-english ;           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleTo           a gmeow:MessageParticipantRole ; rdfs:label "to"@x-gmeow-english ;           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 gmeow:messageRoleTo skos:definition "The to message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
-gmeow:messageRoleCc           a gmeow:MessageParticipantRole ; rdfs:label "cc"@x-gmeow-english ;           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleCc           a gmeow:MessageParticipantRole ; rdfs:label "cc"@x-gmeow-english ;           rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 gmeow:messageRoleCc skos:definition "The cc message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
-gmeow:messageRoleBcc          a gmeow:MessageParticipantRole ; rdfs:label "bcc"@x-gmeow-english ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleBcc          a gmeow:MessageParticipantRole ; rdfs:label "bcc"@x-gmeow-english ;          rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 gmeow:messageRoleBcc skos:definition "The bcc message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
-gmeow:messageRoleReturnPath   a gmeow:MessageParticipantRole ; rdfs:label "return-path"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleReturnPath   a gmeow:MessageParticipantRole ; rdfs:label "return-path"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 gmeow:messageRoleReturnPath skos:definition "The return path message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
-gmeow:messageRoleErrorsTo     a gmeow:MessageParticipantRole ; rdfs:label "errors-to"@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleErrorsTo     a gmeow:MessageParticipantRole ; rdfs:label "errors-to"@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 gmeow:messageRoleErrorsTo skos:definition "The errors to message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
-gmeow:messageRoleEnvelopeFrom a gmeow:MessageParticipantRole ; rdfs:label "envelope-from"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleEnvelopeFrom a gmeow:MessageParticipantRole ; rdfs:label "envelope-from"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 gmeow:messageRoleEnvelopeFrom skos:definition "The envelope from message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
-gmeow:messageRoleEnvelopeTo   a gmeow:MessageParticipantRole ; rdfs:label "envelope-to"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleEnvelopeTo   a gmeow:MessageParticipantRole ; rdfs:label "envelope-to"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 gmeow:messageRoleEnvelopeTo skos:definition "The envelope to message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
-gmeow:messageRoleDeliveredTo  a gmeow:MessageParticipantRole ; rdfs:label "delivered-to"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleDeliveredTo  a gmeow:MessageParticipantRole ; rdfs:label "delivered-to"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 gmeow:messageRoleDeliveredTo skos:definition "The delivered to message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
-gmeow:messageRoleOriginalTo   a gmeow:MessageParticipantRole ; rdfs:label "original-to"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleOriginalTo   a gmeow:MessageParticipantRole ; rdfs:label "original-to"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 gmeow:messageRoleOriginalTo skos:definition "The original to message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
-gmeow:messageRoleResentFrom   a gmeow:MessageParticipantRole ; rdfs:label "resent-from"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleResentFrom   a gmeow:MessageParticipantRole ; rdfs:label "resent-from"@x-gmeow-english ;  rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 gmeow:messageRoleResentFrom skos:definition "The resent from message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
-gmeow:messageRoleResentTo     a gmeow:MessageParticipantRole ; rdfs:label "resent-to"@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleResentTo     a gmeow:MessageParticipantRole ; rdfs:label "resent-to"@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 gmeow:messageRoleResentTo skos:definition "The resent to message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
-gmeow:messageRoleResentCc     a gmeow:MessageParticipantRole ; rdfs:label "resent-cc"@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:messageRoleResentCc     a gmeow:MessageParticipantRole ; rdfs:label "resent-cc"@x-gmeow-english ;    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 gmeow:messageRoleResentCc skos:definition "The resent cc message participant role — a role an agent plays in the transmission or handling of a message."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
@@ -568,7 +568,7 @@ gmeow:MessageKind
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Message Kind"@x-gmeow-english ;
     skos:definition "The behavioral or report kind of a message — a VALUE vocabulary (individuals, never subclasses). Categories can overlap (a bounce is also auto-generated; a read receipt is also auto-generated). Principle 9: no single category wins."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:hasMessageKind
     a owl:ObjectProperty ;
@@ -576,37 +576,37 @@ gmeow:hasMessageKind
     rdfs:range gmeow:MessageKind ;
     rdfs:label "has message kind"@x-gmeow-english ;
     skos:definition "Relates a message to one of its behavioral or report kinds. Non-functional: a message may carry multiple overlapping kinds."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:messageKindDeliveryStatusNotification
     a gmeow:MessageKind ;
     rdfs:label "delivery status notification"@x-gmeow-english ;
     skos:definition "A Delivery Status Notification (DSN) per RFC 3464 — a bounce or delivery report."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:messageKindBounce
     a gmeow:MessageKind ;
     rdfs:label "bounce"@x-gmeow-english ;
     skos:definition "A hard or soft bounce message — a specialized delivery status notification indicating failed or delayed delivery."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:messageKindFeedbackReport
     a gmeow:MessageKind ;
     rdfs:label "feedback report"@x-gmeow-english ;
     skos:definition "An Abuse Reporting Format (ARF) feedback-loop report — typically from an ISP to a sender reporting spam complaints."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:messageKindReadReceipt
     a gmeow:MessageKind ;
     rdfs:label "read receipt"@x-gmeow-english ;
     skos:definition "A Message Disposition Notification (MDN) per RFC 3798 — a read receipt or other disposition report."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:messageKindAutoGenerated
     a gmeow:MessageKind ;
     rdfs:label "auto-generated"@x-gmeow-english ;
     skos:definition "An auto-submitted message per RFC 3834 — out-of-office, vacation, challenge-response, or other automatically generated response."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # --------------------------------------------------------------------------- #
 # Behavioral header properties (issue #137) — raw-header-backed facets
@@ -618,7 +618,7 @@ gmeow:priority
     rdfs:range rdfs:Literal ;
     rdfs:label "priority"@x-gmeow-english ;
     skos:definition "The raw X-Priority header value of an email message (typically 1–5). Non-standardised across clients, so stored as a literal rather than a value vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:importance
     a owl:DatatypeProperty ;
@@ -626,7 +626,7 @@ gmeow:importance
     rdfs:range rdfs:Literal ;
     rdfs:label "importance"@x-gmeow-english ;
     skos:definition "The raw Importance header value of an email message (high, normal, or low). Stored as the canonical header literal; the vocabulary is small but client-extensible."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:userAgent
     a owl:DatatypeProperty ;
@@ -634,7 +634,7 @@ gmeow:userAgent
     rdfs:range rdfs:Literal ;
     rdfs:label "user agent"@x-gmeow-english ;
     skos:definition "The raw User-Agent or X-Mailer header value of an email message — the sending software identifier as it appeared in the header."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:autoSubmitted
     a owl:DatatypeProperty ;
@@ -642,7 +642,7 @@ gmeow:autoSubmitted
     rdfs:range rdfs:Literal ;
     rdfs:label "auto submitted"@x-gmeow-english ;
     skos:definition "The raw Auto-Submitted header value of an email message per RFC 3834 (e.g. auto-generated, auto-replied)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:precedence
     a owl:DatatypeProperty ;
@@ -650,7 +650,7 @@ gmeow:precedence
     rdfs:range rdfs:Literal ;
     rdfs:label "precedence"@x-gmeow-english ;
     skos:definition "The raw Precedence header value of an email message (e.g. bulk, list, junk)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:readReceiptRequested
     a owl:DatatypeProperty ;
@@ -658,7 +658,7 @@ gmeow:readReceiptRequested
     rdfs:range xsd:boolean ;
     rdfs:label "read receipt requested"@x-gmeow-english ;
     skos:definition "Whether the message requests a read receipt (convenience projection derived from the presence of a Disposition-Notification-To header). Not functional: different sources or parsers may disagree or strip the header (Principle 9). The canonical underlying fact is gmeow:dispositionNotificationTo."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:dispositionNotificationTo
     a owl:ObjectProperty ;
@@ -666,7 +666,7 @@ gmeow:dispositionNotificationTo
     rdfs:range gmeow:EmailAddress ;
     rdfs:label "disposition notification to"@x-gmeow-english ;
     skos:definition "The email address to which a read receipt or other message disposition notification should be sent (RFC 3798 Disposition-Notification-To). Non-functional: multiple addresses may be listed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:sentBySoftware
     a owl:ObjectProperty ;
@@ -674,7 +674,7 @@ gmeow:sentBySoftware
     rdfs:range gmeow:SoftwareAgent ;
     rdfs:label "sent by software"@x-gmeow-english ;
     skos:definition "The software agent that sent a message, when parsed and identified from the User-Agent or X-Mailer header. The raw header value remains on gmeow:userAgent (Principle 4)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # --------------------------------------------------------------------------- #
 # MIME body part metadata (issue #133)
@@ -691,56 +691,56 @@ gmeow:MultipartBodyPart
     rdfs:subClassOf gmeow:BodyPart ;
     rdfs:label "Multipart Body Part"@x-gmeow-english ;
     skos:definition "A MIME container part that holds other body parts — the structural node of a multipart/alternative, multipart/mixed, multipart/related, or other multipart subtype. It is itself a BodyPart and participates in the MIME tree via the universal hasPart / partOf spine."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:InlinePart
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:BodyPart ;
     rdfs:label "Inline Part"@x-gmeow-english ;
     skos:definition "A body part displayed inline within the message body, such as an embedded image or a text/html part rendered as part of the message content. Distinct from Attachment in presentation intent but not declared disjoint — a part's disposition is an attributed fact, not a rigid kind boundary (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:MultipartType
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Multipart Type"@x-gmeow-english ;
     skos:definition "The MIME multipart subtype of a MultipartBodyPart — an open value vocabulary (individuals, never subclasses). Standard subtypes are seeded; new subtypes (e.g. form-data) are added as individuals."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:ContentDisposition
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Content Disposition"@x-gmeow-english ;
     skos:definition "The presentation disposition of a body part — inline (displayed as part of the message body) or attachment (presented as a separate file). An open value vocabulary (individuals, never subclasses)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:ContentTransferEncoding
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Content Transfer Encoding"@x-gmeow-english ;
     skos:definition "The MIME content-transfer-encoding of a body part — the mechanism by which the part's content is encoded for transport. An open value vocabulary (individuals, never subclasses)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # MultipartType individuals.
-gmeow:multipartTypeAlternative  a gmeow:MultipartType ; rdfs:label "alternative"@x-gmeow-english ; skos:definition "A multipart/alternative container where each child part is a different representation of the same content (RFC 2046)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:multipartTypeMixed        a gmeow:MultipartType ; rdfs:label "mixed"@x-gmeow-english       ; skos:definition "A multipart/mixed container for content with independent parts (RFC 2046)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:multipartTypeRelated      a gmeow:MultipartType ; rdfs:label "related"@x-gmeow-english     ; skos:definition "A multipart/related container where parts reference one another, typically used for HTML with inline images (RFC 2387)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:multipartTypeSigned       a gmeow:MultipartType ; rdfs:label "signed"@x-gmeow-english      ; skos:definition "A multipart/signed container for cryptographically signed content (RFC 1847)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:multipartTypeEncrypted    a gmeow:MultipartType ; rdfs:label "encrypted"@x-gmeow-english   ; skos:definition "A multipart/encrypted container for encrypted content (RFC 1847)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:multipartTypeReport       a gmeow:MultipartType ; rdfs:label "report"@x-gmeow-english      ; skos:definition "A multipart/report container for mail system reports such as delivery status notifications (RFC 3462)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:multipartTypeDigest       a gmeow:MultipartType ; rdfs:label "digest"@x-gmeow-english      ; skos:definition "A multipart/digest container where each child part is a complete RFC 5322 message (RFC 2046)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:multipartTypeParallel     a gmeow:MultipartType ; rdfs:label "parallel"@x-gmeow-english    ; skos:definition "A multipart/parallel container where parts are intended to be viewed simultaneously (RFC 2046)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:multipartTypeAlternative  a gmeow:MultipartType ; rdfs:label "alternative"@x-gmeow-english ; skos:definition "A multipart/alternative container where each child part is a different representation of the same content (RFC 2046)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:multipartTypeMixed        a gmeow:MultipartType ; rdfs:label "mixed"@x-gmeow-english       ; skos:definition "A multipart/mixed container for content with independent parts (RFC 2046)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:multipartTypeRelated      a gmeow:MultipartType ; rdfs:label "related"@x-gmeow-english     ; skos:definition "A multipart/related container where parts reference one another, typically used for HTML with inline images (RFC 2387)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:multipartTypeSigned       a gmeow:MultipartType ; rdfs:label "signed"@x-gmeow-english      ; skos:definition "A multipart/signed container for cryptographically signed content (RFC 1847)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:multipartTypeEncrypted    a gmeow:MultipartType ; rdfs:label "encrypted"@x-gmeow-english   ; skos:definition "A multipart/encrypted container for encrypted content (RFC 1847)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:multipartTypeReport       a gmeow:MultipartType ; rdfs:label "report"@x-gmeow-english      ; skos:definition "A multipart/report container for mail system reports such as delivery status notifications (RFC 3462)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:multipartTypeDigest       a gmeow:MultipartType ; rdfs:label "digest"@x-gmeow-english      ; skos:definition "A multipart/digest container where each child part is a complete RFC 5322 message (RFC 2046)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:multipartTypeParallel     a gmeow:MultipartType ; rdfs:label "parallel"@x-gmeow-english    ; skos:definition "A multipart/parallel container where parts are intended to be viewed simultaneously (RFC 2046)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # ContentDisposition individuals.
-gmeow:contentDispositionInline     a gmeow:ContentDisposition ; rdfs:label "inline"@x-gmeow-english     ; skos:definition "The body part is displayed inline as part of the message body (RFC 2183)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:contentDispositionAttachment a gmeow:ContentDisposition ; rdfs:label "attachment"@x-gmeow-english ; skos:definition "The body part is presented as an attached file (RFC 2183)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:contentDispositionInline     a gmeow:ContentDisposition ; rdfs:label "inline"@x-gmeow-english     ; skos:definition "The body part is displayed inline as part of the message body (RFC 2183)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:contentDispositionAttachment a gmeow:ContentDisposition ; rdfs:label "attachment"@x-gmeow-english ; skos:definition "The body part is presented as an attached file (RFC 2183)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # ContentTransferEncoding individuals.
-gmeow:transferEncodingBase64           a gmeow:ContentTransferEncoding ; rdfs:label "base64"@x-gmeow-english           ; skos:definition "Base64 content-transfer-encoding (RFC 2045)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:transferEncodingQuotedPrintable  a gmeow:ContentTransferEncoding ; rdfs:label "quoted-printable"@x-gmeow-english ; skos:definition "Quoted-printable content-transfer-encoding (RFC 2045)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:transferEncoding7bit             a gmeow:ContentTransferEncoding ; rdfs:label "7bit"@x-gmeow-english             ; skos:definition "7-bit content-transfer-encoding — short lines of US-ASCII (RFC 2045)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:transferEncoding8bit             a gmeow:ContentTransferEncoding ; rdfs:label "8bit"@x-gmeow-english             ; skos:definition "8-bit content-transfer-encoding — short lines of octets (RFC 2045)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:transferEncodingBinary           a gmeow:ContentTransferEncoding ; rdfs:label "binary"@x-gmeow-english           ; skos:definition "Binary content-transfer-encoding — arbitrary octets without line-length restrictions (RFC 2045)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:transferEncodingBase64           a gmeow:ContentTransferEncoding ; rdfs:label "base64"@x-gmeow-english           ; skos:definition "Base64 content-transfer-encoding (RFC 2045)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:transferEncodingQuotedPrintable  a gmeow:ContentTransferEncoding ; rdfs:label "quoted-printable"@x-gmeow-english ; skos:definition "Quoted-printable content-transfer-encoding (RFC 2045)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:transferEncoding7bit             a gmeow:ContentTransferEncoding ; rdfs:label "7bit"@x-gmeow-english             ; skos:definition "7-bit content-transfer-encoding — short lines of US-ASCII (RFC 2045)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:transferEncoding8bit             a gmeow:ContentTransferEncoding ; rdfs:label "8bit"@x-gmeow-english             ; skos:definition "8-bit content-transfer-encoding — short lines of octets (RFC 2045)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:transferEncodingBinary           a gmeow:ContentTransferEncoding ; rdfs:label "binary"@x-gmeow-english           ; skos:definition "Binary content-transfer-encoding — arbitrary octets without line-length restrictions (RFC 2045)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # Object properties.
 gmeow:hasMultipartType
@@ -749,7 +749,7 @@ gmeow:hasMultipartType
     rdfs:range gmeow:MultipartType ;
     rdfs:label "has multipart type"@x-gmeow-english ;
     skos:definition "Relates a MultipartBodyPart to its MIME multipart subtype (alternative, mixed, related, signed, encrypted, etc.)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:hasInlinePart
     a owl:ObjectProperty ;
@@ -758,7 +758,7 @@ gmeow:hasInlinePart
     rdfs:range gmeow:InlinePart ;
     rdfs:label "has inline part"@x-gmeow-english ;
     skos:definition "Relates a message to one of its inline body parts — a MIME-structure specialization of the universal gmeow:hasPart spine."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:hasContentDisposition
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -766,7 +766,7 @@ gmeow:hasContentDisposition
     rdfs:range gmeow:ContentDisposition ;
     rdfs:label "has content disposition"@x-gmeow-english ;
     skos:definition "Relates a body part to its Content-Disposition value (inline or attachment)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:hasContentTransferEncoding
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -774,7 +774,7 @@ gmeow:hasContentTransferEncoding
     rdfs:range gmeow:ContentTransferEncoding ;
     rdfs:label "has content transfer encoding"@x-gmeow-english ;
     skos:definition "Relates a body part to its Content-Transfer-Encoding value (base64, quoted-printable, 7bit, 8bit, binary)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # Datatype properties.
 gmeow:partId
@@ -783,7 +783,7 @@ gmeow:partId
     rdfs:range rdfs:Literal ;
     rdfs:label "part id"@x-gmeow-english ;
     skos:definition "The structural identifier of a MIME part within a message (e.g. '1', '1.2', '2.1.3'). Scoped to the message; the same raw content may have different partIds in different messages."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:contentId
     a owl:DatatypeProperty ;
@@ -791,7 +791,7 @@ gmeow:contentId
     rdfs:range rdfs:Literal ;
     rdfs:label "content id"@x-gmeow-english ;
     skos:definition "The Content-ID header value of a MIME part, used to reference the part from other parts (e.g. cid: references in HTML)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:charset
     a owl:DatatypeProperty ;
@@ -799,7 +799,7 @@ gmeow:charset
     rdfs:range rdfs:Literal ;
     rdfs:label "charset"@x-gmeow-english ;
     skos:definition "The character encoding of a MIME part's content (e.g. utf-8, iso-8859-1). Stored as a literal because the IANA charset registry is too open to enumerate as a closed value vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # --------------------------------------------------------------------------- #
 # Calendar invitation bridge — email→event seam (issue #139)
@@ -816,7 +816,7 @@ gmeow:describesEvent
     rdfs:range gmeow:Event ;
     rdfs:label "describes event"@x-gmeow-english ;
     skos:definition "Links an email message to an event described within it — typically parsed from a text/calendar attachment. Non-functional: an email may describe multiple events, and an event may be described by multiple emails (updates, forwards, replies)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:eventDescribedBy
     a owl:ObjectProperty ;
@@ -825,7 +825,7 @@ gmeow:eventDescribedBy
     rdfs:range gmeow:EmailMessage ;
     rdfs:label "event described by"@x-gmeow-english ;
     skos:definition "Links an event to an email message that describes it; the inverse of gmeow:describesEvent."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:calendarAttachment
     a owl:ObjectProperty ;
@@ -834,7 +834,7 @@ gmeow:calendarAttachment
     rdfs:range gmeow:Attachment ;
     rdfs:label "calendar attachment"@x-gmeow-english ;
     skos:definition "Links a message to the specific attachment that carries iCalendar data (mediaType text/calendar). A specialization of gmeow:hasAttachment that keeps the attachment first-class and separate from the parsed event representation."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:calendarUid
     a owl:DatatypeProperty ;
@@ -842,14 +842,14 @@ gmeow:calendarUid
     rdfs:range rdfs:Literal ;
     rdfs:label "calendar UID"@x-gmeow-english ;
     skos:definition "The iCalendar UID of the event described in the message. Non-functional: competing or multiple UIDs may coexist, and updates to the same event may carry the same UID in different messages."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:CalendarMethod
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Calendar Method"@x-gmeow-english ;
     skos:definition "The iCalendar METHOD of a calendar component carried by an email — a VALUE vocabulary (individuals, never subclasses). Aligned to RFC 5546/iTIP: REQUEST, REPLY, CANCEL, PUBLISH, COUNTER, DECLINECOUNTER, ADD, REFRESH."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:hasCalendarMethod
     a owl:ObjectProperty ;
@@ -857,24 +857,24 @@ gmeow:hasCalendarMethod
     rdfs:range gmeow:CalendarMethod ;
     rdfs:label "has calendar method"@x-gmeow-english ;
     skos:definition "Relates an email message to the iCalendar METHOD of the calendar component it carries. Non-functional: a message may theoretically carry multiple methods (though RFC 5546 recommends one per component)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # CalendarMethod individuals (RFC 5546/iTIP).
-gmeow:calendarMethodRequest        a gmeow:CalendarMethod ; rdfs:label "request"@x-gmeow-english        ; skos:definition "An invitation to attend an event (iTIP METHOD=REQUEST)."@x-gmeow-english        ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:calendarMethodReply          a gmeow:CalendarMethod ; rdfs:label "reply"@x-gmeow-english          ; skos:definition "A response to an invitation (iTIP METHOD=REPLY)."@x-gmeow-english          ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:calendarMethodCancel         a gmeow:CalendarMethod ; rdfs:label "cancel"@x-gmeow-english         ; skos:definition "A cancellation of an event (iTIP METHOD=CANCEL)."@x-gmeow-english         ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:calendarMethodPublish        a gmeow:CalendarMethod ; rdfs:label "publish"@x-gmeow-english        ; skos:definition "A published event announcement (iTIP METHOD=PUBLISH)."@x-gmeow-english        ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:calendarMethodCounter        a gmeow:CalendarMethod ; rdfs:label "counter"@x-gmeow-english        ; skos:definition "A counter-proposal to an invitation (iTIP METHOD=COUNTER)."@x-gmeow-english        ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:calendarMethodDeclineCounter a gmeow:CalendarMethod ; rdfs:label "decline counter"@x-gmeow-english ; skos:definition "A decline of a counter-proposal (iTIP METHOD=DECLINECOUNTER)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:calendarMethodAdd            a gmeow:CalendarMethod ; rdfs:label "add"@x-gmeow-english             ; skos:definition "An addition of one or more instances to an existing event (iTIP METHOD=ADD)."@x-gmeow-english             ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
-gmeow:calendarMethodRefresh        a gmeow:CalendarMethod ; rdfs:label "refresh"@x-gmeow-english         ; skos:definition "A request for the latest version of an event (iTIP METHOD=REFRESH)."@x-gmeow-english         ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+gmeow:calendarMethodRequest        a gmeow:CalendarMethod ; rdfs:label "request"@x-gmeow-english        ; skos:definition "An invitation to attend an event (iTIP METHOD=REQUEST)."@x-gmeow-english        ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:calendarMethodReply          a gmeow:CalendarMethod ; rdfs:label "reply"@x-gmeow-english          ; skos:definition "A response to an invitation (iTIP METHOD=REPLY)."@x-gmeow-english          ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:calendarMethodCancel         a gmeow:CalendarMethod ; rdfs:label "cancel"@x-gmeow-english         ; skos:definition "A cancellation of an event (iTIP METHOD=CANCEL)."@x-gmeow-english         ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:calendarMethodPublish        a gmeow:CalendarMethod ; rdfs:label "publish"@x-gmeow-english        ; skos:definition "A published event announcement (iTIP METHOD=PUBLISH)."@x-gmeow-english        ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:calendarMethodCounter        a gmeow:CalendarMethod ; rdfs:label "counter"@x-gmeow-english        ; skos:definition "A counter-proposal to an invitation (iTIP METHOD=COUNTER)."@x-gmeow-english        ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:calendarMethodDeclineCounter a gmeow:CalendarMethod ; rdfs:label "decline counter"@x-gmeow-english ; skos:definition "A decline of a counter-proposal (iTIP METHOD=DECLINECOUNTER)."@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:calendarMethodAdd            a gmeow:CalendarMethod ; rdfs:label "add"@x-gmeow-english             ; skos:definition "An addition of one or more instances to an existing event (iTIP METHOD=ADD)."@x-gmeow-english             ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+gmeow:calendarMethodRefresh        a gmeow:CalendarMethod ; rdfs:label "refresh"@x-gmeow-english         ; skos:definition "A request for the latest version of an event (iTIP METHOD=REFRESH)."@x-gmeow-english         ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # MessageKind individual for calendar-invitation messages (overlaps with other kinds).
 gmeow:messageKindCalendarInvitation
     a gmeow:MessageKind ;
     rdfs:label "calendar invitation"@x-gmeow-english ;
     skos:definition "An email whose primary purpose is conveying a calendar invitation, reply, cancellation, or update. Overlaps with other kinds (e.g. auto-generated for system-generated invites) per Principle 9."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # --------------------------------------------------------------------------- #
 # Versioning, variants, and patch diffs (issue #136)
@@ -890,7 +890,7 @@ gmeow:EmailPatchDiff
     rdfs:subClassOf gmeow:BodyPart ;
     rdfs:label "Email Patch Diff"@x-gmeow-english ;
     skos:definition "A patch or diff artifact between email body or header states, typically between a variant message and its canonical counterpart. Treated as a MIME-like BodyPart so it can carry mediaType, contentDigest, and derivation links."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:hasPatchDiff
     a owl:ObjectProperty ;
@@ -899,7 +899,7 @@ gmeow:hasPatchDiff
     rdfs:range gmeow:EmailPatchDiff ;
     rdfs:label "has patch diff"@x-gmeow-english ;
     skos:definition "Relates an email message to a patch-diff body part representing the difference between this message and another version (typically between a variant and the canonical body). Non-functional: a message may carry separate header and body patch parts."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:messageIdGenerated
     a owl:DatatypeProperty ;
@@ -907,7 +907,7 @@ gmeow:messageIdGenerated
     rdfs:range xsd:boolean ;
     rdfs:label "message id generated"@x-gmeow-english ;
     skos:definition "Whether the RFC 5322 Message-ID of this message was generated by gmeow because the original message lacked one."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:messageIdCollision
     a owl:DatatypeProperty ;
@@ -915,7 +915,7 @@ gmeow:messageIdCollision
     rdfs:range xsd:boolean ;
     rdfs:label "message id collision"@x-gmeow-english ;
     skos:definition "Whether multiple distinct bodies share this message's RFC 5322 Message-ID — a collision detected during import."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:canonicalFingerprint
     a owl:DatatypeProperty ;
@@ -923,7 +923,7 @@ gmeow:canonicalFingerprint
     rdfs:range rdfs:Literal ;
     rdfs:label "canonical fingerprint"@x-gmeow-english ;
     skos:definition "A content fingerprint of the canonical body content for this message identity family. This is a semantic/content fingerprint used for variant grouping; for byte-exact artifact identity use gmeow:contentDigest or gmeow:versionFingerprint."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:bodyLineFingerprint
     a owl:DatatypeProperty ;
@@ -931,7 +931,7 @@ gmeow:bodyLineFingerprint
     rdfs:range rdfs:Literal ;
     rdfs:label "body line fingerprint"@x-gmeow-english ;
     skos:definition "A line-normalized content fingerprint used for fuzzy email body matching. The normalization policy is an importer/projection concern (Principle 12); this property records the resulting fingerprint."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:analysisScope
     a owl:DatatypeProperty ;
@@ -939,7 +939,7 @@ gmeow:analysisScope
     rdfs:range rdfs:Literal ;
     rdfs:label "analysis scope"@x-gmeow-english ;
     skos:definition "What portion of the message was analyzed when producing content fingerprints (e.g. 'headers+body', 'body-only', 'body-no-sig'). The scope value is importer-defined."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:analysisInputBodyLine
     a owl:DatatypeProperty ;
@@ -947,7 +947,7 @@ gmeow:analysisInputBodyLine
     rdfs:range rdfs:Literal ;
     rdfs:label "analysis input body line"@x-gmeow-english ;
     skos:definition "The specific body line used as input for line-based fingerprinting, when the importer performs line-scoped analysis."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # =========================================================================== #
 # WIRE AUTHENTICATION & TRANSIT (from the dissolved messaging-trust module —
@@ -962,21 +962,21 @@ gmeow:DKIMSignature
     rdfs:subClassOf gmeow:CryptographicSignature ;
     rdfs:label "DKIM Signature"@x-gmeow-english ;
     skos:definition "A DomainKeys Identified Mail signature (RFC 6376) over selected headers and the body."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:AuthenticationResult
     a owl:Class, gufo:Kind ;
     rdfs:subClassOf gmeow:InformationObject ;
     rdfs:label "Authentication Result"@x-gmeow-english ;
     skos:definition "The outcome of an email authentication check (RFC 8601 Authentication-Results) — a method (DKIM, SPF, DMARC, ARC), a verdict, and the verifying server."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:RelayHop
     a owl:Class, gufo:EventType ;
     rdfs:subClassOf gufo:Event ;
     rdfs:label "Relay Hop"@x-gmeow-english ;
     skos:definition "One hop in a message's delivery path, recorded by a Received header: a relaying server, the host it received from, a server timestamp, and the protocol used."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:hasAuthenticationResult
     a owl:ObjectProperty ;
@@ -984,7 +984,7 @@ gmeow:hasAuthenticationResult
     rdfs:range gmeow:AuthenticationResult ;
     rdfs:label "has authentication result"@x-gmeow-english ;
     skos:definition "Relates a message to an authentication check performed on it."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:hasRelayHop
     a owl:ObjectProperty ;
@@ -992,7 +992,7 @@ gmeow:hasRelayHop
     rdfs:range gmeow:RelayHop ;
     rdfs:label "has relay hop"@x-gmeow-english ;
     skos:definition "Relates a message to a hop in its delivery path."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:authMethod
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -1000,7 +1000,7 @@ gmeow:authMethod
     rdfs:range rdfs:Literal ;
     rdfs:label "authentication method"@x-gmeow-english ;
     skos:definition "The authentication method checked: dkim, spf, dmarc, arc, iprev, or auth."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:authResult
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -1008,7 +1008,7 @@ gmeow:authResult
     rdfs:range rdfs:Literal ;
     rdfs:label "authentication result"@x-gmeow-english ;
     skos:definition "The verdict of an authentication check: pass, fail, none, softfail, neutral, temperror, or permerror."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:authServer
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -1016,7 +1016,7 @@ gmeow:authServer
     rdfs:range rdfs:Literal ;
     rdfs:label "authentication server"@x-gmeow-english ;
     skos:definition "The authentication-serv-id (authserv-id) that performed the check."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:hopOrdinal
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -1024,7 +1024,7 @@ gmeow:hopOrdinal
     rdfs:range xsd:integer ;
     rdfs:label "hop ordinal"@x-gmeow-english ;
     skos:definition "The position of a hop within the message path (1 = closest to the origin)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:relayAt
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -1032,7 +1032,7 @@ gmeow:relayAt
     rdfs:range xsd:dateTime ;
     rdfs:label "relay at"@x-gmeow-english ;
     skos:definition "The server timestamp recorded for a relay hop."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:relayBy
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -1040,7 +1040,7 @@ gmeow:relayBy
     rdfs:range rdfs:Literal ;
     rdfs:label "relay by"@x-gmeow-english ;
     skos:definition "The server that performed a relay hop."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:relayFrom
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -1048,7 +1048,7 @@ gmeow:relayFrom
     rdfs:range rdfs:Literal ;
     rdfs:label "relay from"@x-gmeow-english ;
     skos:definition "The host a relay hop received the message from."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 gmeow:relayProtocol
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -1056,4 +1056,4 @@ gmeow:relayProtocol
     rdfs:range rdfs:Literal ;
     rdfs:label "relay protocol"@x-gmeow-english ;
     skos:definition "The protocol used for a relay hop (e.g. ESMTP, ESMTPS)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .

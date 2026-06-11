@@ -18,28 +18,28 @@ gmeow:ContactPoint
     rdfs:subClassOf gmeow:Entity, gufo:Object ;
     rdfs:label "Contact Point"@x-gmeow-english ;
     skos:definition "A means of reaching an agent: an email address, telephone number, or postal address."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:EmailAddress
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:ContactPoint ;
     rdfs:label "Email Address"@x-gmeow-english ;
     skos:definition "A contact point reachable via the Simple Mail Transfer Protocol (SMTP)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:TelephoneNumber
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:ContactPoint ;
     rdfs:label "Telephone Number"@x-gmeow-english ;
     skos:definition "A contact point reachable by telephone."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:PostalAddress
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:ContactPoint ;
     rdfs:label "Postal Address"@x-gmeow-english ;
     skos:definition "A contact point reachable by physical mail at a postal address. It is expressed in the postal/administrative topological reference frame (gmeow:referenceFramePostalAddress); its components below are the coordinate values along that frame's axes — the as-written surface form. The resolved, identifier-bearing geographic places are reached via gmeow:addressPlace and gmeow:containedInPlace."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:postalAddressFrame
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -48,7 +48,7 @@ gmeow:postalAddressFrame
     rdfs:range gmeow:ReferenceFrame ;
     rdfs:label "postal address frame"@x-gmeow-english ;
     skos:definition "The postal/administrative reference frame in which this address is expressed. Functional: an address is expressed in exactly one frame. The default is gmeow:referenceFramePostalAddress."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 # Address components — coordinate values along the axes of the postal reference
 # frame (the as-written surface form; all non-functional — formats and multi-
@@ -62,7 +62,7 @@ gmeow:streetAddress
     rdfs:range rdfs:Literal ;
     rdfs:label "street address"@x-gmeow-english ;
     skos:definition "The street-address coordinate value of a postal address, expressed along the gmeow:axisStreetAddress axis of the postal reference frame."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:extendedAddress
     a owl:DatatypeProperty ;
@@ -70,7 +70,7 @@ gmeow:extendedAddress
     rdfs:range rdfs:Literal ;
     rdfs:label "extended address"@x-gmeow-english ;
     skos:definition "The extended-address coordinate value of a postal address, expressed along the gmeow:axisExtendedAddress axis of the postal reference frame."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:postOfficeBox
     a owl:DatatypeProperty ;
@@ -78,7 +78,7 @@ gmeow:postOfficeBox
     rdfs:range rdfs:Literal ;
     rdfs:label "post office box"@x-gmeow-english ;
     skos:definition "The post-office-box coordinate value of a postal address, expressed along the gmeow:axisPostOfficeBox axis of the postal reference frame."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:addressLocality
     a owl:DatatypeProperty ;
@@ -86,7 +86,7 @@ gmeow:addressLocality
     rdfs:range rdfs:Literal ;
     rdfs:label "address locality"@x-gmeow-english ;
     skos:definition "The locality (city or town) coordinate value of a postal address, expressed along the gmeow:axisAddressLocality axis of the postal reference frame."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:addressRegion
     a owl:DatatypeProperty ;
@@ -94,7 +94,7 @@ gmeow:addressRegion
     rdfs:range rdfs:Literal ;
     rdfs:label "address region"@x-gmeow-english ;
     skos:definition "The region (state, province, or territory) coordinate value of a postal address, expressed along the gmeow:axisAddressRegion axis of the postal reference frame."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:postalCode
     a owl:DatatypeProperty ;
@@ -102,7 +102,7 @@ gmeow:postalCode
     rdfs:range rdfs:Literal ;
     rdfs:label "postal code"@x-gmeow-english ;
     skos:definition "The postal/ZIP code coordinate value of a postal address, expressed along the gmeow:axisPostalCode axis of the postal reference frame."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:countryCode
     a owl:DatatypeProperty ;
@@ -110,7 +110,7 @@ gmeow:countryCode
     rdfs:range rdfs:Literal ;
     rdfs:label "country code"@x-gmeow-english ;
     skos:definition "The country code coordinate value of a postal address, expressed along the gmeow:axisCountryCode axis of the postal reference frame. The intended value is an ISO 3166-1 alpha-2 code (e.g. \"CA\"), but this is a convention, not an enforced datatype facet. Non-functional: sources vary (\"CA\" / \"Canada\" / \"CAN\")."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:addressPlace
     a owl:ObjectProperty ;
@@ -118,7 +118,7 @@ gmeow:addressPlace
     rdfs:range gmeow:Place ;
     rdfs:label "address place"@x-gmeow-english ;
     skos:definition "The geographic place a postal address denotes (typically the premises/building) — the seam from the as-written address to the resolved place hierarchy, its coordinates/geometry, and its external identifiers."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:hasContactPoint
     a owl:ObjectProperty ;
@@ -126,7 +126,7 @@ gmeow:hasContactPoint
     rdfs:range gmeow:ContactPoint ;
     rdfs:label "has contact point"@x-gmeow-english ;
     skos:definition "Relates an agent to a means of contacting it."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:email
     a owl:DatatypeProperty ;
@@ -134,7 +134,7 @@ gmeow:email
     rdfs:range rdfs:Literal ;
     rdfs:label "email"@x-gmeow-english ;
     skos:definition "An email address at which an agent can be reached."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:telephone
     a owl:DatatypeProperty ;
@@ -142,7 +142,7 @@ gmeow:telephone
     rdfs:range rdfs:Literal ;
     rdfs:label "telephone"@x-gmeow-english ;
     skos:definition "A telephone number at which an agent can be reached."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 # Temporally-scoped contact relationships. These flat convenience properties
 # carry their period at the statement level with gmeow:validFrom / gmeow:validUntil
@@ -158,7 +158,7 @@ gmeow:hasMet
     rdfs:range gmeow:Agent ;
     rdfs:label "has met"@x-gmeow-english ;
     skos:definition "Records that two agents have met; symmetric. The occasion/period is carried with gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:hasWorkedWith
     a owl:ObjectProperty, owl:SymmetricProperty ;
@@ -166,7 +166,7 @@ gmeow:hasWorkedWith
     rdfs:range gmeow:Agent ;
     rdfs:label "has worked with"@x-gmeow-english ;
     skos:definition "Records that two agents have worked together; symmetric. The period is carried with gmeow:validFrom/validUntil on the statement, or reified as a gmeow:ProfessionalRelationship."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:hasUsed
     a owl:ObjectProperty ;
@@ -174,7 +174,7 @@ gmeow:hasUsed
     rdfs:range gmeow:Entity ;
     rdfs:label "has used"@x-gmeow-english ;
     skos:definition "Records that an agent has used some entity (a tool, service, or work). The period is carried with gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:hasAgreement
     a owl:ObjectProperty ;
@@ -182,7 +182,7 @@ gmeow:hasAgreement
     rdfs:range gmeow:Agreement ;
     rdfs:label "has agreement"@x-gmeow-english ;
     skos:definition "Relates an agent to an agreement it is party to. The party-ship period is carried with gmeow:validFrom/validUntil on this statement; the agreement's own term/effective dates live on the gmeow:Agreement individual (no double-modelling)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 # Reified interpersonal relationship: a standing social/professional tie between
 # agents, modelled as a gufo:Relator (it mediates and existentially depends on
@@ -195,21 +195,21 @@ gmeow:InterpersonalRelationship
     rdfs:subClassOf gufo:Relator ;
     rdfs:label "Interpersonal Relationship"@x-gmeow-english ;
     skos:definition "A reified standing relationship between agents (acquaintance, collaboration, …), able to bear its own time interval, confidence, and source evidence."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:ProfessionalRelationship
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:InterpersonalRelationship ;
     rdfs:label "Professional Relationship"@x-gmeow-english ;
     skos:definition "An interpersonal relationship arising from work — colleagues, collaborators, a client and a provider (the reified form of hasWorkedWith)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:AcquaintanceRelationship
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:InterpersonalRelationship ;
     rdfs:label "Acquaintance Relationship"@x-gmeow-english ;
     skos:definition "An interpersonal relationship of social acquaintance — agents who have met and know one another (the reified form of hasMet)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:relationshipParty
     a owl:ObjectProperty ;
@@ -217,7 +217,7 @@ gmeow:relationshipParty
     rdfs:range gmeow:Agent ;
     rdfs:label "relationship party"@x-gmeow-english ;
     skos:definition "An agent who is one of the parties to an interpersonal relationship. Non-functional: a relationship typically binds two parties (and is left open for group ties)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:relationshipInterval
     a owl:ObjectProperty ;
@@ -225,7 +225,7 @@ gmeow:relationshipInterval
     rdfs:range gmeow:TimeInterval ;
     rdfs:label "relationship interval"@x-gmeow-english ;
     skos:definition "The time interval over which an interpersonal relationship held. (A relator carries its period this way rather than via duringInterval, which is reserved for gufo:Situation-based time-scoped relations.)"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 # Address tenure: an email address (or other contact point) is held by an agent
 # over a time interval — people acquire and relinquish addresses. Reified as a
@@ -236,7 +236,7 @@ gmeow:AddressTenure
     rdfs:subClassOf gmeow:TimeScopedRelation ;
     rdfs:label "Address Tenure"@x-gmeow-english ;
     skos:definition "The reified, time-scoped fact that an agent held a contact point (e.g. an email address) over a particular interval."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:tenuredContactPoint
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -244,7 +244,7 @@ gmeow:tenuredContactPoint
     rdfs:range gmeow:ContactPoint ;
     rdfs:label "tenured contact point"@x-gmeow-english ;
     skos:definition "The contact point an address-tenure concerns."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:addressHolder
     a owl:ObjectProperty, owl:FunctionalProperty ;
@@ -252,7 +252,7 @@ gmeow:addressHolder
     rdfs:range gmeow:Agent ;
     rdfs:label "address holder"@x-gmeow-english ;
     skos:definition "The agent who held the contact point over the tenure's interval."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 # =========================================================================== #
 # AXIOMATIZED DOCTRINE (#38) — relator mediation for interpersonal relationships.
@@ -279,7 +279,7 @@ gmeow:addressValue
     rdfs:range rdfs:Literal ;
     rdfs:label "address value"@x-gmeow-english ;
     skos:definition "The normalized addr-spec of an email address."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:localPart
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -287,7 +287,7 @@ gmeow:localPart
     rdfs:range rdfs:Literal ;
     rdfs:label "local part"@x-gmeow-english ;
     skos:definition "The local part of an email address."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:domainPart
     a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -295,7 +295,7 @@ gmeow:domainPart
     rdfs:range rdfs:Literal ;
     rdfs:label "domain part"@x-gmeow-english ;
     skos:definition "The domain part of an email address."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .
 
 gmeow:deliversToAccount
     a owl:ObjectProperty ;
@@ -303,4 +303,4 @@ gmeow:deliversToAccount
     rdfs:range gmeow:OnlineAccount ;
     rdfs:label "delivers to account"@x-gmeow-english ;
     skos:definition "Relates an email address to the online account it delivers to — the seam joining an address (held by an agent) to the account a message resides in."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> .

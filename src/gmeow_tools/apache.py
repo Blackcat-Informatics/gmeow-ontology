@@ -53,6 +53,17 @@ _TEMPLATE = """\
     # Default: human-readable documentation.
     RewriteRule ^/gmeow/?$ /gmeow/index.html [R=303,L]
 
+    # Slice IRIs (#329): every term's rdfs:isDefinedBy points at its owning
+    # slice — the IRI must dereference. Until per-slice guides publish (#325),
+    # land on the module-status anchor of the landing page; RDF requests get
+    # the canonical serialization.
+    RewriteCond %{{HTTP_ACCEPT}} text/turtle [OR]
+    RewriteCond %{{HTTP_ACCEPT}} application/rdf\\+xml [OR]
+    RewriteCond %{{HTTP_ACCEPT}} application/ld\\+json
+    RewriteRule ^/gmeow/slices/([a-z][a-z0-9-]*)$ /gmeow.ttl [R=303,L]
+    RewriteRule ^/gmeow/slices/([a-z][a-z0-9-]*)$ \
+        /gmeow/index.html#slice-$1 [R=303,L,NE]
+
     # Per-term dereferencing (slash namespace): a term URI resolves to the
     # documentation anchor for that term.
     RewriteCond %{{HTTP_ACCEPT}} !text/turtle

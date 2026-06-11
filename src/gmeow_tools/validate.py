@@ -27,7 +27,7 @@ from gmeow_tools.config import (
 from gmeow_tools.graph import iter_source_files, load_merged_graph
 from gmeow_tools.language_tags import check_annotation_literal
 from gmeow_tools.reasoning_lint import reasoning_invariants
-from gmeow_tools.slices import iter_slice_shape_files
+from gmeow_tools.slices import iter_slice_module_files, iter_slice_shape_files
 
 _DEFINITION = SKOS.definition
 
@@ -423,6 +423,35 @@ def _dsl_shacl(dsl_dir: Path, label: str) -> ValidationResult:
     return result
 
 
+def slice_ownership_lint(root: Path | None = None) -> ValidationResult:
+    """Enforce the per-term ownership convention (#329, Principles 15-16).
+
+    Every ``rdfs:isDefinedBy`` asserted on a GMEOW-namespaced subject inside a
+    slice module must point at the *containing slice's IRI* — equality, not
+    mere presence. This makes the one-defining-slice rule machine-checked on
+    every term and keeps ownership honest through merges and GTS composition
+    (a term claiming a foreign owner, or the retired root-pointing form, is an
+    error).
+    """
+    result = ValidationResult()
+    modules = iter_slice_module_files(root) if root else iter_slice_module_files()
+    for module in modules:
+        slice_iri = URIRef(f"{NAMESPACE}slices/{module.parent.name}")
+        graph = Graph()
+        graph.parse(module, format="turtle")
+        for subject, obj in graph.subject_objects(RDFS.isDefinedBy):
+            if (
+                isinstance(subject, URIRef)
+                and _is_gmeow_term(subject)
+                and obj != slice_iri
+            ):
+                result.errors.append(
+                    f"{module}: {subject} rdfs:isDefinedBy {obj} — must equal "
+                    f"the owning slice IRI {slice_iri} (#329)"
+                )
+    return result
+
+
 def validate_all() -> ValidationResult:
     """Run syntax, structural lint, SHACL, and sameAs-ban checks."""
     result = check_syntax()
@@ -433,6 +462,7 @@ def validate_all() -> ValidationResult:
         return result
     merged = load_merged_graph()
     result.extend(structural_lint(merged))
+    result.extend(slice_ownership_lint())
     result.extend(reasoning_lint(merged))
     result.extend(run_shacl(merged))
     result.extend(_dsl_shacl(MAPPING_DSL_DIR, "mapping"))
