@@ -152,8 +152,14 @@ def public_literal(
     if not candidates:
         return None
 
-    # Prefer internal-tagged literals with a BCP-47 mapping.
-    for lit in candidates:
+    # Prefer internal-tagged literals with a BCP-47 mapping. Deterministic
+    # across multilingual labels (#287: the seed languages introduced fr/zh
+    # labels): the artifact carrier language (x-gmeow-english) wins, then the
+    # remaining internal tags in lexicographic order — never graph order.
+    def _rank(lit: Literal) -> tuple[int, str]:
+        return (0 if lit.language == "x-gmeow-english" else 1, lit.language or "")
+
+    for lit in sorted(candidates, key=_rank):
         if lit.language and is_internal_tag(lit.language):
             bcp = tag_map.get(lit.language)
             if bcp is not None:
@@ -218,3 +224,24 @@ def check_annotation_literal(
         f"external language tag '{obj.language}'; GMEOW-authored terms must use "
         f"the private-use 'x-gmeow-' prefix on standard annotation predicates."
     )
+
+
+def retag_graph(graph: Graph, *, tag_map: dict[str, str] | None = None) -> Graph:
+    """Retag every internal-tagged literal in *graph* to its public BCP-47 form.
+
+    The projection-boundary pass (#287): generated consumer artifacts carry
+    standard tags; internal ``x-gmeow-*`` tags exist only in canonical
+    sources (and the statements compilation, which is the canonical form).
+    Mutates and returns *graph*.
+    """
+    if tag_map is None:
+        tag_map = _default_tag_map()
+    swaps = []
+    for s_, p_, o_ in graph:
+        if isinstance(o_, Literal) and o_.language and is_internal_tag(o_.language):
+            swaps.append((s_, p_, o_, retag_literal(o_, tag_map=tag_map)))
+    for s_, p_, old, new in swaps:
+        if new != old:
+            graph.remove((s_, p_, old))
+            graph.add((s_, p_, new))
+    return graph

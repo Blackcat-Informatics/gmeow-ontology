@@ -37,6 +37,7 @@ from rdflib.term import BNode
 from gmeow_tools.config import PREFIXES, PROJECT_ROOT, SCHEMAS_DIR
 from gmeow_tools.generator import Generator, register, write_text
 from gmeow_tools.graph import iter_module_files, load_merged_graph
+from gmeow_tools.language_tags import public_text
 from gmeow_tools.self_desc import load_self_description
 
 _GMEOW = Namespace(PREFIXES["gmeow"])
@@ -170,9 +171,9 @@ def emit_linkml(graph: Graph) -> tuple[dict[str, Any], list[str]]:
         cls_def: dict[str, Any] = {
             "class_uri": str(cls),
         }
-        labels = list(graph.objects(cls, RDFS.label))
-        if labels:
-            cls_def["title"] = str(labels[0])
+        label_text = public_text(graph, cls, RDFS.label)
+        if label_text:
+            cls_def["title"] = label_text
         comments = list(graph.objects(cls, RDFS.comment))
         if comments:
             cls_def["description"] = str(comments[0])
@@ -237,9 +238,9 @@ def emit_linkml(graph: Graph) -> tuple[dict[str, Any], list[str]]:
             continue
 
         slot: dict[str, Any] = {"slot_uri": str(prop)}
-        labels = list(graph.objects(prop, RDFS.label))
-        if labels:
-            slot["title"] = str(labels[0])
+        label_text = public_text(graph, prop, RDFS.label)
+        if label_text:
+            slot["title"] = label_text
         comments = list(graph.objects(prop, RDFS.comment))
         if comments:
             slot["description"] = str(comments[0])
@@ -315,9 +316,9 @@ def emit_linkml(graph: Graph) -> tuple[dict[str, Any], list[str]]:
         for ind in sorted(inds, key=str):
             ind_local = _local_name(ind)
             pv: dict[str, Any] = {"meaning": str(ind)}
-            labels = list(graph.objects(ind, RDFS.label))
-            if labels:
-                pv["title"] = str(labels[0])
+            label_text = public_text(graph, ind, RDFS.label)
+            if label_text:
+                pv["title"] = label_text
             comments = list(graph.objects(ind, RDFS.comment))
             if comments:
                 pv["description"] = str(comments[0])

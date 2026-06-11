@@ -10,7 +10,7 @@ from rdflib import RDF, RDFS, BNode, Graph, URIRef
 from rdflib.namespace import Namespace
 from rdflib.plugins.sparql import prepareQuery
 
-from gmeow_tools.config import MAPPINGS_DIR, PREFIXES
+from gmeow_tools.config import MAPPING_DSL_DIR, MAPPINGS_DIR, PREFIXES
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.mapping_compile import (
     _PROFILES,
@@ -307,15 +307,13 @@ def test_emitted_fno_satisfies_type_invariant(tmp_path: Path) -> None:
     """The emitted FnO catalog passes fno_type_mismatches by construction."""
     import shutil
 
-    from gmeow_tools.config import PROJECTIONS_DIR
-
     dsl = load_dsl()
     onto = load_merged_graph(include_imports=False)
     proj = tmp_path / "projections"
     proj.mkdir()
     fno_out = proj / "functions.fno.ttl"
     emit_fno(dsl, onto).serialize(destination=fno_out, format="turtle")
-    shutil.copy2(PROJECTIONS_DIR / "transforms.fno.ttl", proj / "transforms.fno.ttl")
+    shutil.copy2(MAPPING_DSL_DIR / "transforms.fno.ttl", proj / "transforms.fno.ttl")
     assert fno_type_mismatches(proj) == []
 
 

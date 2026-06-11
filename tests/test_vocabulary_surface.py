@@ -18,10 +18,12 @@ from rdflib import OWL, RDF, Graph, Namespace, URIRef
 from gmeow_tools.config import (
     CATALOG_FILE,
     FIXTURES_DIR,
+    MAPPING_DSL_DIR,
     NAMESPACE,
     ONTOLOGY_FILE,
     PROJECT_ROOT,
     SHAPES_FILE,
+    STATEMENT_DSL_DIR,
 )
 from gmeow_tools.graph import iter_module_files
 
@@ -33,8 +35,7 @@ GMEOW_EXAMPLES = NAMESPACE + "examples/"
 DOCS_DIR = PROJECT_ROOT / "docs"
 
 # DSL source directories whose terms are legitimate in docs prose.
-MAPPING_DSL_DIR = PROJECT_ROOT / "mapping-dsl"
-STATEMENT_DSL_DIR = PROJECT_ROOT / "statement-dsl"
+
 
 # Terms that are intentionally retired but still mentioned in docs as historical.
 _RETIRED_DOCS_TERMS = {

@@ -50,6 +50,8 @@ packages = ["src/gmeow_tools"]
 line-length = 88
 target-version = "py313"
 src = ["src", "tests"]
+# generated/ is owned by registered generators (#287); never lint outputs.
+extend-exclude = ["generated"]
 
 [tool.ruff.lint]
 select = [

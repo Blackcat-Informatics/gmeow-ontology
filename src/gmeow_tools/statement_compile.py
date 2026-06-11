@@ -152,6 +152,8 @@ class StatementGenerator(Generator):
     """Compile statement-dsl/ → RDF 1.2 lead artifact + OWL downcast."""
 
     name: str = "statements"
+    #: The canonical internal compilation keeps x-gmeow-* tags (#287 leak gate).
+    allows_internal_tags: bool = True
 
     @property
     def inputs(self) -> Sequence[Path]:

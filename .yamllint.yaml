@@ -17,4 +17,5 @@ rules:
 ignore: |
   .venv/
   dist/
+  generated/
   docs/_generated/
