@@ -744,6 +744,26 @@ gmeow:sentBySoftware
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
 
 # --------------------------------------------------------------------------- #
+# Resent header facets (issue #134) — non-address resent trace fields
+# --------------------------------------------------------------------------- #
+
+gmeow:resentDate
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:EmailMessage ;
+    rdfs:range xsd:dateTime ;
+    rdfs:label "resent date"@x-gmeow-english ;
+    skos:definition "The RFC 5322 Resent-Date header value of a message. Non-functional: a message may carry multiple Resent-Date values if it was resent multiple times. The raw header value remains on gmeow:MessageHeader (Principle 4)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+
+gmeow:resentMessageId
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:EmailMessage ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "resent message id"@x-gmeow-english ;
+    skos:definition "The RFC 5322 Resent-Message-ID header value of a message. Non-functional: a message may carry multiple Resent-Message-ID values if it was resent multiple times. The raw header value remains on gmeow:MessageHeader (Principle 4)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> .
+
+# --------------------------------------------------------------------------- #
 # MIME body part metadata (issue #133)
 #
 # Reuses the existing BodyPart / Attachment / hasBodyPart spine.
