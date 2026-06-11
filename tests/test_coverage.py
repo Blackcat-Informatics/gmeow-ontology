@@ -43,6 +43,10 @@ def test_email_slice_terms_are_covered() -> None:
         GMEOW + "Summary",
         GMEOW + "MessageParticipant",
         GMEOW + "MessageHeader",
+        # Raw-message provenance (issue #135) — reused cross-cutting terms.
+        GMEOW + "Manifestation",
+        GMEOW + "ImportActivity",
+        GMEOW + "SoftwareAgent",
     }
     missing = expected_covered - report.covered_classes
     assert not missing, f"email classes missing: {missing}"
@@ -60,6 +64,14 @@ def test_email_slice_terms_are_covered() -> None:
         GMEOW + "hasMessageParticipant",
         GMEOW + "threadSubject",
         GMEOW + "subjectPrefix",
+        # Raw-message provenance (issue #135) — reused cross-cutting terms.
+        GMEOW + "contentDigest",
+        GMEOW + "sourceLocation",
+        GMEOW + "sourceModifiedAt",
+        GMEOW + "ingestedAt",
+        GMEOW + "wasDerivedFrom",
+        GMEOW + "wasGeneratedBy",
+        GMEOW + "wasAssociatedWith",
     }
     missing_p = expected_predicates - report.covered_predicates
     assert not missing_p, f"email predicates missing: {missing_p}"
