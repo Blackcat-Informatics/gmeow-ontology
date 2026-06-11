@@ -1,4 +1,4 @@
-# Malformed norms fixture (#351/#352, EPIC #348). Seven violations:
+# Malformed norms fixture (#351/#352, EPIC #348). Eight violations:
 #   1. ex:anonymousOught — a modality-bearing norm with no issuer.
 #   2. ex:narcissusNorm — a norm overriding itself.
 #   3. ex:soloGroup — a one-member ConditionGroup with no operator (x2).
@@ -6,7 +6,8 @@
 #   5. ex:flatTenure — a PrecedenceTenure whose higher and lower coincide
 #      (plus missing scope).
 #   6. ex:confusedPerm — a grafted Permission claiming deonticObligation.
-#   7. ex:blindEval — an evaluation with no verdict.
+#   7. ex:twoFacedNorm — a norm claiming two deontic forces at once.
+#   8. ex:blindEval — an evaluation with no verdict.
 # run_shacl over this graph MUST NOT conform.
 
 @prefix ex:    <https://example.org/shapes/> .
@@ -50,13 +51,13 @@ ex:confusedPerm a gmeow:Permission ;
     gmeow:deonticModality gmeow:deonticObligation ;
     gmeow:normIssuer ex:ada .
 
-# Violation 8: a norm claiming two deontic forces at once.
+# Violation 7: a norm claiming two deontic forces at once.
 ex:twoFacedNorm a gmeow:Norm ;
     rdfs:label "permits and obliges at once"@en ;
     gmeow:normIssuer ex:ada ;
     gmeow:deonticModality gmeow:deonticPermission , gmeow:deonticObligation .
 
-# Violation 7: an evaluation with no verdict.
+# Violation 8: an evaluation with no verdict.
 ex:someCond a gmeow:Condition ;
     gmeow:conditionText "a condition" .
 ex:blindEval a gmeow:ConditionEvaluation ;
