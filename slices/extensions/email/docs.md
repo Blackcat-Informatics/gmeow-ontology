@@ -139,6 +139,26 @@ GMEOW models the MIME body-part tree using the existing `BodyPart` / `Attachment
 
 **Decoded content.** Decoded plain-text or HTML body content is not stored as a literal property on the part. Instead, it is modeled as a derived `gmeow:InformationObject` (typically `gmeow:TextExtraction`) linked to the source `BodyPart` by `gmeow:wasDerivedFrom`, carrying provenance and confidence (Principle 12).
 
+### JMAP structural identifiers (issue #140)
+
+JMAP (RFC 8620 / RFC 8621) exposes `blobId`, `partId`, and `bodyStructure` as message-addressing identifiers. GMEOW maps them without letting the JMAP projection become a competing canonical model:
+
+| Source | GMEOW term | Object kind | Notes |
+|---|---|---|---|
+| JMAP Email `blobId` | `gmeow:blobId` | `rdfs:Literal` | Opaque provider-scoped identifier for the full message bytes |
+| JMAP BodyPart `blobId` | `gmeow:blobId` | `rdfs:Literal` | Opaque provider-scoped identifier for a part's raw bytes |
+| JMAP BodyPart `partId` | `gmeow:partId` | `rdfs:Literal` | Scoped to the message; not globally unique (already in issue #133) |
+| JMAP Email `bodyStructure` | `gmeow:bodyStructure` | `rdfs:Literal` | Serialized JSON of the JMAP BodyStructure object |
+| Decoded body content object | `gmeow:BodyValue` | → `gmeow:InformationObject` | Derived from a `BodyPart` via `gmeow:wasDerivedFrom` |
+
+**Opaque identifiers.** `blobId` is treated as opaque even when gmeow happens to back it with a content digest. When byte-exact content identity matters, also assert `gmeow:contentDigest` on the relevant `BodyPart` or raw artifact.
+
+**Message-scoped `partId`.** A `partId` such as `1.2` identifies a part only within its containing `EmailMessage` / `BodyStructure`. The same raw content can carry different `partId`s in different messages.
+
+**`bodyStructure` is a projection.** The serialized JMAP BodyStructure is preserved for importer round-tripping, but the canonical semantic MIME tree remains the `hasBodyPart` / `hasPart` / `partOf` spine from issue #133. Do not model the same structure twice.
+
+**Decoded content as object.** A `gmeow:BodyValue` is a decoded content object linked to its source `BodyPart` by the existing `wasDerivedFrom` provenance property. It is not a literal on the part, and it is not a separate competing tree.
+
 ## Threading
 
 `References` / `In-Reply-To` headers → `gmeow:references` / `gmeow:inReplyTo`
