@@ -629,6 +629,64 @@ pub fn read(data: &[u8], allow_segments: bool, expected_head: Option<&[u8]>) -> 
     g
 }
 
+/// The per-segment view of a file — the input to composition tooling (§14.1):
+/// each segment folded independently, plus the file-level torn marker and any
+/// fatal pre-segmentation diagnostic.
+pub struct FileSegments {
+    /// One fold per segment, in file order, each carrying its OWN diagnostics.
+    pub segments: Vec<Graph>,
+    /// Byte offset of a torn trailing item (§3), if any.
+    pub torn: Option<usize>,
+    /// Set when the file never reaches segmentation (empty, or the first item
+    /// is not a header) — `segments` is empty in that case.
+    pub fatal: Option<Diagnostic>,
+}
+
+/// Fold a file segment-by-segment WITHOUT unioning — the composition ledger
+/// view that `gts info`/`gts verify` report per-segment (§14.1).
+pub fn read_file_segments(data: &[u8]) -> FileSegments {
+    let (items, torn) = iter_items(data);
+    if items.is_empty() {
+        return FileSegments {
+            segments: Vec::new(),
+            torn,
+            fatal: Some(Diagnostic {
+                code: "EmptyFile".to_string(),
+                detail: "no CBOR items".to_string(),
+                frame_index: None,
+            }),
+        };
+    }
+    let bounds: Vec<usize> = items
+        .iter()
+        .enumerate()
+        .filter(|(_, (_, item))| is_header_item(item))
+        .map(|(i, _)| i)
+        .collect();
+    if bounds.first() != Some(&0) {
+        return FileSegments {
+            segments: Vec::new(),
+            torn,
+            fatal: Some(Diagnostic {
+                code: "DamagedFrame".to_string(),
+                detail: "first item is not a header".to_string(),
+                frame_index: Some(0),
+            }),
+        };
+    }
+    let ends = bounds.iter().skip(1).copied().chain([items.len()]);
+    let segments: Vec<Graph> = bounds
+        .iter()
+        .zip(ends)
+        .map(|(&a, b)| read_segment(&items[a..b], a))
+        .collect();
+    FileSegments {
+        segments,
+        torn,
+        fatal: None,
+    }
+}
+
 /// Fold ONE segment (header + frames) into a [`Graph`] (§7.5).
 ///
 /// `index_offset` is the segment's absolute position in the file's item
