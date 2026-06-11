@@ -201,6 +201,38 @@ package at every segment boundary, §3.1's composition rules applied as a delive
 intermediate truncation anchors (`"head"`), random-access offsets for ranged re-fetch, and a
 manifest of what has arrived; the index remains an accelerator, never a dependency (§3).
 
+**The manifest is the graph.** GTS needs no table-of-contents structure, because the frames
+that *describe* content can precede the frames that *carry* it: a producer SHOULD emit the
+quads naming each upcoming manifestation — its content digest, media type, size, role —
+before the `blob` frames whose bytes they promise. The fold of an early prefix then contains
+the delivery schedule as ordinary knowledge: every digest the graph names but the stream has
+not yet delivered is a content-addressed IOU, so "stop here", "skip ahead" and "range-fetch
+only the RAW file" are *informed* consumer decisions, taken against a verifiable catalog
+rather than a guess. (A blob that never arrives in this file is simply an external blob, §12
+— the reference degrades gracefully to "bytes live elsewhere".)
+
+*Worked delivery schedule* — a photograph as a progressive stream; a consumer may stop at any
+item boundary with a complete, verified package of everything above its stopping point:
+
+```text
+header                          profile, codec catalog
+terms/quads                     the catalog: Work + every manifestation below,
+                                each with digest, mt, size, role (the IOUs)
+blob  image/webp        ~20 KB  thumbnail — first paint
+blob  image/jxl         ~8 MB   full-resolution render
+terms/quads                     scene description (what is IN the image)
+blob  image/x-raw       ~80 MB  RAW sensor dump
+meta/quads                      full camera metadata
+terms/quads/annot               AI analysis as RDF, statement-level provenance
+terms/quads/annot               opinions — standpoint-qualified claims
+terms/quads                     processing-pipeline provenance
+index                           footer: offsets, head anchor, MMR (§6.2)
+```
+
+A casual viewer stops after the thumbnail; an archivist takes everything; an editor
+range-fetches the RAW by digest after reading only the catalog. Same bytes, same chain,
+three consumers.
+
 A reader streams items until end of input. Trailing partial bytes (a torn append) MUST be
 detected and ignored with a diagnostic: a reader attempts to decode each successive CBOR item,
 and if the decoder signals an incomplete item or unexpected EOF at end-of-file, it MUST treat
